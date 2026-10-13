@@ -435,11 +435,11 @@ class hashkey(ccxt.async_support.hashkey):
         timestamp = self.safe_integer(order, 'O')
         side = self.safe_string_lower(order, 'S')
         reduceOnly = None
-        side, reduceOnly = self.parseOrderSideAndReduceOnly(side)
-        type = self.parseOrderType(self.safe_string(order, 'o'))
+        side, reduceOnly = self.parse_order_side_and_reduce_only(side)
+        type = self.parse_order_type(self.safe_string(order, 'o'))
         timeInForce = self.safe_string(order, 'f')
         postOnly = None
-        type, timeInForce, postOnly = self.parseOrderTypeTimeInForceAndPostOnly(type, timeInForce)
+        type, timeInForce, postOnly = self.parse_order_type_time_in_force_and_post_only(type, timeInForce)
         if marketResolved['contract'] is True:  # swap orders are always have type 'LIMIT', thus we can not define the correct type
             type = None
         return self.safe_order({

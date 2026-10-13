@@ -55,7 +55,7 @@ class paradex(ccxt.async_support.paradex):
         future = client.reusableFuture('authenticated')
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
-            token = await self.authenticateRest()
+            token = await self.authenticate_rest()
             request = {
                 'jsonrpc': '2.0',
                 'id': self.request_id(),

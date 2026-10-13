@@ -658,7 +658,7 @@ class bydfi(ccxt.async_support.bydfi):
             'lastUpdateTimestamp': None,
             'status': self.parse_order_status(rawStatus),
             'symbol': marketResolved['symbol'],
-            'type': self.parseOrderType(rawType),
+            'type': self.parse_order_type(rawType),
             'timeInForce': None,
             'postOnly': None,
             'reduceOnly': self.safe_bool(order, 'ro'),

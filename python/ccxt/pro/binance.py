@@ -2195,9 +2195,9 @@ class binance(ccxt.async_support.binance):
             # check option first — isLinear returns true for linear-settled options, which would incorrectly route to futures
             # eOptions: mark price and klines stream from /market/stream; tickers/bids-asks/depth/trades from /public/stream
             rawMarketType = 'optionMarket' if (isOptionMarkPrice) else 'option'
-        elif self.isLinear(marketType, subType):
+        elif self.is_linear(marketType, subType):
             rawMarketType = 'future'
-        elif self.isInverse(marketType, subType):
+        elif self.is_inverse(marketType, subType):
             rawMarketType = 'delivery'
         elif marketType == 'spot':
             rawMarketType = marketType
@@ -2910,9 +2910,9 @@ class binance(ccxt.async_support.binance):
             # subType alone and would flip 'stock' to 'future' - the stock branch
             # below would never run, and the bucket lookup would renew the
             # FUTURES listen key while the stock key silently expires
-            if self.isLinear(type, subType):
+            if self.is_linear(type, subType):
                 type = 'future'
-            elif self.isInverse(type, subType):
+            elif self.is_inverse(type, subType):
                 type = 'delivery'
         # For margin, token renewal is handled by renewListenToken method
         if type == 'margin':
@@ -3075,7 +3075,7 @@ class binance(ccxt.async_support.binance):
             # account.status
             result = self.safe_dict(message, 'result', {})
             rawBalance = self.safe_list(result, 'assets', [])
-        parsedBalances = self.parseBalanceCustom(rawBalance)
+        parsedBalances = self.parse_balance_custom(rawBalance)
         client.resolve(parsedBalances, messageHash)
 
     def handle_account_status_ws(self, client: Client, message: dict):
@@ -3127,7 +3127,7 @@ class binance(ccxt.async_support.binance):
         #
         messageHash = self.safe_string(message, 'id')
         result = self.safe_dict(message, 'result', {})
-        parsedBalances = self.parseBalanceCustom(result)
+        parsedBalances = self.parse_balance_custom(result)
         client.resolve(parsedBalances, messageHash)
 
     def fetch_position_ws(self, symbol: str, params: dict = {}) -> list[Position]:
@@ -3407,9 +3407,9 @@ class binance(ccxt.async_support.binance):
         subType, paramsSubType = self.handle_sub_type_and_params(methodName, market, paramsMarketType)
         type = marketType
         if type != 'option' and type != 'stock':
-            if self.isLinear(type, subType):
+            if self.is_linear(type, subType):
                 type = 'future'
-            elif self.isInverse(type, subType):
+            elif self.is_inverse(type, subType):
                 type = 'delivery'
         # sites consuming every element unpack this; the two that skip subType
         # index it positionally instead, so no receiver is declared-but-unread
@@ -3420,9 +3420,9 @@ class binance(ccxt.async_support.binance):
         paramsMarketType = {}
         type, paramsMarketType = self.handle_market_type_and_params(method, market, params)
         subType = self.handle_sub_type_and_params(method, market, paramsMarketType)[0]
-        if self.isLinear(type, subType):
+        if self.is_linear(type, subType):
             type = 'future'
-        elif self.isInverse(type, subType):
+        elif self.is_inverse(type, subType):
             type = 'delivery'
         return type
 
@@ -3458,7 +3458,7 @@ class binance(ccxt.async_support.binance):
         messageHash = str(requestId)
         sor = self.safe_bool_2(params, 'sor', 'SOR', False)
         paramsOmitted = self.omit(params, 'sor', 'SOR')
-        isConditional = self.isConditionalOrder(paramsOmitted)
+        isConditional = self.is_conditional_order(paramsOmitted)
         if (market['inverse'] is True) and isConditional:
             raise NotSupported(self.id + ' createOrderWs() does not support conditional orders for inverse markets, the exchange only accepts them through the REST API, use createOrder() instead')
         isAlgoOrder = (market['linear'] is True) and ((market['swap'] is True) or (market['future'] is True)) and isConditional
@@ -3613,9 +3613,9 @@ class binance(ccxt.async_support.binance):
         isSwap = (marketType == 'future' or marketType == 'delivery')
         payload = {}
         if marketType == 'spot':
-            payload = self.editSpotOrderRequest(id, symbol, type, side, amount, price, params)
+            payload = self.edit_spot_order_request(id, symbol, type, side, amount, price, params)
         else:
-            payload = self.editContractOrderRequest(id, symbol, type, side, amount, price, params)
+            payload = self.edit_contract_order_request(id, symbol, type, side, amount, price, params)
         returnRateLimits, paramsReturnRateLimits = self.handle_option_bool_and_params(params, 'editOrderWs', 'returnRateLimits', False)
         payload['returnRateLimits'] = returnRateLimits
         message = {
@@ -4240,7 +4240,7 @@ class binance(ccxt.async_support.binance):
                 'timestamp': stockTimestamp,
                 'datetime': self.iso8601(stockTimestamp),
                 'lastUpdateTimestamp': stockLastUpdateTimestamp,
-                'type': self.parseOrderTypeByMarket(self.safe_string_lower(order, 'o'), 'spot'),
+                'type': self.parse_order_type_by_market(self.safe_string_lower(order, 'o'), 'spot'),
                 'timeInForce': None,
                 'postOnly': None,
                 'reduceOnly': None,
@@ -4311,7 +4311,7 @@ class binance(ccxt.async_support.binance):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'lastUpdateTimestamp': lastUpdateTimestamp,
-            'type': self.parseOrderTypeByMarket(orderType, marketType),
+            'type': self.parse_order_type_by_market(orderType, marketType),
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'reduceOnly': self.safe_bool(order, 'R'),

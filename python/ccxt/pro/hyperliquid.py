@@ -87,7 +87,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         if self.markets is None:
             await self.load_markets()
         url = self.urls['api']['ws']['public']
-        ordersRequest = self.createOrdersRequest(orders, params)
+        ordersRequest = self.create_orders_request(orders, params)
         wrapped = self.wrap_as_post_action(ordersRequest)
         request = self.safe_dict(wrapped, 'request', {})
         requestId = self.safe_string(wrapped, 'requestId')
@@ -120,7 +120,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         """
         if self.markets is None:
             await self.load_markets()
-        order, globalParams = self.parseCreateEditOrderArgs(None, symbol, type, side, amount, price, params)
+        order, globalParams = self.parse_create_edit_order_args(None, symbol, type, side, amount, price, params)
         orders = await self.create_orders_ws([order], globalParams)
         ordersLength = len(orders)
         if ordersLength == 0:
@@ -154,8 +154,8 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             await self.load_markets()
         market = self.market(symbol)
         url = self.urls['api']['ws']['public']
-        order, globalParams = self.parseCreateEditOrderArgs(id, symbol, type, side, amount, price, params)
-        postRequest = self.editOrdersRequest([order], globalParams)
+        order, globalParams = self.parse_create_edit_order_args(id, symbol, type, side, amount, price, params)
+        postRequest = self.edit_orders_request([order], globalParams)
         wrapped = self.wrap_as_post_action(postRequest)
         request = self.safe_dict(wrapped, 'request', {})
         requestId = self.safe_string(wrapped, 'requestId')
@@ -184,7 +184,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         self.check_required_credentials()
         if self.markets is None:
             await self.load_markets()
-        request = self.cancelOrdersRequest(ids, symbol, params)
+        request = self.cancel_orders_request(ids, symbol, params)
         url = self.urls['api']['ws']['public']
         wrapped = self.wrap_as_post_action(request)
         wsRequest = self.safe_dict(wrapped, 'request', {})
@@ -304,7 +304,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         #
         entry = self.safe_dict(message, 'data', {})
         coin = self.safe_string(entry, 'coin')
-        marketId = self.coinToMarketId(coin)
+        marketId = self.coin_to_market_id(coin)
         market = self.market(marketId)
         symbol = market['symbol']
         rawData = self.safe_list(entry, 'levels', [])
@@ -460,7 +460,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         userAddress = None
-        userAddressResult = self.handlePublicAddress('watchMyTrades', params)
+        userAddressResult = self.handle_public_address('watchMyTrades', params)
         userAddress = self.safe_string(userAddressResult, 0)
         paramsValue = self.safe_dict(userAddressResult, 1, params)
         if self.markets is None:
@@ -517,7 +517,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         :param str [params.user]: user address, will default to self.walletAddress if not provided
         :returns dict: an array of `liquidation structures <https://docs.ccxt.com/?id=liquidation-structure>`
         """
-        userAddress, paramsValue = self.handlePublicAddress('watchMyLiquidationsForSymbols', params)
+        userAddress, paramsValue = self.handle_public_address('watchMyLiquidationsForSymbols', params)
         if self.markets is None:
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols, None, True, True)
@@ -562,7 +562,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         if symbol is not None:
             raise NotSupported(self.id + ' unWatchMyTrades does not support a symbol argument, unWatch from all markets only')
         userAddress = None
-        userAddressResult = self.handlePublicAddress('unWatchMyTrades', params)
+        userAddressResult = self.handle_public_address('unWatchMyTrades', params)
         userAddress = self.safe_string(userAddressResult, 0)
         paramsValue = self.safe_dict(userAddressResult, 1, params)
         messageHash = 'unsubscribe:myTrades'
@@ -599,7 +599,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             keys = list(mids.keys())
             for i in range(0, len(keys)):
                 name = keys[i]
-                marketId = self.coinToMarketId(name)
+                marketId = self.coin_to_market_id(name)
                 market = self.safe_market(marketId, None, None, 'swap')
                 symbol = market['symbol']
                 ticker = self.parse_ws_ticker({
@@ -638,7 +638,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         #
         data = self.safe_dict(message, 'data', {})
         coin = self.safe_string(data, 'coin')
-        marketId = self.coinToMarketId(coin)
+        marketId = self.coin_to_market_id(coin)
         market = self.safe_market(marketId)
         symbol = market['symbol']
         ctx = self.safe_dict(data, 'ctx', {})
@@ -830,7 +830,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             return
         first = self.safe_dict(entry, 0, {})
         coin = self.safe_string(first, 'coin')
-        marketId = self.coinToMarketId(coin)
+        marketId = self.coin_to_market_id(coin)
         market = self.market(marketId)
         symbol = market['symbol']
         if not (symbol in self.trades):
@@ -883,7 +883,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         price = self.safe_string(trade, 'px')
         amount = self.safe_string(trade, 'sz')
         coin = self.safe_string(trade, 'coin')
-        marketId = self.coinToMarketId(coin)
+        marketId = self.coin_to_market_id(coin)
         marketResolved = self.safe_market(marketId)
         symbol = marketResolved['symbol']
         id = self.safe_string(trade, 'tid')
@@ -991,7 +991,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         #
         data = self.safe_dict(message, 'data', {})
         base = self.safe_string(data, 's')
-        marketId = self.coinToMarketId(base)
+        marketId = self.coin_to_market_id(base)
         symbol = self.safe_symbol(marketId)
         timeframe = self.safe_string(data, 'i')
         if not (symbol in self.ohlcvs):
@@ -1035,12 +1035,12 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         if self.markets is None:
             await self.load_markets()
         userAddress = None
-        userAddressResult = self.handlePublicAddress('watchBalance', params)
+        userAddressResult = self.handle_public_address('watchBalance', params)
         userAddress = self.safe_string(userAddressResult, 0)
         paramsValue = self.safe_dict(userAddressResult, 1, params)
         type, paramsMarketType = self.handle_market_type_and_params('watchBalance', None, paramsValue)
         isUnifiedEnabled = None
-        unifiedResult = await self.isUnifiedEnabled('watchBalance', userAddress, False, paramsMarketType)
+        unifiedResult = await self.is_unified_enabled('watchBalance', userAddress, False, paramsMarketType)
         isUnifiedEnabled = self.safe_bool(unifiedResult, 0)
         paramsValue2 = self.safe_dict(unifiedResult, 1, paramsMarketType)
         dex = self.safe_string(paramsValue2, 'dex')
@@ -1084,12 +1084,12 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             await self.load_markets()
         url = self.urls['api']['ws']['public']
         userAddress = None
-        userAddressResult = self.handlePublicAddress('unWatchBalance', params)
+        userAddressResult = self.handle_public_address('unWatchBalance', params)
         userAddress = self.safe_string(userAddressResult, 0)
         paramsValue = self.safe_dict(userAddressResult, 1, params)
         type, paramsMarketType = self.handle_market_type_and_params('unWatchBalance', None, paramsValue)
         isUnifiedEnabled = None
-        unifiedResult = await self.isUnifiedEnabled('unWatchBalance', userAddress, False, paramsMarketType)
+        unifiedResult = await self.is_unified_enabled('unWatchBalance', userAddress, False, paramsMarketType)
         isUnifiedEnabled = self.safe_bool(unifiedResult, 0)
         paramsValue2 = self.safe_dict(unifiedResult, 1, paramsMarketType)
         dex = self.safe_string(paramsValue2, 'dex')
@@ -1261,7 +1261,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         if self.markets is None:
             await self.load_markets()
         userAddress = None
-        userAddressResult = self.handlePublicAddress('watchPositions', params)
+        userAddressResult = self.handle_public_address('watchPositions', params)
         userAddress = self.safe_string(userAddressResult, 0)
         paramsValue = self.safe_dict(userAddressResult, 1, params)
         topic = 'clearinghouseState'
@@ -1277,7 +1277,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             'type': topic,
             'user': userAddress,
         }
-        dexName = self.getDexFromSymbols('watchPositions', symbolsNormalized)
+        dexName = self.get_dex_from_symbols('watchPositions', symbolsNormalized)
         if dexName is not None:
             subscription['dex'] = dexName
         request = {
@@ -1346,7 +1346,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         messageHash = 'unsubscribe:clearinghouseState'
         url = self.urls['api']['ws']['public']
         userAddress = None
-        userAddressResult = self.handlePublicAddress('unWatchPositions', params)
+        userAddressResult = self.handle_public_address('unWatchPositions', params)
         userAddress = self.safe_string(userAddressResult, 0)
         paramsValue = self.safe_dict(userAddressResult, 1, params)
         request = {
@@ -1375,7 +1375,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         if self.markets is None:
             await self.load_markets()
         userAddress = None
-        userAddressResult = self.handlePublicAddress('watchOrders', params)
+        userAddressResult = self.handle_public_address('watchOrders', params)
         userAddress = self.safe_string(userAddressResult, 0)
         paramsValue = self.safe_dict(userAddressResult, 1, params)
         market = None
@@ -1428,7 +1428,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         messageHash = 'unsubscribe:order'
         url = self.urls['api']['ws']['public']
         userAddress = None
-        userAddressResult = self.handlePublicAddress('unWatchOrders', params)
+        userAddressResult = self.handle_public_address('unWatchOrders', params)
         userAddress = self.safe_string(userAddressResult, 0)
         paramsValue = self.safe_dict(userAddressResult, 1, params)
         request = {
@@ -1587,7 +1587,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         #        }
         #
         coin = self.safe_string(subscription, 'coin')
-        marketId = self.coinToMarketId(coin)
+        marketId = self.coin_to_market_id(coin)
         symbol = self.safe_symbol(marketId)
         subMessageHash = 'orderbook:' + symbol
         messageHash = 'unsubscribe:' + subMessageHash
@@ -1598,7 +1598,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
     def handle_trades_unsubscription(self, client: Client, subscription: dict):
         #
         coin = self.safe_string(subscription, 'coin')
-        marketId = self.coinToMarketId(coin)
+        marketId = self.coin_to_market_id(coin)
         symbol = self.safe_symbol(marketId)
         subMessageHash = 'trade:' + symbol
         messageHash = 'unsubscribe:' + subMessageHash
@@ -1618,7 +1618,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
     def handle_ticker_unsubscription(self, client: Client, subscription: dict):
         #
         coin = self.safe_string(subscription, 'coin')
-        marketId = self.coinToMarketId(coin)
+        marketId = self.coin_to_market_id(coin)
         symbol = self.safe_symbol(marketId)
         subMessageHash = 'ticker:' + symbol
         messageHash = 'unsubscribe:' + subMessageHash
@@ -1628,7 +1628,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
 
     def handle_ohlcv_unsubscription(self, client: Client, subscription: dict):
         coin = self.safe_string(subscription, 'coin')
-        marketId = self.coinToMarketId(coin)
+        marketId = self.coin_to_market_id(coin)
         symbol = self.safe_symbol(marketId)
         interval = self.safe_string(subscription, 'interval')
         timeframe = self.find_timeframe(interval)

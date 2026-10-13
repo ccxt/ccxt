@@ -448,7 +448,7 @@ class derive(ccxt.async_support.derive):
         if authenticated is None:
             requestId = self.request_id(url)
             now = str(self.milliseconds())
-            signature = self.signMessage(now, self.privateKey)
+            signature = self.sign_message(now, self.privateKey)
             deriveWalletAddress = self.safe_string(self.options, 'deriveWalletAddress')
             request = {
                 'id': requestId,
@@ -496,7 +496,7 @@ class derive(ccxt.async_support.derive):
         """
         if self.markets is None:
             await self.load_markets()
-        subaccountId, paramsDeriveSubaccountId = self.handleDeriveSubaccountId('watchOrders', params)
+        subaccountId, paramsDeriveSubaccountId = self.handle_derive_subaccount_id('watchOrders', params)
         topic = self.number_to_string(subaccountId) + '.orders'
         messageHash = topic
         symbolResolved = self.symbol(symbol) if (symbol is not None) else symbol
@@ -609,7 +609,7 @@ class derive(ccxt.async_support.derive):
         """
         if self.markets is None:
             await self.load_markets()
-        subaccountId, paramsDeriveSubaccountId = self.handleDeriveSubaccountId('watchMyTrades', params)
+        subaccountId, paramsDeriveSubaccountId = self.handle_derive_subaccount_id('watchMyTrades', params)
         topic = self.number_to_string(subaccountId) + '.trades'
         messageHash = topic
         symbolResolved = self.symbol(symbol) if (symbol is not None) else symbol

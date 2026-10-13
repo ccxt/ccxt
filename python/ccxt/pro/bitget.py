@@ -111,7 +111,7 @@ class bitget(ccxt.async_support.bitget):
         useProductType = (market is None) or (market['swap'] is True) or (market['future'] is True)
         productTypeAndParams = [None, {}]
         if useProductType:
-            productTypeAndParams = self.handleProductTypeAndParams(market, params)
+            productTypeAndParams = self.handle_product_type_and_params(market, params)
         else:
             productTypeAndParams = ['SPOT', params]
         instTypeDefault = productTypeAndParams[0]

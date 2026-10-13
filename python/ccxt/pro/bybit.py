@@ -208,7 +208,7 @@ class bybit(ccxt.async_support.bybit):
             isUsdcSettled = (defaultSettle == 'USDC')
         isSpot = (type == 'spot')
         if isPrivate:
-            unified = await self.isUnifiedEnabled()
+            unified = await self.is_unified_enabled()
             isUnifiedMargin = self.safe_bool(unified, 0, False)
             isUnifiedAccount = self.safe_bool(unified, 1, False)
             if isUsdcSettled and (isUnifiedMargin is not True) and (isUnifiedAccount is not True):
@@ -1945,7 +1945,7 @@ class bybit(ccxt.async_support.bybit):
         messageHash = 'balances'
         type, paramsMarketType = self.handle_market_type_and_params('watchBalance', None, params)
         subType, paramsSubType = self.handle_sub_type_and_params('watchBalance', None, paramsMarketType)
-        unified = await self.isUnifiedEnabled()
+        unified = await self.is_unified_enabled()
         isUnifiedMargin = self.safe_bool(unified, 0, False)
         isUnifiedAccount = self.safe_bool(unified, 1, False)
         url = await self.get_url_by_market_type(None, True, method, paramsSubType)

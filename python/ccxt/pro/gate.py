@@ -202,7 +202,7 @@ class gate(ccxt.async_support.gate):
         """
         if self.markets is None:
             await self.load_markets()
-        request = self.createOrdersRequest(orders, params)
+        request = self.create_orders_request(orders, params)
         firstOrder = orders[0]
         market = self.market(firstOrder['symbol'])
         if market['swap'] is not True:
@@ -243,7 +243,7 @@ class gate(ccxt.async_support.gate):
         url = self.get_url_by_market(market)
         paramsOmitted = self.omit(paramsChannel, ['stop', 'trigger'])
         type, query = self.handle_market_type_and_params('cancelAllOrders', market, paramsOmitted)
-        request, requestParams = self.multiOrderSpotPrepareRequest(market, trigger, query) if (type == 'spot') else self.prepareRequest(market, type, query)
+        request, requestParams = self.multi_order_spot_prepare_request(market, trigger, query) if (type == 'spot') else self.prepare_request(market, type, query)
         await self.authenticate(url, messageType)
         rawOrders = await self.request_private(url, self.extend(request, requestParams), channelOption)
         return self.parse_orders(rawOrders, market)
@@ -271,7 +271,7 @@ class gate(ccxt.async_support.gate):
         trigger = self.safe_bool_n(params, ['is_stop_order', 'stop', 'trigger'], False)
         paramsOmitted = self.omit(params, ['is_stop_order', 'stop', 'trigger'])
         type, query = self.handle_market_type_and_params('cancelOrder', market, paramsOmitted)
-        request, requestParams = self.spotOrderPrepareRequest(market, trigger, query) if (type == 'spot' or type == 'margin') else self.prepareRequest(market, type, query)
+        request, requestParams = self.spot_order_prepare_request(market, trigger, query) if (type == 'spot' or type == 'margin') else self.prepare_request(market, type, query)
         messageType = self.get_type_by_market(market)
         channel = messageType + '.order_cancel'
         url = self.get_url_by_market(market)
@@ -330,7 +330,7 @@ class gate(ccxt.async_support.gate):
             market = None
         else:
             market = self.market(symbol)
-        request, requestParams = self.fetchOrderRequest(id, symbol, params)
+        request, requestParams = self.fetch_order_request(id, symbol, params)
         messageType = self.get_type_by_market(market)
         channel = messageType + '.order_status'
         url = self.get_url_by_market(market)
@@ -390,7 +390,7 @@ class gate(ccxt.async_support.gate):
             symbolResolved = self.safe_string(market, 'symbol')
             if market['swap'] is not True:
                 raise NotSupported(self.id + ' fetchOrdersByStatusWs is only supported by swap markets. Use rest API for other markets')
-        request, requestParams = self.prepareOrdersByStatusRequest(status, symbolResolved, since, limit, params)
+        request, requestParams = self.prepare_orders_by_status_request(status, symbolResolved, since, limit, params)
         newRequest = self.omit(request, ['settle'])
         messageType = self.get_type_by_market(market)
         channel = messageType + '.order_list'

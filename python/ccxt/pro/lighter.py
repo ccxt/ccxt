@@ -109,8 +109,8 @@ class lighter(ccxt.async_support.lighter):
         return await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
 
     async def subscribe_private(self, messageHash: str, params: dict = {}):
-        await self.preLoadLighterLibrary()
-        params['auth'] = self.createAuth(params)
+        await self.pre_load_lighter_library()
+        params['auth'] = self.create_auth(params)
         return await self.subscribe_public(messageHash, params)
 
     def handle_delta(self, bookside: object, delta: object):
@@ -766,7 +766,7 @@ class lighter(ccxt.async_support.lighter):
         """
         if self.markets is None:
             await self.load_markets()
-        accountIndex, paramsAccountIndex = await self.handleAccountIndex(params, 'watchMyTrades', 'accountIndex', 'account_index')
+        accountIndex, paramsAccountIndex = await self.handle_account_index(params, 'watchMyTrades', 'accountIndex', 'account_index')
         messageHash = self.get_message_hash('myTrades')
         symbolResolved = None
         if symbol is not None:
@@ -795,7 +795,7 @@ class lighter(ccxt.async_support.lighter):
         """
         if symbol is not None:
             raise NotSupported(self.id + ' unWatchMyTrades() does not support a symbol argument, the account trades channel covers every market, unWatch from all markets only')
-        accountIndex, paramsAccountIndex = await self.handleAccountIndex(params, 'unWatchMyTrades', 'accountIndex', 'account_index')
+        accountIndex, paramsAccountIndex = await self.handle_account_index(params, 'unWatchMyTrades', 'accountIndex', 'account_index')
         subMessageHash = self.get_message_hash('myTrades')
         messageHash = 'unsubscribe:' + subMessageHash
         request = {
@@ -948,7 +948,7 @@ class lighter(ccxt.async_support.lighter):
             await self.load_markets()
         defaultType = self.safe_string_2(self.options, 'watchBalance', 'defaultType', 'spot')
         type, paramsType = self.handle_param_string(params, 'type', defaultType)
-        accountIndex, paramsAccountIndex = await self.handleAccountIndex(paramsType, 'watchBalance', 'accountIndex', 'account_index')
+        accountIndex, paramsAccountIndex = await self.handle_account_index(paramsType, 'watchBalance', 'accountIndex', 'account_index')
         messageHash = self.get_message_hash('balances', None, type)
         request = {}
         if type == 'spot':
@@ -1060,7 +1060,7 @@ class lighter(ccxt.async_support.lighter):
         """
         if self.markets is None:
             await self.load_markets()
-        accountIndex, paramsAccountIndex = await self.handleAccountIndex(params, 'watchOrders', 'accountIndex', 'account_index')
+        accountIndex, paramsAccountIndex = await self.handle_account_index(params, 'watchOrders', 'accountIndex', 'account_index')
         messageHash = None
         request = {}
         if symbol is not None:
@@ -1088,7 +1088,7 @@ class lighter(ccxt.async_support.lighter):
         """
         if self.markets is None:
             await self.load_markets()
-        accountIndex, paramsAccountIndex = await self.handleAccountIndex(params, 'unWatchOrders', 'accountIndex', 'account_index')
+        accountIndex, paramsAccountIndex = await self.handle_account_index(params, 'unWatchOrders', 'accountIndex', 'account_index')
         subMessageHash = None
         request = {}
         if symbol is not None:
@@ -1133,7 +1133,7 @@ class lighter(ccxt.async_support.lighter):
         url = self.urls['api']['ws']
         requestId = self.request_id(url)
         messageHash = 'jsonapi/sendtx:' + requestId
-        txType, txInfo, order = await self.signAndCreateOrder('createOrderWs', symbol, type, side, amount, price, params)
+        txType, txInfo, order = await self.sign_and_create_order('createOrderWs', symbol, type, side, amount, price, params)
         market = self.market(symbol)
         parsedTx = self.parse_json(txInfo)
         message = {
@@ -1166,7 +1166,7 @@ class lighter(ccxt.async_support.lighter):
         url = self.urls['api']['ws']
         requestId = self.request_id(url)
         messageHash = 'jsonapi/sendtx:' + requestId
-        txType, txInfo = await self.signAndCancelOrder('cancelOrderWs', id, symbol, params)
+        txType, txInfo = await self.sign_and_cancel_order('cancelOrderWs', id, symbol, params)
         market = self.market(symbol)
         parsedTx = self.parse_json(txInfo)
         message = {
@@ -1198,7 +1198,7 @@ class lighter(ccxt.async_support.lighter):
         url = self.urls['api']['ws']
         requestId = self.request_id(url)
         messageHash = 'jsonapi/sendtx:' + requestId
-        txType, txInfo = await self.signAndCancelAllOrders('cancelAllOrdersWs', symbol, params)
+        txType, txInfo = await self.sign_and_cancel_all_orders('cancelAllOrdersWs', symbol, params)
         parsedTx = self.parse_json(txInfo)
         message = {
             'type': 'jsonapi/sendtx',

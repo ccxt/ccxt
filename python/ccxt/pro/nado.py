@@ -857,7 +857,7 @@ class nado(ccxt.async_support.nado):
         requestIdString = self.safe_string(paramsExtended, 'id')
         if requestIdString is None:
             raise ArgumentsRequired(self.id + ' ws execute requires params.id')
-        request = await self.cancelOrdersRequest(ids, symbol, paramsExtended)
+        request = await self.cancel_orders_request(ids, symbol, paramsExtended)
         response = await self.watch_execute_request(requestIdString, request)
         #
         #     {
@@ -902,7 +902,7 @@ class nado(ccxt.async_support.nado):
         requestIdString = self.safe_string(paramsExtended, 'id')
         if requestIdString is None:
             raise ArgumentsRequired(self.id + ' ws execute requires params.id')
-        request = await self.cancelAllOrdersRequest(symbol, paramsExtended)
+        request = await self.cancel_all_orders_request(symbol, paramsExtended)
         response = await self.watch_execute_request(requestIdString, request)
         data = self.safe_dict(response, 'data', {})
         cancelledOrders = self.safe_list(data, 'cancelled_orders', [])
@@ -1010,7 +1010,7 @@ class nado(ccxt.async_support.nado):
             'sender': sender,
             'expiration': self.number_to_string(expiration),
         }
-        contracts = await self.queryContracts()
+        contracts = await self.query_contracts()
         chainId = self.safe_string(contracts, 'chain_id')
         endpointAddress = self.safe_string(contracts, 'endpoint_addr')
         if endpointAddress is None:
@@ -1040,7 +1040,7 @@ class nado(ccxt.async_support.nado):
         }
         encoded = self.eth_encode_structured_data(domain, messageTypes, tx)
         hash = '0x' + self.hash(encoded, 'keccak', 'hex')
-        return self.signHash(hash, self.privateKey)
+        return self.sign_hash(hash, self.privateKey)
 
     def create_public_subscription_request(self, method: str, streamType: Str, market: Market = None, id: Int = None, params: dict = {}) -> dict:
         stream = {
@@ -1155,8 +1155,8 @@ class nado(ccxt.async_support.nado):
             'type': None,
             'side': side,
             'takerOrMaker': 'taker',
-            'price': self.parseX18(self.safe_string(trade, 'price')),
-            'amount': self.parseX18(self.safe_string(trade, 'taker_qty')),
+            'price': self.parse_x18(self.safe_string(trade, 'price')),
+            'amount': self.parse_x18(self.safe_string(trade, 'taker_qty')),
             'cost': None,
             'fee': None,
         }, marketResolved)
@@ -1192,7 +1192,7 @@ class nado(ccxt.async_support.nado):
         takerOrMaker = None
         if isTaker is not None:
             takerOrMaker = 'taker' if isTaker else 'maker'
-        feeCost = self.parseX18(self.safe_string(trade, 'fee'))
+        feeCost = self.parse_x18(self.safe_string(trade, 'fee'))
         fee = None
         if feeCost is not None:
             fee = {
@@ -1211,8 +1211,8 @@ class nado(ccxt.async_support.nado):
             'type': None,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': self.parseX18(self.safe_string(trade, 'price')),
-            'amount': self.parseX18(self.safe_string(trade, 'filled_qty')),
+            'price': self.parse_x18(self.safe_string(trade, 'price')),
+            'amount': self.parse_x18(self.safe_string(trade, 'filled_qty')),
             'cost': None,
             'fee': fee,
         }, marketResolved)
@@ -1296,9 +1296,9 @@ class nado(ccxt.async_support.nado):
         amountString = self.safe_string(order, 'amount')
         remaining = None
         if amountString is not None:
-            remaining = self.parseX18(amountString)
-        filled = self.parseX18(self.safe_string(order, 'filled_qty'))
-        average = self.parseX18(self.safe_string(order, 'filled_price'))
+            remaining = self.parse_x18(amountString)
+        filled = self.parse_x18(self.safe_string(order, 'filled_qty'))
+        average = self.parse_x18(self.safe_string(order, 'filled_price'))
         reason = self.safe_string(order, 'reason')
         status = None
         if reason == 'placed':
@@ -1373,7 +1373,7 @@ class nado(ccxt.async_support.nado):
             elif Precise.string_lt(amountString, '0'):
                 side = 'short'
             absoluteAmount = Precise.string_abs(amountString)
-            contracts = self.parseX18(absoluteAmount)
+            contracts = self.parse_x18(absoluteAmount)
             if (vQuoteAmount is not None) and not Precise.string_equals(absoluteAmount, '0'):
                 entryPrice = self.parse_number(Precise.string_div(Precise.string_abs(vQuoteAmount), absoluteAmount))
         return self.safe_position({
@@ -1445,10 +1445,10 @@ class nado(ccxt.async_support.nado):
             'symbol': marketResolved['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'ask': self.parseX18(self.safe_string(bidask, 'ask_price')),
-            'askVolume': self.parseX18(self.safe_string(bidask, 'ask_qty')),
-            'bid': self.parseX18(self.safe_string(bidask, 'bid_price')),
-            'bidVolume': self.parseX18(self.safe_string(bidask, 'bid_qty')),
+            'ask': self.parse_x18(self.safe_string(bidask, 'ask_price')),
+            'askVolume': self.parse_x18(self.safe_string(bidask, 'ask_qty')),
+            'bid': self.parse_x18(self.safe_string(bidask, 'bid_price')),
+            'bidVolume': self.parse_x18(self.safe_string(bidask, 'bid_qty')),
             'info': bidask,
         }, marketResolved)
 
@@ -1492,8 +1492,8 @@ class nado(ccxt.async_support.nado):
                     'symbol': market['symbol'],
                     'timestamp': timestamp,
                     'datetime': self.iso8601(timestamp),
-                    'ask': self.parseX18(ask),
-                    'bid': self.parseX18(bid),
+                    'ask': self.parse_x18(ask),
+                    'bid': self.parse_x18(bid),
                     'info': bbo,
                 }, market)
                 symbol = market['symbol']
@@ -1515,8 +1515,8 @@ class nado(ccxt.async_support.nado):
 
     def handle_delta(self, bookside: object, delta: object):
         bidAsk = [
-            self.parseX18(self.safe_string(delta, 0)),
-            self.parseX18(self.safe_string(delta, 1)),
+            self.parse_x18(self.safe_string(delta, 0)),
+            self.parse_x18(self.safe_string(delta, 1)),
         ]
         bookside.storeArray(bidAsk)
 

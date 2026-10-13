@@ -573,7 +573,7 @@ class kucoin(ccxt.async_support.kucoin):
                 market = self.safe_market(marketId, market, '-')
             data = self.safe_dict(message, 'data', {})
             rawTicker = self.safe_dict(data, 'data', data)
-            ticker = self.parseSpotOrUtaTicker(rawTicker, market)
+            ticker = self.parse_spot_or_uta_ticker(rawTicker, market)
             symbol = ticker['symbol']
             self.tickers[symbol] = ticker
             messageHash = 'ticker:' + symbol
@@ -2038,7 +2038,7 @@ class kucoin(ccxt.async_support.kucoin):
             'status': self.parse_order_status(rawStatus),
             'symbol': marketResolved['symbol'],
             'type': self.safe_string_lower(order, 'oT'),
-            'timeInForce': self.parseOrderTimeInForce(rawTimeInForce),
+            'timeInForce': self.parse_order_time_in_force(rawTimeInForce),
             'side': self.safe_string_lower(order, 'S'),
             'price': self.safe_string(order, 'p'),
             'average': self.safe_string(order, 'aP'),
@@ -3086,7 +3086,7 @@ class kucoin(ccxt.async_support.kucoin):
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
-            'interval': self.parseFundingInterval(granularity),
+            'interval': self.parse_funding_interval(granularity),
         }
 
     async def watch_mark_price(self, symbol: str, params: dict = {}) -> Ticker:

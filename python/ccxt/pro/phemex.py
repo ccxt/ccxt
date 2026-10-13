@@ -1292,7 +1292,7 @@ class phemex(ccxt.async_support.phemex):
         symbol = marketResolved['symbol']
         status = self.parse_order_status(self.safe_string(order, 'ordStatus'))
         side = self.safe_string_lower(order, 'side')
-        type = self.parseOrderType(self.safe_string(order, 'ordType'))
+        type = self.parse_order_type(self.safe_string(order, 'ordType'))
         price = self.safe_string(order, 'priceRp', self.from_ep(self.safe_string(order, 'priceEp'), marketValue))
         amount = self.safe_string(order, 'orderQty')
         filled = self.safe_string(order, 'cumQty')

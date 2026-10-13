@@ -1118,7 +1118,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         if self.markets is None:
             await self.load_markets()
         await self.authenticate()
-        request = self.fetchOrdersRequest(symbol, since, limit, params)
+        request = self.fetch_orders_request(symbol, since, limit, params)
         orders = await self.watch_request('privateGetOrders', request)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
@@ -1175,7 +1175,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         if self.markets is None:
             await self.load_markets()
         await self.authenticate()
-        request = self.fetchMyTradesRequest(symbol, since, limit, params)
+        request = self.fetch_my_trades_request(symbol, since, limit, params)
         myTrades = await self.watch_request('privateGetTrades', request)
         return self.filter_by_symbol_since_limit(myTrades, symbol, since, limit)
 
@@ -1224,7 +1224,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         if self.markets is None:
             await self.load_markets()
         await self.authenticate()
-        request = self.withdrawRequest(code, amount, address, tagWithdrawTag, paramsWithdrawTag)
+        request = self.withdraw_request(code, amount, address, tagWithdrawTag, paramsWithdrawTag)
         return await self.watch_request('privateWithdrawAssets', request)
 
     def handle_withdraw(self, client: Client, message: dict):
@@ -1260,7 +1260,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         if self.markets is None:
             await self.load_markets()
         await self.authenticate()
-        request = self.fetchWithdrawalsRequest(code, since, limit, params)
+        request = self.fetch_withdrawals_request(code, since, limit, params)
         withdraws = await self.watch_request('privateGetWithdrawalHistory', request)
         return self.filter_by_currency_since_limit(withdraws, code, since, limit)
 
@@ -1302,7 +1302,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         """
         if self.markets is None:
             await self.load_markets()
-        request = self.fetchOHLCVRequest(symbol, timeframe, since, limit, params)
+        request = self.fetch_ohlcv_request(symbol, timeframe, since, limit, params)
         action = 'getCandles'
         ohlcv = await self.watch_request(action, request)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
@@ -1322,7 +1322,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         if self.markets is None:
             await self.load_markets()
         await self.authenticate()
-        request = self.fetchDepositsRequest(code, since, limit, params)
+        request = self.fetch_deposits_request(code, since, limit, params)
         deposits = await self.watch_request('privateGetDepositHistory', request)
         return self.filter_by_currency_since_limit(deposits, code, since, limit)
 

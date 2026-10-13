@@ -1469,7 +1469,7 @@ class weex(ccxt.async_support.weex):
             'id': self.safe_string(order, 'id'),
             'clientOrderId': self.safe_string(order, 'clientOrderId'),
             'symbol': marketResolved['symbol'],
-            'type': self.parseOrderType(rawType),
+            'type': self.parse_order_type(rawType),
             'timeInForce': self.safe_string(order, 'timeInForce'),
             'postOnly': None,
             'reduceOnly': self.safe_bool(order, 'reduceOnly'),

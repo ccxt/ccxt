@@ -243,7 +243,7 @@ class pacifica(ccxt.async_support.pacifica):
             await self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + 'cancelOrders() requires a "symbol" argument!')
-        request = self.cancelOrdersRequest(ids, symbol, params)
+        request = self.cancel_orders_request(ids, symbol, params)
         isTestnet = self.isSandboxModeEnabled
         urlKey = 'api'
         if isTestnet:
@@ -372,7 +372,7 @@ class pacifica(ccxt.async_support.pacifica):
         if self.markets is None:
             await self.load_markets()
         operationType = 'cancel_all_orders'
-        request = self.cancelAllOrdersRequest(symbol, params)
+        request = self.cancel_all_orders_request(symbol, params)
         isTestnet = self.isSandboxModeEnabled
         urlKey = 'api'
         if isTestnet:
@@ -616,7 +616,7 @@ class pacifica(ccxt.async_support.pacifica):
         :param str|None [params.account]: will default to options' walletAddress if not provided
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        userAddress, paramsOriginAndSingleAddress = self.handleOriginAndSingleAddress('watchMyTrades', params)
+        userAddress, paramsOriginAndSingleAddress = self.handle_origin_and_single_address('watchMyTrades', params)
         if self.markets is None:
             await self.load_markets()
         messageHash = 'myTrades'
@@ -660,7 +660,7 @@ class pacifica(ccxt.async_support.pacifica):
             await self.load_markets()
         if symbol is not None:
             raise NotSupported(self.id + ' unWatchMyTrades does not support a symbol argument, unWatch from all markets only')
-        userAddress, paramsOriginAndSingleAddress = self.handleOriginAndSingleAddress('unWatchMyTrades', params)
+        userAddress, paramsOriginAndSingleAddress = self.handle_origin_and_single_address('unWatchMyTrades', params)
         messageHash = 'unsubscribe:myTrades'
         isTestnet = self.isSandboxModeEnabled
         urlKey = 'api'
@@ -1077,7 +1077,7 @@ class pacifica(ccxt.async_support.pacifica):
         """
         if self.markets is None:
             await self.load_markets()
-        userAddress, paramsOriginAndSingleAddress = self.handleOriginAndSingleAddress('watchOrders', params)
+        userAddress, paramsOriginAndSingleAddress = self.handle_origin_and_single_address('watchOrders', params)
         market = None
         messageHash = 'order'
         symbolResolved = None
@@ -1129,7 +1129,7 @@ class pacifica(ccxt.async_support.pacifica):
         url = self.safe_string(self.urls[urlKey]['ws'], 'public')
         if url is None:
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
-        userAddress, paramsOriginAndSingleAddress = self.handleOriginAndSingleAddress('unWatchOrders', params)
+        userAddress, paramsOriginAndSingleAddress = self.handle_origin_and_single_address('unWatchOrders', params)
         request = {
             'method': 'unsubscribe',
             'params': {

@@ -100,7 +100,7 @@ class bullish(ccxt.async_support.bullish):
 
     async def watch_private(self, messageHash: str, subscribeHash: str, request={}, params={}) -> object:
         url = self.urls['api']['ws']['private']
-        token = await self.handleToken()
+        token = await self.handle_token()
         cookies = {
             'JWT_COOKIE': token,
         }

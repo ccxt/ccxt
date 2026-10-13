@@ -86,7 +86,7 @@ class bithumb(ccxt.async_support.bithumb):
             'tickTypes': [tickTypes],
         }
         if isGenerationTwo:
-            marketIdRequest = self.getGen2MarketId(market)
+            marketIdRequest = self.get_gen2_market_id(market)
             request = [
                 {'ticket': self.uuid()},
                 self.extend({
@@ -128,7 +128,7 @@ class bithumb(ccxt.async_support.bithumb):
             market = self.market(symbol)
             streamMarketId = None
             if isGenerationTwo:
-                streamMarketId = self.getGen2MarketId(market)
+                streamMarketId = self.get_gen2_market_id(market)
             else:
                 streamMarketId = (market['base'] + '_' + market['quote'])
             streamMarketIds.append(streamMarketId)
@@ -366,7 +366,7 @@ class bithumb(ccxt.async_support.bithumb):
             'symbols': [market['base'] + '_' + market['quote']],
         }
         if isGenerationTwo:
-            marketIdRequest = self.getGen2MarketId(market)
+            marketIdRequest = self.get_gen2_market_id(market)
             request = [
                 {'ticket': self.uuid()},
                 self.extend({
@@ -530,7 +530,7 @@ class bithumb(ccxt.async_support.bithumb):
             'symbols': [market['base'] + '_' + market['quote']],
         }
         if isGenerationTwo:
-            marketIdRequest = self.getGen2MarketId(market)
+            marketIdRequest = self.get_gen2_market_id(market)
             request = [
                 {'ticket': self.uuid()},
                 self.extend({

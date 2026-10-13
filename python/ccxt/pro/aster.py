@@ -1878,7 +1878,7 @@ class aster(ccxt.async_support.aster):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'lastUpdateTimestamp': lastUpdateTimestamp,
-            'type': self.parseOrderType(self.safe_string_lower(order, 'o')),
+            'type': self.parse_order_type(self.safe_string_lower(order, 'o')),
             'timeInForce': timeInForce,
             'postOnly': None,
             'reduceOnly': self.safe_bool(order, 'R'),

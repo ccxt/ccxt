@@ -635,7 +635,7 @@ class grvt(ccxt.async_support.grvt):
         if self.markets is None:
             await self.load_markets()
         await self.authenticate()
-        subAccountId = self.getSubAccountId(params)
+        subAccountId = self.get_sub_account_id(params)
         messageHashes = []
         rawHashes = []
         if symbol is not None:
@@ -718,7 +718,7 @@ class grvt(ccxt.async_support.grvt):
         await self.authenticate()
         if self.markets is None:
             await self.load_markets()
-        subAccountId = self.getSubAccountId(params)
+        subAccountId = self.get_sub_account_id(params)
         symbolsNormalized = self.market_symbols(symbols)
         rawHashes = []
         messageHashes = []
@@ -799,7 +799,7 @@ class grvt(ccxt.async_support.grvt):
         if self.markets is None:
             await self.load_markets()
         await self.authenticate()
-        subAccountId = self.getSubAccountId(params)
+        subAccountId = self.get_sub_account_id(params)
         messageHashes = []
         rawHashes = []
         if symbol is None:

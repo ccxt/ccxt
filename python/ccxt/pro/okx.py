@@ -1633,7 +1633,7 @@ class okx(ccxt.async_support.okx):
         #
         arg = self.safe_dict(message, 'arg', {})
         channel = self.safe_string(arg, 'channel')
-        balance = self.parseTradingBalance(message)
+        balance = self.parse_trading_balance(message)
         newBalance = self.deep_extend(self.balance, balance)
         self.balance = self.safe_balance(newBalance)
         client.resolve(self.balance, channel)
