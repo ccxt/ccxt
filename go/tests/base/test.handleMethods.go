@@ -11,7 +11,7 @@ func HelperTestHandleMarketTypeAndParams() {
 	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
 		"options": map[string]any{
-			"defaultType": "valueFromOptions",
+			"defaultType": "option",
 			"fetchX": map[string]any{
 				"defaultType": "valueFromMethodOptions",
 			},
@@ -50,7 +50,7 @@ func HelperTestHandleMarketTypeAndParams() {
 	// case #5, should prevail: options
 	//
 	marketType5, params5 := exchange.HandleMarketTypeAndParams("fetchY", nil, map[string]any{}, nil)
-	Assert((marketType5 != nil && *marketType5 == "valueFromOptions"))
+	Assert((marketType5 != nil && *marketType5 == "option"))
 	//
 	// case #6, should prevail: spot (because hardcoded in base)
 	//
