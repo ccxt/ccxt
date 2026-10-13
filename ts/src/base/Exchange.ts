@@ -4121,6 +4121,12 @@ export class BaseExchange {
         if (this.has['createMarketOrder'] === undefined && this.has['createOrder'] !== undefined) {
             this.has['createMarketOrder'] = this.has['createOrder'];
         }
+        if (this.has['createOrderWs'] !== undefined && this.has['createLimitOrderWs'] === undefined) {
+            this.has['createLimitOrderWs'] = this.has['createOrderWs'];
+        }
+        if (this.has['createOrderWs'] !== undefined && this.has['createMarketOrderWs'] === undefined) {
+            this.has['createMarketOrderWs'] = this.has['createOrderWs'];
+        }
     }
 
     initRestRateLimiter () {
