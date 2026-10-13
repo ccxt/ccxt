@@ -4920,7 +4920,7 @@ class NewTranspiler {
     }
 
     isDictionary(type: string): boolean {
-        return (type === 'Object') || (type === 'Dictionary<any>') || (type === 'unknown') || (type === 'Dict') || ((type.startsWith('{')) && (type.endsWith('}')));
+        return (type === 'Object') || (type === 'Dictionary<any>') || (type === 'unknown') || (type === 'Dict') || (type === 'ExchangeOptions') || ((type.startsWith('{')) && (type.endsWith('}')));
     }
 
     isStringType(type: string) {
@@ -5015,6 +5015,8 @@ class NewTranspiler {
             // expanding it to `Dict | undefined` like TS 4.9 did
             'NullableDict': 'map[string]any',
             'Market': 'MarketInterface',
+            'DefaultType': 'string',
+            'DefaultSubType': 'string',
         };
 
         if (wrappedType === undefined || wrappedType === 'Undefined') {
@@ -5293,7 +5295,7 @@ class NewTranspiler {
         }
 
         // handle the typescript type Dict
-        if (unwrappedType === 'Dict' || unwrappedType === 'map[string]any') {
+        if (unwrappedType === 'Dict' || unwrappedType === 'ExchangeOptions' || unwrappedType === 'map[string]any') {
             return `res.(map[string]any)`;
         }
 
