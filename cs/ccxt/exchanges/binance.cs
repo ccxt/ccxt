@@ -2980,7 +2980,6 @@ public partial class binance : Exchange
                     { "spot", "x-TKT5PX2F" },
                     { "margin", "x-TKT5PX2F" },
                     { "future", "x-cvBPrNm9" },
-                    { "delivery", "x-xcKtGhcu" },
                     { "swap", "x-cvBPrNm9" },
                     { "option", "x-xcKtGhcu" },
                     { "inverse", "x-xcKtGhcu" },
@@ -2992,7 +2991,6 @@ public partial class binance : Exchange
                     { "margin", "MARGIN" },
                     { "cross", "MARGIN" },
                     { "future", "UMFUTURE" },
-                    { "delivery", "CMFUTURE" },
                     { "linear", "UMFUTURE" },
                     { "swap", "UMFUTURE" },
                     { "inverse", "CMFUTURE" },
@@ -4266,13 +4264,7 @@ public partial class binance : Exchange
 
     public virtual bool isInverse(object type, object subType = null)
     {
-        if ((subType == null))
-        {
-            return ((type is "delivery"));
-        } else
-        {
-            return (subType is "inverse");
-        }
+        return (subType is "inverse");
     }
 
     public virtual bool isLinear(object type, string? subType = null)
@@ -4368,12 +4360,12 @@ public partial class binance : Exchange
         {
             throw new ExchangeError ((this.id + " markets not loaded")) ;
         }
-        // defaultType has legacy support on binance
+        // defaultType 'future' resolves spot-style symbols to the derivative market of defaultSubType
         string? defaultType = this.safeString(this.options, "defaultType");
         string? defaultSubType = this.safeString(this.options, "defaultSubType");
-        bool isLegacyLinear = defaultType == "future";
-        bool isLegacyInverse = defaultType == "delivery";
-        bool isLegacy = isLegacyLinear || isLegacyInverse;
+        bool isLegacy = defaultType == "future";
+        bool isLegacyInverse = isLegacy && (defaultSubType == "inverse");
+        bool isLegacyLinear = isLegacy && !isLegacyInverse;
         if ((symbol is string))
         {
             if (((this.markets != null)) && ((this.markets != null && symbol is string inOpKey0 && this.markets.ContainsKey(inOpKey0))))
@@ -5745,7 +5737,7 @@ public partial class binance : Exchange
      * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/account#option-margin-account-information // option
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Account-Balance                            // portfolio margin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot' or 'papi'
+     * @param {string} [params.type] 'spot', 'margin', 'swap', 'future', 'option', 'savings', 'funding' or 'papi', use params.subType 'inverse' for COIN-M
      * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
      * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the balance for a portfolio margin account
@@ -9083,10 +9075,7 @@ public partial class binance : Exchange
             string? defaultType = this.safeString(this.options, "defaultType", "spot");
             string? defaultSubType = this.safeString(this.options, "defaultSubType");
             idMarketType = defaultType;
-            if (defaultType == "delivery")
-            {
-                idMarketType = "inverse";
-            } else if ((defaultSubType == "inverse") && ((defaultType == "swap") || (defaultType == "future")))
+            if ((defaultSubType == "inverse") && ((defaultType == "swap") || (defaultType == "future")))
             {
                 idMarketType = "inverse";
             }
@@ -16184,7 +16173,7 @@ public partial class binance : Exchange
         string? type = this.safeString(parameters, "type", defaultType);
         if ((type == "margin") || (type == "spot"))
         {
-            throw new NotSupported ((this.id + " add / reduce margin only supported with type future or delivery")) ;
+            throw new NotSupported ((this.id + " add / reduce margin only supported with linear or inverse swap/future markets")) ;
         }
         if ((this.markets == null))
         {
