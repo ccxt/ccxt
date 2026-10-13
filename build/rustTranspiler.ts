@@ -8843,7 +8843,7 @@ impl ${coreName} {
         self.exchange.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
         let user_config = self.userConfig.clone();
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
