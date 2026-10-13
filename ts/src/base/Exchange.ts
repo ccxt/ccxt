@@ -34,6 +34,10 @@ import {
     UnsubscribeError,
     ExchangeClosedByUser,
 } from './errors.js';
+import {
+    sharedImplicitMethod, defineLegacyHasGetter, isLegacyHasGetter, installSharedPrototypeMembers, installSnakeCaseAliases,
+    isImplicitApiDefined, markImplicitApiDefined, getImplicitApiTarget, setImplicitApiTarget,
+} from './functions/shared.js';
 import { Precise } from './Precise.js';
 //-----------------------------------------------------------------------------
 import WsClient from './ws/WsClient.js';
@@ -440,109 +444,109 @@ export class BaseExchange {
     streaming: Dictionary<any> = {};
 
     // INTERNAL METHODS
-    sleep = sleep;
-    deepExtend = deepExtend;
-    deepExtendSafe = deepExtend;
+    declare sleep: typeof sleep;
+    declare deepExtend: typeof deepExtend;
+    declare deepExtendSafe: typeof deepExtend;
     isNode = isNode;
-    extend = extend;
-    clone = clone;
-    unique = unique;
-    indexBy = indexBy;
-    indexBySafe = indexBy;
-    roundTimeframe = roundTimeframe;
-    sortBy = sortBy;
-    sortBy2 = sortBy2;
-    groupBy = groupBy;
-    aggregate = aggregate;
-    uuid = uuid;
-    unCamelCase = unCamelCase;
-    precisionFromString = precisionFromString;
-    capitalize = capitalize;
-    now = now;
-    decimalToPrecision = decimalToPrecision;
-    safeValue = safeValue;
-    safeValue2 = safeValue2;
-    safeString = safeString;
-    safeString2 = safeString2;
-    safeFloat = safeFloat;
-    safeFloat2 = safeFloat2;
-    seconds = seconds;
-    milliseconds = milliseconds;
-    binaryToBase16 = binaryToBase16;
-    numberToBE = numberToBE;
-    base16ToBinary = base16ToBinary;
-    iso8601 = iso8601;
-    omit = omit;
-    isJsonEncodedObject = isJsonEncodedObject;
-    safeInteger = safeInteger;
-    sum = sum;
-    omitZero = omitZero;
-    implodeParams = implodeParams;
-    extractParams = extractParams;
-    json = json;
-    binaryConcat = binaryConcat;
-    hash = hash;
-    arrayConcat = arrayConcat;
-    encode = encode;
-    urlencode = urlencode;
-    hmac = hmac;
-    numberToString = numberToString;
-    parseTimeframe = parseTimeframe;
-    safeInteger2 = safeInteger2;
-    safeStringLower = safeStringLower;
-    parse8601 = parse8601;
-    yyyymmdd = yyyymmdd;
-    safeStringUpper = safeStringUpper;
-    safeTimestamp = safeTimestamp;
-    binaryConcatArray = binaryConcatArray;
-    ymdhms = ymdhms;
-    yymmdd = yymmdd;
-    stringToBase64 = stringToBase64;
-    decode = decode;
-    uuid22 = uuid22;
-    safeIntegerProduct2 = safeIntegerProduct2;
-    safeIntegerProduct = safeIntegerProduct;
-    binaryToBase58 = binaryToBase58;
-    base58ToBinary = base58ToBinary;
-    base64ToBinary = base64ToBinary;
-    safeTimestamp2 = safeTimestamp2;
-    rawencode = rawencode;
-    keysort = keysort;
-    sort = sort;
-    inArray = inArray;
-    safeStringLower2 = safeStringLower2;
-    safeStringUpper2 = safeStringUpper2;
-    isEmpty = isEmpty;
-    filterBy = filterBy;
-    uuid16 = uuid16;
-    urlencodeWithArrayRepeat = urlencodeWithArrayRepeat;
-    microseconds = microseconds;
-    binaryToBase64 = binaryToBase64;
-    strip = strip;
-    toArray = toArray;
-    safeFloatN = safeFloatN;
-    safeIntegerN = safeIntegerN;
-    safeIntegerProductN = safeIntegerProductN;
-    safeTimestampN = safeTimestampN;
-    safeValueN = safeValueN;
-    safeStringN = safeStringN;
-    safeStringLowerN = safeStringLowerN;
-    safeStringUpperN = safeStringUpperN;
-    urlencodeNested = urlencodeNested;
-    parseDate = parseDate;
-    ymd = ymd;
-    base64ToString = base64ToString;
-    crc32 = crc32;
-    packb = packb;
-    urlencodeBase64 = urlencodeBase64;
+    declare extend: typeof extend;
+    declare clone: typeof clone;
+    declare unique: typeof unique;
+    declare indexBy: typeof indexBy;
+    declare indexBySafe: typeof indexBy;
+    declare roundTimeframe: typeof roundTimeframe;
+    declare sortBy: typeof sortBy;
+    declare sortBy2: typeof sortBy2;
+    declare groupBy: typeof groupBy;
+    declare aggregate: typeof aggregate;
+    declare uuid: typeof uuid;
+    declare unCamelCase: typeof unCamelCase;
+    declare precisionFromString: typeof precisionFromString;
+    declare capitalize: typeof capitalize;
+    declare now: typeof now;
+    declare decimalToPrecision: typeof decimalToPrecision;
+    declare safeValue: typeof safeValue;
+    declare safeValue2: typeof safeValue2;
+    declare safeString: typeof safeString;
+    declare safeString2: typeof safeString2;
+    declare safeFloat: typeof safeFloat;
+    declare safeFloat2: typeof safeFloat2;
+    declare seconds: typeof seconds;
+    declare milliseconds: typeof milliseconds;
+    declare binaryToBase16: typeof binaryToBase16;
+    declare numberToBE: typeof numberToBE;
+    declare base16ToBinary: typeof base16ToBinary;
+    declare iso8601: typeof iso8601;
+    declare omit: typeof omit;
+    declare isJsonEncodedObject: typeof isJsonEncodedObject;
+    declare safeInteger: typeof safeInteger;
+    declare sum: typeof sum;
+    declare omitZero: typeof omitZero;
+    declare implodeParams: typeof implodeParams;
+    declare extractParams: typeof extractParams;
+    declare json: typeof json;
+    declare binaryConcat: typeof binaryConcat;
+    declare hash: typeof hash;
+    declare arrayConcat: typeof arrayConcat;
+    declare encode: typeof encode;
+    declare urlencode: typeof urlencode;
+    declare hmac: typeof hmac;
+    declare numberToString: typeof numberToString;
+    declare parseTimeframe: typeof parseTimeframe;
+    declare safeInteger2: typeof safeInteger2;
+    declare safeStringLower: typeof safeStringLower;
+    declare parse8601: typeof parse8601;
+    declare yyyymmdd: typeof yyyymmdd;
+    declare safeStringUpper: typeof safeStringUpper;
+    declare safeTimestamp: typeof safeTimestamp;
+    declare binaryConcatArray: typeof binaryConcatArray;
+    declare ymdhms: typeof ymdhms;
+    declare yymmdd: typeof yymmdd;
+    declare stringToBase64: typeof stringToBase64;
+    declare decode: typeof decode;
+    declare uuid22: typeof uuid22;
+    declare safeIntegerProduct2: typeof safeIntegerProduct2;
+    declare safeIntegerProduct: typeof safeIntegerProduct;
+    declare binaryToBase58: typeof binaryToBase58;
+    declare base58ToBinary: typeof base58ToBinary;
+    declare base64ToBinary: typeof base64ToBinary;
+    declare safeTimestamp2: typeof safeTimestamp2;
+    declare rawencode: typeof rawencode;
+    declare keysort: typeof keysort;
+    declare sort: typeof sort;
+    declare inArray: typeof inArray;
+    declare safeStringLower2: typeof safeStringLower2;
+    declare safeStringUpper2: typeof safeStringUpper2;
+    declare isEmpty: typeof isEmpty;
+    declare filterBy: typeof filterBy;
+    declare uuid16: typeof uuid16;
+    declare urlencodeWithArrayRepeat: typeof urlencodeWithArrayRepeat;
+    declare microseconds: typeof microseconds;
+    declare binaryToBase64: typeof binaryToBase64;
+    declare strip: typeof strip;
+    declare toArray: typeof toArray;
+    declare safeFloatN: typeof safeFloatN;
+    declare safeIntegerN: typeof safeIntegerN;
+    declare safeIntegerProductN: typeof safeIntegerProductN;
+    declare safeTimestampN: typeof safeTimestampN;
+    declare safeValueN: typeof safeValueN;
+    declare safeStringN: typeof safeStringN;
+    declare safeStringLowerN: typeof safeStringLowerN;
+    declare safeStringUpperN: typeof safeStringUpperN;
+    declare urlencodeNested: typeof urlencodeNested;
+    declare parseDate: typeof parseDate;
+    declare ymd: typeof ymd;
+    declare base64ToString: typeof base64ToString;
+    declare crc32: typeof crc32;
+    declare packb: typeof packb;
+    declare urlencodeBase64: typeof urlencodeBase64;
     // io
-    readFile = readFile;
-    writeFile = writeFile;
-    existsFile = existsFile;
-    getTempDir = getTempDir;
+    declare readFile: typeof readFile;
+    declare writeFile: typeof writeFile;
+    declare existsFile: typeof existsFile;
+    declare getTempDir: typeof getTempDir;
 
     constructor (userConfig: ConstructorArgs = {}) {
-        Object.assign (this, functions);
+        Object.assign (this, installSharedPrototypeMembers (BaseExchange.prototype, functions));
         //
         //     if (isNode) {
         //         this.nodeVersion = process.version.match (/\d+\.\d+\.\d+/)[0]
@@ -596,17 +600,12 @@ export class BaseExchange {
         this.last_json_response = undefined;
         this.last_request_body = undefined;
         // camelCase and snake_notation support
-        const unCamelCaseProperties = (obj = this) => {
-            if (obj !== null) {
-                const ownPropertyNames = Object.getOwnPropertyNames (obj);
-                for (let i = 0; i < ownPropertyNames.length; i++) {
-                    const k = ownPropertyNames[i];
-                    this[unCamelCase (k)] = this[k];
-                }
-                unCamelCaseProperties (Object.getPrototypeOf (obj));
-            }
-        };
-        unCamelCaseProperties ();
+        const ownPropertyNames = Object.getOwnPropertyNames (this);
+        for (let i = 0; i < ownPropertyNames.length; i++) {
+            const k = ownPropertyNames[i];
+            this[unCamelCase (k)] = this[k];
+        }
+        installSnakeCaseAliases (Object.getPrototypeOf (this), BaseExchange.prototype);
         // merge constructor overrides to this instance
         const configEntries = Object.entries (this.describe ()).concat (Object.entries (userConfig));
         for (let i = 0; i < configEntries.length; i++) {
@@ -618,14 +617,32 @@ export class BaseExchange {
             }
         }
         // generate old metainfo interface
+        const proto = Object.getPrototypeOf (this);
         const hasKeys = Object.keys (this.has);
         for (let i = 0; i < hasKeys.length; i++) {
             const k = hasKeys[i];
-            this['has' + this.capitalize (k)] = (this.has[k] !== undefined) && (this.has[k] !== false); // converts 'emulated' to true
+            const name = 'has' + this.capitalize (k);
+            if (!(name in proto)) {
+                defineLegacyHasGetter (proto, name, k);
+            } else if (!isLegacyHasGetter (proto, name)) {
+                this[name] = (this.has[k] !== undefined) && (this.has[k] !== false); // converts 'emulated' to true
+            }
         }
-        // generate implicit api
+        // generate implicit api, once per class unless the user passes a custom api
         if (this.api !== undefined) {
-            this.defineRestApi (this.api, 'request');
+            if (userConfig['api'] !== undefined) {
+                this.defineRestApi (this.api, 'request');
+            } else if (!isImplicitApiDefined (proto)) {
+                setImplicitApiTarget (proto);
+                try {
+                    this.defineRestApi (this.api, 'request');
+                } catch (e) {
+                    setImplicitApiTarget (undefined);
+                    throw e;
+                }
+                setImplicitApiTarget (undefined);
+                markImplicitApiDefined (proto);
+            }
         }
         this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
         this.afterConstruct ();
@@ -702,8 +719,14 @@ export class BaseExchange {
         const underscore = underscorePrefix + '_' + lowercaseMethod + '_' + underscoreSuffix;
         const typeArgument = (paths.length > 1) ? paths : paths[0];
         // handle call costs here
+        const target = getImplicitApiTarget ();
+        if (target !== undefined) {
+            const shared = sharedImplicitMethod (methodName, path, typeArgument, uppercaseMethod, config);
+            target[camelcase] = shared;
+            target[underscore] = shared;
+            return;
+        }
         const partial = async (params = {}, context = {}) => this[methodName] (path, typeArgument, uppercaseMethod, params, undefined, undefined, config, context);
-        // const partial = async (params) => this[methodName] (path, typeArgument, uppercaseMethod, params || {})
         this[camelcase] = partial;
         this[underscore] = partial;
     }
