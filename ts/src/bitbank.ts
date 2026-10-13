@@ -1091,7 +1091,7 @@ export default class bitbank extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}): Dict {
         let query = this.omit (params, this.extractParams (path));
         const apiUrl = this.safeString (this.urls['api'], api);
         if (apiUrl === undefined) {
@@ -1144,8 +1144,8 @@ export default class bitbank extends Exchange {
                 requestHeaders['ACCESS-NONCE'] = nonce;
             }
         }
-        const bodyResolved = (requestBody === undefined) ? body : requestBody;
-        const headersResolved = (requestHeaders === undefined) ? headers : requestHeaders;
+        const bodyResolved = requestBody;
+        const headersResolved = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 

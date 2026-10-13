@@ -2372,7 +2372,7 @@ export default class backpack extends Exchange {
         return this.milliseconds () - timeDifference;
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}): Dict {
         let endpoint = '/' + path;
         const apiUrl = this.safeString (this.urls['api'], api);
         if (apiUrl === undefined) {
@@ -2421,8 +2421,8 @@ export default class backpack extends Exchange {
             }
         }
         url += endpoint;
-        const headersResolved = (api === 'private') ? headersSigned : headers;
-        let bodyResolved = body;
+        const headersResolved = (api === 'private') ? headersSigned : undefined;
+        let bodyResolved = undefined;
         if ((api === 'private') && (method !== 'GET')) {
             bodyResolved = bodySigned;
         }

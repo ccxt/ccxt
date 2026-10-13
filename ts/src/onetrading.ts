@@ -1937,7 +1937,7 @@ export default class onetrading extends Exchange {
         return this.parseTrades (tradeHistory, market, since, limit);
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}): Dict {
         const apiUrl = this.safeString (this.urls['api'], api);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
@@ -1954,7 +1954,7 @@ export default class onetrading extends Exchange {
                 'Accept': 'application/json',
                 'Authorization': 'Bearer ' + this.apiKey,
             };
-            const bodyJson = (method === 'POST') ? this.json (query) : body;
+            const bodyJson = (method === 'POST') ? this.json (query) : undefined;
             if (method === 'POST') {
                 headersSigned['Content-Type'] = 'application/json';
             } else {
@@ -1964,7 +1964,7 @@ export default class onetrading extends Exchange {
             }
             return { 'url': url, 'method': method, 'body': bodyJson, 'headers': headersSigned };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

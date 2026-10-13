@@ -3163,11 +3163,9 @@ export default class limitless extends Exchange {
      * @param {string|string[]} [api] the api group and access level
      * @param {string} [method] HTTP method
      * @param {object} [params] request parameters
-     * @param {object} [headers] request headers
-     * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    override sign (path: string, api: any = 'limitless', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined) {
+    override sign (path: string, api: any = 'limitless', method = 'GET', params: Dict = {}) {
         const apiGroup: string = typeof api === 'string' ? api : api[0];
         const access: string = typeof api === 'string' ? 'public' : api[1];
         const baseUrls = this.urls['api'];
@@ -3178,8 +3176,8 @@ export default class limitless extends Exchange {
         if (method === 'GET' && (querystring !== '')) {
             url += '?' + querystring;
         }
-        let headersValue: any = headers;
-        let bodyValue: any = body;
+        let headersValue: any = undefined;
+        let bodyValue: any = undefined;
         if (access === 'private') {
             let bodyString = '';
             if (headersValue === undefined) {

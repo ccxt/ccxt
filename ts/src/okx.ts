@@ -6769,7 +6769,7 @@ export default class okx extends Exchange {
         return this.parseTransfers (transfers, currency, since, limit, params);
     }
 
-    override sign (path: string, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: any = 'public', method = 'GET', params: Dict = {}): Dict {
         const isArray = Array.isArray (params);
         const request = '/api/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
@@ -6836,11 +6836,11 @@ export default class okx extends Exchange {
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256, 'base64');
             privateHeaders['OK-ACCESS-SIGN'] = signature;
         }
-        let requestBody: Str = body;
+        let requestBody: Str = undefined;
         if (hasJsonBody) {
             requestBody = jsonBody;
         }
-        const requestHeaders: NullableDict = (api === 'private') ? privateHeaders : headers;
+        const requestHeaders: NullableDict = (api === 'private') ? privateHeaders : undefined;
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 

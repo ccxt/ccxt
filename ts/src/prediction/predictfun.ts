@@ -3905,11 +3905,9 @@ export default class predictfun extends Exchange {
      * @param {string|string[]} [api] the API group and access level
      * @param {string} [method] HTTP method
      * @param {object} [params] request parameters
-     * @param {object} [headers] request headers
-     * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    override sign (path: string, api: any = 'predictfun', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined) {
+    override sign (path: string, api: any = 'predictfun', method = 'GET', params: Dict = {}) {
         // the venue authenticates every endpoint, so the key is required up front rather than
         // per access level - a key-less request is answered with a 401 by the API gateway.
         // the testnet is the exception, it is served without an API key at all
@@ -3928,7 +3926,7 @@ export default class predictfun extends Exchange {
                 url += '?' + this.urlencode (query);
             }
         }
-        const existingHeaders = (headers !== undefined) ? headers : {};
+        const existingHeaders = {};
         const headersValue: any = existingHeaders;
         const authHeaders: Dict = {};
         if ((apiKey !== undefined) && (!sandboxMode)) {
@@ -3964,7 +3962,7 @@ export default class predictfun extends Exchange {
         if ((jwtToken !== undefined) && this.inArray (path, walletPaths)) {
             authHeaders['Authorization'] = 'Bearer ' + jwtToken;
         }
-        let bodyValue: any = body;
+        let bodyValue: any = undefined;
         if (method !== 'GET') {
             if (!sandboxMode) {
                 this.checkRequiredCredentials ();

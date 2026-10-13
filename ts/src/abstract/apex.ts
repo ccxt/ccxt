@@ -10,100 +10,100 @@ import { Exchange as _Exchange } from '../base/Exchange.js';
 
 abstract class Exchange extends _Exchange {
     publicGetV3Symbols (params = {}): Promise<Dict> {
-        return this.request ("v3/symbols", "public", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ("v3/symbols", "public", 'GET', params, {"cost":1});
     }
     publicGetV3HistoryFunding (params = {}): Promise<Dict> {
-        return this.request ("v3/history-funding", "public", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ("v3/history-funding", "public", 'GET', params, {"cost":1});
     }
     publicGetV3Ticker (params = {}): Promise<Dict> {
-        return this.request ("v3/ticker", "public", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ("v3/ticker", "public", 'GET', params, {"cost":1});
     }
     publicGetV3Klines (params = {}): Promise<Dict> {
-        return this.request ("v3/klines", "public", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ("v3/klines", "public", 'GET', params, {"cost":1});
     }
     publicGetV3Trades (params = {}): Promise<Dict> {
-        return this.request ("v3/trades", "public", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ("v3/trades", "public", 'GET', params, {"cost":1});
     }
     publicGetV3Depth (params = {}): Promise<Dict> {
-        return this.request ("v3/depth", "public", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ("v3/depth", "public", 'GET', params, {"cost":1});
     }
     publicGetV3Time (params = {}): Promise<Dict> {
-        return this.request ("v3/time", "public", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ("v3/time", "public", 'GET', params, {"cost":1});
     }
     publicGetV3DataAllTickerInfo (params = {}): Promise<Dict> {
-        return this.request ("v3/data/all-ticker-info", "public", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ("v3/data/all-ticker-info", "public", 'GET', params, {"cost":1});
     }
     privateGetV3Account (params = {}): Promise<Dict> {
-        return this.request ("v3/account", "private", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ("v3/account", "private", 'GET', params, {"cost":1});
     }
     privateGetV3AccountBalance (params = {}): Promise<Dict> {
-        return this.request ("v3/account-balance", "private", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ("v3/account-balance", "private", 'GET', params, {"cost":1});
     }
     privateGetV3Fills (params = {}): Promise<Dict> {
-        return this.request ("v3/fills", "private", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ("v3/fills", "private", 'GET', params, {"cost":1});
     }
     privateGetV3OrderFills (params = {}): Promise<Dict> {
-        return this.request ("v3/order-fills", "private", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ("v3/order-fills", "private", 'GET', params, {"cost":1});
     }
     privateGetV3Order (params = {}): Promise<Dict> {
-        return this.request ("v3/order", "private", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ("v3/order", "private", 'GET', params, {"cost":1});
     }
     privateGetV3HistoryOrders (params = {}): Promise<Dict> {
-        return this.request ("v3/history-orders", "private", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ("v3/history-orders", "private", 'GET', params, {"cost":1});
     }
     privateGetV3OrderByClientOrderId (params = {}): Promise<Dict> {
-        return this.request ("v3/order-by-client-order-id", "private", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ("v3/order-by-client-order-id", "private", 'GET', params, {"cost":1});
     }
     privateGetV3Funding (params = {}): Promise<Dict> {
-        return this.request ("v3/funding", "private", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ("v3/funding", "private", 'GET', params, {"cost":1});
     }
     privateGetV3HistoricalPnl (params = {}): Promise<Dict> {
-        return this.request ("v3/historical-pnl", "private", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ("v3/historical-pnl", "private", 'GET', params, {"cost":1});
     }
     privateGetV3OpenOrders (params = {}): Promise<Dict> {
-        return this.request ("v3/open-orders", "private", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ("v3/open-orders", "private", 'GET', params, {"cost":1});
     }
     privateGetV3Transfers (params = {}): Promise<Dict> {
-        return this.request ("v3/transfers", "private", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ("v3/transfers", "private", 'GET', params, {"cost":1});
     }
     privateGetV3Transfer (params = {}): Promise<Dict> {
-        return this.request ("v3/transfer", "private", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ("v3/transfer", "private", 'GET', params, {"cost":1});
     }
     privateGetV3StockAccount (params = {}): Promise<Dict> {
-        return this.request ("v3/stock/account", "private", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ("v3/stock/account", "private", 'GET', params, {"cost":1});
     }
     privatePostV3DeleteOpenOrders (params = {}): Promise<Dict> {
-        return this.request ("v3/delete-open-orders", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("v3/delete-open-orders", "private", 'POST', params, {"cost":1});
     }
     privatePostV3DeleteClientOrderId (params = {}): Promise<Dict> {
-        return this.request ("v3/delete-client-order-id", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("v3/delete-client-order-id", "private", 'POST', params, {"cost":1});
     }
     privatePostV3DeleteOrder (params = {}): Promise<Dict> {
-        return this.request ("v3/delete-order", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("v3/delete-order", "private", 'POST', params, {"cost":1});
     }
     privatePostV3Order (params = {}): Promise<Dict> {
-        return this.request ("v3/order", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("v3/order", "private", 'POST', params, {"cost":1});
     }
     privatePostV3SetInitialMarginRate (params = {}): Promise<Dict> {
-        return this.request ("v3/set-initial-margin-rate", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("v3/set-initial-margin-rate", "private", 'POST', params, {"cost":1});
     }
     privatePostV3TransferOut (params = {}): Promise<Dict> {
-        return this.request ("v3/transfer-out", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("v3/transfer-out", "private", 'POST', params, {"cost":1});
     }
     privatePostV3ContractTransferOut (params = {}): Promise<Dict> {
-        return this.request ("v3/contract-transfer-out", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("v3/contract-transfer-out", "private", 'POST', params, {"cost":1});
     }
     privatePostV3ContractTransferTo (params = {}): Promise<Dict> {
-        return this.request ("v3/contract-transfer-to", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("v3/contract-transfer-to", "private", 'POST', params, {"cost":1});
     }
     privatePostV3SubmitWithdrawClaim (params = {}): Promise<Dict> {
-        return this.request ("v3/submit-withdraw-claim", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("v3/submit-withdraw-claim", "private", 'POST', params, {"cost":1});
     }
     privatePostV3StockRegisterAccount (params = {}): Promise<Dict> {
-        return this.request ("v3/stock/register-account", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("v3/stock/register-account", "private", 'POST', params, {"cost":1});
     }
     privatePostV3StockGenerateApi (params = {}): Promise<Dict> {
-        return this.request ("v3/stock/generate-api", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("v3/stock/generate-api", "private", 'POST', params, {"cost":1});
     }
 }
 export default Exchange

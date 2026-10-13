@@ -3076,7 +3076,7 @@ export default class lbank extends Exchange {
         return result;
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}): Dict {
         let query = this.omit (params, this.extractParams (path));
         const apiUrl = this.safeString (this.urls['api'], 'rest');
         if (apiUrl === undefined) {
@@ -3146,7 +3146,7 @@ export default class lbank extends Exchange {
             };
             return { 'url': url, 'method': method, 'body': bodySigned, 'headers': headersSigned };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
     convertSecretToPem (secret: any) {

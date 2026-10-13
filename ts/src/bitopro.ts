@@ -1915,13 +1915,13 @@ export default class bitopro extends Exchange {
         return this.parseDepositWithdrawFees (data, codes, 'currency');
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}): Dict {
         let url = '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        const requestHeaders: Dict = (headers === undefined) ? {} : headers;
+        const requestHeaders: Dict = {};
         const isSignedBody = (api === 'private') && ((method === 'POST') || (method === 'PUT'));
         const signedBody: string = this.json (params);
-        let requestBody: Str = body;
+        let requestBody: Str = undefined;
         if (isSignedBody) {
             requestBody = signedBody;
         }

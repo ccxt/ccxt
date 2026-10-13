@@ -1981,7 +1981,7 @@ export default class bigone extends Exchange {
         return this.sum (this.microseconds () * 1000, exchangeTimeCorrection);
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}): Dict {
         let bodySigned: Str = undefined;
         const query = this.omit (params, this.extractParams (path));
         const apiUrl = this.safeString (this.urls['api'], api);
@@ -2016,7 +2016,7 @@ export default class bigone extends Exchange {
             }
         }
         headersValue['User-Agent'] = 'ccxt/' + this.id + '-' + this.version;
-        const bodyResolved: Str = (bodySigned === undefined) ? body : bodySigned;
+        const bodyResolved: Str = bodySigned;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersValue };
     }
 

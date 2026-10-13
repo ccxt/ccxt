@@ -10,100 +10,100 @@ import { default as _Exchange } from '../../base/PredictionExchange.js';
 
 abstract class Exchange extends _Exchange {
     myriadPublicGetQuestions (params = {}): Promise<Dict> {
-        return this.request ("questions", ["myriad","public"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ("questions", ["myriad","public"], 'GET', params, {"cost":1});
     }
     myriadPublicGetQuestionsId (params = {}): Promise<Dict> {
-        return this.request ("questions/{id}", ["myriad","public"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ("questions/{id}", ["myriad","public"], 'GET', params, {"cost":1});
     }
     myriadPublicGetMarkets (params = {}): Promise<Dict> {
-        return this.request ("markets", ["myriad","public"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ("markets", ["myriad","public"], 'GET', params, {"cost":1});
     }
     myriadPublicGetMarketsId (params = {}): Promise<Dict> {
-        return this.request ("markets/{id}", ["myriad","public"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ("markets/{id}", ["myriad","public"], 'GET', params, {"cost":1});
     }
     myriadPublicGetMarketsNetworkIdId (params = {}): Promise<Dict> {
-        return this.request ("markets/{networkId}/{id}", ["myriad","public"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ("markets/{networkId}/{id}", ["myriad","public"], 'GET', params, {"cost":1});
     }
     myriadPublicGetMarketsIdEvents (params = {}): Promise<Dict> {
-        return this.request ("markets/{id}/events", ["myriad","public"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ("markets/{id}/events", ["myriad","public"], 'GET', params, {"cost":1});
     }
     myriadPublicGetMarketsIdOrderbook (params = {}): Promise<Dict> {
-        return this.request ("markets/{id}/orderbook", ["myriad","public"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ("markets/{id}/orderbook", ["myriad","public"], 'GET', params, {"cost":1});
     }
     myriadPublicGetMarketsIdTrades (params = {}): Promise<List> {
-        return this.request ("markets/{id}/trades", ["myriad","public"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ("markets/{id}/trades", ["myriad","public"], 'GET', params, {"cost":1});
     }
     myriadPublicGetMarketsIdHolders (params = {}): Promise<Dict> {
-        return this.request ("markets/{id}/holders", ["myriad","public"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ("markets/{id}/holders", ["myriad","public"], 'GET', params, {"cost":1});
     }
     myriadPublicGetMarketsIdReferrals (params = {}): Promise<Dict> {
-        return this.request ("markets/{id}/referrals", ["myriad","public"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ("markets/{id}/referrals", ["myriad","public"], 'GET', params, {"cost":1});
     }
     myriadPublicGetEvents (params = {}): Promise<Dict> {
-        return this.request ("events", ["myriad","public"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ("events", ["myriad","public"], 'GET', params, {"cost":1});
     }
     myriadPublicGetOrders (params = {}): Promise<Dict> {
-        return this.request ("orders", ["myriad","public"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ("orders", ["myriad","public"], 'GET', params, {"cost":1});
     }
     myriadPublicGetOrdersHash (params = {}): Promise<Dict> {
-        return this.request ("orders/{hash}", ["myriad","public"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ("orders/{hash}", ["myriad","public"], 'GET', params, {"cost":1});
     }
     myriadPublicGetUsersAddressEvents (params = {}): Promise<Dict> {
-        return this.request ("users/{address}/events", ["myriad","public"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ("users/{address}/events", ["myriad","public"], 'GET', params, {"cost":1});
     }
     myriadPublicGetUsersAddressReferrals (params = {}): Promise<Dict> {
-        return this.request ("users/{address}/referrals", ["myriad","public"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ("users/{address}/referrals", ["myriad","public"], 'GET', params, {"cost":1});
     }
     myriadPublicGetUsersAddressPortfolio (params = {}): Promise<Dict> {
-        return this.request ("users/{address}/portfolio", ["myriad","public"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ("users/{address}/portfolio", ["myriad","public"], 'GET', params, {"cost":1});
     }
     myriadPublicGetUsersAddressMarkets (params = {}): Promise<Dict> {
-        return this.request ("users/{address}/markets", ["myriad","public"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ("users/{address}/markets", ["myriad","public"], 'GET', params, {"cost":1});
     }
     myriadPublicGetTags (params = {}): Promise<Dict> {
-        return this.request ("tags", ["myriad","public"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ("tags", ["myriad","public"], 'GET', params, {"cost":1});
     }
     myriadPublicGetTopics (params = {}): Promise<Dict> {
-        return this.request ("topics", ["myriad","public"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ("topics", ["myriad","public"], 'GET', params, {"cost":1});
     }
     myriadPublicPostMarketsQuote (params = {}): Promise<Dict> {
-        return this.request ("markets/quote", ["myriad","public"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("markets/quote", ["myriad","public"], 'POST', params, {"cost":1});
     }
     myriadPublicPostMarketsClaim (params = {}): Promise<Dict> {
-        return this.request ("markets/claim", ["myriad","public"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("markets/claim", ["myriad","public"], 'POST', params, {"cost":1});
     }
     myriadPublicPostOrders (params = {}): Promise<Dict> {
-        return this.request ("orders", ["myriad","public"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("orders", ["myriad","public"], 'POST', params, {"cost":1});
     }
     myriadPublicPostOrdersCancelBatch (params = {}): Promise<Dict> {
-        return this.request ("orders/cancel-batch", ["myriad","public"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("orders/cancel-batch", ["myriad","public"], 'POST', params, {"cost":1});
     }
     myriadPublicPostOrdersCancelAll (params = {}): Promise<Dict> {
-        return this.request ("orders/cancel-all", ["myriad","public"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("orders/cancel-all", ["myriad","public"], 'POST', params, {"cost":1});
     }
     myriadPublicPostPositionsSplit (params = {}): Promise<Dict> {
-        return this.request ("positions/split", ["myriad","public"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("positions/split", ["myriad","public"], 'POST', params, {"cost":1});
     }
     myriadPublicPostPositionsMerge (params = {}): Promise<Dict> {
-        return this.request ("positions/merge", ["myriad","public"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("positions/merge", ["myriad","public"], 'POST', params, {"cost":1});
     }
     myriadPublicPostPositionsRedeem (params = {}): Promise<Dict> {
-        return this.request ("positions/redeem", ["myriad","public"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("positions/redeem", ["myriad","public"], 'POST', params, {"cost":1});
     }
     myriadPublicPostPositionsRedeemVoided (params = {}): Promise<Dict> {
-        return this.request ("positions/redeem-voided", ["myriad","public"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("positions/redeem-voided", ["myriad","public"], 'POST', params, {"cost":1});
     }
     myriadPublicPostPositionsNegRiskSplit (params = {}): Promise<Dict> {
-        return this.request ("positions/neg-risk/split", ["myriad","public"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("positions/neg-risk/split", ["myriad","public"], 'POST', params, {"cost":1});
     }
     myriadPublicPostPositionsNegRiskMerge (params = {}): Promise<Dict> {
-        return this.request ("positions/neg-risk/merge", ["myriad","public"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("positions/neg-risk/merge", ["myriad","public"], 'POST', params, {"cost":1});
     }
     myriadPublicDeleteOrdersHash (params = {}): Promise<Dict> {
-        return this.request ("orders/{hash}", ["myriad","public"], 'DELETE', params, undefined, undefined, {"cost":1});
+        return this.request ("orders/{hash}", ["myriad","public"], 'DELETE', params, {"cost":1});
     }
     myriadPrivatePostMarketsQuoteWithFee (params = {}): Promise<Dict> {
-        return this.request ("markets/quote_with_fee", ["myriad","private"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("markets/quote_with_fee", ["myriad","private"], 'POST', params, {"cost":1});
     }
 }
 export default Exchange

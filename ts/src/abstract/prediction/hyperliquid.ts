@@ -10,10 +10,10 @@ import { default as _Exchange } from '../../base/PredictionExchange.js';
 
 abstract class Exchange extends _Exchange {
     publicPostInfo (params = {}): Promise<Dict | List | string> {
-        return this.request ("info", "public", 'POST', params, undefined, undefined, {"cost":20,"byType":{"l2Book":2,"allMids":2,"spotClearinghouseState":2,"candleSnapshot":4,"orderStatus":2}});
+        return this.request ("info", "public", 'POST', params, {"cost":20,"byType":{"l2Book":2,"allMids":2,"spotClearinghouseState":2,"candleSnapshot":4,"orderStatus":2}});
     }
     privatePostExchange (params = {}): Promise<Dict> {
-        return this.request ("exchange", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("exchange", "private", 'POST', params, {"cost":1});
     }
 }
 export default Exchange

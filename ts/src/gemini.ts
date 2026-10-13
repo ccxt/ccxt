@@ -2047,7 +2047,7 @@ export default class gemini extends Exchange {
         return this.indexBy (results, 'network') as DepositAddresses;
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}): Dict {
         let url = '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         let headersSigned: NullableDict = undefined;
@@ -2083,8 +2083,8 @@ export default class gemini extends Exchange {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
         const fullUrl = apiUrl + url;
-        const headersResolved = (api === 'private') ? headersSigned : headers;
-        let bodyResolved = body;
+        const headersResolved = (api === 'private') ? headersSigned : undefined;
+        let bodyResolved = undefined;
         if ((method === 'POST') || (method === 'DELETE')) {
             bodyResolved = this.json (query);
         }

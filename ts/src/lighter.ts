@@ -3398,7 +3398,7 @@ export default class lighter extends Exchange {
         };
     }
 
-    override sign (path: string, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    override sign (path: string, api: any = 'public', method = 'GET', params = {}) {
         let url: Str = undefined;
         if (api === 'root') {
             const baseApiUrl = this.safeString (this.urls['api'], 'public');
@@ -3429,9 +3429,9 @@ export default class lighter extends Exchange {
             url += '?' + this.rawencode (params);
         }
         if (api === 'private') {
-            return { 'url': url, 'method': method, 'body': body, 'headers': authHeaders };
+            return { 'url': url, 'method': method, 'body': undefined, 'headers': authHeaders };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

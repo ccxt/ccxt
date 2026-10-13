@@ -11718,7 +11718,7 @@ export default class kucoin extends Exchange {
         return uta;
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}): Dict {
         //
         // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
         //                                ↑                 ↑
@@ -11749,11 +11749,8 @@ export default class kucoin extends Exchange {
         }
         const query = this.omit (paramsOmitted, this.extractParams (path));
         let endpart = '';
-        let headersBase: NullableDict = {};
-        if (headers !== undefined) {
-            headersBase = headers;
-        }
-        let bodyJson: Str = body;
+        const headersBase: NullableDict = {};
+        let bodyJson: Str = undefined;
         const apiUrl = this.safeString (this.urls['api'], api);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');

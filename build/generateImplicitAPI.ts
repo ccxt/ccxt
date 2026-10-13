@@ -799,7 +799,7 @@ function typescriptInheritedNames (exchange: string): Set<string> {
 // one implicit endpoint as a real method of the abstract class
 function typescriptMethod (exchange: string, method: string, context: Dict, inherited: Set<string>): string {
     const returnType = typescriptReturnType (exchange, method);
-    const call = `return this.request (${JSON.stringify (context.endpoint.trim ())}, ${context.tsPath}, '${context.method}', params, undefined, undefined, ${context.tsConfig});`;
+    const call = `return this.request (${JSON.stringify (context.endpoint.trim ())}, ${context.tsPath}, '${context.method}', params, ${context.tsConfig});`;
     const name = typescriptMethodName (context);
     return [
         `${IDEN}${inherited.has (name) ? 'override ' : ''}${name} (params = {}): Promise<${returnType}> {`,

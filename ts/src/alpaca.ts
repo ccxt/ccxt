@@ -2219,16 +2219,13 @@ export default class alpaca extends Exchange {
         return this.safeBalance (result);
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}): Dict {
         let endpoint = '/' + this.implodeParams (path, params);
         const baseApiUrl = this.safeString (this.urls['api'], api[0]);
         if (baseApiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
-        let headersValue: NullableDict = {};
-        if (headers !== undefined) {
-            headersValue = headers;
-        }
+        const headersValue: NullableDict = {};
         if (api[1] === 'private') {
             this.checkRequiredCredentials ();
             headersValue['APCA-API-KEY-ID'] = this.apiKey;
@@ -2245,7 +2242,7 @@ export default class alpaca extends Exchange {
             }
         }
         const url = this.implodeHostname (baseApiUrl) + endpoint;
-        const bodyResolved: Str = (bodyJson === undefined) ? body : bodyJson;
+        const bodyResolved: Str = bodyJson;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersValue };
     }
 

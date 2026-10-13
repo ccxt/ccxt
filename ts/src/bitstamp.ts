@@ -2767,7 +2767,7 @@ export default class bitstamp extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: string, api = 'public', method: any = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api = 'public', method: any = 'GET', params: Dict = {}): Dict {
         const apiUrl = this.safeString (this.urls['api'], api);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
@@ -2784,7 +2784,7 @@ export default class bitstamp extends Exchange {
         if (Object.keys (query).length > 0) {
             postBody = this.urlencode (query);
         }
-        let requestBody: Str = body;
+        let requestBody: Str = undefined;
         if (isPrivatePost) {
             requestBody = postBody;
         }
@@ -2818,7 +2818,7 @@ export default class bitstamp extends Exchange {
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
             privateHeaders['X-Auth-Signature'] = signature;
         }
-        const requestHeaders: NullableDict = (api === 'public') ? headers : privateHeaders;
+        const requestHeaders: NullableDict = (api === 'public') ? undefined : privateHeaders;
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 

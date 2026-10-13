@@ -5215,7 +5215,7 @@ export default class hyperliquid extends Exchange {
         return undefined;
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}): Dict {
         const apiUrl = this.safeString (this.urls['api'], api);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
@@ -5225,11 +5225,11 @@ export default class hyperliquid extends Exchange {
         const postHeaders: Dict = {
             'Content-Type': 'application/json',
         };
-        let requestHeaders: NullableDict = headers;
+        let requestHeaders: NullableDict = undefined;
         if (isPost) {
             requestHeaders = postHeaders;
         }
-        let requestBody: Str = body;
+        let requestBody: Str = undefined;
         if (isPost) {
             requestBody = this.json (params);
         }

@@ -3900,11 +3900,9 @@ export default class myriad extends Exchange {
      * @param {string|string[]} api the api group and access level
      * @param {string} method the http method
      * @param {object} params the request parameters
-     * @param {object} [headers] request headers
-     * @param {string} [body] the request body
      * @returns {object} a dict with url, method, body and headers
      */
-    override sign (path: string, api: any = 'myriad', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined) {
+    override sign (path: string, api: any = 'myriad', method = 'GET', params: Dict = {}) {
         const apiGroup: string = typeof api === 'string' ? api : api[0];
         const baseUrls = this.urls['api'] as Dict;
         const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['myriad']);
@@ -3916,14 +3914,14 @@ export default class myriad extends Exchange {
                 url += '?' + querystring;
             }
         }
-        const existingHeaders = (headers !== undefined) ? headers : {};
+        const existingHeaders = {};
         let headersValue: any = this.extend ({
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         }, existingHeaders);
         // non-GET requests carry the params as a JSON body (public POSTs like markets/quote
         // included — the previous logic only sent a body for authenticated requests)
-        let bodyValue: any = body;
+        let bodyValue: any = undefined;
         if (method !== 'GET') {
             const queryKeys = Object.keys (query);
             const queryKeysLength = queryKeys.length;

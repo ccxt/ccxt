@@ -3116,7 +3116,7 @@ export default class nado extends Exchange {
         return marketId;
     }
 
-    override sign (path: string, api: any = [], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: any = [], method = 'GET', params: Dict = {}): Dict {
         let requestBody: Str = undefined;
         let endpoint = api[0];
         if (typeof api === 'string') {
@@ -3143,7 +3143,7 @@ export default class nado extends Exchange {
             headersValue['Content-Type'] = 'application/json';
             requestBody = this.json (query);
         }
-        const bodyResult = (requestBody !== undefined) ? requestBody : body;
+        const bodyResult = requestBody;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersValue };
     }
 

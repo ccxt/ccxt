@@ -7588,7 +7588,7 @@ export default class htx extends Exchange {
         return this.milliseconds () - this.safeInteger (this.options, 'timeDifference', 0);
     }
 
-    override sign (path: string, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: any = 'public', method = 'GET', params: Dict = {}): Dict {
         let signedHeaders = undefined;
         let signedBody: Str = undefined;
         const pathString: string = path;
@@ -7747,8 +7747,8 @@ export default class htx extends Exchange {
                 'hostname': finalHostname,
             }) + url;
         }
-        const headersResolved: NullableDict = (signedHeaders !== undefined) ? signedHeaders : headers;
-        const bodyResolved: Str = (signedBody !== undefined) ? signedBody : body;
+        const headersResolved: NullableDict = signedHeaders;
+        const bodyResolved: Str = signedBody;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 

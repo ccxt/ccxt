@@ -4682,7 +4682,7 @@ export default class digifinex extends Exchange {
         return await this.privateSwapPostAccountPositionMode (this.extend (request, params));
     }
 
-    override sign (path: string, api: any = [], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: any = [], method = 'GET', params: Dict = {}): Dict {
         const signed = this.safeString (api, 0) === 'private';
         const endpoint = this.safeString (api, 1);
         let pathPart: Str = '/swap/v2';
@@ -4727,7 +4727,7 @@ export default class digifinex extends Exchange {
                 }
             }
             const hasPostBody = (method === 'POST') && (urlencoded !== undefined) && (urlencoded !== '');
-            let requestBody = body;
+            let requestBody = undefined;
             if (hasPostBody) {
                 requestBody = urlencoded;
             }
@@ -4742,7 +4742,7 @@ export default class digifinex extends Exchange {
                 url += '?' + urlencoded;
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
     override handleErrors (statusCode: int, statusText: string, url: string, method: string, responseHeaders: Dict, responseBody: string, response: any, requestHeaders: any, requestBody: any) {

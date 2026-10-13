@@ -2007,7 +2007,7 @@ export default class apex extends Exchange {
         });
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}): Dict {
         const baseApiUrl = this.safeString (this.urls['api'], api);
         if (baseApiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
@@ -2019,7 +2019,7 @@ export default class apex extends Exchange {
             'Content-Type': 'application/x-www-form-urlencoded',
         };
         let signPath = '/api/' + path;
-        let signBody = body;
+        let signBody = undefined;
         if (method.toUpperCase () !== 'POST') {
             if (Object.keys (params).length > 0) {
                 signPath += '?' + this.rawencode (params);

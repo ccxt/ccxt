@@ -4533,7 +4533,7 @@ export default class hashkey extends Exchange {
         };
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}): Dict {
         const apiUrl = this.safeString (this.urls['api'], api);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
@@ -4575,7 +4575,7 @@ export default class hashkey extends Exchange {
             }
             headersSigned['INPUT-SOURCE'] = this.safeString (this.options, 'broker', '10000700011');
             headersSigned['broker_sign'] = signature;
-            const bodyResolved = (method === 'GET') ? body : bodySigned;
+            const bodyResolved = (method === 'GET') ? undefined : bodySigned;
             return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersSigned };
         } else {
             query = this.urlencode (params);
@@ -4583,7 +4583,7 @@ export default class hashkey extends Exchange {
                 url += '?' + query;
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
     customUrlencode (params: Dict = {}): Str {
