@@ -93,6 +93,7 @@ export default class bitfinex extends Exchange {
                 'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchL3OrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchOrderTrades': true,
                 'fetchPosition': false,
@@ -352,7 +353,7 @@ export default class bitfinex extends Exchange {
             'precisionMode': SIGNIFICANT_DIGITS,
             'options': {
                 'fetchOrderBook': {
-                    'precision': 'R0', // P0, P1, P2, P3, P4, R0
+                    'precision': 'P0', // P0, P1, P2, P3, P4, R0
                 },
                 'fetchCurrencies': {
                     'defaultPrecision': 8, // default currency precision
@@ -1190,7 +1191,7 @@ export default class bitfinex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const precision = this.handleOption ('fetchOrderBook', 'precision', 'R0');
+        const [ precision, paramsWithPrecision ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'precision', 'P0');
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -1199,7 +1200,7 @@ export default class bitfinex extends Exchange {
         if (limit !== undefined) {
             request['len'] = limit;
         }
-        const fullRequest = this.extend (request, params);
+        const fullRequest = this.extend (request, paramsWithPrecision);
         const orderbook = await this.publicGetBookSymbolPrecision (fullRequest);
         const timestamp = this.milliseconds ();
         const result: Dict = {
@@ -1226,6 +1227,21 @@ export default class bitfinex extends Exchange {
         result['bids'] = this.sortBy (result['bids'], 0, true);
         result['asks'] = this.sortBy (result['asks'], 0);
         return result as OrderBook;
+    }
+
+    /**
+     * @method
+     * @name blockchaincom#fetchL3OrderBook
+     * @description fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://api.blockchain.com/v3/#getl3orderbook
+     * @param {string} symbol unified market symbol
+     * @param {int} [limit] max number of orders to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+     */
+    override async fetchL3OrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
+        const paramsWithPrecision = this.extend ({'precision': 'R0'}, params);
+        return this.fetchOrderBook (symbol, limit, paramsWithPrecision);
     }
 
     override parseTicker (ticker: List, market: Market = undefined): Ticker {
