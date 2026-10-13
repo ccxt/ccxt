@@ -1702,6 +1702,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         });
 
     }
+    // waiters retry and the next caller re-leads
     public CompletableFuture<Object> unWatchTrades(String symbol, Map<String, Object> parameters)
     {
         return this.unWatchTrades(symbol, (Object) (parameters));
@@ -3472,8 +3473,6 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 client.future(messageHash).getFuture().join();
                 return null;
             }
-            client.future(messageHash); // created ahead of the request below, so concurrent callers can find it
-            ((Map)client.subscriptions).put((String)java.util.Objects.requireNonNullElse(marketType, "spot"), true);
             Long requestId = this.requestId(url);
             String requestHash = String.valueOf(requestId);
             Map<String, Object> message = new HashMap<String, Object>() {{
@@ -3486,6 +3485,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 put( "method", "handleUserDataStreamSubscribe");
                 put( "subscription", java.util.Objects.requireNonNullElse(marketType, "spot") );
             }};
+            // created right before the request, after the signing above: concurrent callers find it, and in
+            // the threaded ports the ack can not arrive between this future and the request one watch () adds
+            client.future(messageHash);
+            ((Map)client.subscriptions).put((String)java.util.Objects.requireNonNullElse(marketType, "spot"), true);
             try
             {
                 (this.watch(url, requestHash, message, requestHash, subscription)).join();

@@ -16987,15 +16987,17 @@ public partial class binance : Exchange
         {
             request["limit"] = limit;
         }
-        string symbolKey = "pair";
         if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
         {
-            symbolKey = "symbol";
-        }
-        request[(string)symbolKey] = (market.ContainsKey("id") ? market["id"] : null);
-        if ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true))
+            request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
+        } else if ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true))
         {
-            request["contractType"] = this.safeString(paramsPaginate, "contractType", "CURRENT_QUARTER");
+            // dapi expects the underlying pair (BTCUSD) and a contract type, not the market id (BTCUSD_PERP)
+            request["pair"] = this.safeString((market.ContainsKey("info") ? market["info"] : null), "pair");
+            request["contractType"] = ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true)) ? "PERPETUAL" : this.safeString((market.ContainsKey("info") ? market["info"] : null), "contractType");
+        } else
+        {
+            throw new NotSupported ((this.id + " fetchOpenInterestHistory() supports linear and inverse contracts only")) ;
         }
         if ((since != null))
         {
@@ -17029,6 +17031,19 @@ public partial class binance : Exchange
         //          "sumOpenInterest":"75375.61700000",
         //          "sumOpenInterestValue":"3248828883.71251440",
         //          "timestamp":1642179900000
+        //      },
+        //      ...
+        //  ]
+        //
+        // inverse
+        //
+        //  [
+        //      {
+        //          "contractType":"PERPETUAL",
+        //          "sumOpenInterest":"13069401.00000000",
+        //          "sumOpenInterestValue":"15796.96988405",
+        //          "pair":"BTCUSD",
+        //          "timestamp":1791835200000
         //      },
         //      ...
         //  ]

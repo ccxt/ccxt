@@ -28241,7 +28241,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
     }
 }
 // this is updated by vss.js when building
-_define_property(BaseExchange, "ccxtVersion", '4.5.85');
+_define_property(BaseExchange, "ccxtVersion", '4.5.86');
 class Exchange extends BaseExchange {
     async closePosition(symbol, side = undefined, params = {}) {
         throw new _errors_js__rspack_import_2.NotSupported(this.id + ' closePosition() is not supported yet');
@@ -59196,13 +59196,14 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let symbolKey = 'pair';
         if (market['linear'] === true) {
-            symbolKey = 'symbol';
-        }
-        request[symbolKey] = market['id'];
-        if (market['inverse'] === true) {
-            request['contractType'] = this.safeString(paramsPaginate, 'contractType', 'CURRENT_QUARTER');
+            request['symbol'] = market['id'];
+        } else if (market['inverse'] === true) {
+            // dapi expects the underlying pair (BTCUSD) and a contract type, not the market id (BTCUSD_PERP)
+            request['pair'] = this.safeString(market['info'], 'pair');
+            request['contractType'] = market['swap'] === true ? 'PERPETUAL' : this.safeString(market['info'], 'contractType');
+        } else {
+            throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchOpenInterestHistory() supports linear and inverse contracts only');
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -59234,6 +59235,19 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         //          "sumOpenInterest":"75375.61700000",
         //          "sumOpenInterestValue":"3248828883.71251440",
         //          "timestamp":1642179900000
+        //      },
+        //      ...
+        //  ]
+        //
+        // inverse
+        //
+        //  [
+        //      {
+        //          "contractType":"PERPETUAL",
+        //          "sumOpenInterest":"13069401.00000000",
+        //          "sumOpenInterestValue":"15796.96988405",
+        //          "pair":"BTCUSD",
+        //          "timestamp":1791835200000
         //      },
         //      ...
         //  ]
@@ -368596,8 +368610,6 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
             await client.future(messageHash);
             return;
         }
-        client.future(messageHash); // created ahead of the request below, so concurrent callers can find it
-        client.subscriptions[marketType] = true;
         const requestId = this.requestId(url);
         const requestHash = requestId.toString();
         const message = {
@@ -368610,6 +368622,10 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
             'method': this.handleUserDataStreamSubscribe,
             'subscription': marketType
         };
+        // created right before the request, after the signing above: concurrent callers find it, and in
+        // the threaded ports the ack can not arrive between this future and the request one watch () adds
+        client.future(messageHash);
+        client.subscriptions[marketType] = true;
         try {
             await this.watch(url, requestHash, message, requestHash, subscription);
             client.resolve(marketType, messageHash);
@@ -520824,7 +520840,7 @@ SOFTWARE.
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.85';
+const version = '4.5.87';
 //-----------------------------------------------------------------------------
 
 

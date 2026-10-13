@@ -1,6 +1,6 @@
 [package]
 name = "ccxt-base"
-version = "4.5.85"
+version = "4.5.87"
 edition = "2021"
 description = "CCXT – CryptoCurrency eXchange Trading Library (Rust) – untyped engine (runtime, Value, REST/prediction Cores, WS infra)"
 license = "MIT"
@@ -34,7 +34,7 @@ default = []
 # `ccxt = { default-features = false, features = ["binance"] }` compiles a
 # single Core instead of all 200+.
 transpiled-base = ["engine", "all-exchanges", "all-prediction"]
-engine = ["ccxt-core/engine"]
+engine = ["ccxt-common/engine"]
 # One feature per transpiled Core, emitted by build/generateRustWrappers.ts; a
 # derived venue lists its parent so the parent Core compiles too. Prediction
 # Cores are prefixed `prediction-` because their ids overlap the REST venues.
@@ -156,7 +156,7 @@ all-prediction = ["prediction-binance", "prediction-hyperliquid", "prediction-ka
 # END GENERATED FEATURES
 
 [dependencies]
-ccxt-core = { path = "../ccxt-core", version = "4.5.85" }
+ccxt-common = { path = "../ccxt-common", version = "4.5.87" }
 indexmap = { version = "2", features = ["serde"] }
 futures = "0.3"
 

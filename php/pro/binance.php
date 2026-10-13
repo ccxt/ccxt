@@ -3022,8 +3022,6 @@ class binance extends \ccxt\async\binance {
             Async\await($client->future($messageHash));
             return;
         }
-        $client->future($messageHash); // created ahead of the request below, so concurrent callers can find it
-        $client->subscriptions[$marketType] = true;
         $requestId = $this->request_id($url);
         $requestHash = (string) $requestId;
         $message = array(
@@ -3036,6 +3034,10 @@ class binance extends \ccxt\async\binance {
             'method' => array($this, 'handle_user_data_stream_subscribe'),
             'subscription' => $marketType,
         );
+        // created right before the request, after the signing above: concurrent callers find it, and in
+        // the threaded ports the ack can not arrive between this future and the request one watch () adds
+        $client->future($messageHash);
+        $client->subscriptions[$marketType] = true;
         try {
             Async\await($this->watch($url, $requestHash, $message, $requestHash, $subscription));
             $client->resolve($marketType, $messageHash);

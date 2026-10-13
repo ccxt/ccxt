@@ -2647,8 +2647,6 @@ class binance(ccxt.async_support.binance):
             # another caller is already subscribing, wait for it instead of subscribing again
             await client.future(messageHash)
             return
-        client.future(messageHash)  # created ahead of the request below, so concurrent callers can find it
-        client.subscriptions[marketType] = True
         requestId = self.request_id(url)
         requestHash = str(requestId)
         message = {
@@ -2661,6 +2659,10 @@ class binance(ccxt.async_support.binance):
             'method': self.handle_user_data_stream_subscribe,
             'subscription': marketType,
         }
+        # created right before the request, after the signing above: concurrent callers find it, and in
+        # the threaded ports the ack can not arrive between this future and the request one watch () adds
+        client.future(messageHash)
+        client.subscriptions[marketType] = True
         try:
             await self.watch(url, requestHash, message, requestHash, subscription)
             client.resolve(marketType, messageHash)

@@ -14322,13 +14322,14 @@ export default class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let symbolKey: Str = 'pair';
         if (market['linear'] === true) {
-            symbolKey = 'symbol';
-        }
-        request[symbolKey] = market['id'];
-        if (market['inverse'] === true) {
-            request['contractType'] = this.safeString (paramsPaginate, 'contractType', 'CURRENT_QUARTER');
+            request['symbol'] = market['id'];
+        } else if (market['inverse'] === true) {
+            // dapi expects the underlying pair (BTCUSD) and a contract type, not the market id (BTCUSD_PERP)
+            request['pair'] = this.safeString (market['info'], 'pair');
+            request['contractType'] = (market['swap'] === true) ? 'PERPETUAL' : this.safeString (market['info'], 'contractType');
+        } else {
+            throw new NotSupported (this.id + ' fetchOpenInterestHistory() supports linear and inverse contracts only');
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -14357,6 +14358,19 @@ export default class binance extends Exchange {
         //          "sumOpenInterest":"75375.61700000",
         //          "sumOpenInterestValue":"3248828883.71251440",
         //          "timestamp":1642179900000
+        //      },
+        //      ...
+        //  ]
+        //
+        // inverse
+        //
+        //  [
+        //      {
+        //          "contractType":"PERPETUAL",
+        //          "sumOpenInterest":"13069401.00000000",
+        //          "sumOpenInterestValue":"15796.96988405",
+        //          "pair":"BTCUSD",
+        //          "timestamp":1791835200000
         //      },
         //      ...
         //  ]

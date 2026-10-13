@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "4.5.85",
+  "version": "4.5.86",
   "description": "A cryptocurrency trading API with more than 100 exchanges in JavaScript / TypeScript / Python / C# / PHP / Go",
   "unpkg": "dist/ccxt.browser.min.js",
   "type": "module",
@@ -277,8 +277,8 @@
     "test-order-router-php": "php php/test/base/test_order_router.php",
     "test-order-router-cs": "npm run ti-cs  -- --orderRouterTests",
     "test-order-router-go": "go -C go/v4 test -run TestOrderRouter -count=1 .",
-    "test-order-router-rust": "./build/utils/cargo-runner.sh test --manifest-path rust/Cargo.toml -p ccxt-core --lib order_router",
-    "test-order-router-rust//note": "runs against ccxt-core alone, NOT the ti-rust binary: ti-rust links the 180 generated venue wrappers and needs more memory than some machines have. The suite touches only Value and OrderRouter, both in ccxt-core. `npm run ti-rust -- --orderRouterTests` drives the identical checks from the same source in CI.",
+    "test-order-router-rust": "./build/utils/cargo-runner.sh test --manifest-path rust/Cargo.toml -p ccxt-common --lib order_router",
+    "test-order-router-rust//note": "runs against ccxt-common alone, NOT the ti-rust binary: ti-rust links the 180 generated venue wrappers and needs more memory than some machines have. The suite touches only Value and OrderRouter, both in ccxt-common. `npm run ti-rust -- --orderRouterTests` drives the identical checks from the same source in CI.",
     "test-order-router": "npm run test-order-router-ts && npm run test-order-router-js && npm run test-order-router-py && npm run test-order-router-php && npm run test-order-router-cs && npm run test-order-router-go && npm run test-order-router-rust",
     "test-base-rest-ts": "npm run ti-ts  -- --baseTests && npm run test-order-router-ts",
     "test-base-rest-js": "npm run ti-js  -- --baseTests && npm run test-order-router-js",

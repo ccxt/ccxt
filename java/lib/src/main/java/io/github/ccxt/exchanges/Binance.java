@@ -17384,15 +17384,17 @@ public class Binance extends BinanceApi
             {
                 request.put("limit", limit);
             }
-            String symbolKey = "pair";
             if (java.util.Objects.equals(market.get("linear"), true))
             {
-                symbolKey = "symbol";
-            }
-            request.put(symbolKey, market.get("id"));
-            if (java.util.Objects.equals(market.get("inverse"), true))
+                request.put("symbol", market.get("id"));
+            } else if (java.util.Objects.equals(market.get("inverse"), true))
             {
-                request.put("contractType", this.safeString(paramsPaginate, "contractType", "CURRENT_QUARTER"));
+                // dapi expects the underlying pair (BTCUSD) and a contract type, not the market id (BTCUSD_PERP)
+                request.put("pair", this.safeString(market.get("info"), "pair"));
+                request.put("contractType", (((java.util.Objects.equals(market.get("swap"), true)))) ? "PERPETUAL" : this.safeString(market.get("info"), "contractType"));
+            } else
+            {
+                throw new NotSupported((this.id + " fetchOpenInterestHistory() supports linear and inverse contracts only")) ;
             }
             if (!java.util.Objects.equals(since, null))
             {
@@ -17426,6 +17428,19 @@ public class Binance extends BinanceApi
             //          "sumOpenInterest":"75375.61700000",
             //          "sumOpenInterestValue":"3248828883.71251440",
             //          "timestamp":1642179900000
+            //      },
+            //      ...
+            //  ]
+            //
+            // inverse
+            //
+            //  [
+            //      {
+            //          "contractType":"PERPETUAL",
+            //          "sumOpenInterest":"13069401.00000000",
+            //          "sumOpenInterestValue":"15796.96988405",
+            //          "pair":"BTCUSD",
+            //          "timestamp":1791835200000
             //      },
             //      ...
             //  ]

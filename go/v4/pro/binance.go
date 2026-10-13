@@ -3903,8 +3903,6 @@ func (this *Binance) ensureUserDataStreamWsSubscribeSignatureBody(ch chan ccxt.A
 
 		return nil
 	}
-	client.(ccxt.ClientInterface).Future(messageHash) // created ahead of the request below, so concurrent callers can find it
-	ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), marketType, true)
 	var requestId int64 = this.RequestId(url)
 	var requestHash string = strconv.FormatInt(requestId, 10)
 	var message map[string]any = map[string]any{
@@ -3917,6 +3915,10 @@ func (this *Binance) ensureUserDataStreamWsSubscribeSignatureBody(ch chan ccxt.A
 		"method":       this.HandleUserDataStreamSubscribe,
 		"subscription": marketType,
 	}
+	// created right before the request, after the signing above: concurrent callers find it, and in
+	// the threaded ports the ack can not arrive between this future and the request one watch () adds
+	client.(ccxt.ClientInterface).Future(messageHash)
+	ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), marketType, true)
 
 	{
 		func(this *Binance) (ret_ any) {
@@ -4712,11 +4714,11 @@ func (this *Binance) fetchPositionWsBody(ch chan ccxt.EndpointResult[[]any], sym
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes346915 []any = r.Value
-	if retRes346915 == nil {
+	var retRes347115 []any = r.Value
+	if retRes347115 == nil {
 		ch <- ccxt.EndpointResult[[]any]{}
 	} else {
-		ch <- ccxt.EndpointResult[[]any]{Value: retRes346915, Raw: retRes346915}
+		ch <- ccxt.EndpointResult[[]any]{Value: retRes347115, Raw: retRes347115}
 	}
 	return nil
 }
@@ -7411,8 +7413,8 @@ func (this *Binance) HandleMyTrade(client any, message any) {
 							}
 						}
 						if insertNewFeeCurrency {
-							retRes561132 := ccxt.GetValue(order, "fees")
-							ccxt.AppendToArray(&retRes561132, tradeFee)
+							retRes561332 := ccxt.GetValue(order, "fees")
+							ccxt.AppendToArray(&retRes561332, tradeFee)
 						}
 					} else if fee != nil {
 						if this.SafeString(fee, "currency") == this.SafeString(tradeFee, "currency") || (this.SafeString(fee, "currency") != nil && this.SafeString(tradeFee, "currency") != nil && *this.SafeString(fee, "currency") == *this.SafeString(tradeFee, "currency")) {
