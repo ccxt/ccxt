@@ -29,7 +29,7 @@ amount = 40
 
 params = {'network': 'TRC20'}
 
-deposit = binance.fetchDepositAddress(code, params)
+deposit = binance.fetch_deposit_address(code, params)
 
 print('-----------------------------------------------------------')
 print(deposit)

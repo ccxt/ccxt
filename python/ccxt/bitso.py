@@ -1756,7 +1756,7 @@ class bitso(Exchange, ImplicitAPI):
             'destination_tag': tagWithdrawTag,
         }
         classMethod = 'privatePost' + method + 'Withdrawal'
-        response = getattr(self, classMethod)(self.extend(request, paramsWithdrawTag))
+        response = self.resolve_method(classMethod)(self.extend(request, paramsWithdrawTag))
         #
         #     {
         #         "success": true,

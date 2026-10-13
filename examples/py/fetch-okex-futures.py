@@ -21,5 +21,5 @@ for symbol in exchange.markets:
     market = exchange.markets[symbol]
     if market['future']:
         print('----------------------------------------------------')
-        print(symbol, exchange.fetchTicker(symbol))
+        print(symbol, exchange.fetch_ticker(symbol))
         time.sleep(exchange.rateLimit / 1000)

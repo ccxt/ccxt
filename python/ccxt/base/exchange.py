@@ -2377,7 +2377,7 @@ class BaseExchange(object):
         tx = TxRaw(
             auth_info_bytes=signDoc.auth_info_bytes,
             body_bytes=signDoc.body_bytes,
-            signatures=[self.base16ToBinary(signature)],
+            signatures=[self.base16_to_binary(signature)],
         )
         return '0x' + self.binary_to_base16(tx.SerializeToString())
 
@@ -5093,7 +5093,7 @@ class BaseExchange(object):
             shouldBreak = False
             while(retry < maxRetries):
                 try:
-                    response = getattr(self, endpointMethod)({})
+                    response = self.resolve_method(endpointMethod)({})
                     shouldBreak = True
                     break
                 except Exception as e:
@@ -7294,7 +7294,7 @@ class BaseExchange(object):
                     # UNTIL filtering is required in order to work
                     if paginationTimestamp is not None:
                         paramsMaxEntriesPerRequest['until'] = paginationTimestamp - 1
-                    response = getattr(self, method)(symbol, None, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest)
+                    response = self.resolve_method(method)(symbol, None, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest)
                     responseLength = len(response)
                     if self.verbose:
                         backwardMessage = 'Dynamic pagination call ' + self.number_to_string(calls) + ' method ' + method + ' response length ' + self.number_to_string(responseLength)
@@ -7313,7 +7313,7 @@ class BaseExchange(object):
                         break
                 else:
                     # do it forwards, starting from the since
-                    response = getattr(self, method)(symbol, paginationTimestamp, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest)
+                    response = self.resolve_method(method)(symbol, paginationTimestamp, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest)
                     responseLength = len(response)
                     if self.verbose:
                         forwardMessage = 'Dynamic pagination call ' + self.number_to_string(calls) + ' method ' + method + ' response length ' + self.number_to_string(responseLength)
@@ -7350,9 +7350,9 @@ class BaseExchange(object):
         while(errors <= maxRetriesOption):
             try:
                 if (timeframe is not None and timeframe != '') and method != 'fetchFundingRateHistory':
-                    return getattr(self, method)(symbol, timeframe, since, limit, paramsMaxRetries)
+                    return self.resolve_method(method)(symbol, timeframe, since, limit, paramsMaxRetries)
                 else:
-                    return getattr(self, method)(symbol, since, limit, paramsMaxRetries)
+                    return self.resolve_method(method)(symbol, since, limit, paramsMaxRetries)
             except Exception as e:
                 if isinstance(e, RateLimitExceeded):
                     raise e  # if we are rate limited, we should not retry and fail fast
@@ -7428,18 +7428,18 @@ class BaseExchange(object):
                     paramsOmitted[cursorSent] = cursorValue
                 response = None
                 if method == 'fetchAccounts':
-                    response = getattr(self, method)(paramsOmitted)
+                    response = self.resolve_method(method)(paramsOmitted)
                 elif method == 'getLeverageTiersPaginated' or method == 'fetchPositions':
-                    response = getattr(self, method)(symbol, paramsOmitted)
+                    response = self.resolve_method(method)(symbol, paramsOmitted)
                 elif method == 'fetchOpenInterestHistory':
                     if not isinstance(symbol, str):
                         # fetchOpenInterestHistory takes a single symbol, never a list
                         raise ArgumentsRequired(self.id + ' fetchPaginatedCallCursor() requires a symbol argument')
                     if timeframe is None:
                         raise ArgumentsRequired(self.id + ' fetchPaginatedCallCursor() requires a timeframe argument')
-                    response = getattr(self, method)(symbol, timeframe, since, maxEntriesPerRequestOption, paramsOmitted)
+                    response = self.resolve_method(method)(symbol, timeframe, since, maxEntriesPerRequestOption, paramsOmitted)
                 else:
-                    response = getattr(self, method)(symbol, since, maxEntriesPerRequestOption, paramsOmitted)
+                    response = self.resolve_method(method)(symbol, since, maxEntriesPerRequestOption, paramsOmitted)
                 errors = 0
                 if response is None:
                     raise NullResponse(self.id + ' fetchPaginatedCallCursor() returned empty response')
@@ -7492,7 +7492,7 @@ class BaseExchange(object):
         while(i < maxCallsPaginationCalls):
             try:
                 paramsMaxEntriesPerRequest[pageKey] = i + 1
-                response = getattr(self, method)(symbol, since, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest)
+                response = self.resolve_method(method)(symbol, since, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest)
                 errors = 0
                 responseLength = len(response)
                 if self.verbose:

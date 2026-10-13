@@ -946,7 +946,7 @@ class BaseExchange(SyncExchange):
             shouldBreak = False
             while(retry < maxRetries):
                 try:
-                    response = await getattr(self, endpointMethod)({})
+                    response = await self.resolve_method(endpointMethod)({})
                     shouldBreak = True
                     break
                 except Exception as e:
@@ -1430,7 +1430,7 @@ class BaseExchange(SyncExchange):
                     # UNTIL filtering is required in order to work
                     if paginationTimestamp is not None:
                         paramsMaxEntriesPerRequest['until'] = paginationTimestamp - 1
-                    response = await getattr(self, method)(symbol, None, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest)
+                    response = await self.resolve_method(method)(symbol, None, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest)
                     responseLength = len(response)
                     if self.verbose:
                         backwardMessage = 'Dynamic pagination call ' + self.number_to_string(calls) + ' method ' + method + ' response length ' + self.number_to_string(responseLength)
@@ -1449,7 +1449,7 @@ class BaseExchange(SyncExchange):
                         break
                 else:
                     # do it forwards, starting from the since
-                    response = await getattr(self, method)(symbol, paginationTimestamp, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest)
+                    response = await self.resolve_method(method)(symbol, paginationTimestamp, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest)
                     responseLength = len(response)
                     if self.verbose:
                         forwardMessage = 'Dynamic pagination call ' + self.number_to_string(calls) + ' method ' + method + ' response length ' + self.number_to_string(responseLength)
@@ -1486,9 +1486,9 @@ class BaseExchange(SyncExchange):
         while(errors <= maxRetriesOption):
             try:
                 if (timeframe is not None and timeframe != '') and method != 'fetchFundingRateHistory':
-                    return await getattr(self, method)(symbol, timeframe, since, limit, paramsMaxRetries)
+                    return await self.resolve_method(method)(symbol, timeframe, since, limit, paramsMaxRetries)
                 else:
-                    return await getattr(self, method)(symbol, since, limit, paramsMaxRetries)
+                    return await self.resolve_method(method)(symbol, since, limit, paramsMaxRetries)
             except Exception as e:
                 if isinstance(e, RateLimitExceeded):
                     raise e  # if we are rate limited, we should not retry and fail fast
@@ -1564,18 +1564,18 @@ class BaseExchange(SyncExchange):
                     paramsOmitted[cursorSent] = cursorValue
                 response = None
                 if method == 'fetchAccounts':
-                    response = await getattr(self, method)(paramsOmitted)
+                    response = await self.resolve_method(method)(paramsOmitted)
                 elif method == 'getLeverageTiersPaginated' or method == 'fetchPositions':
-                    response = await getattr(self, method)(symbol, paramsOmitted)
+                    response = await self.resolve_method(method)(symbol, paramsOmitted)
                 elif method == 'fetchOpenInterestHistory':
                     if not isinstance(symbol, str):
                         # fetchOpenInterestHistory takes a single symbol, never a list
                         raise ArgumentsRequired(self.id + ' fetchPaginatedCallCursor() requires a symbol argument')
                     if timeframe is None:
                         raise ArgumentsRequired(self.id + ' fetchPaginatedCallCursor() requires a timeframe argument')
-                    response = await getattr(self, method)(symbol, timeframe, since, maxEntriesPerRequestOption, paramsOmitted)
+                    response = await self.resolve_method(method)(symbol, timeframe, since, maxEntriesPerRequestOption, paramsOmitted)
                 else:
-                    response = await getattr(self, method)(symbol, since, maxEntriesPerRequestOption, paramsOmitted)
+                    response = await self.resolve_method(method)(symbol, since, maxEntriesPerRequestOption, paramsOmitted)
                 errors = 0
                 if response is None:
                     raise NullResponse(self.id + ' fetchPaginatedCallCursor() returned empty response')
@@ -1628,7 +1628,7 @@ class BaseExchange(SyncExchange):
         while(i < maxCallsPaginationCalls):
             try:
                 paramsMaxEntriesPerRequest[pageKey] = i + 1
-                response = await getattr(self, method)(symbol, since, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest)
+                response = await self.resolve_method(method)(symbol, since, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest)
                 errors = 0
                 responseLength = len(response)
                 if self.verbose:

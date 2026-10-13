@@ -27,7 +27,7 @@ async def main():
     amount = 1
     order_id = 'YOUR_ORDER_ID_FROM_BORROWING'
     try:
-        response = await exchange.repayCrossMargin(code, amount, {
+        response = await exchange.repay_cross_margin(code, amount, {
             'ordId': order_id,
         })
         pprint(response)

@@ -89,7 +89,7 @@ def sub_swap_to_main_swap():
     })
     code = 'USDT'
     amount = 10
-    convertedAmount = exchange.toEv(amount)
+    convertedAmount = exchange.to_ev(amount)
 
     try:
         response = exchange.privatePostAssetsFuturesSubAccountsTransfer({

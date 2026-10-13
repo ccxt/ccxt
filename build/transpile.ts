@@ -256,17 +256,23 @@ class Transpiler {
     baseMethodsList!: any[];
 
     defineImplicitMethodsList () {
-        // use PredictionExchange (extends Exchange) so the prediction base methods
+        // use PredictionExchange (extends BaseExchange) so the prediction base methods
         // (checkEvents, safeOutcome, safePredictionOrder, ...) are recognised and their calls
         // get snake_cased in prediction exchange files, instead of being treated as implicit-api
-        const exchange: any = new PredictionExchange();
-        let all = Object.getOwnPropertyNames(exchange);
-        let proto = Object.getPrototypeOf(exchange);
-        while (proto && proto !== Object.prototype) {
-            all = all.concat (Object.getOwnPropertyNames(proto));
-            proto = Object.getPrototypeOf(proto);
+        // plus Exchange, whose symbol-trading tier (createOrderWs, fetchOrder, ...) PredictionExchange lacks
+        const names = new Set<string> ()
+        for (const exchange of [ new PredictionExchange () as any, new Exchange () as any ]) {
+            let proto = exchange
+            while (proto && proto !== Object.prototype) {
+                for (const m of Object.getOwnPropertyNames (proto)) {
+                    if ('function' === typeof exchange[m]) {
+                        names.add (m)
+                    }
+                }
+                proto = Object.getPrototypeOf (proto)
+            }
         }
-        this.baseMethodsList = [ ... all.filter(m => 'function' === typeof exchange[m])];
+        this.baseMethodsList = [ ... names ];
     }
 
     trimmedUnCamelCase(word: string) {
@@ -512,6 +518,7 @@ class Transpiler {
             [ /([^\s]+)\.toFixed\s*\(([^\)]+)\)/g, "format($1, '.' + str($2) + 'f')" ],
             [ /parseFloat\s*/g, 'float'],
             [ /parseInt\s*/g, 'int'],
+            [ /self\[([^\]+]+)\](\s*\()/g, 'self.resolve_method($1)$2' ], // dynamic calls take camelCase names
             [ /self\[([^\]+]+)\]/g, 'getattr(self, $1)' ],
             [ /Math\.floor\s*\(([^\)]+)\)/g, 'int(math.floor($1))' ],
             [ /Math\.abs\s*\(([^\)]+)\)/g, 'abs($1)' ],
@@ -1989,7 +1996,29 @@ class Transpiler {
 
     // ------------------------------------------------------------------------
 
-    transpileClass (contents: string) {
+    getAncestorMethodNames (contents: string, tsPath: string, seen = new Set<string> ()): string[] {
+        // methods declared on the parent exchange chain (e.g. binanceusdm -> binance, pro/x -> x),
+        // so calls into them get snake-cased like calls into the class's own methods
+        const match = this.getClassDeclarationMatches (contents) as any
+        const baseClass = match ? match[2] : undefined
+        if (!baseClass || baseClass === 'Exchange' || baseClass === 'PredictionExchange') {
+            return []
+        }
+        const importMatch = contents.match (new RegExp ('^import\\s+' + baseClass + '\\s+from\\s+[\'"](\\.{1,2}/[^\'"]+)\\.js[\'"]', 'm'))
+        if (!importMatch) {
+            return []
+        }
+        const parentPath = path.resolve (path.dirname (tsPath), importMatch[1] + '.ts')
+        if (seen.has (parentPath) || !fs.existsSync (parentPath)) {
+            return []
+        }
+        seen.add (parentPath)
+        const parentContents = fs.readFileSync (parentPath, 'utf8')
+        const names = [ ... parentContents.matchAll (/^    (?:async )?([a-zA-Z_][a-zA-Z0-9_]*)\s*(?:<[^>]+>)?\s*\(/gm) ].map ((m) => m[1])
+        return names.concat (this.getAncestorMethodNames (parentContents, parentPath, seen))
+    }
+
+    transpileClass (contents: string, tsPath: string | undefined = undefined) {
         const [ _, className, baseClass, classBody ] = this.getClassDeclarationMatches (contents) as any
         const methods = classBody.trim ().split (/\n\s*\n/)
         const {
@@ -1997,14 +2026,17 @@ class Transpiler {
             python3,
             php,
             phpAsync,
-            methodNames
+            methodNames: ownMethodNames
         } = this.transpileMethodsToAllLanguages (className, methods)
+        const methodNames = ownMethodNames
+        // Python has no camelCase aliases, so inherited-method calls must be snake-cased too
+        const pyMethodNames = tsPath ? unique (ownMethodNames.concat (this.getAncestorMethodNames (contents, tsPath))) : ownMethodNames
         // altogether in PHP, async PHP, Python sync and async
         const sync = false
         const async = true
         const result = {
-            python2:      this.buildPython ? this.createPythonClass (className, baseClass, python2,  methodNames, sync) : '',
-            python3:      this.buildPython ? this.createPythonClass (className, baseClass, python3,  methodNames, async) : '',
+            python2:      this.buildPython ? this.createPythonClass (className, baseClass, python2,  pyMethodNames, sync) : '',
+            python3:      this.buildPython ? this.createPythonClass (className, baseClass, python3,  pyMethodNames, async) : '',
             php:          this.buildPHP ? this.createPHPClass    (className, baseClass, php,      methodNames, sync) : '',
             phpAsync:     this.buildPHP ? this.createPHPClass    (className, baseClass, phpAsync, methodNames, async) : '',
             className,
@@ -2056,7 +2088,7 @@ class Transpiler {
                 (phpFolder      && (tsMtime > phpMtime))      ||
                 (phpAsyncFolder && (tsMtime > phpAsyncMtime)) ||
                 (python2Folder  && (tsMtime > python2Mtime))) {
-                const { python2, python3, php, phpAsync, className, baseClass } = this.transpileClass (contents)
+                const { python2, python3, php, phpAsync, className, baseClass } = this.transpileClass (contents, tsPath)
                 if (this.buildPHP && this.buildPython) {
                     log.cyan ('Transpiling from', filename.yellow)
                 } else {

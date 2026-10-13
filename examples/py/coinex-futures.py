@@ -78,7 +78,7 @@ async def example_2():
     params = {
         'reduce_only': True
     }
-    close_position_order = await exchange.createOrder(symbol, type, side, amount, price, params)
+    close_position_order = await exchange.create_order(symbol, type, side, amount, price, params)
     print(close_position_order)
 
 # ------------------------------------------------------------------------------------------

@@ -48,7 +48,7 @@ class ohlcv(Exchange):
                 else:
                     continue
             i += 1
-            ohlcv_dictionary = self.extend(ohlcv_dictionary, self.indexBy(ohlcv, 0))
+            ohlcv_dictionary = self.extend(ohlcv_dictionary, self.index_by(ohlcv, 0))
             ohlcv_list = self.sort_by(ohlcv_dictionary.values(), 0)
             if len(ohlcv_list):
                 print('Stored', len(ohlcv_list), self.id, symbol, timeframe, 'candles from', self.iso8601(ohlcv_list[0][0]), 'to', self.iso8601(ohlcv_list[-1][0]))

@@ -23,7 +23,7 @@ def is_active_symbol(exchange, symbol):
 
 
 async def fetch_ticker(exchange, symbol):
-    ticker = await exchange.fetchTicker(symbol)
+    ticker = await exchange.fetch_ticker(symbol)
     print(exchange.id, symbol, ticker)
     return ticker
 
