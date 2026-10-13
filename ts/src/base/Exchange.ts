@@ -180,6 +180,50 @@ let SignMode: any = undefined;
 // onJsonResponse regex, hoisted to module scope (shared safely: String.replace resets
 // lastIndex on the global regex) - profiled neutral vs a function-local literal
 // (<2%, within noise, V8 caches the compiled literal anyway), kept hoisted for tidiness
+// snake_case aliases of prototype members, computed once per class as flat [ camel, snake, ... ]
+const aliasPairsCache = new WeakMap<object, string[]> ();
+const unCamelCaseCache = new Map<string, string> ();
+const unCamelCaseCached = (k: string): string => {
+    let snake = unCamelCaseCache.get (k);
+    if (snake === undefined) {
+        snake = unCamelCase (k);
+        unCamelCaseCache.set (k, snake);
+    }
+    return snake;
+};
+const ownerOf = (proto: object, k: string): object | undefined => {
+    for (let o = proto; o !== null; o = Object.getPrototypeOf (o)) {
+        if (Object.prototype.hasOwnProperty.call (o, k)) {
+            return o;
+        }
+    }
+    return undefined;
+};
+const prototypeAliasPairs = (proto: object): string[] => {
+    let pairs = aliasPairsCache.get (proto);
+    if (pairs !== undefined) {
+        return pairs;
+    }
+    pairs = [];
+    for (let o = proto; o !== null; o = Object.getPrototypeOf (o)) {
+        const names = Object.getOwnPropertyNames (o);
+        for (let i = 0; i < names.length; i++) {
+            const k = names[i];
+            const snake = unCamelCaseCached (k);
+            if (snake === k) {
+                continue;
+            }
+            // generated abstract classes define both names on one class, so no alias is needed
+            const owner = ownerOf (proto, k);
+            if ((owner !== undefined) && (owner === ownerOf (proto, snake))) {
+                continue;
+            }
+            pairs.push (k, snake);
+        }
+    }
+    aliasPairsCache.set (proto, pairs);
+    return pairs;
+};
 const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
 
 // -----------------------------------------------------------------------------
@@ -595,17 +639,18 @@ export class BaseExchange {
         this.last_json_response = undefined;
         this.last_request_body = undefined;
         // camelCase and snake_notation support
-        const unCamelCaseProperties = (obj = this) => {
-            if (obj !== null) {
-                const ownPropertyNames = Object.getOwnPropertyNames (obj);
-                for (let i = 0; i < ownPropertyNames.length; i++) {
-                    const k = ownPropertyNames[i];
-                    this[unCamelCase (k)] = this[k];
-                }
-                unCamelCaseProperties (Object.getPrototypeOf (obj));
+        const instanceNames = Object.getOwnPropertyNames (this);
+        for (let i = 0; i < instanceNames.length; i++) {
+            const k = instanceNames[i];
+            const snake = unCamelCaseCached (k);
+            if (snake !== k) {
+                this[snake] = this[k];
             }
-        };
-        unCamelCaseProperties ();
+        }
+        const pairs = prototypeAliasPairs (Object.getPrototypeOf (this));
+        for (let i = 0; i < pairs.length; i += 2) {
+            this[pairs[i + 1]] = this[pairs[i]];
+        }
         // merge constructor overrides to this instance
         const configEntries = Object.entries (this.describe ()).concat (Object.entries (userConfig));
         for (let i = 0; i < configEntries.length; i++) {
