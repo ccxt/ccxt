@@ -3042,7 +3042,6 @@ public class Binance extends BinanceApi
                     put( "spot", "x-TKT5PX2F" );
                     put( "margin", "x-TKT5PX2F" );
                     put( "future", "x-cvBPrNm9" );
-                    put( "delivery", "x-xcKtGhcu" );
                     put( "swap", "x-cvBPrNm9" );
                     put( "option", "x-xcKtGhcu" );
                     put( "inverse", "x-xcKtGhcu" );
@@ -3054,7 +3053,6 @@ public class Binance extends BinanceApi
                     put( "margin", "MARGIN" );
                     put( "cross", "MARGIN" );
                     put( "future", "UMFUTURE" );
-                    put( "delivery", "CMFUTURE" );
                     put( "linear", "UMFUTURE" );
                     put( "swap", "UMFUTURE" );
                     put( "inverse", "CMFUTURE" );
@@ -4328,13 +4326,7 @@ public class Binance extends BinanceApi
 
     public Boolean isInverse(Object type, String subType)
     {
-        if (java.util.Objects.equals(subType, null))
-        {
-            return (java.util.Objects.equals(type, "delivery"));
-        } else
-        {
-            return java.util.Objects.equals(subType, "inverse");
-        }
+        return java.util.Objects.equals(subType, "inverse");
     }
 
     public Boolean isLinear(Object type, String subType)
@@ -4430,12 +4422,12 @@ public class Binance extends BinanceApi
         {
             throw new ExchangeError((this.id + " markets not loaded")) ;
         }
-        // defaultType has legacy support on binance
+        // defaultType 'future' resolves spot-style symbols to the derivative market of defaultSubType
         String defaultType = this.safeString(this.options, "defaultType");
         String defaultSubType = this.safeString(this.options, "defaultSubType");
-        Boolean isLegacyLinear = java.util.Objects.equals(defaultType, "future");
-        Boolean isLegacyInverse = java.util.Objects.equals(defaultType, "delivery");
-        Boolean isLegacy = Boolean.TRUE.equals(isLegacyLinear) || Boolean.TRUE.equals(isLegacyInverse);
+        Boolean isLegacy = java.util.Objects.equals(defaultType, "future");
+        Boolean isLegacyInverse = Boolean.TRUE.equals(isLegacy) && (java.util.Objects.equals(defaultSubType, "inverse"));
+        Boolean isLegacyLinear = Boolean.TRUE.equals(isLegacy) && !Boolean.TRUE.equals(isLegacyInverse);
         if ((symbol instanceof String))
         {
             if ((!java.util.Objects.equals(this.markets, null)) && (((Map<?, ?>)this.markets).containsKey(symbol)))
@@ -5813,7 +5805,7 @@ public class Binance extends BinanceApi
      * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/account#option-margin-account-information // option
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Account-Balance                            // portfolio margin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot' or 'papi'
+     * @param {string} [params.type] 'spot', 'margin', 'swap', 'future', 'option', 'savings', 'funding' or 'papi', use params.subType 'inverse' for COIN-M
      * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
      * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the balance for a portfolio margin account
@@ -9222,10 +9214,7 @@ public class Binance extends BinanceApi
             String defaultType = this.safeString(this.options, "defaultType", "spot");
             String defaultSubType = this.safeString(this.options, "defaultSubType");
             idMarketType = defaultType;
-            if (java.util.Objects.equals(defaultType, "delivery"))
-            {
-                idMarketType = "inverse";
-            } else if ((java.util.Objects.equals(defaultSubType, "inverse")) && ((java.util.Objects.equals(defaultType, "swap")) || (java.util.Objects.equals(defaultType, "future"))))
+            if ((java.util.Objects.equals(defaultSubType, "inverse")) && ((java.util.Objects.equals(defaultType, "swap")) || (java.util.Objects.equals(defaultType, "future"))))
             {
                 idMarketType = "inverse";
             }
@@ -16515,7 +16504,7 @@ public class Binance extends BinanceApi
             String type = this.safeString(parameters, "type", defaultType);
             if ((java.util.Objects.equals(type, "margin")) || (java.util.Objects.equals(type, "spot")))
             {
-                throw new NotSupported((this.id + " add / reduce margin only supported with type future or delivery")) ;
+                throw new NotSupported((this.id + " add / reduce margin only supported with linear or inverse swap/future markets")) ;
             }
             if (java.util.Objects.equals(this.markets, null))
             {
