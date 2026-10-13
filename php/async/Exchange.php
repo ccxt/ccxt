@@ -72,9 +72,17 @@ class BaseExchange extends \ccxt\BaseExchange {
 
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->default_connector = $this->create_connector();
-        $this->set_request_browser($this->default_connector);
+        // default connector/browser are stateless per (timeout, buffer size), so share them process-wide
+        $key = $this->timeout . '|' . $this->response_buffer_max_size;
+        if (!isset(self::$shared_http[$key])) {
+            $this->default_connector = $this->create_connector();
+            $this->set_request_browser($this->default_connector);
+            self::$shared_http[$key] = array($this->default_connector, $this->browser);
+        }
+        [$this->default_connector, $this->browser] = self::$shared_http[$key];
     }
+
+    private static $shared_http = array();
 
     public function set_request_browser($connector) {
         $this->browser = (new React\Http\Browser($connector, Loop::get()))

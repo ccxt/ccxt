@@ -1292,6 +1292,9 @@ class BaseExchange {
         return $input;
     }
 
+    private static $describe_cache = array();
+    private static $default_options_cache = array();
+
     public function __construct($options = array()) {
 
         // todo auto-camelcasing for methods in PHP
@@ -1310,18 +1313,24 @@ class BaseExchange {
         //     }
         // }
 
-        $this->options = $this->get_default_options();
+        $this->options = self::$default_options_cache[static::class] ??= $this->get_default_options();
 
         $this->urlencode_glue = ini_get('arg_separator.output'); // can be overrided by exchange constructor params
 
-        $options = array_replace_recursive($this->describe(), $options);
-        if ($options) {
-            foreach ($options as $key => $value) {
-                $this->{$key} =
-                    (property_exists($this, $key) && is_array($this->{$key}) && is_array($value)) ?
-                    array_replace_recursive($this->{$key}, $value) :
-                    $value;
-            }
+        // describe() only reads class defaults here, so cache it per class; merge only user-passed keys
+        $class = static::class;
+        $describe = self::$describe_cache[$class] ??= $this->describe();
+        $merged = $describe;
+        foreach ($options as $key => $value) {
+            $merged[$key] = (array_key_exists($key, $describe) && is_array($describe[$key]) && is_array($value)) ?
+                array_replace_recursive($describe[$key], $value) : $value;
+        }
+        $options = $merged;
+        foreach ($options as $key => $value) {
+            $this->{$key} =
+                (property_exists($this, $key) && is_array($this->{$key}) && $this->{$key} && is_array($value)) ?
+                array_replace_recursive($this->{$key}, $value) :
+                $value;
         }
 
         if ($this->urlencode_glue !== '&') {
