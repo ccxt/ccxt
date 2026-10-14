@@ -2974,10 +2974,10 @@ class bullish extends Exchange {
         ), $market);
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $apiName = $api[0];
-        $requestHeaders = $headers;
-        $requestBody = $body;
+        $requestHeaders = null;
+        $requestBody = null;
         $request = $this->omit($params, $this->extract_params($path));
         $endpoint = '/' . $this->implode_params($path, $params);
         $apiUrl = $this->safe_string($this->urls['api'], $apiName);

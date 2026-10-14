@@ -10013,7 +10013,7 @@ class bybit extends Exchange {
         return $this->safe_string($marginModes, $marginMode, $marginMode);
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $requestBody = null;
         $requestHeaders = null;
@@ -10115,12 +10115,12 @@ class bybit extends Exchange {
         }
         if ($method === 'POST') {
             $brokerId = $this->safe_string($this->options, 'brokerId', 'CCXT');
-            $headersBase = ($requestHeaders === null) ? $headers : $requestHeaders;
+            $headersBase = $requestHeaders;
             $requestHeaders = ($headersBase === null) ? array() : $headersBase;
             $requestHeaders['Referer'] = $brokerId;
         }
-        $bodyResolved = ($requestBody === null) ? $body : $requestBody;
-        $headersResolved = ($requestHeaders === null) ? $headers : $requestHeaders;
+        $bodyResolved = $requestBody;
+        $headersResolved = $requestHeaders;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 

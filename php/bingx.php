@@ -7140,7 +7140,7 @@ class bingx extends Exchange {
         return $tiers;
     }
 
-    public function sign(string $path, array $section = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $section = array('public'), $method = 'GET', $params = array()): array {
         $type = $section[0];
         $version = $section[1];
         $access = $section[2];
@@ -7205,8 +7205,8 @@ class bingx extends Exchange {
                 $url .= '?' . $query . '&' . 'signature=' . $signature;
             }
         }
-        $bodyResult = ($requestBody !== null) ? $requestBody : $body;
-        $headersResult = ($requestHeaders !== null) ? $requestHeaders : $headers;
+        $bodyResult = $requestBody;
+        $headersResult = $requestHeaders;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
     }
 

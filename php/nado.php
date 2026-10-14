@@ -3101,7 +3101,7 @@ class nado extends Exchange {
         return $marketId;
     }
 
-    public function sign(string $path, array $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array(), $method = 'GET', $params = array()): array {
         $requestBody = null;
         $endpoint = $api[0];
         $baseApiUrl = $this->safe_string($this->urls['api'], $endpoint);
@@ -3125,7 +3125,7 @@ class nado extends Exchange {
             $headersValue['Content-Type'] = 'application/json';
             $requestBody = $this->json($query);
         }
-        $bodyResult = ($requestBody !== null) ? $requestBody : $body;
+        $bodyResult = $requestBody;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersValue );
     }
 

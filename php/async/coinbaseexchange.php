@@ -2288,10 +2288,10 @@ class coinbaseexchange extends Exchange {
         );
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $apiName = $api[0];
-        $requestHeaders = $headers;
-        $requestBody = $body;
+        $requestHeaders = null;
+        $requestBody = null;
         $request = '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($method === 'GET') {
@@ -2347,12 +2347,12 @@ class coinbaseexchange extends Exchange {
         return null;
     }
 
-    public function request(string $path, array $api = array('public'), $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, array $config = array()) {
-        return Async\async(self::do_request(...))($path, $api, $method, $params, $headers, $body, $config);
+    public function request(string $path, array $api = array('public'), $method = 'GET', $params = array(), array $config = array()) {
+        return Async\async(self::do_request(...))($path, $api, $method, $params, $config);
     }
 
-    private function do_request(string $path, array $api = array('public'), $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, array $config = array()) {
-        $response = $this->do_fetch2($path, $api, $method, $params, $headers, $body, $config);
+    private function do_request(string $path, array $api = array('public'), $method = 'GET', $params = array(), array $config = array()) {
+        $response = $this->do_fetch2($path, $api, $method, $params, $config);
         if (gettype($response) !== 'string') {
             if (is_array($response) && array_key_exists('message' ?? '', $response)) {
                 throw new ExchangeError($this->id . ' ' . $this->json($response));

@@ -12088,7 +12088,7 @@ class bitget extends Exchange {
         return $this->milliseconds() - $timeDifference;
     }
 
-    public function sign(string $path, array $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array(), $method = 'GET', $params = array()): array {
         $signed = $api[0] === 'private';
         $endpoint = $api[1];
         $pathPart = '/api';
@@ -12145,7 +12145,7 @@ class bitget extends Exchange {
                 $requestHeaders['Content-Type'] = 'application/json';
             }
         }
-        $headersResult = ($requestHeaders === null) ? $headers : $requestHeaders;
+        $headersResult = $requestHeaders;
         $sandboxMode = $this->safe_bool_2($this->options, 'sandboxMode', 'sandbox', false);
         if (($sandboxMode === true) && ($path !== 'v2/public/time') && ($path !== 'v3/market/current-fund-rate')) {
             // https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336
@@ -12157,7 +12157,7 @@ class bitget extends Exchange {
                 $headersResult['PAPTRADING'] = '1';
             }
         }
-        $bodyResult = ($requestBody === null) ? $body : $requestBody;
+        $bodyResult = $requestBody;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
     }
 }

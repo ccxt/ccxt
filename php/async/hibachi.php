@@ -1901,7 +1901,7 @@ class hibachi extends Exchange {
         ));
     }
 
-    public function sign(string $path, array $api = array('public'), mixed $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), mixed $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $endpoint = '/' . $this->implode_params($path, $params);
         $apiUrl = $this->safe_string($this->urls['api'], $apiName);
@@ -1921,7 +1921,7 @@ class hibachi extends Exchange {
         if ($hasJsonBody) {
             $headersValue['Content-Type'] = 'application/json';
         }
-        $bodyResult = $body;
+        $bodyResult = null;
         if ($hasJsonBody) {
             $bodyResult = $this->json($params);
         }

@@ -4830,7 +4830,7 @@ class phemex extends Exchange {
         return $tiers;
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $query = $this->omit($params, $this->extract_params($path));
         $requestPath = '/' . $this->implode_params($path, $params);
@@ -4876,11 +4876,11 @@ class phemex extends Exchange {
         }
         $url = $this->implode_hostname($baseApiUrl) . $url;
         $isPrivatePost = ($apiName === 'private') && ($method === 'POST');
-        $bodyResolved = $body;
+        $bodyResolved = null;
         if ($isPrivatePost) {
             $bodyResolved = $requestBody;
         }
-        $requestHeaders = ($apiName === 'private') ? $privateHeaders : $headers;
+        $requestHeaders = ($apiName === 'private') ? $privateHeaders : null;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $requestHeaders );
     }
 

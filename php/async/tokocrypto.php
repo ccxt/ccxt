@@ -2752,7 +2752,7 @@ class tokocrypto extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function sign(string $path, array $api = array('public'), mixed $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), mixed $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         if (!(is_array($this->urls['api']['rest']) && array_key_exists($apiName ?? '', $this->urls['api']['rest']))) {
             throw new NotSupported($this->id . ' does not have a testnet/sandbox URL for ' . $apiName . ' endpoints');
@@ -2774,7 +2774,7 @@ class tokocrypto extends Exchange {
                     'X-MBX-APIKEY' => $this->apiKey,
                     'Content-Type' => 'application/x-www-form-urlencoded',
                 );
-                $bodyStream = ($method !== 'GET') ? $this->urlencode($params) : $body;
+                $bodyStream = ($method !== 'GET') ? $this->urlencode($params) : null;
                 return array( 'url' => $url, 'method' => $method, 'body' => $bodyStream, 'headers' => $headersStream );
             } else {
                 throw new AuthenticationError($this->id . ' userDataStream endpoint requires `apiKey` credential');
@@ -2808,7 +2808,7 @@ class tokocrypto extends Exchange {
             $queryInUrl = ($method === 'GET') || ($method === 'DELETE') || ($apiName === 'wapi');
             $bodySigned = $query;
             if ($queryInUrl) {
-                $bodySigned = $body;
+                $bodySigned = null;
             }
             if ($queryInUrl) {
                 $url .= '?' . $query;
@@ -2821,7 +2821,7 @@ class tokocrypto extends Exchange {
                 $url .= '?' . $this->urlencode($params);
             }
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

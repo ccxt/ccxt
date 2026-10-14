@@ -4671,7 +4671,7 @@ class digifinex extends Exchange {
         return $this->privateSwapPostAccountPositionMode($this->extend($request, $params));
     }
 
-    public function sign(string $path, array $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array(), $method = 'GET', $params = array()): array {
         $signed = $this->safe_string($api, 0) === 'private';
         $endpoint = $this->safe_string($api, 1);
         $pathPart = '/swap/v2';
@@ -4716,7 +4716,7 @@ class digifinex extends Exchange {
                 }
             }
             $hasPostBody = ($method === 'POST') && ($urlencoded !== null) && ($urlencoded !== '');
-            $requestBody = $body;
+            $requestBody = null;
             if ($hasPostBody) {
                 $requestBody = $urlencoded;
             }
@@ -4731,7 +4731,7 @@ class digifinex extends Exchange {
                 $url .= '?' . $urlencoded;
             }
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
     public function handle_errors(int $statusCode, string $statusText, string $url, string $method, array $responseHeaders, string $responseBody, mixed $response, mixed $requestHeaders, mixed $requestBody) {

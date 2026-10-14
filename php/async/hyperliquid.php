@@ -5414,7 +5414,7 @@ class hyperliquid extends Exchange {
         return null;
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
@@ -5425,11 +5425,11 @@ class hyperliquid extends Exchange {
         $postHeaders = array(
             'Content-Type' => 'application/json',
         );
-        $requestHeaders = $headers;
+        $requestHeaders = null;
         if ($isPost) {
             $requestHeaders = $postHeaders;
         }
-        $requestBody = $body;
+        $requestBody = null;
         if ($isPost) {
             $requestBody = $this->json($params);
         }

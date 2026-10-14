@@ -3812,7 +3812,7 @@ class krakenfutures extends Exchange {
         throw new ExchangeError($feedback); // unknown message
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $apiVersions = $this->safe_dict($this->options['versions'], $apiName, array());
         $methodVersions = $this->safe_dict($apiVersions, $method, array());
@@ -3841,7 +3841,7 @@ class krakenfutures extends Exchange {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $apiUrl . $query;
-        $requestBody = ($path === 'batchorder') ? $postData : $body;
+        $requestBody = ($path === 'batchorder') ? $postData : null;
         $privateHeaders = null;
         if ($apiName === 'private' || $access === 'private') {
             $this->check_required_credentials();
@@ -3860,7 +3860,7 @@ class krakenfutures extends Exchange {
                 'Authent' => $signature,
             );
         }
-        $requestHeaders = ($privateHeaders !== null) ? $privateHeaders : $headers;
+        $requestHeaders = $privateHeaders;
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 }

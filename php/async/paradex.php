@@ -3644,7 +3644,7 @@ class paradex extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $version = $this->version;
         $pathValue = $path;
@@ -3710,10 +3710,10 @@ class paradex extends Exchange {
             //         url += '?' + this.urlencode (query);
             //     }
             // }
-            $bodyResolved = ($privateBody !== null) ? $privateBody : $body;
+            $bodyResolved = $privateBody;
             return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $privateHeaders );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

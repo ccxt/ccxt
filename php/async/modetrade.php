@@ -3214,7 +3214,7 @@ class modetrade extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, array $section = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $section = array('public'), $method = 'GET', $params = array()): array {
         $version = $section[0];
         $access = $section[1];
         $pathWithParams = $this->implode_params($path, $params);
@@ -3275,7 +3275,7 @@ class modetrade extends Exchange {
                     $auth .= '?' . $this->rawencode($paramsSigned);
                 }
                 $signedHeaders['content-type'] = 'application/x-www-form-urlencoded';
-                $signedBody = ($method === 'DELETE') ? '' : $body;
+                $signedBody = ($method === 'DELETE') ? '' : null;
             }
             $secret = $this->secret;
             if (mb_strpos($secret, 'ed25519:') !== false) {
@@ -3286,7 +3286,7 @@ class modetrade extends Exchange {
             $signedHeaders['orderly-signature'] = $this->urlencode_base64(base64_decode($signature));
             return array( 'url' => $url, 'method' => $method, 'body' => $signedBody, 'headers' => $signedHeaders );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

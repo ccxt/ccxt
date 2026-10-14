@@ -214,7 +214,7 @@ class revolutx extends Exchange {
         ));
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $requestHeaders = null;
         $requestBody = null;
         $implodedPath = $this->implode_params($path, $params);
@@ -246,7 +246,7 @@ class revolutx extends Exchange {
                 $requestBody = $this->json($query);
             }
             $requestPath = '/api/' . $implodedPath;
-            $bodyValue = ($requestBody !== null) ? $requestBody : $body;
+            $bodyValue = $requestBody;
             $bodyString = ($bodyValue !== null) ? $bodyValue : '';
             $message = $timestamp . strtoupper($method) . $requestPath . $queryString . $bodyString;
             $signature = $this->eddsa($this->encode($message), $this->privateKey, 'ed25519');
@@ -269,8 +269,8 @@ class revolutx extends Exchange {
                 $requestHeaders = array( 'Content-Type' => 'application/json' );
             }
         }
-        $headersResult = ($requestHeaders !== null) ? $requestHeaders : $headers;
-        $bodyResult = ($requestBody !== null) ? $requestBody : $body;
+        $headersResult = $requestHeaders;
+        $bodyResult = $requestBody;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
     }
 

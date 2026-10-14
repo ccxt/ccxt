@@ -6747,7 +6747,7 @@ class okx extends Exchange {
         return $this->parse_transfers($transfers, $currency, $since, $limit, $params);
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $isArray = (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params)));
         $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
@@ -6815,11 +6815,11 @@ class okx extends Exchange {
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
             $privateHeaders['OK-ACCESS-SIGN'] = $signature;
         }
-        $requestBody = $body;
+        $requestBody = null;
         if ($hasJsonBody) {
             $requestBody = $jsonBody;
         }
-        $requestHeaders = ($apiName === 'private') ? $privateHeaders : $headers;
+        $requestHeaders = ($apiName === 'private') ? $privateHeaders : null;
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 

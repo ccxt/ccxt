@@ -2282,7 +2282,7 @@ class coinsph extends Exchange {
         return $urlEncodedParam;
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
@@ -2307,13 +2307,13 @@ class coinsph extends Exchange {
             $signedHeaders = array(
                 'X-COINS-APIKEY' => $this->apiKey,
             );
-            return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $signedHeaders );
+            return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => $signedHeaders );
         }
         $encodedQuery = $this->url_encode_query($query);
         if (strlen($encodedQuery) !== 0) {
             $url .= '?' . $encodedQuery;
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

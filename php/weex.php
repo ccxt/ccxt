@@ -4352,7 +4352,7 @@ class weex extends Exchange {
         $this->options['sandboxMode'] = $enable;
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $endpoint = $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
@@ -4364,7 +4364,7 @@ class weex extends Exchange {
         }
         $isPrivate = ($apiName === 'private') || ($apiName === 'contractPrivate');
         $hasJsonBody = $isPrivate && (($method === 'POST') || $isBatch);
-        $requestBody = $body;
+        $requestBody = null;
         if ($hasJsonBody) {
             $requestBody = $this->json($query);
         }

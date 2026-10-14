@@ -186,7 +186,7 @@ class mudrex extends Exchange {
         ));
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $apiUrls = $this->safe_dict($this->urls, 'api', array());
         $base = $this->safe_string($apiUrls, $apiName);
@@ -196,9 +196,6 @@ class mudrex extends Exchange {
         $url = $base . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $requestHeaders = array();
-        if ($headers !== null) {
-            $requestHeaders = $this->extend(array(), $headers);
-        }
         $brokerId = $this->safe_string($this->options, 'broker');
         if ($brokerId !== null) {
             $requestHeaders['Partner-Id'] = $brokerId;

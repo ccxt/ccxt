@@ -11,1200 +11,1200 @@ abstract class weex extends \ccxt\Exchange {
      * @return array<string, mixed>
      */
     public function public_get_api_v3_time($params = array()) {
-        return $this->request('api/v3/time', array('public'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('api/v3/time', array('public'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return list<mixed>
      */
     public function public_get_api_v3_coins($params = array()) {
-        return $this->request('api/v3/coins', array('public'), 'GET', $params, null, null, array("cost" => 25));
+        return $this->request('api/v3/coins', array('public'), 'GET', $params, array("cost" => 25));
     }
     /**
      * @return array<string, mixed>
      */
     public function public_get_api_v3_exchangeinfo($params = array()) {
-        return $this->request('api/v3/exchangeInfo', array('public'), 'GET', $params, null, null, array("cost" => 100));
+        return $this->request('api/v3/exchangeInfo', array('public'), 'GET', $params, array("cost" => 100));
     }
     /**
      * @return array<string, mixed>
      */
     public function public_get_api_v3_ping($params = array()) {
-        return $this->request('api/v3/ping', array('public'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('api/v3/ping', array('public'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return list<mixed>
      */
     public function public_get_api_v3_apitradingsymbols($params = array()) {
-        return $this->request('api/v3/apiTradingSymbols', array('public'), 'GET', $params, null, null, array("cost" => 25));
+        return $this->request('api/v3/apiTradingSymbols', array('public'), 'GET', $params, array("cost" => 25));
     }
     /**
      * @return list<mixed>
      */
     public function public_get_api_v3_market_ticker_price($params = array()) {
-        return $this->request('api/v3/market/ticker/price', array('public'), 'GET', $params, null, null, array("cost" => 20));
+        return $this->request('api/v3/market/ticker/price', array('public'), 'GET', $params, array("cost" => 20));
     }
     /**
      * @return array<string, mixed>|list<mixed>
      */
     public function public_get_api_v3_market_ticker_24hr($params = array()) {
-        return $this->request('api/v3/market/ticker/24hr', array('public'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('api/v3/market/ticker/24hr', array('public'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return list<mixed>
      */
     public function public_get_api_v3_market_trades($params = array()) {
-        return $this->request('api/v3/market/trades', array('public'), 'GET', $params, null, null, array("cost" => 125));
+        return $this->request('api/v3/market/trades', array('public'), 'GET', $params, array("cost" => 125));
     }
     /**
      * @return list<mixed>
      */
     public function public_get_api_v3_market_klines($params = array()) {
-        return $this->request('api/v3/market/klines', array('public'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('api/v3/market/klines', array('public'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return array<string, mixed>
      */
     public function public_get_api_v3_market_depth($params = array()) {
-        return $this->request('api/v3/market/depth', array('public'), 'GET', $params, null, null, array("cost" => 25));
+        return $this->request('api/v3/market/depth', array('public'), 'GET', $params, array("cost" => 25));
     }
     /**
      * @return list<mixed>
      */
     public function public_get_api_v3_market_ticker_bookticker($params = array()) {
-        return $this->request('api/v3/market/ticker/bookTicker', array('public'), 'GET', $params, null, null, array("cost" => 20));
+        return $this->request('api/v3/market/ticker/bookTicker', array('public'), 'GET', $params, array("cost" => 20));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_api_v3_account($params = array()) {
-        return $this->request('api/v3/account/', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('api/v3/account/', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return list<mixed>
      */
     public function private_get_api_v3_account_transferrecords($params = array()) {
-        return $this->request('api/v3/account/transferRecords', array('private'), 'GET', $params, null, null, array("cost" => 3));
+        return $this->request('api/v3/account/transferRecords', array('private'), 'GET', $params, array("cost" => 3));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_api_v3_order($params = array()) {
-        return $this->request('api/v3/order', array('private'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('api/v3/order', array('private'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function private_get_api_v3_openorders($params = array()) {
-        return $this->request('api/v3/openOrders', array('private'), 'GET', $params, null, null, array("cost" => 3));
+        return $this->request('api/v3/openOrders', array('private'), 'GET', $params, array("cost" => 3));
     }
     /**
      * @return list<mixed>
      */
     public function private_get_api_v3_allorders($params = array()) {
-        return $this->request('api/v3/allOrders', array('private'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('api/v3/allOrders', array('private'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return list<mixed>
      */
     public function private_get_api_v3_mytrades($params = array()) {
-        return $this->request('api/v3/myTrades', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('api/v3/myTrades', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_api_v3_rebate_affiliate_getaffiliateuids($params = array()) {
-        return $this->request('api/v3/rebate/affiliate/getAffiliateUIDs', array('private'), 'GET', $params, null, null, array("cost" => 20));
+        return $this->request('api/v3/rebate/affiliate/getAffiliateUIDs', array('private'), 'GET', $params, array("cost" => 20));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_api_v3_rebate_affiliate_getchannelusertradeandasset($params = array()) {
-        return $this->request('api/v3/rebate/affiliate/getChannelUserTradeAndAsset', array('private'), 'GET', $params, null, null, array("cost" => 20));
+        return $this->request('api/v3/rebate/affiliate/getChannelUserTradeAndAsset', array('private'), 'GET', $params, array("cost" => 20));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_api_v3_rebate_affiliate_getaffiliatecommission($params = array()) {
-        return $this->request('api/v3/rebate/affiliate/getAffiliateCommission', array('private'), 'GET', $params, null, null, array("cost" => 20));
+        return $this->request('api/v3/rebate/affiliate/getAffiliateCommission', array('private'), 'GET', $params, array("cost" => 20));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_api_v3_rebate_affiliate_getinternalwithdrawalstatus($params = array()) {
-        return $this->request('api/v3/rebate/affiliate/getInternalWithdrawalStatus', array('private'), 'GET', $params, null, null, array("cost" => 100));
+        return $this->request('api/v3/rebate/affiliate/getInternalWithdrawalStatus', array('private'), 'GET', $params, array("cost" => 100));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_api_v3_rebate_affiliate_querysubchanneltransactions($params = array()) {
-        return $this->request('api/v3/rebate/affiliate/querySubChannelTransactions', array('private'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('api/v3/rebate/affiliate/querySubChannelTransactions', array('private'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return list<mixed>
      */
     public function private_get_api_v3_agency_verifyreferrals($params = array()) {
-        return $this->request('api/v3/agency/verifyReferrals', array('private'), 'GET', $params, null, null, array("cost" => 20));
+        return $this->request('api/v3/agency/verifyReferrals', array('private'), 'GET', $params, array("cost" => 20));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_api_v3_agency_getassert($params = array()) {
-        return $this->request('api/v3/agency/getAssert', array('private'), 'GET', $params, null, null, array("cost" => 20));
+        return $this->request('api/v3/agency/getAssert', array('private'), 'GET', $params, array("cost" => 20));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_api_v3_agency_getdealdata($params = array()) {
-        return $this->request('api/v3/agency/getDealData', array('private'), 'GET', $params, null, null, array("cost" => 20));
+        return $this->request('api/v3/agency/getDealData', array('private'), 'GET', $params, array("cost" => 20));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_api_v3_apireferral_checkusereligibility($params = array()) {
-        return $this->request('api/v3/apiReferral/checkUserEligibility', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('api/v3/apiReferral/checkUserEligibility', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_api_v3_apireferral_rebate_recentrecord($params = array()) {
-        return $this->request('api/v3/apiReferral/rebate/recentRecord', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('api/v3/apiReferral/rebate/recentRecord', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_api_v3_apireferral_rebateratio($params = array()) {
-        return $this->request('api/v3/apiReferral/rebateRatio', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('api/v3/apiReferral/rebateRatio', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_api_v3_content_articles_detail($params = array()) {
-        return $this->request('api/v3/content/articles/detail', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('api/v3/content/articles/detail', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_api_v3_content_articles_list($params = array()) {
-        return $this->request('api/v3/content/articles/list', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('api/v3/content/articles/list', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_api_v3_content_articles_listbycoin($params = array()) {
-        return $this->request('api/v3/content/articles/listByCoin', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('api/v3/content/articles/listByCoin', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_api_v3_content_banners_latest($params = array()) {
-        return $this->request('api/v3/content/banners/latest', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('api/v3/content/banners/latest', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return list<mixed>
      */
     public function private_post_api_v3_account_bills($params = array()) {
-        return $this->request('api/v3/account/bills', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('api/v3/account/bills', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_api_v3_account_fundingbills($params = array()) {
-        return $this->request('api/v3/account/fundingBills', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('api/v3/account/fundingBills', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_api_v3_order($params = array()) {
-        return $this->request('api/v3/order', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('api/v3/order', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_api_v3_order_batch($params = array()) {
-        return $this->request('api/v3/order/batch', array('private'), 'POST', $params, null, null, array("cost" => 50));
+        return $this->request('api/v3/order/batch', array('private'), 'POST', $params, array("cost" => 50));
     }
     /**
      * @return string
      */
     public function private_post_api_v3_rebate_affiliate_internalwithdrawal($params = array()) {
-        return $this->request('api/v3/rebate/affiliate/internalWithdrawal', array('private'), 'POST', $params, null, null, array("cost" => 100));
+        return $this->request('api/v3/rebate/affiliate/internalWithdrawal', array('private'), 'POST', $params, array("cost" => 100));
     }
     /**
      * @return list<mixed>
      */
     public function private_post_api_v3_tax_income($params = array()) {
-        return $this->request('api/v3/tax/income', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('api/v3/tax/income', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_delete_api_v3_order($params = array()) {
-        return $this->request('api/v3/order', array('private'), 'DELETE', $params, null, null, array("cost" => 1));
+        return $this->request('api/v3/order', array('private'), 'DELETE', $params, array("cost" => 1));
     }
     /**
      * @return list<mixed>
      */
     public function private_delete_api_v3_openorders($params = array()) {
-        return $this->request('api/v3/openOrders', array('private'), 'DELETE', $params, null, null, array("cost" => 1));
+        return $this->request('api/v3/openOrders', array('private'), 'DELETE', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_delete_api_v3_order_batch($params = array()) {
-        return $this->request('api/v3/order/batch', array('private'), 'DELETE', $params, null, null, array("cost" => 10));
+        return $this->request('api/v3/order/batch', array('private'), 'DELETE', $params, array("cost" => 10));
     }
     /**
      * @return array<string, mixed>
      */
     public function contract_get_capi_v3_market_time($params = array()) {
-        return $this->request('capi/v3/market/time', array('contract'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('capi/v3/market/time', array('contract'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function contract_get_capi_v3_market_exchangeinfo($params = array()) {
-        return $this->request('capi/v3/market/exchangeInfo', array('contract'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('capi/v3/market/exchangeInfo', array('contract'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function contract_get_capi_v3_market_depth($params = array()) {
-        return $this->request('capi/v3/market/depth', array('contract'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('capi/v3/market/depth', array('contract'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return list<mixed>
      */
     public function contract_get_capi_v3_market_ticker_24hr($params = array()) {
-        return $this->request('capi/v3/market/ticker/24hr', array('contract'), 'GET', $params, null, null, array("cost" => 200));
+        return $this->request('capi/v3/market/ticker/24hr', array('contract'), 'GET', $params, array("cost" => 200));
     }
     /**
      * @return list<mixed>
      */
     public function contract_get_capi_v3_market_ticker_bookticker($params = array()) {
-        return $this->request('capi/v3/market/ticker/bookTicker', array('contract'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('capi/v3/market/ticker/bookTicker', array('contract'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return list<mixed>
      */
     public function contract_get_capi_v3_market_trades($params = array()) {
-        return $this->request('capi/v3/market/trades', array('contract'), 'GET', $params, null, null, array("cost" => 25));
+        return $this->request('capi/v3/market/trades', array('contract'), 'GET', $params, array("cost" => 25));
     }
     /**
      * @return list<mixed>
      */
     public function contract_get_capi_v3_market_klines($params = array()) {
-        return $this->request('capi/v3/market/klines', array('contract'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('capi/v3/market/klines', array('contract'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return list<mixed>
      */
     public function contract_get_capi_v3_market_indexpriceklines($params = array()) {
-        return $this->request('capi/v3/market/indexPriceKlines', array('contract'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('capi/v3/market/indexPriceKlines', array('contract'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return list<mixed>
      */
     public function contract_get_capi_v3_market_markpriceklines($params = array()) {
-        return $this->request('capi/v3/market/markPriceKlines', array('contract'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('capi/v3/market/markPriceKlines', array('contract'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return list<mixed>
      */
     public function contract_get_capi_v3_market_historyklines($params = array()) {
-        return $this->request('capi/v3/market/historyKlines', array('contract'), 'GET', $params, null, null, array("cost" => 25));
+        return $this->request('capi/v3/market/historyKlines', array('contract'), 'GET', $params, array("cost" => 25));
     }
     /**
      * @return array<string, mixed>
      */
     public function contract_get_capi_v3_market_symbolprice($params = array()) {
-        return $this->request('capi/v3/market/symbolPrice', array('contract'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('capi/v3/market/symbolPrice', array('contract'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function contract_get_capi_v3_market_openinterest($params = array()) {
-        return $this->request('capi/v3/market/openInterest', array('contract'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('capi/v3/market/openInterest', array('contract'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return list<mixed>
      */
     public function contract_get_capi_v3_market_premiumindex($params = array()) {
-        return $this->request('capi/v3/market/premiumIndex', array('contract'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('capi/v3/market/premiumIndex', array('contract'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return list<mixed>
      */
     public function contract_get_capi_v3_market_fundingrate($params = array()) {
-        return $this->request('capi/v3/market/fundingRate', array('contract'), 'GET', $params, null, null, array("cost" => 25));
+        return $this->request('capi/v3/market/fundingRate', array('contract'), 'GET', $params, array("cost" => 25));
     }
     /**
      * @return list<mixed>
      */
     public function contract_get_capi_v3_market_apitradingsymbols($params = array()) {
-        return $this->request('capi/v3/market/apiTradingSymbols', array('contract'), 'GET', $params, null, null, array("cost" => 25));
+        return $this->request('capi/v3/market/apiTradingSymbols', array('contract'), 'GET', $params, array("cost" => 25));
     }
     /**
      * @return list<mixed>
      */
     public function contractprivate_get_capi_v3_account_balance($params = array()) {
-        return $this->request('capi/v3/account/balance', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('capi/v3/account/balance', array('contractPrivate'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractprivate_get_capi_v3_account_commissionrate($params = array()) {
-        return $this->request('capi/v3/account/commissionRate', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('capi/v3/account/commissionRate', array('contractPrivate'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractprivate_get_capi_v3_account_accountconfig($params = array()) {
-        return $this->request('capi/v3/account/accountConfig', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('capi/v3/account/accountConfig', array('contractPrivate'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return list<mixed>
      */
     public function contractprivate_get_capi_v3_account_symbolconfig($params = array()) {
-        return $this->request('capi/v3/account/symbolConfig', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('capi/v3/account/symbolConfig', array('contractPrivate'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return list<mixed>
      */
     public function contractprivate_get_capi_v3_account_position_allposition($params = array()) {
-        return $this->request('capi/v3/account/position/allPosition', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 15));
+        return $this->request('capi/v3/account/position/allPosition', array('contractPrivate'), 'GET', $params, array("cost" => 15));
     }
     /**
      * @return list<mixed>
      */
     public function contractprivate_get_capi_v3_account_position_singleposition($params = array()) {
-        return $this->request('capi/v3/account/position/singlePosition', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 3));
+        return $this->request('capi/v3/account/position/singlePosition', array('contractPrivate'), 'GET', $params, array("cost" => 3));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractprivate_get_capi_v3_order($params = array()) {
-        return $this->request('capi/v3/order', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 3));
+        return $this->request('capi/v3/order', array('contractPrivate'), 'GET', $params, array("cost" => 3));
     }
     /**
      * @return list<mixed>
      */
     public function contractprivate_get_capi_v3_openorders($params = array()) {
-        return $this->request('capi/v3/openOrders', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('capi/v3/openOrders', array('contractPrivate'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return list<mixed>
      */
     public function contractprivate_get_capi_v3_order_history($params = array()) {
-        return $this->request('capi/v3/order/history', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('capi/v3/order/history', array('contractPrivate'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return list<mixed>
      */
     public function contractprivate_get_capi_v3_usertrades($params = array()) {
-        return $this->request('capi/v3/userTrades', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('capi/v3/userTrades', array('contractPrivate'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return list<mixed>
      */
     public function contractprivate_get_capi_v3_openalgoorders($params = array()) {
-        return $this->request('capi/v3/openAlgoOrders', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 3));
+        return $this->request('capi/v3/openAlgoOrders', array('contractPrivate'), 'GET', $params, array("cost" => 3));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractprivate_get_capi_v3_allalgoorders($params = array()) {
-        return $this->request('capi/v3/allAlgoOrders', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('capi/v3/allAlgoOrders', array('contractPrivate'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return list<mixed>
      */
     public function contractprivate_get_capi_v3_sim_balance($params = array()) {
-        return $this->request('capi/v3/sim/balance', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('capi/v3/sim/balance', array('contractPrivate'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return list<mixed>
      */
     public function contractprivate_get_capi_v3_sim_position_allposition($params = array()) {
-        return $this->request('capi/v3/sim/position/allPosition', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 15));
+        return $this->request('capi/v3/sim/position/allPosition', array('contractPrivate'), 'GET', $params, array("cost" => 15));
     }
     /**
      * @return list<mixed>
      */
     public function contractprivate_get_capi_v3_sim_order_history($params = array()) {
-        return $this->request('capi/v3/sim/order/history', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('capi/v3/sim/order/history', array('contractPrivate'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractprivate_get_capi_v3_copy_follower_historyorders($params = array()) {
-        return $this->request('capi/v3/copy/follower/historyOrders', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('capi/v3/copy/follower/historyOrders', array('contractPrivate'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractprivate_get_capi_v3_copy_follower_mytraders($params = array()) {
-        return $this->request('capi/v3/copy/follower/myTraders', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('capi/v3/copy/follower/myTraders', array('contractPrivate'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return list<mixed>
      */
     public function contractprivate_get_capi_v3_copy_follower_openorders($params = array()) {
-        return $this->request('capi/v3/copy/follower/openOrders', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('capi/v3/copy/follower/openOrders', array('contractPrivate'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return list<mixed>
      */
     public function contractprivate_get_capi_v3_copy_follower_settings($params = array()) {
-        return $this->request('capi/v3/copy/follower/settings', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('capi/v3/copy/follower/settings', array('contractPrivate'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractprivate_get_capi_v3_copy_trader_historyorders($params = array()) {
-        return $this->request('capi/v3/copy/trader/historyOrders', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('capi/v3/copy/trader/historyOrders', array('contractPrivate'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return list<mixed>
      */
     public function contractprivate_get_capi_v3_copy_trader_openorders($params = array()) {
-        return $this->request('capi/v3/copy/trader/openOrders', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('capi/v3/copy/trader/openOrders', array('contractPrivate'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return list<mixed>
      */
     public function contractprivate_get_capi_v3_copy_trader_pairs($params = array()) {
-        return $this->request('capi/v3/copy/trader/pairs', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('capi/v3/copy/trader/pairs', array('contractPrivate'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return list<mixed>
      */
     public function contractprivate_get_capi_v3_trailing_openorders($params = array()) {
-        return $this->request('capi/v3/trailing/openOrders', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('capi/v3/trailing/openOrders', array('contractPrivate'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function contractprivate_get_capi_v3_trailing_historyorders($params = array()) {
-        return $this->request('capi/v3/trailing/historyOrders', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('capi/v3/trailing/historyOrders', array('contractPrivate'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractprivate_post_capi_v3_account_income($params = array()) {
-        return $this->request('capi/v3/account/income', array('contractPrivate'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('capi/v3/account/income', array('contractPrivate'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractprivate_post_capi_v3_account_margintype($params = array()) {
-        return $this->request('capi/v3/account/marginType', array('contractPrivate'), 'POST', $params, null, null, array("cost" => 50));
+        return $this->request('capi/v3/account/marginType', array('contractPrivate'), 'POST', $params, array("cost" => 50));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractprivate_post_capi_v3_account_leverage($params = array()) {
-        return $this->request('capi/v3/account/leverage', array('contractPrivate'), 'POST', $params, null, null, array("cost" => 20));
+        return $this->request('capi/v3/account/leverage', array('contractPrivate'), 'POST', $params, array("cost" => 20));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractprivate_post_capi_v3_account_positionmargin($params = array()) {
-        return $this->request('capi/v3/account/positionMargin', array('contractPrivate'), 'POST', $params, null, null, array("cost" => 30));
+        return $this->request('capi/v3/account/positionMargin', array('contractPrivate'), 'POST', $params, array("cost" => 30));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractprivate_post_capi_v3_account_modifyautoappendmargin($params = array()) {
-        return $this->request('capi/v3/account/modifyAutoAppendMargin', array('contractPrivate'), 'POST', $params, null, null, array("cost" => 30));
+        return $this->request('capi/v3/account/modifyAutoAppendMargin', array('contractPrivate'), 'POST', $params, array("cost" => 30));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractprivate_post_capi_v3_order($params = array()) {
-        return $this->request('capi/v3/order', array('contractPrivate'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('capi/v3/order', array('contractPrivate'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return list<mixed>
      */
     public function contractprivate_post_capi_v3_batchorders($params = array()) {
-        return $this->request('capi/v3/batchOrders', array('contractPrivate'), 'POST', $params, null, null, array("cost" => 10));
+        return $this->request('capi/v3/batchOrders', array('contractPrivate'), 'POST', $params, array("cost" => 10));
     }
     /**
      * @return list<mixed>
      */
     public function contractprivate_post_capi_v3_closepositions($params = array()) {
-        return $this->request('capi/v3/closePositions', array('contractPrivate'), 'POST', $params, null, null, array("cost" => 50));
+        return $this->request('capi/v3/closePositions', array('contractPrivate'), 'POST', $params, array("cost" => 50));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractprivate_post_capi_v3_algoorder($params = array()) {
-        return $this->request('capi/v3/algoOrder', array('contractPrivate'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('capi/v3/algoOrder', array('contractPrivate'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return list<mixed>
      */
     public function contractprivate_post_capi_v3_placetpslorder($params = array()) {
-        return $this->request('capi/v3/placeTpSlOrder', array('contractPrivate'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('capi/v3/placeTpSlOrder', array('contractPrivate'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractprivate_post_capi_v3_modifytpslorder($params = array()) {
-        return $this->request('capi/v3/modifyTpSlOrder', array('contractPrivate'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('capi/v3/modifyTpSlOrder', array('contractPrivate'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractprivate_post_capi_v3_sim_order($params = array()) {
-        return $this->request('capi/v3/sim/order', array('contractPrivate'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('capi/v3/sim/order', array('contractPrivate'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractprivate_post_capi_v3_copy_follower_closepos($params = array()) {
-        return $this->request('capi/v3/copy/follower/closePos', array('contractPrivate'), 'POST', $params, null, null, array("cost" => 50));
+        return $this->request('capi/v3/copy/follower/closePos', array('contractPrivate'), 'POST', $params, array("cost" => 50));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractprivate_post_capi_v3_copy_follower_settings($params = array()) {
-        return $this->request('capi/v3/copy/follower/settings', array('contractPrivate'), 'POST', $params, null, null, array("cost" => 10));
+        return $this->request('capi/v3/copy/follower/settings', array('contractPrivate'), 'POST', $params, array("cost" => 10));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractprivate_post_capi_v3_copy_follower_stopcopy($params = array()) {
-        return $this->request('capi/v3/copy/follower/stopCopy', array('contractPrivate'), 'POST', $params, null, null, array("cost" => 10));
+        return $this->request('capi/v3/copy/follower/stopCopy', array('contractPrivate'), 'POST', $params, array("cost" => 10));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractprivate_delete_capi_v3_order($params = array()) {
-        return $this->request('capi/v3/order', array('contractPrivate'), 'DELETE', $params, null, null, array("cost" => 3));
+        return $this->request('capi/v3/order', array('contractPrivate'), 'DELETE', $params, array("cost" => 3));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractprivate_delete_capi_v3_batchorders($params = array()) {
-        return $this->request('capi/v3/batchOrders', array('contractPrivate'), 'DELETE', $params, null, null, array("cost" => 10));
+        return $this->request('capi/v3/batchOrders', array('contractPrivate'), 'DELETE', $params, array("cost" => 10));
     }
     /**
      * @return list<mixed>
      */
     public function contractprivate_delete_capi_v3_allopenorders($params = array()) {
-        return $this->request('capi/v3/allOpenOrders', array('contractPrivate'), 'DELETE', $params, null, null, array("cost" => 10));
+        return $this->request('capi/v3/allOpenOrders', array('contractPrivate'), 'DELETE', $params, array("cost" => 10));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractprivate_delete_capi_v3_algoorder($params = array()) {
-        return $this->request('capi/v3/algoOrder', array('contractPrivate'), 'DELETE', $params, null, null, array("cost" => 3));
+        return $this->request('capi/v3/algoOrder', array('contractPrivate'), 'DELETE', $params, array("cost" => 3));
     }
     /**
      * @return list<mixed>
      */
     public function contractprivate_delete_capi_v3_algoopenorders($params = array()) {
-        return $this->request('capi/v3/algoOpenOrders', array('contractPrivate'), 'DELETE', $params, null, null, array("cost" => 10));
+        return $this->request('capi/v3/algoOpenOrders', array('contractPrivate'), 'DELETE', $params, array("cost" => 10));
     }
     /**
      * @return array<string, mixed>
      */
     public function publicGetApiV3Time($params = array()) {
-        return $this->request('api/v3/time', array('public'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('api/v3/time', array('public'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return list<mixed>
      */
     public function publicGetApiV3Coins($params = array()) {
-        return $this->request('api/v3/coins', array('public'), 'GET', $params, null, null, array("cost" => 25));
+        return $this->request('api/v3/coins', array('public'), 'GET', $params, array("cost" => 25));
     }
     /**
      * @return array<string, mixed>
      */
     public function publicGetApiV3ExchangeInfo($params = array()) {
-        return $this->request('api/v3/exchangeInfo', array('public'), 'GET', $params, null, null, array("cost" => 100));
+        return $this->request('api/v3/exchangeInfo', array('public'), 'GET', $params, array("cost" => 100));
     }
     /**
      * @return array<string, mixed>
      */
     public function publicGetApiV3Ping($params = array()) {
-        return $this->request('api/v3/ping', array('public'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('api/v3/ping', array('public'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return list<mixed>
      */
     public function publicGetApiV3ApiTradingSymbols($params = array()) {
-        return $this->request('api/v3/apiTradingSymbols', array('public'), 'GET', $params, null, null, array("cost" => 25));
+        return $this->request('api/v3/apiTradingSymbols', array('public'), 'GET', $params, array("cost" => 25));
     }
     /**
      * @return list<mixed>
      */
     public function publicGetApiV3MarketTickerPrice($params = array()) {
-        return $this->request('api/v3/market/ticker/price', array('public'), 'GET', $params, null, null, array("cost" => 20));
+        return $this->request('api/v3/market/ticker/price', array('public'), 'GET', $params, array("cost" => 20));
     }
     /**
      * @return array<string, mixed>|list<mixed>
      */
     public function publicGetApiV3MarketTicker24hr($params = array()) {
-        return $this->request('api/v3/market/ticker/24hr', array('public'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('api/v3/market/ticker/24hr', array('public'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return list<mixed>
      */
     public function publicGetApiV3MarketTrades($params = array()) {
-        return $this->request('api/v3/market/trades', array('public'), 'GET', $params, null, null, array("cost" => 125));
+        return $this->request('api/v3/market/trades', array('public'), 'GET', $params, array("cost" => 125));
     }
     /**
      * @return list<mixed>
      */
     public function publicGetApiV3MarketKlines($params = array()) {
-        return $this->request('api/v3/market/klines', array('public'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('api/v3/market/klines', array('public'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return array<string, mixed>
      */
     public function publicGetApiV3MarketDepth($params = array()) {
-        return $this->request('api/v3/market/depth', array('public'), 'GET', $params, null, null, array("cost" => 25));
+        return $this->request('api/v3/market/depth', array('public'), 'GET', $params, array("cost" => 25));
     }
     /**
      * @return list<mixed>
      */
     public function publicGetApiV3MarketTickerBookTicker($params = array()) {
-        return $this->request('api/v3/market/ticker/bookTicker', array('public'), 'GET', $params, null, null, array("cost" => 20));
+        return $this->request('api/v3/market/ticker/bookTicker', array('public'), 'GET', $params, array("cost" => 20));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetApiV3Account($params = array()) {
-        return $this->request('api/v3/account/', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('api/v3/account/', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return list<mixed>
      */
     public function privateGetApiV3AccountTransferRecords($params = array()) {
-        return $this->request('api/v3/account/transferRecords', array('private'), 'GET', $params, null, null, array("cost" => 3));
+        return $this->request('api/v3/account/transferRecords', array('private'), 'GET', $params, array("cost" => 3));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetApiV3Order($params = array()) {
-        return $this->request('api/v3/order', array('private'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('api/v3/order', array('private'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function privateGetApiV3OpenOrders($params = array()) {
-        return $this->request('api/v3/openOrders', array('private'), 'GET', $params, null, null, array("cost" => 3));
+        return $this->request('api/v3/openOrders', array('private'), 'GET', $params, array("cost" => 3));
     }
     /**
      * @return list<mixed>
      */
     public function privateGetApiV3AllOrders($params = array()) {
-        return $this->request('api/v3/allOrders', array('private'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('api/v3/allOrders', array('private'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return list<mixed>
      */
     public function privateGetApiV3MyTrades($params = array()) {
-        return $this->request('api/v3/myTrades', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('api/v3/myTrades', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetApiV3RebateAffiliateGetAffiliateUIDs($params = array()) {
-        return $this->request('api/v3/rebate/affiliate/getAffiliateUIDs', array('private'), 'GET', $params, null, null, array("cost" => 20));
+        return $this->request('api/v3/rebate/affiliate/getAffiliateUIDs', array('private'), 'GET', $params, array("cost" => 20));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetApiV3RebateAffiliateGetChannelUserTradeAndAsset($params = array()) {
-        return $this->request('api/v3/rebate/affiliate/getChannelUserTradeAndAsset', array('private'), 'GET', $params, null, null, array("cost" => 20));
+        return $this->request('api/v3/rebate/affiliate/getChannelUserTradeAndAsset', array('private'), 'GET', $params, array("cost" => 20));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetApiV3RebateAffiliateGetAffiliateCommission($params = array()) {
-        return $this->request('api/v3/rebate/affiliate/getAffiliateCommission', array('private'), 'GET', $params, null, null, array("cost" => 20));
+        return $this->request('api/v3/rebate/affiliate/getAffiliateCommission', array('private'), 'GET', $params, array("cost" => 20));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetApiV3RebateAffiliateGetInternalWithdrawalStatus($params = array()) {
-        return $this->request('api/v3/rebate/affiliate/getInternalWithdrawalStatus', array('private'), 'GET', $params, null, null, array("cost" => 100));
+        return $this->request('api/v3/rebate/affiliate/getInternalWithdrawalStatus', array('private'), 'GET', $params, array("cost" => 100));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetApiV3RebateAffiliateQuerySubChannelTransactions($params = array()) {
-        return $this->request('api/v3/rebate/affiliate/querySubChannelTransactions', array('private'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('api/v3/rebate/affiliate/querySubChannelTransactions', array('private'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return list<mixed>
      */
     public function privateGetApiV3AgencyVerifyReferrals($params = array()) {
-        return $this->request('api/v3/agency/verifyReferrals', array('private'), 'GET', $params, null, null, array("cost" => 20));
+        return $this->request('api/v3/agency/verifyReferrals', array('private'), 'GET', $params, array("cost" => 20));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetApiV3AgencyGetAssert($params = array()) {
-        return $this->request('api/v3/agency/getAssert', array('private'), 'GET', $params, null, null, array("cost" => 20));
+        return $this->request('api/v3/agency/getAssert', array('private'), 'GET', $params, array("cost" => 20));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetApiV3AgencyGetDealData($params = array()) {
-        return $this->request('api/v3/agency/getDealData', array('private'), 'GET', $params, null, null, array("cost" => 20));
+        return $this->request('api/v3/agency/getDealData', array('private'), 'GET', $params, array("cost" => 20));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetApiV3ApiReferralCheckUserEligibility($params = array()) {
-        return $this->request('api/v3/apiReferral/checkUserEligibility', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('api/v3/apiReferral/checkUserEligibility', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetApiV3ApiReferralRebateRecentRecord($params = array()) {
-        return $this->request('api/v3/apiReferral/rebate/recentRecord', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('api/v3/apiReferral/rebate/recentRecord', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetApiV3ApiReferralRebateRatio($params = array()) {
-        return $this->request('api/v3/apiReferral/rebateRatio', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('api/v3/apiReferral/rebateRatio', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetApiV3ContentArticlesDetail($params = array()) {
-        return $this->request('api/v3/content/articles/detail', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('api/v3/content/articles/detail', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetApiV3ContentArticlesList($params = array()) {
-        return $this->request('api/v3/content/articles/list', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('api/v3/content/articles/list', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetApiV3ContentArticlesListByCoin($params = array()) {
-        return $this->request('api/v3/content/articles/listByCoin', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('api/v3/content/articles/listByCoin', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetApiV3ContentBannersLatest($params = array()) {
-        return $this->request('api/v3/content/banners/latest', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('api/v3/content/banners/latest', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return list<mixed>
      */
     public function privatePostApiV3AccountBills($params = array()) {
-        return $this->request('api/v3/account/bills', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('api/v3/account/bills', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostApiV3AccountFundingBills($params = array()) {
-        return $this->request('api/v3/account/fundingBills', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('api/v3/account/fundingBills', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostApiV3Order($params = array()) {
-        return $this->request('api/v3/order', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('api/v3/order', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostApiV3OrderBatch($params = array()) {
-        return $this->request('api/v3/order/batch', array('private'), 'POST', $params, null, null, array("cost" => 50));
+        return $this->request('api/v3/order/batch', array('private'), 'POST', $params, array("cost" => 50));
     }
     /**
      * @return string
      */
     public function privatePostApiV3RebateAffiliateInternalWithdrawal($params = array()) {
-        return $this->request('api/v3/rebate/affiliate/internalWithdrawal', array('private'), 'POST', $params, null, null, array("cost" => 100));
+        return $this->request('api/v3/rebate/affiliate/internalWithdrawal', array('private'), 'POST', $params, array("cost" => 100));
     }
     /**
      * @return list<mixed>
      */
     public function privatePostApiV3TaxIncome($params = array()) {
-        return $this->request('api/v3/tax/income', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('api/v3/tax/income', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateDeleteApiV3Order($params = array()) {
-        return $this->request('api/v3/order', array('private'), 'DELETE', $params, null, null, array("cost" => 1));
+        return $this->request('api/v3/order', array('private'), 'DELETE', $params, array("cost" => 1));
     }
     /**
      * @return list<mixed>
      */
     public function privateDeleteApiV3OpenOrders($params = array()) {
-        return $this->request('api/v3/openOrders', array('private'), 'DELETE', $params, null, null, array("cost" => 1));
+        return $this->request('api/v3/openOrders', array('private'), 'DELETE', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateDeleteApiV3OrderBatch($params = array()) {
-        return $this->request('api/v3/order/batch', array('private'), 'DELETE', $params, null, null, array("cost" => 10));
+        return $this->request('api/v3/order/batch', array('private'), 'DELETE', $params, array("cost" => 10));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractGetCapiV3MarketTime($params = array()) {
-        return $this->request('capi/v3/market/time', array('contract'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('capi/v3/market/time', array('contract'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractGetCapiV3MarketExchangeInfo($params = array()) {
-        return $this->request('capi/v3/market/exchangeInfo', array('contract'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('capi/v3/market/exchangeInfo', array('contract'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractGetCapiV3MarketDepth($params = array()) {
-        return $this->request('capi/v3/market/depth', array('contract'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('capi/v3/market/depth', array('contract'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return list<mixed>
      */
     public function contractGetCapiV3MarketTicker24hr($params = array()) {
-        return $this->request('capi/v3/market/ticker/24hr', array('contract'), 'GET', $params, null, null, array("cost" => 200));
+        return $this->request('capi/v3/market/ticker/24hr', array('contract'), 'GET', $params, array("cost" => 200));
     }
     /**
      * @return list<mixed>
      */
     public function contractGetCapiV3MarketTickerBookTicker($params = array()) {
-        return $this->request('capi/v3/market/ticker/bookTicker', array('contract'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('capi/v3/market/ticker/bookTicker', array('contract'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return list<mixed>
      */
     public function contractGetCapiV3MarketTrades($params = array()) {
-        return $this->request('capi/v3/market/trades', array('contract'), 'GET', $params, null, null, array("cost" => 25));
+        return $this->request('capi/v3/market/trades', array('contract'), 'GET', $params, array("cost" => 25));
     }
     /**
      * @return list<mixed>
      */
     public function contractGetCapiV3MarketKlines($params = array()) {
-        return $this->request('capi/v3/market/klines', array('contract'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('capi/v3/market/klines', array('contract'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return list<mixed>
      */
     public function contractGetCapiV3MarketIndexPriceKlines($params = array()) {
-        return $this->request('capi/v3/market/indexPriceKlines', array('contract'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('capi/v3/market/indexPriceKlines', array('contract'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return list<mixed>
      */
     public function contractGetCapiV3MarketMarkPriceKlines($params = array()) {
-        return $this->request('capi/v3/market/markPriceKlines', array('contract'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('capi/v3/market/markPriceKlines', array('contract'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return list<mixed>
      */
     public function contractGetCapiV3MarketHistoryKlines($params = array()) {
-        return $this->request('capi/v3/market/historyKlines', array('contract'), 'GET', $params, null, null, array("cost" => 25));
+        return $this->request('capi/v3/market/historyKlines', array('contract'), 'GET', $params, array("cost" => 25));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractGetCapiV3MarketSymbolPrice($params = array()) {
-        return $this->request('capi/v3/market/symbolPrice', array('contract'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('capi/v3/market/symbolPrice', array('contract'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractGetCapiV3MarketOpenInterest($params = array()) {
-        return $this->request('capi/v3/market/openInterest', array('contract'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('capi/v3/market/openInterest', array('contract'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return list<mixed>
      */
     public function contractGetCapiV3MarketPremiumIndex($params = array()) {
-        return $this->request('capi/v3/market/premiumIndex', array('contract'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('capi/v3/market/premiumIndex', array('contract'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return list<mixed>
      */
     public function contractGetCapiV3MarketFundingRate($params = array()) {
-        return $this->request('capi/v3/market/fundingRate', array('contract'), 'GET', $params, null, null, array("cost" => 25));
+        return $this->request('capi/v3/market/fundingRate', array('contract'), 'GET', $params, array("cost" => 25));
     }
     /**
      * @return list<mixed>
      */
     public function contractGetCapiV3MarketApiTradingSymbols($params = array()) {
-        return $this->request('capi/v3/market/apiTradingSymbols', array('contract'), 'GET', $params, null, null, array("cost" => 25));
+        return $this->request('capi/v3/market/apiTradingSymbols', array('contract'), 'GET', $params, array("cost" => 25));
     }
     /**
      * @return list<mixed>
      */
     public function contractPrivateGetCapiV3AccountBalance($params = array()) {
-        return $this->request('capi/v3/account/balance', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('capi/v3/account/balance', array('contractPrivate'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractPrivateGetCapiV3AccountCommissionRate($params = array()) {
-        return $this->request('capi/v3/account/commissionRate', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('capi/v3/account/commissionRate', array('contractPrivate'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractPrivateGetCapiV3AccountAccountConfig($params = array()) {
-        return $this->request('capi/v3/account/accountConfig', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('capi/v3/account/accountConfig', array('contractPrivate'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return list<mixed>
      */
     public function contractPrivateGetCapiV3AccountSymbolConfig($params = array()) {
-        return $this->request('capi/v3/account/symbolConfig', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('capi/v3/account/symbolConfig', array('contractPrivate'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return list<mixed>
      */
     public function contractPrivateGetCapiV3AccountPositionAllPosition($params = array()) {
-        return $this->request('capi/v3/account/position/allPosition', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 15));
+        return $this->request('capi/v3/account/position/allPosition', array('contractPrivate'), 'GET', $params, array("cost" => 15));
     }
     /**
      * @return list<mixed>
      */
     public function contractPrivateGetCapiV3AccountPositionSinglePosition($params = array()) {
-        return $this->request('capi/v3/account/position/singlePosition', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 3));
+        return $this->request('capi/v3/account/position/singlePosition', array('contractPrivate'), 'GET', $params, array("cost" => 3));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractPrivateGetCapiV3Order($params = array()) {
-        return $this->request('capi/v3/order', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 3));
+        return $this->request('capi/v3/order', array('contractPrivate'), 'GET', $params, array("cost" => 3));
     }
     /**
      * @return list<mixed>
      */
     public function contractPrivateGetCapiV3OpenOrders($params = array()) {
-        return $this->request('capi/v3/openOrders', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('capi/v3/openOrders', array('contractPrivate'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return list<mixed>
      */
     public function contractPrivateGetCapiV3OrderHistory($params = array()) {
-        return $this->request('capi/v3/order/history', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('capi/v3/order/history', array('contractPrivate'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return list<mixed>
      */
     public function contractPrivateGetCapiV3UserTrades($params = array()) {
-        return $this->request('capi/v3/userTrades', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('capi/v3/userTrades', array('contractPrivate'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return list<mixed>
      */
     public function contractPrivateGetCapiV3OpenAlgoOrders($params = array()) {
-        return $this->request('capi/v3/openAlgoOrders', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 3));
+        return $this->request('capi/v3/openAlgoOrders', array('contractPrivate'), 'GET', $params, array("cost" => 3));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractPrivateGetCapiV3AllAlgoOrders($params = array()) {
-        return $this->request('capi/v3/allAlgoOrders', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('capi/v3/allAlgoOrders', array('contractPrivate'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return list<mixed>
      */
     public function contractPrivateGetCapiV3SimBalance($params = array()) {
-        return $this->request('capi/v3/sim/balance', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('capi/v3/sim/balance', array('contractPrivate'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return list<mixed>
      */
     public function contractPrivateGetCapiV3SimPositionAllPosition($params = array()) {
-        return $this->request('capi/v3/sim/position/allPosition', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 15));
+        return $this->request('capi/v3/sim/position/allPosition', array('contractPrivate'), 'GET', $params, array("cost" => 15));
     }
     /**
      * @return list<mixed>
      */
     public function contractPrivateGetCapiV3SimOrderHistory($params = array()) {
-        return $this->request('capi/v3/sim/order/history', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('capi/v3/sim/order/history', array('contractPrivate'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractPrivateGetCapiV3CopyFollowerHistoryOrders($params = array()) {
-        return $this->request('capi/v3/copy/follower/historyOrders', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('capi/v3/copy/follower/historyOrders', array('contractPrivate'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractPrivateGetCapiV3CopyFollowerMyTraders($params = array()) {
-        return $this->request('capi/v3/copy/follower/myTraders', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('capi/v3/copy/follower/myTraders', array('contractPrivate'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return list<mixed>
      */
     public function contractPrivateGetCapiV3CopyFollowerOpenOrders($params = array()) {
-        return $this->request('capi/v3/copy/follower/openOrders', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('capi/v3/copy/follower/openOrders', array('contractPrivate'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return list<mixed>
      */
     public function contractPrivateGetCapiV3CopyFollowerSettings($params = array()) {
-        return $this->request('capi/v3/copy/follower/settings', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('capi/v3/copy/follower/settings', array('contractPrivate'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractPrivateGetCapiV3CopyTraderHistoryOrders($params = array()) {
-        return $this->request('capi/v3/copy/trader/historyOrders', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('capi/v3/copy/trader/historyOrders', array('contractPrivate'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return list<mixed>
      */
     public function contractPrivateGetCapiV3CopyTraderOpenOrders($params = array()) {
-        return $this->request('capi/v3/copy/trader/openOrders', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('capi/v3/copy/trader/openOrders', array('contractPrivate'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return list<mixed>
      */
     public function contractPrivateGetCapiV3CopyTraderPairs($params = array()) {
-        return $this->request('capi/v3/copy/trader/pairs', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('capi/v3/copy/trader/pairs', array('contractPrivate'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return list<mixed>
      */
     public function contractPrivateGetCapiV3TrailingOpenOrders($params = array()) {
-        return $this->request('capi/v3/trailing/openOrders', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('capi/v3/trailing/openOrders', array('contractPrivate'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function contractPrivateGetCapiV3TrailingHistoryOrders($params = array()) {
-        return $this->request('capi/v3/trailing/historyOrders', array('contractPrivate'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('capi/v3/trailing/historyOrders', array('contractPrivate'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractPrivatePostCapiV3AccountIncome($params = array()) {
-        return $this->request('capi/v3/account/income', array('contractPrivate'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('capi/v3/account/income', array('contractPrivate'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractPrivatePostCapiV3AccountMarginType($params = array()) {
-        return $this->request('capi/v3/account/marginType', array('contractPrivate'), 'POST', $params, null, null, array("cost" => 50));
+        return $this->request('capi/v3/account/marginType', array('contractPrivate'), 'POST', $params, array("cost" => 50));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractPrivatePostCapiV3AccountLeverage($params = array()) {
-        return $this->request('capi/v3/account/leverage', array('contractPrivate'), 'POST', $params, null, null, array("cost" => 20));
+        return $this->request('capi/v3/account/leverage', array('contractPrivate'), 'POST', $params, array("cost" => 20));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractPrivatePostCapiV3AccountPositionMargin($params = array()) {
-        return $this->request('capi/v3/account/positionMargin', array('contractPrivate'), 'POST', $params, null, null, array("cost" => 30));
+        return $this->request('capi/v3/account/positionMargin', array('contractPrivate'), 'POST', $params, array("cost" => 30));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractPrivatePostCapiV3AccountModifyAutoAppendMargin($params = array()) {
-        return $this->request('capi/v3/account/modifyAutoAppendMargin', array('contractPrivate'), 'POST', $params, null, null, array("cost" => 30));
+        return $this->request('capi/v3/account/modifyAutoAppendMargin', array('contractPrivate'), 'POST', $params, array("cost" => 30));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractPrivatePostCapiV3Order($params = array()) {
-        return $this->request('capi/v3/order', array('contractPrivate'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('capi/v3/order', array('contractPrivate'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return list<mixed>
      */
     public function contractPrivatePostCapiV3BatchOrders($params = array()) {
-        return $this->request('capi/v3/batchOrders', array('contractPrivate'), 'POST', $params, null, null, array("cost" => 10));
+        return $this->request('capi/v3/batchOrders', array('contractPrivate'), 'POST', $params, array("cost" => 10));
     }
     /**
      * @return list<mixed>
      */
     public function contractPrivatePostCapiV3ClosePositions($params = array()) {
-        return $this->request('capi/v3/closePositions', array('contractPrivate'), 'POST', $params, null, null, array("cost" => 50));
+        return $this->request('capi/v3/closePositions', array('contractPrivate'), 'POST', $params, array("cost" => 50));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractPrivatePostCapiV3AlgoOrder($params = array()) {
-        return $this->request('capi/v3/algoOrder', array('contractPrivate'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('capi/v3/algoOrder', array('contractPrivate'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return list<mixed>
      */
     public function contractPrivatePostCapiV3PlaceTpSlOrder($params = array()) {
-        return $this->request('capi/v3/placeTpSlOrder', array('contractPrivate'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('capi/v3/placeTpSlOrder', array('contractPrivate'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractPrivatePostCapiV3ModifyTpSlOrder($params = array()) {
-        return $this->request('capi/v3/modifyTpSlOrder', array('contractPrivate'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('capi/v3/modifyTpSlOrder', array('contractPrivate'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractPrivatePostCapiV3SimOrder($params = array()) {
-        return $this->request('capi/v3/sim/order', array('contractPrivate'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('capi/v3/sim/order', array('contractPrivate'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractPrivatePostCapiV3CopyFollowerClosePos($params = array()) {
-        return $this->request('capi/v3/copy/follower/closePos', array('contractPrivate'), 'POST', $params, null, null, array("cost" => 50));
+        return $this->request('capi/v3/copy/follower/closePos', array('contractPrivate'), 'POST', $params, array("cost" => 50));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractPrivatePostCapiV3CopyFollowerSettings($params = array()) {
-        return $this->request('capi/v3/copy/follower/settings', array('contractPrivate'), 'POST', $params, null, null, array("cost" => 10));
+        return $this->request('capi/v3/copy/follower/settings', array('contractPrivate'), 'POST', $params, array("cost" => 10));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractPrivatePostCapiV3CopyFollowerStopCopy($params = array()) {
-        return $this->request('capi/v3/copy/follower/stopCopy', array('contractPrivate'), 'POST', $params, null, null, array("cost" => 10));
+        return $this->request('capi/v3/copy/follower/stopCopy', array('contractPrivate'), 'POST', $params, array("cost" => 10));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractPrivateDeleteCapiV3Order($params = array()) {
-        return $this->request('capi/v3/order', array('contractPrivate'), 'DELETE', $params, null, null, array("cost" => 3));
+        return $this->request('capi/v3/order', array('contractPrivate'), 'DELETE', $params, array("cost" => 3));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractPrivateDeleteCapiV3BatchOrders($params = array()) {
-        return $this->request('capi/v3/batchOrders', array('contractPrivate'), 'DELETE', $params, null, null, array("cost" => 10));
+        return $this->request('capi/v3/batchOrders', array('contractPrivate'), 'DELETE', $params, array("cost" => 10));
     }
     /**
      * @return list<mixed>
      */
     public function contractPrivateDeleteCapiV3AllOpenOrders($params = array()) {
-        return $this->request('capi/v3/allOpenOrders', array('contractPrivate'), 'DELETE', $params, null, null, array("cost" => 10));
+        return $this->request('capi/v3/allOpenOrders', array('contractPrivate'), 'DELETE', $params, array("cost" => 10));
     }
     /**
      * @return array<string, mixed>
      */
     public function contractPrivateDeleteCapiV3AlgoOrder($params = array()) {
-        return $this->request('capi/v3/algoOrder', array('contractPrivate'), 'DELETE', $params, null, null, array("cost" => 3));
+        return $this->request('capi/v3/algoOrder', array('contractPrivate'), 'DELETE', $params, array("cost" => 3));
     }
     /**
      * @return list<mixed>
      */
     public function contractPrivateDeleteCapiV3AlgoOpenOrders($params = array()) {
-        return $this->request('capi/v3/algoOpenOrders', array('contractPrivate'), 'DELETE', $params, null, null, array("cost" => 10));
+        return $this->request('capi/v3/algoOpenOrders', array('contractPrivate'), 'DELETE', $params, array("cost" => 10));
     }
 }

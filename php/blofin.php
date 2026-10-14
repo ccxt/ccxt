@@ -3508,7 +3508,7 @@ class blofin extends Exchange {
         return null;
     }
 
-    public function sign(string $path, array $api = array('public'), mixed $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), mixed $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
@@ -3549,9 +3549,9 @@ class blofin extends Exchange {
             $auth = $request . $method . $timestamp . $timestamp . $sign_body;
             $signature = base64_encode($this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256'));
             $signedHeaders['ACCESS-SIGN'] = $signature;
-            $bodyResolved = ($signedBody === null) ? $body : $signedBody;
+            $bodyResolved = $signedBody;
             return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $signedHeaders );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 }

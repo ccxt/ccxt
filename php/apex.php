@@ -2001,7 +2001,7 @@ class apex extends Exchange {
         ));
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $baseApiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($baseApiUrl === null) {
@@ -2014,7 +2014,7 @@ class apex extends Exchange {
             'Content-Type' => 'application/x-www-form-urlencoded',
         );
         $signPath = '/api/' . $path;
-        $signBody = $body;
+        $signBody = null;
         if (strtoupper($method) !== 'POST') {
             if (count($params) > 0) {
                 $signPath .= '?' . $this->rawencode($params);

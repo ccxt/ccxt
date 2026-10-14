@@ -11,720 +11,720 @@ abstract class upbit extends \ccxt\Exchange {
      * @return list<mixed>
      */
     public function public_get_market_all($params = array()) {
-        return $this->request('market/all', array('public'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('market/all', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function public_get_candles_timeframe($params = array()) {
-        return $this->request('candles/{timeframe}', array('public'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('candles/{timeframe}', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function public_get_candles_timeframe_unit($params = array()) {
-        return $this->request('candles/{timeframe}/{unit}', array('public'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('candles/{timeframe}/{unit}', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function public_get_candles_seconds($params = array()) {
-        return $this->request('candles/seconds', array('public'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('candles/seconds', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function public_get_candles_minutes_unit($params = array()) {
-        return $this->request('candles/minutes/{unit}', array('public'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('candles/minutes/{unit}', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function public_get_candles_minutes_1($params = array()) {
-        return $this->request('candles/minutes/1', array('public'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('candles/minutes/1', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function public_get_candles_minutes_3($params = array()) {
-        return $this->request('candles/minutes/3', array('public'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('candles/minutes/3', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function public_get_candles_minutes_5($params = array()) {
-        return $this->request('candles/minutes/5', array('public'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('candles/minutes/5', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function public_get_candles_minutes_10($params = array()) {
-        return $this->request('candles/minutes/10', array('public'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('candles/minutes/10', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function public_get_candles_minutes_15($params = array()) {
-        return $this->request('candles/minutes/15', array('public'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('candles/minutes/15', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function public_get_candles_minutes_30($params = array()) {
-        return $this->request('candles/minutes/30', array('public'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('candles/minutes/30', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function public_get_candles_minutes_60($params = array()) {
-        return $this->request('candles/minutes/60', array('public'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('candles/minutes/60', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function public_get_candles_minutes_240($params = array()) {
-        return $this->request('candles/minutes/240', array('public'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('candles/minutes/240', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function public_get_candles_days($params = array()) {
-        return $this->request('candles/days', array('public'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('candles/days', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function public_get_candles_weeks($params = array()) {
-        return $this->request('candles/weeks', array('public'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('candles/weeks', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function public_get_candles_months($params = array()) {
-        return $this->request('candles/months', array('public'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('candles/months', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function public_get_candles_years($params = array()) {
-        return $this->request('candles/years', array('public'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('candles/years', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function public_get_trades_ticks($params = array()) {
-        return $this->request('trades/ticks', array('public'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('trades/ticks', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function public_get_ticker($params = array()) {
-        return $this->request('ticker', array('public'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('ticker', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function public_get_ticker_all($params = array()) {
-        return $this->request('ticker/all', array('public'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('ticker/all', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function public_get_orderbook($params = array()) {
-        return $this->request('orderbook', array('public'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('orderbook', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function public_get_orderbook_instruments($params = array()) {
-        return $this->request('orderbook/instruments', array('public'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('orderbook/instruments', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_accounts($params = array()) {
-        return $this->request('accounts', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('accounts', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_orders_chance($params = array()) {
-        return $this->request('orders/chance', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('orders/chance', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_order($params = array()) {
-        return $this->request('order', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('order', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return list<mixed>
      */
     public function private_get_orders_closed($params = array()) {
-        return $this->request('orders/closed', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('orders/closed', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return list<mixed>
      */
     public function private_get_orders_open($params = array()) {
-        return $this->request('orders/open', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('orders/open', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return list<mixed>
      */
     public function private_get_orders_uuids($params = array()) {
-        return $this->request('orders/uuids', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('orders/uuids', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return list<mixed>
      */
     public function private_get_withdraws($params = array()) {
-        return $this->request('withdraws', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('withdraws', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_withdraw($params = array()) {
-        return $this->request('withdraw', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('withdraw', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_withdraws_chance($params = array()) {
-        return $this->request('withdraws/chance', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('withdraws/chance', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return list<mixed>
      */
     public function private_get_withdraws_coin_addresses($params = array()) {
-        return $this->request('withdraws/coin_addresses', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('withdraws/coin_addresses', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return list<mixed>
      */
     public function private_get_deposits($params = array()) {
-        return $this->request('deposits', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('deposits', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_deposits_chance_coin($params = array()) {
-        return $this->request('deposits/chance/coin', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('deposits/chance/coin', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_deposit($params = array()) {
-        return $this->request('deposit', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('deposit', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return list<mixed>
      */
     public function private_get_deposits_coin_addresses($params = array()) {
-        return $this->request('deposits/coin_addresses', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('deposits/coin_addresses', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_deposits_coin_address($params = array()) {
-        return $this->request('deposits/coin_address', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('deposits/coin_address', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return list<mixed>
      */
     public function private_get_travel_rule_vasps($params = array()) {
-        return $this->request('travel_rule/vasps', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('travel_rule/vasps', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return list<mixed>
      */
     public function private_get_status_wallet($params = array()) {
-        return $this->request('status/wallet', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('status/wallet', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return list<mixed>
      */
     public function private_get_api_keys($params = array()) {
-        return $this->request('api_keys', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('api_keys', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return list<mixed>
      */
     public function private_get_pockets($params = array()) {
-        return $this->request('pockets', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('pockets', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return list<mixed>
      */
     public function private_get_pockets_api_keys($params = array()) {
-        return $this->request('pockets/api_keys', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('pockets/api_keys', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return list<mixed>
      */
     public function private_get_pockets_assets($params = array()) {
-        return $this->request('pockets/assets', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('pockets/assets', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return list<mixed>
      */
     public function private_get_pockets_universal_transfers($params = array()) {
-        return $this->request('pockets/universal_transfers', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('pockets/universal_transfers', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return list<mixed>
      */
     public function private_get_pockets_transfers($params = array()) {
-        return $this->request('pockets/transfers', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('pockets/transfers', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_orders($params = array()) {
-        return $this->request('orders', array('private'), 'POST', $params, null, null, array("cost" => 2.5));
+        return $this->request('orders', array('private'), 'POST', $params, array("cost" => 2.5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_orders_test($params = array()) {
-        return $this->request('orders/test', array('private'), 'POST', $params, null, null, array("cost" => 2.5));
+        return $this->request('orders/test', array('private'), 'POST', $params, array("cost" => 2.5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_orders_cancel_and_new($params = array()) {
-        return $this->request('orders/cancel_and_new', array('private'), 'POST', $params, null, null, array("cost" => 2.5));
+        return $this->request('orders/cancel_and_new', array('private'), 'POST', $params, array("cost" => 2.5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_withdraws_coin($params = array()) {
-        return $this->request('withdraws/coin', array('private'), 'POST', $params, null, null, array("cost" => 0.67));
+        return $this->request('withdraws/coin', array('private'), 'POST', $params, array("cost" => 0.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_withdraws_krw($params = array()) {
-        return $this->request('withdraws/krw', array('private'), 'POST', $params, null, null, array("cost" => 0.67));
+        return $this->request('withdraws/krw', array('private'), 'POST', $params, array("cost" => 0.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_deposits_krw($params = array()) {
-        return $this->request('deposits/krw', array('private'), 'POST', $params, null, null, array("cost" => 0.67));
+        return $this->request('deposits/krw', array('private'), 'POST', $params, array("cost" => 0.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_deposits_generate_coin_address($params = array()) {
-        return $this->request('deposits/generate_coin_address', array('private'), 'POST', $params, null, null, array("cost" => 0.67));
+        return $this->request('deposits/generate_coin_address', array('private'), 'POST', $params, array("cost" => 0.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_travel_rule_deposit_uuid($params = array()) {
-        return $this->request('travel_rule/deposit/uuid', array('private'), 'POST', $params, null, null, array("cost" => 0.67));
+        return $this->request('travel_rule/deposit/uuid', array('private'), 'POST', $params, array("cost" => 0.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_travel_rule_deposit_txid($params = array()) {
-        return $this->request('travel_rule/deposit/txid', array('private'), 'POST', $params, null, null, array("cost" => 0.67));
+        return $this->request('travel_rule/deposit/txid', array('private'), 'POST', $params, array("cost" => 0.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_pockets_universal_transfers($params = array()) {
-        return $this->request('pockets/universal_transfers', array('private'), 'POST', $params, null, null, array("cost" => 0.67));
+        return $this->request('pockets/universal_transfers', array('private'), 'POST', $params, array("cost" => 0.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_pockets_transfers($params = array()) {
-        return $this->request('pockets/transfers', array('private'), 'POST', $params, null, null, array("cost" => 0.67));
+        return $this->request('pockets/transfers', array('private'), 'POST', $params, array("cost" => 0.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_delete_order($params = array()) {
-        return $this->request('order', array('private'), 'DELETE', $params, null, null, array("cost" => 0.67));
+        return $this->request('order', array('private'), 'DELETE', $params, array("cost" => 0.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_delete_orders_open($params = array()) {
-        return $this->request('orders/open', array('private'), 'DELETE', $params, null, null, array("cost" => 40));
+        return $this->request('orders/open', array('private'), 'DELETE', $params, array("cost" => 40));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_delete_orders_uuids($params = array()) {
-        return $this->request('orders/uuids', array('private'), 'DELETE', $params, null, null, array("cost" => 0.67));
+        return $this->request('orders/uuids', array('private'), 'DELETE', $params, array("cost" => 0.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_delete_withdraws_coin($params = array()) {
-        return $this->request('withdraws/coin', array('private'), 'DELETE', $params, null, null, array("cost" => 0.67));
+        return $this->request('withdraws/coin', array('private'), 'DELETE', $params, array("cost" => 0.67));
     }
     /**
      * @return list<mixed>
      */
     public function publicGetMarketAll($params = array()) {
-        return $this->request('market/all', array('public'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('market/all', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function publicGetCandlesTimeframe($params = array()) {
-        return $this->request('candles/{timeframe}', array('public'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('candles/{timeframe}', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function publicGetCandlesTimeframeUnit($params = array()) {
-        return $this->request('candles/{timeframe}/{unit}', array('public'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('candles/{timeframe}/{unit}', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function publicGetCandlesSeconds($params = array()) {
-        return $this->request('candles/seconds', array('public'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('candles/seconds', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function publicGetCandlesMinutesUnit($params = array()) {
-        return $this->request('candles/minutes/{unit}', array('public'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('candles/minutes/{unit}', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function publicGetCandlesMinutes1($params = array()) {
-        return $this->request('candles/minutes/1', array('public'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('candles/minutes/1', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function publicGetCandlesMinutes3($params = array()) {
-        return $this->request('candles/minutes/3', array('public'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('candles/minutes/3', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function publicGetCandlesMinutes5($params = array()) {
-        return $this->request('candles/minutes/5', array('public'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('candles/minutes/5', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function publicGetCandlesMinutes10($params = array()) {
-        return $this->request('candles/minutes/10', array('public'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('candles/minutes/10', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function publicGetCandlesMinutes15($params = array()) {
-        return $this->request('candles/minutes/15', array('public'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('candles/minutes/15', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function publicGetCandlesMinutes30($params = array()) {
-        return $this->request('candles/minutes/30', array('public'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('candles/minutes/30', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function publicGetCandlesMinutes60($params = array()) {
-        return $this->request('candles/minutes/60', array('public'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('candles/minutes/60', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function publicGetCandlesMinutes240($params = array()) {
-        return $this->request('candles/minutes/240', array('public'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('candles/minutes/240', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function publicGetCandlesDays($params = array()) {
-        return $this->request('candles/days', array('public'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('candles/days', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function publicGetCandlesWeeks($params = array()) {
-        return $this->request('candles/weeks', array('public'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('candles/weeks', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function publicGetCandlesMonths($params = array()) {
-        return $this->request('candles/months', array('public'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('candles/months', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function publicGetCandlesYears($params = array()) {
-        return $this->request('candles/years', array('public'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('candles/years', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function publicGetTradesTicks($params = array()) {
-        return $this->request('trades/ticks', array('public'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('trades/ticks', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function publicGetTicker($params = array()) {
-        return $this->request('ticker', array('public'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('ticker', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function publicGetTickerAll($params = array()) {
-        return $this->request('ticker/all', array('public'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('ticker/all', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function publicGetOrderbook($params = array()) {
-        return $this->request('orderbook', array('public'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('orderbook', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return list<mixed>
      */
     public function publicGetOrderbookInstruments($params = array()) {
-        return $this->request('orderbook/instruments', array('public'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('orderbook/instruments', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetAccounts($params = array()) {
-        return $this->request('accounts', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('accounts', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetOrdersChance($params = array()) {
-        return $this->request('orders/chance', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('orders/chance', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetOrder($params = array()) {
-        return $this->request('order', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('order', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return list<mixed>
      */
     public function privateGetOrdersClosed($params = array()) {
-        return $this->request('orders/closed', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('orders/closed', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return list<mixed>
      */
     public function privateGetOrdersOpen($params = array()) {
-        return $this->request('orders/open', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('orders/open', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return list<mixed>
      */
     public function privateGetOrdersUuids($params = array()) {
-        return $this->request('orders/uuids', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('orders/uuids', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return list<mixed>
      */
     public function privateGetWithdraws($params = array()) {
-        return $this->request('withdraws', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('withdraws', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetWithdraw($params = array()) {
-        return $this->request('withdraw', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('withdraw', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetWithdrawsChance($params = array()) {
-        return $this->request('withdraws/chance', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('withdraws/chance', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return list<mixed>
      */
     public function privateGetWithdrawsCoinAddresses($params = array()) {
-        return $this->request('withdraws/coin_addresses', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('withdraws/coin_addresses', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return list<mixed>
      */
     public function privateGetDeposits($params = array()) {
-        return $this->request('deposits', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('deposits', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetDepositsChanceCoin($params = array()) {
-        return $this->request('deposits/chance/coin', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('deposits/chance/coin', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetDeposit($params = array()) {
-        return $this->request('deposit', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('deposit', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return list<mixed>
      */
     public function privateGetDepositsCoinAddresses($params = array()) {
-        return $this->request('deposits/coin_addresses', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('deposits/coin_addresses', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetDepositsCoinAddress($params = array()) {
-        return $this->request('deposits/coin_address', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('deposits/coin_address', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return list<mixed>
      */
     public function privateGetTravelRuleVasps($params = array()) {
-        return $this->request('travel_rule/vasps', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('travel_rule/vasps', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return list<mixed>
      */
     public function privateGetStatusWallet($params = array()) {
-        return $this->request('status/wallet', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('status/wallet', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return list<mixed>
      */
     public function privateGetApiKeys($params = array()) {
-        return $this->request('api_keys', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('api_keys', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return list<mixed>
      */
     public function privateGetPockets($params = array()) {
-        return $this->request('pockets', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('pockets', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return list<mixed>
      */
     public function privateGetPocketsApiKeys($params = array()) {
-        return $this->request('pockets/api_keys', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('pockets/api_keys', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return list<mixed>
      */
     public function privateGetPocketsAssets($params = array()) {
-        return $this->request('pockets/assets', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('pockets/assets', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return list<mixed>
      */
     public function privateGetPocketsUniversalTransfers($params = array()) {
-        return $this->request('pockets/universal_transfers', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('pockets/universal_transfers', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return list<mixed>
      */
     public function privateGetPocketsTransfers($params = array()) {
-        return $this->request('pockets/transfers', array('private'), 'GET', $params, null, null, array("cost" => 0.67));
+        return $this->request('pockets/transfers', array('private'), 'GET', $params, array("cost" => 0.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostOrders($params = array()) {
-        return $this->request('orders', array('private'), 'POST', $params, null, null, array("cost" => 2.5));
+        return $this->request('orders', array('private'), 'POST', $params, array("cost" => 2.5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostOrdersTest($params = array()) {
-        return $this->request('orders/test', array('private'), 'POST', $params, null, null, array("cost" => 2.5));
+        return $this->request('orders/test', array('private'), 'POST', $params, array("cost" => 2.5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostOrdersCancelAndNew($params = array()) {
-        return $this->request('orders/cancel_and_new', array('private'), 'POST', $params, null, null, array("cost" => 2.5));
+        return $this->request('orders/cancel_and_new', array('private'), 'POST', $params, array("cost" => 2.5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostWithdrawsCoin($params = array()) {
-        return $this->request('withdraws/coin', array('private'), 'POST', $params, null, null, array("cost" => 0.67));
+        return $this->request('withdraws/coin', array('private'), 'POST', $params, array("cost" => 0.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostWithdrawsKrw($params = array()) {
-        return $this->request('withdraws/krw', array('private'), 'POST', $params, null, null, array("cost" => 0.67));
+        return $this->request('withdraws/krw', array('private'), 'POST', $params, array("cost" => 0.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostDepositsKrw($params = array()) {
-        return $this->request('deposits/krw', array('private'), 'POST', $params, null, null, array("cost" => 0.67));
+        return $this->request('deposits/krw', array('private'), 'POST', $params, array("cost" => 0.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostDepositsGenerateCoinAddress($params = array()) {
-        return $this->request('deposits/generate_coin_address', array('private'), 'POST', $params, null, null, array("cost" => 0.67));
+        return $this->request('deposits/generate_coin_address', array('private'), 'POST', $params, array("cost" => 0.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostTravelRuleDepositUuid($params = array()) {
-        return $this->request('travel_rule/deposit/uuid', array('private'), 'POST', $params, null, null, array("cost" => 0.67));
+        return $this->request('travel_rule/deposit/uuid', array('private'), 'POST', $params, array("cost" => 0.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostTravelRuleDepositTxid($params = array()) {
-        return $this->request('travel_rule/deposit/txid', array('private'), 'POST', $params, null, null, array("cost" => 0.67));
+        return $this->request('travel_rule/deposit/txid', array('private'), 'POST', $params, array("cost" => 0.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostPocketsUniversalTransfers($params = array()) {
-        return $this->request('pockets/universal_transfers', array('private'), 'POST', $params, null, null, array("cost" => 0.67));
+        return $this->request('pockets/universal_transfers', array('private'), 'POST', $params, array("cost" => 0.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostPocketsTransfers($params = array()) {
-        return $this->request('pockets/transfers', array('private'), 'POST', $params, null, null, array("cost" => 0.67));
+        return $this->request('pockets/transfers', array('private'), 'POST', $params, array("cost" => 0.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateDeleteOrder($params = array()) {
-        return $this->request('order', array('private'), 'DELETE', $params, null, null, array("cost" => 0.67));
+        return $this->request('order', array('private'), 'DELETE', $params, array("cost" => 0.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateDeleteOrdersOpen($params = array()) {
-        return $this->request('orders/open', array('private'), 'DELETE', $params, null, null, array("cost" => 40));
+        return $this->request('orders/open', array('private'), 'DELETE', $params, array("cost" => 40));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateDeleteOrdersUuids($params = array()) {
-        return $this->request('orders/uuids', array('private'), 'DELETE', $params, null, null, array("cost" => 0.67));
+        return $this->request('orders/uuids', array('private'), 'DELETE', $params, array("cost" => 0.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateDeleteWithdrawsCoin($params = array()) {
-        return $this->request('withdraws/coin', array('private'), 'DELETE', $params, null, null, array("cost" => 0.67));
+        return $this->request('withdraws/coin', array('private'), 'DELETE', $params, array("cost" => 0.67));
     }
 }

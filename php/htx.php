@@ -7576,7 +7576,7 @@ class htx extends Exchange {
         return $this->milliseconds() - $this->safe_integer($this->options, 'timeDifference', 0);
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $signedHeaders = null;
         $signedBody = null;
         $pathString = $path;
@@ -7737,8 +7737,8 @@ class htx extends Exchange {
                 'hostname' => $finalHostname,
             )) . $url;
         }
-        $headersResolved = ($signedHeaders !== null) ? $signedHeaders : $headers;
-        $bodyResolved = ($signedBody !== null) ? $signedBody : $body;
+        $headersResolved = $signedHeaders;
+        $bodyResolved = $signedBody;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 

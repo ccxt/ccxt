@@ -1322,7 +1322,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         $this->options['enableDemoTrading'] = $enable;
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()) {
         return array( 'url' => null, 'method' => null, 'headers' => null, 'body' => null );
     }
 
@@ -4096,11 +4096,11 @@ class BaseExchange extends \ccxt\BaseExchange {
         return $results;
     }
 
-    public function fetch2(string $path, array $api = array('public'), $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, array $config = array()) {
-        return Async\async(self::do_fetch2(...))($path, $api, $method, $params, $headers, $body, $config);
+    public function fetch2(string $path, array $api = array('public'), $method = 'GET', $params = array(), array $config = array()) {
+        return Async\async(self::do_fetch2(...))($path, $api, $method, $params, $config);
     }
 
-    protected function do_fetch2(string $path, array $api = array('public'), $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, array $config = array()) {
+    protected function do_fetch2(string $path, array $api = array('public'), $method = 'GET', $params = array(), array $config = array()) {
         if ($this->enableRateLimit) {
             $cost = $this->calculate_rate_limiter_cost($api, $method, $path, $params, $config);
             Async\await($this->throttle($cost));
@@ -4119,7 +4119,7 @@ class BaseExchange extends \ccxt\BaseExchange {
             }
             try {
                 $this->set_last_rest_request_timestamp();
-                $request = $this->sign($path, $api, $method, $paramsMaxRetriesOnFailureDelay, $headers, $body);
+                $request = $this->sign($path, $api, $method, $paramsMaxRetriesOnFailureDelay);
                 if ($fetchData !== null) {
                     $fetchData['request'] = $request;
                 }
@@ -4155,12 +4155,12 @@ class BaseExchange extends \ccxt\BaseExchange {
         return null; // this line is never reached, but exists for c# value return requirement
     }
 
-    public function request(string $path, array $api = array('public'), $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, array $config = array()) {
-        return Async\async(self::do_request(...))($path, $api, $method, $params, $headers, $body, $config);
+    public function request(string $path, array $api = array('public'), $method = 'GET', $params = array(), array $config = array()) {
+        return Async\async(self::do_request(...))($path, $api, $method, $params, $config);
     }
 
-    private function do_request(string $path, array $api = array('public'), $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, array $config = array()) {
-        return $this->do_fetch2($path, $api, $method, $params, $headers, $body, $config);
+    private function do_request(string $path, array $api = array('public'), $method = 'GET', $params = array(), array $config = array()) {
+        return $this->do_fetch2($path, $api, $method, $params, $config);
     }
 
     public function load_accounts($reload = false, $params = array()) {

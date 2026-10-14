@@ -3222,7 +3222,7 @@ class deepcoin extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $requestPath = $path;
         if ($method === 'GET') {
@@ -3247,7 +3247,7 @@ class deepcoin extends Exchange {
                 'DC-ACCESS-PASSPHRASE' => $this->password,
                 'appid' => '200103',
             );
-            $requestBody = ($method !== 'GET') ? $this->json($params) : $body;
+            $requestBody = ($method !== 'GET') ? $this->json($params) : null;
             if ($method !== 'GET') {
                 $privateHeaders['Content-Type'] = 'application/json';
                 $payload .= $requestBody;
@@ -3256,7 +3256,7 @@ class deepcoin extends Exchange {
             $privateHeaders['DC-ACCESS-SIGN'] = $signature;
             return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $privateHeaders );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

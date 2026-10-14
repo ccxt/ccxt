@@ -4330,7 +4330,7 @@ class delta extends Exchange {
         );
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = array(), ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $requestPath = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $apiUrl = $this->safe_string($this->urls['api'], $apiName);
@@ -4367,8 +4367,8 @@ class delta extends Exchange {
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
             $requestHeaders['signature'] = $signature;
         }
-        $bodyResult = ($requestBody === null) ? $body : $requestBody;
-        $headersResult = ($requestHeaders === null) ? $headers : $requestHeaders;
+        $bodyResult = $requestBody;
+        $headersResult = $requestHeaders;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
     }
 

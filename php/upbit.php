@@ -2421,7 +2421,7 @@ class upbit extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $baseApiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($baseApiUrl === null) {
@@ -2438,7 +2438,7 @@ class upbit extends Exchange {
             }
         }
         $hasBody = ($apiName === 'private') && ($method !== 'GET') && ($method !== 'DELETE');
-        $requestBody = $body;
+        $requestBody = null;
         if ($hasBody) {
             $requestBody = $this->json($params);
         }
@@ -2467,7 +2467,7 @@ class upbit extends Exchange {
             $token = $this->jwt($request, $this->encode($this->secret), 'sha256');
             $privateHeaders['Authorization'] = 'Bearer ' . $token;
         }
-        $requestHeaders = ($apiName === 'private') ? $privateHeaders : $headers;
+        $requestHeaders = ($apiName === 'private') ? $privateHeaders : null;
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 

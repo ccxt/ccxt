@@ -13563,7 +13563,7 @@ class binance extends Exchange {
         return $scheme . '//' . $domain . '/';
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $urls = $this->urls;
         if (!(is_array($urls['api']) && array_key_exists($apiName ?? '', $urls['api']))) {
@@ -13679,8 +13679,8 @@ class binance extends Exchange {
                 $url .= '?' . $this->urlencode($params);
             }
         }
-        $headersResolved = ($signedHeaders !== null) ? $signedHeaders : $headers;
-        $bodyResolved = ($signedBody !== null) ? $signedBody : $body;
+        $headersResolved = $signedHeaders;
+        $bodyResolved = $signedBody;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
@@ -13817,12 +13817,12 @@ class binance extends Exchange {
         return $this->safe_value($config, 'cost', 1);
     }
 
-    public function request(string $path, array $api = array('public'), mixed $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, array $config = array()) {
-        return Async\async(self::do_request(...))($path, $api, $method, $params, $headers, $body, $config);
+    public function request(string $path, array $api = array('public'), mixed $method = 'GET', $params = array(), array $config = array()) {
+        return Async\async(self::do_request(...))($path, $api, $method, $params, $config);
     }
 
-    private function do_request(string $path, array $api = array('public'), mixed $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, array $config = array()) {
-        $response = $this->do_fetch2($path, $api, $method, $params, $headers, $body, $config);
+    private function do_request(string $path, array $api = array('public'), mixed $method = 'GET', $params = array(), array $config = array()) {
+        $response = $this->do_fetch2($path, $api, $method, $params, $config);
         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
         if ($api[0] === 'private') {
             $this->options['hasAlreadyAuthenticatedSuccessfully'] = true;

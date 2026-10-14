@@ -2365,7 +2365,7 @@ class backpack extends Exchange {
         return $this->milliseconds() - $timeDifference;
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $endpoint = '/' . $path;
         $apiUrl = $this->safe_string($this->urls['api'], $apiName);
@@ -2415,8 +2415,8 @@ class backpack extends Exchange {
             }
         }
         $url .= $endpoint;
-        $headersResolved = ($apiName === 'private') ? $headersSigned : $headers;
-        $bodyResolved = $body;
+        $headersResolved = ($apiName === 'private') ? $headersSigned : null;
+        $bodyResolved = null;
         if (($apiName === 'private') && ($method !== 'GET')) {
             $bodyResolved = $bodySigned;
         }

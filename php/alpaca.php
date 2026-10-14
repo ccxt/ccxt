@@ -2214,16 +2214,13 @@ class alpaca extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $endpoint = '/' . $this->implode_params($path, $params);
         $baseApiUrl = $this->safe_string($this->urls['api'], $api[0]);
         if ($baseApiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $headersValue = array();
-        if ($headers !== null) {
-            $headersValue = $headers;
-        }
         if ($api[1] === 'private') {
             $this->check_required_credentials();
             $headersValue['APCA-API-KEY-ID'] = $this->apiKey;
@@ -2240,7 +2237,7 @@ class alpaca extends Exchange {
             }
         }
         $url = $this->implode_hostname($baseApiUrl) . $endpoint;
-        $bodyResolved = ($bodyJson === null) ? $body : $bodyJson;
+        $bodyResolved = $bodyJson;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersValue );
     }
 

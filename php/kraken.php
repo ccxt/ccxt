@@ -3684,7 +3684,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $url = '/' . $this->version . '/' . $apiName . '/' . $path;
         if ($apiName === 'public') {
@@ -3739,7 +3739,7 @@ class kraken extends Exchange {
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
-        return array( 'url' => $apiUrl . $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $apiUrl . $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
     public function nonce(): float {

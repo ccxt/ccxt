@@ -2052,7 +2052,7 @@ class bigone extends Exchange {
         return $this->sum($this->microseconds() * 1000, $exchangeTimeCorrection);
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $bodySigned = null;
         $query = $this->omit($params, $this->extract_params($path));
@@ -2088,7 +2088,7 @@ class bigone extends Exchange {
             }
         }
         $headersValue['User-Agent'] = 'ccxt/' . $this->id . '-' . $this->version;
-        $bodyResolved = ($bodySigned === null) ? $body : $bodySigned;
+        $bodyResolved = $bodySigned;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersValue );
     }
 

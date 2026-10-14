@@ -11,420 +11,420 @@ abstract class btcmarkets extends \ccxt\Exchange {
      * @return list<mixed>
      */
     public function public_get_markets($params = array()) {
-        return $this->request('markets', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('markets', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function public_get_markets_marketid_ticker($params = array()) {
-        return $this->request('markets/{marketId}/ticker', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('markets/{marketId}/ticker', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return list<mixed>
      */
     public function public_get_markets_marketid_trades($params = array()) {
-        return $this->request('markets/{marketId}/trades', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('markets/{marketId}/trades', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function public_get_markets_marketid_orderbook($params = array()) {
-        return $this->request('markets/{marketId}/orderbook', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('markets/{marketId}/orderbook', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return list<mixed>
      */
     public function public_get_markets_marketid_candles($params = array()) {
-        return $this->request('markets/{marketId}/candles', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('markets/{marketId}/candles', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return list<mixed>
      */
     public function public_get_markets_tickers($params = array()) {
-        return $this->request('markets/tickers', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('markets/tickers', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return list<mixed>
      */
     public function public_get_markets_orderbooks($params = array()) {
-        return $this->request('markets/orderbooks', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('markets/orderbooks', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function public_get_time($params = array()) {
-        return $this->request('time', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('time', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return list<mixed>
      */
     public function private_get_orders($params = array()) {
-        return $this->request('orders', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('orders', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_orders_id($params = array()) {
-        return $this->request('orders/{id}', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('orders/{id}', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_batchorders_ids($params = array()) {
-        return $this->request('batchorders/{ids}', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('batchorders/{ids}', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return list<mixed>
      */
     public function private_get_trades($params = array()) {
-        return $this->request('trades', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trades', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_trades_id($params = array()) {
-        return $this->request('trades/{id}', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trades/{id}', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return list<mixed>
      */
     public function private_get_withdrawals($params = array()) {
-        return $this->request('withdrawals', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('withdrawals', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_withdrawals_id($params = array()) {
-        return $this->request('withdrawals/{id}', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('withdrawals/{id}', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return list<mixed>
      */
     public function private_get_deposits($params = array()) {
-        return $this->request('deposits', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('deposits', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_deposits_id($params = array()) {
-        return $this->request('deposits/{id}', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('deposits/{id}', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return list<mixed>
      */
     public function private_get_transfers($params = array()) {
-        return $this->request('transfers', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('transfers', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_transfers_id($params = array()) {
-        return $this->request('transfers/{id}', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('transfers/{id}', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_addresses($params = array()) {
-        return $this->request('addresses', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('addresses', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return list<mixed>
      */
     public function private_get_withdrawal_fees($params = array()) {
-        return $this->request('withdrawal-fees', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('withdrawal-fees', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return list<mixed>
      */
     public function private_get_assets($params = array()) {
-        return $this->request('assets', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('assets', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_accounts_me_trading_fees($params = array()) {
-        return $this->request('accounts/me/trading-fees', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('accounts/me/trading-fees', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return list<mixed>
      */
     public function private_get_accounts_me_withdrawal_limits($params = array()) {
-        return $this->request('accounts/me/withdrawal-limits', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('accounts/me/withdrawal-limits', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_accounts_me_balances($params = array()) {
-        return $this->request('accounts/me/balances', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('accounts/me/balances', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return list<mixed>
      */
     public function private_get_accounts_me_transactions($params = array()) {
-        return $this->request('accounts/me/transactions', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('accounts/me/transactions', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_reports_id($params = array()) {
-        return $this->request('reports/{id}', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('reports/{id}', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_orders($params = array()) {
-        return $this->request('orders', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('orders', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_batchorders($params = array()) {
-        return $this->request('batchorders', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('batchorders', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_withdrawals($params = array()) {
-        return $this->request('withdrawals', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('withdrawals', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_reports($params = array()) {
-        return $this->request('reports', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('reports', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return list<mixed>
      */
     public function private_delete_orders($params = array()) {
-        return $this->request('orders', array('private'), 'DELETE', $params, null, null, array("cost" => 1));
+        return $this->request('orders', array('private'), 'DELETE', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_delete_orders_id($params = array()) {
-        return $this->request('orders/{id}', array('private'), 'DELETE', $params, null, null, array("cost" => 1));
+        return $this->request('orders/{id}', array('private'), 'DELETE', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_delete_batchorders_ids($params = array()) {
-        return $this->request('batchorders/{ids}', array('private'), 'DELETE', $params, null, null, array("cost" => 1));
+        return $this->request('batchorders/{ids}', array('private'), 'DELETE', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_put_orders_id($params = array()) {
-        return $this->request('orders/{id}', array('private'), 'PUT', $params, null, null, array("cost" => 1));
+        return $this->request('orders/{id}', array('private'), 'PUT', $params, array("cost" => 1));
     }
     /**
      * @return list<mixed>
      */
     public function publicGetMarkets($params = array()) {
-        return $this->request('markets', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('markets', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function publicGetMarketsMarketIdTicker($params = array()) {
-        return $this->request('markets/{marketId}/ticker', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('markets/{marketId}/ticker', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return list<mixed>
      */
     public function publicGetMarketsMarketIdTrades($params = array()) {
-        return $this->request('markets/{marketId}/trades', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('markets/{marketId}/trades', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function publicGetMarketsMarketIdOrderbook($params = array()) {
-        return $this->request('markets/{marketId}/orderbook', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('markets/{marketId}/orderbook', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return list<mixed>
      */
     public function publicGetMarketsMarketIdCandles($params = array()) {
-        return $this->request('markets/{marketId}/candles', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('markets/{marketId}/candles', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return list<mixed>
      */
     public function publicGetMarketsTickers($params = array()) {
-        return $this->request('markets/tickers', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('markets/tickers', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return list<mixed>
      */
     public function publicGetMarketsOrderbooks($params = array()) {
-        return $this->request('markets/orderbooks', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('markets/orderbooks', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function publicGetTime($params = array()) {
-        return $this->request('time', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('time', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return list<mixed>
      */
     public function privateGetOrders($params = array()) {
-        return $this->request('orders', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('orders', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetOrdersId($params = array()) {
-        return $this->request('orders/{id}', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('orders/{id}', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetBatchordersIds($params = array()) {
-        return $this->request('batchorders/{ids}', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('batchorders/{ids}', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return list<mixed>
      */
     public function privateGetTrades($params = array()) {
-        return $this->request('trades', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trades', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetTradesId($params = array()) {
-        return $this->request('trades/{id}', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trades/{id}', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return list<mixed>
      */
     public function privateGetWithdrawals($params = array()) {
-        return $this->request('withdrawals', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('withdrawals', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetWithdrawalsId($params = array()) {
-        return $this->request('withdrawals/{id}', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('withdrawals/{id}', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return list<mixed>
      */
     public function privateGetDeposits($params = array()) {
-        return $this->request('deposits', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('deposits', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetDepositsId($params = array()) {
-        return $this->request('deposits/{id}', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('deposits/{id}', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return list<mixed>
      */
     public function privateGetTransfers($params = array()) {
-        return $this->request('transfers', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('transfers', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetTransfersId($params = array()) {
-        return $this->request('transfers/{id}', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('transfers/{id}', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetAddresses($params = array()) {
-        return $this->request('addresses', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('addresses', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return list<mixed>
      */
     public function privateGetWithdrawalFees($params = array()) {
-        return $this->request('withdrawal-fees', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('withdrawal-fees', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return list<mixed>
      */
     public function privateGetAssets($params = array()) {
-        return $this->request('assets', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('assets', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetAccountsMeTradingFees($params = array()) {
-        return $this->request('accounts/me/trading-fees', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('accounts/me/trading-fees', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return list<mixed>
      */
     public function privateGetAccountsMeWithdrawalLimits($params = array()) {
-        return $this->request('accounts/me/withdrawal-limits', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('accounts/me/withdrawal-limits', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetAccountsMeBalances($params = array()) {
-        return $this->request('accounts/me/balances', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('accounts/me/balances', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return list<mixed>
      */
     public function privateGetAccountsMeTransactions($params = array()) {
-        return $this->request('accounts/me/transactions', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('accounts/me/transactions', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetReportsId($params = array()) {
-        return $this->request('reports/{id}', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('reports/{id}', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostOrders($params = array()) {
-        return $this->request('orders', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('orders', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostBatchorders($params = array()) {
-        return $this->request('batchorders', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('batchorders', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostWithdrawals($params = array()) {
-        return $this->request('withdrawals', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('withdrawals', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostReports($params = array()) {
-        return $this->request('reports', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('reports', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return list<mixed>
      */
     public function privateDeleteOrders($params = array()) {
-        return $this->request('orders', array('private'), 'DELETE', $params, null, null, array("cost" => 1));
+        return $this->request('orders', array('private'), 'DELETE', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateDeleteOrdersId($params = array()) {
-        return $this->request('orders/{id}', array('private'), 'DELETE', $params, null, null, array("cost" => 1));
+        return $this->request('orders/{id}', array('private'), 'DELETE', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateDeleteBatchordersIds($params = array()) {
-        return $this->request('batchorders/{ids}', array('private'), 'DELETE', $params, null, null, array("cost" => 1));
+        return $this->request('batchorders/{ids}', array('private'), 'DELETE', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePutOrdersId($params = array()) {
-        return $this->request('orders/{id}', array('private'), 'PUT', $params, null, null, array("cost" => 1));
+        return $this->request('orders/{id}', array('private'), 'PUT', $params, array("cost" => 1));
     }
 }

@@ -1264,7 +1264,7 @@ class bitbns extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, array $api = array('www'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('www'), $method = 'GET', $params = array()): array {
         $urls = $this->urls;
         $apiName = $api[0];
         if (!(is_array($urls['api']) && array_key_exists($apiName ?? '', $urls['api']))) {
@@ -1276,7 +1276,7 @@ class bitbns extends Exchange {
         $apiKeyHeaders = array(
             'X-BITBNS-APIKEY' => $this->apiKey,
         );
-        $requestHeaders = ($apiName !== 'www') ? $apiKeyHeaders : $headers;
+        $requestHeaders = ($apiName !== 'www') ? $apiKeyHeaders : null;
         $baseApiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($baseApiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
@@ -1290,7 +1290,7 @@ class bitbns extends Exchange {
         if ($queryLength > 0) {
             $postBody = $this->json($query);
         }
-        $requestBody = ($method === 'POST') ? $postBody : $body;
+        $requestBody = ($method === 'POST') ? $postBody : null;
         if ($method === 'GET') {
             if ($queryLength > 0) {
                 $url .= '?' . $this->urlencode($query);

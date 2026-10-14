@@ -1907,14 +1907,14 @@ class bitopro extends Exchange {
         return $this->parse_deposit_withdraw_fees($data, $codes, 'currency');
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $url = '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
-        $requestHeaders = ($headers === null) ? array() : $headers;
+        $requestHeaders = array();
         $isSignedBody = ($apiName === 'private') && (($method === 'POST') || ($method === 'PUT'));
         $signedBody = $this->json($params);
-        $requestBody = $body;
+        $requestBody = null;
         if ($isSignedBody) {
             $requestBody = $signedBody;
         }

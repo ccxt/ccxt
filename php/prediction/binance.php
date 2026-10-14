@@ -1999,7 +1999,7 @@ class binance extends Exchange {
         return null;
     }
 
-    public function sign(string $path, array $api = array('sapi'), $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
+    public function sign(string $path, array $api = array('sapi'), $method = 'GET', $params = array()) {
         /**
          * @ignore
          * builds the request URL and attaches the standard binance SAPI HMAC-SHA256 $signature — every prediction endpoint is signed
@@ -2007,9 +2007,7 @@ class binance extends Exchange {
          * @param {string|string[]} [$api] the $api group and access level
          * @param {string} [$method] HTTP $method
          * @param {array} [$params] request parameters
-         * @param {array} [$headers] request $headers
-         * @param {array} [$body] request $body
-         * @return {array} a dictionary with $url, $method, $body and $headers
+         * @return {array} a dictionary with $url, $method, body and headers
          */
         $apiGroup = $api[0];
         $baseUrls = $this->urls['api'];
@@ -2032,7 +2030,7 @@ class binance extends Exchange {
         $headersValue = array(
             'X-MBX-APIKEY' => $this->apiKey,
         );
-        $bodyValue = $body;
+        $bodyValue = null;
         if (($method === 'GET') || ($method === 'DELETE')) {
             $url = $url . '?' . $querystring;
         } else {
