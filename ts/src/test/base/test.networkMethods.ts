@@ -67,7 +67,7 @@ function helperTestUnifiedNetworkCode () {
         },
     });
     exchange.currencies = exchange.mapToSafeMap ({}); // go fix + c# uninitialized prop fix
-    const aliases = {
+    const aliases: Dict = {
         'ETH': 'ERC20',
         'TRX': 'TRC20',
         'BSC': 'BEP20',
