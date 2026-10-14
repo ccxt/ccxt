@@ -121,6 +121,101 @@
                     ],
                     "stopPrice": 0
                 }
+            },
+            {
+                "description": "stop loss market order",
+                "method": "fetchOrder",
+                "input": [
+                    "1760000000000201709220290001"
+                ],
+                "httpResponse": {
+                    "account": "0xf4919894c0ea05cf4f6fed13731279223b487bacd0b0ebccff4ca4701b82d73",
+                    "market": "SOL-USD-PERP",
+                    "remaining_size": "0.5",
+                    "status": "UNTRIGGERED",
+                    "created_at": "1760000000000",
+                    "last_updated_at": "1760000000010",
+                    "timestamp": "1760000000000",
+                    "cancel_reason": "",
+                    "client_id": "",
+                    "seq_no": "1760000000010364144",
+                    "instruction": "GTC",
+                    "avg_fill_price": "",
+                    "stp": "EXPIRE_TAKER",
+                    "received_at": "1760000000002",
+                    "published_at": "1760000000011",
+                    "flags": [
+                        "REDUCE_ONLY"
+                    ],
+                    "id": "1760000000000201709220290001",
+                    "side": "SELL",
+                    "type": "STOP_LOSS_MARKET",
+                    "size": "0.5",
+                    "price": "0",
+                    "trigger_price": "90"
+                },
+                "parsedResponse": {
+                    "id": "1760000000000201709220290001",
+                    "clientOrderId": null,
+                    "timestamp": 1760000000000,
+                    "datetime": "2025-10-09T08:53:20.000Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1760000000010,
+                    "status": "open",
+                    "symbol": "SOL/USD:USDC",
+                    "type": "market",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "reduceOnly": true,
+                    "side": "sell",
+                    "price": null,
+                    "triggerPrice": 90,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": 90,
+                    "average": null,
+                    "amount": 0.5,
+                    "filled": 0,
+                    "remaining": 0.5,
+                    "cost": null,
+                    "trades": [],
+                    "fee": {
+                        "cost": null,
+                        "currency": null
+                    },
+                    "info": {
+                        "account": "0xf4919894c0ea05cf4f6fed13731279223b487bacd0b0ebccff4ca4701b82d73",
+                        "market": "SOL-USD-PERP",
+                        "remaining_size": "0.5",
+                        "status": "UNTRIGGERED",
+                        "created_at": "1760000000000",
+                        "last_updated_at": "1760000000010",
+                        "timestamp": "1760000000000",
+                        "cancel_reason": "",
+                        "client_id": "",
+                        "seq_no": "1760000000010364144",
+                        "instruction": "GTC",
+                        "avg_fill_price": "",
+                        "stp": "EXPIRE_TAKER",
+                        "received_at": "1760000000002",
+                        "published_at": "1760000000011",
+                        "flags": [
+                            "REDUCE_ONLY"
+                        ],
+                        "id": "1760000000000201709220290001",
+                        "side": "SELL",
+                        "type": "STOP_LOSS_MARKET",
+                        "size": "0.5",
+                        "price": "0",
+                        "trigger_price": "90"
+                    },
+                    "fees": [
+                        {
+                            "cost": null,
+                            "currency": null
+                        }
+                    ],
+                    "stopPrice": 90
+                }
             }
         ],
         "fetchFundingHistory": [
@@ -165,7 +260,8 @@
                             "id": "1748360402930201709192260004",
                             "index": "-2819.53434361",
                             "market": "BTC-USD-PERP",
-                            "payment": "34.4490622"
+                            "payment": "34.4490622",
+                            "next": null
                         },
                         "symbol": "BTC/USD:USDC",
                         "code": "USDC",
@@ -182,7 +278,8 @@
                             "id": "1748360462930201709192260005",
                             "index": "-2818.53434361",
                             "market": "BTC-USD-PERP",
-                            "payment": "-12.4490622"
+                            "payment": "-12.4490622",
+                            "next": null
                         },
                         "symbol": "BTC/USD:USDC",
                         "code": "USDC",
@@ -190,6 +287,117 @@
                         "datetime": "2025-05-27T15:41:02.936Z",
                         "id": "1748360462930201709192260005",
                         "amount": -12.4490622
+                    }
+                ]
+            },
+            {
+                "description": "paginate follows the next cursor",
+                "method": "fetchFundingHistory",
+                "input": [
+                    "BTC/USD:USDC",
+                    1748360400000,
+                    null,
+                    {
+                        "paginate": true,
+                        "paginationCalls": 2
+                    }
+                ],
+                "httpResponse": {
+                    "next": "eyJmaWx0ZXIiOnsiTGltaXQiOjEwMH19",
+                    "prev": null,
+                    "results": [
+                        {
+                            "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941ec6cfd3b31402ec42d72e",
+                            "created_at": 1748360402936,
+                            "fill_id": "8615262148007718462",
+                            "id": "1748360402930201709192260004",
+                            "index": "-2819.53434361",
+                            "market": "BTC-USD-PERP",
+                            "payment": "34.4490622"
+                        },
+                        {
+                            "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941ec6cfd3b31402ec42d72e",
+                            "created_at": 1748360462936,
+                            "fill_id": "8615262148007718463",
+                            "id": "1748360462930201709192260005",
+                            "index": "-2818.53434361",
+                            "market": "BTC-USD-PERP",
+                            "payment": "-12.4490622"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941ec6cfd3b31402ec42d72e",
+                            "created_at": 1748360462936,
+                            "fill_id": "8615262148007718463",
+                            "id": "1748360462930201709192260005",
+                            "index": "-2818.53434361",
+                            "market": "BTC-USD-PERP",
+                            "payment": "-12.4490622",
+                            "next": "eyJmaWx0ZXIiOnsiTGltaXQiOjEwMH19"
+                        },
+                        "symbol": "BTC/USD:USDC",
+                        "code": "USDC",
+                        "timestamp": 1748360462936,
+                        "datetime": "2025-05-27T15:41:02.936Z",
+                        "id": "1748360462930201709192260005",
+                        "amount": -12.4490622
+                    },
+                    {
+                        "info": {
+                            "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941ec6cfd3b31402ec42d72e",
+                            "created_at": 1748360462936,
+                            "fill_id": "8615262148007718463",
+                            "id": "1748360462930201709192260005",
+                            "index": "-2818.53434361",
+                            "market": "BTC-USD-PERP",
+                            "payment": "-12.4490622",
+                            "next": "eyJmaWx0ZXIiOnsiTGltaXQiOjEwMH19"
+                        },
+                        "symbol": "BTC/USD:USDC",
+                        "code": "USDC",
+                        "timestamp": 1748360462936,
+                        "datetime": "2025-05-27T15:41:02.936Z",
+                        "id": "1748360462930201709192260005",
+                        "amount": -12.4490622
+                    },
+                    {
+                        "info": {
+                            "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941ec6cfd3b31402ec42d72e",
+                            "created_at": 1748360402936,
+                            "fill_id": "8615262148007718462",
+                            "id": "1748360402930201709192260004",
+                            "index": "-2819.53434361",
+                            "market": "BTC-USD-PERP",
+                            "payment": "34.4490622",
+                            "next": "eyJmaWx0ZXIiOnsiTGltaXQiOjEwMH19"
+                        },
+                        "symbol": "BTC/USD:USDC",
+                        "code": "USDC",
+                        "timestamp": 1748360402936,
+                        "datetime": "2025-05-27T15:40:02.936Z",
+                        "id": "1748360402930201709192260004",
+                        "amount": 34.4490622
+                    },
+                    {
+                        "info": {
+                            "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941ec6cfd3b31402ec42d72e",
+                            "created_at": 1748360402936,
+                            "fill_id": "8615262148007718462",
+                            "id": "1748360402930201709192260004",
+                            "index": "-2819.53434361",
+                            "market": "BTC-USD-PERP",
+                            "payment": "34.4490622",
+                            "next": "eyJmaWx0ZXIiOnsiTGltaXQiOjEwMH19"
+                        },
+                        "symbol": "BTC/USD:USDC",
+                        "code": "USDC",
+                        "timestamp": 1748360402936,
+                        "datetime": "2025-05-27T15:40:02.936Z",
+                        "id": "1748360402930201709192260004",
+                        "amount": 34.4490622
                     }
                 ]
             }
@@ -2639,67 +2847,184 @@
                 "method": "fetchDeposits",
                 "input": [],
                 "httpResponse": {
-                  "next": null,
-                  "prev": null,
-                  "results": [
-                    {
-                      "id": "1721828326450201709187710000",
-                      "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941efdcfdab31402ec42d72e",
-                      "kind": "DEPOSIT",
-                      "status": "COMPLETED",
-                      "amount": "78.544",
-                      "token": "USDC",
-                      "created_at": "1721828356455",
-                      "last_updated_at": "1721828373926",
-                      "txn_hash": "0x66a736440f751c258d5bd89355a766b581518fab91c9w8e5d448502bcd8c3cc",
-                      "external_txn_hash": "0xa6a6d888e9be955d4ab7e63bbb5ea3b8e23da3cac5747fa63094f2e51f15812d",
-                      "socialized_loss_factor": "",
-                      "bridge": "RHINOFI",
-                      "external_chain": "ETHEREUM",
-                      "external_account": "0xc950889d14a3717f541ec136bc133d7a9e98c78f",
-                      "failure_reason": ""
-                    }
-                  ]
+                    "next": null,
+                    "prev": null,
+                    "results": [
+                        {
+                            "id": "1721828326450201709187710000",
+                            "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941efdcfdab31402ec42d72e",
+                            "kind": "DEPOSIT",
+                            "status": "COMPLETED",
+                            "amount": "78.544",
+                            "token": "USDC",
+                            "created_at": "1721828356455",
+                            "last_updated_at": "1721828373926",
+                            "txn_hash": "0x66a736440f751c258d5bd89355a766b581518fab91c9w8e5d448502bcd8c3cc",
+                            "external_txn_hash": "0xa6a6d888e9be955d4ab7e63bbb5ea3b8e23da3cac5747fa63094f2e51f15812d",
+                            "socialized_loss_factor": "",
+                            "bridge": "RHINOFI",
+                            "external_chain": "ETHEREUM",
+                            "external_account": "0xc950889d14a3717f541ec136bc133d7a9e98c78f",
+                            "failure_reason": ""
+                        }
+                    ]
                 },
                 "parsedResponse": [
-                  {
-                    "info": {
-                      "id": "1721828326450201709187710000",
-                      "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941efdcfdab31402ec42d72e",
-                      "kind": "DEPOSIT",
-                      "status": "COMPLETED",
-                      "amount": "78.544",
-                      "token": "USDC",
-                      "created_at": "1721828356455",
-                      "last_updated_at": "1721828373926",
-                      "txn_hash": "0x66a736440f751c258d5bd89355a766b581518fab91c9w8e5d448502bcd8c3cc",
-                      "external_txn_hash": "0xa6a6d888e9be955d4ab7e63bbb5ea3b8e23da3cac5747fa63094f2e51f15812d",
-                      "socialized_loss_factor": "",
-                      "bridge": "RHINOFI",
-                      "external_chain": "ETHEREUM",
-                      "external_account": "0xc950889d14a3717f541ec136bc133d7a9e98c78f",
-                      "failure_reason": ""
+                    {
+                        "info": {
+                            "id": "1721828326450201709187710000",
+                            "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941efdcfdab31402ec42d72e",
+                            "kind": "DEPOSIT",
+                            "status": "COMPLETED",
+                            "amount": "78.544",
+                            "token": "USDC",
+                            "created_at": "1721828356455",
+                            "last_updated_at": "1721828373926",
+                            "txn_hash": "0x66a736440f751c258d5bd89355a766b581518fab91c9w8e5d448502bcd8c3cc",
+                            "external_txn_hash": "0xa6a6d888e9be955d4ab7e63bbb5ea3b8e23da3cac5747fa63094f2e51f15812d",
+                            "socialized_loss_factor": "",
+                            "bridge": "RHINOFI",
+                            "external_chain": "ETHEREUM",
+                            "external_account": "0xc950889d14a3717f541ec136bc133d7a9e98c78f",
+                            "failure_reason": "",
+                            "next": null
+                        },
+                        "id": "1721828326450201709187710000",
+                        "txid": "0x66a736440f751c258d5bd89355a766b581518fab91c9w8e5d448502bcd8c3cc",
+                        "timestamp": 1721828356455,
+                        "datetime": "2024-07-24T13:39:16.455Z",
+                        "network": null,
+                        "address": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941efdcfdab31402ec42d72e",
+                        "addressTo": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941efdcfdab31402ec42d72e",
+                        "addressFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "tagFrom": null,
+                        "type": "deposit",
+                        "amount": 78.544,
+                        "currency": "USDC",
+                        "status": "ok",
+                        "updated": 1721828373926,
+                        "internal": null,
+                        "comment": null,
+                        "fee": null
+                    }
+                ]
+            },
+            {
+                "description": "paginate follows the next cursor",
+                "method": "fetchDeposits",
+                "input": [
+                    null,
+                    1721828300000,
+                    null,
+                    {
+                        "paginate": true,
+                        "paginationCalls": 2
+                    }
+                ],
+                "httpResponse": {
+                    "next": "eyJmaWx0ZXIiOnsiTGltaXQiOjEwMH19",
+                    "prev": null,
+                    "results": [
+                        {
+                            "id": "1721828326450201709187710000",
+                            "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941efdcfdab31402ec42d72e",
+                            "kind": "DEPOSIT",
+                            "status": "COMPLETED",
+                            "amount": "78.544",
+                            "token": "USDC",
+                            "created_at": "1721828356455",
+                            "last_updated_at": "1721828373926",
+                            "txn_hash": "0x66a736440f751c258d5bd89355a766b581518fab91c9w8e5d448502bcd8c3cc",
+                            "external_txn_hash": "0xa6a6d888e9be955d4ab7e63bbb5ea3b8e23da3cac5747fa63094f2e51f15812d",
+                            "socialized_loss_factor": "",
+                            "bridge": "RHINOFI",
+                            "external_chain": "ETHEREUM",
+                            "external_account": "0xc950889d14a3717f541ec136bc133d7a9e98c78f",
+                            "failure_reason": ""
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "1721828326450201709187710000",
+                            "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941efdcfdab31402ec42d72e",
+                            "kind": "DEPOSIT",
+                            "status": "COMPLETED",
+                            "amount": "78.544",
+                            "token": "USDC",
+                            "created_at": "1721828356455",
+                            "last_updated_at": "1721828373926",
+                            "txn_hash": "0x66a736440f751c258d5bd89355a766b581518fab91c9w8e5d448502bcd8c3cc",
+                            "external_txn_hash": "0xa6a6d888e9be955d4ab7e63bbb5ea3b8e23da3cac5747fa63094f2e51f15812d",
+                            "socialized_loss_factor": "",
+                            "bridge": "RHINOFI",
+                            "external_chain": "ETHEREUM",
+                            "external_account": "0xc950889d14a3717f541ec136bc133d7a9e98c78f",
+                            "failure_reason": "",
+                            "next": "eyJmaWx0ZXIiOnsiTGltaXQiOjEwMH19"
+                        },
+                        "id": "1721828326450201709187710000",
+                        "txid": "0x66a736440f751c258d5bd89355a766b581518fab91c9w8e5d448502bcd8c3cc",
+                        "timestamp": 1721828356455,
+                        "datetime": "2024-07-24T13:39:16.455Z",
+                        "network": null,
+                        "address": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941efdcfdab31402ec42d72e",
+                        "addressTo": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941efdcfdab31402ec42d72e",
+                        "addressFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "tagFrom": null,
+                        "type": "deposit",
+                        "amount": 78.544,
+                        "currency": "USDC",
+                        "status": "ok",
+                        "updated": 1721828373926,
+                        "internal": null,
+                        "comment": null,
+                        "fee": null
                     },
-                    "id": "1721828326450201709187710000",
-                    "txid": "0x66a736440f751c258d5bd89355a766b581518fab91c9w8e5d448502bcd8c3cc",
-                    "timestamp": 1721828356455,
-                    "datetime": "2024-07-24T13:39:16.455Z",
-                    "network": null,
-                    "address": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941efdcfdab31402ec42d72e",
-                    "addressTo": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941efdcfdab31402ec42d72e",
-                    "addressFrom": null,
-                    "tag": null,
-                    "tagTo": null,
-                    "tagFrom": null,
-                    "type": "deposit",
-                    "amount": 78.544,
-                    "currency": "USDC",
-                    "status": "ok",
-                    "updated": 1721828373926,
-                    "internal": null,
-                    "comment": null,
-                    "fee": null
-                  }
+                    {
+                        "info": {
+                            "id": "1721828326450201709187710000",
+                            "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941efdcfdab31402ec42d72e",
+                            "kind": "DEPOSIT",
+                            "status": "COMPLETED",
+                            "amount": "78.544",
+                            "token": "USDC",
+                            "created_at": "1721828356455",
+                            "last_updated_at": "1721828373926",
+                            "txn_hash": "0x66a736440f751c258d5bd89355a766b581518fab91c9w8e5d448502bcd8c3cc",
+                            "external_txn_hash": "0xa6a6d888e9be955d4ab7e63bbb5ea3b8e23da3cac5747fa63094f2e51f15812d",
+                            "socialized_loss_factor": "",
+                            "bridge": "RHINOFI",
+                            "external_chain": "ETHEREUM",
+                            "external_account": "0xc950889d14a3717f541ec136bc133d7a9e98c78f",
+                            "failure_reason": "",
+                            "next": "eyJmaWx0ZXIiOnsiTGltaXQiOjEwMH19"
+                        },
+                        "id": "1721828326450201709187710000",
+                        "txid": "0x66a736440f751c258d5bd89355a766b581518fab91c9w8e5d448502bcd8c3cc",
+                        "timestamp": 1721828356455,
+                        "datetime": "2024-07-24T13:39:16.455Z",
+                        "network": null,
+                        "address": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941efdcfdab31402ec42d72e",
+                        "addressTo": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941efdcfdab31402ec42d72e",
+                        "addressFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "tagFrom": null,
+                        "type": "deposit",
+                        "amount": 78.544,
+                        "currency": "USDC",
+                        "status": "ok",
+                        "updated": 1721828373926,
+                        "internal": null,
+                        "comment": null,
+                        "fee": null
+                    }
                 ]
             }
         ],
@@ -2772,7 +3097,8 @@
                             "bridge": "RHINOFI",
                             "external_chain": "ETHEREUM",
                             "external_account": "0xc950889d14a3717f541ec136bc133d7a9e98c78f",
-                            "failure_reason": ""
+                            "failure_reason": "",
+                            "next": null
                         },
                         "id": "1721828326450201709187710000",
                         "timestamp": 1721828356455,
@@ -2799,7 +3125,8 @@
                             "bridge": "RHINOFI",
                             "external_chain": "ETHEREUM",
                             "external_account": "0xc950889d14a3717f541ec136bc133d7a9e98c78f",
-                            "failure_reason": ""
+                            "failure_reason": "",
+                            "next": null
                         },
                         "id": "1721828386450201709187710001",
                         "timestamp": 1721828386455,
@@ -2809,6 +3136,173 @@
                         "fromAccount": "account",
                         "toAccount": "external",
                         "status": "pending"
+                    }
+                ]
+            },
+            {
+                "description": "paginate follows the next cursor",
+                "method": "fetchTransfers",
+                "input": [
+                    "USDC",
+                    1721828350000,
+                    null,
+                    {
+                        "paginate": true,
+                        "paginationCalls": 2
+                    }
+                ],
+                "httpResponse": {
+                    "next": "eyJmaWx0ZXIiOnsiTGltaXQiOjEwMH19",
+                    "prev": null,
+                    "results": [
+                        {
+                            "id": "1721828326450201709187710000",
+                            "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941efdcfdab31402ec42d72e",
+                            "kind": "DEPOSIT",
+                            "status": "COMPLETED",
+                            "amount": "78.544",
+                            "token": "USDC",
+                            "created_at": "1721828356455",
+                            "last_updated_at": "1721828373926",
+                            "txn_hash": "0x66a736440f751c258d5bd89355a766b581518fab91c9w8e5d448502bcd8c3cc",
+                            "external_txn_hash": "0xa6a6d888e9be955d4ab7e63bbb5ea3b8e23da3cac5747fa63094f2e51f15812d",
+                            "socialized_loss_factor": "",
+                            "bridge": "RHINOFI",
+                            "external_chain": "ETHEREUM",
+                            "external_account": "0xc950889d14a3717f541ec136bc133d7a9e98c78f",
+                            "failure_reason": ""
+                        },
+                        {
+                            "id": "1721828386450201709187710001",
+                            "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941efdcfdab31402ec42d72e",
+                            "kind": "WITHDRAWAL",
+                            "status": "PENDING",
+                            "amount": "12.5",
+                            "token": "USDC",
+                            "created_at": "1721828386455",
+                            "last_updated_at": "1721828393926",
+                            "txn_hash": "0x76a736440f751c258d5bd89355a766b581518fab91c9w8e5d448502bcd8c3dd",
+                            "external_txn_hash": "0xb6a6d888e9be955d4ab7e63bbb5ea3b8e23da3cac5747fa63094f2e51f15812e",
+                            "socialized_loss_factor": "",
+                            "bridge": "RHINOFI",
+                            "external_chain": "ETHEREUM",
+                            "external_account": "0xc950889d14a3717f541ec136bc133d7a9e98c78f",
+                            "failure_reason": ""
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "1721828386450201709187710001",
+                            "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941efdcfdab31402ec42d72e",
+                            "kind": "WITHDRAWAL",
+                            "status": "PENDING",
+                            "amount": "12.5",
+                            "token": "USDC",
+                            "created_at": "1721828386455",
+                            "last_updated_at": "1721828393926",
+                            "txn_hash": "0x76a736440f751c258d5bd89355a766b581518fab91c9w8e5d448502bcd8c3dd",
+                            "external_txn_hash": "0xb6a6d888e9be955d4ab7e63bbb5ea3b8e23da3cac5747fa63094f2e51f15812e",
+                            "socialized_loss_factor": "",
+                            "bridge": "RHINOFI",
+                            "external_chain": "ETHEREUM",
+                            "external_account": "0xc950889d14a3717f541ec136bc133d7a9e98c78f",
+                            "failure_reason": "",
+                            "next": "eyJmaWx0ZXIiOnsiTGltaXQiOjEwMH19"
+                        },
+                        "id": "1721828386450201709187710001",
+                        "timestamp": 1721828386455,
+                        "datetime": "2024-07-24T13:39:46.455Z",
+                        "currency": "USDC",
+                        "amount": 12.5,
+                        "fromAccount": "account",
+                        "toAccount": "external",
+                        "status": "pending"
+                    },
+                    {
+                        "info": {
+                            "id": "1721828386450201709187710001",
+                            "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941efdcfdab31402ec42d72e",
+                            "kind": "WITHDRAWAL",
+                            "status": "PENDING",
+                            "amount": "12.5",
+                            "token": "USDC",
+                            "created_at": "1721828386455",
+                            "last_updated_at": "1721828393926",
+                            "txn_hash": "0x76a736440f751c258d5bd89355a766b581518fab91c9w8e5d448502bcd8c3dd",
+                            "external_txn_hash": "0xb6a6d888e9be955d4ab7e63bbb5ea3b8e23da3cac5747fa63094f2e51f15812e",
+                            "socialized_loss_factor": "",
+                            "bridge": "RHINOFI",
+                            "external_chain": "ETHEREUM",
+                            "external_account": "0xc950889d14a3717f541ec136bc133d7a9e98c78f",
+                            "failure_reason": "",
+                            "next": "eyJmaWx0ZXIiOnsiTGltaXQiOjEwMH19"
+                        },
+                        "id": "1721828386450201709187710001",
+                        "timestamp": 1721828386455,
+                        "datetime": "2024-07-24T13:39:46.455Z",
+                        "currency": "USDC",
+                        "amount": 12.5,
+                        "fromAccount": "account",
+                        "toAccount": "external",
+                        "status": "pending"
+                    },
+                    {
+                        "info": {
+                            "id": "1721828326450201709187710000",
+                            "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941efdcfdab31402ec42d72e",
+                            "kind": "DEPOSIT",
+                            "status": "COMPLETED",
+                            "amount": "78.544",
+                            "token": "USDC",
+                            "created_at": "1721828356455",
+                            "last_updated_at": "1721828373926",
+                            "txn_hash": "0x66a736440f751c258d5bd89355a766b581518fab91c9w8e5d448502bcd8c3cc",
+                            "external_txn_hash": "0xa6a6d888e9be955d4ab7e63bbb5ea3b8e23da3cac5747fa63094f2e51f15812d",
+                            "socialized_loss_factor": "",
+                            "bridge": "RHINOFI",
+                            "external_chain": "ETHEREUM",
+                            "external_account": "0xc950889d14a3717f541ec136bc133d7a9e98c78f",
+                            "failure_reason": "",
+                            "next": "eyJmaWx0ZXIiOnsiTGltaXQiOjEwMH19"
+                        },
+                        "id": "1721828326450201709187710000",
+                        "timestamp": 1721828356455,
+                        "datetime": "2024-07-24T13:39:16.455Z",
+                        "currency": "USDC",
+                        "amount": 78.544,
+                        "fromAccount": "external",
+                        "toAccount": "account",
+                        "status": "ok"
+                    },
+                    {
+                        "info": {
+                            "id": "1721828326450201709187710000",
+                            "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941efdcfdab31402ec42d72e",
+                            "kind": "DEPOSIT",
+                            "status": "COMPLETED",
+                            "amount": "78.544",
+                            "token": "USDC",
+                            "created_at": "1721828356455",
+                            "last_updated_at": "1721828373926",
+                            "txn_hash": "0x66a736440f751c258d5bd89355a766b581518fab91c9w8e5d448502bcd8c3cc",
+                            "external_txn_hash": "0xa6a6d888e9be955d4ab7e63bbb5ea3b8e23da3cac5747fa63094f2e51f15812d",
+                            "socialized_loss_factor": "",
+                            "bridge": "RHINOFI",
+                            "external_chain": "ETHEREUM",
+                            "external_account": "0xc950889d14a3717f541ec136bc133d7a9e98c78f",
+                            "failure_reason": "",
+                            "next": "eyJmaWx0ZXIiOnsiTGltaXQiOjEwMH19"
+                        },
+                        "id": "1721828326450201709187710000",
+                        "timestamp": 1721828356455,
+                        "datetime": "2024-07-24T13:39:16.455Z",
+                        "currency": "USDC",
+                        "amount": 78.544,
+                        "fromAccount": "external",
+                        "toAccount": "account",
+                        "status": "ok"
                     }
                 ]
             }
@@ -3120,6 +3614,193 @@
                     ]
                   }
                 ]
+            },
+            {
+                "description": "take profit limit and RPI orders",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "SOL/USD:USDC"
+                ],
+                "httpResponse": {
+                    "next": null,
+                    "prev": null,
+                    "results": [
+                        {
+                            "account": "0xf4919894c0ea05cf4f6fed13731279223b487bacd0b0ebccff4ca4701b82d73",
+                            "market": "SOL-USD-PERP",
+                            "remaining_size": "0",
+                            "status": "UNTRIGGERED",
+                            "created_at": "1760000000000",
+                            "last_updated_at": "1760000000010",
+                            "timestamp": "1760000000000",
+                            "cancel_reason": "",
+                            "client_id": "",
+                            "seq_no": "1760000000010364144",
+                            "instruction": "GTC",
+                            "avg_fill_price": "",
+                            "stp": "EXPIRE_TAKER",
+                            "received_at": "1760000000002",
+                            "published_at": "1760000000011",
+                            "flags": [
+                                "REDUCE_ONLY"
+                            ],
+                            "id": "1760000000000201709220290002",
+                            "side": "SELL",
+                            "type": "TAKE_PROFIT_LIMIT",
+                            "size": "0",
+                            "price": "210",
+                            "trigger_price": "200"
+                        },
+                        {
+                            "account": "0xf4919894c0ea05cf4f6fed13731279223b487bacd0b0ebccff4ca4701b82d73",
+                            "market": "SOL-USD-PERP",
+                            "remaining_size": "1",
+                            "status": "OPEN",
+                            "created_at": "1760000000000",
+                            "last_updated_at": "1760000000010",
+                            "timestamp": "1760000000000",
+                            "cancel_reason": "",
+                            "client_id": "",
+                            "seq_no": "1760000000010364144",
+                            "instruction": "RPI",
+                            "avg_fill_price": "",
+                            "stp": "EXPIRE_TAKER",
+                            "received_at": "1760000000002",
+                            "published_at": "1760000000011",
+                            "flags": [],
+                            "id": "1760000000000201709220290003",
+                            "side": "BUY",
+                            "type": "LIMIT",
+                            "size": "1",
+                            "price": "180",
+                            "trigger_price": "0"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "1760000000000201709220290002",
+                        "clientOrderId": null,
+                        "timestamp": 1760000000000,
+                        "datetime": "2025-10-09T08:53:20.000Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1760000000010,
+                        "status": "open",
+                        "symbol": "SOL/USD:USDC",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "reduceOnly": true,
+                        "side": "sell",
+                        "price": 210,
+                        "triggerPrice": 200,
+                        "takeProfitPrice": 200,
+                        "stopLossPrice": null,
+                        "average": null,
+                        "amount": null,
+                        "filled": null,
+                        "remaining": null,
+                        "cost": null,
+                        "trades": [],
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "account": "0xf4919894c0ea05cf4f6fed13731279223b487bacd0b0ebccff4ca4701b82d73",
+                            "market": "SOL-USD-PERP",
+                            "remaining_size": "0",
+                            "status": "UNTRIGGERED",
+                            "created_at": "1760000000000",
+                            "last_updated_at": "1760000000010",
+                            "timestamp": "1760000000000",
+                            "cancel_reason": "",
+                            "client_id": "",
+                            "seq_no": "1760000000010364144",
+                            "instruction": "GTC",
+                            "avg_fill_price": "",
+                            "stp": "EXPIRE_TAKER",
+                            "received_at": "1760000000002",
+                            "published_at": "1760000000011",
+                            "flags": [
+                                "REDUCE_ONLY"
+                            ],
+                            "id": "1760000000000201709220290002",
+                            "side": "SELL",
+                            "type": "TAKE_PROFIT_LIMIT",
+                            "size": "0",
+                            "price": "210",
+                            "trigger_price": "200"
+                        },
+                        "fees": [
+                            {
+                                "cost": null,
+                                "currency": null
+                            }
+                        ],
+                        "stopPrice": 200
+                    },
+                    {
+                        "id": "1760000000000201709220290003",
+                        "clientOrderId": null,
+                        "timestamp": 1760000000000,
+                        "datetime": "2025-10-09T08:53:20.000Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1760000000010,
+                        "status": "open",
+                        "symbol": "SOL/USD:USDC",
+                        "type": "limit",
+                        "timeInForce": "RPI",
+                        "postOnly": true,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": 180,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "average": null,
+                        "amount": 1,
+                        "filled": 0,
+                        "remaining": 1,
+                        "cost": 0,
+                        "trades": [],
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "account": "0xf4919894c0ea05cf4f6fed13731279223b487bacd0b0ebccff4ca4701b82d73",
+                            "market": "SOL-USD-PERP",
+                            "remaining_size": "1",
+                            "status": "OPEN",
+                            "created_at": "1760000000000",
+                            "last_updated_at": "1760000000010",
+                            "timestamp": "1760000000000",
+                            "cancel_reason": "",
+                            "client_id": "",
+                            "seq_no": "1760000000010364144",
+                            "instruction": "RPI",
+                            "avg_fill_price": "",
+                            "stp": "EXPIRE_TAKER",
+                            "received_at": "1760000000002",
+                            "published_at": "1760000000011",
+                            "flags": [],
+                            "id": "1760000000000201709220290003",
+                            "side": "BUY",
+                            "type": "LIMIT",
+                            "size": "1",
+                            "price": "180",
+                            "trigger_price": "0"
+                        },
+                        "fees": [
+                            {
+                                "cost": null,
+                                "currency": null
+                            }
+                        ],
+                        "stopPrice": null
+                    }
+                ]
             }
         ],
         "fetchBalance": [
@@ -3167,74 +3848,75 @@
                 "method": "fetchPositions",
                 "input": [],
                 "httpResponse": {
-                  "results": [
-                    {
-                      "id": "0x59c31d5be66edd29d80aace25348e68da856c6d6c0edf1429c16a8cc724c509-SOL-USD-PERP",
-                      "market": "SOL-USD-PERP",
-                      "status": "OPEN",
-                      "side": "LONG",
-                      "size": "3",
-                      "average_entry_price": "183.06499451",
-                      "average_entry_price_usd": "183.065",
-                      "realized_pnl": "0",
-                      "unrealized_pnl": "-2.84428356",
-                      "unrealized_funding_pnl": "-0.00059564",
-                      "cost": "549.19498352",
-                      "cost_usd": "549.195",
-                      "cached_funding_index": "84.33843058",
-                      "last_updated_at": "1722426261489",
-                      "last_fill_id": "1722426248360201703986560001",
-                      "seq_no": "1722426261489298037",
-                      "liquidation_price": ""
-                    }
-                  ]
+                    "results": [
+                        {
+                            "id": "0x59c31d5be66edd29d80aace25348e68da856c6d6c0edf1429c16a8cc724c509-SOL-USD-PERP",
+                            "market": "SOL-USD-PERP",
+                            "status": "OPEN",
+                            "side": "LONG",
+                            "size": "3",
+                            "average_entry_price": "183.06499451",
+                            "average_entry_price_usd": "183.065",
+                            "realized_pnl": "0",
+                            "unrealized_pnl": "-2.84428356",
+                            "unrealized_funding_pnl": "-0.00059564",
+                            "cost": "549.19498352",
+                            "cost_usd": "549.195",
+                            "cached_funding_index": "84.33843058",
+                            "last_updated_at": "1722426261489",
+                            "last_fill_id": "1722426248360201703986560001",
+                            "seq_no": "1722426261489298037",
+                            "liquidation_price": ""
+                        }
+                    ]
                 },
                 "parsedResponse": [
-                  {
-                    "info": {
-                      "id": "0x59c31d5be66edd29d80aace25348e68da856c6d6c0edf1429c16a8cc724c509-SOL-USD-PERP",
-                      "market": "SOL-USD-PERP",
-                      "status": "OPEN",
-                      "side": "LONG",
-                      "size": "3",
-                      "average_entry_price": "183.06499451",
-                      "average_entry_price_usd": "183.065",
-                      "realized_pnl": "0",
-                      "unrealized_pnl": "-2.84428356",
-                      "unrealized_funding_pnl": "-0.00059564",
-                      "cost": "549.19498352",
-                      "cost_usd": "549.195",
-                      "cached_funding_index": "84.33843058",
-                      "last_updated_at": "1722426261489",
-                      "last_fill_id": "1722426248360201703986560001",
-                      "seq_no": "1722426261489298037",
-                      "liquidation_price": ""
-                    },
-                    "id": "0x59c31d5be66edd29d80aace25348e68da856c6d6c0edf1429c16a8cc724c509-SOL-USD-PERP",
-                    "symbol": "SOL/USD:USDC",
-                    "entryPrice": 183.06499451,
-                    "markPrice": null,
-                    "notional": 549.195,
-                    "positionMargin": null,
-                    "collateral": null,
-                    "unrealizedPnl": -2.84428356,
-                    "side": "long",
-                    "contracts": 3,
-                    "contractSize": 1,
-                    "timestamp": null,
-                    "datetime": null,
-                    "lastUpdateTimestamp": 1722426261489,
-                    "hedged": null,
-                    "maintenanceMargin": null,
-                    "maintenanceMarginPercentage": null,
-                    "initialMargin": null,
-                    "initialMarginPercentage": null,
-                    "leverage": null,
-                    "liquidationPrice": null,
-                    "marginRatio": null,
-                    "marginMode": null,
-                    "percentage": null
-                  }
+                    {
+                        "info": {
+                            "id": "0x59c31d5be66edd29d80aace25348e68da856c6d6c0edf1429c16a8cc724c509-SOL-USD-PERP",
+                            "market": "SOL-USD-PERP",
+                            "status": "OPEN",
+                            "side": "LONG",
+                            "size": "3",
+                            "average_entry_price": "183.06499451",
+                            "average_entry_price_usd": "183.065",
+                            "realized_pnl": "0",
+                            "unrealized_pnl": "-2.84428356",
+                            "unrealized_funding_pnl": "-0.00059564",
+                            "cost": "549.19498352",
+                            "cost_usd": "549.195",
+                            "cached_funding_index": "84.33843058",
+                            "last_updated_at": "1722426261489",
+                            "last_fill_id": "1722426248360201703986560001",
+                            "seq_no": "1722426261489298037",
+                            "liquidation_price": ""
+                        },
+                        "id": "0x59c31d5be66edd29d80aace25348e68da856c6d6c0edf1429c16a8cc724c509-SOL-USD-PERP",
+                        "symbol": "SOL/USD:USDC",
+                        "entryPrice": 183.06499451,
+                        "markPrice": null,
+                        "notional": 549.195,
+                        "collateral": null,
+                        "unrealizedPnl": -2.84428356,
+                        "realizedPnl": 0,
+                        "side": "long",
+                        "contracts": 3,
+                        "contractSize": 1,
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastUpdateTimestamp": 1722426261489,
+                        "hedged": null,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "initialMargin": null,
+                        "initialMarginPercentage": null,
+                        "leverage": null,
+                        "liquidationPrice": null,
+                        "marginRatio": null,
+                        "marginMode": "cross",
+                        "percentage": null,
+                        "positionMargin": null
+                    }
                 ]
             },
             {
@@ -3242,78 +3924,193 @@
                 "method": "fetchPositions",
                 "input": [],
                 "httpResponse": {
-                  "results": [
-                    {
-                      "id": "0x285ad2068a31b75e852e3f94fda10489e3b9b9beb60e13d3b09ccfde670b7e2-SOL-USD-PERP",
-                      "market": "SOL-USD-PERP",
-                      "status": "OPEN",
-                      "side": "SHORT",
-                      "size": "-2",
-                      "average_entry_price": "195.5",
-                      "average_entry_price_usd": "195.5",
-                      "realized_pnl": "0",
-                      "unrealized_pnl": "1.104",
-                      "unrealized_funding_pnl": "0.0012",
-                      "cost": "-391.0",
-                      "cost_usd": "-391.0",
-                      "cached_funding_index": "84.33843058",
-                      "last_updated_at": "1755950500123",
-                      "last_fill_id": "1755950500100201703986560002",
-                      "seq_no": "1755950500123298038",
-                      "leverage": "5",
-                      "created_at": "1755950400000",
-                      "liquidation_price": "241.7"
-                    }
-                  ]
+                    "results": [
+                        {
+                            "id": "0x285ad2068a31b75e852e3f94fda10489e3b9b9beb60e13d3b09ccfde670b7e2-SOL-USD-PERP",
+                            "market": "SOL-USD-PERP",
+                            "status": "OPEN",
+                            "side": "SHORT",
+                            "size": "-2",
+                            "average_entry_price": "195.5",
+                            "average_entry_price_usd": "195.5",
+                            "realized_pnl": "0",
+                            "unrealized_pnl": "1.104",
+                            "unrealized_funding_pnl": "0.0012",
+                            "cost": "-391.0",
+                            "cost_usd": "-391.0",
+                            "cached_funding_index": "84.33843058",
+                            "last_updated_at": "1755950500123",
+                            "last_fill_id": "1755950500100201703986560002",
+                            "seq_no": "1755950500123298038",
+                            "leverage": "5",
+                            "created_at": "1755950400000",
+                            "liquidation_price": "241.7"
+                        }
+                    ]
                 },
                 "parsedResponse": [
-                  {
-                    "info": {
-                      "id": "0x285ad2068a31b75e852e3f94fda10489e3b9b9beb60e13d3b09ccfde670b7e2-SOL-USD-PERP",
-                      "market": "SOL-USD-PERP",
-                      "status": "OPEN",
-                      "side": "SHORT",
-                      "size": "-2",
-                      "average_entry_price": "195.5",
-                      "average_entry_price_usd": "195.5",
-                      "realized_pnl": "0",
-                      "unrealized_pnl": "1.104",
-                      "unrealized_funding_pnl": "0.0012",
-                      "cost": "-391.0",
-                      "cost_usd": "-391.0",
-                      "cached_funding_index": "84.33843058",
-                      "last_updated_at": "1755950500123",
-                      "last_fill_id": "1755950500100201703986560002",
-                      "seq_no": "1755950500123298038",
-                      "leverage": "5",
-                      "created_at": "1755950400000",
-                      "liquidation_price": "241.7"
-                    },
-                    "id": "0x285ad2068a31b75e852e3f94fda10489e3b9b9beb60e13d3b09ccfde670b7e2-SOL-USD-PERP",
-                    "symbol": "SOL/USD:USDC",
-                    "entryPrice": 195.5,
-                    "markPrice": null,
-                    "notional": 391,
-                    "positionMargin": null,
-                    "collateral": null,
-                    "unrealizedPnl": 1.104,
-                    "side": "short",
-                    "contracts": 2,
-                    "contractSize": 1,
-                    "timestamp": 1755950400000,
-                    "datetime": "2025-08-23T12:00:00.000Z",
-                    "lastUpdateTimestamp": 1755950500123,
-                    "hedged": null,
-                    "maintenanceMargin": null,
-                    "maintenanceMarginPercentage": null,
-                    "initialMargin": 78.2,
-                    "initialMarginPercentage": 0.2,
-                    "leverage": 5,
-                    "liquidationPrice": 241.7,
-                    "marginRatio": null,
-                    "marginMode": null,
-                    "percentage": 1.41
-                  }
+                    {
+                        "info": {
+                            "id": "0x285ad2068a31b75e852e3f94fda10489e3b9b9beb60e13d3b09ccfde670b7e2-SOL-USD-PERP",
+                            "market": "SOL-USD-PERP",
+                            "status": "OPEN",
+                            "side": "SHORT",
+                            "size": "-2",
+                            "average_entry_price": "195.5",
+                            "average_entry_price_usd": "195.5",
+                            "realized_pnl": "0",
+                            "unrealized_pnl": "1.104",
+                            "unrealized_funding_pnl": "0.0012",
+                            "cost": "-391.0",
+                            "cost_usd": "-391.0",
+                            "cached_funding_index": "84.33843058",
+                            "last_updated_at": "1755950500123",
+                            "last_fill_id": "1755950500100201703986560002",
+                            "seq_no": "1755950500123298038",
+                            "leverage": "5",
+                            "created_at": "1755950400000",
+                            "liquidation_price": "241.7"
+                        },
+                        "id": "0x285ad2068a31b75e852e3f94fda10489e3b9b9beb60e13d3b09ccfde670b7e2-SOL-USD-PERP",
+                        "symbol": "SOL/USD:USDC",
+                        "entryPrice": 195.5,
+                        "markPrice": null,
+                        "notional": 391,
+                        "collateral": null,
+                        "unrealizedPnl": 1.104,
+                        "realizedPnl": 0,
+                        "side": "short",
+                        "contracts": 2,
+                        "contractSize": 1,
+                        "timestamp": 1755950400000,
+                        "datetime": "2025-08-23T12:00:00.000Z",
+                        "lastUpdateTimestamp": 1755950500123,
+                        "hedged": null,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "initialMargin": 78.2,
+                        "initialMarginPercentage": 0.2,
+                        "leverage": 5,
+                        "liquidationPrice": 241.7,
+                        "marginRatio": null,
+                        "marginMode": "cross",
+                        "percentage": 1.41,
+                        "positionMargin": null
+                    }
+                ]
+            },
+            {
+                "description": "fetchPositions - closed and flat positions are skipped",
+                "method": "fetchPositions",
+                "input": [],
+                "httpResponse": {
+                    "results": [
+                        {
+                            "id": "0x59c31d5be66edd29d80aace25348e68da856c6d6c0edf1429c16a8cc724c509-BTC-USD-PERP",
+                            "market": "BTC-USD-PERP",
+                            "status": "CLOSED",
+                            "side": "LONG",
+                            "size": "0",
+                            "average_entry_price": "183.06499451",
+                            "average_entry_price_usd": "183.065",
+                            "realized_pnl": "-3.5",
+                            "unrealized_pnl": "0",
+                            "unrealized_funding_pnl": "-0.00059564",
+                            "cost": "0",
+                            "cost_usd": "0",
+                            "cached_funding_index": "84.33843058",
+                            "last_updated_at": "1722426261489",
+                            "last_fill_id": "1722426248360201703986560001",
+                            "seq_no": "1722426261489298037",
+                            "liquidation_price": ""
+                        },
+                        {
+                            "id": "0x59c31d5be66edd29d80aace25348e68da856c6d6c0edf1429c16a8cc724c509-SOL-USD-PERP",
+                            "market": "SOL-USD-PERP",
+                            "status": "OPEN",
+                            "side": "LONG",
+                            "size": "3",
+                            "average_entry_price": "183.06499451",
+                            "average_entry_price_usd": "183.065",
+                            "realized_pnl": "1.25",
+                            "unrealized_pnl": "-2.84428356",
+                            "unrealized_funding_pnl": "-0.00059564",
+                            "cost": "549.19498352",
+                            "cost_usd": "549.195",
+                            "cached_funding_index": "84.33843058",
+                            "last_updated_at": "1722426261489",
+                            "last_fill_id": "1722426248360201703986560001",
+                            "seq_no": "1722426261489298037",
+                            "liquidation_price": ""
+                        },
+                        {
+                            "id": "0x59c31d5be66edd29d80aace25348e68da856c6d6c0edf1429c16a8cc724c509-ETH-USD-PERP",
+                            "market": "ETH-USD-PERP",
+                            "status": "OPEN",
+                            "side": "LONG",
+                            "size": "0",
+                            "average_entry_price": "183.06499451",
+                            "average_entry_price_usd": "183.065",
+                            "realized_pnl": "1.25",
+                            "unrealized_pnl": "0",
+                            "unrealized_funding_pnl": "-0.00059564",
+                            "cost": "0",
+                            "cost_usd": "0",
+                            "cached_funding_index": "84.33843058",
+                            "last_updated_at": "1722426261489",
+                            "last_fill_id": "1722426248360201703986560001",
+                            "seq_no": "1722426261489298037",
+                            "liquidation_price": ""
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "0x59c31d5be66edd29d80aace25348e68da856c6d6c0edf1429c16a8cc724c509-SOL-USD-PERP",
+                            "market": "SOL-USD-PERP",
+                            "status": "OPEN",
+                            "side": "LONG",
+                            "size": "3",
+                            "average_entry_price": "183.06499451",
+                            "average_entry_price_usd": "183.065",
+                            "realized_pnl": "1.25",
+                            "unrealized_pnl": "-2.84428356",
+                            "unrealized_funding_pnl": "-0.00059564",
+                            "cost": "549.19498352",
+                            "cost_usd": "549.195",
+                            "cached_funding_index": "84.33843058",
+                            "last_updated_at": "1722426261489",
+                            "last_fill_id": "1722426248360201703986560001",
+                            "seq_no": "1722426261489298037",
+                            "liquidation_price": ""
+                        },
+                        "id": "0x59c31d5be66edd29d80aace25348e68da856c6d6c0edf1429c16a8cc724c509-SOL-USD-PERP",
+                        "symbol": "SOL/USD:USDC",
+                        "entryPrice": 183.06499451,
+                        "markPrice": null,
+                        "notional": 549.195,
+                        "collateral": null,
+                        "unrealizedPnl": -2.84428356,
+                        "realizedPnl": 1.25,
+                        "side": "long",
+                        "contracts": 3,
+                        "contractSize": 1,
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastUpdateTimestamp": 1722426261489,
+                        "hedged": null,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "initialMargin": null,
+                        "initialMarginPercentage": null,
+                        "leverage": null,
+                        "liquidationPrice": null,
+                        "marginRatio": null,
+                        "marginMode": "cross",
+                        "percentage": null,
+                        "positionMargin": null
+                    }
                 ]
             }
         ],
@@ -3322,75 +4119,76 @@
                 "description": "fetchPosition",
                 "method": "fetchPosition",
                 "input": [
-                  "SOL/USD:USDC"
+                    "SOL/USD:USDC"
                 ],
                 "httpResponse": {
-                  "results": [
-                    {
-                      "id": "0x59c31d5be66edd29d80aace25348e68da856c6d6c0edf1429c16a8cc724c509-SOL-USD-PERP",
-                      "market": "SOL-USD-PERP",
-                      "status": "OPEN",
-                      "side": "LONG",
-                      "size": "3",
-                      "average_entry_price": "183.06499451",
-                      "average_entry_price_usd": "183.065",
-                      "realized_pnl": "0",
-                      "unrealized_pnl": "-2.03176491",
-                      "unrealized_funding_pnl": "-0.00301126",
-                      "cost": "549.19498352",
-                      "cost_usd": "549.195",
-                      "cached_funding_index": "84.33843058",
-                      "last_updated_at": "1722426301528",
-                      "last_fill_id": "1722426248360201703986560001",
-                      "seq_no": "1722426301528359510",
-                      "liquidation_price": ""
-                    }
-                  ]
+                    "results": [
+                        {
+                            "id": "0x59c31d5be66edd29d80aace25348e68da856c6d6c0edf1429c16a8cc724c509-SOL-USD-PERP",
+                            "market": "SOL-USD-PERP",
+                            "status": "OPEN",
+                            "side": "LONG",
+                            "size": "3",
+                            "average_entry_price": "183.06499451",
+                            "average_entry_price_usd": "183.065",
+                            "realized_pnl": "0",
+                            "unrealized_pnl": "-2.03176491",
+                            "unrealized_funding_pnl": "-0.00301126",
+                            "cost": "549.19498352",
+                            "cost_usd": "549.195",
+                            "cached_funding_index": "84.33843058",
+                            "last_updated_at": "1722426301528",
+                            "last_fill_id": "1722426248360201703986560001",
+                            "seq_no": "1722426301528359510",
+                            "liquidation_price": ""
+                        }
+                    ]
                 },
                 "parsedResponse": {
-                  "info": {
+                    "info": {
+                        "id": "0x59c31d5be66edd29d80aace25348e68da856c6d6c0edf1429c16a8cc724c509-SOL-USD-PERP",
+                        "market": "SOL-USD-PERP",
+                        "status": "OPEN",
+                        "side": "LONG",
+                        "size": "3",
+                        "average_entry_price": "183.06499451",
+                        "average_entry_price_usd": "183.065",
+                        "realized_pnl": "0",
+                        "unrealized_pnl": "-2.03176491",
+                        "unrealized_funding_pnl": "-0.00301126",
+                        "cost": "549.19498352",
+                        "cost_usd": "549.195",
+                        "cached_funding_index": "84.33843058",
+                        "last_updated_at": "1722426301528",
+                        "last_fill_id": "1722426248360201703986560001",
+                        "seq_no": "1722426301528359510",
+                        "liquidation_price": ""
+                    },
                     "id": "0x59c31d5be66edd29d80aace25348e68da856c6d6c0edf1429c16a8cc724c509-SOL-USD-PERP",
-                    "market": "SOL-USD-PERP",
-                    "status": "OPEN",
-                    "side": "LONG",
-                    "size": "3",
-                    "average_entry_price": "183.06499451",
-                    "average_entry_price_usd": "183.065",
-                    "realized_pnl": "0",
-                    "unrealized_pnl": "-2.03176491",
-                    "unrealized_funding_pnl": "-0.00301126",
-                    "cost": "549.19498352",
-                    "cost_usd": "549.195",
-                    "cached_funding_index": "84.33843058",
-                    "last_updated_at": "1722426301528",
-                    "last_fill_id": "1722426248360201703986560001",
-                    "seq_no": "1722426301528359510",
-                    "liquidation_price": ""
-                  },
-                  "id": "0x59c31d5be66edd29d80aace25348e68da856c6d6c0edf1429c16a8cc724c509-SOL-USD-PERP",
-                  "symbol": "SOL/USD:USDC",
-                  "entryPrice": 183.06499451,
-                  "markPrice": null,
-                  "notional": 549.195,
-                  "positionMargin": null,
-                  "collateral": null,
-                  "unrealizedPnl": -2.03176491,
-                  "side": "long",
-                  "contracts": 3,
-                  "contractSize": 1,
-                  "timestamp": null,
-                  "datetime": null,
-                  "lastUpdateTimestamp": 1722426301528,
-                  "hedged": null,
-                  "maintenanceMargin": null,
-                  "maintenanceMarginPercentage": null,
-                  "initialMargin": null,
-                  "initialMarginPercentage": null,
-                  "leverage": null,
-                  "liquidationPrice": null,
-                  "marginRatio": null,
-                  "marginMode": null,
-                  "percentage": null
+                    "symbol": "SOL/USD:USDC",
+                    "entryPrice": 183.06499451,
+                    "markPrice": null,
+                    "notional": 549.195,
+                    "collateral": null,
+                    "unrealizedPnl": -2.03176491,
+                    "realizedPnl": 0,
+                    "side": "long",
+                    "contracts": 3,
+                    "contractSize": 1,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastUpdateTimestamp": 1722426301528,
+                    "hedged": null,
+                    "maintenanceMargin": null,
+                    "maintenanceMarginPercentage": null,
+                    "initialMargin": null,
+                    "initialMarginPercentage": null,
+                    "leverage": null,
+                    "liquidationPrice": null,
+                    "marginRatio": null,
+                    "marginMode": "cross",
+                    "percentage": null,
+                    "positionMargin": null
                 }
             }
         ],
