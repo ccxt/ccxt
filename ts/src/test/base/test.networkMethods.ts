@@ -83,7 +83,7 @@ function helperTestUnifiedNetworkCode () {
         const unified = exchange.unifiedNetworkCode (keys[i]);
         assert (unified === aliases[keys[i]]);
         // unified codes are fixed points
-        assert (exchange.unifiedNetworkCode (unified) === unified);
+        assert (exchange.unifiedNetworkCode (unified) === aliases[keys[i]]);
     }
     assert (exchange.unifiedNetworkCode ('BTC') === 'BTC');
 }
