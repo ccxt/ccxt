@@ -2649,6 +2649,8 @@ export default class mexc extends Exchange {
                 triggerType = 1;
             } else if (triggerDirection === 'descending') {
                 triggerType = 2;
+            } else if (triggerDirection !== undefined) {
+                throw new BadRequest (this.id + ' createOrder() triggerDirection must be either "ascending" or "descending"');
             }
             request['triggerType'] = triggerType;
             request['executeCycle'] = this.safeInteger (paramsOmitted, 'executeCycle', 1);
