@@ -1175,7 +1175,9 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         let __ws_proxy = [&self.wsProxy, &self.ws_proxy, &self.wssProxy]
             .iter()
             .find_map(|v| match v { Value::Str(s) if !s.is_empty() => Some(s.to_string()), _ => None });
-        let client = match crate::pro::ws_client::ensure_client(&url, __ws_proxy).await {
+        // binary frames are decompressed unless the exchange opts out (mexc, paradex)
+        let __decompress_binary = !matches!(crate::get_value(&self.options, &Value::Str("decompressBinary".into())), Value::Bool(false));
+        let client = match crate::pro::ws_client::ensure_client(&url, __ws_proxy, __decompress_binary).await {
             Ok(c) => c,
             Err(e) => panic!("{}", e),
         };
