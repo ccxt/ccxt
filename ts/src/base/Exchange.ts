@@ -300,6 +300,7 @@ export class BaseExchange {
         'ARBONE': 'ARBITRUM',
         'ARBNOVA': 'ARBITRUM_NOVA',
     };
+
     substituteCommonCurrencyCodes: boolean = true;  // reserved
     quoteJsonNumbers: boolean = true;  // quote json numbers as precise strings when a response carries precision-risky (16+ digit or exponent) numbers
     // eslint-disable-next-line no-unused-vars
