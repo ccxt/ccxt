@@ -3411,7 +3411,8 @@ class Transpiler {
         const exchangeCamelCaseProps = (str: string) => {
             // replace all snake_case exchange props to camelCase
             return str.
-                replace (/precision_mode/g, 'precisionMode');
+                replace (/precision_mode/g, 'precisionMode').
+                replace (/network_aliases/g, 'networkAliases');
         };
 
         const pyFixes = (str: string, sync = false) => {
