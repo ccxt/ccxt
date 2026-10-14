@@ -4252,7 +4252,7 @@ public class Paradex extends ParadexApi
 
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String version = this.version;
@@ -4331,7 +4331,7 @@ public class Paradex extends ParadexApi
             //         url += '?' + this.urlencode (query);
             //     }
             // }
-            String bodyResolved = (((!java.util.Objects.equals(privateBody, null)))) ? privateBody : body;
+            String bodyResolved = privateBody;
             {
                 HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
                 h2kMap4.put("url", url);
@@ -4345,8 +4345,8 @@ public class Paradex extends ParadexApi
             HashMap<String, Object> h2kMap5 = new HashMap<String, Object>();
             h2kMap5.put("url", url);
             h2kMap5.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap5.put("body", body);
-            h2kMap5.put("headers", headers);
+            h2kMap5.put("body", null);
+            h2kMap5.put("headers", null);
             return h2kMap5;
         }
     }

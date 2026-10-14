@@ -5469,7 +5469,7 @@ public class Phemex extends PhemexApi
         return tiers;
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Object query = this.omit(parameters, this.extractParams(path));
@@ -5523,12 +5523,12 @@ public class Phemex extends PhemexApi
         }
         url = Helpers.add(this.implodeHostname(baseApiUrl), url);
         Boolean isPrivatePost = (java.util.Objects.equals(apiName, "private")) && (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"));
-        String bodyResolved = body;
+        String bodyResolved = null;
         if (Boolean.TRUE.equals(isPrivatePost))
         {
             bodyResolved = requestBody;
         }
-        Object requestHeaders = (((java.util.Objects.equals(apiName, "private")))) ? privateHeaders : headers;
+        Map<String, Object> requestHeaders = (((java.util.Objects.equals(apiName, "private")))) ? privateHeaders : null;
         {
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
             h2kMap1.put("url", url);

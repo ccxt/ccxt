@@ -13740,7 +13740,7 @@ public class Kucoin extends KucoinApi
 
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         //
@@ -13778,12 +13778,8 @@ public class Kucoin extends KucoinApi
         }
         Object query = this.omit(paramsOmitted, this.extractParams(path));
         String endpart = "";
-        Object headersBase = new HashMap<String, Object>() {{}};
-        if (!java.util.Objects.equals(headers, null))
-        {
-            headersBase = headers;
-        }
-        String bodyJson = body;
+        Map<String, Object> headersBase = new HashMap<String, Object>() {{}};
+        String bodyJson = null;
         String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
@@ -13803,7 +13799,7 @@ public class Kucoin extends KucoinApi
                 }
                 bodyJson = this.json(query);
                 endpart = bodyJson;
-                ((Map<String, Object>)headersBase).put("Content-Type", "application/json");
+                headersBase.put("Content-Type", "application/json");
             }
         }
         Object headersResult = headersBase;

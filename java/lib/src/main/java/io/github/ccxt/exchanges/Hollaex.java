@@ -2356,7 +2356,7 @@ public class Hollaex extends HollaexApi
 
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object query = this.omit(parameters, this.extractParams(path));
         String requestPath = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
@@ -2398,8 +2398,8 @@ public class Hollaex extends HollaexApi
             String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             requestHeaders.put("api-signature", signature);
         }
-        String bodyResult = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
-        Object headersResult = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
+        String bodyResult = requestBody;
+        Map<String, Object> headersResult = requestHeaders;
         {
             HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
             h2kMap2.put("url", url);

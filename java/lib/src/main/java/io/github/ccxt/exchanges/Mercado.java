@@ -1234,7 +1234,7 @@ public class Mercado extends MercadoApi
         return this.milliseconds();
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String apiUrl = this.safeString(this.urls.get("api"), apiName);
@@ -1274,12 +1274,12 @@ public class Mercado extends MercadoApi
         String requestBody = privateBody;
         if (Boolean.TRUE.equals(isPublic))
         {
-            requestBody = body;
+            requestBody = null;
         }
-        Object requestHeaders = privateHeaders;
+        Map<String, Object> requestHeaders = privateHeaders;
         if (Boolean.TRUE.equals(isPublic))
         {
-            requestHeaders = headers;
+            requestHeaders = null;
         }
         {
             HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();

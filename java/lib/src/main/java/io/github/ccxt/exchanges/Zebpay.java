@@ -2334,7 +2334,7 @@ public class Zebpay extends ZebpayApi
         }};
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object bodySigned = null;
         Map<String, Object> headersSigned = null;
@@ -2406,8 +2406,8 @@ public class Zebpay extends ZebpayApi
             );
             headersSigned.put("Content-Type", "application/json");
         }
-        Object headersResolved = (((java.util.Objects.equals(headersSigned, null)))) ? headers : headersSigned;
-        Object bodyResolved = (((java.util.Objects.equals(bodySigned, null)))) ? body : bodySigned;
+        Map<String, Object> headersResolved = headersSigned;
+        Object bodyResolved = bodySigned;
         {
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
             h2kMap1.put("url", url);

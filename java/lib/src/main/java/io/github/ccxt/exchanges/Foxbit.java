@@ -2393,7 +2393,7 @@ public class Foxbit extends FoxbitApi
         }
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object version = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Object urlPath = (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1));
@@ -2436,7 +2436,7 @@ public class Foxbit extends FoxbitApi
                 }
             }
         }
-        String requestBody = body;
+        String requestBody = null;
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PUT"))
         {
             requestBody = this.json(paramsOmitted);

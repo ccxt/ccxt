@@ -4188,10 +4188,10 @@ public class Extended extends ExtendedApi
         return null;
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object requestHeaders = headers;
-        String requestBody = body;
+        Map<String, Object> requestHeaders = null;
+        String requestBody = null;
         String version = this.safeString(api, 0);
         String accessibility = this.safeString(api, 1);
         String endpoint = ("/" + this.implodeParams(path, parameters));
@@ -4215,7 +4215,7 @@ public class Extended extends ExtendedApi
             if (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PATCH"))) && !Boolean.TRUE.equals(queryPost))
             {
                 requestBody = this.json(query);
-                ((Map<String, Object>)requestHeaders).put("Content-Type", "application/json");
+                requestHeaders.put("Content-Type", "application/json");
             }
         }
         String url = (((this.implodeHostname(baseApiUrl) + "/api/") + version) + endpoint);

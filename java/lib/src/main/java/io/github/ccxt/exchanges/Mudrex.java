@@ -257,7 +257,7 @@ public class Mudrex extends MudrexApi
         }});
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
@@ -269,10 +269,6 @@ public class Mudrex extends MudrexApi
         String url = ((base + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         Map<String, Object> requestHeaders = new HashMap<String, Object>() {{}};
-        if (!java.util.Objects.equals(headers, null))
-        {
-            requestHeaders = this.extend(new HashMap<String, Object>() {{}}, headers);
-        }
         String brokerId = this.safeString(this.options, "broker");
         if (!java.util.Objects.equals(brokerId, null))
         {

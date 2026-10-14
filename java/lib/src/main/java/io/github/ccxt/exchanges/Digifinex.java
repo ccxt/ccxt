@@ -5584,7 +5584,7 @@ public class Digifinex extends DigifinexApi
 
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Boolean signed = java.util.Objects.equals(this.safeString(api, 0), "private");
         String endpoint = this.safeString(api, 1);
@@ -5642,7 +5642,7 @@ public class Digifinex extends DigifinexApi
                 }
             }
             Boolean hasPostBody = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")) && (!java.util.Objects.equals(urlencoded, null)) && (!java.util.Objects.equals(urlencoded, ""));
-            Object requestBody = body;
+            Object requestBody = null;
             if (Boolean.TRUE.equals(hasPostBody))
             {
                 requestBody = urlencoded;
@@ -5670,8 +5670,8 @@ public class Digifinex extends DigifinexApi
             HashMap<String, Object> h2kMap5 = new HashMap<String, Object>();
             h2kMap5.put("url", url);
             h2kMap5.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap5.put("body", body);
-            h2kMap5.put("headers", headers);
+            h2kMap5.put("body", null);
+            h2kMap5.put("headers", null);
             return h2kMap5;
         }
     }

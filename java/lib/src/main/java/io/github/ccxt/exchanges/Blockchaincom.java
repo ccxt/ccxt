@@ -1500,7 +1500,7 @@ public class Blockchaincom extends BlockchaincomApi
 
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         String requestPath = ("/" + this.implodeParams(path, parameters));
         Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
@@ -1515,13 +1515,13 @@ public class Blockchaincom extends BlockchaincomApi
         Map<String, Object> privateHeaders = new HashMap<String, Object>() {{
             put( "X-API-Token", Blockchaincom.this.secret );
         }};
-        Object requestHeaders = headers;
+        Map<String, Object> requestHeaders = null;
         if (Boolean.TRUE.equals(isPrivate))
         {
             requestHeaders = privateHeaders;
         }
         Boolean isPrivatePost = Boolean.TRUE.equals(isPrivate) && (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"));
-        String requestBody = body;
+        String requestBody = null;
         if (Boolean.TRUE.equals(isPrivatePost))
         {
             requestBody = this.json(query);

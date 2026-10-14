@@ -3008,7 +3008,7 @@ public class Tokocrypto extends TokocryptoApi
 
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         if (!(Helpers.inOp(((Map<String, Object>)this.urls.get("api")).get("rest"), apiName)))
@@ -3036,7 +3036,7 @@ public class Tokocrypto extends TokocryptoApi
                     put( "X-MBX-APIKEY", Tokocrypto.this.apiKey );
                     put( "Content-Type", "application/x-www-form-urlencoded" );
                 }};
-                String bodyStream = (((!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))) ? this.urlencode(parameters) : body;
+                String bodyStream = (((!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))) ? this.urlencode(parameters) : null;
                 {
                     HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
                     h2kMap2.put("url", url);
@@ -3085,7 +3085,7 @@ public class Tokocrypto extends TokocryptoApi
             String bodySigned = query;
             if (Boolean.TRUE.equals(queryInUrl))
             {
-                bodySigned = body;
+                bodySigned = null;
             }
             if (Boolean.TRUE.equals(queryInUrl))
             {
@@ -3113,8 +3113,8 @@ public class Tokocrypto extends TokocryptoApi
             HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
             h2kMap4.put("url", url);
             h2kMap4.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap4.put("body", body);
-            h2kMap4.put("headers", headers);
+            h2kMap4.put("body", null);
+            h2kMap4.put("headers", null);
             return h2kMap4;
         }
     }

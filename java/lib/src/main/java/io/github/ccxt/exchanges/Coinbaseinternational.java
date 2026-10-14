@@ -2868,7 +2868,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         String version = this.safeString(api, 0);
         Boolean signed = java.util.Objects.equals(this.safeString(api, 1), "private");
@@ -2894,7 +2894,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         {
             signedBody = this.json(query);
         }
-        String requestBody = body;
+        String requestBody = null;
         if (Boolean.TRUE.equals(hasSignedBody))
         {
             requestBody = signedBody;
@@ -2914,7 +2914,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 "CB-ACCESS-KEY", this.apiKey
             );
         }
-        Object requestHeaders = headers;
+        Map<String, Object> requestHeaders = null;
         if (Boolean.TRUE.equals(signed))
         {
             requestHeaders = signedHeaders;

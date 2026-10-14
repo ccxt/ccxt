@@ -5258,7 +5258,7 @@ public class Weex extends WeexApi
         Helpers.addElementToObject(this.options, "sandboxMode", enable);
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String endpoint = (String) this.implodeParams(path, parameters);
@@ -5273,7 +5273,7 @@ public class Weex extends WeexApi
         }
         Boolean isPrivate = (java.util.Objects.equals(apiName, "private")) || (java.util.Objects.equals(apiName, "contractPrivate"));
         Boolean hasJsonBody = Boolean.TRUE.equals(isPrivate) && ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")) || Boolean.TRUE.equals(isBatch));
-        String requestBody = body;
+        String requestBody = null;
         if (Boolean.TRUE.equals(hasJsonBody))
         {
             requestBody = this.json(query);

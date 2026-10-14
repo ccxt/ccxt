@@ -5044,7 +5044,7 @@ public Object describe()
         Helpers.addElementToObject(this.options, "enableDemoTrading", enable);
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         return new HashMap<String, Object>() {{
             put( "url", null );
@@ -8674,7 +8674,7 @@ public Object describe()
         return results;
     }
 
-    public CompletableFuture<Object> fetch2(Object path, Object api, Object method, Object parameters, Object headers, Object body, Map<String, Object> config)
+    public CompletableFuture<Object> fetch2(Object path, Object api, Object method, Object parameters, Map<String, Object> config)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -8711,7 +8711,7 @@ public Object describe()
                 try
                 {
                     this.setLastRestRequestTimestamp();
-                    Object request = this.sign(path, api, java.util.Objects.requireNonNullElse(method, "GET"), paramsMaxRetriesOnFailureDelay, headers, Helpers.toStringArg(body));
+                    Object request = this.sign(path, api, java.util.Objects.requireNonNullElse(method, "GET"), paramsMaxRetriesOnFailureDelay);
                     if (!java.util.Objects.equals(fetchData, null))
                     {
                         fetchData.put("request", request);
@@ -8759,12 +8759,12 @@ public Object describe()
 
     }
 
-    public CompletableFuture<Object> request(Object path, Object api, Object method, Object parameters, Object headers, Object body, Map<String, Object> config)
+    public CompletableFuture<Object> request(Object path, Object api, Object method, Object parameters, Map<String, Object> config)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.fetch2(path, api, java.util.Objects.requireNonNullElse(method, "GET"), parameters, headers, body, config)).join();
+            return (this.fetch2(path, api, java.util.Objects.requireNonNullElse(method, "GET"), parameters, config)).join();
         });
 
     }

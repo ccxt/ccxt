@@ -3771,7 +3771,7 @@ public class Modetrade extends ModetradeApi
         return this.milliseconds();
     }
 
-    public Object sign(Object path, Object section, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object section, Object method, Object parameters)
     {
         Object version = (section == null || 0 >= ((List<?>)section).size() ? null : ((List<?>)section).get(0));
         Object access = (section == null || 1 >= ((List<?>)section).size() ? null : ((List<?>)section).get(1));
@@ -3846,7 +3846,7 @@ public class Modetrade extends ModetradeApi
                     auth = (auth + ("?" + this.rawencode(paramsSigned)));
                 }
                 signedHeaders.put("content-type", "application/x-www-form-urlencoded");
-                signedBody = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")))) ? "" : body;
+                signedBody = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")))) ? "" : null;
             }
             Object secret = this.secret;
             if (((String)secret).indexOf("ed25519:") >= 0)
@@ -3869,8 +3869,8 @@ public class Modetrade extends ModetradeApi
             HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
             h2kMap4.put("url", url);
             h2kMap4.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap4.put("body", body);
-            h2kMap4.put("headers", headers);
+            h2kMap4.put("body", null);
+            h2kMap4.put("headers", null);
             return h2kMap4;
         }
     }

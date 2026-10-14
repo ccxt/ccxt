@@ -4407,7 +4407,7 @@ public class Krakenfutures extends KrakenfuturesApi
         throw new ExchangeError(feedback) ;
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Map<String, Object> apiVersions = (Map<String, Object>) this.safeDict(this.options.get("versions"), apiName, new HashMap<String, Object>() {{}});
@@ -4442,7 +4442,7 @@ public class Krakenfutures extends KrakenfuturesApi
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = (apiUrl + query);
-        String requestBody = (((java.util.Objects.equals(path, "batchorder")))) ? postData : body;
+        String requestBody = (((java.util.Objects.equals(path, "batchorder")))) ? postData : null;
         Map<String, Object> privateHeaders = null;
         if (java.util.Objects.equals(apiName, "private") || java.util.Objects.equals(access, "private"))
         {
@@ -4463,7 +4463,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 put( "Authent", signature );
             }};
         }
-        Object requestHeaders = (((!java.util.Objects.equals(privateHeaders, null)))) ? privateHeaders : headers;
+        Map<String, Object> requestHeaders = privateHeaders;
         return new HashMap<String, Object>() {{
             put( "url", url );
             put( "method", java.util.Objects.requireNonNullElse(method, "GET") );

@@ -4597,7 +4597,7 @@ public class Delta extends DeltaApi
         }};
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String requestPath = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
@@ -4642,8 +4642,8 @@ public class Delta extends DeltaApi
             String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             requestHeaders.put("signature", signature);
         }
-        String bodyResult = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
-        Object headersResult = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
+        String bodyResult = requestBody;
+        Map<String, Object> headersResult = requestHeaders;
         {
             HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
             h2kMap2.put("url", url);

@@ -2832,7 +2832,7 @@ public class Backpack extends BackpackApi
         return (this.milliseconds() - timeDifference);
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String endpoint = ("/" + path);
@@ -2891,8 +2891,8 @@ public class Backpack extends BackpackApi
             }
         }
         url = (url + endpoint);
-        Object headersResolved = (((java.util.Objects.equals(apiName, "private")))) ? headersSigned : headers;
-        String bodyResolved = body;
+        Map<String, Object> headersResolved = (((java.util.Objects.equals(apiName, "private")))) ? headersSigned : null;
+        String bodyResolved = null;
         if ((java.util.Objects.equals(apiName, "private")) && (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))
         {
             bodyResolved = bodySigned;

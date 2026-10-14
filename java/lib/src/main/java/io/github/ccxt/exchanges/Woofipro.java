@@ -4287,7 +4287,7 @@ public class Woofipro extends WoofiproApi
         return this.milliseconds();
     }
 
-    public Object sign(Object path, Object section, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object section, Object method, Object parameters)
     {
         Object version = (section == null || 0 >= ((List<?>)section).size() ? null : ((List<?>)section).get(0));
         Object access = (section == null || 1 >= ((List<?>)section).size() ? null : ((List<?>)section).get(1));
@@ -4372,8 +4372,8 @@ public class Woofipro extends WoofiproApi
             Object signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519());
             requestHeaders.put("orderly-signature", this.urlencodeBase64(this.base64ToBinary(signature)));
         }
-        String bodyResult = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
-        Object headersResult = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
+        String bodyResult = requestBody;
+        Map<String, Object> headersResult = requestHeaders;
         {
             HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
             h2kMap4.put("url", url);
