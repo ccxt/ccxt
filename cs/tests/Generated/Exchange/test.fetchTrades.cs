@@ -86,10 +86,10 @@ public partial class testMainClass : BaseTest
                 bool priceDecreasing = Precise.stringLt(price, lastPrice);
                 if (priceIncreasing)
                 {
-                    assert(isEqual(side, "buy"), ("Price is increasing, but side is not `buy`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip" + (testSharedMethods.logTemplate(exchange, method, pair))));
+                    assert((side is "buy"), ("Price is increasing, but side is not `buy`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip" + (testSharedMethods.logTemplate(exchange, method, pair))));
                 } else if (priceDecreasing)
                 {
-                    assert(isEqual(side, "sell"), ("Price is decreasing, but side is not `sell`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip" + (testSharedMethods.logTemplate(exchange, method, pair))));
+                    assert((side is "sell"), ("Price is decreasing, but side is not `sell`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip" + (testSharedMethods.logTemplate(exchange, method, pair))));
                 }
             }
             lastPrice = price;

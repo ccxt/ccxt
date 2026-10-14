@@ -16,8 +16,8 @@ func TestOHLCV(exchange ccxt.ICoreExchange, skippedProperties any, method any, e
 	if !(InOp(skippedProperties, "roundTimestamp")) {
 		AssertRoundMinuteTimestamp(exchange, skippedProperties, method, entry, 0)
 	}
-	var high any = exchange.SafeString(entry, 2)
-	var low any = exchange.SafeString(entry, 3)
+	var high any = ccxt.DerefScalar(exchange.SafeString(entry, 2))
+	var low any = ccxt.DerefScalar(exchange.SafeString(entry, 3))
 	if InOp(skippedProperties, "compareOHLCV") {
 		return
 	}

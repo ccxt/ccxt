@@ -54,10 +54,10 @@ public partial class btse : Exchange
     }
 
     /// <summary>Calls the publicGetSpotApiV33Time endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> publicGetSpotApiV33Time (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetSpotApiV33Time (object parameters = null)
     {
-        return await this.callAsync<object> ("publicGetSpotApiV33Time",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetSpotApiV33Time",parameters);
     }
 
     /// <summary>Calls the publicGetFuturesApiV23MarketSummary endpoint.</summary>

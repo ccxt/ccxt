@@ -519,7 +519,7 @@ class Transpiler {
             [ /Math\.round\s*\(([^\)]+)\)/g, 'int(round($1))' ],
             [ /Math\.ceil\s*\(([^\)]+)\)/g, 'int(math.ceil($1))' ],
             [ /Math\.log/g, 'math.log' ],
-            [ /([a-zA-Z0-9_\.]*\([^\)]+\)|[^\s]+)\s+\?\s*([^\:]+)\s+\:\s*([^\n]+)/g, '$2 if $1 else $3'],
+            [ /([a-zA-Z0-9_\.]*\((?:[^()]|\([^()]*\))+\)|[^\s]+)\s+\?\s*([^\:]+)\s+\:\s*([^\n]+)/g, '$2 if $1 else $3'],
             [ /([^\s]+)\.slice \(([^\,\)]+)\,\s?([^\)]+)\)/g, '$1[$2:$3]' ],
             [ /([^\s]+)\.slice \(([^\)\:]+)\)/g, '$1[$2:]' ],
             [ /([^\s(:]+)\.length/g, 'len($1)' ],
@@ -1138,7 +1138,7 @@ class Transpiler {
             'DepositWithdrawFees': /-> DepositWithdrawFees:/,
             'Transaction': /-> (?:[Ll]ist\[)?Transaction/,
             'FundingRateHistory': /-> (?:[Ll]ist\[)?FundingRateHistory/,
-            'MarketInterface': /-> (?:[Ll]ist\[)?MarketInterface/,
+            'MarketInterface': /(-> (?:[Ll]ist\[)?MarketInterface|: MarketInterface\b)/,
             'TransferEntry': /-> (?:[Ll]ist\[)?TransferEntry\b/,
             'PredictionEvent': /-> (?:[Ll]ist\[)?PredictionEvent/,
             'PredictionOutcome': /: (?:[Ll]ist\[)?PredictionOutcome/,
@@ -2377,7 +2377,9 @@ class Transpiler {
                 'Dict': 'dict',
                 'NullableDict': 'dict',
                 'List': 'list',
-                'NullableList': 'list'
+                'NullableList': 'list',
+                // the ws order book class alias prints untyped, as `any` did
+                'WsOrderBook': 'object'
             }
             const unwrapLists = (type: string) => {
                 // a union like `Dict | Dict[] | undefined` must be mapped member-by-member;
@@ -2418,6 +2420,8 @@ class Transpiler {
                     'NullableDict': '?array',
                     'List': 'array',
                     'NullableList': '?array',
+                    // the ws order book class alias prints untyped, as `any` did
+                    'WsOrderBook': 'mixed',
                 }
                 const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|ADL|Order|OrderBooks?|Tickers?|Trade|Transaction|Balances?|MarketInterface|CurrencyInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|AllGreeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|MarginLoan|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|DepositWithdrawFee|DepositWithdrawFees|DepositWithdrawFeeNetwork|CrossBorrowRates?|IsolatedBorrowRates?|FundingRates|FundingRate|FundingRateHistory|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|DepositAddresses|LongShortRatio|PositionModeInfo|Position|BorrowInterest|PredictionTicker|PredictionTickers|PredictionOrder|PredictionTrade|PredictionPosition|PredictionOrderBook|PredictionEvent|PredictionMarket|PredictionOutcome|PredictionTradingFee|PredictionOpenInterest|PredictionSettlement|fetchEventsParams|OpenInterests?|Options?|OptionChain|Liquidations?|Status)( \| undefined)?$|\w+\[\]/
 
@@ -3314,7 +3318,8 @@ class Transpiler {
         });
 
         // create worker
-        const maxThreads = Math.min (Number(process.env.CCXT_TRANSPILE_PROCESSES) || os.availableParallelism ())
+        const requestedThreads = Number (process.env.CCXT_TRANSPILE_PROCESSES);
+        const maxThreads = requestedThreads > 0 ? requestedThreads : Math.max (1, Math.min (4, os.availableParallelism ()));
         const piscina = new Piscina({
             filename: resolve(__dirname, './ast-transpiler-worker.ts'),
             maxThreads,
@@ -3323,14 +3328,19 @@ class Transpiler {
         const chunkSize = 10;
         const promises: Promise<any>[] = [];
         const now = Date.now();
-        for (let i = 0; i < workerConfigArray.length; i += chunkSize) {
-            const chunk = workerConfigArray.slice(i, i + chunkSize);
-            promises.push(piscina.run({transpilerConfig:parserConfig, filesConfig:chunk}));
+        let flatResult: any[] = [];
+        try {
+            for (let i = 0; i < workerConfigArray.length; i += chunkSize) {
+                const chunk = workerConfigArray.slice(i, i + chunkSize);
+                promises.push(piscina.run({transpilerConfig:parserConfig, filesConfig:chunk}));
+            }
+            const workerResult = await Promise.all(promises);
+            const elapsed = Date.now() - now;
+            log.green ('[ast-transpiler] Transpiled', workerResult.length, 'tests in', elapsed, 'ms');
+            flatResult = workerResult.flat();
+        } finally {
+            await piscina.destroy();
         }
-        const workerResult = await Promise.all(promises);
-        const elapsed = Date.now() - now;
-        log.green ('[ast-transpiler] Transpiled', workerResult.length, 'tests in', elapsed, 'ms');
-        const flatResult = workerResult.flat();
         return flatResult;
     }
     // ============================================================================
@@ -4046,7 +4056,9 @@ class Transpiler {
 }
 
 async function parallelizeTranspiling (exchanges: string[], processes: number | string | undefined = undefined, force = false, python = false, php = false, allChildren = false) {
-    const processesNum = Math.min(Number(processes) || os.availableParallelism (), exchanges.length)
+    const requested = Number (processes || process.env.CCXT_TRANSPILE_PROCESSES);
+    const defaultProcesses = Math.max (1, Math.min (4, os.availableParallelism ()));
+    const processesNum = Math.min (requested > 0 ? requested : defaultProcesses, exchanges.length);
     log.bright.green ('starting ' + processesNum + ' new processes...')
     // by default the first fork runs without --child so it also transpiles the serial
     // tail (base methods, tests, ...); pass allChildren=true when the caller runs that

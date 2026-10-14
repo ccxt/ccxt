@@ -72,7 +72,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'amount': amountToPrecision,
         }
         toAccountString = self.parse_transfer_type(toAccount)
-        response = None
+        response: dict
         if toAccountString == 'TRADE' or toAccountString == 'MAIN':
             request['recAccountType'] = toAccountString
             response = await self.futuresPrivatePostTransferOut(self.extend(request, params))

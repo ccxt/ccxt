@@ -20,7 +20,7 @@ public partial class testMainClass : BaseTest
         object withoutSymbol = fetchTickersHelperTest(exchange, skippedProperties, null);
         object withSymbol = fetchTickersHelperTest(exchange, skippedProperties, new List<object>() {symbol});
         List<object> results = await promiseAll(new List<object>() {withoutSymbol, withSymbol});
-        fetchTickersAmountsTest(exchange, skippedProperties, getValue(results, 0));
+        fetchTickersAmountsTest(exchange, skippedProperties, (results != null && 0 < results.Count ? results[0] : null));
         return results;
     }
     async static public Task<object> fetchTickersHelperTest(BaseExchange exchange, object skippedProperties, object argSymbols, object argParams = null)

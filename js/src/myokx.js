@@ -5,7 +5,7 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // ---------------------------------------------------------------------------
-import okx from './okx.js';
+import okx from './abstract/myokx.js';
 // ---------------------------------------------------------------------------
 export default class myokx extends okx {
     describe() {

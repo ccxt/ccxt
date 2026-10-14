@@ -479,17 +479,10 @@ func WithTransferParams(params map[string]any) TransferOptions {
 }
 
 type WithdrawOptionsStruct struct {
-	Tag    *string
 	Params *map[string]any
 }
 
 type WithdrawOptions func(opts *WithdrawOptionsStruct)
-
-func WithWithdrawTag(tag string) WithdrawOptions {
-	return func(opts *WithdrawOptionsStruct) {
-		opts.Tag = &tag
-	}
-}
 
 func WithWithdrawParams(params map[string]any) WithdrawOptions {
 	return func(opts *WithdrawOptionsStruct) {
@@ -974,7 +967,6 @@ type Fetch2OptionsStruct struct {
 	Params  *map[string]any
 	Headers *any
 	Body    *any
-	Config  *map[string]any
 }
 
 type Fetch2Options func(opts *Fetch2OptionsStruct)
@@ -1006,12 +998,6 @@ func WithFetch2Headers(headers any) Fetch2Options {
 func WithFetch2Body(body any) Fetch2Options {
 	return func(opts *Fetch2OptionsStruct) {
 		opts.Body = &body
-	}
-}
-
-func WithFetch2Config(config map[string]any) Fetch2Options {
-	return func(opts *Fetch2OptionsStruct) {
-		opts.Config = &config
 	}
 }
 
@@ -2430,17 +2416,10 @@ func WithUnWatchOHLCVParams(params map[string]any) UnWatchOHLCVOptions {
 }
 
 type WithdrawWsOptionsStruct struct {
-	Tag    *string
 	Params *map[string]any
 }
 
 type WithdrawWsOptions func(opts *WithdrawWsOptionsStruct)
-
-func WithWithdrawWsTag(tag string) WithdrawWsOptions {
-	return func(opts *WithdrawWsOptionsStruct) {
-		opts.Tag = &tag
-	}
-}
 
 func WithWithdrawWsParams(params map[string]any) WithdrawWsOptions {
 	return func(opts *WithdrawWsOptionsStruct) {

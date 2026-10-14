@@ -548,6 +548,22 @@
                     }
                 ],
                 "output": { "instId": "BTC-USDT-SWAP", "side": "sell", "ordType": "move_order_stop", "sz": "1", "tdMode": "cross", "callbackSpread": "100", "clOrdId": "6b9ad766b55dBCDE7633f9e8e410983c", "tag": "6b9ad766b55dBCDE", "trailingPrice": "100", "reduceOnly": true, "posSide": "long" }
+            },
+            {
+                "description": "spot limit sell with selfTradePrevention",
+                "method": "createOrder",
+                "url": "https://www.okx.com/api/v5/trade/batch-orders",
+                "input": [
+                    "DOGE/USDT",
+                    "limit",
+                    "sell",
+                    10,
+                    0.19418,
+                    {
+                        "selfTradePrevention": "expire_taker"
+                    }
+                ],
+                "output": [{"instId": "DOGE-USDT", "side": "sell", "ordType": "limit", "sz": "10", "tdMode": "cash", "tgtCcy": "base_ccy", "px": "0.19418", "stpMode": "cancel_taker", "clOrdId": "6b9ad766b55dBCDE09e6cba604a9a977", "tag": "6b9ad766b55dBCDE"}]
             }
         ],
         "createMarketBuyOrderWithCost": [
@@ -1371,7 +1387,7 @@
                 "method": "fetchTransfer",
                 "url": "https://www.okx.com/api/v5/asset/transfer-state?transId=0",
                 "input": [
-                    0,
+                    "0",
                     "USDC"
                 ]
             }
@@ -1843,11 +1859,66 @@
         ],
         "fetchOpenInterestHistory": [
             {
-                "description": "fetch borrow interest history",
+                "description": "linear swap open interest history",
                 "method": "fetchOpenInterestHistory",
-                "url": "https://www.okx.com/api/v5/rubik/stat/contracts/open-interest-volume?ccy=BTC&period=1D",
+                "url": "https://www.okx.com/api/v5/rubik/stat/contracts/open-interest-history?instId=BTC-USDT-SWAP&period=1D",
                 "input": [
                     "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "inverse swap open interest history",
+                "method": "fetchOpenInterestHistory",
+                "url": "https://www.okx.com/api/v5/rubik/stat/contracts/open-interest-history?instId=BTC-USD-SWAP&period=1H",
+                "input": [
+                    "BTC/USD:BTC",
+                    "1h"
+                ]
+            },
+            {
+                "description": "inverse future open interest history",
+                "method": "fetchOpenInterestHistory",
+                "url": "https://www.okx.com/api/v5/rubik/stat/contracts/open-interest-history?instId=BTC-USD-261225&period=1D",
+                "input": [
+                    "BTC/USD:BTC-261225",
+                    "1d"
+                ]
+            },
+            {
+                "description": "linear swap open interest history with since, limit and until",
+                "method": "fetchOpenInterestHistory",
+                "url": "https://www.okx.com/api/v5/rubik/stat/contracts/open-interest-history?instId=BTC-USDT-SWAP&period=1H&limit=3&begin=1790503199999&end=1790514000000",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    1790503200000,
+                    3,
+                    {
+                        "until": 1790524800000
+                    }
+                ]
+            },
+            {
+                "description": "linear swap open interest history with until only",
+                "method": "fetchOpenInterestHistory",
+                "url": "https://www.okx.com/api/v5/rubik/stat/contracts/open-interest-history?instId=BTC-USDT-SWAP&period=1H&end=1790524800001",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    null,
+                    null,
+                    {
+                        "until": 1790524800000
+                    }
+                ]
+            },
+            {
+                "description": "currency open interest history",
+                "method": "fetchOpenInterestHistory",
+                "url": "https://www.okx.com/api/v5/rubik/stat/contracts/open-interest-volume?ccy=BTC&period=1H",
+                "input": [
+                    "BTC",
+                    "1h"
                 ]
             }
         ],
@@ -1954,7 +2025,6 @@
                   "USDT",
                   5,
                   "TTsY9uu2Y3aXXXXXscA4v",
-                  null,
                   {
                     "network": "TRC20",
                     "fee": 1
@@ -2080,6 +2150,78 @@
                 "url": "https://www.okx.com/api/v5/rubik/stat/contracts/long-short-account-ratio-contract?instId=BTC-USDT-SWAP",
                 "input": [
                   "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "swap long short ratio history with since, limit and until",
+                "method": "fetchLongShortRatioHistory",
+                "url": "https://www.okx.com/api/v5/rubik/stat/contracts/long-short-account-ratio-contract?instId=BTC-USDT-SWAP&period=1H&limit=3&begin=1790503199999&end=1790514000000",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    1790503200000,
+                    3,
+                    {
+                        "until": 1790524800000
+                    }
+                ]
+            },
+            {
+                "description": "swap long short ratio history with until only",
+                "method": "fetchLongShortRatioHistory",
+                "url": "https://www.okx.com/api/v5/rubik/stat/contracts/long-short-account-ratio-contract?instId=BTC-USDT-SWAP&period=1H&end=1790524800001",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    null,
+                    null,
+                    {
+                        "until": 1790524800000
+                    }
+                ]
+            },
+            {
+                "description": "swap long short ratio history with since and limit on the default period",
+                "method": "fetchLongShortRatioHistory",
+                "url": "https://www.okx.com/api/v5/rubik/stat/contracts/long-short-account-ratio-contract?instId=BTC-USDT-SWAP&limit=3&begin=1790503199999&end=1790504100000",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    1790503200000,
+                    3
+                ]
+            },
+            {
+                "description": "swap long short ratio history with since and limit on an okx period without a unified timeframe",
+                "method": "fetchLongShortRatioHistory",
+                "url": "https://www.okx.com/api/v5/rubik/stat/contracts/long-short-account-ratio-contract?instId=BTC-USDT-SWAP&period=2D&limit=3&begin=1790503199999&end=1791021600000",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "2D",
+                    1790503200000,
+                    3
+                ]
+            },
+            {
+                "description": "swap long short ratio history with since and limit on a utc period",
+                "method": "fetchLongShortRatioHistory",
+                "url": "https://www.okx.com/api/v5/rubik/stat/contracts/long-short-account-ratio-contract?instId=BTC-USDT-SWAP&period=6Hutc&limit=3&begin=1790503199999&end=1790568000000",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "6Hutc",
+                    1790503200000,
+                    3
+                ]
+            },
+            {
+                "description": "swap long short ratio history with since and limit on calendar months",
+                "method": "fetchLongShortRatioHistory",
+                "url": "https://www.okx.com/api/v5/rubik/stat/contracts/long-short-account-ratio-contract?instId=BTC-USDT-SWAP&period=1M&limit=100&begin=1769875199999&end=1772553600000",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1M",
+                    1769875200000,
+                    1
                 ]
             }
         ],

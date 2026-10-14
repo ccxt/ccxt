@@ -64,7 +64,7 @@ func AwaitAfterResolveTest() {
 		// fmt.Println("Got result from ch1:", res)
 	}()
 
-	go func(ch2 <-chan interface{}) {
+	go func(ch2 <-chan ccxt.AsyncResult[any]) {
 		defer wg.Done()
 		<-ch2
 		// fmt.Println("Got result from ch2:", res)

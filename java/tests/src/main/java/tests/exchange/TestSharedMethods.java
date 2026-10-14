@@ -63,7 +63,7 @@ public class TestSharedMethods extends BaseTest {
         Boolean formatIsEmptyArray = false;
         if ((formatKeyVal instanceof List))
         {
-            Object formatLen = ((List<?>)formatKeyVal).size();
+            Integer formatLen = ((List<?>)formatKeyVal).size();
             formatIsEmptyArray = (java.util.Objects.equals(formatLen, 0));
         }
         Boolean same_object = Helpers.isTrue(exchange.isDictionary(entryKeyVal)) && (Helpers.isTrue(exchange.isDictionary(formatKeyVal)) || Boolean.TRUE.equals(formatIsEmptyArray));
@@ -212,7 +212,7 @@ public class TestSharedMethods extends BaseTest {
                 {
                     Assert(false, (("datetime is not parseable: " + dt) + logText));
                 }
-                Object diff = Helpers.mathAbs(Double.parseDouble(Helpers.toString(Helpers.subtract(dtParsed, tsMs))));
+                Double diff = (Double) Helpers.mathAbs(Double.parseDouble(Helpers.toString(Helpers.subtract(dtParsed, tsMs))));
                 if (Helpers.isGreaterThanOrEqual(diff, 500))
                 {
                     Object dtParsedString = exchange.iso8601(dtParsed);
@@ -261,8 +261,8 @@ public class TestSharedMethods extends BaseTest {
             Object currencyByCode = exchange.currency((String) (currencyCode));
             Assert(java.util.Objects.equals(((Map<String, Object>)currencyByCode).get("id"), currencyId), ((((("currencyId \"" + stringValue(currencyId)) + "\" does not match currency id from instance: \"") + stringValue(((Map<String, Object>)currencyByCode).get("id"))) + "\"") + logText));
             // check by id
-            Object currencyById = exchange.safeCurrency((String) (currencyId));
-            Assert(java.util.Objects.equals(((Map<String, Object>)currencyById).get("code"), currencyCode), Helpers.add(((("currencyCode " + stringValue(currencyCode)) + " does not match currency of id: ") + stringValue(currencyId)), logText));
+            Object currencyById = exchange.safeCurrency((String) (currencyId), (Map<String, Object>) null);
+            Assert(java.util.Objects.equals(((Map<String, Object>)currencyById).get("code"), currencyCode), (((("currencyCode " + stringValue(currencyCode)) + " does not match currency of id: ") + stringValue(currencyId)) + logText));
         }
     }
     public static void AssertSymbol(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object key, Object... optionalArgs)
@@ -303,7 +303,7 @@ public class TestSharedMethods extends BaseTest {
         Assert(!java.util.Objects.equals(value, null) || Helpers.isTrue(allowNull), ("value is null" + logText));
         if (!java.util.Objects.equals(value, null))
         {
-            Assert(Precise.stringGt(value, compareTo), Helpers.add(((Helpers.add((stringValue(key) + " key (with a value of "), stringValue(value)) + ") was expected to be > ") + stringValue(compareTo)), logText));
+            Assert(Precise.stringGt(value, compareTo), (((((stringValue(key) + " key (with a value of ") + stringValue(value)) + ") was expected to be > ") + stringValue(compareTo)) + logText));
         }
     }
     public static void AssertGreaterOrEqual(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object key, Object compareTo, Object... optionalArgs)
@@ -318,7 +318,7 @@ public class TestSharedMethods extends BaseTest {
         Assert(!java.util.Objects.equals(value, null) || Helpers.isTrue(allowNull), ("value is null" + logText));
         if (!java.util.Objects.equals(value, null) && !java.util.Objects.equals(compareTo, null))
         {
-            Assert(Precise.stringGe(value, compareTo), Helpers.add(((Helpers.add((stringValue(key) + " key (with a value of "), stringValue(value)) + ") was expected to be >= ") + stringValue(compareTo)), logText));
+            Assert(Precise.stringGe(value, compareTo), (((((stringValue(key) + " key (with a value of ") + stringValue(value)) + ") was expected to be >= ") + stringValue(compareTo)) + logText));
         }
     }
     public static void AssertLess(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object key, Object compareTo, Object... optionalArgs)
@@ -333,7 +333,7 @@ public class TestSharedMethods extends BaseTest {
         Assert(!java.util.Objects.equals(value, null) || Helpers.isTrue(allowNull), ("value is null" + logText));
         if (!java.util.Objects.equals(value, null) && !java.util.Objects.equals(compareTo, null))
         {
-            Assert(Precise.stringLt(value, compareTo), Helpers.add(((Helpers.add((stringValue(key) + " key (with a value of "), stringValue(value)) + ") was expected to be < ") + stringValue(compareTo)), logText));
+            Assert(Precise.stringLt(value, compareTo), (((((stringValue(key) + " key (with a value of ") + stringValue(value)) + ") was expected to be < ") + stringValue(compareTo)) + logText));
         }
     }
     public static void AssertLessOrEqual(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object key, Object compareTo, Object... optionalArgs)
@@ -348,7 +348,7 @@ public class TestSharedMethods extends BaseTest {
         Assert(!java.util.Objects.equals(value, null) || Helpers.isTrue(allowNull), ("value is null" + logText));
         if (!java.util.Objects.equals(value, null) && !java.util.Objects.equals(compareTo, null))
         {
-            Assert(Precise.stringLe(value, compareTo), Helpers.add(((Helpers.add((stringValue(key) + " key (with a value of "), stringValue(value)) + ") was expected to be <= ") + stringValue(compareTo)), logText));
+            Assert(Precise.stringLe(value, compareTo), (((((stringValue(key) + " key (with a value of ") + stringValue(value)) + ") was expected to be <= ") + stringValue(compareTo)) + logText));
         }
     }
     public static void AssertEqual(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object key, Object compareTo, Object... optionalArgs)
@@ -363,7 +363,7 @@ public class TestSharedMethods extends BaseTest {
         Assert(!java.util.Objects.equals(value, null) || Helpers.isTrue(allowNull), ("value is null" + logText));
         if (!java.util.Objects.equals(value, null) && !java.util.Objects.equals(compareTo, null))
         {
-            Assert(Precise.stringEq(value, compareTo), Helpers.add(((Helpers.add((stringValue(key) + " key (with a value of "), stringValue(value)) + ") was expected to be equal to ") + stringValue(compareTo)), logText));
+            Assert(Precise.stringEq(value, compareTo), (((((stringValue(key) + " key (with a value of ") + stringValue(value)) + ") was expected to be equal to ") + stringValue(compareTo)) + logText));
         }
     }
     public static void AssertNonEqual(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object key, Object compareTo, Object... optionalArgs)
@@ -378,7 +378,7 @@ public class TestSharedMethods extends BaseTest {
         Assert(!java.util.Objects.equals(value, null) || Helpers.isTrue(allowNull), ("value is null" + logText));
         if (!java.util.Objects.equals(value, null))
         {
-            Assert(!Precise.stringEq(value, compareTo), Helpers.add(((Helpers.add((stringValue(key) + " key (with a value of "), stringValue(value)) + ") was expected not to be equal to ") + stringValue(compareTo)), logText));
+            Assert(!Precise.stringEq(value, compareTo), (((((stringValue(key) + " key (with a value of ") + stringValue(value)) + ") was expected not to be equal to ") + stringValue(compareTo)) + logText));
         }
     }
     public static void AssertInArray(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object key, Object expectedArray, Object... optionalArgs)
@@ -410,19 +410,19 @@ public class TestSharedMethods extends BaseTest {
         } else
         {
             Assert(exchange.isDictionary(entry), ("fee container is expected to be a dict" + logText));
-            Assert(Helpers.inOp(entry, key), ((Helpers.add("fee key \"", key) + "\" was expected to be present in entry") + logText));
+            Assert(Helpers.inOp(entry, key), ((("fee key \"" + key) + "\" was expected to be present in entry") + logText));
         }
         Object feeObject = exchange.safeValue(entry, key);
         Assert(!java.util.Objects.equals(feeObject, null) || Helpers.isTrue(allowNull), ("fee object is null" + logText));
         // todo: remove undefined check to make stricter
         if (!java.util.Objects.equals(feeObject, null))
         {
-            Assert(Helpers.inOp(feeObject, "cost"), Helpers.add((keyString + " fee object should contain \"cost\" key"), logText));
+            Assert(Helpers.inOp(feeObject, "cost"), ((keyString + " fee object should contain \"cost\" key") + logText));
             if (java.util.Objects.equals(Helpers.GetValue(feeObject, "cost"), null))
             {
                 return;  // todo: remove undefined check to make stricter
             }
-            Assert((Helpers.GetValue(feeObject, "cost") instanceof Long || Helpers.GetValue(feeObject, "cost") instanceof Integer || Helpers.GetValue(feeObject, "cost") instanceof Float || Helpers.GetValue(feeObject, "cost") instanceof Double), Helpers.add((keyString + " \"cost\" must be numeric type"), logText));
+            Assert((Helpers.GetValue(feeObject, "cost") instanceof Long || Helpers.GetValue(feeObject, "cost") instanceof Integer || Helpers.GetValue(feeObject, "cost") instanceof Float || Helpers.GetValue(feeObject, "cost") instanceof Double), ((keyString + " \"cost\" must be numeric type") + logText));
             // AssertGreaterOrEqual (exchange, skippedProperties, method, feeObject, 'cost', '0'); // fee might be negative in the case of a rebate or reward
             Assert(Helpers.inOp(feeObject, "currency"), ((("\"" + keyString) + "\" fee object should contain \"currency\" key") + logText));
             AssertCurrencyCode(exchange, skippedProperties, method, entry, Helpers.GetValue(feeObject, "currency"));
@@ -433,15 +433,15 @@ public class TestSharedMethods extends BaseTest {
         Object ascending = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : true;
         for (var i = 0; i < ((List<?>)items).size(); i++)
         {
-            if (Helpers.isGreaterThan(i, 0))
+            if (i > 0)
             {
-                Object currentTs = Helpers.GetValue(Helpers.GetValue(items, Helpers.subtract(i, 1)), "timestamp");
+                Object currentTs = Helpers.GetValue(Helpers.GetValue(items, (((long) i) - 1L)), "timestamp");
                 Object nextTs = Helpers.GetValue((items == null || i < 0 || i >= ((List<?>)items).size() ? null : ((List<?>)items).get(i)), "timestamp");
                 if (!java.util.Objects.equals(currentTs, null) && !java.util.Objects.equals(nextTs, null))
                 {
                     String ascendingOrDescending = ((Helpers.isTrue(ascending))) ? "ascending" : "descending";
-                    Object comparison = ((Helpers.isTrue(ascending))) ? (Helpers.isLessThanOrEqual(currentTs, nextTs)) : (Helpers.isGreaterThanOrEqual(currentTs, nextTs));
-                    Assert(comparison, ((Helpers.add((Helpers.add((((((((exchange.id + " ") + method) + " ") + stringValue(codeOrSymbol)) + " must return a ") + ascendingOrDescending) + " sorted array of items by timestamp, but "), String.valueOf(currentTs)) + " is opposite with its next "), String.valueOf(nextTs)) + " ") + exchange.json(items)));
+                    Boolean comparison = ((Helpers.isTrue(ascending))) ? (Helpers.isLessThanOrEqual(currentTs, nextTs)) : (Helpers.isGreaterThanOrEqual(currentTs, nextTs));
+                    Assert(comparison, ((((((((((((exchange.id + " ") + method) + " ") + stringValue(codeOrSymbol)) + " must return a ") + ascendingOrDescending) + " sorted array of items by timestamp, but ") + String.valueOf(currentTs)) + " is opposite with its next ") + String.valueOf(nextTs)) + " ") + exchange.json(items)));
                 }
             }
         }
@@ -476,7 +476,7 @@ public class TestSharedMethods extends BaseTest {
             // TICK_SIZE should be above zero
             AssertGreater(exchange, skippedProperties, method, entry, key, "0");
             // the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so in our case, such values probably indicate an incorrectly implemented tick-sizes calculation, so we throw new RuntimeException(e)rror
-            List<Object> decimalNumbers = new ArrayList<Object>(Arrays.asList("2", "3", "4", "5", "6", "7", "8", "9", "11", "12", "13", "14", "15", "16"));
+            List<String> decimalNumbers = new ArrayList<String>(Arrays.asList("2", "3", "4", "5", "6", "7", "8", "9", "11", "12", "13", "14", "15", "16"));
             if (java.util.Objects.equals(key, "amount") && Helpers.inOp(skippedProperties, "precisionAmountAbnormal"))
             {
                 return;
@@ -508,36 +508,36 @@ public class TestSharedMethods extends BaseTest {
         if ((!java.util.Objects.equals(Helpers.GetValue(exchange.has, "fetchOrderBook"), null)) && (!java.util.Objects.equals(Helpers.GetValue(exchange.has, "fetchOrderBook"), false)))
         {
             usedMethod = "fetchOrderBook";
-            Object orderbook = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOrderBook", new Object[]{symbol})).join();
-            Object bids = exchange.safeList(orderbook, "bids");
-            Object asks = exchange.safeList(orderbook, "asks");
-            Object bestBidArray = exchange.safeList(bids, 0);
-            Object bestAskArray = exchange.safeList(asks, 0);
-            bestBid = exchange.safeNumber(bestBidArray, 0);
-            bestAsk = exchange.safeNumber(bestAskArray, 0);
+            Object orderbook = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOrderBook", new Object[]{symbol, (Long) null, new HashMap<String, Object>() {{}}})).join();
+            Object bids = exchange.safeList(orderbook, "bids", (Object) null);
+            Object asks = exchange.safeList(orderbook, "asks", (Object) null);
+            Object bestBidArray = exchange.safeList(bids, 0, (Object) null);
+            Object bestAskArray = exchange.safeList(asks, 0, (Object) null);
+            bestBid = exchange.safeNumber(bestBidArray, 0, (Object) null);
+            bestAsk = exchange.safeNumber(bestAskArray, 0, (Object) null);
         } else if ((!java.util.Objects.equals(Helpers.GetValue(exchange.has, "fetchBidsAsks"), null)) && (!java.util.Objects.equals(Helpers.GetValue(exchange.has, "fetchBidsAsks"), false)))
         {
             usedMethod = "fetchBidsAsks";
-            Object tickers = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchBidsAsks", new Object[]{new ArrayList<Object>(Arrays.asList(symbol))})).join();
-            Object ticker = exchange.safeDict(tickers, symbol);
-            bestBid = exchange.safeNumber(ticker, "bid");
-            bestAsk = exchange.safeNumber(ticker, "ask");
+            Object tickers = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchBidsAsks", new Object[]{Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), new HashMap<String, Object>() {{}}})).join();
+            Object ticker = exchange.safeDict(tickers, symbol, (Object) null);
+            bestBid = exchange.safeNumber(ticker, "bid", (Object) null);
+            bestAsk = exchange.safeNumber(ticker, "ask", (Object) null);
         } else if ((!java.util.Objects.equals(Helpers.GetValue(exchange.has, "fetchTicker"), null)) && (!java.util.Objects.equals(Helpers.GetValue(exchange.has, "fetchTicker"), false)))
         {
             usedMethod = "fetchTicker";
-            Object ticker = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTicker", new Object[]{symbol})).join();
-            bestBid = exchange.safeNumber(ticker, "bid");
-            bestAsk = exchange.safeNumber(ticker, "ask");
+            Object ticker = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTicker", new Object[]{symbol, new HashMap<String, Object>() {{}}})).join();
+            bestBid = exchange.safeNumber(ticker, "bid", (Object) null);
+            bestAsk = exchange.safeNumber(ticker, "ask", (Object) null);
         } else if ((!java.util.Objects.equals(Helpers.GetValue(exchange.has, "fetchTickers"), null)) && (!java.util.Objects.equals(Helpers.GetValue(exchange.has, "fetchTickers"), false)))
         {
             usedMethod = "fetchTickers";
-            Object tickers = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTickers", new Object[]{new ArrayList<Object>(Arrays.asList(symbol))})).join();
-            Object ticker = exchange.safeDict(tickers, symbol);
-            bestBid = exchange.safeNumber(ticker, "bid");
-            bestAsk = exchange.safeNumber(ticker, "ask");
+            Object tickers = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTickers", new Object[]{Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), new HashMap<String, Object>() {{}}})).join();
+            Object ticker = exchange.safeDict(tickers, symbol, (Object) null);
+            bestBid = exchange.safeNumber(ticker, "bid", (Object) null);
+            bestAsk = exchange.safeNumber(ticker, "ask", (Object) null);
         }
         //
-        Assert(!java.util.Objects.equals(bestBid, null) && !java.util.Objects.equals(bestAsk, null), ((((((Helpers.add((logText + " "), exchange.id) + " could not get best bid/ask for ") + symbol) + " using ") + usedMethod) + " while testing ") + method));
+        Assert(!java.util.Objects.equals(bestBid, null) && !java.util.Objects.equals(bestAsk, null), ((((((((logText + " ") + exchange.id) + " could not get best bid/ask for ") + symbol) + " using ") + usedMethod) + " while testing ") + method));
         return new ArrayList<Object>(Arrays.asList(bestBid, bestAsk));
         });
 
@@ -552,7 +552,7 @@ public class TestSharedMethods extends BaseTest {
         // set 'since' to 5 minute ago for optimal results
         Object sinceTime = Helpers.subtract(exchange.milliseconds(), ((1000L * 60L) * 5L));
         // iterate
-        List<Object> methods_singular = new ArrayList<Object>(Arrays.asList("fetchOrder", "fetchOpenOrder", "fetchClosedOrder", "fetchCanceledOrder"));
+        List<String> methods_singular = new ArrayList<String>(Arrays.asList("fetchOrder", "fetchOpenOrder", "fetchClosedOrder", "fetchCanceledOrder"));
         for (var i = 0; i < ((List<?>)methods_singular).size(); i++)
         {
             String singularFetchName = (String) Helpers.GetValue(methods_singular, i);
@@ -571,7 +571,7 @@ public class TestSharedMethods extends BaseTest {
         // search through plural methods
         if (java.util.Objects.equals(fetchedOrder, null))
         {
-            List<Object> methods_plural = new ArrayList<Object>(Arrays.asList("fetchOrders", "fetchOpenOrders", "fetchClosedOrders", "fetchCanceledOrders"));
+            List<String> methods_plural = new ArrayList<String>(Arrays.asList("fetchOrders", "fetchOpenOrders", "fetchClosedOrders", "fetchCanceledOrders"));
             for (var i = 0; i < ((List<?>)methods_plural).size(); i++)
             {
                 String pluralFetchName = (String) Helpers.GetValue(methods_plural, i);
@@ -680,8 +680,8 @@ public class TestSharedMethods extends BaseTest {
     }
     public static Object removeProxyOptions(BaseExchange exchange, Object skippedProperties)
     {
-        Object proxyUrl = exchange.checkProxyUrlSettings();
-        var httpProxyhttpsProxysocksProxyVariable = exchange.checkProxySettings();
+        Object proxyUrl = exchange.checkProxyUrlSettings((String) null, (String) null, (Object) null, (Object) null);
+        var httpProxyhttpsProxysocksProxyVariable = exchange.checkProxySettings((String) null, (String) null, (Object) null, (Object) null);
         var httpProxy = ((List<Object>) httpProxyhttpsProxysocksProxyVariable).get(0);
         var httpsProxy = ((List<Object>) httpProxyhttpsProxysocksProxyVariable).get(1);
         var socksProxy = ((List<Object>) httpProxyhttpsProxysocksProxyVariable).get(2);
@@ -737,7 +737,7 @@ public class TestSharedMethods extends BaseTest {
         Boolean isEmptyArrayResponse = false;
         if ((response instanceof List))
         {
-            Object responseLength = ((List<?>)response).size();
+            Integer responseLength = ((List<?>)response).size();
             isEmptyArrayResponse = (java.util.Objects.equals(responseLength, 0));
         }
         String hintText = "";
@@ -806,7 +806,7 @@ public class TestSharedMethods extends BaseTest {
             {
                 if ((!java.util.Objects.equals(exchange.markets, null)) && ((symbol != null && ((Map<?, ?>)exchange.markets).containsKey(symbol))))
                 {
-                    if (!java.util.Objects.equals(exchange.featureValue(symbol, "fetchOHLCV"), null))
+                    if (!java.util.Objects.equals(exchange.featureValue(symbol, "fetchOHLCV", (String) null, (Object) null), null))
                     {
                         return true;
                     }
@@ -834,8 +834,8 @@ public class TestSharedMethods extends BaseTest {
                 }
                 if (!java.util.Objects.equals(ohlcv, null))
                 {
-                    Object ohlcvLength = Helpers.getArrayLength(ohlcv);
-                    if (Helpers.isLessThanOrEqual(ohlcvLength, 1))
+                    Integer ohlcvLength = Helpers.getArrayLength(ohlcv);
+                    if ((ohlcvLength == null || ohlcvLength <= 1))
                     {
                         // if only 1 day of listing, then allow it
                         return;

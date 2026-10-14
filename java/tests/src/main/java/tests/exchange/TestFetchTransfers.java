@@ -4,6 +4,7 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -19,7 +20,7 @@ public class TestFetchTransfers extends BaseTest {
         return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchTransfers";
-        Object transfers = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTransfers", new Object[]{code})).join();
+        Object transfers = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTransfers", new Object[]{Helpers.toStringArg(code), (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, transfers, code);
         for (var i = 0; i < ((List<?>)transfers).size(); i++)
         {

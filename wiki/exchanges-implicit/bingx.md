@@ -1,6 +1,6 @@
 Every endpoint in `bingx`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/bingx) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `fundV1PrivateGetAccountBalance`); the snake_case alias (`fund_v1_private_get_account_balance`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`FundV1PrivateGetAccountBalance`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `fundV1PrivateGetAccountBalance`); Python and PHP use the snake_case form (`fund_v1_private_get_account_balance`), and Go uses the PascalCase form (`FundV1PrivateGetAccountBalance`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official bingx API documentation:** [bingx-api.github.io](https://bingx-api.github.io/docs/)
 
-> 203 implicit endpoints across 13 access groups.
+> 201 implicit endpoints across 13 access groups.
 
 ## fund
 
@@ -296,7 +296,6 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
-| `copyTradingV1PrivateGetSwapTraceCurrentTrack` | GET | `swap/trace/currentTrack` | 2 |
 | `copyTradingV1PrivateGetPFuturesTraderDetail` | GET | `PFutures/traderDetail` | 2 |
 | `copyTradingV1PrivateGetPFuturesProfitHistorySummarys` | GET | `PFutures/profitHistorySummarys` | 2 |
 | `copyTradingV1PrivateGetPFuturesProfitDetail` | GET | `PFutures/profitDetail` | 2 |
@@ -305,7 +304,6 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `copyTradingV1PrivateGetSpotProfitHistorySummarys` | GET | `spot/profitHistorySummarys` | 2 |
 | `copyTradingV1PrivateGetSpotProfitDetail` | GET | `spot/profitDetail` | 2 |
 | `copyTradingV1PrivateGetSpotHistoryOrder` | GET | `spot/historyOrder` | 2 |
-| `copyTradingV1PrivatePostSwapTraceCloseTrackOrder` | POST | `swap/trace/closeTrackOrder` | 2 |
 | `copyTradingV1PrivatePostSwapTraceSetTPSL` | POST | `swap/trace/setTPSL` | 2 |
 | `copyTradingV1PrivatePostPFuturesSetCommission` | POST | `PFutures/setCommission` | 2 |
 | `copyTradingV1PrivatePostSpotTraderSellOrder` | POST | `spot/trader/sellOrder` | 10 |

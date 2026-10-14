@@ -70,7 +70,7 @@
                 "method": "fetchOrder",
                 "url": "https://bit.team/trade/api/ccxt/order/111374644",
                 "input": [
-                    111374644
+                    "111374644"
                 ]
             }
         ],

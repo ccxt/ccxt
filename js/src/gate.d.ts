@@ -44,12 +44,12 @@ export default class gate extends Exchange {
     fetchSpotMarkets(params?: Dict): Promise<Market[]>;
     fetchSwapMarkets(params?: Dict): Promise<Market[]>;
     fetchFutureMarkets(params?: Dict): Promise<Market[]>;
-    parseContractMarket(market: Dict, settleId: Str): Dict;
+    parseContractMarket(market: Dict, settleId: Str): Market;
     fetchOptionMarkets(params?: Dict): Promise<Market[]>;
     fetchOptionUnderlyings(): Promise<Str[]>;
-    prepareRequest(market?: Market, type?: Str, params?: Dict): Dict[];
-    spotOrderPrepareRequest(market?: Market, trigger?: Bool, params?: Dict): Dict[];
-    multiOrderSpotPrepareRequest(market?: Market, trigger?: Bool, params?: Dict): Dict[];
+    prepareRequest(market?: Market, type?: Str, params?: Dict): [Dict, Dict];
+    spotOrderPrepareRequest(market?: Market, trigger?: Bool, params?: Dict): [Dict, Dict];
+    multiOrderSpotPrepareRequest(market?: Market, trigger?: Bool, params?: Dict): [Dict, Dict];
     getMarginMode(trigger: Bool, params: Dict): [Str, Dict];
     getSettlementCurrencies(type: Str, method: Str): string[];
     /**
@@ -71,7 +71,7 @@ export default class gate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
+    fetchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
     /**
      * @method
      * @name gate#fetchFundingRates
@@ -106,7 +106,7 @@ export default class gate extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     fetchDepositAddress(code: string, params?: Dict): Promise<DepositAddress>;
-    parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
+    parseDepositAddress(depositAddress: Dict, currency?: Currency): DepositAddress;
     /**
      * @method
      * @name gate#fetchTradingFee
@@ -163,9 +163,9 @@ export default class gate extends Exchange {
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingHistory[]>;
-    parseFundingHistories(response: any, symbol: any, since: Int, limit: Int): FundingHistory[];
-    parseFundingHistory(info: any, market?: Market): {
-        info: any;
+    parseFundingHistories(response: any, symbol: Str, since: Int, limit: Int): FundingHistory[];
+    parseFundingHistory(info: NullableDict, market?: Market): {
+        info: NullableDict;
         symbol: Str;
         code: Str;
         timestamp: Int;
@@ -365,11 +365,11 @@ export default class gate extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
     parseTransactionStatus(status: Str): string;
     parseTransactionType(type: Str): Str;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
@@ -714,7 +714,7 @@ export default class gate extends Exchange {
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     borrowCrossMargin(code: string, amount: number, params?: Dict): Promise<MarginLoan>;
-    parseMarginLoan(info: any, currency?: Currency): MarginLoan;
+    parseMarginLoan(info: NullableDict, currency?: Currency): MarginLoan;
     /**
      * @method
      * @name gate#fetchBorrowInterest
@@ -732,7 +732,7 @@ export default class gate extends Exchange {
     fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<BorrowInterest[]>;
     parseBorrowInterest(info: Dict, market?: Market): BorrowInterest;
     nonce(): number;
-    sign(path: any, api?: any, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: any, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     modifyMarginHelper(symbol: string, amount: Num, params?: Dict): Promise<MarginModification>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;
     /**
@@ -761,8 +761,8 @@ export default class gate extends Exchange {
     addMargin(symbol: string, amount: number, params?: Dict): Promise<MarginModification>;
     /**
      * @method
-     * @name gate#fetchOpenInterest
-     * @description Retrieves the open interest of a currency
+     * @name gate#fetchOpenInterestHistory
+     * @description Retrieves the open interest history of a currency
      * @see https://www.gate.com/docs/developers/apiv4/en/#futures-statistics
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} timeframe "5m", "15m", "30m", "1h", "4h", "1d"
@@ -894,7 +894,7 @@ export default class gate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    closePosition(symbol: string, side?: OrderSide, params?: Dict): Promise<Order>;
+    closePosition(symbol: string, side?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name gate#fetchLeverage
