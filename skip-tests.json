@@ -1926,6 +1926,20 @@
             }
         }
     },
+    "lcx": {
+        "preferredSpotSymbol": "LCX/EUR",
+        "skipMethods": {
+            "fetchTrades": {
+                "sideSequence": "trades are sorted by second-resolution timestamp only, order within the same second is not guaranteed"
+            },
+            "orderBook": {
+                "timestamp": "not provided by the venue"
+            },
+            "ticker": {
+                "lastBetweenBidAsk": "books are thin, last trade can be far from the bid/ask median"
+            }
+        }
+    },
     "lbank": {
         "httpsProxy": "http://188.245.226.105:8911",
         "skipWs": "rate limited (429) through the shared test proxy",

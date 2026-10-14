@@ -1,0 +1,56 @@
+{
+    "exchange": "lcx",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "fetchTicker": [
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://exchange-api.lcx.com/api/ticker?pair=LCX%2FEUR",
+                "input": [
+                    "LCX/EUR"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "spot order book",
+                "method": "fetchOrderBook",
+                "url": "https://exchange-api.lcx.com/api/book?pair=LCX%2FEUR",
+                "input": [
+                    "LCX/EUR"
+                ],
+                "output": null
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "spot trades",
+                "method": "fetchTrades",
+                "url": "https://exchange-api.lcx.com/api/trades?pair=LCX%2FEUR&offset=1",
+                "input": [
+                    "LCX/EUR",
+                    null,
+                    5
+                ],
+                "output": null
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "spot ohlcv with since and limit",
+                "method": "fetchOHLCV",
+                "url": "https://api-kline.lcx.com/v1/market/kline?pair=BTC%2FEUR&resolution=60&from=1769000000&to=1769010799",
+                "input": [
+                    "BTC/EUR",
+                    "1h",
+                    1769000000000,
+                    3
+                ],
+                "output": null
+            }
+        ]
+    }
+}
