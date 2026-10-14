@@ -235,11 +235,8 @@ export default class bitopro extends Exchange {
             'options': {
                 'networks': {
                     'ERC20': 'ERC20',
-                    'ETH': 'ERC20',
-                    'TRX': 'TRX',
                     'TRC20': 'TRX',
                     'BEP20': 'BSC',
-                    'BSC': 'BSC',
                 },
                 'fetchCurrencies': {
                     'fiatCurrencies': [ 'TWD' ], // the only fiat currency for exchange
@@ -1829,7 +1826,7 @@ export default class bitopro extends Exchange {
         if (hasNetwork) {
             const networks = this.safeDict (this.options, 'networks', {});
             const requestedNetwork = this.safeStringUpper (paramsWithdrawTag, 'network');
-            const networkId = (requestedNetwork === undefined) ? undefined : this.safeString (networks, requestedNetwork);
+            const networkId = (requestedNetwork === undefined) ? undefined : this.safeString (networks, this.unifiedNetworkCode (requestedNetwork));
             if (networkId === undefined) {
                 throw new ExchangeError (this.id + ' invalid network ' + requestedNetwork);
             }
