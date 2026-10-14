@@ -668,7 +668,7 @@ export class BaseExchange {
             this['has' + this.capitalize (k)] = (this.has[k] !== undefined) && (this.has[k] !== false); // converts 'emulated' to true
         }
         this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
-        this.afterConstruct ();
+        this.afterConstruct (userConfig);
         // exchange specific libs
         this.loadExchangeSpecificFiles ();
     }
