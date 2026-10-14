@@ -2249,11 +2249,25 @@ public partial class testMainClass
         return true;
     }
 
+    public virtual object wsRequestWasSent(BaseExchange exchange, object url, object id)
+    {
+        object sentMessages = getWsSentMessages(exchange, url);
+        for (int i = 0; i < getArrayLength(sentMessages); i++)
+        {
+            if (isEqual(exchange.safeString(getValue(sentMessages, i), "id"), id))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public async virtual Task<object> injectWsMessages(BaseExchange exchange, object url, object messages, object sequential = null)
     {
         // before every frame, wait until the watch flow is actually awaiting
         // something — a fixed head-start sleep is not enough on slow ci
         // runners and the frame's resolution would be dropped
+        // a reply frame must not arrive before its request was sent, or it is dropped
         // threaded runtimes resolve futures on another thread — wait for
         // the consumed frame to settle so the pending check above does not
         // observe a stale future and burn the next frame early; frames
@@ -2267,6 +2281,13 @@ public partial class testMainClass
             {
                 await exchange.sleep(50);
                 waited = add(waited, 50);
+            }
+            object frameId = exchange.safeString(getValue(messages, i), "id");
+            object waitedSent = 0;
+            while (((frameId != null)) && !isTrue(this.wsRequestWasSent(exchange, url, frameId)) && (isLessThan(waitedSent, 5000)))
+            {
+                await exchange.sleep(50);
+                waitedSent = add(waitedSent, 50);
             }
             injectWsMessage(exchange, url, getValue(messages, i));
             object settled = 0;

@@ -2542,7 +2542,7 @@ public class Alpaca extends AlpacaApi
             // the two calls stay sequential deliberately — the static request harness records one request per case,
             // and concurrent calls make the recorded url nondeterministic per language
             Map<String, Object> account = (this.traderPrivateGetV2Account(parameters)).join();
-            List<Object> positions = (this.traderPrivateGetV2Positions()).join();
+            List<Object> positions = (this.traderPrivateGetV2Positions(new HashMap<String, Object>() {{}})).join();
             //
             //     {
             //         "id": "43a01bde-4eb1-64fssc26adb5",

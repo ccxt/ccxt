@@ -10008,7 +10008,7 @@ public class Htx extends HtxApi
                     response = (this.contractPrivatePostSwapApiV1SwapAccountPositionInfo(this.extend(request, query))).join();
                 } else
                 {
-                    throw new NotSupported((this.id + " setLeverage() not support this market type")) ;
+                    throw new NotSupported((this.id + " fetchPosition() not support this market type")) ;
                 }
             }
             Object data = this.safeValue(response, "data");

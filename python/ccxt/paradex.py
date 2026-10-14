@@ -1551,7 +1551,10 @@ class paradex(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_integer(order, 'created_at')
         orderId = self.safe_string(order, 'id')
-        clientOrderId = self.omit_zero(self.safe_string(order, 'client_id'))
+        # a client id is free text, omitZero would drop every non-numeric one in php
+        clientOrderId = self.safe_string(order, 'client_id')
+        if clientOrderId == '':
+            clientOrderId = None
         marketId = self.safe_string(order, 'market')
         marketResolved = self.safe_market(marketId, market)
         symbol = marketResolved['symbol']

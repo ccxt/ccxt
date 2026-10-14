@@ -7,5 +7,245 @@
 // -------------------------------------------------------------------------------
 import { Exchange as _Exchange } from '../base/Exchange.js';
 class Exchange extends _Exchange {
+    publicGetOpenapiV1Ping(params = {}) {
+        return this.request("openapi/v1/ping", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    publicGetOpenapiV1Time(params = {}) {
+        return this.request("openapi/v1/time", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    publicGetOpenapiV1UserIp(params = {}) {
+        return this.request("openapi/v1/user/ip", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    publicGetOpenapiQuoteV1Ticker24hr(params = {}) {
+        return this.request("openapi/quote/v1/ticker/24hr", "public", 'GET', params, undefined, undefined, { "cost": 1, "noSymbolAndNoSymbols": 40, "byNumberOfSymbols": [[101, 40], [21, 20], [0, 1]] });
+    }
+    publicGetOpenapiQuoteV1TickerPrice(params = {}) {
+        return this.request("openapi/quote/v1/ticker/price", "public", 'GET', params, undefined, undefined, { "cost": 1, "noSymbol": 2 });
+    }
+    publicGetOpenapiQuoteV1TickerBookTicker(params = {}) {
+        return this.request("openapi/quote/v1/ticker/bookTicker", "public", 'GET', params, undefined, undefined, { "cost": 1, "noSymbol": 2 });
+    }
+    publicGetOpenapiV1ExchangeInfo(params = {}) {
+        return this.request("openapi/v1/exchangeInfo", "public", 'GET', params, undefined, undefined, { "cost": 10 });
+    }
+    publicGetOpenapiQuoteV1Depth(params = {}) {
+        return this.request("openapi/quote/v1/depth", "public", 'GET', params, undefined, undefined, { "cost": 1, "byLimit": [[101, 5], [0, 1]] });
+    }
+    publicGetOpenapiQuoteV1Klines(params = {}) {
+        return this.request("openapi/quote/v1/klines", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    publicGetOpenapiQuoteV1Trades(params = {}) {
+        return this.request("openapi/quote/v1/trades", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    publicGetOpenapiV1Pairs(params = {}) {
+        return this.request("openapi/v1/pairs", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    publicGetOpenapiQuoteV1AvgPrice(params = {}) {
+        return this.request("openapi/quote/v1/avgPrice", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    privateGetOpenapiV1CheckSysStatus(params = {}) {
+        return this.request("openapi/v1/check-sys-status", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    privateGetOpenapiWalletV1ConfigGetall(params = {}) {
+        return this.request("openapi/wallet/v1/config/getall", "private", 'GET', params, undefined, undefined, { "cost": 10 });
+    }
+    privateGetOpenapiWalletV1DepositAddress(params = {}) {
+        return this.request("openapi/wallet/v1/deposit/address", "private", 'GET', params, undefined, undefined, { "cost": 10 });
+    }
+    privateGetOpenapiWalletV1DepositHistory(params = {}) {
+        return this.request("openapi/wallet/v1/deposit/history", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    privateGetOpenapiWalletV1WithdrawHistory(params = {}) {
+        return this.request("openapi/wallet/v1/withdraw/history", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    privateGetOpenapiWalletV1WithdrawAddressWhitelist(params = {}) {
+        return this.request("openapi/wallet/v1/withdraw/address-whitelist", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    privateGetOpenapiV1Account(params = {}) {
+        return this.request("openapi/v1/account", "private", 'GET', params, undefined, undefined, { "cost": 10 });
+    }
+    privateGetOpenapiV1ApiKeys(params = {}) {
+        return this.request("openapi/v1/api-keys", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    privateGetOpenapiV1OpenOrders(params = {}) {
+        return this.request("openapi/v1/openOrders", "private", 'GET', params, undefined, undefined, { "cost": 3, "noSymbol": 40 });
+    }
+    privateGetOpenapiV1AssetTradeFee(params = {}) {
+        return this.request("openapi/v1/asset/tradeFee", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    privateGetOpenapiV1Order(params = {}) {
+        return this.request("openapi/v1/order", "private", 'GET', params, undefined, undefined, { "cost": 2 });
+    }
+    privateGetOpenapiV1HistoryOrders(params = {}) {
+        return this.request("openapi/v1/historyOrders", "private", 'GET', params, undefined, undefined, { "cost": 10, "noSymbol": 40 });
+    }
+    privateGetOpenapiV1MyTrades(params = {}) {
+        return this.request("openapi/v1/myTrades", "private", 'GET', params, undefined, undefined, { "cost": 10 });
+    }
+    privateGetOpenapiV1CapitalDepositHistory(params = {}) {
+        return this.request("openapi/v1/capital/deposit/history", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    privateGetOpenapiV1CapitalWithdrawHistory(params = {}) {
+        return this.request("openapi/v1/capital/withdraw/history", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    privateGetOpenapiV3PaymentRequestGetPaymentRequest(params = {}) {
+        return this.request("openapi/v3/payment-request/get-payment-request", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    privateGetMerchantApiV1GetInvoices(params = {}) {
+        return this.request("merchant-api/v1/get-invoices", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    privateGetOpenapiAccountV3CryptoAccounts(params = {}) {
+        return this.request("openapi/account/v3/crypto-accounts", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    privateGetOpenapiTransferV3TransfersId(params = {}) {
+        return this.request("openapi/transfer/v3/transfers/{id}", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    privateGetOpenapiV1SubAccountList(params = {}) {
+        return this.request("openapi/v1/sub-account/list", "private", 'GET', params, undefined, undefined, { "cost": 10 });
+    }
+    privateGetOpenapiV1SubAccountAsset(params = {}) {
+        return this.request("openapi/v1/sub-account/asset", "private", 'GET', params, undefined, undefined, { "cost": 10 });
+    }
+    privateGetOpenapiV1SubAccountTransferUniversalTransferHistory(params = {}) {
+        return this.request("openapi/v1/sub-account/transfer/universal-transfer-history", "private", 'GET', params, undefined, undefined, { "cost": 10 });
+    }
+    privateGetOpenapiV1SubAccountTransferSubHistory(params = {}) {
+        return this.request("openapi/v1/sub-account/transfer/sub-history", "private", 'GET', params, undefined, undefined, { "cost": 10 });
+    }
+    privateGetOpenapiV1SubAccountApikeyIpRestriction(params = {}) {
+        return this.request("openapi/v1/sub-account/apikey/ip-restriction", "private", 'GET', params, undefined, undefined, { "cost": 10 });
+    }
+    privateGetOpenapiV1SubAccountWalletDepositAddress(params = {}) {
+        return this.request("openapi/v1/sub-account/wallet/deposit/address", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    privateGetOpenapiV1SubAccountWalletDepositHistory(params = {}) {
+        return this.request("openapi/v1/sub-account/wallet/deposit/history", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    privateGetOpenapiV1FundCollectGetFundRecord(params = {}) {
+        return this.request("openapi/v1/fund-collect/get-fund-record", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    privateGetOpenapiV1AssetTransactionHistory(params = {}) {
+        return this.request("openapi/v1/asset/transaction/history", "private", 'GET', params, undefined, undefined, { "cost": 20 });
+    }
+    privatePostOpenapiWalletV1WithdrawApply(params = {}) {
+        return this.request("openapi/wallet/v1/withdraw/apply", "private", 'POST', params, undefined, undefined, { "cost": 600 });
+    }
+    privatePostOpenapiV1OrderTest(params = {}) {
+        return this.request("openapi/v1/order/test", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostOpenapiV1Order(params = {}) {
+        return this.request("openapi/v1/order", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostOpenapiV1OrderCancelReplace(params = {}) {
+        return this.request("openapi/v1/order/cancelReplace", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostOpenapiV1CapitalWithdrawApply(params = {}) {
+        return this.request("openapi/v1/capital/withdraw/apply", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostOpenapiV1CapitalDepositApply(params = {}) {
+        return this.request("openapi/v1/capital/deposit/apply", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostOpenapiV3PaymentRequestPaymentRequests(params = {}) {
+        return this.request("openapi/v3/payment-request/payment-requests", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostOpenapiV3PaymentRequestDeletePaymentRequest(params = {}) {
+        return this.request("openapi/v3/payment-request/delete-payment-request", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostOpenapiV3PaymentRequestPaymentRequestReminder(params = {}) {
+        return this.request("openapi/v3/payment-request/payment-request-reminder", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostOpenapiV1UserDataStream(params = {}) {
+        return this.request("openapi/v1/userDataStream", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostMerchantApiV1Invoices(params = {}) {
+        return this.request("merchant-api/v1/invoices", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostMerchantApiV1InvoicesCancel(params = {}) {
+        return this.request("merchant-api/v1/invoices-cancel", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostOpenapiConvertV1GetSupportedTradingPairs(params = {}) {
+        return this.request("openapi/convert/v1/get-supported-trading-pairs", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostOpenapiConvertV1GetQuote(params = {}) {
+        return this.request("openapi/convert/v1/get-quote", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostOpenapiConvertV1AcceptQuote(params = {}) {
+        return this.request("openapi/convert/v1/accept-quote", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostOpenapiConvertV1QueryOrderHistory(params = {}) {
+        return this.request("openapi/convert/v1/query-order-history", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostOpenapiOtcTradeV1GetSupportedTradingPairs(params = {}) {
+        return this.request("openapi/otc-trade/v1/get-supported-trading-pairs", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostOpenapiOtcTradeV1CreateRfq(params = {}) {
+        return this.request("openapi/otc-trade/v1/create-rfq", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostOpenapiOtcTradeV1AcceptRfq(params = {}) {
+        return this.request("openapi/otc-trade/v1/accept-rfq", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostOpenapiOtcTradeV1ManualSettle(params = {}) {
+        return this.request("openapi/otc-trade/v1/manual-settle", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostOpenapiOtcTradeV1QueryOrderHistory(params = {}) {
+        return this.request("openapi/otc-trade/v1/query-order-history", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostOpenapiFiatV1SupportChannel(params = {}) {
+        return this.request("openapi/fiat/v1/support-channel", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostOpenapiFiatV1CashOut(params = {}) {
+        return this.request("openapi/fiat/v1/cash-out", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostOpenapiFiatV1History(params = {}) {
+        return this.request("openapi/fiat/v1/history", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostOpenapiFiatV2History(params = {}) {
+        return this.request("openapi/fiat/v2/history", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostOpenapiFiatV1CancelQrCode(params = {}) {
+        return this.request("openapi/fiat/v1/cancel_qr_code", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostOpenapiMigrationV4Sellorder(params = {}) {
+        return this.request("openapi/migration/v4/sellorder", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostOpenapiMigrationV4ValidateField(params = {}) {
+        return this.request("openapi/migration/v4/validate-field", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostOpenapiTransferV3Transfers(params = {}) {
+        return this.request("openapi/transfer/v3/transfers", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostOpenapiTransferV4Transfers(params = {}) {
+        return this.request("openapi/transfer/v4/transfers", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostOpenapiV1SubAccountCreate(params = {}) {
+        return this.request("openapi/v1/sub-account/create", "private", 'POST', params, undefined, undefined, { "cost": 30 });
+    }
+    privatePostOpenapiV1SubAccountTransferUniversalTransfer(params = {}) {
+        return this.request("openapi/v1/sub-account/transfer/universal-transfer", "private", 'POST', params, undefined, undefined, { "cost": 100 });
+    }
+    privatePostOpenapiV1SubAccountTransferSubToMaster(params = {}) {
+        return this.request("openapi/v1/sub-account/transfer/sub-to-master", "private", 'POST', params, undefined, undefined, { "cost": 100 });
+    }
+    privatePostOpenapiV1SubAccountApikeyAddIpRestriction(params = {}) {
+        return this.request("openapi/v1/sub-account/apikey/add-ip-restriction", "private", 'POST', params, undefined, undefined, { "cost": 30 });
+    }
+    privatePostOpenapiV1SubAccountApikeyDeleteIpRestriction(params = {}) {
+        return this.request("openapi/v1/sub-account/apikey/delete-ip-restriction", "private", 'POST', params, undefined, undefined, { "cost": 30 });
+    }
+    privatePostOpenapiV1FundCollectCollectFromSubAccount(params = {}) {
+        return this.request("openapi/v1/fund-collect/collect-from-sub-account", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePutOpenapiV1UserDataStream(params = {}) {
+        return this.request("openapi/v1/userDataStream", "private", 'PUT', params, undefined, undefined, { "cost": 1 });
+    }
+    privateDeleteOpenapiV1Order(params = {}) {
+        return this.request("openapi/v1/order", "private", 'DELETE', params, undefined, undefined, { "cost": 1 });
+    }
+    privateDeleteOpenapiV1OpenOrders(params = {}) {
+        return this.request("openapi/v1/openOrders", "private", 'DELETE', params, undefined, undefined, { "cost": 1 });
+    }
+    privateDeleteOpenapiV1UserDataStream(params = {}) {
+        return this.request("openapi/v1/userDataStream", "private", 'DELETE', params, undefined, undefined, { "cost": 1 });
+    }
 }
 export default Exchange;

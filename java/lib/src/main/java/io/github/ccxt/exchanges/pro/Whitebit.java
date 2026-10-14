@@ -1202,7 +1202,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
             try
             {
-                Map<String, Object> authToken = (this.v4PrivatePostProfileWebsocketToken()).join();
+                Map<String, Object> authToken = (this.v4PrivatePostProfileWebsocketToken(new HashMap<String, Object>() {{}})).join();
                 //
                 //   {
                 //       "websocket_token": "$2y$10$lxCvTXig/XrcTBFY1bdFseCKQmFTDtCpEzHNVnXowGplExFxPJp9y"

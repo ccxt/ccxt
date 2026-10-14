@@ -30,7 +30,9 @@ impl BinanceCore {
     pub fn init(&mut self) {
         let described = BinanceCore::describe(self);
         self.initialize_properties(described);
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self);
+        // compatibility for sandbox/testnet options in userConfig
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -5162,7 +5164,6 @@ impl BinanceCore {
         m.insert("spot".to_string(), Value::Str("x-TKT5PX2F".into()));
         m.insert("margin".to_string(), Value::Str("x-TKT5PX2F".into()));
         m.insert("future".to_string(), Value::Str("x-cvBPrNm9".into()));
-        m.insert("delivery".to_string(), Value::Str("x-xcKtGhcu".into()));
         m.insert("swap".to_string(), Value::Str("x-cvBPrNm9".into()));
         m.insert("option".to_string(), Value::Str("x-xcKtGhcu".into()));
         m.insert("inverse".to_string(), Value::Str("x-xcKtGhcu".into()));
@@ -5176,7 +5177,6 @@ impl BinanceCore {
         m.insert("margin".to_string(), Value::Str("MARGIN".into()));
         m.insert("cross".to_string(), Value::Str("MARGIN".into()));
         m.insert("future".to_string(), Value::Str("UMFUTURE".into()));
-        m.insert("delivery".to_string(), Value::Str("CMFUTURE".into()));
         m.insert("linear".to_string(), Value::Str("UMFUTURE".into()));
         m.insert("swap".to_string(), Value::Str("UMFUTURE".into()));
         m.insert("inverse".to_string(), Value::Str("CMFUTURE".into()));
@@ -6559,11 +6559,7 @@ impl BinanceCore {
 
     pub fn is_inverse(&self, mut type_var: Value, optional_args: &[Value]) -> Value {
         let mut subType = get_arg(optional_args, 0, Value::Null);
-        if (subType == Value::Null) {
-            return (Value::Bool(type_var.as_str() == Some("delivery")));
-        }  else {
-            return Value::Bool(subType.as_str() == Some("inverse"));
-        }
+        return Value::Bool(subType.as_str() == Some("inverse"));
 
     Value::Null
 }
@@ -6668,12 +6664,12 @@ impl BinanceCore {
         if (self.markets.clone() == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" markets not loaded".into()))));
         }
-        // defaultType has legacy support on binance
+        // defaultType 'future' resolves spot-style symbols to the derivative market of defaultSubType
         let mut defaultType: Value = self.safe_string_k(self.options.clone(), "defaultType", &[]);
         let mut defaultSubType: Value = self.safe_string_k(self.options.clone(), "defaultSubType", &[]);
-        let mut isLegacyLinear: bool = defaultType.as_str() == Some("future");
-        let mut isLegacyInverse: bool = defaultType.as_str() == Some("delivery");
-        let mut isLegacy: bool = isLegacyLinear || isLegacyInverse;
+        let mut isLegacy: bool = defaultType.as_str() == Some("future");
+        let mut isLegacyInverse: bool = isLegacy && (defaultSubType.as_str() == Some("inverse"));
+        let mut isLegacyLinear: bool = isLegacy && !isLegacyInverse;
         if matches!(&symbol, Value::Str(_)) {
             if (self.markets.clone() != Value::Null) && (in_op(&self.markets, &symbol)) {
                 let mut market: Value = get_value(&self.markets, &symbol);
@@ -6940,7 +6936,7 @@ impl BinanceCore {
         let mut response: Value = Value::Null;
         if is_true(&self.is_linear(type_var.clone(), &[subType.clone()])) {
             response = self.fapi_public_get_time(&[query.clone()]).await;
-        }  else if is_true(&self.is_inverse(type_var, &[subType])) {
+        }  else if self.is_inverse(type_var, &[subType]).as_bool() == Some(true) {
             response = self.dapi_public_get_time(&[query.clone()]).await;
         }  else {
             response = self.public_get_time(&[query]).await;
@@ -8068,7 +8064,7 @@ impl BinanceCore {
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/account#option-margin-account-information // option
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Account-Balance                            // portfolio margin
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot' or 'papi'
+ * @param {string} [params.type] 'spot', 'margin', 'swap', 'future', 'option', 'savings', 'funding' or 'papi', use params.subType 'inverse' for COIN-M
  * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
  * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
  * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the balance for a portfolio margin account
@@ -8102,7 +8098,7 @@ impl BinanceCore {
         if is_true(&isPortfolioMargin) || (type_var.as_str() == Some("papi")) {
             if is_true(&self.is_linear(type_var.clone(), &[subType.clone()])) {
                 type_var = Value::Str("linear".into());
-            }  else if is_true(&self.is_inverse(type_var.clone(), &[subType.clone()])) {
+            }  else if self.is_inverse(type_var.clone(), &[subType.clone()]).as_bool() == Some(true) {
                 type_var = Value::Str("inverse".into());
             }
             isPortfolioMargin = Value::Bool(true);
@@ -8118,7 +8114,7 @@ impl BinanceCore {
             }  else {
                 response = self.fapi_private_v2_get_account(&[paramsSubType.clone()]).await;
             }
-        }  else if is_true(&self.is_inverse(type_var.clone(), &[subType])) {
+        }  else if self.is_inverse(type_var.clone(), &[subType]).as_bool() == Some(true) {
             type_var = Value::Str("inverse".into());
             let __ws_arg_5 = self.extend(request.clone(), &[query.clone()]);
             response = self.dapi_private_get_account(&[__ws_arg_5]).await;
@@ -8633,7 +8629,7 @@ impl BinanceCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (symbolsNormalized != Value::Null) && (is_true(&self.is_linear(type_var.clone(), &[subType.clone()])) || is_true(&self.is_inverse(type_var.clone(), &[subType.clone()]))) {
+        if (symbolsNormalized != Value::Null) && (is_true(&self.is_linear(type_var.clone(), &[subType.clone()])) || self.is_inverse(type_var.clone(), &[subType.clone()]).as_bool() == Some(true)) {
             let mut symbolsLength: f64 = ((symbolsNormalized.len() as i64) as f64);
             if (symbolsLength == 1.0) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), self.market_id(symbolsNormalized.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null))); }
@@ -8645,7 +8641,7 @@ impl BinanceCore {
         }  else if is_true(&self.is_linear(type_var.clone(), &[subType.clone()])) {
             let __ws_arg_22 = self.extend(request.clone(), &[paramsSubType.clone()]);
             response = self.fapi_public_get_ticker_book_ticker(&[__ws_arg_22]).await;
-        }  else if is_true(&self.is_inverse(type_var.clone(), &[subType])) {
+        }  else if self.is_inverse(type_var.clone(), &[subType]).as_bool() == Some(true) {
             let __ws_arg_23 = self.extend(request.clone(), &[paramsSubType.clone()]);
             response = self.dapi_public_get_ticker_book_ticker(&[__ws_arg_23]).await;
         }  else if (type_var.as_str() == Some("spot")) {
@@ -8697,7 +8693,7 @@ impl BinanceCore {
         let mut response: Value = Value::Null;
         if is_true(&self.is_linear(type_var.clone(), &[subType.clone()])) {
             response = self.fapi_public_v2_get_ticker_price(&[paramsSubType.clone()]).await;
-        }  else if is_true(&self.is_inverse(type_var.clone(), &[subType])) {
+        }  else if self.is_inverse(type_var.clone(), &[subType]).as_bool() == Some(true) {
             response = self.dapi_public_get_ticker_price(&[paramsSubType.clone()]).await;
         }  else if (type_var.as_str() == Some("spot")) {
             response = self.public_get_ticker_price(&[paramsSubType]).await;
@@ -8792,7 +8788,7 @@ impl BinanceCore {
         let mut response: Value = Value::Null;
         if is_true(&self.is_linear(type_var.clone(), &[subType.clone()])) {
             response = self.fapi_public_get_ticker24hr(&[paramsMarketType.clone()]).await;
-        }  else if is_true(&self.is_inverse(type_var.clone(), &[subType])) {
+        }  else if self.is_inverse(type_var.clone(), &[subType]).as_bool() == Some(true) {
             response = self.dapi_public_get_ticker24hr(&[paramsMarketType.clone()]).await;
         }  else if (type_var.as_str() == Some("spot")) {
             let mut rolling: Value = self.safe_bool_k(paramsMarketType.clone(), "rolling", &[Value::Bool(false)]);
@@ -8885,7 +8881,7 @@ impl BinanceCore {
         }  else if is_true(&self.is_linear(type_var.clone(), &[subType.clone()])) {
             let __ws_arg_28 = self.extend(request.clone(), &[paramsSubType.clone()]);
             response = self.fapi_public_get_premium_index(&[__ws_arg_28]).await;
-        }  else if is_true(&self.is_inverse(type_var.clone(), &[subType])) {
+        }  else if self.is_inverse(type_var.clone(), &[subType]).as_bool() == Some(true) {
             let __ws_arg_29 = self.extend(request, &[paramsSubType]);
             response = self.dapi_public_get_premium_index(&[__ws_arg_29]).await;
         }  else {
@@ -8939,7 +8935,7 @@ impl BinanceCore {
             response = self.eapi_public_get_mark(&[paramsSubType.clone()]).await;
         }  else if is_true(&self.is_linear(type_var.clone(), &[subType.clone()])) {
             response = self.fapi_public_get_premium_index(&[paramsSubType.clone()]).await;
-        }  else if is_true(&self.is_inverse(type_var.clone(), &[subType])) {
+        }  else if self.is_inverse(type_var.clone(), &[subType]).as_bool() == Some(true) {
             response = self.dapi_public_get_premium_index(&[paramsSubType]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMarkPrices() does not support ".into())).into()), type_var).into()), Value::Str(" markets yet".into()))));
@@ -11144,9 +11140,7 @@ impl BinanceCore {
             let mut defaultType: Value = self.safe_string_k(self.options.clone(), "defaultType", &[Value::Str("spot".into())]);
             let mut defaultSubType: Option<String> = self.safe_string_k(self.options.clone(), "defaultSubType", &[]).as_str().map(str::to_owned);
             idMarketType = defaultType.clone();
-            if (defaultType.as_str() == Some("delivery")) {
-                idMarketType = Value::Str("inverse".into());
-            }  else if (defaultSubType.as_deref() == Some("inverse")) && ((defaultType.as_str() == Some("swap")) || (defaultType.as_str() == Some("future"))) {
+            if (defaultSubType.as_deref() == Some("inverse")) && ((defaultType.as_str() == Some("swap")) || (defaultType.as_str() == Some("future"))) {
                 idMarketType = Value::Str("inverse".into());
             }
         }
@@ -12370,7 +12364,7 @@ impl BinanceCore {
                     response = self.fapi_private_get_open_orders(&[__ws_arg_86]).await;
                 }
             }
-        }  else if is_true(&self.is_inverse(type_var.clone(), &[subType])) {
+        }  else if self.is_inverse(type_var.clone(), &[subType]).as_bool() == Some(true) {
             if is_true(&isPortfolioMargin) {
                 if (isConditional.as_bool() == Some(true)) {
                     let __ws_arg_87 = self.extend(request.clone(), &[paramsMarginMode.clone()]);
@@ -15339,7 +15333,7 @@ impl BinanceCore {
         if is_true(&self.is_linear(type_var.clone(), &[subType.clone()])) {
             let __ws_arg_157 = self.extend(request.clone(), &[paramsOmitted2.clone()]);
             response = self.fapi_public_get_funding_rate(&[__ws_arg_157]).await;
-        }  else if is_true(&self.is_inverse(type_var.clone(), &[subType])) {
+        }  else if self.is_inverse(type_var.clone(), &[subType]).as_bool() == Some(true) {
             let __ws_arg_158 = self.extend(request, &[paramsOmitted2]);
             response = self.dapi_public_get_funding_rate(&[__ws_arg_158]).await;
         }  else {
@@ -15403,7 +15397,7 @@ impl BinanceCore {
         let mut response: Value = Value::Null;
         if is_true(&self.is_linear(type_var.clone(), &[subType.clone()])) {
             response = self.fapi_public_get_premium_index(&[query.clone()]).await;
-        }  else if is_true(&self.is_inverse(type_var, &[subType])) {
+        }  else if self.is_inverse(type_var, &[subType]).as_bool() == Some(true) {
             response = self.dapi_public_get_premium_index(&[query]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRates() supports linear and inverse contracts only".into()))));
@@ -16083,7 +16077,7 @@ impl BinanceCore {
                 }  else {
                     response = self.fapi_private_get_leverage_bracket(&[query.clone()]).await;
                 }
-            }  else if is_true(&self.is_inverse(type_var, &[subType])) {
+            }  else if self.is_inverse(type_var, &[subType]).as_bool() == Some(true) {
                 if is_true(&isPortfolioMargin) {
                     response = self.papi_get_cm_leverage_bracket(&[query.clone()]).await;
                 }  else {
@@ -16164,7 +16158,7 @@ impl BinanceCore {
             }  else {
                 response = self.fapi_private_get_leverage_bracket(&[paramsPapi.clone()]).await;
             }
-        }  else if is_true(&self.is_inverse(type_var, &[subType])) {
+        }  else if self.is_inverse(type_var, &[subType]).as_bool() == Some(true) {
             if is_true(&isPortfolioMargin) {
                 response = self.papi_get_cm_leverage_bracket(&[paramsPapi.clone()]).await;
             }  else {
@@ -16511,7 +16505,7 @@ impl BinanceCore {
                     response = self.fapi_private_v2_get_account(&[paramsUseV2]).await;
                 }
             }
-        }  else if is_true(&self.is_inverse(type_var, &[subType])) {
+        }  else if self.is_inverse(type_var, &[subType]).as_bool() == Some(true) {
             if is_true(&isPortfolioMargin) {
                 response = self.papi_get_cm_account(&[paramsPapi.clone()]).await;
             }  else {
@@ -16588,7 +16582,7 @@ impl BinanceCore {
                     response = self.fapi_private_v2_get_position_risk(&[paramsSubType.clone()]).await;
                 }
             }
-        }  else if is_true(&self.is_inverse(type_var, &[subType])) {
+        }  else if self.is_inverse(type_var, &[subType]).as_bool() == Some(true) {
             if is_true(&isPortfolioMargin) {
                 let __ws_arg_163 = self.extend(request.clone(), &[paramsSubType.clone()]);
                 response = self.papi_get_cm_position_risk(&[__ws_arg_163]).await;
@@ -16771,7 +16765,7 @@ impl BinanceCore {
                 let __ws_arg_166 = self.extend(requestUntil.clone(), &[paramsOmitted.clone()]);
                 response = self.fapi_private_get_income(&[__ws_arg_166]).await;
             }
-        }  else if is_true(&self.is_inverse(type_var, &[subType])) {
+        }  else if self.is_inverse(type_var, &[subType]).as_bool() == Some(true) {
             if is_true(&isPortfolioMargin) {
                 let __ws_arg_167 = self.extend(requestUntil.clone(), &[paramsOmitted.clone()]);
                 response = self.papi_get_cm_income(&[__ws_arg_167]).await;
@@ -16988,7 +16982,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut response: Value = Value::Null;
-        if is_true(&self.is_inverse(type_var.clone(), &[subType.clone()])) {
+        if self.is_inverse(type_var.clone(), &[subType.clone()]).as_bool() == Some(true) {
             if is_true(&isPortfolioMargin) {
                 let __ws_arg_175 = self.extend(request.clone(), &[paramsPapi.clone()]);
                 response = self.papi_post_cm_position_side_dual(&[__ws_arg_175]).await;
@@ -17060,7 +17054,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }  else {
                 response = self.fapi_private_get_symbol_config(&[paramsPapi.clone()]).await;
             }
-        }  else if is_true(&self.is_inverse(type_var, &[subType])) {
+        }  else if self.is_inverse(type_var, &[subType]).as_bool() == Some(true) {
             if is_true(&isPortfolioMargin) {
                 response = self.papi_get_cm_account(&[paramsPapi.clone()]).await;
             }  else {
@@ -17474,7 +17468,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let __ws_arg_184 = self.extend(request.clone(), &[paramsPaginate.clone()]);
                 response = self.fapi_private_get_income(&[__ws_arg_184]).await;
             }
-        }  else if is_true(&self.is_inverse(type_var, &[subType])) {
+        }  else if self.is_inverse(type_var, &[subType]).as_bool() == Some(true) {
             if is_true(&isPortfolioMargin) {
                 let __ws_arg_185 = self.extend(request.clone(), &[paramsPaginate.clone()]);
                 response = self.papi_get_cm_income(&[__ws_arg_185]).await;
@@ -17978,7 +17972,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut type_var: Option<String> = self.safe_string_k(params.clone(), "type", &[defaultType]).as_str().map(str::to_owned);
         if (type_var.as_deref() == Some("margin")) || (type_var.as_deref() == Some("spot")) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" add / reduce margin only supported with type future or delivery".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" add / reduce margin only supported with linear or inverse swap/future markets".into()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -20232,7 +20226,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut response: Value = Value::Null;
         if is_true(&self.is_linear(type_var.clone(), &[subType.clone()])) {
             response = self.fapi_public_get_funding_info(&[paramsSubType.clone()]).await;
-        }  else if is_true(&self.is_inverse(type_var, &[subType])) {
+        }  else if self.is_inverse(type_var, &[subType]).as_bool() == Some(true) {
             response = self.dapi_public_get_funding_info(&[paramsSubType]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingIntervals() supports linear and inverse swap contracts only".into()))));

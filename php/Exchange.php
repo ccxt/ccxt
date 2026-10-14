@@ -1334,11 +1334,7 @@ class BaseExchange {
             }
         }
 
-        $this->after_construct();
-
-        if ($this->safe_bool($options, 'sandbox') || $this->safe_bool($options, 'testnet')) {
-            $this->set_sandbox_mode(true);
-        }
+        $this->after_construct($options);
     }
 
     public function init_throttler() {
@@ -4384,7 +4380,7 @@ class BaseExchange {
         return $timestamp;
     }
 
-    public function after_construct() {
+    public function after_construct(array $userConfig = array()) {
         // networks
         $this->create_networks_by_id_object();
         $this->features_generator();
@@ -4398,6 +4394,10 @@ class BaseExchange {
         $isSandbox = $this->safe_bool_2($this->options, 'sandbox', 'testnet', false);
         if ($isSandbox === true) {
             $this->set_sandbox_mode($isSandbox);
+        }
+        // compatibility for sandbox/testnet options in userConfig
+        if (($this->safe_bool($userConfig, 'sandbox', false)) || ($this->safe_bool($userConfig, 'testnet', false))) {
+            $this->set_sandbox_mode(true);
         }
     }
 

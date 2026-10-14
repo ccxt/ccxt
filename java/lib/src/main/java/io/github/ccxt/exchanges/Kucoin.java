@@ -2810,7 +2810,7 @@ public class Kucoin extends KucoinApi
 
             if (!(((Map<?, ?>)this.options).containsKey("hf")) || (java.util.Objects.equals(this.options.get("hf"), null)) || java.util.Objects.requireNonNullElse(force, false))
             {
-                Map<String, Object> result = (this.privateGetHfAccountsOpened()).join();
+                Map<String, Object> result = (this.privateGetHfAccountsOpened(new HashMap<String, Object>() {{}})).join();
                 Helpers.addElementToObject(this.options, "hf", this.safeBool(result, "data", (Object) null));
             }
             return true;
@@ -6216,7 +6216,7 @@ public class Kucoin extends KucoinApi
             {
                 if (java.util.Objects.equals(id, null))
                 {
-                    throw new ArgumentsRequired((this.id + " fetchOrder() requires an id argument or clientOrderId parameter")) ;
+                    throw new ArgumentsRequired((this.id + " cancelOrder() requires an id argument or clientOrderId parameter")) ;
                 }
                 request.put("orderId", id);
             }

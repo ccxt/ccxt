@@ -717,7 +717,7 @@ public class Bitteam extends BitteamApi
             Map<String, Object> responseResult = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> currencies = (List<Object>) this.safeList(responseResult, "currencies", new ArrayList<Object>(Arrays.asList()));
             // using another endpoint to fetch statuses of deposits and withdrawals
-            Object statusesResponse = (this.publicGetTradeApiCmcAssets()).join();
+            Object statusesResponse = (this.publicGetTradeApiCmcAssets(new HashMap<String, Object>() {{}})).join();
             //
             //     {
             //         "ZNX": {
@@ -1605,7 +1605,7 @@ public class Bitteam extends BitteamApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> response = (this.publicGetTradeApiCmcSummary()).join();
+            List<Object> response = (this.publicGetTradeApiCmcSummary(new HashMap<String, Object>() {{}})).join();
             //
             //     [
             //         {

@@ -1,6 +1,6 @@
 import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     publicGetDeepcoinMarketBooks(params?: {}): Promise<Dict>;
     publicGetDeepcoinMarketCandles(params?: {}): Promise<Dict>;
     publicGetDeepcoinMarketInstruments(params?: {}): Promise<Dict>;
@@ -70,7 +70,5 @@ interface Exchange {
     privatePostDeepcoinSubAccountCreateSubAccount(params?: {}): Promise<Dict>;
     privatePostDeepcoinSubAccountSubAccountApikey(params?: {}): Promise<Dict>;
     privatePostDeepcoinSubAccountDeleteSubAccountApikey(params?: {}): Promise<Dict>;
-}
-declare abstract class Exchange extends _Exchange {
 }
 export default Exchange;

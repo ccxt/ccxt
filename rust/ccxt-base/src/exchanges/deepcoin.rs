@@ -30,7 +30,9 @@ impl DeepcoinCore {
     pub fn init(&mut self) {
         let described = DeepcoinCore::describe(self);
         self.initialize_properties(described);
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self);
+        // compatibility for sandbox/testnet options in userConfig
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -264,12 +266,12 @@ impl DeepcoinCore {
         m.insert("fetchOrderBook".to_string(), Value::Bool(true));
         m.insert("fetchOrders".to_string(), Value::Bool(false));
         m.insert("fetchOrderTrades".to_string(), Value::Bool(true));
-        m.insert("fetchPosition".to_string(), Value::Bool(true));
+        m.insert("fetchPosition".to_string(), Value::Bool(false));
         m.insert("fetchPositionHistory".to_string(), Value::Bool(false));
         m.insert("fetchPositionMode".to_string(), Value::Bool(false));
         m.insert("fetchPositions".to_string(), Value::Bool(true));
         m.insert("fetchPositionsForSymbol".to_string(), Value::Bool(true));
-        m.insert("fetchPositionsHistory".to_string(), Value::Bool(true));
+        m.insert("fetchPositionsHistory".to_string(), Value::Bool(false));
         m.insert("fetchPremiumIndexOHLCV".to_string(), Value::Bool(false));
         m.insert("fetchStatus".to_string(), Value::Bool(false));
         m.insert("fetchTicker".to_string(), Value::Bool(false));

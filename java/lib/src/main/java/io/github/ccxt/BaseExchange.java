@@ -363,7 +363,7 @@ public class BaseExchange {
         this.initializeProperties(defaultConfig);
         this.initHttpClient();
         this.httpClientProxyFingerprint = currentProxyFingerprint();
-        this.afterConstruct();
+        this.afterConstruct(defaultConfig);
         this.transformApiNew(this.api, new ArrayList<>());
     }
 
@@ -773,6 +773,11 @@ public class BaseExchange {
 
     public static String binaryToBase16(Object buff2) {
         return Encode.binaryToBase16(buff2);
+    }
+
+    public String binaryToString(Object buff) {
+        // utf-8 decode of a byte array, mirrors TS binaryToString and the C# base
+        return new String((byte[]) buff, java.nio.charset.StandardCharsets.UTF_8);
     }
 
     public static String binaryToBase64(Object buff) {
@@ -5757,7 +5762,7 @@ public Object describe()
         return timestamp;
     }
 
-    public void afterConstruct()
+    public void afterConstruct(Map<String, Object> userConfig)
     {
         // networks
         this.createNetworksByIdObject();
@@ -5774,6 +5779,11 @@ public Object describe()
         if (java.util.Objects.equals(isSandbox, true))
         {
             this.setSandboxMode(isSandbox);
+        }
+        // compatibility for sandbox/testnet options in userConfig
+        if (Helpers.isTrue(Boolean.TRUE.equals((this.safeBool(userConfig, "sandbox", false))) || Boolean.TRUE.equals((this.safeBool(userConfig, "testnet", false)))))
+        {
+            this.setSandboxMode(true);
         }
     }
 

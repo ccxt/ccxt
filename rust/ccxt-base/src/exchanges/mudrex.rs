@@ -30,7 +30,9 @@ impl MudrexCore {
     pub fn init(&mut self) {
         let described = MudrexCore::describe(self);
         self.initialize_properties(described);
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self);
+        // compatibility for sandbox/testnet options in userConfig
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -773,8 +775,8 @@ impl MudrexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_940: bool = true;
-            while { if !__for_first_940 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_940 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
+            let mut __for_first_945: bool = true;
+            while { if !__for_first_945 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_945 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
             let mut t: Value = rows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut sym: Value = self.safe_string_k(t.clone(), "symbol", &[]);
             if (sym == Value::Null) {
@@ -875,8 +877,8 @@ impl MudrexCore {
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_941: bool = true;
-                while { if !__for_first_941 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_941 = false; i.as_f64().unwrap_or(f64::NAN) < numItems } {
+                let mut __for_first_946: bool = true;
+                while { if !__for_first_946 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_946 = false; i.as_f64().unwrap_or(f64::NAN) < numItems } {
                 append_to_array(&mut aggregated, items.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
             }
             }
@@ -890,8 +892,8 @@ impl MudrexCore {
         let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_942: bool = true;
-            while { if !__for_first_942 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_942 = false; i.as_f64().unwrap_or(f64::NAN) < ((aggregated.len() as i64) as f64) } {
+            let mut __for_first_947: bool = true;
+            while { if !__for_first_947 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_947 = false; i.as_f64().unwrap_or(f64::NAN) < ((aggregated.len() as i64) as f64) } {
             append_to_array(&mut result, self.parse_market(aggregated.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)));
         }
         }
@@ -1506,8 +1508,8 @@ impl MudrexCore {
         let mut orders: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_943: bool = true;
-            while { if !__for_first_943 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_943 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
+            let mut __for_first_948: bool = true;
+            while { if !__for_first_948 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_948 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
             append_to_array(&mut orders, self.parse_order(rows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[market.clone()]));
         }
         }
@@ -1621,8 +1623,8 @@ impl MudrexCore {
         let mut outPos: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_944: bool = true;
-            while { if !__for_first_944 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_944 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
+            let mut __for_first_949: bool = true;
+            while { if !__for_first_949 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_949 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
             let mut p: Value = rows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut symRaw: Value = self.safe_string_k(p.clone(), "symbol", &[]);
             let mut m: Value = self.safe_market(&[symRaw]);
@@ -1782,8 +1784,8 @@ impl MudrexCore {
             let mut positions: Value = self.fetch_positions(&[Value::from(vec![symbol.clone()]), params.clone()]).await;
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_945: bool = true;
-                while { if !__for_first_945 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_945 = false; i.as_f64().unwrap_or(f64::NAN) < ((positions.len() as i64) as f64) } {
+                let mut __for_first_950: bool = true;
+                while { if !__for_first_950 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_950 = false; i.as_f64().unwrap_or(f64::NAN) < ((positions.len() as i64) as f64) } {
                 let mut p: Value = positions.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 if (side != Value::Null) && (p.as_map().and_then(|__m| __m.get("side")).cloned().unwrap_or(Value::Null).as_str() != side.as_str()) {
                     continue;
@@ -1848,8 +1850,8 @@ impl MudrexCore {
             let mut positions: Value = self.fetch_positions(&[Value::from(vec![symbol.clone()]), params.clone()]).await;
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_946: bool = true;
-                while { if !__for_first_946 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_946 = false; i.as_f64().unwrap_or(f64::NAN) < ((positions.len() as i64) as f64) } {
+                let mut __for_first_951: bool = true;
+                while { if !__for_first_951 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_951 = false; i.as_f64().unwrap_or(f64::NAN) < ((positions.len() as i64) as f64) } {
                 let mut p: Value = positions.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 if (p.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null).as_str() == symbol.as_str()) {
                     positionId = self.safe_string_k(p, "id", &[]);
@@ -1954,8 +1956,8 @@ impl MudrexCore {
             let mut dataLength: Value = Value::Int(data.len() as i64);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_947: bool = true;
-                while { if !__for_first_947 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_947 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_952: bool = true;
+                while { if !__for_first_952 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_952 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
                 let mut entry: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 append_to_array(&mut allRows, entry.clone());
                 if (self.safe_string_k(entry.clone(), "fee_type", &[]).as_str() == Some("TRANSACTION")) {
@@ -1982,8 +1984,8 @@ impl MudrexCore {
         let mut transactionKeys: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_948: bool = true;
-            while { if !__for_first_948 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_948 = false; i.as_f64().unwrap_or(f64::NAN) < ((allRows.len() as i64) as f64) } {
+            let mut __for_first_953: bool = true;
+            while { if !__for_first_953 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_953 = false; i.as_f64().unwrap_or(f64::NAN) < ((allRows.len() as i64) as f64) } {
             let mut entry: Value = allRows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut feeType: Option<String> = self.safe_string_k(entry.clone(), "fee_type", &[]).as_str().map(str::to_owned);
             let mut pairKey: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(entry.clone(), "symbol", &[Value::Str("".into())]), Value::Str(":".into())).into()), self.safe_string_k(entry.clone(), "created_at", &[Value::Str("".into())])).into()), Value::Str(":".into())).into()), self.safe_string_k(entry.clone(), "transaction_amount", &[Value::Str("".into())])).into());
@@ -1999,13 +2001,13 @@ impl MudrexCore {
         let mut rows: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_950: bool = true;
-            while { if !__for_first_950 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_950 = false; i.as_f64().unwrap_or(f64::NAN) < ((transactions.len() as i64) as f64) } {
+            let mut __for_first_955: bool = true;
+            while { if !__for_first_955 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_955 = false; i.as_f64().unwrap_or(f64::NAN) < ((transactions.len() as i64) as f64) } {
             let mut rebate: Value = Value::Null;
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_949: bool = true;
-                while { if !__for_first_949 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_949 = false; j.as_f64().unwrap_or(f64::NAN) < ((rebateKeys.len() as i64) as f64) } {
+                let mut __for_first_954: bool = true;
+                while { if !__for_first_954 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_954 = false; j.as_f64().unwrap_or(f64::NAN) < ((rebateKeys.len() as i64) as f64) } {
                 if (rebateKeys.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null).as_str() == transactionKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null).as_str()) {
                     rebate = self.safe_string(rebateAmounts.clone(), j.clone(), &[]);
                     // blank the consumed key so the next equal fill matches the next rebate, never the same one twice

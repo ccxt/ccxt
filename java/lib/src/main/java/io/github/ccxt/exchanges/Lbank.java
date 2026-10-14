@@ -1773,13 +1773,13 @@ public class Lbank extends LbankApi
             Object response = null;
             if (java.util.Objects.equals(method, "spotPrivatePostSupplementUserInfoAccount"))
             {
-                response = (this.spotPrivatePostSupplementUserInfoAccount()).join();
+                response = (this.spotPrivatePostSupplementUserInfoAccount(new HashMap<String, Object>() {{}})).join();
             } else if (java.util.Objects.equals(method, "spotPrivatePostUserInfo"))
             {
-                response = (this.spotPrivatePostUserInfo()).join();
+                response = (this.spotPrivatePostUserInfo(new HashMap<String, Object>() {{}})).join();
             } else
             {
-                response = (this.spotPrivatePostSupplementUserInfo()).join();
+                response = (this.spotPrivatePostSupplementUserInfo(new HashMap<String, Object>() {{}})).join();
             }
             //
             //    {
@@ -3165,7 +3165,7 @@ public class Lbank extends LbankApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> response = (this.spotPrivatePostSupplementUserInfo()).join();
+            Map<String, Object> response = (this.spotPrivatePostSupplementUserInfo(new HashMap<String, Object>() {{}})).join();
             //
             //    {
             //        "result": "true",

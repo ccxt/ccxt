@@ -1193,7 +1193,7 @@ func (this *Bit2c) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...a
 	//     ]
 	//
 	var responseList []any = []any{}
-	if response != nil {
+	if !IsEqual(response, nil) {
 		responseList = this.ToArray(response)
 	}
 

@@ -30,7 +30,9 @@ impl UpbitCore {
     pub fn init(&mut self) {
         let described = UpbitCore::describe(self);
         self.initialize_properties(described);
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self);
+        // compatibility for sandbox/testnet options in userConfig
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -1121,8 +1123,8 @@ impl UpbitCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1082: bool = true;
-            while { if !__for_first_1082 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1082 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_1087: bool = true;
+            while { if !__for_first_1087 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1087 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
             let mut balance: Value = self.safe_dict(response.clone(), i.clone(), &[]);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
@@ -1238,8 +1240,8 @@ impl UpbitCore {
         let mut orderbooks: Value = self.to_array(response);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1083: bool = true;
-            while { if !__for_first_1083 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1083 = false; i.as_f64().unwrap_or(f64::NAN) < ((orderbooks.len() as i64) as f64) } {
+            let mut __for_first_1088: bool = true;
+            while { if !__for_first_1088 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1088 = false; i.as_f64().unwrap_or(f64::NAN) < ((orderbooks.len() as i64) as f64) } {
             let mut orderbook: Value = orderbooks.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(orderbook.clone(), "market", &[]);
             let mut symbol: Value = self.safe_symbol(marketId, &[Value::Null, Value::Str("-".into())]);
@@ -1377,8 +1379,8 @@ impl UpbitCore {
             let mut marketSymbols: Value = self.symbols.clone();
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1084: bool = true;
-                while { if !__for_first_1084 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1084 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketSymbols.len() as i64) as f64) } {
+                let mut __for_first_1089: bool = true;
+                while { if !__for_first_1089 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1089 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketSymbols.len() as i64) as f64) } {
                 let mut market: Value = self.market(marketSymbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
                 let mut quoteId: Value = market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null);
                 if !(self.in_array(quoteId.clone(), quoteIds.clone()).as_bool() == Some(true)) {
@@ -1390,8 +1392,8 @@ impl UpbitCore {
             let mut quoteCurrencies: Value = Value::Str("".into());
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1085: bool = true;
-                while { if !__for_first_1085 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1085 = false; i.as_f64().unwrap_or(f64::NAN) < ((sortedQuoteIds.len() as i64) as f64) } {
+                let mut __for_first_1090: bool = true;
+                while { if !__for_first_1090 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1090 = false; i.as_f64().unwrap_or(f64::NAN) < ((sortedQuoteIds.len() as i64) as f64) } {
                 if (quoteCurrencies.as_str() != Some("")) {
                     quoteCurrencies = Value::Str(format!("{}{}", quoteCurrencies, Value::Str(",".into())).into());
                 }
@@ -1411,8 +1413,8 @@ impl UpbitCore {
             let mut queries: Value = self.ids_query_strings(ids, Value::Int(4000)); // the url is limited to about 8000 characters once the commas are percent-encoded
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1086: bool = true;
-                while { if !__for_first_1086 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1086 = false; i.as_f64().unwrap_or(f64::NAN) < ((queries.len() as i64) as f64) } {
+                let mut __for_first_1091: bool = true;
+                while { if !__for_first_1091 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1091 = false; i.as_f64().unwrap_or(f64::NAN) < ((queries.len() as i64) as f64) } {
                 let mut idsQuery: Value = queries.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let __ws_arg_4 = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -1438,8 +1440,8 @@ impl UpbitCore {
         let mut queries: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1087: bool = true;
-            while { if !__for_first_1087 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1087 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
+            let mut __for_first_1092: bool = true;
+            while { if !__for_first_1092 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1092 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
             let mut id: Value = ids.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             if (idsString.as_str() != Some("")) {
                 idsString = Value::Str(format!("{}{}", idsString, Value::Str(",".into())).into());
@@ -1699,8 +1701,8 @@ impl UpbitCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1088: bool = true;
-            while { if !__for_first_1088 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1088 = false; i.as_f64().unwrap_or(f64::NAN) < ((fetchMarketResponse.len() as i64) as f64) } {
+            let mut __for_first_1093: bool = true;
+            while { if !__for_first_1093 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1093 = false; i.as_f64().unwrap_or(f64::NAN) < ((fetchMarketResponse.len() as i64) as f64) } {
             let mut element: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -2528,8 +2530,8 @@ impl UpbitCore {
             cost = Value::Str("0".into());
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1089: bool = true;
-                while { if !__for_first_1089 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1089 = false; i.as_f64().unwrap_or(f64::NAN) < numTrades.as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_1094: bool = true;
+                while { if !__for_first_1094 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1094 = false; i.as_f64().unwrap_or(f64::NAN) < numTrades.as_f64().unwrap_or(f64::NAN) } {
                 let mut trade: Value = self.safe_dict(trades.clone(), i.clone(), &[]);
                 cost = crate::precise::Precise::stringAdd(&cost, &self.safe_string_k(trade, "cost", &[]));
                 if getFeesFromTrades {

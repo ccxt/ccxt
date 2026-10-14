@@ -12,7 +12,7 @@ public partial class BaseTest
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "sampleexchange" },
                 { "options", new Dictionary<string, object>() {
-                    { "defaultType", "valueFromOptions" },
+                    { "defaultType", "option" },
                     { "fetchX", new Dictionary<string, object>() {
                         { "defaultType", "valueFromMethodOptions" },
                     } },
@@ -61,7 +61,7 @@ public partial class BaseTest
             var marketType5params5Variable = exchange.handleMarketTypeAndParams("fetchY", null, new Dictionary<string, object>() {}, null);
             var marketType5 = ((IList<object>) marketType5params5Variable)[0];
             var params5 = ((IList<object>) marketType5params5Variable)[1];
-            Assert(isEqual(marketType5, "valueFromOptions"));
+            Assert(isEqual(marketType5, "option"));
             //
             // case #6, should prevail: spot (because hardcoded in base)
             //

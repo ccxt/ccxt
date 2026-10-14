@@ -872,7 +872,7 @@ public class Grvt extends GrvtApi
             {
                 return true;  // skip if builder fee is already approved
             }
-            Object results = (((List<?>)(new ArrayList<Object>(Arrays.asList(this.privateTradingPostFullV1GetAuthorizedBuilders(), this.loadAccountInfos())))).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            Object results = (((List<?>)(new ArrayList<Object>(Arrays.asList(this.privateTradingPostFullV1GetAuthorizedBuilders(new HashMap<String, Object>() {{}}), this.loadAccountInfos())))).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             //
             // {
             //     "results": [{
@@ -2359,7 +2359,7 @@ public class Grvt extends GrvtApi
                 return false;
             }
             List<Object> promises = new ArrayList<Object>(Arrays.asList());
-            ((List<Object>)promises).add(this.privateTradingPostFullV1AggregatedAccountSummary());
+            ((List<Object>)promises).add(this.privateTradingPostFullV1AggregatedAccountSummary(new HashMap<String, Object>() {{}}));
             //
             //     {
             //         "result": {
@@ -2387,7 +2387,7 @@ public class Grvt extends GrvtApi
             Boolean accountIsUndefined = java.util.Objects.equals(this.safeString(this.options, "accountId"), null);
             if (Boolean.TRUE.equals(accountIsUndefined))
             {
-                ((List<Object>)promises).add(this.privateTradingPostFullV1GetSubAccounts());
+                ((List<Object>)promises).add(this.privateTradingPostFullV1GetSubAccounts(new HashMap<String, Object>() {{}}));
             }
             //
             //     {

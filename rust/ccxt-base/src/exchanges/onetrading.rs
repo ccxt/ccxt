@@ -30,7 +30,9 @@ impl OnetradingCore {
     pub fn init(&mut self) {
         let described = OnetradingCore::describe(self);
         self.initialize_properties(described);
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self);
+        // compatibility for sandbox/testnet options in userConfig
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -1071,8 +1073,8 @@ impl OnetradingCore {
         let mut symbols: Value = self.symbols.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1006: bool = true;
-            while { if !__for_first_1006 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1006 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
+            let mut __for_first_1011: bool = true;
+            while { if !__for_first_1011 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1011 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             let mut tierObject: Value = (if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { firstSpotTier.clone() } else { firstFuturesTier.clone() });
@@ -1160,8 +1162,8 @@ impl OnetradingCore {
         let mut symbols: Value = self.symbols.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1007: bool = true;
-            while { if !__for_first_1007 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1007 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
+            let mut __for_first_1012: bool = true;
+            while { if !__for_first_1012 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1012 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             let mut makerFee: Value = (if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { spotMakerFee.clone() } else { futuresMakerFee.clone() });
@@ -1190,8 +1192,8 @@ impl OnetradingCore {
         let mut makerFees: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1008: bool = true;
-            while { if !__for_first_1008 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1008 = false; i.as_f64().unwrap_or(f64::NAN) < ((feeTiers.len() as i64) as f64) } {
+            let mut __for_first_1013: bool = true;
+            while { if !__for_first_1013 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1013 = false; i.as_f64().unwrap_or(f64::NAN) < ((feeTiers.len() as i64) as f64) } {
             let mut tier: Value = self.safe_dict(feeTiers.clone(), i.clone(), &[]);
             let mut volume: Value = self.safe_number_k(tier.clone(), "volume", &[]);
             let mut taker: Value = self.safe_string_k(tier.clone(), "taker_fee", &[]);
@@ -1347,8 +1349,8 @@ impl OnetradingCore {
         let mut rawTickers: Value = self.to_array(response);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1009: bool = true;
-            while { if !__for_first_1009 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1009 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawTickers.len() as i64) as f64) } {
+            let mut __for_first_1014: bool = true;
+            while { if !__for_first_1014 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1014 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawTickers.len() as i64) as f64) } {
             let mut ticker: Value = self.parse_ticker(rawTickers.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[]);
             let mut symbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
@@ -1667,8 +1669,8 @@ impl OnetradingCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1010: bool = true;
-            while { if !__for_first_1010 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1010 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
+            let mut __for_first_1015: bool = true;
+            while { if !__for_first_1015 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1015 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
             let mut balance: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency_code", &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);

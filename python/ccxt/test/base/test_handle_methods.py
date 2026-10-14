@@ -18,7 +18,7 @@ def helper_test_handle_market_type_and_params():
     exchange = ccxt.Exchange({
         'id': 'sampleexchange',
         'options': {
-            'defaultType': 'valueFromOptions',
+            'defaultType': 'option',
             'fetchX': {
                 'defaultType': 'valueFromMethodOptions',
             },
@@ -57,7 +57,7 @@ def helper_test_handle_market_type_and_params():
     # case #5, should prevail: options
     #
     [market_type_5, params5] = exchange.handle_market_type_and_params('fetchY', None, {}, None)
-    assert market_type_5 == 'valueFromOptions'
+    assert market_type_5 == 'option'
     #
     # case #6, should prevail: spot (because hardcoded in base)
     #
