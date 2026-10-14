@@ -1962,7 +1962,8 @@ class latoken extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $apiName = $api[0];
         $requestHeaders = $headers;
         $requestBody = $body;
         $request = '/' . $this->version . '/' . $this->implode_params($path, $params);
@@ -1974,7 +1975,7 @@ class latoken extends Exchange {
                 $requestString .= '?' . $urlencodedQuery;
             }
         }
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             $auth = $method . $request . $urlencodedQuery;
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha512');

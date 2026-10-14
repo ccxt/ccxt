@@ -3428,11 +3428,12 @@ class bithumb extends Exchange {
         return $result;
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $apiName = $api[0];
         $requestHeaders = null;
         $requestBody = null;
         $endpoint = '/' . $this->implode_params($path, $params);
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
@@ -3441,7 +3442,7 @@ class bithumb extends Exchange {
         $queryKeys = is_array($query) ? array_keys($query) : array();
         $queryKeysLength = count($queryKeys);
         $hasQuery = ($queryKeysLength > 0);
-        if ($api === 'public') {
+        if ($apiName === 'public') {
             $requestHeaders = array(
                 'OPEN-API-PARTNER' => 'CCXT',
             );

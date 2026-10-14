@@ -11,7 +11,7 @@ abstract class whitebit extends \ccxt\async\Exchange {
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function web_get_v1_healthcheck($params = array()) {
-        return $this->request('v1/healthcheck', 'web', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('v1/healthcheck', array('web'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -833,7 +833,7 @@ abstract class whitebit extends \ccxt\async\Exchange {
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function webGetV1Healthcheck($params = array()) {
-        return $this->request('v1/healthcheck', 'web', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('v1/healthcheck', array('web'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>

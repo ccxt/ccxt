@@ -2053,20 +2053,21 @@ class bittrade extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $apiName = $api[0];
         $requestHeaders = null;
         $requestBody = null;
         $url = '/';
-        if ($api === 'market') {
+        if ($apiName === 'market') {
             $url .= 'market';
-        } elseif (($api === 'public') || ($api === 'private')) {
+        } elseif (($apiName === 'public') || ($apiName === 'private')) {
             $url .= $this->version;
-        } elseif (($api === 'v2Public') || ($api === 'v2Private')) {
+        } elseif (($apiName === 'v2Public') || ($apiName === 'v2Private')) {
             $url .= 'v2';
         }
         $url .= '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
-        if ($api === 'private' || $api === 'v2Private') {
+        if ($apiName === 'private' || $apiName === 'v2Private') {
             $this->check_required_credentials();
             $timestamp = $this->ymdhms($this->milliseconds(), 'T');
             $request = array(
@@ -2102,7 +2103,7 @@ class bittrade extends Exchange {
                 $url .= '?' . $this->urlencode($params);
             }
         }
-        $baseApiUrl = $this->safe_string($this->urls['api'], $api);
+        $baseApiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($baseApiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }

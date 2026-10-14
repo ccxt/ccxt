@@ -2752,17 +2752,18 @@ class tokocrypto extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function sign(string $path, $api = 'public', mixed $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        if (!(is_array($this->urls['api']['rest']) && array_key_exists($api ?? '', $this->urls['api']['rest']))) {
-            throw new NotSupported($this->id . ' does not have a testnet/sandbox URL for ' . $api . ' endpoints');
+    public function sign(string $path, array $api = array('public'), mixed $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $apiName = $api[0];
+        if (!(is_array($this->urls['api']['rest']) && array_key_exists($apiName ?? '', $this->urls['api']['rest']))) {
+            throw new NotSupported($this->id . ' does not have a testnet/sandbox URL for ' . $apiName . ' endpoints');
         }
-        $baseApiUrl = $this->safe_string($this->urls['api']['rest'], $api);
+        $baseApiUrl = $this->safe_string($this->urls['api']['rest'], $apiName);
         if ($baseApiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $baseApiUrl;
         $url .= '/' . $path;
-        if ($api === 'wapi') {
+        if ($apiName === 'wapi') {
             $url .= '.html';
         }
         $userDataStream = ($path === 'userDataStream') || ($path === 'listenKey');
@@ -2778,7 +2779,7 @@ class tokocrypto extends Exchange {
             } else {
                 throw new AuthenticationError($this->id . ' userDataStream endpoint requires `apiKey` credential');
             }
-        } elseif (($api === 'private') || ($api === 'sapi' && $path !== 'system/status') || ($api === 'sapiV3') || ($api === 'wapi' && $path !== 'systemStatus') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2')) {
+        } elseif (($apiName === 'private') || ($apiName === 'sapi' && $path !== 'system/status') || ($apiName === 'sapiV3') || ($apiName === 'wapi' && $path !== 'systemStatus') || ($apiName === 'dapiPrivate') || ($apiName === 'dapiPrivateV2') || ($apiName === 'fapiPrivate') || ($apiName === 'fapiPrivateV2')) {
             $this->check_required_credentials();
             $query = null;
             $defaultRecvWindow = $this->safe_integer($this->options, 'recvWindow');
@@ -2792,7 +2793,7 @@ class tokocrypto extends Exchange {
             if ($recvWindow !== null) {
                 $extendedParams['recvWindow'] = $recvWindow;
             }
-            if (($api === 'sapi') && ($path === 'asset/dust')) {
+            if (($apiName === 'sapi') && ($path === 'asset/dust')) {
                 $query = $this->urlencode_with_array_repeat($extendedParams);
             } elseif (($path === 'batchOrders') || (mb_strpos($path, 'sub-account') !== false) || ($path === 'capital/withdraw/apply') || (mb_strpos($path, 'staking') !== false)) {
                 $query = $this->rawencode($extendedParams);
@@ -2804,7 +2805,7 @@ class tokocrypto extends Exchange {
             $headersSigned = array(
                 'X-MBX-APIKEY' => $this->apiKey,
             );
-            $queryInUrl = ($method === 'GET') || ($method === 'DELETE') || ($api === 'wapi');
+            $queryInUrl = ($method === 'GET') || ($method === 'DELETE') || ($apiName === 'wapi');
             $bodySigned = $query;
             if ($queryInUrl) {
                 $bodySigned = $body;
@@ -2897,7 +2898,7 @@ class tokocrypto extends Exchange {
         return null;
     }
 
-    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
+    public function calculate_rate_limiter_cost(array $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
         if ((is_array($config) && array_key_exists('noCoin' ?? '', $config)) && !(is_array($params) && array_key_exists('coin' ?? '', $params))) {
             return $config['noCoin'];
         } elseif ((is_array($config) && array_key_exists('noSymbol' ?? '', $config)) && !(is_array($params) && array_key_exists('symbol' ?? '', $params))) {

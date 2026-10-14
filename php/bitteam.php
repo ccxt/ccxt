@@ -2426,10 +2426,11 @@ class bitteam extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $apiName = $api[0];
         $request = $this->omit($params, $this->extract_params($path));
         $endpoint = '/' . $this->implode_params($path, $params);
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
@@ -2437,7 +2438,7 @@ class bitteam extends Exchange {
         $query = $this->urlencode($request);
         $requestBody = null;
         $requestHeaders = null;
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             if ($method === 'POST') {
                 $requestBody = $this->json($request);

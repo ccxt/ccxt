@@ -5577,7 +5577,7 @@ class coinbase extends Exchange {
         return $this->milliseconds() - $timeDifference;
     }
 
-    public function sign(string $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $requestBody = null;
         $requestHeaders = null;
         $version = $this->safe_string($api, 0);

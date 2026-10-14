@@ -2836,20 +2836,20 @@ class sxbet extends Exchange {
         return null;
     }
 
-    public function sign(string $path, mixed $api = 'sxbet', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
+    public function sign(string $path, array $api = array('sxbet'), $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
         /**
          * @ignore
          * builds the request $url and attaches the x-sx-$api-key header; every private v3 route authenticates with the apiKey credential, so its absence fails fast instead of surfacing a raw 401
          * @param {string} $path the endpoint $path
-         * @param {string|string[]} $api the $api group and access level
+         * @param {string[]} $api the $api group and access level
          * @param {string} $method the http $method
          * @param {array} $params the request parameters
          * @param {array} [$headers] request $headers
          * @param {string} [$body] the request $body
          * @return {array} a dict with $url, $method, $body and $headers
          */
-        $apiGroup = gettype($api) === 'string' ? $api : $api[0];
-        $accessLevel = gettype($api) === 'string' ? 'public' : $api[1];
+        $apiGroup = $api[0];
+        $accessLevel = $this->safe_string($api, 1, 'public');
         if (($accessLevel === 'private') && ($this->apiKey === null)) {
             throw new AuthenticationError($this->id . ' ' . $path . ' is a private endpoint and requires the apiKey credential (the x-sx-api-key header)');
         }

@@ -3885,14 +3885,15 @@ class pacifica extends Exchange {
         return null;
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $requestBody = $body;
         $isTestnet = $this->isSandboxModeEnabled;
         $urlKey = 'api';
         if ($isTestnet) {
             $urlKey = 'test';
         }
-        $baseApiUrl = $this->safe_string($this->urls[$urlKey], $api);
+        $apiName = $api[0];
+        $baseApiUrl = $this->safe_string($this->urls[$urlKey], $apiName);
         if ($baseApiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
@@ -3916,7 +3917,7 @@ class pacifica extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $headersValue );
     }
 
-    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
+    public function calculate_rate_limiter_cost(array $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
         $cost = $this->safe_string($config, 'cost', '1');
         $costNumber = $this->parse_number($cost);
         // 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET

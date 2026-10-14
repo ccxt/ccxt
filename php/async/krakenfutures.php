@@ -3956,13 +3956,14 @@ class krakenfutures extends Exchange {
         throw new ExchangeError($feedback); // unknown message
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $apiVersions = $this->safe_dict($this->options['versions'], $api, array());
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $apiName = $api[0];
+        $apiVersions = $this->safe_dict($this->options['versions'], $apiName, array());
         $methodVersions = $this->safe_dict($apiVersions, $method, array());
         $defaultVersion = $this->safe_string($methodVersions, $path, $this->version);
         $version = $this->safe_string($params, 'version', $defaultVersion);
         $paramsOmitted = $this->omit($params, 'version');
-        $apiAccess = $this->safe_dict($this->options['access'], $api, array());
+        $apiAccess = $this->safe_dict($this->options['access'], $apiName, array());
         $methodAccess = $this->safe_dict($apiAccess, $method, array());
         $access = $this->safe_string($methodAccess, $path, 'public');
         $endpoint = $version . '/' . $this->implode_params($path, $paramsOmitted);
@@ -3979,18 +3980,18 @@ class krakenfutures extends Exchange {
             }
             $query .= '?' . $postData;
         }
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $apiUrl . $query;
         $requestBody = ($path === 'batchorder') ? $postData : $body;
         $privateHeaders = null;
-        if ($api === 'private' || $access === 'private') {
+        if ($apiName === 'private' || $access === 'private') {
             $this->check_required_credentials();
             $auth = $postData . '/api/';
-            if ($api !== 'private') {
-                $auth .= $api . '/';
+            if ($apiName !== 'private') {
+                $auth .= $apiName . '/';
             }
             $auth .= $endpoint; // 1
             $hash = $this->hash($this->encode($auth), 'sha256', 'binary'); // 2

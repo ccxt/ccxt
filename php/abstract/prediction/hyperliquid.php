@@ -11,24 +11,24 @@ abstract class hyperliquid extends \ccxt\prediction\PredictionExchange {
      * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>|string>
      */
     public function public_post_info($params = array()): \React\Promise\PromiseInterface {
-        return $this->request('info', 'public', 'POST', $params, null, null, array("cost" => 20, "byType" => array("l2Book" => 2, "allMids" => 2, "spotClearinghouseState" => 2, "candleSnapshot" => 4, "orderStatus" => 2)));
+        return $this->request('info', array('public'), 'POST', $params, null, null, array("cost" => 20, "byType" => array("l2Book" => 2, "allMids" => 2, "spotClearinghouseState" => 2, "candleSnapshot" => 4, "orderStatus" => 2)));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_exchange($params = array()): \React\Promise\PromiseInterface {
-        return $this->request('exchange', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('exchange', array('private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>|string>
      */
     public function publicPostInfo($params = array()): \React\Promise\PromiseInterface {
-        return $this->request('info', 'public', 'POST', $params, null, null, array("cost" => 20, "byType" => array("l2Book" => 2, "allMids" => 2, "spotClearinghouseState" => 2, "candleSnapshot" => 4, "orderStatus" => 2)));
+        return $this->request('info', array('public'), 'POST', $params, null, null, array("cost" => 20, "byType" => array("l2Book" => 2, "allMids" => 2, "spotClearinghouseState" => 2, "candleSnapshot" => 4, "orderStatus" => 2)));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostExchange($params = array()): \React\Promise\PromiseInterface {
-        return $this->request('exchange', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('exchange', array('private'), 'POST', $params, null, null, array("cost" => 1));
     }
 }

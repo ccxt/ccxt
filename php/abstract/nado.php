@@ -65,7 +65,7 @@ abstract class nado extends \ccxt\Exchange {
      * @return array<string, mixed>
      */
     public function archive_post($params = array()) {
-        return $this->request('', 'archive', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('', array('archive'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -161,7 +161,7 @@ abstract class nado extends \ccxt\Exchange {
      * @return array<string, mixed>
      */
     public function archivePost($params = array()) {
-        return $this->request('', 'archive', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('', array('archive'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>

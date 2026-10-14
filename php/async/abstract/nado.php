@@ -65,7 +65,7 @@ abstract class nado extends \ccxt\async\Exchange {
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function archive_post($params = array()) {
-        return $this->request('', 'archive', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('', array('archive'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -161,7 +161,7 @@ abstract class nado extends \ccxt\async\Exchange {
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function archivePost($params = array()) {
-        return $this->request('', 'archive', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('', array('archive'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>

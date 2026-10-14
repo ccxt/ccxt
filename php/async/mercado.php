@@ -1066,14 +1066,15 @@ class mercado extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $apiName = $api[0];
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $apiUrl . '/';
         $query = $this->omit($params, $this->extract_params($path));
-        $isPublic = ($api === 'public') || ($api === 'v4Public') || ($api === 'v4PublicNet');
+        $isPublic = ($apiName === 'public') || ($apiName === 'v4Public') || ($apiName === 'v4PublicNet');
         $privateBody = null;
         $privateHeaders = null;
         if ($isPublic) {

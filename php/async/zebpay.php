@@ -2046,7 +2046,7 @@ class zebpay extends Exchange {
         );
     }
 
-    public function sign(string $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $bodySigned = null;
         $headersSigned = null;
         $paramsOmitted = $this->omit($params, 'defaultType');

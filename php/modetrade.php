@@ -3057,7 +3057,7 @@ class modetrade extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $section = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $version = $section[0];
         $access = $section[1];
         $pathWithParams = $this->implode_params($path, $params);

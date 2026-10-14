@@ -3487,7 +3487,7 @@ class woo extends Exchange {
         return $this->milliseconds() - $this->safe_integer($this->options, 'timeDifference', 0);
     }
 
-    public function sign(string $path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $section = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $requestHeaders = null;
         $requestBody = null;
         $version = $this->safe_string($section, 0);

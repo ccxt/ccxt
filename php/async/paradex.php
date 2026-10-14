@@ -3644,7 +3644,8 @@ class paradex extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $apiName = $api[0];
         $version = $this->version;
         $pathValue = $path;
         if (mb_strpos($path, 'v2/') === 0) {
@@ -3659,11 +3660,11 @@ class paradex extends Exchange {
         }
         $url = $this->implode_hostname($baseApiUrl) . '/' . $this->implode_params($pathValue, $params);
         $query = $this->omit($params, $this->extract_params($pathValue));
-        if ($api === 'public') {
+        if ($apiName === 'public') {
             if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
-        } elseif ($api === 'private') {
+        } elseif ($apiName === 'private') {
             $privateHeaders = array(
                 'Accept' => 'application/json',
                 'PARADEX-PARTNER' => $this->safe_string($this->options, 'broker', 'CCXT'),

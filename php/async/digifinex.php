@@ -4879,7 +4879,7 @@ class digifinex extends Exchange {
         return Async\await($this->privateSwapPostAccountPositionMode($this->extend($request, $params)));
     }
 
-    public function sign(string $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $signed = $this->safe_string($api, 0) === 'private';
         $endpoint = $this->safe_string($api, 1);
         $pathPart = '/swap/v2';

@@ -4040,7 +4040,7 @@ class myriad extends Exchange {
         throw new ExchangeError($feedback);
     }
 
-    public function sign(string $path, mixed $api = 'myriad', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
+    public function sign(string $path, array $api = array('myriad'), $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
         /**
          * @ignore
          * builds the request $url and attaches the apiKey header for private endpoints
@@ -4052,7 +4052,7 @@ class myriad extends Exchange {
          * @param {string} [$body] the request $body
          * @return {array} a dict with $url, $method, $body and $headers
          */
-        $apiGroup = gettype($api) === 'string' ? $api : $api[0];
+        $apiGroup = $api[0];
         $baseUrls = $this->urls['api'];
         $baseUrl = $this->safe_string($baseUrls, $apiGroup, $baseUrls['myriad']);
         $url = $baseUrl . '/' . $this->implode_params($path, $params);

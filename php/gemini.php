@@ -2036,11 +2036,12 @@ class gemini extends Exchange {
         return $this->index_by($results, 'network');
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $apiName = $api[0];
         $url = '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $headersSigned = null;
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             $apiKey = $this->apiKey;
             if (mb_strpos($apiKey, 'account') === false) {
@@ -2067,12 +2068,12 @@ class gemini extends Exchange {
                 $url .= '?' . $this->urlencode($query);
             }
         }
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $fullUrl = $apiUrl . $url;
-        $headersResolved = ($api === 'private') ? $headersSigned : $headers;
+        $headersResolved = ($apiName === 'private') ? $headersSigned : $headers;
         $bodyResolved = $body;
         if (($method === 'POST') || ($method === 'DELETE')) {
             $bodyResolved = $this->json($query);

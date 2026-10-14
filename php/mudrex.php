@@ -175,11 +175,12 @@ class mudrex extends Exchange {
         ));
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $apiName = $api[0];
         $apiUrls = $this->safe_dict($this->urls, 'api', array());
-        $base = $this->safe_string($apiUrls, $api);
+        $base = $this->safe_string($apiUrls, $apiName);
         if ($base === null) {
-            throw new ExchangeError($this->id . ' unknown API namespace => ' . $api);
+            throw new ExchangeError($this->id . ' unknown API namespace => ' . $apiName);
         }
         $url = $base . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
@@ -192,7 +193,7 @@ class mudrex extends Exchange {
             $requestHeaders['Partner-Id'] = $brokerId;
         }
         $methodUpper = strtoupper($method);
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             $requestHeaders['X-Authentication'] = $this->secret;
             if ($methodUpper === 'POST' || $methodUpper === 'PATCH' || $methodUpper === 'DELETE') {

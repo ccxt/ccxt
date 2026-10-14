@@ -13563,12 +13563,13 @@ class binance extends Exchange {
         return $scheme . '//' . $domain . '/';
     }
 
-    public function sign(string $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $apiName = $api[0];
         $urls = $this->urls;
-        if (!(is_array($urls['api']) && array_key_exists($api ?? '', $urls['api']))) {
-            throw new NotSupported($this->id . ' does not have a testnet/sandbox URL for ' . $api . ' endpoints');
+        if (!(is_array($urls['api']) && array_key_exists($apiName ?? '', $urls['api']))) {
+            throw new NotSupported($this->id . ' does not have a testnet/sandbox URL for ' . $apiName . ' endpoints');
         }
-        $baseApiUrl = $this->safe_string($this->urls['api'], $api);
+        $baseApiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($baseApiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
@@ -13599,12 +13600,12 @@ class binance extends Exchange {
             } else {
                 throw new AuthenticationError($this->id . ' userDataStream endpoint requires `apiKey` credential');
             }
-        } elseif (($api === 'private') || ($api === 'eapiPrivate') || ($api === 'sapi' && $path !== 'system/status') || ($api === 'sapiV2') || ($api === 'sapiV3') || ($api === 'sapiV4') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2') || ($api === 'fapiPrivateV3') || ($api === 'papiV2' || $api === 'papi' && $path !== 'ping')) {
+        } elseif (($apiName === 'private') || ($apiName === 'eapiPrivate') || ($apiName === 'sapi' && $path !== 'system/status') || ($apiName === 'sapiV2') || ($apiName === 'sapiV3') || ($apiName === 'sapiV4') || ($apiName === 'dapiPrivate') || ($apiName === 'dapiPrivateV2') || ($apiName === 'fapiPrivate') || ($apiName === 'fapiPrivateV2') || ($apiName === 'fapiPrivateV3') || ($apiName === 'papiV2' || $apiName === 'papi' && $path !== 'ping')) {
             $this->check_required_credentials();
             if ((mb_strpos($url, 'testnet.binancefuture.com') > -1) && $this->isSandboxModeEnabled && (!$this->safe_bool($this->options, 'disableFuturesSandboxWarning', false))) {
                 throw new NotSupported($this->id . ' testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.');
             }
-            $requestParams = $this->handle_client_order_id($params, $api, $path, $method);
+            $requestParams = $this->handle_client_order_id($params, $apiName, $path, $method);
             $query = null;
             // handle batchOrders
             if (($path === 'batchOrders') && (($method === 'POST') || ($method === 'PUT'))) {
@@ -13623,7 +13624,7 @@ class binance extends Exchange {
             if ($recvWindow !== null) {
                 $extendedParams['recvWindow'] = $recvWindow;
             }
-            if (($api === 'sapi') && ($path === 'asset/dust')) {
+            if (($apiName === 'sapi') && ($path === 'asset/dust')) {
                 $query = $this->urlencode_with_array_repeat($extendedParams);
             } elseif (($path === 'batchOrders') || (mb_strpos($path, 'sub-account') !== false) || ($path === 'capital/withdraw/apply') || (mb_strpos($path, 'staking') !== false) || (mb_strpos($path, 'simple-earn') !== false)) {
                 if (($method === 'DELETE') && ($path === 'batchOrders')) {
@@ -13816,14 +13817,14 @@ class binance extends Exchange {
         return $this->safe_value($config, 'cost', 1);
     }
 
-    public function request(string $path, $api = 'public', mixed $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, array $config = array()) {
+    public function request(string $path, array $api = array('public'), mixed $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, array $config = array()) {
         return Async\async(self::do_request(...))($path, $api, $method, $params, $headers, $body, $config);
     }
 
-    private function do_request(string $path, $api = 'public', mixed $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, array $config = array()) {
+    private function do_request(string $path, array $api = array('public'), mixed $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, array $config = array()) {
         $response = $this->do_fetch2($path, $api, $method, $params, $headers, $body, $config);
         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
-        if ($api === 'private') {
+        if ($api[0] === 'private') {
             $this->options['hasAlreadyAuthenticatedSuccessfully'] = true;
         }
         return $response;
