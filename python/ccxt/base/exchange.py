@@ -321,6 +321,7 @@ class BaseExchange(object):
     precisionMode = DECIMAL_PLACES
     paddingMode = NO_PADDING
     minFundingAddressLength = 1  # used in check_address
+    networkAliases = {'ETH': 'ERC20', 'TRX': 'TRC20', 'BSC': 'BEP20', 'BSC20': 'BEP20', 'CRONOS': 'CRC20', 'ARB': 'ARBITRUM', 'ARBONE': 'ARBITRUM', 'ARBNOVA': 'ARBITRUM_NOVA'}  # alias -> unified network code
     substituteCommonCurrencyCodes = True
     quoteJsonNumbers = True
     number: NumType = float  # or str (a pointer to a class)

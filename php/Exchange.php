@@ -285,6 +285,7 @@ class BaseExchange {
     public $reloadingEvents = null;
     public $eventsLoading = null;
     public $minFundingAddressLength = 1; // used in check_address
+    public $networkAliases = array('ETH' => 'ERC20', 'TRX' => 'TRC20', 'BSC' => 'BEP20', 'BSC20' => 'BEP20', 'CRONOS' => 'CRC20', 'ARB' => 'ARBITRUM', 'ARBONE' => 'ARBITRUM', 'ARBNOVA' => 'ARBITRUM_NOVA'); // alias -> unified network code
     public $substituteCommonCurrencyCodes = true;
 
     // whether fees should be summed by currency code
@@ -1012,7 +1013,7 @@ class BaseExchange {
         // array_replace instead of array_merge: extend() implements dictionary merging with
         // right-operand precedence, and array_merge silently REINDEXES numeric keys, wiping
         // maps keyed by numeric strings (e.g. options['networksById'] built from evm chain
-        // ids like 42161/56/1 in createNetworksByIdObject) into plain 0..n-1 lists.
+        // ids like 42161/56/1 in afterConstruct) into plain 0..n-1 lists.
         // array_replace preserves keys and has identical semantics for string-keyed dicts.
         // see https://github.com/ccxt/ccxt/pull/29549
         return array_replace(...$args);

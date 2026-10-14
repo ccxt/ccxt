@@ -242,6 +242,7 @@ public class BaseExchange {
     public String uid;
     public String accountId;
     public int minFundingAddressLength = 1;
+    public java.util.Map<String, Object> networkAliases = new java.util.HashMap<>(java.util.Map.of("ETH", "ERC20", "TRX", "TRC20", "BSC", "BEP20", "BSC20", "BEP20", "CRONOS", "CRC20", "ARB", "ARBITRUM", "ARBONE", "ARBITRUM", "ARBNOVA", "ARBITRUM_NOVA"));
 
     private static final SecureRandom secureRandom = new SecureRandom();
 

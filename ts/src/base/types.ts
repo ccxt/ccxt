@@ -1,6 +1,9 @@
 export type Int = number | undefined;
 export type int = number;
 export type Str = string | undefined;
+
+/** unified network code; editors suggest the canonical codes, any other chain code is still accepted */
+export type NetworkCode = 'ERC20' | 'TRC20' | 'BEP20' | 'SOL' | 'BTC' | 'BRC20' | 'ARBITRUM' | 'ARBITRUM_NOVA' | 'OPTIMISM' | 'BASE' | 'POL' | 'AVAXC' | 'AVAXX' | 'CRC20' | 'TON' | 'SUI' | 'APT' | 'NEAR' | 'XRP' | 'XLM' | 'LTC' | 'DOGE' | 'BCH' | 'ADA' | 'DOT' | 'ATOM' | 'ALGO' | 'HBAR' | 'KAVA' | 'ZKSYNCERA' | 'LINEA' | 'SCROLL' | 'MANTLE' | 'CELO' | 'FTM' | 'SONIC' | 'EOS' | 'XTZ' | (string & {});
 export type Strings = string[] | undefined;
 export type Num = number | undefined;
 export type Bool = boolean | undefined;
@@ -582,7 +585,7 @@ export interface Transaction {
     status: 'pending' | 'ok' | 'failed' | 'canceled' | Str;
     updated: Int;
     fee: Fee;
-    network: Str;
+    network: NetworkCode | undefined;
     comment: Str;
     internal: Bool;
 }
@@ -654,7 +657,7 @@ export interface Balances extends Dictionary<Balance> {
 export interface DepositAddress {
     info: any;
     currency: Str;
-    network?: Str;
+    network?: NetworkCode;
     address: Str;
     tag?: Str;
     note?: Str;

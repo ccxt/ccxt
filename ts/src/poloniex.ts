@@ -318,7 +318,6 @@ export default class poloniex extends Exchange {
                     'ERC20': 'ETH',
                     // v2 withdraw accepts only the blockchain id: 'TRX' passes validation, 'TRON' is rejected with 830111 (live-verified)
                     'TRC20': 'TRX',
-                    'TRX': 'TRX',
                 },
                 'networksById': {
                     'TRX': 'TRC20',
@@ -2953,7 +2952,7 @@ export default class poloniex extends Exchange {
         if (networkEntry !== undefined) {
             exchangeNetworkId = networkEntry['id'];
         } else {
-            exchangeNetworkId = networkCode;
+            exchangeNetworkId = this.networkCodeToId (networkCode, code);
         }
         const request: Dict = {
             'currency': exchangeNetworkId,
