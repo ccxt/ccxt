@@ -1235,9 +1235,9 @@ export default class bitfinex extends Exchange {
 
     /**
      * @method
-     * @name blockchaincom#fetchL3OrderBook
+     * @name bitfinex#fetchL3OrderBook
      * @description fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://api.blockchain.com/v3/#getl3orderbook
+     * @see https://docs.bitfinex.com/reference/rest-public-book
      * @param {string} symbol unified market symbol
      * @param {int} [limit] max number of orders to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint

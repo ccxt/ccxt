@@ -58,6 +58,24 @@
                 "output": { "amount": "5", "currency": "UST", "currency_to": "UST", "from": "margin", "to": "exchange" }
             }
         ],
+        "fetchL3OrderBook": [
+            {
+                "description": "Spot l3",
+                "method": "fetchL3OrderBook",
+                "url": "https://api-pub.bitfinex.com/v2/book/tBTCUST/R0",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "swap l3",
+                "method": "fetchOrderBook",
+                "url": "https://api-pub.bitfinex.com/v2/book/tBTCF0:USTF0/R0",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
         "fetchOrderBook": [
             {
                 "description": "Spot fetch order book",
