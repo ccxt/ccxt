@@ -2,6 +2,142 @@
     "exchange": "poloniex",
     "skipKeys": [],
     "methods": {
+        "transfer": [
+            {
+                "description": "transfer with exchange-specific toAccount",
+                "method": "transfer",
+                "input": [
+                    "USDT",
+                    1,
+                    "spot",
+                    "FUTURES"
+                ],
+                "httpResponse": {
+                    "transferId": "344182875"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "transferId": "344182875"
+                    },
+                    "id": "344182875",
+                    "timestamp": null,
+                    "datetime": null,
+                    "currency": "USDT",
+                    "amount": 1,
+                    "fromAccount": "spot",
+                    "toAccount": "FUTURES",
+                    "status": null
+                }
+            }
+        ],
+        "fetchTransfer": [
+            {
+                "description": "fetch transfer by id",
+                "method": "fetchTransfer",
+                "input": [
+                    344182843
+                ],
+                "httpResponse": {
+                    "id": "344182843",
+                    "fromAccount": "SPOT",
+                    "toAccount": "FUTURES",
+                    "currency": "USDT",
+                    "amount": "1",
+                    "state": "SUCCESS",
+                    "createTime": 1791973212353
+                },
+                "parsedResponse": {
+                    "info": {
+                        "id": "344182843",
+                        "fromAccount": "SPOT",
+                        "toAccount": "FUTURES",
+                        "currency": "USDT",
+                        "amount": "1",
+                        "state": "SUCCESS",
+                        "createTime": 1791973212353
+                    },
+                    "id": "344182843",
+                    "timestamp": 1791973212353,
+                    "datetime": "2026-10-14T10:20:12.353Z",
+                    "currency": "USDT",
+                    "amount": 1,
+                    "fromAccount": "spot",
+                    "toAccount": "future",
+                    "status": "ok"
+                }
+            }
+        ],
+        "fetchTransfers": [
+            {
+                "description": "fetch usdt transfers since",
+                "method": "fetchTransfers",
+                "input": [
+                    "USDT",
+                    1786990000000,
+                    2
+                ],
+                "httpResponse": [
+                    {
+                        "id": "342284495",
+                        "fromAccount": "FUTURES",
+                        "toAccount": "SPOT",
+                        "currency": "USDT",
+                        "amount": "6",
+                        "state": "SUCCESS",
+                        "createTime": 1787154736417
+                    },
+                    {
+                        "id": "342284469",
+                        "fromAccount": "SPOT",
+                        "toAccount": "FUTURES",
+                        "currency": "USDT",
+                        "amount": "6",
+                        "state": "SUCCESS",
+                        "createTime": 1787154661691
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "342284469",
+                            "fromAccount": "SPOT",
+                            "toAccount": "FUTURES",
+                            "currency": "USDT",
+                            "amount": "6",
+                            "state": "SUCCESS",
+                            "createTime": 1787154661691
+                        },
+                        "id": "342284469",
+                        "timestamp": 1787154661691,
+                        "datetime": "2026-08-19T15:51:01.691Z",
+                        "currency": "USDT",
+                        "amount": 6,
+                        "fromAccount": "spot",
+                        "toAccount": "future",
+                        "status": "ok"
+                    },
+                    {
+                        "info": {
+                            "id": "342284495",
+                            "fromAccount": "FUTURES",
+                            "toAccount": "SPOT",
+                            "currency": "USDT",
+                            "amount": "6",
+                            "state": "SUCCESS",
+                            "createTime": 1787154736417
+                        },
+                        "id": "342284495",
+                        "timestamp": 1787154736417,
+                        "datetime": "2026-08-19T15:52:16.417Z",
+                        "currency": "USDT",
+                        "amount": 6,
+                        "fromAccount": "future",
+                        "toAccount": "spot",
+                        "status": "ok"
+                    }
+                ]
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "default",

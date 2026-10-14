@@ -6,6 +6,44 @@
     ],
     "outputType": "json",
     "methods": {
+        "transfer": [
+            {
+                "description": "transfer with exchange-specific toAccount",
+                "method": "transfer",
+                "url": "https://api.poloniex.com/accounts/transfer",
+                "input": [
+                    "USDT",
+                    1,
+                    "spot",
+                    "FUTURES"
+                ],
+                "output": "{\"amount\":\"1\",\"currency\":\"USDT\",\"fromAccount\":\"spot\",\"toAccount\":\"FUTURES\"}"
+            }
+        ],
+        "fetchTransfer": [
+            {
+                "description": "fetch transfer by id",
+                "method": "fetchTransfer",
+                "url": "https://api.poloniex.com/accounts/transfer/344182843",
+                "input": [
+                    344182843
+                ],
+                "output": null
+            }
+        ],
+        "fetchTransfers": [
+            {
+                "description": "fetch usdt transfers since",
+                "method": "fetchTransfers",
+                "url": "https://api.poloniex.com/accounts/transfer?currency=USDT&startTime=1786990000000&limit=2",
+                "input": [
+                    "USDT",
+                    1786990000000,
+                    2
+                ],
+                "output": null
+            }
+        ],
         "withdraw": [
             {
                 "description": "ethereum",
