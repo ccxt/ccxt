@@ -1306,7 +1306,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             // venue builds the frame, so it is sent from here, where the venue
             // is reachable, and the read below wakes up for it.
             if let Some(ka) = keep_alive {
-                if client.app_ping_wait(std::time::Instant::now(), ka) == Some(std::time::Duration::ZERO) {
+                if client.try_claim_app_ping(std::time::Instant::now(), ka) {
                     let frame = self
                         .dispatch_to_derived("ping", vec![crate::pro::ws_client::client_value(&url)])
                         .await;
@@ -1320,7 +1320,6 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
                         // re-entry guard: skip this round
                         None => {}
                     }
-                    client.app_ping_sent(std::time::Instant::now(), ka);
                 }
             }
             let ping_due = keep_alive.and_then(|ka| client.app_ping_wait(std::time::Instant::now(), ka));
