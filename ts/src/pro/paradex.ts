@@ -558,11 +558,15 @@ export default class paradex extends paradexRest {
             },
         };
         const messageHashes: string[] = [];
-        if (symbolsNormalized === undefined) {
+        let symbolsLength = 0;
+        if (symbolsNormalized !== undefined) {
+            symbolsLength = symbolsNormalized.length;
+        }
+        if (symbolsLength === 0) {
             messageHashes.push (channel);
         } else {
-            for (let i = 0; i < symbolsNormalized.length; i++) {
-                messageHashes.push (channel + ':' + symbolsNormalized[i]);
+            for (let i = 0; i < symbolsLength; i++) {
+                messageHashes.push (channel + ':' + (symbolsNormalized as string[])[i]);
             }
         }
         const newPositions = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), [ channel ]);
@@ -603,10 +607,30 @@ export default class paradex extends paradexRest {
         }
         const cache: ArrayCacheBySymbolBySide = this.positions;
         const position = this.parsePosition (data);
+        const symbol = position['symbol'];
+        const newPositions = [];
+        // one position per market, so a fill through zero flips its side: the cache keys by
+        // symbol and side, and the opposite side it still holds is flattened here
+        const side = this.safeString (position, 'side');
+        const cached = this.filterBySymbolSinceLimit (cache, symbol, undefined, undefined, true);
+        for (let i = 0; i < cached.length; i++) {
+            const previous = cached[i];
+            const previousSide = this.safeString (previous, 'side');
+            const previousContracts = this.safeString (previous, 'contracts');
+            const isOpposite = (side !== undefined) && (previousSide !== undefined) && (previousSide !== side);
+            if (isOpposite && (previousContracts !== undefined) && !Precise.stringEq (previousContracts, '0')) {
+                const flattened = this.extend (previous, {
+                    'contracts': this.parseNumber ('0'),
+                    'lastUpdateTimestamp': this.safeInteger (position, 'lastUpdateTimestamp'),
+                });
+                cache.append (flattened as Position);
+                newPositions.push (flattened);
+            }
+        }
         cache.append (position);
-        const newPositions = [ position ];
+        newPositions.push (position);
         client.resolve (newPositions, 'positions');
-        client.resolve (newPositions, 'positions:' + position['symbol']);
+        client.resolve (newPositions, 'positions:' + symbol);
     }
 
     /**
@@ -1298,7 +1322,8 @@ export default class paradex extends paradexRest {
             'underlying_price': this.sbeReadDecimal (frameHex, 99),
         };
         if (blockLength >= 116) {
-            fill['flags'] = this.sbeReadFlags (frameHex, 115, [ 'INTERACTIVE', 'RPI', 'FASTFILL', '', '', '', '', 'UNKNOWN' ]);
+            // lowercase, as the JSON feed spells fill flags
+            fill['flags'] = this.sbeReadFlags (frameHex, 115, [ 'interactive', 'rpi', 'fastfill', '', '', '', '', 'unknown' ]);
             fill['orderbook_seq_no'] = this.sbeReadInt64 (frameHex, 116);
         }
         return fill;
@@ -1325,18 +1350,21 @@ export default class paradex extends paradexRest {
         const sides: Dict = { '1': 'LONG', '2': 'SHORT' };
         const statuses: Dict = { '1': 'OPEN', '2': 'CLOSED' };
         const side = this.sbeReadEnum (frameHex, 24, sides);
+        const account = this.sbeReadAddress (frameHex, 89);
         // the frame carries the size unsigned, the JSON channel signs it negative for a short
         let size = this.sbeReadDecimal (frameHex, 25);
         if ((side === 'SHORT') && (size !== '0')) {
             size = Precise.stringNeg (size);
         }
         return {
-            'account': this.sbeReadAddress (frameHex, 89),
+            'account': account,
             'average_entry_price': this.sbeReadDecimal (frameHex, 33),
             'average_entry_price_usd': this.sbeReadDecimal (frameHex, 121),
             'cached_funding_index': this.sbeReadDecimal (frameHex, 145),
             'cost': this.sbeReadDecimal (frameHex, 129),
             'cost_usd': this.sbeReadDecimal (frameHex, 137),
+            // the JSON channel's id, one position per account and market
+            'id': account + '-' + strings[0],
             'last_fill_id': this.safeString (strings, 1),
             'last_updated_at': this.sbeReadTimestamp (frameHex, 81),
             'leverage': this.sbeReadDecimal (frameHex, 73),
