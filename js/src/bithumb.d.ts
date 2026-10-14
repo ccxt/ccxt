@@ -295,8 +295,8 @@ export default class bithumb extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag the secondary withdrawal destination address
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @param {string} [params.network] the blockchain network to withdraw on, for example BTC or DASH
      * @param {string} [params.destination] secondary address destination for specific currencies, can alternatively use the tag argument
@@ -311,7 +311,7 @@ export default class bithumb extends Exchange {
      * @param {string} [params.two_factor_type] *generation 2 KRW withdraw only* the two factor type, for example kakao
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseTransactionStatusByType(status: Str, type?: Str): Str;
     /**
@@ -323,7 +323,7 @@ export default class bithumb extends Exchange {
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object[]} a list response from the exchange
      */
-    fetchWithdrawalWhitelist(params?: {}): Promise<any>;
+    fetchWithdrawalWhitelist(params?: Dict): Promise<any>;
     /**
      * @method
      * @name bithumb#fetchWithdrawal
@@ -423,10 +423,10 @@ export default class bithumb extends Exchange {
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by currency code
      */
     fetchDepositAddresses(codes?: Strings, params?: Dict): Promise<DepositAddress[]>;
-    parseDepositAddress(response: any, currency?: Currency): DepositAddress;
+    parseDepositAddress(response: Dict, currency?: Currency): DepositAddress;
     fixCommaNumber(numberStr: Str): string | undefined;
     nonce(): number;
     urlencodeWithArrayBrackets(query: Dict): string;
-    sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

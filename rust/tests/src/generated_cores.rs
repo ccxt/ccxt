@@ -51,7 +51,6 @@ pub(crate) use ccxt::exchanges::{
     coinbaseexchange::CoinbaseexchangeCore,
     coinbaseinternational::CoinbaseinternationalCore,
     coincheck::CoincheckCore,
-    coinex::CoinexCore,
     coinmate::CoinmateCore,
     coinone::CoinoneCore,
     coinsph::CoinsphCore,
@@ -167,7 +166,6 @@ pub(crate) use ccxt_pro::pro::{
     coinbaseexchange::CoinbaseexchangeCore as WsCoinbaseexchangeCore,
     coinbaseinternational::CoinbaseinternationalCore as WsCoinbaseinternationalCore,
     coincheck::CoincheckCore as WsCoincheckCore,
-    coinex::CoinexCore as WsCoinexCore,
     coinone::CoinoneCore as WsCoinoneCore,
     cryptocom::CryptocomCore as WsCryptocomCore,
     deepcoin::DeepcoinCore as WsDeepcoinCore,
@@ -258,7 +256,6 @@ macro_rules! for_each_core {
         $cb!(coinbaseexchange, CoinbaseexchangeCore);
         $cb!(coinbaseinternational, CoinbaseinternationalCore);
         $cb!(coincheck, CoincheckCore);
-        $cb!(coinex, CoinexCore);
         $cb!(coinmate, CoinmateCore);
         $cb!(coinone, CoinoneCore);
         $cb!(coinsph, CoinsphCore);
@@ -364,7 +361,6 @@ macro_rules! for_each_ws_core {
         $cb!(coinbaseexchange, WsCoinbaseexchangeCore);
         $cb!(coinbaseinternational, WsCoinbaseinternationalCore);
         $cb!(coincheck, WsCoincheckCore);
-        $cb!(coinex, WsCoinexCore);
         $cb!(coinone, WsCoinoneCore);
         $cb!(cryptocom, WsCryptocomCore);
         $cb!(deepcoin, WsDeepcoinCore);

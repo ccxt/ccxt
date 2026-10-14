@@ -6,7 +6,7 @@ import type { Balances, Dict, Int, NullableDict, Leverage, MarginModification, M
  */
 export default class mudrex extends Exchange {
     describe(): any;
-    sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     /**
@@ -251,7 +251,7 @@ export default class mudrex extends Exchange {
      * @param {float} [params.amount] the amount to close for a partial close, closes the whole position if not provided
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    closePosition(symbol: string, side?: OrderSide, params?: Dict): Promise<Order>;
+    closePosition(symbol: string, side?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name mudrex#addMargin

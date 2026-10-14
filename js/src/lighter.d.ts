@@ -6,7 +6,7 @@ import type { Dict, FundingRate, FundingRates, Int, int, Market, OHLCV, OrderBoo
  */
 export default class lighter extends Exchange {
     describe(): any;
-    loadAccount(chainId: any, privateKey: any, apiKeyIndex: string, accountIndex: string, params?: Dict): Promise<any>;
+    loadAccount(chainId: any, privateKey: Str, apiKeyIndex: string, accountIndex: string, params?: Dict): Promise<any>;
     initAuthObject(strAccountIndex: string, strApiKeyIndex: string): void;
     getLighterPrivateKey(strAccountIndex: string, strApiKeyIndex: string): any;
     /**
@@ -17,8 +17,8 @@ export default class lighter extends Exchange {
      * @returns {boolean} true if the signer was loaded, false otherwise
      */
     preLoadLighterLibrary(params?: Dict): Promise<boolean>;
-    handleApiKeyIndex(params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue?: any): any[];
-    handleAccountIndex(params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue?: any): Promise<any[]>;
+    handleApiKeyIndex(params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue?: any): [Int, Dict];
+    handleAccountIndex(params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue?: any): Promise<[Int, Dict]>;
     createSubAccount(name: string, params?: Dict): Promise<Dict>;
     createAuth(params?: Dict): Str;
     pow(n: string, m: string): string | undefined;
@@ -32,7 +32,7 @@ export default class lighter extends Exchange {
     setSandboxMode(enable: boolean): void;
     createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): any[];
     fetchNonce(accountIndex: any, apiKeyIndex: any, params?: Dict): Promise<Int>;
-    signAndCreateOrder(method: string, symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): Promise<any[]>;
+    signAndCreateOrder(method: string, symbol: Str, type: OrderType, side: OrderSide, amount: Num, price?: Num, params?: Dict): Promise<any[]>;
     /**
      * @method
      * @name lighter#createOrder
@@ -242,9 +242,9 @@ export default class lighter extends Exchange {
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     parseOrder(order: Dict, market?: Market): Order;
     parseOrderStatus(status: Str): Str;
-    parseOrderType(type: any): string;
-    parseOrderTypeInteger(typeInteger: any): Str;
-    parseOrderTimeInForce(tif: any): string;
+    parseOrderType(type: Str): Str;
+    parseOrderTypeInteger(typeInteger: Int): Str;
+    parseOrderTimeInForce(tif: Str): Str;
     parseOrderTimeInForceInteger(tifInteger: any): Str;
     /**
      * @method
@@ -315,14 +315,14 @@ export default class lighter extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} [tag]
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.accountIndex] account index
      * @param {string} [params.apiKeyIndex] api key index
      * @param {int} [params.routeType] wallet type, 0: perp, 1: spot, default is 0
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
     /**
      * @method
      * @name lighter#fetchMyTrades
@@ -433,7 +433,7 @@ export default class lighter extends Exchange {
      */
     setMargin(symbol: string, amount: number, params?: Dict): Promise<MarginModification>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;
-    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: any): {
+    sign(path: string, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: any): {
         url: string;
         method: string;
         body: any;

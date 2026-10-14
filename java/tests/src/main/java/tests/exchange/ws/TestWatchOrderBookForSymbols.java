@@ -5,6 +5,7 @@ import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 import tests.exchange.*;
+import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -33,7 +34,7 @@ public class TestWatchOrderBookForSymbols extends BaseTest {
             Object startTime = exchange.milliseconds();
             try
             {
-                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchOrderBookForSymbols", new Object[]{symbols})).join();
+                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchOrderBookForSymbols", new Object[]{symbols, (Long) null, new HashMap<String, Object>() {{}}})).join();
             } catch(Exception e)
             {
                 // interim workaround for InvalidNonce raised by the c# runtime

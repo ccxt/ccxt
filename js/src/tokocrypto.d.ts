@@ -121,7 +121,7 @@ export default class tokocrypto extends Exchange {
      * @see https://www.tokocrypto.com/apidocs/#account-information-signed
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot'
+     * @param {string} [params.type] 'spot', 'margin', 'swap', 'future', 'savings' or 'funding'
      * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
      * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
@@ -130,6 +130,7 @@ export default class tokocrypto extends Exchange {
     parseBalanceCustom(response: Dict, type?: Str, marginMode?: Str): Balances;
     parseOrderStatus(status: Str): Str;
     parseOrder(order: Dict, market?: Market): Order;
+    parseTimeInForce(timeInForce: Str): Str;
     parseOrderType(status: Str): Str;
     /**
      * @method
@@ -144,6 +145,8 @@ export default class tokocrypto extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] the price at which a trigger order would be triggered
      * @param {float} [params.cost] for spot market buy orders, the quote quantity that can be used as an alternative for the amount
+     * @param {string} [params.timeInForce] 'GTC', 'IOC' or 'FOK', defaults to the defaultTimeInForce option on the order types that rest on the book, market orders accept 'IOC' as a no-op and reject the rest
+     * @param {bool} [params.postOnly] true for a post only order, the 'PO' and 'GTX' timeInForce spellings do the same
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
@@ -262,12 +265,12 @@ export default class tokocrypto extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
-    sign(path: any, api?: string, method?: any, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
+    sign(path: string, api?: string, method?: any, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: any): any;
+    calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: Dict): any;
 }

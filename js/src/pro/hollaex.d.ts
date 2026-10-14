@@ -66,7 +66,7 @@ export default class hollaex extends hollaexRest {
     handleBalance(client: Client, message: Dict): void;
     watchPublic(messageHash: string, params?: Dict): Promise<any>;
     watchPrivate(messageHash: string, params?: Dict): Promise<any>;
-    handleErrorMessage(client: Client, message: any): Bool;
+    handleErrorMessage(client: Client, message: Dict): Bool;
     handleMessage(client: Client, message: Dict): void;
     ping(client: Client): Dict;
     handlePong(client: Client, message: Dict): Dict;

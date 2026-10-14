@@ -8,76 +8,210 @@
 import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    spotKlinePublicGetPublicJson (params?: {}): Promise<Dict>;
-    spotKlinePublicGetPublicCurrencyJson (params?: {}): Promise<Dict>;
-    spotV1PublicGetPing (params?: {}): Promise<Dict>;
-    spotV1PublicGetTime (params?: {}): Promise<Dict>;
-    spotV1PublicGetExchangeInfo (params?: {}): Promise<Dict>;
-    spotV1PublicGetDepth (params?: {}): Promise<Dict>;
-    spotV1PublicGetTrades (params?: {}): Promise<List>;
-    spotV1PublicGetHistoricalTrades (params?: {}): Promise<List>;
-    spotV1PublicGetAggTrades (params?: {}): Promise<List>;
-    spotV1PublicGetTicker24hr (params?: {}): Promise<List>;
-    spotV1PublicGetTickerPrice (params?: {}): Promise<Dict>;
-    spotV1PublicGetTickerBookTicker (params?: {}): Promise<Dict>;
-    spotV1PublicGetMarketKline (params?: {}): Promise<Dict>;
-    spotV1PrivateGetOrder (params?: {}): Promise<Dict>;
-    spotV1PrivateGetOpenOrders (params?: {}): Promise<Dict>;
-    spotV1PrivateGetAllOrders (params?: {}): Promise<List>;
-    spotV1PrivateGetAccount (params?: {}): Promise<Dict>;
-    spotV1PrivateGetMyTrades (params?: {}): Promise<List>;
-    spotV1PrivateGetEtfNetValueSymbol (params?: {}): Promise<Dict>;
-    spotV1PrivateGetWithdrawHistory (params?: {}): Promise<Dict>;
-    spotV1PrivateGetDepositHistory (params?: {}): Promise<Dict>;
-    spotV1PrivatePostOrder (params?: {}): Promise<Dict>;
-    spotV1PrivatePostWithdrawCommit (params?: {}): Promise<Dict>;
-    spotV1PrivateDeleteOrder (params?: {}): Promise<Dict>;
-    spotV2PrivateGetMyTrades (params?: {}): Promise<Dict>;
-    fapiV1PublicGetPing (params?: {}): Promise<Dict>;
-    fapiV1PublicGetTime (params?: {}): Promise<Dict>;
-    fapiV1PublicGetContracts (params?: {}): Promise<List>;
-    fapiV1PublicGetDepth (params?: {}): Promise<Dict>;
-    fapiV1PublicGetTicker (params?: {}): Promise<Dict | List>;
-    fapiV1PublicGetKlines (params?: {}): Promise<List>;
-    fapiV2PrivateGetMyTrades (params?: {}): Promise<Dict>;
-    fapiV2PrivateGetOpenOrders (params?: {}): Promise<Dict>;
-    fapiV2PrivateGetOrder (params?: {}): Promise<Dict>;
-    fapiV2PrivateGetAccount (params?: {}): Promise<Dict>;
-    fapiV2PrivateGetLeverageBracket (params?: {}): Promise<Dict>;
-    fapiV2PrivateGetCommissionRate (params?: {}): Promise<Dict>;
-    fapiV2PrivateGetFuturesTransferHistory (params?: {}): Promise<Dict>;
-    fapiV2PrivateGetForceOrdersHistory (params?: {}): Promise<Dict>;
-    fapiV2PrivatePostPositionMargin (params?: {}): Promise<Dict>;
-    fapiV2PrivatePostLevelEdit (params?: {}): Promise<Dict>;
-    fapiV2PrivatePostCancel (params?: {}): Promise<Dict>;
-    fapiV2PrivatePostOrder (params?: {}): Promise<Dict>;
-    fapiV2PrivatePostAllOpenOrders (params?: {}): Promise<Dict>;
-    fapiV2PrivatePostFuturesTransfer (params?: {}): Promise<Dict>;
-    dapiV1PublicGetPing (params?: {}): Promise<Dict>;
-    dapiV1PublicGetTime (params?: {}): Promise<Dict>;
-    dapiV1PublicGetContracts (params?: {}): Promise<List>;
-    dapiV1PublicGetDepth (params?: {}): Promise<Dict>;
-    dapiV1PublicGetTicker (params?: {}): Promise<Dict | List>;
-    dapiV1PublicGetKlines (params?: {}): Promise<List>;
-    dapiV2PrivateGetMyTrades (params?: {}): Promise<Dict>;
-    dapiV2PrivateGetOpenOrders (params?: {}): Promise<Dict>;
-    dapiV2PrivateGetOrder (params?: {}): Promise<Dict>;
-    dapiV2PrivateGetAccount (params?: {}): Promise<Dict>;
-    dapiV2PrivateGetLeverageBracket (params?: {}): Promise<Dict>;
-    dapiV2PrivateGetCommissionRate (params?: {}): Promise<Dict>;
-    dapiV2PrivateGetFuturesTransferHistory (params?: {}): Promise<Dict>;
-    dapiV2PrivateGetForceOrdersHistory (params?: {}): Promise<Dict>;
-    dapiV2PrivatePostPositionMargin (params?: {}): Promise<Dict>;
-    dapiV2PrivatePostLevelEdit (params?: {}): Promise<Dict>;
-    dapiV2PrivatePostCancel (params?: {}): Promise<Dict>;
-    dapiV2PrivatePostOrder (params?: {}): Promise<Dict>;
-    dapiV2PrivatePostAllOpenOrders (params?: {}): Promise<Dict>;
-    dapiV2PrivatePostFuturesTransfer (params?: {}): Promise<Dict>;
-    openV1PrivatePostPoseidonApiV1ListenKey (params?: {}): Promise<Dict>;
-    openV1PrivatePutPoseidonApiV1ListenKeyListenKey (params?: {}): Promise<Dict>;
-    openV1PrivateDeletePoseidonApiV1ListenKeyListenKey (params?: {}): Promise<Dict>;
+abstract class Exchange extends _Exchange {
+    spotKlinePublicGetPublicJson (params = {}): Promise<Dict> {
+        return this.request ("public.json", ["spot","kline","public"], 'GET', params, undefined, undefined, {"cost":0.24});
+    }
+    spotKlinePublicGetPublicCurrencyJson (params = {}): Promise<Dict> {
+        return this.request ("public{currency}.json", ["spot","kline","public"], 'GET', params, undefined, undefined, {"cost":0.24});
+    }
+    spotV1PublicGetPing (params = {}): Promise<Dict> {
+        return this.request ("ping", ["spot","v1","public"], 'GET', params, undefined, undefined, {"cost":0.24});
+    }
+    spotV1PublicGetTime (params = {}): Promise<Dict> {
+        return this.request ("time", ["spot","v1","public"], 'GET', params, undefined, undefined, {"cost":0.24});
+    }
+    spotV1PublicGetExchangeInfo (params = {}): Promise<Dict> {
+        return this.request ("exchangeInfo", ["spot","v1","public"], 'GET', params, undefined, undefined, {"cost":0.24});
+    }
+    spotV1PublicGetDepth (params = {}): Promise<Dict> {
+        return this.request ("depth", ["spot","v1","public"], 'GET', params, undefined, undefined, {"cost":1,"byLimit":[[100,0.24],[500,1.2],[1000,2.4]]});
+    }
+    spotV1PublicGetTrades (params = {}): Promise<List> {
+        return this.request ("trades", ["spot","v1","public"], 'GET', params, undefined, undefined, {"cost":0.24});
+    }
+    spotV1PublicGetHistoricalTrades (params = {}): Promise<List> {
+        return this.request ("historicalTrades", ["spot","v1","public"], 'GET', params, undefined, undefined, {"cost":1.2});
+    }
+    spotV1PublicGetAggTrades (params = {}): Promise<List> {
+        return this.request ("aggTrades", ["spot","v1","public"], 'GET', params, undefined, undefined, {"cost":0.24});
+    }
+    spotV1PublicGetTicker24hr (params = {}): Promise<List> {
+        return this.request ("ticker/24hr", ["spot","v1","public"], 'GET', params, undefined, undefined, {"cost":0.24,"noSymbol":9.6});
+    }
+    spotV1PublicGetTickerPrice (params = {}): Promise<Dict> {
+        return this.request ("ticker/price", ["spot","v1","public"], 'GET', params, undefined, undefined, {"cost":0.24});
+    }
+    spotV1PublicGetTickerBookTicker (params = {}): Promise<Dict> {
+        return this.request ("ticker/bookTicker", ["spot","v1","public"], 'GET', params, undefined, undefined, {"cost":0.24});
+    }
+    spotV1PublicGetMarketKline (params = {}): Promise<Dict> {
+        return this.request ("market/kline", ["spot","v1","public"], 'GET', params, undefined, undefined, {"cost":0.24});
+    }
+    spotV1PrivateGetOrder (params = {}): Promise<Dict> {
+        return this.request ("order", ["spot","v1","private"], 'GET', params, undefined, undefined, {"cost":5});
+    }
+    spotV1PrivateGetOpenOrders (params = {}): Promise<Dict> {
+        return this.request ("openOrders", ["spot","v1","private"], 'GET', params, undefined, undefined, {"cost":5});
+    }
+    spotV1PrivateGetAllOrders (params = {}): Promise<List> {
+        return this.request ("allOrders", ["spot","v1","private"], 'GET', params, undefined, undefined, {"cost":25});
+    }
+    spotV1PrivateGetAccount (params = {}): Promise<Dict> {
+        return this.request ("account", ["spot","v1","private"], 'GET', params, undefined, undefined, {"cost":25});
+    }
+    spotV1PrivateGetMyTrades (params = {}): Promise<List> {
+        return this.request ("myTrades", ["spot","v1","private"], 'GET', params, undefined, undefined, {"cost":25});
+    }
+    spotV1PrivateGetEtfNetValueSymbol (params = {}): Promise<Dict> {
+        return this.request ("etf/net-value/{symbol}", ["spot","v1","private"], 'GET', params, undefined, undefined, {"cost":0.24});
+    }
+    spotV1PrivateGetWithdrawHistory (params = {}): Promise<Dict> {
+        return this.request ("withdraw/history", ["spot","v1","private"], 'GET', params, undefined, undefined, {"cost":120});
+    }
+    spotV1PrivateGetDepositHistory (params = {}): Promise<Dict> {
+        return this.request ("deposit/history", ["spot","v1","private"], 'GET', params, undefined, undefined, {"cost":120});
+    }
+    spotV1PrivatePostOrder (params = {}): Promise<Dict> {
+        return this.request ("order", ["spot","v1","private"], 'POST', params, undefined, undefined, {"cost":5});
+    }
+    spotV1PrivatePostWithdrawCommit (params = {}): Promise<Dict> {
+        return this.request ("withdraw/commit", ["spot","v1","private"], 'POST', params, undefined, undefined, {"cost":120});
+    }
+    spotV1PrivateDeleteOrder (params = {}): Promise<Dict> {
+        return this.request ("order", ["spot","v1","private"], 'DELETE', params, undefined, undefined, {"cost":5});
+    }
+    spotV2PrivateGetMyTrades (params = {}): Promise<Dict> {
+        return this.request ("myTrades", ["spot","v2","private"], 'GET', params, undefined, undefined, {"cost":1.2});
+    }
+    fapiV1PublicGetPing (params = {}): Promise<Dict> {
+        return this.request ("ping", ["fapi","v1","public"], 'GET', params, undefined, undefined, {"cost":0.24});
+    }
+    fapiV1PublicGetTime (params = {}): Promise<Dict> {
+        return this.request ("time", ["fapi","v1","public"], 'GET', params, undefined, undefined, {"cost":0.24});
+    }
+    fapiV1PublicGetContracts (params = {}): Promise<List> {
+        return this.request ("contracts", ["fapi","v1","public"], 'GET', params, undefined, undefined, {"cost":0.24});
+    }
+    fapiV1PublicGetDepth (params = {}): Promise<Dict> {
+        return this.request ("depth", ["fapi","v1","public"], 'GET', params, undefined, undefined, {"cost":0.24});
+    }
+    fapiV1PublicGetTicker (params = {}): Promise<Dict | List> {
+        return this.request ("ticker", ["fapi","v1","public"], 'GET', params, undefined, undefined, {"cost":0.24});
+    }
+    fapiV1PublicGetKlines (params = {}): Promise<List> {
+        return this.request ("klines", ["fapi","v1","public"], 'GET', params, undefined, undefined, {"cost":0.24});
+    }
+    fapiV2PrivateGetMyTrades (params = {}): Promise<Dict> {
+        return this.request ("myTrades", ["fapi","v2","private"], 'GET', params, undefined, undefined, {"cost":5});
+    }
+    fapiV2PrivateGetOpenOrders (params = {}): Promise<Dict> {
+        return this.request ("openOrders", ["fapi","v2","private"], 'GET', params, undefined, undefined, {"cost":5});
+    }
+    fapiV2PrivateGetOrder (params = {}): Promise<Dict> {
+        return this.request ("order", ["fapi","v2","private"], 'GET', params, undefined, undefined, {"cost":5});
+    }
+    fapiV2PrivateGetAccount (params = {}): Promise<Dict> {
+        return this.request ("account", ["fapi","v2","private"], 'GET', params, undefined, undefined, {"cost":5});
+    }
+    fapiV2PrivateGetLeverageBracket (params = {}): Promise<Dict> {
+        return this.request ("leverageBracket", ["fapi","v2","private"], 'GET', params, undefined, undefined, {"cost":5});
+    }
+    fapiV2PrivateGetCommissionRate (params = {}): Promise<Dict> {
+        return this.request ("commissionRate", ["fapi","v2","private"], 'GET', params, undefined, undefined, {"cost":5});
+    }
+    fapiV2PrivateGetFuturesTransferHistory (params = {}): Promise<Dict> {
+        return this.request ("futures_transfer_history", ["fapi","v2","private"], 'GET', params, undefined, undefined, {"cost":5});
+    }
+    fapiV2PrivateGetForceOrdersHistory (params = {}): Promise<Dict> {
+        return this.request ("forceOrdersHistory", ["fapi","v2","private"], 'GET', params, undefined, undefined, {"cost":5});
+    }
+    fapiV2PrivatePostPositionMargin (params = {}): Promise<Dict> {
+        return this.request ("positionMargin", ["fapi","v2","private"], 'POST', params, undefined, undefined, {"cost":5});
+    }
+    fapiV2PrivatePostLevelEdit (params = {}): Promise<Dict> {
+        return this.request ("level_edit", ["fapi","v2","private"], 'POST', params, undefined, undefined, {"cost":5});
+    }
+    fapiV2PrivatePostCancel (params = {}): Promise<Dict> {
+        return this.request ("cancel", ["fapi","v2","private"], 'POST', params, undefined, undefined, {"cost":5});
+    }
+    fapiV2PrivatePostOrder (params = {}): Promise<Dict> {
+        return this.request ("order", ["fapi","v2","private"], 'POST', params, undefined, undefined, {"cost":25});
+    }
+    fapiV2PrivatePostAllOpenOrders (params = {}): Promise<Dict> {
+        return this.request ("allOpenOrders", ["fapi","v2","private"], 'POST', params, undefined, undefined, {"cost":5});
+    }
+    fapiV2PrivatePostFuturesTransfer (params = {}): Promise<Dict> {
+        return this.request ("futures_transfer", ["fapi","v2","private"], 'POST', params, undefined, undefined, {"cost":5});
+    }
+    dapiV1PublicGetPing (params = {}): Promise<Dict> {
+        return this.request ("ping", ["dapi","v1","public"], 'GET', params, undefined, undefined, {"cost":0.24});
+    }
+    dapiV1PublicGetTime (params = {}): Promise<Dict> {
+        return this.request ("time", ["dapi","v1","public"], 'GET', params, undefined, undefined, {"cost":0.24});
+    }
+    dapiV1PublicGetContracts (params = {}): Promise<List> {
+        return this.request ("contracts", ["dapi","v1","public"], 'GET', params, undefined, undefined, {"cost":0.24});
+    }
+    dapiV1PublicGetDepth (params = {}): Promise<Dict> {
+        return this.request ("depth", ["dapi","v1","public"], 'GET', params, undefined, undefined, {"cost":0.24});
+    }
+    dapiV1PublicGetTicker (params = {}): Promise<Dict | List> {
+        return this.request ("ticker", ["dapi","v1","public"], 'GET', params, undefined, undefined, {"cost":0.24});
+    }
+    dapiV1PublicGetKlines (params = {}): Promise<List> {
+        return this.request ("klines", ["dapi","v1","public"], 'GET', params, undefined, undefined, {"cost":0.24});
+    }
+    dapiV2PrivateGetMyTrades (params = {}): Promise<Dict> {
+        return this.request ("myTrades", ["dapi","v2","private"], 'GET', params, undefined, undefined, {"cost":5});
+    }
+    dapiV2PrivateGetOpenOrders (params = {}): Promise<Dict> {
+        return this.request ("openOrders", ["dapi","v2","private"], 'GET', params, undefined, undefined, {"cost":5});
+    }
+    dapiV2PrivateGetOrder (params = {}): Promise<Dict> {
+        return this.request ("order", ["dapi","v2","private"], 'GET', params, undefined, undefined, {"cost":5});
+    }
+    dapiV2PrivateGetAccount (params = {}): Promise<Dict> {
+        return this.request ("account", ["dapi","v2","private"], 'GET', params, undefined, undefined, {"cost":5});
+    }
+    dapiV2PrivateGetLeverageBracket (params = {}): Promise<Dict> {
+        return this.request ("leverageBracket", ["dapi","v2","private"], 'GET', params, undefined, undefined, {"cost":5});
+    }
+    dapiV2PrivateGetCommissionRate (params = {}): Promise<Dict> {
+        return this.request ("commissionRate", ["dapi","v2","private"], 'GET', params, undefined, undefined, {"cost":5});
+    }
+    dapiV2PrivateGetFuturesTransferHistory (params = {}): Promise<Dict> {
+        return this.request ("futures_transfer_history", ["dapi","v2","private"], 'GET', params, undefined, undefined, {"cost":5});
+    }
+    dapiV2PrivateGetForceOrdersHistory (params = {}): Promise<Dict> {
+        return this.request ("forceOrdersHistory", ["dapi","v2","private"], 'GET', params, undefined, undefined, {"cost":5});
+    }
+    dapiV2PrivatePostPositionMargin (params = {}): Promise<Dict> {
+        return this.request ("positionMargin", ["dapi","v2","private"], 'POST', params, undefined, undefined, {"cost":5});
+    }
+    dapiV2PrivatePostLevelEdit (params = {}): Promise<Dict> {
+        return this.request ("level_edit", ["dapi","v2","private"], 'POST', params, undefined, undefined, {"cost":5});
+    }
+    dapiV2PrivatePostCancel (params = {}): Promise<Dict> {
+        return this.request ("cancel", ["dapi","v2","private"], 'POST', params, undefined, undefined, {"cost":5});
+    }
+    dapiV2PrivatePostOrder (params = {}): Promise<Dict> {
+        return this.request ("order", ["dapi","v2","private"], 'POST', params, undefined, undefined, {"cost":5});
+    }
+    dapiV2PrivatePostAllOpenOrders (params = {}): Promise<Dict> {
+        return this.request ("allOpenOrders", ["dapi","v2","private"], 'POST', params, undefined, undefined, {"cost":5});
+    }
+    dapiV2PrivatePostFuturesTransfer (params = {}): Promise<Dict> {
+        return this.request ("futures_transfer", ["dapi","v2","private"], 'POST', params, undefined, undefined, {"cost":5});
+    }
+    openV1PrivatePostPoseidonApiV1ListenKey (params = {}): Promise<Dict> {
+        return this.request ("poseidon/api/v1/listenKey", ["open","v1","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    openV1PrivatePutPoseidonApiV1ListenKeyListenKey (params = {}): Promise<Dict> {
+        return this.request ("poseidon/api/v1/listenKey/{listenKey}", ["open","v1","private"], 'PUT', params, undefined, undefined, {"cost":1});
+    }
+    openV1PrivateDeletePoseidonApiV1ListenKeyListenKey (params = {}): Promise<Dict> {
+        return this.request ("poseidon/api/v1/listenKey/{listenKey}", ["open","v1","private"], 'DELETE', params, undefined, undefined, {"cost":1});
+    }
 }
-abstract class Exchange extends _Exchange {}
-
 export default Exchange

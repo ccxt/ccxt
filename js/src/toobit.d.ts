@@ -111,7 +111,7 @@ export default class toobit extends Exchange {
      * @returns {object} a dictionary of lastprices structures
      */
     fetchLastPrices(symbols?: Strings, params?: Dict): Promise<LastPrices>;
-    parseLastPrice(entry: any, market?: Market): LastPrice;
+    parseLastPrice(entry: Dict, market?: Market): LastPrice;
     /**
      * @method
      * @name toobit#fetchBidsAsks
@@ -123,7 +123,7 @@ export default class toobit extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     fetchBidsAsks(symbols?: Strings, params?: Dict): Promise<Tickers>;
-    parseBidsAsksCustom(tickers: any, symbols?: Strings, params?: Dict): Tickers;
+    parseBidsAsksCustom(tickers: Dict[], symbols?: Strings, params?: Dict): Tickers;
     parseBidAskCustom(ticker: Dict): Dict;
     /**
      * @method
@@ -178,8 +178,8 @@ export default class toobit extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
-    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): [Dict, Dict];
-    createContractOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): [Dict, Dict];
+    createOrderRequest(symbol: Str, type: OrderType, side: OrderSide, amount: Num, price?: Num, params?: Dict): [Dict, Dict];
+    createContractOrderRequest(symbol: Str, type: OrderType, side: OrderSide, amount: Num, price?: Num, params?: Dict): [Dict, Dict];
     parseOrder(order: Dict, market?: Market): Order;
     parseOrderStatus(status: Str): string | undefined;
     parseOrderType(status: Str): string | undefined;
@@ -346,8 +346,9 @@ export default class toobit extends Exchange {
      */
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
     fetchDepositsOrWithdrawalsHelper(type: Str, code: Str, since: Int, limit: Int, params?: Dict): Promise<Transaction[]>;
+    parseTransactionWithType(transaction: Dict, currency?: Currency, transactType?: Str): Transaction;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parseTransactionStatus(status: Str): string | undefined;
+    parseTransactionStatus(status: Str, type?: Str): string | undefined;
     /**
      * @method
      * @name toobit#fetchDepositAddress
@@ -358,7 +359,7 @@ export default class toobit extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     fetchDepositAddress(code: string, params?: Dict): Promise<DepositAddress>;
-    parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
+    parseDepositAddress(depositAddress: Dict, currency?: Currency): DepositAddress;
     /**
      * @method
      * @name toobit#withdraw
@@ -367,12 +368,12 @@ export default class toobit extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag a memo for the transaction
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.addressType] recipient identifier type, one of BLOCK_CHAIN, PHONE_NUMBER, EMAIL, or UID
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
     /**
      * @method
      * @name toobit#setMarginMode
@@ -417,6 +418,6 @@ export default class toobit extends Exchange {
      */
     fetchPositions(symbols?: Strings, params?: Dict): Promise<Position[]>;
     parsePosition(position: Dict, market?: Market): Position;
-    sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

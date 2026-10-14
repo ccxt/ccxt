@@ -1,6 +1,6 @@
 Every endpoint in `bitget`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/bitget) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicCommonGetV2PublicAnnoucements`); the snake_case alias (`public_common_get_v2_public_annoucements`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`PublicCommonGetV2PublicAnnoucements`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicCommonGetV2PublicAnnoucements`); Python and PHP use the snake_case form (`public_common_get_v2_public_annoucements`), and Go uses the PascalCase form (`PublicCommonGetV2PublicAnnoucements`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -53,7 +53,7 @@ response := <-bitget.PublicCommonGetV2PublicAnnoucements(params)
 
 Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; everything else in `params` is sent as the query string or request body. **Cost** is the rate-limiter weight of each call.
 
-📚 **Official bitget API documentation:** [bitget.com](https://www.bitget.com/api-doc/common/intro) · [bitget.com](https://www.bitget.com/api-doc/spot/intro) · [bitget.com](https://www.bitget.com/api-doc/contract/intro) · [bitget.com](https://www.bitget.com/api-doc/broker/intro) · [bitget.com](https://www.bitget.com/api-doc/margin/intro) · [bitget.com](https://www.bitget.com/api-doc/copytrading/intro) · [bitget.com](https://www.bitget.com/api-doc/earn/intro) · [bitgetlimited.github.io](https://bitgetlimited.github.io/apidoc/en/mix) · [bitgetlimited.github.io](https://bitgetlimited.github.io/apidoc/en/spot) · [bitgetlimited.github.io](https://bitgetlimited.github.io/apidoc/en/broker) · [bitgetlimited.github.io](https://bitgetlimited.github.io/apidoc/en/margin)
+📚 **Official bitget API documentation:** [bitget.com](https://www.bitget.com/docs/uta/Introduction) · [bitget.com](https://www.bitget.com/docs/classic/Introduction)
 
 > 791 implicit endpoints across 2 access groups.
 

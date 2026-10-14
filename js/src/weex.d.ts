@@ -83,7 +83,7 @@ export default class weex extends Exchange {
      * @returns {object} a dictionary of lastprice structures
      */
     fetchLastPrices(symbols?: Strings, params?: Dict): Promise<LastPrices>;
-    parseLastPrice(entry: any, market?: Market): LastPrice;
+    parseLastPrice(entry: Dict, market?: Market): LastPrice;
     /**
      * @method
      * @name weex#fetchMarkPrice
@@ -284,7 +284,7 @@ export default class weex extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createSpotOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
-    createSpotOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): Dict;
+    createSpotOrderRequest(symbol: Str, type: OrderType, side: OrderSide, amount: Num, price?: Num, params?: Dict): Dict;
     /**
      * @method
      * @name weex#createContractOrder
@@ -317,7 +317,7 @@ export default class weex extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createContractOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
-    createContractOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): any;
+    createContractOrderRequest(symbol: Str, type: OrderType, side: OrderSide, amount: Num, price?: Num, params?: Dict): any;
     encodeTriggerPriceType(triggerPriceType: Str): Str;
     /**
      * @method
@@ -520,7 +520,7 @@ export default class weex extends Exchange {
      * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingHistory[]>;
-    parseIncome(income: any, market?: Market): object;
+    parseIncome(income: Dict, market?: Market): object;
     /**
      * @method
      * @name weex#fetchPositions
@@ -573,7 +573,7 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    closePosition(symbol: string, side?: OrderSide, params?: Dict): Promise<Order>;
+    closePosition(symbol: string, side?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name weex#fetchTradingFee
@@ -727,6 +727,6 @@ export default class weex extends Exchange {
      */
     fromSandboxMarketId(marketId: Str): Str;
     setSandboxMode(enable: boolean): void;
-    sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

@@ -29,7 +29,7 @@ public class Bybitid extends io.github.ccxt.exchanges.Bybitid
         var restInstance = new io.github.ccxt.exchanges.Bybitid();
         Object restDescribe = restInstance.describe();
         Object parentWsDescribe = new io.github.ccxt.exchanges.pro.Binance().describeData();
-        Map<String, Object> extended = this.deepExtend(restDescribe, parentWsDescribe);
+        Map<String,Object> extended = this.deepExtend(restDescribe, parentWsDescribe);
         return this.deepExtend(extended, new HashMap<String, Object>() {{
             put( "id", "bybitid" );
             put( "name", "Bybit Indonesia" );

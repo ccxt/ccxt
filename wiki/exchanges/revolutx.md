@@ -172,7 +172,7 @@ fetches the public trade history for a given market symbol
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
 | since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
-| limit | <code>int</code> | No | the maximum number of trades to return (1-1900, default 1900) |
+| limit | <code>int</code> | No | the maximum number of trades to return (1-100) |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest trade to fetch |
 | params.cursor | <code>string</code> | No | pagination cursor from the previous response |

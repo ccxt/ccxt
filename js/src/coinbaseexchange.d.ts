@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinbaseexchange.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, CurrencyInterface, Num, Account, Currencies, TradingFees, Dict, int, LedgerEntry, DepositAddress, NullableDict } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, CurrencyInterface, Num, Account, Currencies, TradingFees, Dict, int, List, LedgerEntry, DepositAddress, NullableDict } from './base/types.js';
 /**
  * @class coinbaseexchange
  * @augments Exchange
@@ -60,7 +60,7 @@ export default class coinbaseexchange extends Exchange {
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
-    parseTicker(ticker: Dict, market?: Market): Ticker;
+    parseTicker(ticker: Dict | List, market?: Market): Ticker;
     /**
      * @method
      * @name coinbaseexchange#fetchTickers
@@ -241,7 +241,7 @@ export default class coinbaseexchange extends Exchange {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelAllOrders(symbol?: Str, params?: Dict): Promise<Order[]>;
-    fetchPaymentMethods(params?: Dict): Promise<Dict>;
+    fetchPaymentMethods(params?: Dict): Promise<Dict[]>;
     /**
      * @method
      * @name coinbaseexchange#withdraw
@@ -251,11 +251,11 @@ export default class coinbaseexchange extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
     parseLedgerEntryType(type: Str): Str;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     /**
@@ -323,7 +323,7 @@ export default class coinbaseexchange extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     createDepositAddress(code: string, params?: Dict): Promise<DepositAddress>;
-    sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    request(path: any, api?: string, method?: string, params?: Dict, headers?: any, body?: any, config?: any): Promise<any>;
+    request(path: string, api?: string, method?: string, params?: Dict, headers?: any, body?: any, config?: Dict): Promise<any>;
 }

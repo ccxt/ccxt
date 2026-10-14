@@ -10970,7 +10970,7 @@
                 "description": "FetchTransfer",
                 "method": "fetchTransfer",
                 "input": [
-                    0,
+                    "0",
                     "USDC"
                 ],
                 "httpResponse": {

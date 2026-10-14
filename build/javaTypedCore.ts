@@ -92,7 +92,10 @@ export function typedReturnTable(tier: JavaTier): Map<string, MethodInfo> {
         if (m.javaReturnType === 'Object') continue;
         table.set(m.name, m);
     }
+    for (const m of BASE_ASYNC_HELPERS) table.set(m.name, m);
     if (tier === 'prediction') {
+        // base async helpers with a structure Promise<T> and no venue override
+        for (const m of PREDICTION_BASE_ASYNC_HELPERS) table.set(m.name, m);
         const shared = baseTierDeclaredNames();
         for (const m of restMethods()) {
             if (shared.has(m.name) && table.has(m.name)) table.set(m.name, m);
@@ -100,6 +103,15 @@ export function typedReturnTable(tier: JavaTier): Map<string, MethodInfo> {
     }
     return table;
 }
+
+// isUTAEnabled (): Promise<boolean> (base stub + kucoin), not a unified wrapper
+const BASE_ASYNC_HELPERS: MethodInfo[] = [
+    { name: 'isUTAEnabled', javaReturnType: 'Boolean', isArray: false, elementType: null, requiredParams: [], optionalParams: [], isWatch: false },
+];
+// loadOutcome (): Promise<PredictionOutcomeMarket> sends the outcome dict on every path
+const PREDICTION_BASE_ASYNC_HELPERS: MethodInfo[] = [
+    { name: 'loadOutcome', javaReturnType: 'Map<String, Object>', isArray: false, elementType: null, requiredParams: [], optionalParams: [], isWatch: false },
+];
 
 const JAVA_BUILTINS = new Set([ 'List', 'Map', 'String', 'Object', 'Long', 'Double', 'Boolean' ]);
 
@@ -156,6 +168,11 @@ export function typeCoreReturns(source: string, table: Map<string, MethodInfo>):
         for (let j = i + 1; j < lines.length; j++) {
             if (lines[j] === close) break;
             const trimmed = lines[j].trim();
+            // an `Object...` front returns its typed core's future unchanged
+            if (trimmed.startsWith(`return this.${name}(`)) {
+                converted = true;
+                break;
+            }
             if (lines[j].startsWith(supplyIndent) && lines[j].length === supplyIndent.length + trimmed.length
                 && isAsyncLambdaClose(trimmed) && trimmed.endsWith(');')) {
                 // `});` -> `}).thenApply(f);`  /  `}, EXECUTOR);` -> `}, EXECUTOR).thenApply(f);`

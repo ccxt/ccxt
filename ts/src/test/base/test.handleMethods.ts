@@ -1,3 +1,5 @@
+// AUTO_TRANSPILE_ENABLED
+
 
 
 import assert from 'assert';
@@ -7,7 +9,7 @@ function helperTestHandleMarketTypeAndParams () {
     const exchange = new ccxt.Exchange ({
         'id': 'sampleexchange',
         'options': {
-            'defaultType': 'valueFromOptions',
+            'defaultType': 'option',
             'fetchX': {
                 'defaultType': 'valueFromMethodOptions',
             },
@@ -44,7 +46,7 @@ function helperTestHandleMarketTypeAndParams () {
     // case #5, should prevail: options
     //
     const [ marketType5, params5 ] = exchange.handleMarketTypeAndParams ('fetchY', undefined, {}, undefined);
-    assert (marketType5 === 'valueFromOptions');
+    assert (marketType5 === 'option');
     //
     // case #6, should prevail: spot (because hardcoded in base)
     //
@@ -73,9 +75,33 @@ function helperTestHandleNetworkRequest () {
     assert (request1['chain_id'] === 'Xyz');
 }
 
+function helperTestHandleTypedOptions () {
+    const exchange = new ccxt.Exchange ({
+        'id': 'sampleexchange',
+        'options': {
+            'marginMode': 'isolated',
+            'fetchX': {
+                'uta': true,
+            },
+        },
+    });
+    const [ marginMode, params1 ] = exchange.handleMarginModeAndParams ('fetchX', {}, 'cross');
+    assert (marginMode === 'isolated');
+    const [ uta, params2 ] = exchange.handleOptionBoolAndParams ({}, 'fetchX', 'uta', false);
+    assert (uta === true);
+    const [ absent, params3 ] = exchange.handleOptionStringAndParams ({}, 'fetchX', 'absentKey', 'fallback');
+    assert (absent === 'fallback');
+    const [ fromParams, params4 ] = exchange.handleOptionStringAndParams ({ 'absentKey': 'p' }, 'fetchX', 'absentKey', 'fallback');
+    assert (fromParams === 'p');
+    assert (!('absentKey' in params4));
+    // a wrong-typed option is covered per language in language_specific (it throws only in C#, Java and Go)
+    assert (params1 !== undefined || params2 !== undefined || params3 !== undefined);
+}
+
 function testHandleMethods () {
     helperTestHandleMarketTypeAndParams ();
     helperTestHandleNetworkRequest ();
+    helperTestHandleTypedOptions ();
 }
 
 export default testHandleMethods;

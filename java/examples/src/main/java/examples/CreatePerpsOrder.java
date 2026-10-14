@@ -17,7 +17,7 @@ public class CreatePerpsOrder {
         try {
             var params = new HashMap<String, Object>();
             var symbol = "BTC/USDT:USDT"; // linear swap using ccxt terminology
-            var order = exchange.createOrder(symbol, "market", "buy", 500.0, null, params);
+            var order = exchange.createOrder(symbol, "market", "buy", 500.0, null, params).join();
             System.out.println("here:::" + order.id);
         } catch (InsufficientFunds e) {
         }

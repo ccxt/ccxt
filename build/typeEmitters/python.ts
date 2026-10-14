@@ -95,6 +95,8 @@ const NARROWED_ALIASES: { [key: string]: string } = {
     'OrderType': 'Str',
     'MarketType': 'Str',
     'SubType': 'Str',
+    'DefaultType': 'Str',
+    'DefaultSubType': 'Str',
 };
 
 const SCALARS: { [key: string]: string } = {

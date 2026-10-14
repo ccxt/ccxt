@@ -79,6 +79,16 @@ def helper_test_init_sandbox():
     helper_test_sandbox_state(exchange4, True)
     exchange4.set_sandbox_mode(False)
     helper_test_sandbox_state(exchange4, False)
+    #
+    # CASE C: passed 'sandbox' within userConfig
+    #
+    opts['options']['sandbox'] = False
+    # @ts-expect-error
+    opts['sandbox'] = True
+    exchange5 = ccxt.Exchange(opts)
+    helper_test_sandbox_state(exchange5, True)
+    exchange5.set_sandbox_mode(False)
+    helper_test_sandbox_state(exchange5, False)
 
 
 def helper_test_init_market():

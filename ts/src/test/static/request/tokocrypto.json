@@ -98,7 +98,7 @@
                     0.1,
                     50
                 ],
-                "output": "timestamp=1699460638178&symbol=LTC_USDT&type=1&side=0&quantity=0.1&price=50&recvWindow=5000&signature=b76f6c95fd5741bd01ec7f9f40098e613af736014b4ebc79f6be3519993312ee"
+                "output": "timestamp=1699460638178&symbol=LTC_USDT&type=1&side=0&quantity=0.1&price=50&timeInForce=1&recvWindow=5000&signature=b76f6c95fd5741bd01ec7f9f40098e613af736014b4ebc79f6be3519993312ee"
             },
             {
                 "description": "Spot limit sell",
@@ -111,7 +111,7 @@
                     0.0003,
                     55000
                 ],
-                "output": "timestamp=1702519397155&symbol=BTC_USDT&type=1&side=1&quantity=0.0003&price=55000&recvWindow=5000&signature=d9641e4a38fee87c316452c7aba5a0fbcfcbbc9a69f0a865cba34caabe158526"
+                "output": "timestamp=1702519397155&symbol=BTC_USDT&type=1&side=1&quantity=0.0003&price=55000&timeInForce=1&recvWindow=5000&signature=d9641e4a38fee87c316452c7aba5a0fbcfcbbc9a69f0a865cba34caabe158526"
             },
             {
                 "description": "Spot market buy order with createMarketBuyOrderRequiresPrice set to true",
@@ -173,6 +173,119 @@
                     null
                 ],
                 "output": "timestamp=1702518741220&symbol=ADA_USDT&type=2&side=1&quantity=85&recvWindow=5000&signature=251d9fd61eb2158d8fc43b5b51ec7e527aa3800642d7a1414c04078361a2d407"
+            },
+            {
+                "description": "Spot limit buy with an explicit IOC time in force",
+                "method": "createOrder",
+                "url": "https://www.tokocrypto.com/open/v1/orders",
+                "input": [
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    0.1,
+                    50,
+                    {
+                        "timeInForce": "IOC"
+                    }
+                ],
+                "output": "timestamp=1788185807131&symbol=LTC_USDT&type=1&side=0&quantity=0.1&price=50&timeInForce=2&recvWindow=5000&signature=2741a64c66ff02e36eb479f53aa850d1ea71a6ba8e040b43b499704a48d586b7"
+            },
+            {
+                "description": "Spot limit buy with an explicit FOK time in force",
+                "method": "createOrder",
+                "url": "https://www.tokocrypto.com/open/v1/orders",
+                "input": [
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    0.1,
+                    50,
+                    {
+                        "timeInForce": "FOK"
+                    }
+                ],
+                "output": "timestamp=1788185807138&symbol=LTC_USDT&type=1&side=0&quantity=0.1&price=50&timeInForce=3&recvWindow=5000&signature=e962347a52dd75418fbde67b9a1a94966b1bc58b4c436430e88df9d31c137ddc"
+            },
+            {
+                "description": "Spot post only limit buy through the postOnly param",
+                "method": "createOrder",
+                "url": "https://www.tokocrypto.com/open/v1/orders",
+                "input": [
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    0.1,
+                    50,
+                    {
+                        "postOnly": true
+                    }
+                ],
+                "output": "timestamp=1788185807140&symbol=LTC_USDT&type=7&side=0&quantity=0.1&price=50&recvWindow=5000&signature=9b085894b84c7f672387e3fc6831d7d7ddbe6c2534e5dd2cb851754fef8c8f25"
+            },
+            {
+                "description": "Spot post only limit buy through the PO time in force",
+                "method": "createOrder",
+                "url": "https://www.tokocrypto.com/open/v1/orders",
+                "input": [
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    0.1,
+                    50,
+                    {
+                        "timeInForce": "PO"
+                    }
+                ],
+                "output": "timestamp=1788185807142&symbol=LTC_USDT&type=7&side=0&quantity=0.1&price=50&recvWindow=5000&signature=160acf6917d8e35671d9873d79c60dc8b8ec753aed575df3297d35b3a8107d24"
+            },
+            {
+                "description": "Spot post only limit buy through the venue GTX time in force",
+                "method": "createOrder",
+                "url": "https://www.tokocrypto.com/open/v1/orders",
+                "input": [
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    0.1,
+                    50,
+                    {
+                        "timeInForce": "GTX"
+                    }
+                ],
+                "output": "timestamp=1788185807143&symbol=LTC_USDT&type=7&side=0&quantity=0.1&price=50&recvWindow=5000&signature=4833af014062d0495a0bae4bbea6f0344ec82df63176a5f76dedf73a87103a07"
+            },
+            {
+                "description": "Spot stop loss limit sell with an IOC time in force",
+                "method": "createOrder",
+                "url": "https://www.tokocrypto.com/open/v1/orders",
+                "input": [
+                    "LTC/USDT",
+                    "limit",
+                    "sell",
+                    0.1,
+                    50,
+                    {
+                        "triggerPrice": 45,
+                        "timeInForce": "IOC"
+                    }
+                ],
+                "output": "timestamp=1788185807145&symbol=LTC_USDT&type=4&side=1&quantity=0.1&price=50&stopPrice=45&timeInForce=2&recvWindow=5000&signature=802d00840b994974de61ebadf27e2547f313ed4e20051b85f14d0eef2fa1550f"
+            },
+            {
+                "description": "Spot market sell with a redundant IOC time in force, which the order type already implies",
+                "method": "createOrder",
+                "url": "https://www.tokocrypto.com/open/v1/orders",
+                "input": [
+                    "ADA/USDT",
+                    "market",
+                    "sell",
+                    85,
+                    null,
+                    {
+                        "timeInForce": "IOC"
+                    }
+                ],
+                "output": "timestamp=1788186951022&symbol=ADA_USDT&type=2&side=1&quantity=85&recvWindow=5000&signature=f26dbf4c0f2b158edf5aa494c620be6c948f1f904ec3babf868189c11208e226"
             }
         ],
         "createMarketBuyOrderWithCost": [

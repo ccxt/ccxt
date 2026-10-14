@@ -219,6 +219,76 @@
                     }
                 }
             }
+        ],
+        "fetchTickers": [
+            {
+                "description": "tickers keyed by the unified symbol for a renamed base currency",
+                "method": "fetchTickers",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "symbol": "UNO/USDT",
+                        "baseCurrency": "cd8789a9-f715-4a7f-a390-a1f3cf408ef1",
+                        "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+                        "volume24h": "1.704480409204000000",
+                        "volume7d": "59.945158547406000000",
+                        "change24h": "0.0000",
+                        "change7d": "0.0000",
+                        "amount24h": "0.310900000000000000",
+                        "amount7d": "6.572600000000000000",
+                        "lastPrice": "3.28997999",
+                        "lastQuantity": "0.097500000000000000",
+                        "bestBid": "1.5001",
+                        "bestBidQuantity": "1.2796",
+                        "bestAsk": "3.28997999",
+                        "bestAskQuantity": "0.5322",
+                        "updateTimestamp": 1791056820742
+                    }
+                ],
+                "parsedResponse": {
+                    "Unobtanium/USDT": {
+                        "symbol": "Unobtanium/USDT",
+                        "timestamp": 1791056820742,
+                        "datetime": "2026-10-03T19:47:00.742Z",
+                        "low": null,
+                        "high": null,
+                        "bid": 1.5001,
+                        "bidVolume": 1.2796,
+                        "ask": 3.28997999,
+                        "askVolume": 0.5322,
+                        "vwap": 5.482407234493406,
+                        "open": null,
+                        "close": 3.28997999,
+                        "last": 3.28997999,
+                        "previousClose": null,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "baseVolume": 0.3109,
+                        "quoteVolume": 1.704480409204,
+                        "info": {
+                            "symbol": "UNO/USDT",
+                            "baseCurrency": "cd8789a9-f715-4a7f-a390-a1f3cf408ef1",
+                            "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+                            "volume24h": "1.704480409204000000",
+                            "volume7d": "59.945158547406000000",
+                            "change24h": "0.0000",
+                            "change7d": "0.0000",
+                            "amount24h": "0.310900000000000000",
+                            "amount7d": "6.572600000000000000",
+                            "lastPrice": "3.28997999",
+                            "lastQuantity": "0.097500000000000000",
+                            "bestBid": "1.5001",
+                            "bestBidQuantity": "1.2796",
+                            "bestAsk": "3.28997999",
+                            "bestAskQuantity": "0.5322",
+                            "updateTimestamp": 1791056820742
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                }
+            }
         ]
     }
 }
