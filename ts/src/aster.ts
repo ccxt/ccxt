@@ -4163,6 +4163,9 @@ export default class aster extends Exchange {
         // TODO: check how ARBI signature would work
         const networks = this.safeDict (this.options, 'networks', {});
         let network = this.safeStringUpper (paramsWithdrawTag, 'network');
+        if (network !== undefined) {
+            network = this.unifiedNetworkCode (network); // accepts aliases like ETH for ERC20
+        }
         network = this.safeString (networks, network, network);
         if ((chainId === undefined) && (network !== undefined)) {
             const chainIds = this.safeDict (this.options, 'networksToChainId', {});
