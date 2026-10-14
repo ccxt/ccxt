@@ -241,31 +241,31 @@
         "tierBased": null,
         "percentage": null
     },
-    "ETH/USD:USDC": {
+    "ETH/USDC": {
         "id": "ETH-USD",
         "lowercaseId": null,
-        "symbol": "ETH/USD:USDC",
+        "symbol": "ETH/USDC",
         "base": "ETH",
-        "quote": "USD",
-        "settle": "USDC",
+        "quote": "USDC",
+        "settle": null,
         "baseId": "ETH",
-        "quoteId": "USD",
-        "settleId": "USDC",
-        "type": "swap",
-        "spot": false,
+        "quoteId": "USDC",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
         "margin": null,
-        "swap": true,
+        "swap": false,
         "future": false,
         "option": false,
-        "index": null,
+        "index": false,
         "active": null,
-        "contract": true,
-        "linear": true,
-        "inverse": false,
-        "subType": "linear",
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.0003,
         "maker": -0.00005,
-        "contractSize": 1,
+        "contractSize": null,
         "expiry": null,
         "expiryDatetime": null,
         "strike": null,
@@ -275,27 +275,16 @@
             "price": 0.01
         },
         "limits": {
-            "leverage": {
-                "min": null,
-                "max": null
-            },
+            "leverage": {},
             "amount": {
-                "min": null,
                 "max": 20
             },
-            "price": {
-                "min": null,
-                "max": null
-            },
+            "price": {},
             "cost": {
-                "min": 10,
-                "max": null
+                "min": 10
             }
         },
-        "marginModes": {
-            "cross": null,
-            "isolated": null
-        },
+        "marginModes": {},
         "created": null,
         "info": {
             "symbol": "ETH-USD",
@@ -352,6 +341,117 @@
                     }
                 }
             }
+        },
+        "tierBased": null,
+        "percentage": null
+    },
+    "ETH/USD:USDC": {
+        "id": "ETH-USD-PERP",
+        "lowercaseId": null,
+        "symbol": "ETH/USD:USDC",
+        "base": "ETH",
+        "quote": "USD",
+        "settle": "USDC",
+        "baseId": "ETH",
+        "quoteId": "USD",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": null,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0003,
+        "maker": -0.00005,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "max": 1000
+            },
+            "price": {},
+            "cost": {
+                "min": 10
+            }
+        },
+        "marginModes": {},
+        "created": null,
+        "info": {
+            "symbol": "ETH-USD-PERP",
+            "base_currency": "ETH",
+            "quote_currency": "USD",
+            "settlement_currency": "USDC",
+            "order_size_increment": "0.0001",
+            "price_tick_size": "0.01",
+            "min_notional": "10",
+            "open_at": 1692576000000,
+            "expiry_at": 0,
+            "asset_kind": "PERP",
+            "market_kind": "cross",
+            "position_limit": "9000",
+            "price_bands_width": "0.05",
+            "max_slippage": "0.001",
+            "max_open_orders": 150,
+            "max_funding_rate": "0.02",
+            "delta1_cross_margin_params": {
+                "imf_base": "0.02",
+                "imf_shift": "0",
+                "imf_factor": "0",
+                "mmf_factor": "0.5"
+            },
+            "price_feed_id": "JBu1AL4obBcCMqKBBxhpWCNUt136ijcuMZLFvTP7iWdB",
+            "oracle_ewma_factor": "0.12945779635696708",
+            "max_order_size": "1000",
+            "max_funding_rate_change": "0.0002",
+            "max_tob_spread": "0.01",
+            "interest_rate": "0.0001",
+            "clamp_rate": "0.0005",
+            "funding_period_hours": 8,
+            "funding_multiplier": 1,
+            "tags": [
+                "LAYER-1"
+            ],
+            "fee_config": {
+                "interactive_fee": {
+                    "maker_fee": {
+                        "fee": "0"
+                    },
+                    "taker_fee": {
+                        "fee": "0"
+                    }
+                },
+                "api_fee": {
+                    "maker_fee": {
+                        "fee": "0"
+                    },
+                    "taker_fee": {
+                        "fee": "0.0002"
+                    }
+                },
+                "rpi_fee": {
+                    "maker_fee": {
+                        "fee": "0"
+                    },
+                    "taker_fee": {
+                        "fee": "0.0002"
+                    }
+                }
+            },
+            "trading_mode": "STANDARD"
         },
         "tierBased": null,
         "percentage": null
