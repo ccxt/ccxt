@@ -1051,8 +1051,9 @@ export default class lcx extends Exchange {
     /**
      * @method
      * @name lcx#fetchOrder
-     * @description fetches information on an order made by the user
+     * @description fetches information on an order made by the user, open orders are looked up in the open orders list
      * @see https://docs.lcx.com/#tag/Trading-API/operation/Order
+     * @see https://docs.lcx.com/#tag/Trading-API/operation/Open%20orders
      * @param {string} id the order id
      * @param {string} [symbol] not used by lcx fetchOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1067,7 +1068,21 @@ export default class lcx extends Exchange {
         const request: Dict = {
             'OrderId': id,
         };
-        const response = await this.privateGetOrder (this.extend (request, params));
+        let response = undefined;
+        try {
+            response = await this.privateGetOrder (this.extend (request, params));
+        } catch (e) {
+            // the order endpoint only returns closed and canceled orders, open orders are looked up in the open orders list
+            if (e instanceof OrderNotFound) {
+                const openOrders = await this.fetchOpenOrders (symbol);
+                for (let i = 0; i < openOrders.length; i++) {
+                    if (openOrders[i]['id'] === id) {
+                        return openOrders[i];
+                    }
+                }
+            }
+            throw e;
+        }
         //
         //     {
         //         "data": {
@@ -1305,12 +1320,22 @@ export default class lcx extends Exchange {
         const marketId = this.safeString (order, 'Pair');
         const resolvedMarket = this.safeMarket (marketId, market, '/');
         const symbol = resolvedMarket['symbol'];
+        // timestamps and the order type can be zero or empty, for example in the cancel response
         let timestamp = this.safeTimestamp (order, 'CreatedAt');
-        const lastUpdateTimestamp = this.safeTimestamp (order, 'UpdatedAt');
-        if ((timestamp === undefined) || (timestamp === 0)) {
+        if (timestamp === 0) {
+            timestamp = undefined;
+        }
+        let lastUpdateTimestamp = this.safeTimestamp (order, 'UpdatedAt');
+        if (lastUpdateTimestamp === 0) {
+            lastUpdateTimestamp = undefined;
+        }
+        if (timestamp === undefined) {
             timestamp = lastUpdateTimestamp;
         }
-        const type = this.safeStringLower (order, 'OrderType');
+        let type = this.safeStringLower (order, 'OrderType');
+        if (type === '') {
+            type = undefined;
+        }
         const side = this.safeStringLower (order, 'Side');
         const filled = this.safeString (order, 'Filled');
         // the average is only meaningful once the order has fills
