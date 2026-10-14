@@ -9,34 +9,36 @@ use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\UnsubscribeError;
+use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 use ccxt\pro\ArrayCache;
 use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheBySymbolBySide;
 
 class derive extends \ccxt\async\derive {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
-                'ws' => false,
-                'watchBalance' => false,
+                'ws' => true,
+                'watchBalance' => true,
                 'watchMyTrades' => true,
                 'watchOHLCV' => false,
                 'watchOrderBook' => true,
                 'watchOrders' => true,
                 'watchTicker' => true,
                 'watchTickers' => false,
-                'watchBidsAsks' => false,
+                'watchBidsAsks' => true,
                 'watchTrades' => true,
                 'watchTradesForSymbols' => false,
-                'watchPositions' => false,
+                'watchPositions' => true,
             ),
             'urls' => array(
                 'api' => array(
-                    'ws' => 'wss://api.lyra.finance/ws',
+                    'ws' => 'wss://api.derive.xyz/v3/ws',
                 ),
                 'test' => array(
-                    'ws' => 'wss://api-demo.lyra.finance/ws',
+                    'ws' => 'wss://testnet.api.derive.xyz/v3/ws',
                 ),
             ),
             'options' => array(
@@ -87,7 +89,7 @@ class derive extends \ccxt\async\derive {
     private function do_watch_order_book(string $symbol, ?int $limit = null, $params = array()) {
         /**
          *
-         * @see https://docs.derive.xyz/reference/orderbook-instrument_name-group-depth
+         * @see https://docs.derive.xyz/api-reference/channels/orderbook
          *
          * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
@@ -161,7 +163,7 @@ class derive extends \ccxt\async\derive {
     private function do_watch_ticker(string $symbol, $params = array()) {
         /**
          *
-         * @see https://docs.derive.xyz/reference/ticker-instrument_name-interval
+         * @see https://docs.derive.xyz/api-reference/channels/tickerslim
          *
          * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
@@ -172,7 +174,7 @@ class derive extends \ccxt\async\derive {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $topic = 'ticker_slim.' . $market['id'] . '.100'; // the venue deprecated the fat ticker channel in favor of ticker_slim
+        $topic = 'ticker_slim.' . $market['id'] . '.100'; // v3 removed the fat ticker channel, ticker_slim is the only ticker feed
         $request = array(
             'method' => 'subscribe',
             'params' => array(
@@ -189,106 +191,146 @@ class derive extends \ccxt\async\derive {
         return Async\await($this->watch_public($topic, $request, $subscription));
     }
 
+    public function un_watch_ticker(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_ticker(...))($symbol, $params);
+    }
+
+    private function do_un_watch_ticker(string $symbol, $params = array()) {
+        /**
+         * unsubscribe from the ticker channel; note that the bid ask feed of the same $symbol shares the channel and stops as well
+         *
+         * @see https://docs.derive.xyz/api-reference/channels/tickerslim
+         *
+         * @param {string} $symbol unified $symbol of the $market to unwatch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {any} status of the unwatch $request
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $topic = 'ticker_slim.' . $market['id'] . '.100';
+        $messageHash = 'unwatch' . $topic;
+        $request = array(
+            'method' => 'unsubscribe',
+            'params' => array(
+                'channels' => array(
+                    $topic,
+                ),
+            ),
+        );
+        $subscription = array(
+            'name' => $topic,
+        );
+        return Async\await($this->un_watch_public($messageHash, $request, $subscription));
+    }
+
+    public function watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_bids_asks(...))($symbols, $params);
+    }
+
+    private function do_watch_bids_asks(?array $symbols = null, $params = array()) {
+        /**
+         * watches best bid & ask for $symbols; the data is sourced from the same ticker_slim channel the $ticker uses
+         *
+         * @see https://docs.derive.xyz/api-reference/channels/tickerslim
+         *
+         * @param {string[]} $symbols unified $symbols of the markets to fetch the bids and asks for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbolsResolved = $this->market_symbols($symbols, null, false);
+        $topics = array();
+        $messageHashes = array();
+        for ($i = 0; $i < count($symbolsResolved); $i++) {
+            $market = $this->market($symbolsResolved[$i]);
+            $topics[] = 'ticker_slim.' . $market['id'] . '.100';
+            $messageHashes[] = 'bidask:' . $market['symbol'];
+        }
+        $url = $this->urls['api']['ws'];
+        $requestId = $this->request_id($url);
+        $request = array(
+            'method' => 'subscribe',
+            'params' => array(
+                'channels' => $topics,
+            ),
+            'id' => $requestId,
+        );
+        $subscription = array(
+            'id' => $requestId,
+            'method' => 'subscribe',
+        );
+        $ticker = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes, $subscription));
+        if ($this->newUpdates) {
+            $result = array();
+            $result[$ticker['symbol']] = $ticker;
+            return $result;
+        }
+        return $this->filter_by_array($this->bidsasks, 'symbol', $symbolsResolved);
+    }
+
     public function handle_ticker(Client $client, array $message): array {
         //
-        // {
-        //     method: 'subscription',
-        //     params: {
-        //       channel: 'ticker.BTC-PERP.100',
-        //       data: {
-        //         timestamp: 1738485104439,
-        //         instrument_ticker: {
-        //           instrument_type: 'perp',
-        //           instrument_name: 'BTC-PERP',
-        //           scheduled_activation: 1701840228,
-        //           scheduled_deactivation: '9223372036854775807',
-        //           is_active: true,
-        //           tick_size: '0.1',
-        //           minimum_amount: '0.01',
-        //           maximum_amount: '10000',
-        //           amount_step: '0.001',
-        //           mark_price_fee_rate_cap: '0',
-        //           maker_fee_rate: '0.0001',
-        //           taker_fee_rate: '0.0003',
-        //           base_fee: '0.1',
-        //           base_currency: 'BTC',
-        //           quote_currency: 'USD',
-        //           option_details: null,
-        //           perp_details: {
-        //             index: 'BTC-USD',
-        //             max_rate_per_hour: '0.004',
-        //             min_rate_per_hour: '-0.004',
-        //             static_interest_rate: '0.0000125',
-        //             aggregate_funding: '10581.779418721074588722',
-        //             funding_rate: '0.000024792239208858'
-        //           },
-        //           erc20_details: null,
-        //           base_asset_address: '0xDBa83C0C654DB1cd914FA2710bA743e925B53086',
-        //           base_asset_sub_id: '0',
-        //           pro_rata_fraction: '0',
-        //           fifo_min_allocation: '0',
-        //           pro_rata_amount_step: '0.1',
-        //           best_ask_amount: '0.131',
-        //           best_ask_price: '99898.6',
-        //           best_bid_amount: '0.056',
-        //           best_bid_price: '99889.1',
-        //           five_percent_bid_depth: '11.817',
-        //           five_percent_ask_depth: '9.116',
-        //           option_pricing: null,
-        //           index_price: '99883.8',
-        //           mark_price: '99897.52408421244763303548098',
-        //           stats: {
-        //             contract_volume: '92.395',
-        //             num_trades: '2924',
-        //             open_interest: '33.743468027373780786',
-        //             high: '102320.4',
-        //             low: '99064.3',
-        //             percent_change: '-0.021356',
-        //             usd_change: '-2178'
-        //           },
-        //           timestamp: 1738485165881,
-        //           min_price: '97939.1',
-        //           max_price: '101895.2'
+        //     {
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "ticker_slim.BTC-PERP.100",
+        //             "data": {
+        //                 "timestamp": 1790879819285,
+        //                 "instrument_ticker": {
+        //                     "t": 1790879819268,
+        //                     "A": "0.278",
+        //                     "a": "84214.6",
+        //                     "B": "0.213",
+        //                     "b": "84205.4",
+        //                     "f": "0.000012500",
+        //                     "option_pricing": null,
+        //                     "I": "84210.9",
+        //                     "M": "84210.2",
+        //                     "stats": {
+        //                         "c": "16.41",
+        //                         "v": "1377350.271",
+        //                         "pr": "1377095.872",
+        //                         "n": 98,
+        //                         "oi": "0",
+        //                         "h": "84282",
+        //                         "l": "83661.8",
+        //                         "p": "0"
+        //                     },
+        //                     "minp": "82526.1",
+        //                     "maxp": "85894.9"
+        //                 }
+        //             }
         //         }
-        //       }
         //     }
-        // }
         //
         $params = $this->safe_dict($message, 'params');
         $rawData = $this->safe_dict($params, 'data');
         $data = $this->safe_dict($rawData, 'instrument_ticker', array());
-        $topic = $this->safe_string($params, 'channel');
-        $ticker = null;
-        if ($topic !== null && str_starts_with($topic, 'ticker_slim')) {
-            // the slim payload uses short keys and does not carry the instrument name,
-            // so the symbol is recovered from the channel: ticker_slim.BTC-PERP.100
-            $parts = explode('.', $topic);
-            $marketId = $this->safe_string($parts, 1);
-            $market = $this->safe_market($marketId);
-            $stats = $this->safe_dict($data, 'stats', array());
-            $ticker = $this->safe_ticker(array(
-                'symbol' => $market['symbol'],
-                'timestamp' => $this->safe_integer($data, 't'),
-                'datetime' => $this->iso8601($this->safe_integer($data, 't')),
-                'bid' => $this->safe_string($data, 'b'),
-                'bidVolume' => $this->safe_string($data, 'B'),
-                'ask' => $this->safe_string($data, 'a'),
-                'askVolume' => $this->safe_string($data, 'A'),
-                'high' => $this->safe_string($stats, 'h'),
-                'low' => $this->safe_string($stats, 'l'),
-                'baseVolume' => $this->safe_string($stats, 'c'),
-                'quoteVolume' => $this->safe_string($stats, 'v'),
-                'percentage' => $this->safe_string($stats, 'p'),
-                'markPrice' => $this->safe_string($data, 'M'),
-                'indexPrice' => $this->safe_string($data, 'I'),
-                'info' => $rawData,
-            ), $market);
-        } else {
-            $ticker = $this->parse_ticker($data);
-        }
+        $topic = $this->safe_string($params, 'channel', '');
+        // the slim payload does not carry the instrument name, so the symbol is recovered from the channel: ticker_slim.BTC-PERP.100
+        $parts = explode('.', $topic);
+        $marketId = $this->safe_string($parts, 1);
+        $market = $this->safe_market($marketId);
+        $ticker = $this->parse_ticker($data, $market);
         $tickerSymbol = $ticker['symbol'];
         if ($tickerSymbol !== null) {
             $this->tickers[$tickerSymbol] = $ticker;
+            $bidAsk = $this->safe_ticker(array(
+                'symbol' => $tickerSymbol,
+                'timestamp' => $this->safe_integer($ticker, 'timestamp'),
+                'datetime' => $this->safe_string($ticker, 'datetime'),
+                'bid' => $this->safe_number($ticker, 'bid'),
+                'bidVolume' => $this->safe_number($ticker, 'bidVolume'),
+                'ask' => $this->safe_number($ticker, 'ask'),
+                'askVolume' => $this->safe_number($ticker, 'askVolume'),
+                'info' => $data,
+            ), $market);
+            $this->bidsasks[$tickerSymbol] = $bidAsk;
+            $client->resolve($bidAsk, 'bidask:' . $tickerSymbol);
         }
         $client->resolve($ticker, $topic);
         return $message;
@@ -386,12 +428,7 @@ class derive extends \ccxt\async\derive {
         if (is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) {
             unset($this->orderbooks[$symbol]);
         }
-        if (is_array($client->subscriptions) && array_key_exists($topic ?? '', $client->subscriptions)) {
-            unset($client->subscriptions[$topic]);
-        }
-        $error = new UnsubscribeError($this->id . ' orderbook ' . $symbol);
-        $client->reject($error, $topic);
-        $client->resolve($error, 'unwatch' . $topic);
+        $this->clean_unsubscription($client, $topic, 'unwatch' . $topic);
     }
 
     public function handle_trades_un_subscription(Client $client, string $topic) {
@@ -399,26 +436,51 @@ class derive extends \ccxt\async\derive {
         $marketId = $this->safe_string($parsedTopic, 1);
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
-        if (is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) {
+        if (is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades)) {
             unset($this->trades[$symbol]);
         }
-        if (is_array($client->subscriptions) && array_key_exists($topic ?? '', $client->subscriptions)) {
-            unset($client->subscriptions[$topic]);
+        $this->clean_unsubscription($client, $topic, 'unwatch' . $topic);
+    }
+
+    public function handle_ticker_un_subscription(Client $client, string $topic) {
+        $parsedTopic = explode('.', $topic);
+        $marketId = $this->safe_string($parsedTopic, 1);
+        $market = $this->safe_market($marketId);
+        $symbol = $market['symbol'];
+        if (is_array($this->tickers) && array_key_exists($symbol ?? '', $this->tickers)) {
+            unset($this->tickers[$symbol]);
         }
-        $error = new UnsubscribeError($this->id . ' trades ' . $symbol);
-        $client->reject($error, $topic);
-        $client->resolve($error, 'unwatch' . $topic);
+        if (is_array($this->bidsasks) && array_key_exists($symbol ?? '', $this->bidsasks)) {
+            unset($this->bidsasks[$symbol]);
+        }
+        // the bid ask stream shares the ticker_slim channel, so its waiters must not be left hanging either
+        $bidAskHash = 'bidask:' . $symbol;
+        if (is_array($client->futures) && array_key_exists($bidAskHash ?? '', $client->futures)) {
+            $error = new UnsubscribeError($this->id . ' ' . $bidAskHash);
+            $client->reject($error, $bidAskHash);
+        }
+        $this->clean_unsubscription($client, $topic, 'unwatch' . $topic);
+    }
+
+    public function handle_orders_un_subscription(Client $client, string $topic) {
+        $this->orders = null;
+        $this->clean_unsubscription($client, $topic, 'unwatch' . $topic, true);
+    }
+
+    public function handle_my_trades_un_subscription(Client $client, string $topic) {
+        $this->myTrades = null;
+        $this->clean_unsubscription($client, $topic, 'unwatch' . $topic, true);
     }
 
     public function handle_un_subscribe(Client $client, array $message): array {
         //
-        // {
-        //     id: 1,
-        //     result: {
-        //       status: { 'orderbook.BTC-PERP.10.10': 'ok' },
-        //       remaining_subscriptions: []
+        //     {
+        //         "id": 1,
+        //         "result": {
+        //             "status": { "orderbook.BTC-PERP.10.10": "ok" },
+        //             "remaining_subscriptions": []
+        //         }
         //     }
-        // }
         //
         $result = $this->safe_dict($message, 'result');
         $status = $this->safe_dict($result, 'status');
@@ -426,10 +488,18 @@ class derive extends \ccxt\async\derive {
             $topics = is_array($status) ? array_keys($status) : array();
             for ($i = 0; $i < count($topics); $i++) {
                 $topic = $topics[$i];
-                if (mb_strpos($topic, 'orderbook') !== false) {
+                $parsedTopic = explode('.', $topic);
+                $suffix = $this->safe_string($parsedTopic, 1);
+                if (mb_strpos($topic, 'orderbook') === 0) {
                     $this->handle_order_book_un_subscription($client, $topic);
-                } elseif (mb_strpos($topic, 'trades') !== false) {
+                } elseif (mb_strpos($topic, 'ticker_slim') === 0) {
+                    $this->handle_ticker_un_subscription($client, $topic);
+                } elseif (mb_strpos($topic, 'trades') === 0) {
                     $this->handle_trades_un_subscription($client, $topic);
+                } elseif ($suffix === 'orders') {
+                    $this->handle_orders_un_subscription($client, $topic);
+                } elseif ($suffix === 'trades') {
+                    $this->handle_my_trades_un_subscription($client, $topic);
                 }
             }
         }
@@ -444,7 +514,7 @@ class derive extends \ccxt\async\derive {
         /**
          * watches information on multiple $trades made in a $market
          *
-         * @see https://docs.derive.xyz/reference/trades-instrument_name
+         * @see https://docs.derive.xyz/api-reference/channels/tradesbyinstrument
          *
          * @param {string} $symbol unified $market $symbol of the $market $trades were made in
          * @param {int} [$since] the earliest time in ms to fetch $trades for
@@ -483,7 +553,7 @@ class derive extends \ccxt\async\derive {
         //
         $params = $this->safe_dict($message, 'params');
         $data = $this->safe_dict($params, 'data', array());
-        $topic = $this->safe_value($params, 'channel');
+        $topic = $this->safe_string($params, 'channel', '');
         $parsedTopic = explode('.', $topic);
         $marketId = $this->safe_string($parsedTopic, 1);
         $market = $this->safe_market($marketId);
@@ -514,9 +584,12 @@ class derive extends \ccxt\async\derive {
         $authenticated = $this->safe_value($client->subscriptions, $messageHash);
         if ($authenticated === null) {
             $requestId = $this->request_id($url);
-            $now = (string) $this->milliseconds();
+            $now = $this->number_to_string($this->nonce());
             $signature = $this->signMessage($now, $this->privateKey);
             $deriveWalletAddress = $this->safe_string($this->options, 'deriveWalletAddress');
+            if (($deriveWalletAddress === null) || ($deriveWalletAddress === '')) {
+                $deriveWalletAddress = $this->walletAddress; // v3: the owner wallet is the user's own EOA
+            }
             $request = array(
                 'id' => $requestId,
                 'method' => 'public/login',
@@ -562,7 +635,7 @@ class derive extends \ccxt\async\derive {
     private function do_watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          *
-         * @see https://docs.derive.xyz/reference/subaccount_id-$orders
+         * @see https://docs.derive.xyz/api-reference/channels/subaccountorders
          *
          * watches information on multiple $orders made by the user
          * @param {string} $symbol unified market $symbol of the market $orders were made in
@@ -662,7 +735,7 @@ class derive extends \ccxt\async\derive {
                 $orders = $this->safe_dict($cachedOrders->hashmap, $symbol, array());
                 $order = ($orderId === null) ? null : $this->safe_dict($orders, $orderId);
                 if ($order !== null) {
-                    $fee = $this->safe_value($order, 'fee');
+                    $fee = $this->safe_dict($order, 'fee');
                     if ($fee !== null) {
                         $parsed['fee'] = $fee;
                     }
@@ -670,7 +743,7 @@ class derive extends \ccxt\async\derive {
                     if ($fees !== null) {
                         $parsed['fees'] = $fees;
                     }
-                    $parsed['trades'] = $this->safe_value($order, 'trades');
+                    $parsed['trades'] = $this->safe_list($order, 'trades');
                     $parsed['timestamp'] = $this->safe_integer($order, 'timestamp');
                     $parsed['datetime'] = $this->safe_string($order, 'datetime');
                 }
@@ -684,6 +757,42 @@ class derive extends \ccxt\async\derive {
         $client->resolve($this->orders, $topic);
     }
 
+    public function un_watch_orders(?string $symbol = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_orders(...))($symbol, $params);
+    }
+
+    private function do_un_watch_orders(?string $symbol = null, $params = array()) {
+        /**
+         * unsubscribe from the orders channel
+         *
+         * @see https://docs.derive.xyz/api-reference/channels/subaccountorders
+         *
+         * @param {string} [$symbol] not used by derive unWatchOrders, the whole subaccount channel is unsubscribed
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->subaccount_id] *required* the subaccount id
+         * @return {any} status of the unwatch $request
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        list($subaccountId, $paramsDeriveSubaccountId) = $this->handleDeriveSubaccountId('unWatchOrders', $params);
+        $topic = $this->number_to_string($subaccountId) . '.orders';
+        $messageHash = 'unwatch' . $topic;
+        $request = array(
+            'method' => 'unsubscribe',
+            'params' => array(
+                'channels' => array(
+                    $topic,
+                ),
+            ),
+        );
+        $subscription = array(
+            'name' => $topic,
+        );
+        $message = $this->extend($request, $paramsDeriveSubaccountId);
+        return Async\await($this->un_watch_public($messageHash, $message, $subscription));
+    }
+
     public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_watch_my_trades(...))($symbol, $since, $limit, $params);
     }
@@ -691,7 +800,7 @@ class derive extends \ccxt\async\derive {
     private function do_watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          *
-         * @see https://docs.derive.xyz/reference/subaccount_id-$trades
+         * @see https://docs.derive.xyz/api-reference/channels/subaccounttrades
          *
          * watches information on multiple $trades made by the user
          * @param {string} $symbol unified market $symbol of the market orders were made in
@@ -739,18 +848,289 @@ class derive extends \ccxt\async\derive {
         if ($myTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $myTrades = new ArrayCacheBySymbolById($limit);
+            $this->myTrades = $myTrades;
         }
         $params = $this->safe_dict($message, 'params');
         $topic = $this->safe_string($params, 'channel');
         $rawTrades = $this->safe_list($params, 'data', array());
         for ($i = 0; $i < count($rawTrades); $i++) {
-            $trade = $this->parse_trade($message);
+            $trade = $this->parse_trade($rawTrades[$i]);
             $myTrades->append($trade);
             $client->resolve($myTrades, $topic);
             if ($topic !== null) {
-                $messageHash = $topic . $this->safe_string($trade, 'symbol', '');
+                $messageHash = $topic . ':' . $this->safe_string($trade, 'symbol', '');
                 $client->resolve($myTrades, $messageHash);
             }
+        }
+    }
+
+    public function un_watch_my_trades(?string $symbol = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_my_trades(...))($symbol, $params);
+    }
+
+    private function do_un_watch_my_trades(?string $symbol = null, $params = array()) {
+        /**
+         * unsubscribe from the my trades channel
+         *
+         * @see https://docs.derive.xyz/api-reference/channels/subaccounttrades
+         *
+         * @param {string} [$symbol] not used by derive unWatchMyTrades, the whole subaccount channel is unsubscribed
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->subaccount_id] *required* the subaccount id
+         * @return {any} status of the unwatch $request
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        list($subaccountId, $paramsDeriveSubaccountId) = $this->handleDeriveSubaccountId('unWatchMyTrades', $params);
+        $topic = $this->number_to_string($subaccountId) . '.trades';
+        $messageHash = 'unwatch' . $topic;
+        $request = array(
+            'method' => 'unsubscribe',
+            'params' => array(
+                'channels' => array(
+                    $topic,
+                ),
+            ),
+        );
+        $subscription = array(
+            'name' => $topic,
+        );
+        $message = $this->extend($request, $paramsDeriveSubaccountId);
+        return Async\await($this->un_watch_public($messageHash, $message, $subscription));
+    }
+
+    public function watch_balance($params = array()): PromiseInterface {
+        return Async\async(self::do_watch_balance(...))($params);
+    }
+
+    private function do_watch_balance($params = array()) {
+        /**
+         * watches balance updates for a single subaccount, the returned structure is scoped to the watched subaccount
+         *
+         * @see https://docs.derive.xyz/api-reference/channels/subaccountbalances
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->subaccount_id] *required* the subaccount id
+         * @param {boolean} [$params->fetchBalanceSnapshot] default true, the channel only streams changed totals, so an initial $snapshot is loaded over rest before subscribing
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        list($fetchSnapshot, $paramsSnapshot) = $this->handle_option_bool_and_params($params, 'watchBalance', 'fetchBalanceSnapshot', true);
+        list($subaccountId, $paramsDeriveSubaccountId) = $this->handleDeriveSubaccountId('watchBalance', $paramsSnapshot);
+        if ($this->balance === null) {
+            $emptyBalances = array();
+            $this->balance = $emptyBalances;
+        }
+        // the balance state and the snapshot are tracked per subaccount, mirroring the subaccount-scoped channel and fetchBalance (params.subaccount_id)
+        $subaccountIdKey = $this->number_to_string($subaccountId);
+        if ($fetchSnapshot && !(is_array($this->balance) && array_key_exists($subaccountIdKey ?? '', $this->balance))) {
+            $snapshotRequest = array(
+                'subaccount_id' => $subaccountId,
+            );
+            $snapshotParams = $this->extend($snapshotRequest, $paramsDeriveSubaccountId);
+            $snapshot = Async\await($this->fetch_balance($snapshotParams));
+            $emptyBalance = array(); // hoisted: an inline literal on the right side of a property assignment derails the rust transpiler
+            $seeded = $this->extend($snapshot, $emptyBalance); // the extra extend keeps the csharp assignment dictionary-typed (CS0266 otherwise)
+            $this->balance[$subaccountIdKey] = $seeded;
+        }
+        $topic = $this->number_to_string($subaccountId) . '.balances';
+        $request = array(
+            'method' => 'subscribe',
+            'params' => array(
+                'channels' => array(
+                    $topic,
+                ),
+            ),
+        );
+        $subscription = array(
+            'name' => $topic,
+            'params' => $paramsDeriveSubaccountId,
+        );
+        $message = $this->extend($request, $paramsDeriveSubaccountId);
+        return Async\await($this->watch_private($topic, $message, $subscription));
+    }
+
+    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_positions(...))($symbols, $since, $limit, $params);
+    }
+
+    private function do_watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watch all open positions; the sizes stream over the balances channel, while entry price, pnl and margin fields stay from the rest snapshot until the next one
+         *
+         * @see https://docs.derive.xyz/api-reference/channels/subaccountbalances
+         *
+         * @param {string[]} [$symbols] list of unified market $symbols to watch positions for
+         * @param {int} [$since] the earliest time in ms to fetch positions for
+         * @param {int} [$limit] the maximum number of positions to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->subaccount_id] *required* the subaccount id
+         * @param {boolean} [$params->fetchPositionsSnapshot] default true, the channel only streams size changes, so an initial snapshot is loaded over rest before subscribing
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbolsResolved = $this->market_symbols($symbols, null, true);
+        list($fetchSnapshot, $paramsSnapshot) = $this->handle_option_bool_and_params($params, 'watchPositions', 'fetchPositionsSnapshot', true);
+        list($subaccountId, $paramsDeriveSubaccountId) = $this->handleDeriveSubaccountId('watchPositions', $paramsSnapshot);
+        if ($this->positions === null) {
+            $emptyCaches = array();
+            $this->positions = $emptyCaches;
+            $emptySnapshots = array();
+            $this->options['loadedPositionsSnapshots'] = $emptySnapshots;
+        }
+        // the cache and the snapshot are tracked per subaccount, so subaccounts holding the same instrument and side do not overwrite each other
+        $subaccountIdKey = $this->number_to_string($subaccountId);
+        if (!(is_array($this->positions) && array_key_exists($subaccountIdKey ?? '', $this->positions))) {
+            $this->positions[$subaccountIdKey] = new ArrayCacheBySymbolBySide();
+        }
+        $loadedSnapshots = $this->safe_dict($this->options, 'loadedPositionsSnapshots', array());
+        if ($fetchSnapshot && !(is_array($loadedSnapshots) && array_key_exists($subaccountIdKey ?? '', $loadedSnapshots))) {
+            $snapshotRequest = array(
+                'subaccount_id' => $subaccountId,
+            );
+            $snapshotParams = $this->extend($snapshotRequest, $paramsDeriveSubaccountId);
+            $positionsSnapshot = Async\await($this->fetch_positions(null, $snapshotParams));
+            $cache = $this->positions[$subaccountIdKey];
+            for ($i = 0; $i < count($positionsSnapshot); $i++) {
+                $cache->append($positionsSnapshot[$i]);
+            }
+            $loadedSnapshots[$subaccountIdKey] = true;
+            $this->options['loadedPositionsSnapshots'] = $loadedSnapshots;
+        }
+        $topic = $this->number_to_string($subaccountId) . '.balances';
+        $messageHash = 'positions:' . $topic;
+        $request = array(
+            'method' => 'subscribe',
+            'params' => array(
+                'channels' => array(
+                    $topic,
+                ),
+            ),
+        );
+        $subscription = array(
+            'name' => $topic,
+            'params' => $paramsDeriveSubaccountId,
+        );
+        $message = $this->extend($request, $paramsDeriveSubaccountId);
+        $newPositions = Async\await($this->watch_private($messageHash, $message, $subscription));
+        if ($this->newUpdates) {
+            return $newPositions;
+        }
+        return $this->filter_by_symbols_since_limit($this->positions[$subaccountIdKey], $symbolsResolved, $since, $limit, true);
+    }
+
+    public function handle_position_delta(string $subaccountIdKey, array $entry): array {
+        $marketId = $this->safe_string($entry, 'name');
+        $market = $this->safe_market($marketId);
+        $symbol = $market['symbol'];
+        $newSize = $this->safe_string($entry, 'new_balance', '0');
+        $isShort = Precise::string_lt($newSize, '0');
+        $side = $isShort ? 'short' : 'long';
+        $contracts = Precise::string_abs($newSize);
+        $cache = $this->positions[$subaccountIdKey];
+        $symbolPositions = $this->safe_dict($cache->hashmap, $symbol, array());
+        // a fill through zero flattens the opposite side first
+        $oppositeSide = $isShort ? 'long' : 'short';
+        $opposite = $this->safe_dict($symbolPositions, $oppositeSide);
+        if ($opposite !== null) {
+            $oppositeContracts = $this->safe_string($opposite, 'contracts');
+            if (($oppositeContracts !== null) && ($oppositeContracts !== '0')) {
+                $opposite['contracts'] = $this->parse_number('0');
+                $opposite['lastUpdateTimestamp'] = $this->milliseconds();
+                $cache->append($opposite);
+            }
+        }
+        $position = $this->safe_dict($symbolPositions, $side);
+        if ($position === null) {
+            // the position is freshly opened by the current fill, so the local clock approximates the open time
+            $timestamp = $this->milliseconds();
+            $position = $this->safe_position(array(
+                'symbol' => $symbol,
+                'side' => $side,
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+                'info' => $entry,
+            ));
+        }
+        $position['contracts'] = $this->parse_number($contracts);
+        $position['side'] = $side;
+        $position['lastUpdateTimestamp'] = $this->milliseconds();
+        $position['info'] = $entry;
+        $cache->append($position);
+        return $position;
+    }
+
+    public function handle_balance(Client $client, array $message) {
+        //
+        //     {
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "86815.balances",
+        //             "data": [
+        //                 {
+        //                     "name": "USDC",
+        //                     "new_balance": "8427.545482",
+        //                     "previous_balance": "8428.545482",
+        //                     "update_type": "trade"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        $params = $this->safe_dict($message, 'params');
+        $topic = $this->safe_string($params, 'channel');
+        $topicParts = explode('.', $topic);
+        $subaccountIdKey = $this->safe_string($topicParts, 0);
+        $data = $this->safe_list($params, 'data', array());
+        if ($this->balance === null) {
+            $this->balance = array();
+        }
+        $subBalance = $this->safe_dict($this->balance, $subaccountIdKey);
+        if ($subBalance === null) {
+            $emptySubBalance = array();
+            $subBalance = $emptySubBalance;
+        }
+        $updated = false;
+        $positionUpdates = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $entry = $this->safe_dict($data, $i, array());
+            $name = $this->safe_string($entry, 'name', '');
+            if (mb_strpos($name, '-') !== false) {
+                // position deltas carry instrument names and do not belong into the balance structure
+                if (($this->positions !== null) && (is_array($this->positions) && array_key_exists($subaccountIdKey ?? '', $this->positions))) {
+                    $position = $this->handle_position_delta($subaccountIdKey, $entry);
+                    $positionUpdates[] = $position;
+                }
+                continue;
+            }
+            $code = $this->safe_currency_code($name);
+            if ($code === null) {
+                continue;
+            }
+            $account = $this->safe_dict($subBalance, $code);
+            if ($account === null) {
+                $account = $this->account();
+            }
+            // the channel and the balance state are both subaccount-scoped, so the streamed new_balance is the authoritative absolute total
+            $account['total'] = $this->safe_string($entry, 'new_balance');
+            // the margin requirements the rest free/used model needs are not part of the stream, so stale snapshot values are dropped instead of reporting free + used != total
+            $account['free'] = null;
+            $account['used'] = null;
+            $subBalance[$code] = $account;
+            $updated = true;
+        }
+        if ($updated) {
+            $this->balance[$subaccountIdKey] = $this->safe_balance($subBalance);
+            $client->resolve($this->balance[$subaccountIdKey], $topic);
+        }
+        $positionUpdatesLength = count($positionUpdates);
+        if ($positionUpdatesLength > 0) {
+            $client->resolve($positionUpdates, 'positions:' . $topic);
         }
     }
 
@@ -798,6 +1178,7 @@ class derive extends \ccxt\async\derive {
             'trades' => array($this, 'handle_trade'),
             'orders' => array($this, 'handle_order'),
             'mytrades' => array($this, 'handle_my_trade'),
+            'balances' => array($this, 'handle_balance'),
         );
         $event = null;
         $params = $this->safe_dict($message, 'params');
@@ -805,9 +1186,9 @@ class derive extends \ccxt\async\derive {
             $channel = $this->safe_string($params, 'channel');
             if ($channel !== null) {
                 $parsedChannel = explode('.', $channel);
-                if ((mb_strpos($channel, 'orders') !== false) || mb_strpos($channel, 'trades') > 0) {
+                if ((mb_strpos($channel, 'orders') !== false) || (mb_strpos($channel, 'trades') > 0) || (mb_strpos($channel, 'balances') > 0)) {
                     $event = $this->safe_string($parsedChannel, 1);
-                    // {subaccounr_id}.trades
+                    // {subaccount_id}.trades
                     if ($event === 'trades') {
                         $event = 'mytrades';
                     }
@@ -823,15 +1204,31 @@ class derive extends \ccxt\async\derive {
         }
         if (is_array($message) && array_key_exists('id' ?? '', $message)) {
             $id = $this->safe_string($message, 'id');
-            $subscriptionsById = $this->index_by($client->subscriptions, 'id');
-            $subscription = ($id === null) ? array() : $this->safe_dict($subscriptionsById, $id, array());
-            if (is_array($subscription) && array_key_exists('method' ?? '', $subscription)) {
-                if ($this->safe_string($subscription, 'method') === 'public/login') {
-                    $this->handle_auth($client, $message);
-                } elseif ($this->safe_string($subscription, 'method') === 'unsubscribe') {
-                    $this->handle_un_subscribe($client, $message);
+            // the subscriptions are scanned with safeString comparisons: an indexBy over the integer ids would need an integer lookup key in python while the object keys are always strings in javascript
+            $subscriptionKeys = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
+            $matched = false;
+            for ($i = 0; $i < count($subscriptionKeys); $i++) {
+                $subscription = $this->safe_dict($client->subscriptions, $subscriptionKeys[$i], array());
+                $subscriptionId = $this->safe_string($subscription, 'id');
+                if (($subscriptionId !== null) && ($subscriptionId === $id)) {
+                    $matched = true;
+                    $subscriptionMethod = $this->safe_string($subscription, 'method');
+                    if ($subscriptionMethod === 'public/login') {
+                        $this->handle_auth($client, $message);
+                    } elseif ($subscriptionMethod === 'unsubscribe') {
+                        $this->handle_un_subscribe($client, $message);
+                    }
+                    // could handleSubscribe
                 }
-                // could handleSubscribe
+            }
+            if (!$matched) {
+                $loginResult = $this->safe_list($message, 'result');
+                if ($loginResult !== null) {
+                    // the login acknowledgement is the only id reply whose result is a bare list (the subaccount ids)
+                    // in java the acknowledgement can arrive before the subscription record is stored
+                    // so the shape serves as the routing fallback when the id scan finds nothing
+                    $this->handle_auth($client, $message);
+                }
             }
         }
     }
@@ -845,7 +1242,8 @@ class derive extends \ccxt\async\derive {
         //
         $messageHash = 'authenticated';
         $ids = $this->safe_list($message, 'result', array());
-        if (strlen($ids) > 0) {
+        $idsLength = count($ids);
+        if ($idsLength > 0) {
             // client.resolve (message, messageHash);
             $future = $this->safe_value($client->futures, 'authenticated');
             $future->resolve(true);

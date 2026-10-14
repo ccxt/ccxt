@@ -7591,7 +7591,7 @@ class gate extends Exchange {
 
     private function do_fetch_open_interest_history(string $symbol, $timeframe = '5m', ?int $since = null, ?int $limit = null, $params = array()) {
         /**
-         * Retrieves the open interest of a currency
+         * Retrieves the open interest history of a currency
          *
          * @see https://www.gate.com/docs/developers/apiv4/en/#futures-statistics
          *
@@ -7612,7 +7612,7 @@ class gate extends Exchange {
         }
         $market = $this->market($symbol);
         if ($market['swap'] !== true) {
-            throw new BadRequest($this->id . ' fetchOpenInterest() supports swap markets only');
+            throw new BadRequest($this->id . ' fetchOpenInterestHistory() supports swap markets only');
         }
         $request = array(
             'contract' => $market['id'],

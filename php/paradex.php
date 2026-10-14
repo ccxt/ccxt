@@ -1606,7 +1606,11 @@ class paradex extends Exchange {
         //
         $timestamp = $this->safe_integer($order, 'created_at');
         $orderId = $this->safe_string($order, 'id');
-        $clientOrderId = $this->omit_zero($this->safe_string($order, 'client_id'));
+        // a client id is free text, omitZero would drop every non-numeric one in php
+        $clientOrderId = $this->safe_string($order, 'client_id');
+        if ($clientOrderId === '') {
+            $clientOrderId = null;
+        }
         $marketId = $this->safe_string($order, 'market');
         $marketResolved = $this->safe_market($marketId, $market);
         $symbol = $marketResolved['symbol'];
