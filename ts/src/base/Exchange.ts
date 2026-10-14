@@ -5866,8 +5866,10 @@ export class BaseExchange {
          * @returns {string} unified network code
          */
         const aliases = this.networkAliases;
-        const unifiedCode = this.safeString (aliases, networkCode);
-        return (unifiedCode === undefined) ? networkCode : unifiedCode;
+        if (networkCode in aliases) {
+            return aliases[networkCode];
+        }
+        return networkCode;
     }
 
     networkCodeToId (networkCode: Str, currencyCode: Str = undefined): Str {
