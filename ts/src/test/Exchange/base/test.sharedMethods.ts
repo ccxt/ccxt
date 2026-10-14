@@ -302,7 +302,7 @@ function assertUnifiedNetworkCode (exchange: Exchange, skippedProperties: object
         return;
     }
     const logText = logTemplate (exchange, method, entry);
-    const unifiedCode = exchange.unifiedNetworkCode (networkCode);
+    const unifiedCode = exchange.safeString (exchange.networkAliases, networkCode, networkCode);
     assert (unifiedCode === networkCode, 'network code ' + networkCode + ' is an alias, expected the unified code ' + unifiedCode + logText);
 }
 

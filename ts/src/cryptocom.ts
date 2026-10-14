@@ -2165,7 +2165,7 @@ export default class cryptocom extends Exchange {
         const depositAddressesRaw = await this.fetchDepositAddressesByNetwork (code, paramsOmitted);
         const depositAddresses: Dict = depositAddressesRaw;
         if (networkParam !== undefined) {
-            const network = this.unifiedNetworkCode (networkParam);
+            const network = this.safeString (this.networkAliases, networkParam, networkParam);
             if (network in depositAddresses) {
                 return depositAddresses[network];
             }

@@ -3430,7 +3430,7 @@ export default class woo extends Exchange {
             'amount': amount,
             'addressTo': address,
             'tag': tagWithdrawTag,
-            'network': this.unifiedNetworkCode (network),
+            'network': this.safeString (this.networkAliases, network, network),
             'type': 'withdrawal',
             'status': 'pending',
         });

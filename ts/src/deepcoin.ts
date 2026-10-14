@@ -1233,7 +1233,7 @@ export default class deepcoin extends Exchange {
             network = defaultNetwork;
         }
         if (network !== undefined) {
-            network = this.unifiedNetworkCode (network);
+            network = this.safeString (this.networkAliases, network, network);
         }
         const paramsOmitted = (network !== undefined) ? this.omit (params, 'network') : params;
         const addressess = await this.fetchDepositAddresses ([ code ], paramsOmitted);

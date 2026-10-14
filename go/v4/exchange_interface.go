@@ -129,6 +129,7 @@ type IBaseExchange interface {
 	GetOptions() *sync.Map
 	GetCurrencies() *sync.Map
 	GetMarkets() *sync.Map
+	GetNetworkAliases() map[string]any
 	SetSandboxMode(enable any)
 	EnableDemoTrading(enable any)
 	LoadMarkets(params ...any) (map[string]MarketInterface, error)
@@ -187,6 +188,7 @@ type ICoreExchange interface {
 	GetOptions() *sync.Map
 	GetCurrencies() *sync.Map
 	GetMarkets() *sync.Map
+	GetNetworkAliases() map[string]any
 	CheckRequiredCredentials(optionalArgs ...any) bool
 	Sleep(milliseconds any) <-chan bool
 	Json(object any) string
@@ -288,7 +290,6 @@ type ICoreExchange interface {
 	DecimalToPrecision(value any, roundingMode any, numPrecisionDigits any, args ...any) string
 	NetworkCodeToId(networkCode any, optionalArgs ...any) any
 	NetworkIdToCode(optionalArgs ...any) *string
-	UnifiedNetworkCode(networkCode any) any
 	SafeValueN(obj any, keys any, defaultValue ...any) any
 	SafeDict2(dictionary any, key1 any, key2 any, optionalArgs ...any) any
 	SafeString2(obj any, key any, key2 any, defaultValue ...any) *string

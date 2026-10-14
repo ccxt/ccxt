@@ -60,7 +60,7 @@ function helperTestNetworkIdToCode (networksMap: any) {
     assert (exchange.networkIdToCode ('Xyz', 'SAMPLECOIN') === 'Xyz');
 }
 
-function helperTestUnifiedNetworkCode () {
+function helperTestNetworkAliases () {
     const exchange = new ccxt.Exchange ({
         'id': 'sampleexchange',
         'options': {
@@ -80,12 +80,12 @@ function helperTestUnifiedNetworkCode () {
     };
     const keys = Object.keys (aliases);
     for (let i = 0; i < keys.length; i++) {
-        const unified = exchange.unifiedNetworkCode (keys[i]);
-        assert (unified === aliases[keys[i]]);
-        // unified codes are fixed points
-        assert (exchange.unifiedNetworkCode (unified) === aliases[keys[i]]);
+        assert (exchange.safeString (exchange.networkAliases, keys[i]) === aliases[keys[i]]);
+        // unified codes are never aliases themselves
+        assert (!(aliases[keys[i]] in exchange.networkAliases));
     }
-    assert (exchange.unifiedNetworkCode ('BTC') === 'BTC');
+    assert (!('BTC' in exchange.networkAliases));
+    assert (exchange.networkIdToCode ('ETH') === 'ERC20');
 }
 
 function testNetworkMethods () {
@@ -110,7 +110,7 @@ function testNetworkMethods () {
     helperTestNetworkCodeToId (dict2);
     helperTestNetworkIdToCode (dict1);
     helperTestNetworkIdToCode (dict2);
-    helperTestUnifiedNetworkCode ();
+    helperTestNetworkAliases ();
 }
 
 export default testNetworkMethods;

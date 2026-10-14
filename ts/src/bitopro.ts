@@ -1826,7 +1826,7 @@ export default class bitopro extends Exchange {
         if (hasNetwork) {
             const networks = this.safeDict (this.options, 'networks', {});
             const requestedNetwork = this.safeStringUpper (paramsWithdrawTag, 'network');
-            const networkId = (requestedNetwork === undefined) ? undefined : this.safeString (networks, this.unifiedNetworkCode (requestedNetwork));
+            const networkId = (requestedNetwork === undefined) ? undefined : this.safeString (networks, this.safeString (this.networkAliases, requestedNetwork, requestedNetwork));
             if (networkId === undefined) {
                 throw new ExchangeError (this.id + ' invalid network ' + requestedNetwork);
             }

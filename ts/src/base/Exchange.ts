@@ -5857,21 +5857,6 @@ export class BaseExchange {
         };
     }
 
-    unifiedNetworkCode (networkCode: string): string {
-        /**
-         * @method
-         * @name Exchange#unifiedNetworkCode
-         * @description maps a network alias to its single unified network code, e.g. ETH -> ERC20, TRX -> TRC20, BSC -> BEP20
-         * @param {string} networkCode unified network code or one of its aliases
-         * @returns {string} unified network code
-         */
-        const aliases = this.networkAliases;
-        if (networkCode in aliases) {
-            return aliases[networkCode];
-        }
-        return networkCode;
-    }
-
     networkCodeToId (networkCode: Str, currencyCode: Str = undefined): Str {
         /**
          * @ignore
@@ -5885,7 +5870,7 @@ export class BaseExchange {
         if (networkCode === undefined) {
             return undefined;
         }
-        const unifiedCode = this.unifiedNetworkCode (networkCode);
+        const unifiedCode = this.safeString (this.networkAliases, networkCode, networkCode);
         const networkIdsByCodes = this.safeDict (this.options, 'networks', {});
         const networkId = this.safeString (networkIdsByCodes, unifiedCode);
         if (networkId !== undefined) {
@@ -5932,7 +5917,7 @@ export class BaseExchange {
         const networkCodesByIds = this.safeDict (this.options, 'networksById', {});
         const mappedCode = this.safeString (networkCodesByIds, networkId);
         const networkCode = (mappedCode === undefined) ? networkId : mappedCode;
-        return this.unifiedNetworkCode (networkCode);
+        return this.safeString (this.networkAliases, networkCode, networkCode);
     }
 
     handleNetworkCodeAndParams (params: Dict): [Str, Dict] {

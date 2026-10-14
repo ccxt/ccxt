@@ -3355,7 +3355,7 @@ export default class kraken extends Exchange {
         const currency = this.currency (code);
         let network = this.safeStringUpper (params, 'network');
         if (network !== undefined) {
-            network = this.unifiedNetworkCode (network);
+            network = this.safeString (this.networkAliases, network, network);
         }
         const paramsOmitted: Dict = this.omit (params, 'network');
         let codeResolved = code;

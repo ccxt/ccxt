@@ -2292,7 +2292,7 @@ export default class lbank extends Exchange {
         const defaultNetwork = this.safeStringUpper (defaultNetworks, currencyCode);
         const networks = this.safeDict (this.options, 'networks', {});
         const networkParam = this.safeStringUpper (params, 'network', defaultNetwork); // accepts unified codes and aliases
-        const networkCode = (networkParam !== undefined) ? this.unifiedNetworkCode (networkParam) : undefined;
+        const networkCode = (networkParam !== undefined) ? this.safeString (this.networkAliases, networkParam, networkParam) : undefined;
         return this.safeString (networks, networkCode, networkCode);
     }
 
@@ -2374,7 +2374,7 @@ export default class lbank extends Exchange {
         const networks = this.safeDict (this.options, 'networks');
         let network = this.safeStringUpper (params, 'network');
         if (network !== undefined) {
-            network = this.unifiedNetworkCode (network);
+            network = this.safeString (this.networkAliases, network, network);
         }
         network = this.safeString (networks, network, network);
         const paramsOmitted: Dict = (network !== undefined) ? this.omit (params, 'network') : params;
@@ -2446,7 +2446,7 @@ export default class lbank extends Exchange {
         }
         let network = this.safeStringUpper2 (paramsOmitted, 'network', 'networkName');
         if (network !== undefined) {
-            network = this.unifiedNetworkCode (network);
+            network = this.safeString (this.networkAliases, network, network);
         }
         const paramsOmitted2: Dict = this.omit (paramsOmitted, [ 'network', 'networkName' ]);
         const networks = this.safeDict (this.options, 'networks');

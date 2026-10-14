@@ -3612,7 +3612,7 @@ export default class phemex extends Exchange {
         let network = this.safeStringUpper2 (params, 'network', 'chainName', defaultNetwork);
         const paramsOmitted: Dict = this.omit (params, 'network');
         if (network !== undefined) {
-            network = this.safeString (networks, this.unifiedNetworkCode (network), network);
+            network = this.safeString (networks, this.safeString (this.networkAliases, network, network), network);
         }
         if (network === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires a network parameter');

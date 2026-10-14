@@ -987,7 +987,8 @@ export default class hitbtc extends Exchange {
             const rawNetwork = rawNetworks[j];
             const networkId = this.safeString2 (rawNetwork, 'protocol', 'network');
             let networkCode = this.networkIdToCode (networkId, code);
-            networkCode = (networkCode !== undefined) ? this.unifiedNetworkCode (networkCode.toUpperCase ()) : code; // as hitbtc is white label, ensure we safeguard from possible bugs
+            const networkCodeUpper = (networkCode !== undefined) ? networkCode.toUpperCase () : undefined;
+            networkCode = (networkCodeUpper !== undefined) ? this.safeString (this.networkAliases, networkCodeUpper, networkCodeUpper) : code; // as hitbtc is white label, ensure we safeguard from possible bugs
             if (networkCode !== undefined) {
                 networks[networkCode] = {
                     'info': rawNetwork,
@@ -1046,7 +1047,7 @@ export default class hitbtc extends Exchange {
             'currency': currency['id'],
         };
         const networkInput = this.safeStringUpper (params, 'network');
-        const network = (networkInput !== undefined) ? this.unifiedNetworkCode (networkInput) : undefined;
+        const network = (networkInput !== undefined) ? this.safeString (this.networkAliases, networkInput, networkInput) : undefined;
         if ((network !== undefined) && (code === 'USDT')) {
             const networks = this.safeDict (this.options, 'networks');
             const parsedNetwork = this.safeString (networks, network);
@@ -1090,7 +1091,7 @@ export default class hitbtc extends Exchange {
             'currency': currency['id'],
         };
         const networkInput = this.safeStringUpper (params, 'network');
-        const network = (networkInput !== undefined) ? this.unifiedNetworkCode (networkInput) : undefined;
+        const network = (networkInput !== undefined) ? this.safeString (this.networkAliases, networkInput, networkInput) : undefined;
         if ((network !== undefined) && (code === 'USDT')) {
             const networks = this.safeDict (this.options, 'networks');
             const parsedNetwork = this.safeString (networks, network);
@@ -2795,8 +2796,10 @@ export default class hitbtc extends Exchange {
             throw new ExchangeError (this.id + ' convertCurrencyNetwork() only supports USDT currently');
         }
         const networks = this.safeDict (this.options, 'networks', {});
-        const fromNetworkValue: any = this.unifiedNetworkCode (fromNetwork.toUpperCase ());
-        const toNetworkValue: any = this.unifiedNetworkCode (toNetwork.toUpperCase ());
+        const fromNetworkUpper = fromNetwork.toUpperCase ();
+        const toNetworkUpper = toNetwork.toUpperCase ();
+        const fromNetworkValue: any = this.safeString (this.networkAliases, fromNetworkUpper, fromNetworkUpper);
+        const toNetworkValue: any = this.safeString (this.networkAliases, toNetworkUpper, toNetworkUpper);
         const fromNetworkValue2: any = this.safeString (networks, fromNetworkValue); // unified code to exchange id
         const toNetworkValue2: any = this.safeString (networks, toNetworkValue); // unified code to exchange id
         if (fromNetworkValue2 === toNetworkValue2) {
@@ -2847,7 +2850,7 @@ export default class hitbtc extends Exchange {
         }
         const networks = this.safeDict (this.options, 'networks', {});
         const networkInput = this.safeStringUpper (paramsWithdrawTag, 'network');
-        const network = (networkInput !== undefined) ? this.unifiedNetworkCode (networkInput) : undefined;
+        const network = (networkInput !== undefined) ? this.safeString (this.networkAliases, networkInput, networkInput) : undefined;
         if ((network !== undefined) && (code === 'USDT')) {
             const parsedNetwork = this.safeString (networks, network);
             if (parsedNetwork !== undefined) {
@@ -3764,7 +3767,8 @@ export default class hitbtc extends Exchange {
             const networkId = this.safeString (networkEntry, 'network');
             const code = this.safeString (currency, 'code');
             let networkCode = this.networkIdToCode (networkId, code);
-            networkCode = (networkCode !== undefined) ? this.unifiedNetworkCode (networkCode.toUpperCase ()) : undefined;
+            const networkCodeUpper = (networkCode !== undefined) ? networkCode.toUpperCase () : undefined;
+            networkCode = (networkCodeUpper !== undefined) ? this.safeString (this.networkAliases, networkCodeUpper, networkCodeUpper) : undefined;
             const withdrawFee = this.safeNumber (networkEntry, 'payout_fee');
             const isDefault = this.safeBool (networkEntry, 'default');
             const withdrawResult: Dict = {

@@ -2088,7 +2088,7 @@ export default class bittrade extends Exchange {
         const networks = this.safeDict (this.options, 'networks', {});
         let network = this.safeStringUpper (paramsWithdrawTag, 'network');
         if (network !== undefined) {
-            network = this.unifiedNetworkCode (network); // accepts aliases like ETH for ERC20
+            network = this.safeString (this.networkAliases, network, network); // accepts aliases like ETH for ERC20
         }
         network = this.safeStringLower (networks, network, network); // handle ETH>ERC20 alias
         if (network !== undefined) {
