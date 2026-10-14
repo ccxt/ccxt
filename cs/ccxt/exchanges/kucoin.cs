@@ -1503,7 +1503,7 @@ public partial class kucoin : Exchange
                 { "uta", null },
                 { "version", "v1" },
                 { "symbolSeparator", "-" },
-                { "fetchMyTradesMethod", "private_get_fills" },
+                { "fetchMyTradesMethod", "privateGetFills" },
                 { "timeDifference", 0 },
                 { "adjustForTimeDifference", false },
                 { "fetchCurrencies", new Dictionary<string, object>() {
@@ -7875,7 +7875,7 @@ public partial class kucoin : Exchange
             {
                 response = await this.privateGetHfFills(this.extend(request, paramsRequest));
             }
-        } else if (method == "private_get_fills")
+        } else if ((method == "privateGetFills") || (method == "private_get_fills"))
         {
             // does not return trades earlier than 2019-02-18T00:00:00Z
             if ((since != null))
@@ -7884,7 +7884,7 @@ public partial class kucoin : Exchange
                 request["startAt"] = since;
             }
             response = await this.privateGetFills(this.extend(request, paramsRequest));
-        } else if (method == "private_get_limit_fills")
+        } else if ((method == "privateGetLimitFills") || (method == "private_get_limit_fills"))
         {
             // does not return trades earlier than 2019-02-18T00:00:00Z
             // takes no params
