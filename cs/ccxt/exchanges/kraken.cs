@@ -4083,7 +4083,7 @@ public partial class kraken : Exchange
         };
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -4165,8 +4165,8 @@ public partial class kraken : Exchange
         return new Dictionary<string, object>() {
             { "url", (apiUrl + url) },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", null },
+            { "headers", null },
         };
     }
 

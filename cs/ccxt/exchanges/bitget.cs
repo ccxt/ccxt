@@ -14443,7 +14443,7 @@ public partial class bitget : Exchange
         return ((Int64)((object)((this.milliseconds() - timeDifference)))!);
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -14513,7 +14513,7 @@ public partial class bitget : Exchange
                 requestHeaders["Content-Type"] = "application/json";
             }
         }
-        object headersResult = ((requestHeaders == null)) ? headers : requestHeaders;
+        Dictionary<string, object> headersResult = requestHeaders;
         bool? sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
         if (((sandboxMode == true)) && ((path != "v2/public/time")) && ((path != "v3/market/current-fund-rate")))
         {
@@ -14525,10 +14525,10 @@ public partial class bitget : Exchange
             string? productType = this.safeString(parameters, "productType");
             if ((productType != "SCOIN-FUTURES") && (productType != "SUSDT-FUTURES") && (productType != "SUSDC-FUTURES"))
             {
-                ((IDictionary<string,object>)headersResult)["PAPTRADING"] = "1";
+                headersResult["PAPTRADING"] = "1";
             }
         }
-        object bodyResult = ((requestBody == null)) ? body : requestBody;
+        string? bodyResult = requestBody;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

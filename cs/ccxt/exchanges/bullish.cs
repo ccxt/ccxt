@@ -3352,14 +3352,14 @@ public partial class bullish : Exchange
         }, market);
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object apiName = getValue(api, 0);
-        object requestHeaders = headers;
-        object requestBody = body;
+        Dictionary<string, object> requestHeaders = null;
+        string? requestBody = null;
         object request = this.omit(parameters, this.extractParams(path));
         string endpoint = ("/" + this.implodeParams(path, parameters));
         string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
@@ -3385,7 +3385,7 @@ public partial class bullish : Exchange
             } else if ((method == "POST"))
             {
                 requestBody = this.json(parameters);
-                string payload = (((((timestamp + nonce) + method) + "/trading-api/") + path) + (requestBody));
+                string payload = (((((timestamp + nonce) + method) + "/trading-api/") + path) + requestBody);
                 string digest = ((string)this.hash(this.encode(payload), sha256, "hex"));
                 string signature = this.hmac(this.encode(digest), this.encode(this.secret), sha256, "hex");
                 requestHeaders = new Dictionary<string, object>() {
@@ -3394,17 +3394,17 @@ public partial class bullish : Exchange
                     { "BX-SIGNATURE", signature },
                     { "Content-Type", "application/json" },
                 };
-                ((IDictionary<string,object>)requestHeaders)["Content-Type"] = "application/json";
+                requestHeaders["Content-Type"] = "application/json";
                 string? rateLimitToken = this.safeString(request, "rateLimitToken");
                 if ((rateLimitToken != null))
                 {
-                    ((IDictionary<string,object>)requestHeaders)["BX-RATE-LIMIT-TOKEN"] = rateLimitToken;
+                    requestHeaders["BX-RATE-LIMIT-TOKEN"] = rateLimitToken;
                 }
             }
             if ((path == "v1/users/hmac/login"))
             {
                 requestHeaders = ((requestHeaders == null)) ? new Dictionary<string, object>() {} : requestHeaders;
-                ((IDictionary<string,object>)requestHeaders)["BX-PUBLIC-KEY"] = this.apiKey;
+                requestHeaders["BX-PUBLIC-KEY"] = this.apiKey;
             } else
             {
                 object token = this.token;
@@ -3413,7 +3413,7 @@ public partial class bullish : Exchange
                     throw new AuthenticationError ((this.id + " requires a token, please call signIn() first")) ;
                 }
                 requestHeaders = ((requestHeaders == null)) ? new Dictionary<string, object>() {} : requestHeaders;
-                ((IDictionary<string,object>)requestHeaders)["Authorization"] = ("Bearer " + (token));
+                requestHeaders["Authorization"] = ("Bearer " + (token));
             }
         }
         if ((method == "GET"))

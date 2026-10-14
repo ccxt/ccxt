@@ -2681,7 +2681,7 @@ public partial class upbit : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -2705,7 +2705,7 @@ public partial class upbit : Exchange
             }
         }
         bool hasBody = ((apiName is "private")) && ((method != "GET")) && ((method != "DELETE"));
-        object requestBody = body;
+        string? requestBody = null;
         if (hasBody)
         {
             requestBody = this.json(parameters);
@@ -2739,7 +2739,7 @@ public partial class upbit : Exchange
             string token = jwt(request, this.encode(this.secret), sha256);
             privateHeaders["Authorization"] = ("Bearer " + token);
         }
-        object requestHeaders = ((apiName is "private")) ? privateHeaders : headers;
+        Dictionary<string, object> requestHeaders = ((apiName is "private")) ? privateHeaders : null;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

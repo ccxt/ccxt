@@ -3942,13 +3942,13 @@ public partial class extended : Exchange
         return null;
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object requestHeaders = headers;
-        object requestBody = body;
+        Dictionary<string, object> requestHeaders = null;
+        string? requestBody = null;
         string? version = this.safeString(api, 0);
         string? accessibility = this.safeString(api, 1);
         string endpoint = ("/" + this.implodeParams(path, parameters));
@@ -3972,7 +3972,7 @@ public partial class extended : Exchange
             if ((((method == "POST")) || ((method == "PATCH"))) && !queryPost)
             {
                 requestBody = this.json(query);
-                ((IDictionary<string,object>)requestHeaders)["Content-Type"] = "application/json";
+                requestHeaders["Content-Type"] = "application/json";
             }
         }
         string url = (((this.implodeHostname(baseApiUrl) + "/api/") + version) + endpoint);

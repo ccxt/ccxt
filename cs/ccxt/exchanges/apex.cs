@@ -2197,7 +2197,7 @@ public partial class apex : Exchange
         });
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -2215,7 +2215,7 @@ public partial class apex : Exchange
             { "Content-Type", "application/x-www-form-urlencoded" },
         };
         string signPath = ("/api/" + path);
-        object signBody = body;
+        string? signBody = null;
         if ((method.ToUpper() != "POST"))
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
@@ -2232,10 +2232,10 @@ public partial class apex : Exchange
         {
             this.checkRequiredCredentials();
             string timestamp = this.milliseconds().ToString();
-            object messageString = ((timestamp + method.ToUpper()) + signPath);
+            string messageString = ((timestamp + method.ToUpper()) + signPath);
             if ((signBody != null))
             {
-                messageString = add(messageString, signBody);
+                messageString = (messageString + signBody);
             }
             string signature = this.hmac(this.encode(messageString), this.encode(this.stringToBase64(this.secret)), sha256, "base64");
             headersValue["APEX-SIGNATURE"] = signature;

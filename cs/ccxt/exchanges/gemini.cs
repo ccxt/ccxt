@@ -2400,7 +2400,7 @@ public partial class gemini : Exchange
         return ccxt.BaseExchange.ToDepositAddresses(this.indexBy(results, "network"));
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -2446,8 +2446,8 @@ public partial class gemini : Exchange
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string fullUrl = (apiUrl + url);
-        object headersResolved = ((apiName is "private")) ? headersSigned : headers;
-        object bodyResolved = body;
+        Dictionary<string, object> headersResolved = ((apiName is "private")) ? headersSigned : null;
+        string? bodyResolved = null;
         if (((method == "POST")) || ((method == "DELETE")))
         {
             bodyResolved = this.json(query);

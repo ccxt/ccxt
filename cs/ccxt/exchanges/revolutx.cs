@@ -229,7 +229,7 @@ public partial class revolutx : Exchange
         });
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -272,9 +272,9 @@ public partial class revolutx : Exchange
                 requestBody = this.json(query);
             }
             string requestPath = ("/api/" + implodedPath);
-            object bodyValue = ((requestBody != null)) ? requestBody : body;
-            object bodyString = ((bodyValue != null)) ? bodyValue : "";
-            string message = ((((timestamp + method.ToUpper()) + requestPath) + queryString) + (bodyString));
+            string? bodyValue = requestBody;
+            string? bodyString = ((bodyValue != null)) ? bodyValue : "";
+            string message = ((((timestamp + method.ToUpper()) + requestPath) + queryString) + bodyString);
             string signature = eddsa(this.encode(message), this.privateKey, ed25519);
             requestHeaders = new Dictionary<string, object>() {
                 { "X-Revx-API-Key", this.apiKey },
@@ -302,8 +302,8 @@ public partial class revolutx : Exchange
                 };
             }
         }
-        object headersResult = ((requestHeaders != null)) ? requestHeaders : headers;
-        object bodyResult = ((requestBody != null)) ? requestBody : body;
+        Dictionary<string, object> headersResult = requestHeaders;
+        string? bodyResult = requestBody;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

@@ -2060,7 +2060,7 @@ public partial class bitopro : Exchange
         return ccxt.BaseExchange.ToDepositWithdrawFees(this.parseDepositWithdrawFees(data, codes, "currency"));
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -2068,15 +2068,15 @@ public partial class bitopro : Exchange
         object apiName = getValue(api, 0);
         string url = ("/" + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
-        object requestHeaders = ((headers == null)) ? new Dictionary<string, object>() {} : headers;
+        Dictionary<string, object> requestHeaders = new Dictionary<string, object>() {};
         bool isSignedBody = ((apiName is "private")) && (((method == "POST")) || ((method == "PUT")));
         string signedBody = this.json(parameters);
-        object requestBody = body;
+        string? requestBody = null;
         if (isSignedBody)
         {
             requestBody = signedBody;
         }
-        ((IDictionary<string,object>)requestHeaders)["X-BITOPRO-API"] = "ccxt";
+        requestHeaders["X-BITOPRO-API"] = "ccxt";
         if ((apiName is "private"))
         {
             this.checkRequiredCredentials();
@@ -2084,9 +2084,9 @@ public partial class bitopro : Exchange
             {
                 string payload = this.stringToBase64(signedBody);
                 string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
-                ((IDictionary<string,object>)requestHeaders)["X-BITOPRO-APIKEY"] = this.apiKey;
-                ((IDictionary<string,object>)requestHeaders)["X-BITOPRO-PAYLOAD"] = payload;
-                ((IDictionary<string,object>)requestHeaders)["X-BITOPRO-SIGNATURE"] = signature;
+                requestHeaders["X-BITOPRO-APIKEY"] = this.apiKey;
+                requestHeaders["X-BITOPRO-PAYLOAD"] = payload;
+                requestHeaders["X-BITOPRO-SIGNATURE"] = signature;
             } else if ((method == "GET") || (method == "DELETE"))
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
@@ -2100,9 +2100,9 @@ public partial class bitopro : Exchange
                 string data = this.json(rawData);
                 string payload = this.stringToBase64(data);
                 string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
-                ((IDictionary<string,object>)requestHeaders)["X-BITOPRO-APIKEY"] = this.apiKey;
-                ((IDictionary<string,object>)requestHeaders)["X-BITOPRO-PAYLOAD"] = payload;
-                ((IDictionary<string,object>)requestHeaders)["X-BITOPRO-SIGNATURE"] = signature;
+                requestHeaders["X-BITOPRO-APIKEY"] = this.apiKey;
+                requestHeaders["X-BITOPRO-PAYLOAD"] = payload;
+                requestHeaders["X-BITOPRO-SIGNATURE"] = signature;
             }
         } else if ((apiName is "public") && (method == "GET"))
         {

@@ -1427,7 +1427,7 @@ public partial class bitbns : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -1445,7 +1445,7 @@ public partial class bitbns : Exchange
         Dictionary<string, object> apiKeyHeaders = new Dictionary<string, object>() {
             { "X-BITBNS-APIKEY", this.apiKey },
         };
-        object requestHeaders = (!(apiName is "www")) ? apiKeyHeaders : headers;
+        Dictionary<string, object> requestHeaders = (!(apiName is "www")) ? apiKeyHeaders : null;
         string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((baseApiUrl == null))
         {
@@ -1461,7 +1461,7 @@ public partial class bitbns : Exchange
         {
             postBody = this.json(query);
         }
-        object requestBody = ((method == "POST")) ? postBody : body;
+        string? requestBody = ((method == "POST")) ? postBody : null;
         if ((method == "GET"))
         {
             if (queryLength > 0)
@@ -1477,9 +1477,9 @@ public partial class bitbns : Exchange
             string payload = this.stringToBase64(this.json(auth));
             string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512);
             requestHeaders = ((requestHeaders == null)) ? new Dictionary<string, object>() {} : requestHeaders;
-            ((IDictionary<string,object>)requestHeaders)["X-BITBNS-PAYLOAD"] = payload;
-            ((IDictionary<string,object>)requestHeaders)["X-BITBNS-SIGNATURE"] = signature;
-            ((IDictionary<string,object>)requestHeaders)["Content-Type"] = "application/x-www-form-urlencoded";
+            requestHeaders["X-BITBNS-PAYLOAD"] = payload;
+            requestHeaders["X-BITBNS-SIGNATURE"] = signature;
+            requestHeaders["Content-Type"] = "application/x-www-form-urlencoded";
         }
         return new Dictionary<string, object>() {
             { "url", url },

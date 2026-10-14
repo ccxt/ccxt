@@ -225,7 +225,7 @@ public partial class mudrex : Exchange
         });
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -240,10 +240,6 @@ public partial class mudrex : Exchange
         string url = ((bs + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         Dictionary<string, object> requestHeaders = new Dictionary<string, object>() {};
-        if ((headers != null))
-        {
-            requestHeaders = this.extend(new Dictionary<string, object>() {}, headers);
-        }
         string? brokerId = this.safeString(this.options, "broker");
         if ((brokerId != null))
         {

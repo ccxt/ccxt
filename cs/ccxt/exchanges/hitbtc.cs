@@ -4276,7 +4276,7 @@ public partial class hitbtc : Exchange
         return null;
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -4304,7 +4304,7 @@ public partial class hitbtc : Exchange
                 url = (url + getRequest);
             }
         }
-        object bodyResolved = ((method == "GET")) ? body : this.json(parameters);
+        string? bodyResolved = ((method == "GET")) ? null : this.json(parameters);
         if ((apiName is "private"))
         {
             this.checkRequiredCredentials();

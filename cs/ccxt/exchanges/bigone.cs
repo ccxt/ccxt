@@ -2149,7 +2149,7 @@ public partial class bigone : Exchange
         return ((Int64)((object)(this.sum((this.microseconds() * 1000), exchangeTimeCorrection)))!);
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -2195,7 +2195,7 @@ public partial class bigone : Exchange
             }
         }
         headersValue["User-Agent"] = ((("ccxt/" + this.id) + "-") + this.version);
-        object bodyResolved = ((bodySigned == null)) ? body : bodySigned;
+        string? bodyResolved = bodySigned;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

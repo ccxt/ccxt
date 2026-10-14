@@ -3548,7 +3548,7 @@ public partial class deepcoin : Exchange
         return ((IDictionary<string, object>)((object)(ccxt.BaseExchange.FromOrder(this.parseOrder(data, market)))));
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -3581,7 +3581,7 @@ public partial class deepcoin : Exchange
                 { "DC-ACCESS-PASSPHRASE", this.password },
                 { "appid", "200103" },
             };
-            object requestBody = ((method != "GET")) ? this.json(parameters) : body;
+            string? requestBody = ((method != "GET")) ? this.json(parameters) : null;
             if ((method != "GET"))
             {
                 privateHeaders["Content-Type"] = "application/json";
@@ -3599,8 +3599,8 @@ public partial class deepcoin : Exchange
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", null },
+            { "headers", null },
         };
     }
 

@@ -3604,11 +3604,9 @@ public partial class limitless : PredictionExchange
      * @param {string[]} [api] the api group and access level
      * @param {string} [method] HTTP method
      * @param {object} [params] request parameters
-     * @param {object} [headers] request headers
-     * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -3625,8 +3623,8 @@ public partial class limitless : PredictionExchange
         {
             url = add(url, ("?" + querystring));
         }
-        object headersValue = headers;
-        object bodyValue = body;
+        Dictionary<string, object> headersValue = null;
+        string? bodyValue = null;
         if ((access is "private"))
         {
             string bodyString = "";
@@ -3638,7 +3636,7 @@ public partial class limitless : PredictionExchange
             {
                 bodyString = this.json(query);
                 bodyValue = bodyString;
-                object headerDefaults = ((headersValue != null)) ? headersValue : new Dictionary<string, object>() {};
+                Dictionary<string, object> headerDefaults = ((headersValue != null)) ? headersValue : new Dictionary<string, object>() {};
                 headersValue = this.extend(new Dictionary<string, object>() {
                     { "Accept", "application/json" },
                     { "Content-Type", "application/json" },

@@ -2052,7 +2052,7 @@ public partial class onetrading : Exchange
         return this.parseTrades(tradeHistory, market, since, limit);
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -2078,7 +2078,7 @@ public partial class onetrading : Exchange
                 { "Accept", "application/json" },
                 { "Authorization", ("Bearer " + this.apiKey) },
             };
-            object bodyJson = ((method == "POST")) ? this.json(query) : body;
+            string? bodyJson = ((method == "POST")) ? this.json(query) : null;
             if ((method == "POST"))
             {
                 headersSigned["Content-Type"] = "application/json";
@@ -2099,8 +2099,8 @@ public partial class onetrading : Exchange
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", null },
+            { "headers", null },
         };
     }
 

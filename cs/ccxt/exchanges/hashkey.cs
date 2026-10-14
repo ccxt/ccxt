@@ -4637,7 +4637,7 @@ public partial class hashkey : Exchange
         };
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -4693,7 +4693,7 @@ public partial class hashkey : Exchange
             }
             headersSigned["INPUT-SOURCE"] = this.safeString(this.options, "broker", "10000700011");
             headersSigned["broker_sign"] = signature;
-            object bodyResolved = ((method == "GET")) ? body : bodySigned;
+            string? bodyResolved = ((method == "GET")) ? null : bodySigned;
             return new Dictionary<string, object>() {
                 { "url", url },
                 { "method", method },
@@ -4711,8 +4711,8 @@ public partial class hashkey : Exchange
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", null },
+            { "headers", null },
         };
     }
 

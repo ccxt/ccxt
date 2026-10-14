@@ -1365,7 +1365,7 @@ public partial class blockchaincom : Exchange
         return this.parseOrder(response);
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -1383,13 +1383,13 @@ public partial class blockchaincom : Exchange
         Dictionary<string, object> privateHeaders = new Dictionary<string, object>() {
             { "X-API-Token", this.secret },
         };
-        object requestHeaders = headers;
+        Dictionary<string, object> requestHeaders = null;
         if (isPrivate)
         {
             requestHeaders = privateHeaders;
         }
         bool isPrivatePost = isPrivate && ((method != "GET"));
-        object requestBody = body;
+        string? requestBody = null;
         if (isPrivatePost)
         {
             requestBody = this.json(query);

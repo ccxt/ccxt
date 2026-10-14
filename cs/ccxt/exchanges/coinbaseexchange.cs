@@ -2496,14 +2496,14 @@ public partial class coinbaseexchange : Exchange
         return ccxt.BaseExchange.ToDepositAddress(new Dictionary<string, object>() {             { "currency", code },             { "address", this.checkAddress(address) },             { "network", null },             { "tag", tag },             { "info", response },         });
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object apiName = getValue(api, 0);
-        object requestHeaders = headers;
-        object requestBody = body;
+        Dictionary<string, object> requestHeaders = null;
+        string? requestBody = null;
         string request = ("/" + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         if ((method == "GET"))
@@ -2523,7 +2523,7 @@ public partial class coinbaseexchange : Exchange
         {
             this.checkRequiredCredentials();
             string nonce = this.nonce().ToString();
-            object payload = "";
+            string? payload = "";
             if ((method != "GET"))
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
@@ -2532,7 +2532,7 @@ public partial class coinbaseexchange : Exchange
                     payload = requestBody;
                 }
             }
-            string? what = ((string)(((nonce + method) + request) + (payload)));
+            string? what = ((string)(((nonce + method) + request) + payload));
             byte[]? secret = null;
             try
             {
@@ -2575,13 +2575,13 @@ public partial class coinbaseexchange : Exchange
         return null;
     }
 
-    public async override Task<object> request(string path, object api = null, object method = null, object parameters = null, object headers = null, object body = null, object config = null)
+    public async override Task<object> request(string path, object api = null, object method = null, object parameters = null, object config = null)
     {
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         config ??= new Dictionary<string, object>();
-        object response = await this.fetch2(path, api, method, parameters, headers, body, config);
+        object response = await this.fetch2(path, api, method, parameters, config);
         if (!(response is string))
         {
             if (inOp(response, "message"))

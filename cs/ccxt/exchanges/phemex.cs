@@ -5311,7 +5311,7 @@ public partial class phemex : Exchange
         return tiers;
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -5368,12 +5368,12 @@ public partial class phemex : Exchange
         }
         url = (this.implodeHostname(baseApiUrl) + url);
         bool isPrivatePost = ((apiName is "private")) && ((method == "POST"));
-        object bodyResolved = body;
+        string? bodyResolved = null;
         if (isPrivatePost)
         {
             bodyResolved = requestBody;
         }
-        object requestHeaders = ((apiName is "private")) ? privateHeaders : headers;
+        Dictionary<string, object> requestHeaders = ((apiName is "private")) ? privateHeaders : null;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

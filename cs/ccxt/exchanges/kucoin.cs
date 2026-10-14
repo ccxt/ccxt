@@ -13220,7 +13220,7 @@ public partial class kucoin : Exchange
         return ((bool)((object)(uta))!);
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -13260,13 +13260,9 @@ public partial class kucoin : Exchange
             }
         }
         object query = this.omit(paramsOmitted, this.extractParams(path));
-        object endpart = "";
-        object headersBase = new Dictionary<string, object>() {};
-        if ((headers != null))
-        {
-            headersBase = headers;
-        }
-        object bodyJson = body;
+        string? endpart = "";
+        Dictionary<string, object> headersBase = new Dictionary<string, object>() {};
+        string? bodyJson = null;
         string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((apiUrl == null))
         {
@@ -13286,10 +13282,10 @@ public partial class kucoin : Exchange
                 }
                 bodyJson = this.json(query);
                 endpart = bodyJson;
-                ((IDictionary<string,object>)headersBase)["Content-Type"] = "application/json";
+                headersBase["Content-Type"] = "application/json";
             }
         }
-        object headersResult = headersBase;
+        Dictionary<string, object> headersResult = headersBase;
         bool isFuturePrivate = ((apiName is "futuresPrivate"));
         bool isPrivate = ((apiName is "private"));
         bool isBroker = ((apiName is "broker"));
@@ -13312,7 +13308,7 @@ public partial class kucoin : Exchange
             {
                 headersSigned["KC-API-PASSPHRASE"] = this.password;
             }
-            string? payload = ((string)(((timestamp + method) + endpoint) + (endpart)));
+            string? payload = ((string)(((timestamp + method) + endpoint) + endpart));
             string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
             headersSigned["KC-API-SIGN"] = signature;
             object partner = this.safeDict(this.options, "partner", new Dictionary<string, object>() {});

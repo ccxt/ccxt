@@ -1952,7 +1952,7 @@ public partial class hibachi : Exchange
         });
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -1982,7 +1982,7 @@ public partial class hibachi : Exchange
         {
             headersValue["Content-Type"] = "application/json";
         }
-        object bodyResult = body;
+        string? bodyResult = null;
         if (hasJsonBody)
         {
             bodyResult = this.json(parameters);

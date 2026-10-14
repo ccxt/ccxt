@@ -3461,7 +3461,7 @@ public partial class toobit : Exchange
         });
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -3513,7 +3513,7 @@ public partial class toobit : Exchange
             {
                 queryString = this.urlencode(queryExtended);
             }
-            object payloadBody = body;
+            object payloadBody = null;
             if (isPost || isDelete)
             {
                 payloadBody = privateBody;
@@ -3538,7 +3538,7 @@ public partial class toobit : Exchange
                 { "X-BB-API-PLATFORM", this.safeString(this.options, "brokerId", "177321641268789") },
                 { "Content-Type", "application/x-www-form-urlencoded" },
             };
-            object requestBody = body;
+            object requestBody = null;
             if (isPost || isDelete)
             {
                 requestBody = privateBody;
@@ -3553,8 +3553,8 @@ public partial class toobit : Exchange
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", null },
+            { "headers", null },
         };
     }
 

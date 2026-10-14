@@ -2584,7 +2584,7 @@ public partial class coinsph : Exchange
         return ((string?)((object)(urlEncodedParam)));
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -2620,7 +2620,7 @@ public partial class coinsph : Exchange
             return new Dictionary<string, object>() {
                 { "url", url },
                 { "method", method },
-                { "body", body },
+                { "body", null },
                 { "headers", signedHeaders },
             };
         }
@@ -2632,8 +2632,8 @@ public partial class coinsph : Exchange
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", null },
+            { "headers", null },
         };
     }
 

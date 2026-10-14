@@ -11711,7 +11711,7 @@ public partial class bybit : Exchange
         return this.safeString(marginModes, marginMode, marginMode);
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -11838,12 +11838,12 @@ public partial class bybit : Exchange
         if ((method == "POST"))
         {
             string? brokerId = this.safeString(this.options, "brokerId", "CCXT");
-            object headersBase = ((requestHeaders == null)) ? headers : requestHeaders;
+            object headersBase = requestHeaders;
             requestHeaders = ((headersBase == null)) ? new Dictionary<string, object>() {} : headersBase;
             ((IDictionary<string,object>)requestHeaders)["Referer"] = brokerId;
         }
-        object bodyResolved = ((requestBody == null)) ? body : requestBody;
-        object headersResolved = ((requestHeaders == null)) ? headers : requestHeaders;
+        string? bodyResolved = requestBody;
+        object headersResolved = requestHeaders;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

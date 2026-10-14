@@ -3390,7 +3390,7 @@ public partial class nado : Exchange
         return ((string?)((object)(marketId)));
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -3424,7 +3424,7 @@ public partial class nado : Exchange
             headersValue["Content-Type"] = "application/json";
             requestBody = this.json(query);
         }
-        object bodyResult = ((requestBody != null)) ? requestBody : body;
+        string? bodyResult = requestBody;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

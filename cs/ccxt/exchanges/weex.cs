@@ -5001,7 +5001,7 @@ public partial class weex : Exchange
         this.options["sandboxMode"] = enable;
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -5019,7 +5019,7 @@ public partial class weex : Exchange
         }
         bool isPrivate = ((apiName is "private")) || ((apiName is "contractPrivate"));
         bool hasJsonBody = isPrivate && (((method == "POST")) || isBatch);
-        object requestBody = body;
+        string? requestBody = null;
         if (hasJsonBody)
         {
             requestBody = this.json(query);

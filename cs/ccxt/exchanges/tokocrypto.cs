@@ -2892,7 +2892,7 @@ public partial class tokocrypto : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -2923,7 +2923,7 @@ public partial class tokocrypto : Exchange
                     { "X-MBX-APIKEY", this.apiKey },
                     { "Content-Type", "application/x-www-form-urlencoded" },
                 };
-                object bodyStream = ((method != "GET")) ? this.urlencode(parameters) : body;
+                string? bodyStream = ((method != "GET")) ? this.urlencode(parameters) : null;
                 return new Dictionary<string, object>() {
                     { "url", url },
                     { "method", method },
@@ -2967,10 +2967,10 @@ public partial class tokocrypto : Exchange
                 { "X-MBX-APIKEY", this.apiKey },
             };
             bool queryInUrl = ((method == "GET")) || ((method == "DELETE")) || ((apiName is "wapi"));
-            object bodySigned = query;
+            string? bodySigned = query;
             if (queryInUrl)
             {
-                bodySigned = body;
+                bodySigned = null;
             }
             if (queryInUrl)
             {
@@ -2995,8 +2995,8 @@ public partial class tokocrypto : Exchange
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", null },
+            { "headers", null },
         };
     }
 
