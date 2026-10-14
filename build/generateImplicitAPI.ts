@@ -682,10 +682,10 @@ function generateImplicitMethodNames(id: string, api: string, paths: string[] = 
                 storedContext[id].push ({
                     endpoint,
                     paths,
-                    tsPath: JSON.stringify (paths.length === 1 ? paths[0] : paths),
+                    tsPath: JSON.stringify (paths),
                     tsConfig: JSON.stringify (config),
-                    phpPath: paths.length === 1 ? `'${paths[0]}'` : 'array(' + paths.map (x => `'${x}'`).join (', ') + ')',
-                    pyPath: paths.length === 1 ? `'${paths[0]}'` : '[' + paths.map (x => `'${x}'`).join (', ') + ']',
+                    phpPath: 'array(' + paths.map (x => `'${x}'`).join (', ') + ')',
+                    pyPath: '[' + paths.map (x => `'${x}'`).join (', ') + ']',
                     phpConfig: phpConfig,
                     pyConfig: pyConfig,
                     method: key.toUpperCase (),
@@ -997,9 +997,8 @@ function goEndpointBody (method: string, resolvable: any, callEndpoint: string, 
         return `\treturn this.${callEndpoint}("${method}", args...)`
     }
     const paths: string[] = resolvable.paths || []
-    // transformApiNew keys by the parent key itself when it is the only path
-    // level, and by the []string it walked for a nested one
-    const api = paths.length === 1 ? JSON.stringify (paths[0]) : `[]string{${paths.map (x => JSON.stringify (x)).join (', ')}}`
+    // the api argument is always the []string of walked path levels
+    const api = `[]string{${paths.map (x => JSON.stringify (x)).join (', ')}}`
     const call = `${JSON.stringify (resolvable.endpoint)}, ${api}, ${JSON.stringify (resolvable.method)}, ${pkgPrefix}GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(${resolvable.goCost})}`
     if (element === 'any') {
         return `\treturn this.Fetch2Async(${call})`

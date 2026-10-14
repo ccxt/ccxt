@@ -582,14 +582,7 @@ public class BaseExchange {
                     // lowercase first letter
                     path = path.substring(0, 1).toLowerCase() + path.substring(1);
 
-                    Object apiObj;
-                    if (paths.size() > 1) {
-                        apiObj = new ArrayList<>(paths); // keep a copy
-                    } else if (paths.size() == 1) {
-                        apiObj = paths.get(0);
-                    } else {
-                        apiObj = null; // defensive; original C# would blow up here
-                    }
+                    Object apiObj = new ArrayList<>(paths);
 
                     Map<String, Object> entry = new HashMap<>();
                     entry.put("method", key.toUpperCase());
