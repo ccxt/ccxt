@@ -601,14 +601,14 @@ export default class polymarket extends Exchange {
     override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolResolved: string = market['symbol'];
         // the tickers and statistics endpoints ignore the documented
         // instrument_id filter and always answer with every instrument, so
         // the single-market call reuses the bulk fetch and selects one row
-        const tickers = await this.fetchTickers ([ symbol ], params);
-        const ticker = this.safeDict (tickers, symbol);
+        const tickers = await this.fetchTickers ([ symbolResolved ], params);
+        const ticker = this.safeDict (tickers, symbolResolved);
         if (ticker === undefined) {
-            throw new BadSymbol (this.id + ' fetchTicker() could not find a ticker for ' + symbol);
+            throw new BadSymbol (this.id + ' fetchTicker() could not find a ticker for ' + symbolResolved);
         }
         return ticker as Ticker;
     }
@@ -624,7 +624,7 @@ export default class polymarket extends Exchange {
      */
     override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const promises = [
             this.publicGetInfoTickers (params),
             this.publicGetInfoStatistics (params),
@@ -698,7 +698,7 @@ export default class polymarket extends Exchange {
             const previous = this.safeDict (merged, instrumentId, {});
             result.push (this.extend (previous, entry));
         }
-        return this.parseTickers (result, symbols);
+        return this.parseTickers (result, symbolsNormalized);
     }
 
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
@@ -725,10 +725,10 @@ export default class polymarket extends Exchange {
         //     }
         //
         const marketId = this.safeString (ticker, 'instrument_id');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (ticker, 'timestamp');
         return this.safeTicker ({
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
@@ -751,7 +751,7 @@ export default class polymarket extends Exchange {
             'markPrice': this.safeString (ticker, 'mark_price'),
             'indexPrice': this.safeString (ticker, 'index_price'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -765,7 +765,7 @@ export default class polymarket extends Exchange {
      */
     override async fetchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const response = await this.publicGetInfoBbo (params);
         //
         //     [
@@ -779,7 +779,7 @@ export default class polymarket extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTickers (response, symbols);
+        return this.parseTickers (response, symbolsNormalized);
     }
 
     /**
@@ -839,11 +839,12 @@ export default class polymarket extends Exchange {
             request['start_timestamp'] = since;
         }
         const until = this.safeInteger (params, 'until');
+        let paramsOmitted: Dict = params;
         if (until !== undefined) {
-            params = this.omit (params, 'until');
+            paramsOmitted = this.omit (paramsOmitted, 'until');
             request['end_timestamp'] = until;
         }
-        const response = await this.publicGetInfoTrades (this.extend (request, params));
+        const response = await this.publicGetInfoTrades (this.extend (request, paramsOmitted));
         //
         //     {
         //         "data": [
@@ -877,7 +878,7 @@ export default class polymarket extends Exchange {
         //     }
         //
         const marketId = this.safeString2 (trade, 'instrument_id', 'iid');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger2 (trade, 'timestamp', 'ts');
         let side = this.safeStringLower (trade, 'side');
         if (side === 'long') {
@@ -904,7 +905,7 @@ export default class polymarket extends Exchange {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'order': this.safeString2 (trade, 'order_id', 'oid'),
             'type': undefined,
             'side': side,
@@ -913,7 +914,7 @@ export default class polymarket extends Exchange {
             'amount': this.safeString2 (trade, 'quantity', 'qty'),
             'cost': undefined,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -933,18 +934,19 @@ export default class polymarket extends Exchange {
     override async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        let paramsOmitted: Dict = params;
+        [ paginate, paramsOmitted ] = this.handleOptionAndParams (paramsOmitted, 'fetchOHLCV', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 1000) as OHLCV[];
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsOmitted, 1000) as OHLCV[];
         }
         const market = this.market (symbol);
         const request: Dict = {
             'instrument_id': market['id'],
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
-        const until = this.safeInteger (params, 'until');
+        const until = this.safeInteger (paramsOmitted, 'until');
         if (until !== undefined) {
-            params = this.omit (params, 'until');
+            paramsOmitted = this.omit (paramsOmitted, 'until');
             request['end_timestamp'] = until;
         }
         const duration = this.parseTimeframe (timeframe) * 1000;
@@ -958,7 +960,7 @@ export default class polymarket extends Exchange {
             const requestedLimit = (limit !== undefined) ? limit : 100;
             request['start_timestamp'] = end - (requestedLimit - 1) * duration;
         }
-        const response = await this.publicGetInfoKlines (this.extend (request, params));
+        const response = await this.publicGetInfoKlines (this.extend (request, paramsOmitted));
         //
         //     {
         //         "data": [
@@ -999,14 +1001,14 @@ export default class polymarket extends Exchange {
     override async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolResolved: string = market['symbol'];
         // the tickers endpoint ignores the documented instrument_id filter
         // and always answers with every instrument, so the single-market call
         // reuses the bulk fetch and selects the requested row
-        const fundingRates = await this.fetchFundingRates ([ symbol ], params);
-        const fundingRate = this.safeDict (fundingRates, symbol);
+        const fundingRates = await this.fetchFundingRates ([ symbolResolved ], params);
+        const fundingRate = this.safeDict (fundingRates, symbolResolved);
         if (fundingRate === undefined) {
-            throw new BadSymbol (this.id + ' fetchFundingRate() could not find the funding rate for ' + symbol);
+            throw new BadSymbol (this.id + ' fetchFundingRate() could not find the funding rate for ' + symbolResolved);
         }
         return fundingRate as FundingRate;
     }
@@ -1022,10 +1024,10 @@ export default class polymarket extends Exchange {
      */
     override async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const response = await this.publicGetInfoTickers (params);
         const result = this.parseFundingRates (response);
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.filterByArray (result, 'symbol', symbolsNormalized);
     }
 
     override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
@@ -1044,13 +1046,13 @@ export default class polymarket extends Exchange {
         //     }
         //
         const marketId = this.safeString (contract, 'instrument_id');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (contract, 'timestamp');
         const nextFundingTimestamp = this.safeInteger (contract, 'next_funding');
-        const interval = this.safeString (market['info'], 'funding_interval');
+        const interval = this.safeString (marketResolved['info'], 'funding_interval');
         return {
             'info': contract,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'markPrice': this.safeNumber (contract, 'mark_price'),
             'indexPrice': this.safeNumber (contract, 'index_price'),
             'interestRate': undefined,
@@ -1089,9 +1091,10 @@ export default class polymarket extends Exchange {
         }
         await this.loadMarkets ();
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        let paramsOmitted: Dict = params;
+        [ paginate, paramsOmitted ] = this.handleOptionAndParams (paramsOmitted, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '1h', params, 100) as FundingRateHistory[];
+            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '1h', paramsOmitted, 100) as FundingRateHistory[];
         }
         const market = this.market (symbol);
         const request: Dict = {
@@ -1100,12 +1103,12 @@ export default class polymarket extends Exchange {
         if (since !== undefined) {
             request['start_timestamp'] = since;
         }
-        const until = this.safeInteger (params, 'until');
+        const until = this.safeInteger (paramsOmitted, 'until');
         if (until !== undefined) {
-            params = this.omit (params, 'until');
+            paramsOmitted = this.omit (paramsOmitted, 'until');
             request['end_timestamp'] = until;
         }
-        const response = await this.publicGetInfoFunding (this.extend (request, params));
+        const response = await this.publicGetInfoFunding (this.extend (request, paramsOmitted));
         //
         //     {
         //         "data": [
@@ -1143,14 +1146,14 @@ export default class polymarket extends Exchange {
     override async fetchOpenInterest (symbol: string, params = {}): Promise<OpenInterest> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolResolved: string = market['symbol'];
         // the tickers endpoint ignores the documented instrument_id filter
         // and always answers with every instrument, so the single-market call
         // reuses the bulk fetch and selects the requested row
-        const openInterests = await this.fetchOpenInterests ([ symbol ], params);
-        const openInterest = this.safeDict (openInterests, symbol);
+        const openInterests = await this.fetchOpenInterests ([ symbolResolved ], params);
+        const openInterest = this.safeDict (openInterests, symbolResolved);
         if (openInterest === undefined) {
-            throw new BadSymbol (this.id + ' fetchOpenInterest() could not find the open interest for ' + symbol);
+            throw new BadSymbol (this.id + ' fetchOpenInterest() could not find the open interest for ' + symbolResolved);
         }
         return openInterest as OpenInterest;
     }
@@ -1166,10 +1169,10 @@ export default class polymarket extends Exchange {
      */
     override async fetchOpenInterests (symbols: Strings = undefined, params = {}): Promise<OpenInterests> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const response = await this.publicGetInfoTickers (params);
         const result = this.parseOpenInterests (response);
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.filterByArray (result, 'symbol', symbolsNormalized);
     }
 
     override parseOpenInterest (interest: any, market: Market = undefined) {
@@ -1188,16 +1191,16 @@ export default class polymarket extends Exchange {
         //     }
         //
         const marketId = this.safeString (interest, 'instrument_id');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (interest, 'timestamp');
         return this.safeOpenInterest ({
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'openInterestAmount': this.safeString (interest, 'open_interest'),
             'openInterestValue': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1274,7 +1277,8 @@ export default class polymarket extends Exchange {
         let timeInForce = this.safeStringUpper (params, 'timeInForce');
         const isPostOnlyTimeInForce = (timeInForce === 'PO');
         let postOnly = false;
-        [ postOnly, params ] = this.handlePostOnly (isMarketOrder, isPostOnlyTimeInForce, params);
+        let paramsOmitted: Dict = params;
+        [ postOnly, paramsOmitted ] = this.handlePostOnly (isMarketOrder, isPostOnlyTimeInForce, paramsOmitted);
         if (isMarketOrder) {
             if ((timeInForce === 'GTC') || (timeInForce === 'PO')) {
                 throw new NotSupported (this.id + ' createOrder() does not support the ' + timeInForce + ' timeInForce on market orders');
@@ -1291,9 +1295,9 @@ export default class polymarket extends Exchange {
             }
         }
         const tif = timeInForce.toLowerCase ();
-        const reduceOnly = this.safeBool (params, 'reduceOnly', false);
-        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'c');
-        params = this.omit (params, [ 'timeInForce', 'reduceOnly', 'clientOrderId' ]);
+        const reduceOnly = this.safeBool (paramsOmitted, 'reduceOnly', false);
+        const clientOrderId = this.safeString2 (paramsOmitted, 'clientOrderId', 'c');
+        paramsOmitted = this.omit (paramsOmitted, [ 'timeInForce', 'reduceOnly', 'clientOrderId' ]);
         const instrumentId = this.parseToInt ((market as Dict)['id']);
         const isBuy = (side === 'buy');
         const quantity = this.amountToPrecision (symbol, amount);
@@ -1326,7 +1330,7 @@ export default class polymarket extends Exchange {
         return {
             'signable': signable,
             'entry': entry,
-            'params': params,
+            'params': paramsOmitted,
         };
     }
 
@@ -1471,7 +1475,7 @@ export default class polymarket extends Exchange {
                 clientOrderIds = [ clientOrderId ];
             }
         }
-        params = this.omit (params, [ 'clientOrderIds', 'clientOrderId' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'clientOrderIds', 'clientOrderId' ]);
         let signable = undefined;
         let bodyOp = undefined;
         let response = undefined;
@@ -1481,7 +1485,7 @@ export default class polymarket extends Exchange {
                 'type': 'cancelOrdersCOID',
                 'args': clientOrderIds,
             };
-            const signed = await this.signPerpsOp (signable, bodyOp, params);
+            const signed = await this.signPerpsOp (signable, bodyOp, paramsOmitted);
             response = await this.tradeDeleteTradeOrdersCoid (signed);
         } else {
             const numericIds = [];
@@ -1493,7 +1497,7 @@ export default class polymarket extends Exchange {
                 'type': 'cancelOrders',
                 'args': numericIds,
             };
-            const signed = await this.signPerpsOp (signable, bodyOp, params);
+            const signed = await this.signPerpsOp (signable, bodyOp, paramsOmitted);
             response = await this.tradeDeleteTradeOrders (signed);
         }
         //
@@ -1712,7 +1716,7 @@ export default class polymarket extends Exchange {
         //     }
         //
         const marketId = this.safeString2 (order, 'instrument_id', 'iid');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger2 (order, 'created_timestamp', 'cts');
         const lastUpdateTimestamp = this.safeInteger2 (order, 'updated_timestamp', 'uts');
         const isBuy = this.safeBool (order, 'buy');
@@ -1746,7 +1750,7 @@ export default class polymarket extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': lastUpdateTimestamp,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'timeInForce': this.safeStringUpper (order, 'tif'),
             'postOnly': this.safeBool2 (order, 'post_only', 'po'),
@@ -1764,7 +1768,7 @@ export default class polymarket extends Exchange {
             'status': this.parseOrderStatus (this.safeString (order, 'status')),
             'fee': undefined,
             'trades': undefined,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1822,7 +1826,7 @@ export default class polymarket extends Exchange {
     override async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         await this.loadProxyCredentials ();
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const response = await this.privateGetAccountPortfolio (params);
         const timestamp = this.safeInteger (response, 'timestamp');
         const rows = this.safeList (response, 'positions', []);
@@ -1832,7 +1836,7 @@ export default class polymarket extends Exchange {
             const extended = this.extend (rows[i], { 'timestamp': timestamp });
             positions.push (this.parsePosition (extended));
         }
-        return this.filterByArrayPositions (positions, 'symbol', symbols, false);
+        return this.filterByArrayPositions (positions, 'symbol', symbolsNormalized);
     }
 
     /**
@@ -1869,7 +1873,7 @@ export default class polymarket extends Exchange {
         //     }
         //
         const marketId = this.safeString (position, 'instrument_id');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const size = this.safeString (position, 'size');
         let side: Str = undefined;
         if (size !== undefined) {
@@ -1890,7 +1894,7 @@ export default class polymarket extends Exchange {
         return this.safePosition ({
             'info': position,
             'id': undefined,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastUpdateTimestamp': undefined,
@@ -1904,7 +1908,7 @@ export default class polymarket extends Exchange {
             'unrealizedPnl': this.safeNumber (position, 'unrealized_pnl'),
             'realizedPnl': undefined,
             'contracts': this.parseNumber (Precise.stringAbs (size)),
-            'contractSize': market['contractSize'],
+            'contractSize': marketResolved['contractSize'],
             'marginRatio': undefined,
             'liquidationPrice': this.parseNumber (this.omitZero (this.safeString (position, 'liquidation_price'))),
             'markPrice': undefined,
@@ -1969,16 +1973,17 @@ export default class polymarket extends Exchange {
             request['start_timestamp'] = since;
         }
         const until = this.safeInteger (params, 'until');
+        let paramsOmitted: Dict = params;
         if (until !== undefined) {
-            params = this.omit (params, 'until');
+            paramsOmitted = this.omit (paramsOmitted, 'until');
             request['end_timestamp'] = until;
         }
-        const clientOrderId = this.safeString (params, 'clientOrderId');
+        const clientOrderId = this.safeString (paramsOmitted, 'clientOrderId');
         if (clientOrderId !== undefined) {
-            params = this.omit (params, 'clientOrderId');
+            paramsOmitted = this.omit (paramsOmitted, 'clientOrderId');
             request['client_order_id'] = clientOrderId;
         }
-        const response = await this.privateGetAccountOrders (this.extend (request, params));
+        const response = await this.privateGetAccountOrders (this.extend (request, paramsOmitted));
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -2040,11 +2045,12 @@ export default class polymarket extends Exchange {
             request['start_timestamp'] = since;
         }
         const until = this.safeInteger (params, 'until');
+        let paramsOmitted: Dict = params;
         if (until !== undefined) {
-            params = this.omit (params, 'until');
+            paramsOmitted = this.omit (paramsOmitted, 'until');
             request['end_timestamp'] = until;
         }
-        const response = await this.privateGetAccountFills (this.extend (request, params));
+        const response = await this.privateGetAccountFills (this.extend (request, paramsOmitted));
         //
         //     {
         //         "data": [
@@ -2100,11 +2106,12 @@ export default class polymarket extends Exchange {
             request['start_timestamp'] = since;
         }
         const until = this.safeInteger (params, 'until');
+        let paramsOmitted: Dict = params;
         if (until !== undefined) {
-            params = this.omit (params, 'until');
+            paramsOmitted = this.omit (paramsOmitted, 'until');
             request['end_timestamp'] = until;
         }
-        const response = await this.privateGetAccountFunding (this.extend (request, params));
+        const response = await this.privateGetAccountFunding (this.extend (request, paramsOmitted));
         //
         //     {
         //         "data": [
@@ -2242,11 +2249,12 @@ export default class polymarket extends Exchange {
             request['start_timestamp'] = since;
         }
         const until = this.safeInteger (params, 'until');
+        let paramsOmitted: Dict = params;
         if (until !== undefined) {
-            params = this.omit (params, 'until');
+            paramsOmitted = this.omit (paramsOmitted, 'until');
             request['end_timestamp'] = until;
         }
-        const response = await this.privateGetAccountDeposits (this.extend (request, params));
+        const response = await this.privateGetAccountDeposits (this.extend (request, paramsOmitted));
         const data = this.safeList (response, 'data', []);
         let currency: Currency = undefined;
         if (code !== undefined) {
@@ -2275,11 +2283,12 @@ export default class polymarket extends Exchange {
             request['start_timestamp'] = since;
         }
         const until = this.safeInteger (params, 'until');
+        let paramsOmitted: Dict = params;
         if (until !== undefined) {
-            params = this.omit (params, 'until');
+            paramsOmitted = this.omit (paramsOmitted, 'until');
             request['end_timestamp'] = until;
         }
-        const response = await this.privateGetAccountWithdrawals (this.extend (request, params));
+        const response = await this.privateGetAccountWithdrawals (this.extend (request, paramsOmitted));
         const data = this.safeList (response, 'data', []);
         let currency: Currency = undefined;
         if (code !== undefined) {
@@ -2296,11 +2305,10 @@ export default class polymarket extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} [tag] not used by polymarket withdraw
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -2404,7 +2412,7 @@ export default class polymarket extends Exchange {
 
     override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         const marketId = this.safeString (leverage, 'instrument_id');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const isCross = this.safeBool (leverage, 'cross');
         let marginMode: Str = undefined;
         if (isCross !== undefined) {
@@ -2413,7 +2421,7 @@ export default class polymarket extends Exchange {
         const value = this.safeInteger (leverage, 'leverage');
         return {
             'info': leverage,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'marginMode': marginMode,
             'longLeverage': value,
             'shortLeverage': value,
@@ -2456,7 +2464,8 @@ export default class polymarket extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params, 'cross');
+        let paramsOmitted: Dict = params;
+        [ marginMode, paramsOmitted ] = this.handleMarginModeAndParams ('setLeverage', paramsOmitted, 'cross');
         const isCross = (marginMode !== 'isolated');
         const instrumentId = this.parseToInt (market['id']);
         const leverageInt = this.parseToInt (leverage);
@@ -2496,11 +2505,11 @@ export default class polymarket extends Exchange {
         if (leverage === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a params.leverage argument, the venue updates the mode and the leverage in one operation');
         }
-        params = this.omit (params, 'leverage');
+        const paramsOmitted: Dict = this.omit (params, 'leverage');
         const request: Dict = {
             'marginMode': marginMode,
         };
-        return await this.setLeverage (leverage, symbol, this.extend (request, params));
+        return await this.setLeverage (leverage, symbol, this.extend (request, paramsOmitted));
     }
 
     /**
@@ -2820,14 +2829,15 @@ export default class polymarket extends Exchange {
     override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        headers = {
+        const headersResolved: Dict = {
             'Accept': 'application/json',
         };
+        let bodyResolved: Str = body;
         if (api === 'trade') {
             // the params hold the signed operation envelope assembled by the
             // calling method, the signature authenticates so no headers apply
-            body = this.json (query);
-            headers['Content-Type'] = 'application/json';
+            bodyResolved = this.json (query);
+            headersResolved['Content-Type'] = 'application/json';
         } else {
             if (method === 'GET') {
                 const keys = Object.keys (query);
@@ -2838,11 +2848,11 @@ export default class polymarket extends Exchange {
             }
             if (api === 'private') {
                 const credentials = this.safeDict (this.options, 'proxyCredentials', {});
-                headers['POLYMARKET-PROXY'] = this.safeString (credentials, 'proxy');
-                headers['POLYMARKET-SECRET'] = this.safeString (credentials, 'secret');
+                headersResolved['POLYMARKET-PROXY'] = this.safeString (credentials, 'proxy');
+                headersResolved['POLYMARKET-SECRET'] = this.safeString (credentials, 'secret');
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
