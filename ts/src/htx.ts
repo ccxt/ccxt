@@ -7600,7 +7600,8 @@ export default class htx extends Exchange {
         } else {
             query = this.omit (params, this.extractParams (path));
         }
-        if (api.length === 1) {
+        const apiLength = api.length;
+        if (apiLength === 1) {
             // signing implementation for the old endpoints
             const apiName = api[0];
             if ((apiName === 'public') || (apiName === 'private')) {
