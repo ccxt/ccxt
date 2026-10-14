@@ -374,7 +374,10 @@
                             "trigger_price": "0"
                         }
                     ],
-                    "errors": []
+                    "errors": [
+                        null,
+                        null
+                    ]
                 },
                 "parsedResponse": [
                     {
@@ -484,6 +487,250 @@
                             "stp": "EXPIRE_TAKER",
                             "received_at": "1748360403937",
                             "published_at": "1748360403938",
+                            "flags": [],
+                            "trigger_price": "0"
+                        },
+                        "fees": [
+                            {
+                                "cost": null,
+                                "currency": null
+                            }
+                        ],
+                        "stopPrice": 0
+                    }
+                ]
+            },
+            {
+                "description": "batch with a rejected order in the middle, orders and errors are index-aligned",
+                "disabledRS": true,
+                "method": "createOrders",
+                "input": [
+                    [
+                        {
+                            "symbol": "SOL/USD:USDC",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 0.1,
+                            "price": 100
+                        },
+                        {
+                            "symbol": "SOL/USD:USDC",
+                            "type": "limit",
+                            "side": "sell",
+                            "amount": 0.2,
+                            "price": 200,
+                            "params": {
+                                "clientOrderId": "1234"
+                            }
+                        },
+                        {
+                            "symbol": "SOL/USD:USDC",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 0.3,
+                            "price": 90
+                        }
+                    ]
+                ],
+                "httpResponse": {
+                    "orders": [
+                        {
+                            "id": "1748360402930201709192260002",
+                            "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941ec6cfd3b31402ec42d72e",
+                            "market": "SOL-USD-PERP",
+                            "side": "BUY",
+                            "type": "LIMIT",
+                            "size": "0.1",
+                            "remaining_size": "0.1",
+                            "price": "100",
+                            "status": "NEW",
+                            "created_at": "1748360402936",
+                            "last_updated_at": "1748360402936",
+                            "timestamp": "1748360402000",
+                            "client_id": null,
+                            "seq_no": "1748360402936413772",
+                            "instruction": "GTC",
+                            "avg_fill_price": "",
+                            "stp": "EXPIRE_TAKER",
+                            "received_at": "1748360402937",
+                            "published_at": "1748360402938",
+                            "flags": [],
+                            "trigger_price": "0"
+                        },
+                        null,
+                        {
+                            "id": "1748360402930201709192260004",
+                            "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941ec6cfd3b31402ec42d72e",
+                            "market": "SOL-USD-PERP",
+                            "side": "BUY",
+                            "type": "LIMIT",
+                            "size": "0.3",
+                            "remaining_size": "0.3",
+                            "price": "90",
+                            "status": "NEW",
+                            "created_at": "1748360404936",
+                            "last_updated_at": "1748360404936",
+                            "timestamp": "1748360404000",
+                            "client_id": null,
+                            "seq_no": "1748360404936413772",
+                            "instruction": "GTC",
+                            "avg_fill_price": "",
+                            "stp": "EXPIRE_TAKER",
+                            "received_at": "1748360404937",
+                            "published_at": "1748360404938",
+                            "flags": [],
+                            "trigger_price": "0"
+                        }
+                    ],
+                    "errors": [
+                        null,
+                        {
+                            "error": "DUPLICATED_CLIENT_ID",
+                            "message": "duplicated client order id"
+                        },
+                        null
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "1748360402930201709192260002",
+                        "clientOrderId": null,
+                        "timestamp": 1748360402936,
+                        "datetime": "2025-05-27T15:40:02.936Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1748360402936,
+                        "status": "open",
+                        "symbol": "SOL/USD:USDC",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": 100,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "average": null,
+                        "amount": 0.1,
+                        "filled": 0,
+                        "remaining": 0.1,
+                        "cost": 0,
+                        "trades": [],
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "id": "1748360402930201709192260002",
+                            "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941ec6cfd3b31402ec42d72e",
+                            "market": "SOL-USD-PERP",
+                            "side": "BUY",
+                            "type": "LIMIT",
+                            "size": "0.1",
+                            "remaining_size": "0.1",
+                            "price": "100",
+                            "status": "NEW",
+                            "created_at": "1748360402936",
+                            "last_updated_at": "1748360402936",
+                            "timestamp": "1748360402000",
+                            "client_id": null,
+                            "seq_no": "1748360402936413772",
+                            "instruction": "GTC",
+                            "avg_fill_price": "",
+                            "stp": "EXPIRE_TAKER",
+                            "received_at": "1748360402937",
+                            "published_at": "1748360402938",
+                            "flags": [],
+                            "trigger_price": "0"
+                        },
+                        "fees": [
+                            {
+                                "cost": null,
+                                "currency": null
+                            }
+                        ],
+                        "stopPrice": 0
+                    },
+                    {
+                        "id": null,
+                        "clientOrderId": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "status": "rejected",
+                        "symbol": null,
+                        "type": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "reduceOnly": null,
+                        "side": null,
+                        "price": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "average": null,
+                        "amount": null,
+                        "filled": null,
+                        "remaining": null,
+                        "cost": null,
+                        "trades": [],
+                        "fees": [],
+                        "fee": null,
+                        "info": {
+                            "error": "DUPLICATED_CLIENT_ID",
+                            "message": "duplicated client order id"
+                        }
+                    },
+                    {
+                        "id": "1748360402930201709192260004",
+                        "clientOrderId": null,
+                        "timestamp": 1748360404936,
+                        "datetime": "2025-05-27T15:40:04.936Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1748360404936,
+                        "status": "open",
+                        "symbol": "SOL/USD:USDC",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": 90,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "average": null,
+                        "amount": 0.3,
+                        "filled": 0,
+                        "remaining": 0.3,
+                        "cost": 0,
+                        "trades": [],
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "id": "1748360402930201709192260004",
+                            "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941ec6cfd3b31402ec42d72e",
+                            "market": "SOL-USD-PERP",
+                            "side": "BUY",
+                            "type": "LIMIT",
+                            "size": "0.3",
+                            "remaining_size": "0.3",
+                            "price": "90",
+                            "status": "NEW",
+                            "created_at": "1748360404936",
+                            "last_updated_at": "1748360404936",
+                            "timestamp": "1748360404000",
+                            "client_id": null,
+                            "seq_no": "1748360404936413772",
+                            "instruction": "GTC",
+                            "avg_fill_price": "",
+                            "stp": "EXPIRE_TAKER",
+                            "received_at": "1748360404937",
+                            "published_at": "1748360404938",
                             "flags": [],
                             "trigger_price": "0"
                         },

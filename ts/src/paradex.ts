@@ -2009,37 +2009,46 @@ export default class paradex extends Exchange {
         }
         const response = await this.privatePostOrdersBatch (ordersRequests);
         //
-        // {
-        //     "errors": [
-        //         {
-        //             "error": "VALIDATION_ERROR",
-        //             "message": "Invalid order"
-        //         }
-        //     ],
-        //     "orders": [
-        //         {
-        //             "id": "123456",
-        //             "market": "BTC-USD-PERP",
-        //             "side": "BUY",
-        //             "type": "LIMIT",
-        //             "price": "26000",
-        //             "size": "0.05",
-        //             "status": "NEW"
-        //         }
-        //     ]
-        // }
+        // orders and errors are index-aligned with the request, null where the other array has the entry
         //
-        const responseOrders: Dict[] = this.safeList (response, 'orders', []);
-        const parsedOrders = this.parseOrders (responseOrders);
+        //     {
+        //         "errors": [
+        //             null,
+        //             {
+        //                 "error": "DUPLICATED_CLIENT_ID",
+        //                 "message": "duplicated client order id"
+        //             }
+        //         ],
+        //         "orders": [
+        //             {
+        //                 "id": "123456",
+        //                 "market": "BTC-USD-PERP",
+        //                 "side": "BUY",
+        //                 "type": "LIMIT",
+        //                 "price": "26000",
+        //                 "size": "0.05",
+        //                 "status": "NEW"
+        //             },
+        //             null
+        //         ]
+        //     }
+        //
+        const responseOrders = this.safeList (response, 'orders', []) as List;
         const errors = this.safeList (response, 'errors', []) as List;
-        for (let i = 0; i < errors.length; i++) {
-            const error = errors[i];
-            parsedOrders.push (this.safeOrder ({
-                'info': error,
-                'status': 'rejected',
-            }));
+        const result: Order[] = [];
+        for (let i = 0; i < orders.length; i++) {
+            const responseOrder = this.safeDict (responseOrders, i);
+            if (responseOrder !== undefined) {
+                result.push (this.parseOrder (responseOrder));
+            } else {
+                const error = this.safeDict (errors, i);
+                result.push (this.safeOrder ({
+                    'info': error,
+                    'status': 'rejected',
+                }));
+            }
         }
-        return parsedOrders as Order[];
+        return result;
     }
 
     /**
@@ -3552,7 +3561,25 @@ export default class paradex extends Exchange {
         //         "message": "User has never called /onboarding endpoint"
         //     }
         //
-        const errorCode = this.safeString (response, 'error');
+        let errorCode = this.safeString (response, 'error');
+        if ((errorCode === undefined) && (httpCode === 400)) {
+            //
+            // a batch where every order was rejected, errors are index-aligned with the request
+            //
+            //     {
+            //         "errors": [ { "error": "DUPLICATED_CLIENT_ID", "message": "..." } ],
+            //         "orders": [ null ]
+            //     }
+            //
+            const batchErrors = this.safeList (response, 'errors', []) as List;
+            for (let i = 0; i < batchErrors.length; i++) {
+                const batchErrorCode = this.safeString (batchErrors[i], 'error');
+                if (batchErrorCode !== undefined) {
+                    errorCode = batchErrorCode;
+                    break;
+                }
+            }
+        }
         if (errorCode !== undefined) {
             const feedback = this.id + ' ' + body;
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
