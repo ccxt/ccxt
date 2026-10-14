@@ -6906,7 +6906,7 @@ class gate(Exchange, ImplicitAPI):
 
     async def fetch_open_interest_history(self, symbol: str, timeframe='5m', since: Int = None, limit: Int = None, params: dict = {}):
         """
-        Retrieves the open interest of a currency
+        Retrieves the open interest history of a currency
 
         https://www.gate.com/docs/developers/apiv4/en/#futures-statistics
 
@@ -6925,7 +6925,7 @@ class gate(Exchange, ImplicitAPI):
             return await self.fetch_paginated_call_deterministic('fetchOpenInterestHistory', symbol, since, limit, timeframe, paramsPaginate, 100)
         market = self.market(symbol)
         if market['swap'] is not True:
-            raise BadRequest(self.id + ' fetchOpenInterest() supports swap markets only')
+            raise BadRequest(self.id + ' fetchOpenInterestHistory() supports swap markets only')
         request = {
             'contract': market['id'],
             'settle': market['settleId'],

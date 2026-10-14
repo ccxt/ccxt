@@ -324,8 +324,6 @@ export declare class BaseExchange {
     getCcxtVersion(): string;
     throttle(cost?: Num): any;
     initThrottler(): void;
-    defineRestApiEndpoint(methodName: any, uppercaseMethod: any, lowercaseMethod: any, camelcaseMethod: any, path: any, paths: any, config?: {}): void;
-    defineRestApi(api: any, methodName: any, paths?: string[]): void;
     log(...args: any[]): void;
     loadProxyModules(): Promise<any>;
     setProxyAgents(httpProxy: any, httpsProxy: any, socksProxy: any): any;
@@ -680,7 +678,7 @@ export declare class BaseExchange {
     isEmptyString(value: any): boolean;
     safeNumberOmitZero(obj: object, key: NullableIndexType, defaultValue?: Num): Num;
     safeIntegerOmitZero(obj: object, key: NullableIndexType, defaultValue?: Int): Int;
-    afterConstruct(): void;
+    afterConstruct(userConfig?: Dict): void;
     initRestRateLimiter(): void;
     featuresGenerator(): void;
     featuresMapper(initialFeatures: Dict, marketType: Str, subType?: Str): any;

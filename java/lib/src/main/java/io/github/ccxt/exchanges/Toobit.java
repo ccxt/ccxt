@@ -1993,10 +1993,10 @@ public class Toobit extends ToobitApi
             String marketType = (String) ((List<Object>)this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, parameters, (String) null)).get(0);
             if (this.inArray(marketType, new ArrayList<Object>(Arrays.asList("swap", "future"))))
             {
-                response = (this.privateGetApiV1FuturesBalance()).join();
+                response = (this.privateGetApiV1FuturesBalance(new HashMap<String, Object>() {{}})).join();
             } else
             {
-                response = (this.privateGetApiV1Account()).join();
+                response = (this.privateGetApiV1Account(new HashMap<String, Object>() {{}})).join();
             }
             return this.parseBalance(response);
         }).thenApply(Balances::new);

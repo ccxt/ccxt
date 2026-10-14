@@ -2327,7 +2327,7 @@ func (this *Bitvavo) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs 
 	if !IsEqual(operatorId, nil) {
 		request["operatorId"] = this.ParseToInt(operatorId)
 	} else {
-		panic(ArgumentsRequired(this.Id + " canceAllOrders() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890"))
+		panic(ArgumentsRequired(this.Id + " cancelAllOrders() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890"))
 	}
 
 	listEp2199 := <-this.PrivateDeleteOrders(this.Extend(request, paramsOperatorId))

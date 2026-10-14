@@ -126,12 +126,12 @@ public class Deepcoin extends DeepcoinApi
                 put( "fetchOrderBook", true );
                 put( "fetchOrders", false );
                 put( "fetchOrderTrades", true );
-                put( "fetchPosition", true );
+                put( "fetchPosition", false );
                 put( "fetchPositionHistory", false );
                 put( "fetchPositionMode", false );
                 put( "fetchPositions", true );
                 put( "fetchPositionsForSymbol", true );
-                put( "fetchPositionsHistory", true );
+                put( "fetchPositionsHistory", false );
                 put( "fetchPremiumIndexOHLCV", false );
                 put( "fetchStatus", false );
                 put( "fetchTicker", false );

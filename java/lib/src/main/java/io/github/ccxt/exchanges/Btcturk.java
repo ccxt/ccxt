@@ -1220,7 +1220,7 @@ public class Btcturk extends BtcturkApi
             {
                 market = this.market(symbol);
             }
-            Map<String, Object> response = (this.privateGetUsersTransactionsTrade()).join();
+            Map<String, Object> response = (this.privateGetUsersTransactionsTrade(new HashMap<String, Object>() {{}})).join();
             //
             //     {
             //       "data": [

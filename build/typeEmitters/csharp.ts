@@ -171,6 +171,9 @@ const SCALARS: Record<string, Resolved> = {
     'OrderType': { 't': 'str' },
     'MarketType': { 't': 'str' },
     'SubType': { 't': 'str' },
+    'DefaultType': { 't': 'str' },
+    'DefaultSubType': { 't': 'str' },
+    'ExchangeOptions': { 't': 'dict', 'value': 'any' },
     'IndexType': { 't': 'str' },
     'Dict': { 't': 'dict', 'value': 'any' },
 };

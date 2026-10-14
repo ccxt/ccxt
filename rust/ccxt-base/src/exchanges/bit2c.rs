@@ -30,7 +30,9 @@ impl Bit2cCore {
     pub fn init(&mut self) {
         let described = Bit2cCore::describe(self);
         self.initialize_properties(described);
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self);
+        // compatibility for sandbox/testnet options in userConfig
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -465,7 +467,7 @@ impl Bit2cCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("fetchTrades".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("method".to_string(), Value::Str("public_get_exchanges_pair_trades".into()));
+        m.insert("method".to_string(), Value::Str("publicGetExchangesPairTrades".into()));
     m
 }));
     m
@@ -780,7 +782,7 @@ impl Bit2cCore {
         }
         let mut market: Value = self.market(symbol);
         let mut optionValue: Value = self.safe_string_k(self.options.clone(), "fetchTradesMethod", &[]); // kept here for backward compatibility #29154
-        let mut method: Value = self.handle_option(Value::Str("fetchTrades".into()), Value::Str("method".into()), &[optionValue]); // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
+        let mut method: Value = self.handle_option(Value::Str("fetchTrades".into()), Value::Str("method".into()), &[optionValue]); // publicGetExchangesPairTrades or publicGetExchangesPairLasttrades
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("pair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -793,7 +795,7 @@ impl Bit2cCore {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }; // max 100000
         }
         let mut responseList: Value = Value::from(vec![]);
-        if (method.as_str() == Some("public_get_exchanges_pair_trades")) {
+        if (method.as_str() == Some("publicGetExchangesPairTrades")) || (method.as_str() == Some("public_get_exchanges_pair_trades")) {
             let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
             let mut response: Value = self.public_get_exchanges_pair_trades(&[__ws_arg_2]).await;
             //

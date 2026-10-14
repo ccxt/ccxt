@@ -78,6 +78,7 @@ declare class testMainClass {
     sanitizeDataInput(input: any): List | undefined;
     testRequestStatically(exchange: any, method: string, data: Dict, type: Str, skipKeys: string[]): Promise<boolean>;
     testResponseStatically(exchange: any, method: string, skipKeys: string[], data: Dict): Promise<boolean>;
+    wsRequestWasSent(exchange: any, url: string, id: string): boolean;
     injectWsMessages(exchange: any, url: string, messages: List, sequential?: boolean): Promise<boolean>;
     watchAndAssertSequence(exchange: any, url: string, method: string, input: any, skipKeys: string[], expectedResults: List): Promise<boolean>;
     assertWsSentMessages(exchange: any, url: string, data: Dict): void;

@@ -1879,8 +1879,10 @@ func (this *BaseExchange) SafeIntegerOmitZero(obj any, key any, optionalArgs ...
 	}
 	return timestamp
 }
-func (this *BaseExchange) AfterConstruct() {
+func (this *BaseExchange) AfterConstruct(optionalArgs ...any) {
 	// networks
+	var userConfig map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = userConfig
 	this.CreateNetworksByIdObject()
 	this.FeaturesGenerator()
 	// init predefined markets if any
@@ -1893,6 +1895,10 @@ func (this *BaseExchange) AfterConstruct() {
 	var isSandbox *bool = this.SafeBool2(this.Options, "sandbox", "testnet", false)
 	if isSandbox != nil && *isSandbox == true {
 		this.DerivedExchange.SetSandboxMode(isSandbox)
+	}
+	// compatibility for sandbox/testnet options in userConfig
+	if (this.SafeBool(userConfig, "sandbox", false) != nil && *this.SafeBool(userConfig, "sandbox", false)) || (this.SafeBool(userConfig, "testnet", false) != nil && *this.SafeBool(userConfig, "testnet", false)) {
+		this.DerivedExchange.SetSandboxMode(true)
 	}
 }
 func (this *BaseExchange) InitRestRateLimiter() {
@@ -5554,11 +5560,11 @@ func (this *BaseExchange) fetchTransactionFeeBody(ch chan EndpointResult[map[str
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes679415 map[string]any = MapTyped(r.Value)
-	if retRes679415 == nil {
+	var retRes678415 map[string]any = MapTyped(r.Value)
+	if retRes678415 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes679415, Raw: retRes679415}
+		ch <- EndpointResult[map[string]any]{Value: retRes678415, Raw: retRes678415}
 	}
 	return nil
 }
@@ -11583,12 +11589,12 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan EndpointResult[
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv11104, _ := r.Value.([]any)
-	var retRes1022115 []any = listRecv11104
-	if retRes1022115 == nil {
+	listRecv11110, _ := r.Value.([]any)
+	var retRes1021115 []any = listRecv11110
+	if retRes1021115 == nil {
 		ch <- EndpointResult[[]any]{}
 	} else {
-		ch <- EndpointResult[[]any]{Value: retRes1022115, Raw: retRes1022115}
+		ch <- EndpointResult[[]any]{Value: retRes1021115, Raw: retRes1021115}
 	}
 	return nil
 }

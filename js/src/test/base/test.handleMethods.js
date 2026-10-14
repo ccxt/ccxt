@@ -11,7 +11,7 @@ function helperTestHandleMarketTypeAndParams() {
     const exchange = new ccxt.Exchange({
         'id': 'sampleexchange',
         'options': {
-            'defaultType': 'valueFromOptions',
+            'defaultType': 'option',
             'fetchX': {
                 'defaultType': 'valueFromMethodOptions',
             },
@@ -48,7 +48,7 @@ function helperTestHandleMarketTypeAndParams() {
     // case #5, should prevail: options
     //
     const [marketType5, params5] = exchange.handleMarketTypeAndParams('fetchY', undefined, {}, undefined);
-    assert(marketType5 === 'valueFromOptions');
+    assert(marketType5 === 'option');
     //
     // case #6, should prevail: spot (because hardcoded in base)
     //

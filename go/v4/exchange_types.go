@@ -2973,3 +2973,20 @@ func (g *AllGreeks) GetGreeks(key string) (Greeks, error) {
 func (g *AllGreeks) Set(key string, greeks Greeks) {
 	g.Greeks[key] = greeks
 }
+
+type DefaultType string
+
+const (
+	DefaultTypeSpot   DefaultType = "spot"
+	DefaultTypeMargin DefaultType = "margin"
+	DefaultTypeOption DefaultType = "option"
+	DefaultTypeSwap   DefaultType = "swap"
+	DefaultTypeFuture DefaultType = "future"
+)
+
+type DefaultSubType string
+
+const (
+	DefaultSubTypeLinear  DefaultSubType = "linear"
+	DefaultSubTypeInverse DefaultSubType = "inverse"
+)

@@ -479,7 +479,7 @@ public class Bitopro extends BitoproApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> response = (this.publicGetProvisioningTradingPairs()).join();
+            Map<String, Object> response = (this.publicGetProvisioningTradingPairs(new HashMap<String, Object>() {{}})).join();
             List<Object> markets = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             //
             //     {
@@ -677,7 +677,7 @@ public class Bitopro extends BitoproApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> response = (this.publicGetTickers()).join();
+            Map<String, Object> response = (this.publicGetTickers(new HashMap<String, Object>() {{}})).join();
             List<Object> tickers = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             //
             //     {

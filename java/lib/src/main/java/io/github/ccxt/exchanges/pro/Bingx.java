@@ -1832,7 +1832,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                 io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
                 try
                 {
-                    Map<String, Object> response = (this.userAuthPrivatePostUserDataStream()).join();
+                    Map<String, Object> response = (this.userAuthPrivatePostUserDataStream(new HashMap<String, Object>() {{}})).join();
                     String listenKey = this.safeString(response, "listenKey");
                     if (java.util.Objects.equals(listenKey, null))
                     {

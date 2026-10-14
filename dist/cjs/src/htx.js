@@ -8533,7 +8533,7 @@ class htx extends htx$1["default"] {
                 response = await this.contractPrivatePostSwapApiV1SwapAccountPositionInfo(this.extend(request, query));
             }
             else {
-                throw new errors.NotSupported(this.id + ' setLeverage() not support this market type');
+                throw new errors.NotSupported(this.id + ' fetchPosition() not support this market type');
             }
             //
             // future, swap

@@ -2357,7 +2357,7 @@ class mexc extends mexc$1["default"] {
         }
         const market = this.market(symbol);
         if (market['spot'] !== true) {
-            throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
+            throw new errors.NotSupported(this.id + ' createMarketSellOrderWithCost() supports spot orders only');
         }
         const req = {
             'cost': cost,

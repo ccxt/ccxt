@@ -2,7 +2,7 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var kucoin = require('./kucoin.js');
+var kucoinfutures$1 = require('./abstract/kucoinfutures.js');
 var errors = require('./base/errors.js');
 
 // ----------------------------------------------------------------------------
@@ -11,7 +11,7 @@ var errors = require('./base/errors.js');
  * @class kucoinfutures
  * @augments kucoin
  */
-class kucoinfutures extends kucoin["default"] {
+class kucoinfutures extends kucoinfutures$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'kucoinfutures',

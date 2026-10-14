@@ -71,6 +71,8 @@ Int = int | None
 Bool = bool | None
 MarketType = Literal['spot', 'margin', 'swap', 'future', 'option']
 SubType = Literal['linear', 'inverse']
+DefaultType = Literal['spot', 'margin', 'option', 'swap', 'future']
+DefaultSubType = Literal['linear', 'inverse']
 
 
 class FeeInterface(TypedDict):

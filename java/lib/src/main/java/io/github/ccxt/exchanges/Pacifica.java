@@ -4046,7 +4046,7 @@ public class Pacifica extends PacificaApi
         String marketId = this.safeString(income, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = (String) marketResolved.get("symbol");
-        String amount = this.safeString(income, "amount");
+        String amount = this.safeString(income, "payout");
         String code = this.safeCurrencyCode("USDC", (Map<String, Object>) null);
         Double rate = this.safeNumber(income, "rate", (Object) null);
         return new HashMap<String, Object>() {{

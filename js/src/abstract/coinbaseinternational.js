@@ -7,5 +7,179 @@
 // -------------------------------------------------------------------------------
 import { Exchange as _Exchange } from '../base/Exchange.js';
 class Exchange extends _Exchange {
+    v1PublicGetAssets(params = {}) {
+        return this.request("assets", ["v1", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PublicGetAssetsAssets(params = {}) {
+        return this.request("assets/{assets}", ["v1", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PublicGetAssetsAssetNetworks(params = {}) {
+        return this.request("assets/{asset}/networks", ["v1", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PublicGetInstruments(params = {}) {
+        return this.request("instruments", ["v1", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PublicGetInstrumentsInstrument(params = {}) {
+        return this.request("instruments/{instrument}", ["v1", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PublicGetInstrumentsInstrumentQuote(params = {}) {
+        return this.request("instruments/{instrument}/quote", ["v1", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PublicGetInstrumentsInstrumentFunding(params = {}) {
+        return this.request("instruments/{instrument}/funding", ["v1", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PublicGetInstrumentsInstrumentCandles(params = {}) {
+        return this.request("instruments/{instrument}/candles", ["v1", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PublicGetInstrumentsVolumesDaily(params = {}) {
+        return this.request("instruments/volumes/daily", ["v1", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PublicGetPositionOffsets(params = {}) {
+        return this.request("position-offsets", ["v1", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PublicGetFeeRateTiers(params = {}) {
+        return this.request("fee-rate-tiers", ["v1", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivateGetAddressBook(params = {}) {
+        return this.request("address-book", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivateGetOrders(params = {}) {
+        return this.request("orders", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivateGetOrdersId(params = {}) {
+        return this.request("orders/{id}", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivateGetIndexIndexComposition(params = {}) {
+        return this.request("index/{index}/composition", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivateGetIndexIndexCompositionHistory(params = {}) {
+        return this.request("index/{index}/composition-history", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivateGetIndexIndexPrice(params = {}) {
+        return this.request("index/{index}/price", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivateGetIndexIndexCandles(params = {}) {
+        return this.request("index/{index}/candles", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivateGetPortfolios(params = {}) {
+        return this.request("portfolios", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivateGetPortfoliosPortfolio(params = {}) {
+        return this.request("portfolios/{portfolio}", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivateGetPortfoliosPortfolioDetail(params = {}) {
+        return this.request("portfolios/{portfolio}/detail", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivateGetPortfoliosPortfolioSummary(params = {}) {
+        return this.request("portfolios/{portfolio}/summary", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivateGetPortfoliosPortfolioBalances(params = {}) {
+        return this.request("portfolios/{portfolio}/balances", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivateGetPortfoliosPortfolioBalancesAsset(params = {}) {
+        return this.request("portfolios/{portfolio}/balances/{asset}", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivateGetPortfoliosPortfolioPositions(params = {}) {
+        return this.request("portfolios/{portfolio}/positions", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivateGetPortfoliosPortfolioPositionsInstrument(params = {}) {
+        return this.request("portfolios/{portfolio}/positions/{instrument}", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivateGetPortfoliosPortfolioPositionLimits(params = {}) {
+        return this.request("portfolios/{portfolio}/position-limits", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivateGetPortfoliosPortfolioPositionLimitsPositions(params = {}) {
+        return this.request("portfolios/{portfolio}/position-limits/positions", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivateGetPortfoliosPortfolioPositionLimitsPositionsInstrument(params = {}) {
+        return this.request("portfolios/{portfolio}/position-limits/positions/{instrument}", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivateGetPortfoliosFills(params = {}) {
+        return this.request("portfolios/fills", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivateGetPortfoliosPortfolioFills(params = {}) {
+        return this.request("portfolios/{portfolio}/fills", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivateGetPortfoliosFeeRates(params = {}) {
+        return this.request("portfolios/fee-rates", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivateGetPortfoliosPortfolioLoans(params = {}) {
+        return this.request("portfolios/{portfolio}/loans", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivateGetPortfoliosPortfolioLoansAsset(params = {}) {
+        return this.request("portfolios/{portfolio}/loans/{asset}", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivateGetPortfoliosPortfolioLoansAssetAvailability(params = {}) {
+        return this.request("portfolios/{portfolio}/loans/{asset}/availability", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivateGetPortfoliosPortfolioMarginCallStatus(params = {}) {
+        return this.request("portfolios/{portfolio}/margin-call-status", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivateGetTransfers(params = {}) {
+        return this.request("transfers", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivateGetTransfersTransferUuid(params = {}) {
+        return this.request("transfers/{transfer_uuid}", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivateGetTransfersWithdrawPortfolioAssetCounterpartyWithdrawalLimit(params = {}) {
+        return this.request("transfers/withdraw/{portfolio}/{asset}/counterparty-withdrawal-limit", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivatePostOrders(params = {}) {
+        return this.request("orders", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivatePostPortfolios(params = {}) {
+        return this.request("portfolios", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivatePostPortfoliosMargin(params = {}) {
+        return this.request("portfolios/margin", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivatePostPortfoliosPortfolioCrossCollateralEnabled(params = {}) {
+        return this.request("portfolios/{portfolio}/cross-collateral-enabled", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivatePostPortfoliosPortfolioAutoMarginEnabled(params = {}) {
+        return this.request("portfolios/{portfolio}/auto-margin-enabled", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivatePostPortfoliosPortfolioLoansAsset(params = {}) {
+        return this.request("portfolios/{portfolio}/loans/{asset}", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivatePostPortfoliosPortfolioLoansAssetPreview(params = {}) {
+        return this.request("portfolios/{portfolio}/loans/{asset}/preview", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivatePostPortfoliosTransfer(params = {}) {
+        return this.request("portfolios/transfer", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivatePostPortfoliosTransferPosition(params = {}) {
+        return this.request("portfolios/transfer-position", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivatePostTransfersWithdraw(params = {}) {
+        return this.request("transfers/withdraw", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivatePostTransfersAddress(params = {}) {
+        return this.request("transfers/address", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivatePostTransfersCreateCounterpartyId(params = {}) {
+        return this.request("transfers/create-counterparty-id", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivatePostTransfersValidateCounterpartyId(params = {}) {
+        return this.request("transfers/validate-counterparty-id", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivatePostTransfersWithdrawCounterparty(params = {}) {
+        return this.request("transfers/withdraw/counterparty", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivatePutOrdersId(params = {}) {
+        return this.request("orders/{id}", ["v1", "private"], 'PUT', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivatePutPortfoliosPortfolio(params = {}) {
+        return this.request("portfolios/{portfolio}", ["v1", "private"], 'PUT', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivateDeleteOrders(params = {}) {
+        return this.request("orders", ["v1", "private"], 'DELETE', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivateDeleteOrdersId(params = {}) {
+        return this.request("orders/{id}", ["v1", "private"], 'DELETE', params, undefined, undefined, { "cost": 1 });
+    }
+    v1PrivatePatchPortfoliosPortfolio(params = {}) {
+        return this.request("portfolios/{portfolio}", ["v1", "private"], 'PATCH', params, undefined, undefined, { "cost": 1 });
+    }
 }
 export default Exchange;

@@ -2068,7 +2068,13 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn after_construct(&mut self) {
+    fn after_construct(&mut self, optional_args: &[Value]) {
+        let mut userConfig = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        let __userConfig_empty = indexmap::IndexMap::new();
+        let userConfig = userConfig.as_map().unwrap_or(&__userConfig_empty);
         // networks
         self.create_networks_by_id_object();
         self.features_generator();
@@ -2082,6 +2088,10 @@ pub trait ExchangeBase:
         let mut isSandbox: Value = self.safe_bool2(self.options.clone(), Value::Str("sandbox".into()), Value::Str("testnet".into()), &[Value::Bool(false)]);
         if (isSandbox.as_bool() == Some(true)) {
             self.set_sandbox_mode(isSandbox);
+        }
+        // compatibility for sandbox/testnet options in userConfig
+        if matches!(((match userConfig.get("sandbox") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Bool(false) })), Value::Bool(true)) || matches!(((match userConfig.get("testnet") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Bool(false) })), Value::Bool(true)) {
+            self.set_sandbox_mode(Value::Bool(true));
         }
 }
 

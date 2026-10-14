@@ -2021,6 +2021,16 @@ class testMainClass {
         return true;
     }
 
+    wsRequestWasSent (exchange: any, url: string, id: string) {
+        const sentMessages = getWsSentMessages (exchange, url);
+        for (let i = 0; i < sentMessages.length; i++) {
+            if (exchange.safeString (sentMessages[i], 'id') === id) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     async injectWsMessages (exchange: any, url: string, messages: List, sequential = false) {
         // before every frame, wait until the watch flow is actually awaiting
         // something — a fixed head-start sleep is not enough on slow ci
@@ -2031,7 +2041,20 @@ class testMainClass {
                 await exchange.sleep (50);
                 waited = waited + 50;
             }
-            injectWsMessage (exchange, url, messages[i]);
+            // a reply frame must not arrive before its request was sent, or it is dropped
+            const frameId = exchange.safeString (messages[i], 'id');
+            let waitedSent = 0;
+            while ((frameId !== undefined) && !this.wsRequestWasSent (exchange, url, frameId) && (waitedSent < 5000)) {
+                await exchange.sleep (50);
+                waitedSent = waitedSent + 50;
+            }
+            // a frame given as { "binary": "<base16>" } is replayed as a binary frame (e.g. SBE)
+            let frame = messages[i];
+            const binaryFrame = exchange.safeString (frame, 'binary');
+            if (binaryFrame !== undefined) {
+                frame = exchange.base16ToBinary (binaryFrame);
+            }
+            injectWsMessage (exchange, url, frame);
             // threaded runtimes resolve futures on another thread — wait for
             // the consumed frame to settle so the pending check above does not
             // observe a stale future and burn the next frame early; frames

@@ -10,6 +10,22 @@ namespace ccxt;
 // public partial class BaseExchange
 // {
 
+// string constants for options["defaultType"] / options["defaultSubType"] (TS DefaultType / DefaultSubType)
+public static class DefaultType
+{
+    public const string Spot = "spot";
+    public const string Margin = "margin";
+    public const string Option = "option";
+    public const string Swap = "swap";
+    public const string Future = "future";
+}
+
+public static class DefaultSubType
+{
+    public const string Linear = "linear";
+    public const string Inverse = "inverse";
+}
+
 class Helper
 {
     // safeOrder() / safeTrade() always attach a `fees` list next to the single `fee`.
