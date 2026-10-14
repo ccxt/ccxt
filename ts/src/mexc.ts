@@ -826,7 +826,7 @@ export default class mexc extends Exchange {
                             'mark': true,
                             'index': true,
                         },
-                        'triggerDirection': true, // todo
+                        'triggerDirection': true,
                         'stopLossPrice': false, // todo
                         'takeProfitPrice': false, // todo
                         'hedged': true,
@@ -2380,6 +2380,7 @@ export default class mexc extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {string} [params.triggerDirection] *swap only* 'ascending' triggers when the price rises to triggerPrice, 'descending' when it falls to it, default is 'ascending'
      * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
      * @param {bool} [params.reduceOnly] *contract only* indicates if this order is to reduce the size of a position
      * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode, default is false
@@ -2642,7 +2643,16 @@ export default class mexc extends Exchange {
         let response: Dict;
         if ((triggerPrice !== undefined) && (triggerPrice !== 0)) {
             request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
-            request['triggerType'] = this.safeInteger (paramsOmitted, 'triggerType', 1);
+            const [ triggerDirection, paramsTriggerDirection ] = this.handleTriggerDirectionAndParams (paramsOmitted, 'triggerType', true);
+            let triggerType = this.safeInteger (paramsTriggerDirection, 'triggerType', 1);
+            if (triggerDirection === 'ascending') {
+                triggerType = 1;
+            } else if (triggerDirection === 'descending') {
+                triggerType = 2;
+            } else if (triggerDirection !== undefined) {
+                throw new BadRequest (this.id + ' createOrder() triggerDirection must be either "ascending" or "descending"');
+            }
+            request['triggerType'] = triggerType;
             request['executeCycle'] = this.safeInteger (paramsOmitted, 'executeCycle', 1);
             request['trend'] = this.safeInteger (paramsOmitted, 'trend', 1);
             let planOrderType = orderType;
@@ -2650,7 +2660,7 @@ export default class mexc extends Exchange {
                 planOrderType = 5; // 6 (convert to current price) does not exist for trigger orders, 5 is their market type
             }
             request['orderType'] = this.safeInteger (paramsOmitted, 'orderType', planOrderType);
-            response = await this.contractPrivatePostPlanorderPlace (this.extend (request, paramsOmitted));
+            response = await this.contractPrivatePostPlanorderPlace (this.extend (request, paramsTriggerDirection));
         } else {
             response = await this.contractPrivatePostOrderCreate (this.extend (request, paramsOmitted));
         }
