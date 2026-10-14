@@ -2291,12 +2291,9 @@ export default class lbank extends Exchange {
         const defaultNetworks = this.safeDict (this.options, 'defaultNetworks');
         const defaultNetwork = this.safeStringUpper (defaultNetworks, currencyCode);
         const networks = this.safeDict (this.options, 'networks', {});
-        let network = this.safeStringUpper (params, 'network', defaultNetwork); // accepts unified codes and aliases
-        if (network !== undefined) {
-            network = this.unifiedNetworkCode (network);
-        }
-        network = this.safeString (networks, network, network);
-        return network;
+        const networkParam = this.safeStringUpper (params, 'network', defaultNetwork); // accepts unified codes and aliases
+        const networkCode = (networkParam !== undefined) ? this.unifiedNetworkCode (networkParam) : undefined;
+        return this.safeString (networks, networkCode, networkCode);
     }
 
     /**

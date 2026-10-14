@@ -2,7 +2,7 @@
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
 
-function makeExchange (networksMap: any) {
+function helperTestNetworkCodeToId (networksMap: any) {
     const exchange = new ccxt.Exchange ({
         'id': 'sampleexchange',
         'options': {
@@ -11,11 +11,6 @@ function makeExchange (networksMap: any) {
     });
     exchange.currencies = exchange.mapToSafeMap ({}); // go fix + c# uninitialized prop fix
     exchange.createNetworksByIdObject ();
-    return exchange;
-}
-
-function helperTestNetworkCodeToId (networksMap: any) {
-    const exchange = makeExchange (networksMap);
     // unified code and its alias resolve to the same id, regardless of which one options.networks uses
     assert (exchange.networkCodeToId ('ERC20') === 'Ether');
     assert (exchange.networkCodeToId ('ETH') === 'Ether');
@@ -39,7 +34,14 @@ function helperTestNetworkCodeToId (networksMap: any) {
 }
 
 function helperTestNetworkIdToCode (networksMap: any) {
-    const exchange = makeExchange (networksMap);
+    const exchange = new ccxt.Exchange ({
+        'id': 'sampleexchange',
+        'options': {
+            'networks': networksMap,
+        },
+    });
+    exchange.currencies = exchange.mapToSafeMap ({}); // go fix + c# uninitialized prop fix
+    exchange.createNetworksByIdObject ();
     // always the unified code, never an alias, regardless of currency
     assert (exchange.networkIdToCode ('Ether') === 'ERC20');
     assert (exchange.networkIdToCode ('Ether', 'USDC') === 'ERC20');
@@ -60,7 +62,14 @@ function helperTestNetworkIdToCode (networksMap: any) {
 }
 
 function helperTestUnifiedNetworkCode () {
-    const exchange = makeExchange ({});
+    const exchange = new ccxt.Exchange ({
+        'id': 'sampleexchange',
+        'options': {
+            'networks': {},
+        },
+    });
+    exchange.currencies = exchange.mapToSafeMap ({}); // go fix + c# uninitialized prop fix
+    exchange.createNetworksByIdObject ();
     const aliases = exchange.options['networkAliases'];
     const keys = Object.keys (aliases);
     for (let i = 0; i < keys.length; i++) {
