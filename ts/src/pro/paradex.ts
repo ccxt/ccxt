@@ -4,8 +4,9 @@
 import paradexRest from '../paradex.js';
 import Precise from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, Str, Trade, Order, Dict, OrderBook, Ticker, Strings, Tickers, Bool, Market, FundingRate, FundingRates } from '../base/types.js';
+import type { Int, int, Str, Trade, Order, Dict, OrderBook, Ticker, Strings, Tickers, Bool, Market, FundingRate, FundingRates } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import { ExchangeError } from '../base/errors.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
@@ -73,6 +74,51 @@ export default class paradex extends paradexRest {
         return requestId;
     }
 
+    /**
+     * @ignore
+     * @method
+     * @name paradex#subscribeRequest
+     * @description builds a json-rpc subscribe request and remembers its id, so a reply to it reaches only the watchers of that channel
+     * @param {string} url the websocket url
+     * @param {string} channel the channel to subscribe to
+     * @param {string[]} messageHashes the message hashes the watchers wait on
+     * @param {string[]} subscribeHashes the subscribe hashes passed to watch or watchMultiple
+     * @returns {object} the subscribe request
+     */
+    subscribeRequest (url: string, channel: string, messageHashes: string[], subscribeHashes: string[]): Dict {
+        const requestId = this.requestId ();
+        this.registerRequest (url, requestId, 'subscribe', messageHashes, subscribeHashes);
+        return {
+            'jsonrpc': '2.0',
+            'id': requestId,
+            'method': 'subscribe',
+            'params': {
+                'channel': channel,
+            },
+        };
+    }
+
+    registerRequest (url: string, requestId: int, method: string, messageHashes: string[], subscribeHashes: string[]) {
+        // watch and watchMultiple only send the request when one of the subscribe hashes is new,
+        // so only that request gets an entry, the entry is removed when its reply arrives
+        const client = this.client (url);
+        let isNew = false;
+        for (let i = 0; i < subscribeHashes.length; i++) {
+            if (!(subscribeHashes[i] in client.subscriptions)) {
+                isNew = true;
+                break;
+            }
+        }
+        if (isNew) {
+            const requestKey = requestId.toString ();
+            client.subscriptions[requestKey] = {
+                'method': method,
+                'messageHashes': messageHashes,
+                'subscribeHashes': subscribeHashes,
+            };
+        }
+    }
+
     async authenticate (params: Dict = {}) {
         const url = this.getWsUrl ();
         const client = this.client (url);
@@ -81,9 +127,11 @@ export default class paradex extends paradexRest {
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const token = await this.authenticateRest ();
+            const requestId = this.requestId ();
+            this.registerRequest (url, requestId, 'auth', [ messageHash ], [ messageHash ]);
             const request: Dict = {
                 'jsonrpc': '2.0',
-                'id': this.requestId (),
+                'id': requestId,
                 'method': 'auth',
                 'params': {
                     'bearer': token,
@@ -102,13 +150,44 @@ export default class paradex extends paradexRest {
         //         "result": { "node_id": "73cf456f7cb78d59" }
         //     }
         //
-        const result = this.safeDict (message, 'result');
-        if (result !== undefined) {
-            // client.resolve (true, messageHash);
-            const future = this.safeValue (client.futures, 'authenticated');
-            if (future !== undefined) {
-                future.resolve (true);
-            }
+        // the future stays resolved, so later private watches on this connection skip the auth request
+        const future = this.safeValue (client.futures, 'authenticated');
+        if (future !== undefined) {
+            future.resolve (true);
+        }
+    }
+
+    handleRequestReply (client: Client, message: Dict) {
+        //
+        // auth
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 1,
+        //         "result": { "node_id": "73cf456f7cb78d59" }
+        //     }
+        //
+        // subscribe
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 2,
+        //         "result": { "channel": "orders.ALL" }
+        //     }
+        //
+        const requestId = this.safeString (message, 'id');
+        const request = (requestId !== undefined) ? this.safeDict (client.subscriptions, requestId) : undefined;
+        let isAuth = false;
+        if (request !== undefined) {
+            delete client.subscriptions[(requestId as string)];
+            isAuth = (this.safeString (request, 'method') === 'auth');
+        } else {
+            // a reply to a request with an unknown id, only the auth reply carries a node id
+            const result = this.safeDict (message, 'result');
+            isAuth = (this.safeString (result, 'node_id') !== undefined);
+        }
+        if (isAuth) {
+            this.handleAuthenticationMessage (client, message);
         }
     }
 
@@ -135,13 +214,7 @@ export default class paradex extends paradexRest {
             messageHash += 'ALL';
         }
         const url = this.getWsUrl ();
-        const request: Dict = {
-            'jsonrpc': '2.0',
-            'method': 'subscribe',
-            'params': {
-                'channel': messageHash,
-            },
-        };
+        const request: Dict = this.subscribeRequest (url, messageHash, [ messageHash ], [ messageHash ]);
         const trades: ArrayCache = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
@@ -207,13 +280,7 @@ export default class paradex extends paradexRest {
         const market = this.market (symbol);
         const messageHash = this.getOrderBookChannel (market['id']);
         const url = this.getWsUrl ();
-        const request: Dict = {
-            'jsonrpc': '2.0',
-            'method': 'subscribe',
-            'params': {
-                'channel': messageHash,
-            },
-        };
+        const request: Dict = this.subscribeRequest (url, messageHash, [ messageHash ], [ messageHash ]);
         const orderbook: WsOrderBook = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
         return orderbook.limit ();
     }
@@ -302,14 +369,8 @@ export default class paradex extends paradexRest {
         // option too, thousands of messages a second, all decoded only to be filtered out
         const channel = 'markets_summary.' + market['id'];
         const url = this.getWsUrl ();
-        const request: Dict = {
-            'jsonrpc': '2.0',
-            'method': 'subscribe',
-            'params': {
-                'channel': channel,
-            },
-        };
         const messageHash = 'markets_summary.' + market['symbol'];
+        const request: Dict = this.subscribeRequest (url, channel, [ messageHash ], [ channel ]);
         return await this.watch (url, messageHash, this.deepExtend (request, params), channel);
     }
 
@@ -329,13 +390,6 @@ export default class paradex extends paradexRest {
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const channel = 'markets_summary';
         const url = this.getWsUrl ();
-        const request: Dict = {
-            'jsonrpc': '2.0',
-            'method': 'subscribe',
-            'params': {
-                'channel': channel,
-            },
-        };
         const messageHashes: string[] = [];
         if (symbolsNormalized !== undefined && Array.isArray (symbolsNormalized)) {
             for (let i = 0; i < symbolsNormalized.length; i++) {
@@ -345,6 +399,7 @@ export default class paradex extends paradexRest {
         } else {
             messageHashes.push (channel);
         }
+        const request: Dict = this.subscribeRequest (url, channel, messageHashes, messageHashes);
         const newTicker = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes);
         if (this.newUpdates) {
             const result: Dict = {};
@@ -384,13 +439,7 @@ export default class paradex extends paradexRest {
             channel += 'ALL';
         }
         const url = this.getWsUrl ();
-        const request: Dict = {
-            'jsonrpc': '2.0',
-            'method': 'subscribe',
-            'params': {
-                'channel': channel,
-            },
-        };
+        const request: Dict = this.subscribeRequest (url, channel, [ messageHash ], [ channel ]);
         const orders: ArrayCache = await this.watch (url, messageHash, this.deepExtend (request, params), channel);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
@@ -500,14 +549,8 @@ export default class paradex extends paradexRest {
         const symbolValue: string = this.symbol (symbol);
         const channel = 'funding_data';
         const url = this.getWsUrl ();
-        const request: Dict = {
-            'jsonrpc': '2.0',
-            'method': 'subscribe',
-            'params': {
-                'channel': channel,
-            },
-        };
         const messageHash = channel + '.' + symbolValue;
+        const request: Dict = this.subscribeRequest (url, channel, [ messageHash ], [ messageHash ]);
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
@@ -527,13 +570,6 @@ export default class paradex extends paradexRest {
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const channel = 'funding_data';
         const url = this.getWsUrl ();
-        const request: Dict = {
-            'jsonrpc': '2.0',
-            'method': 'subscribe',
-            'params': {
-                'channel': channel,
-            },
-        };
         const messageHashes: string[] = [];
         if (symbolsNormalized !== undefined) {
             const symbolsLength = symbolsNormalized.length;
@@ -548,6 +584,7 @@ export default class paradex extends paradexRest {
         } else {
             messageHashes.push (channel);
         }
+        const request: Dict = this.subscribeRequest (url, channel, messageHashes, messageHashes);
         const newFundingRates = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes);
         if (this.newUpdates) {
             const result: Dict = {};
@@ -1020,18 +1057,45 @@ export default class paradex extends paradexRest {
         const error = this.safeDict (message, 'error');
         if (error === undefined) {
             return true;
-        } else {
+        }
+        try {
+            const feedback = this.id + ' ' + this.json (error);
             const errorCode = this.safeString (error, 'code');
             if (errorCode !== undefined) {
-                const feedback = this.id + ' ' + this.json (error);
-                this.throwExactlyMatchedException (this.exceptions['exact'], '-32600', feedback);
-                const messageString = this.safeString (error, 'message');
-                if (messageString !== undefined) {
-                    this.throwBroadlyMatchedException (this.exceptions['broad'], messageString, feedback);
+                this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            }
+            const messageString = this.safeString (error, 'message');
+            if (messageString !== undefined) {
+                this.throwBroadlyMatchedException (this.exceptions['broad'], messageString, feedback);
+            }
+            throw new ExchangeError (feedback);
+        } catch (e) {
+            const requestId = this.safeString (message, 'id');
+            const request = (requestId !== undefined) ? this.safeDict (client.subscriptions, requestId) : undefined;
+            if (request === undefined) {
+                // not a reply to a known request, every watcher on the connection gets the error,
+                // and the next private watch authenticates again instead of waiting on a rejected future
+                if ('authenticated' in client.subscriptions) {
+                    delete client.subscriptions['authenticated'];
+                }
+                client.reject (e);
+            } else {
+                delete client.subscriptions[(requestId as string)];
+                // a failed subscribe or auth is forgotten, so that the next watch sends it again
+                const subscribeHashes = this.safeList (request, 'subscribeHashes', []);
+                for (let i = 0; i < subscribeHashes.length; i++) {
+                    const subscribeHash = subscribeHashes[i];
+                    if (subscribeHash in client.subscriptions) {
+                        delete client.subscriptions[subscribeHash];
+                    }
+                }
+                const messageHashes = this.safeList (request, 'messageHashes', []);
+                for (let i = 0; i < messageHashes.length; i++) {
+                    client.reject (e, messageHashes[i]);
                 }
             }
-            return false;
         }
+        return false;
     }
 
     override handleMessage (client: Client, message: any) {
@@ -1075,7 +1139,7 @@ export default class paradex extends paradexRest {
         //
         const result = this.safeDict (parsedMessage, 'result');
         if (result !== undefined) {
-            this.handleAuthenticationMessage (client, parsedMessage);
+            this.handleRequestReply (client, parsedMessage);
             return;
         }
         const data = this.safeDict (parsedMessage, 'params');

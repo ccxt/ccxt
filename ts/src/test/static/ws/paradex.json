@@ -119,6 +119,7 @@
                 "sentMessages": [
                     {
                         "jsonrpc": "2.0",
+                        "id": 1,
                         "method": "subscribe",
                         "params": {
                             "channel": "order_book.BTC-USD-PERP.snapshot@15@100ms"
@@ -169,6 +170,7 @@
                 "messages": [
                     {
                         "jsonrpc": "2.0",
+                        "id": 1,
                         "result": {
                             "channel": "order_book.BTC-USD-PERP.snapshot@15@100ms"
                         },
@@ -192,6 +194,7 @@
                 "sentMessages": [
                     {
                         "jsonrpc": "2.0",
+                        "id": 1,
                         "method": "subscribe",
                         "params": {
                             "channel": "order_book.BTC-USD-PERP.snapshot@15@100ms"
@@ -472,6 +475,7 @@
                 "messages": [
                     {
                         "jsonrpc": "2.0",
+                        "id": 1,
                         "result": {
                             "channel": "trades.BTC-USD-PERP"
                         },
@@ -489,6 +493,7 @@
                 "sentMessages": [
                     {
                         "jsonrpc": "2.0",
+                        "id": 1,
                         "method": "subscribe",
                         "params": {
                             "channel": "trades.BTC-USD-PERP"
@@ -534,6 +539,7 @@
                 "messages": [
                     {
                         "jsonrpc": "2.0",
+                        "id": 1,
                         "result": {
                             "channel": "trades.ALL"
                         },
@@ -548,6 +554,7 @@
                 "sentMessages": [
                     {
                         "jsonrpc": "2.0",
+                        "id": 1,
                         "method": "subscribe",
                         "params": {
                             "channel": "trades.ALL"
@@ -596,6 +603,7 @@
                 "messages": [
                     {
                         "jsonrpc": "2.0",
+                        "id": 1,
                         "result": {
                             "channel": "markets_summary.BTC-USD-PERP"
                         },
@@ -610,6 +618,7 @@
                 "sentMessages": [
                     {
                         "jsonrpc": "2.0",
+                        "id": 1,
                         "method": "subscribe",
                         "params": {
                             "channel": "markets_summary.BTC-USD-PERP"
@@ -663,6 +672,7 @@
                 "messages": [
                     {
                         "jsonrpc": "2.0",
+                        "id": 1,
                         "result": {
                             "channel": "markets_summary.BTC-USD-PERP"
                         },
@@ -677,6 +687,7 @@
                 "sentMessages": [
                     {
                         "jsonrpc": "2.0",
+                        "id": 1,
                         "method": "subscribe",
                         "params": {
                             "channel": "markets_summary.BTC-USD-PERP"
@@ -730,6 +741,7 @@
                 "messages": [
                     {
                         "jsonrpc": "2.0",
+                        "id": 1,
                         "result": {
                             "channel": "markets_summary.BTC-USD-PERP"
                         },
@@ -744,6 +756,7 @@
                 "sentMessages": [
                     {
                         "jsonrpc": "2.0",
+                        "id": 1,
                         "method": "subscribe",
                         "params": {
                             "channel": "markets_summary.BTC-USD-PERP"
@@ -802,6 +815,7 @@
                 "messages": [
                     {
                         "jsonrpc": "2.0",
+                        "id": 1,
                         "result": {
                             "channel": "funding_data"
                         },
@@ -816,6 +830,7 @@
                 "sentMessages": [
                     {
                         "jsonrpc": "2.0",
+                        "id": 1,
                         "method": "subscribe",
                         "params": {
                             "channel": "funding_data"
@@ -860,6 +875,7 @@
                 "messages": [
                     {
                         "jsonrpc": "2.0",
+                        "id": 1,
                         "result": {
                             "channel": "funding_data"
                         },
@@ -874,6 +890,7 @@
                 "sentMessages": [
                     {
                         "jsonrpc": "2.0",
+                        "id": 1,
                         "method": "subscribe",
                         "params": {
                             "channel": "funding_data"
@@ -931,6 +948,7 @@
                     },
                     {
                         "jsonrpc": "2.0",
+                        "id": 2,
                         "result": {
                             "channel": "orders.BTC-USD-PERP"
                         },
@@ -956,6 +974,7 @@
                     },
                     {
                         "jsonrpc": "2.0",
+                        "id": 2,
                         "method": "subscribe",
                         "params": {
                             "channel": "orders.BTC-USD-PERP"
