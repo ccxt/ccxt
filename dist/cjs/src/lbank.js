@@ -3050,7 +3050,7 @@ class lbank extends lbank$1["default"] {
         }
         return result;
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = this.omit(params, this.extractParams(path));
         const apiUrl = this.safeString(this.urls['api'], 'rest');
         if (apiUrl === undefined) {

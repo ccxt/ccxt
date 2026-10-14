@@ -1167,15 +1167,16 @@ export default class cryptomus extends Exchange {
             'taker': takerFees,
         };
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const endpoint = this.implodeParams(path, params);
         const paramsOmitted = this.omit(params, this.extractParams(path));
-        const apiUrl = this.safeString(this.urls['api'], api);
+        const apiName = api[0];
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         let url = apiUrl + '/' + endpoint;
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             let jsonParams = '';
             const privateHeaders = {

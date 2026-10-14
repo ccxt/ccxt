@@ -2331,9 +2331,10 @@ class backpack extends backpack$1["default"] {
         }
         return this.milliseconds() - timeDifference;
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const apiName = api[0];
         let endpoint = '/' + path;
-        const apiUrl = this.safeString(this.urls['api'], api);
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
@@ -2341,7 +2342,7 @@ class backpack extends backpack$1["default"] {
         const sortedParams = Array.isArray(params) ? params : this.keysort(params);
         let headersSigned = undefined;
         let bodySigned = undefined;
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             const ts = this.nonce().toString();
             const recvWindow = this.safeString2(this.options, 'recvWindow', 'X-Window', '5000');
@@ -2381,9 +2382,9 @@ class backpack extends backpack$1["default"] {
             }
         }
         url += endpoint;
-        const headersResolved = (api === 'private') ? headersSigned : headers;
+        const headersResolved = (apiName === 'private') ? headersSigned : headers;
         let bodyResolved = body;
-        if ((api === 'private') && (method !== 'GET')) {
+        if ((apiName === 'private') && (method !== 'GET')) {
             bodyResolved = bodySigned;
         }
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };

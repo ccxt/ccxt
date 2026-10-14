@@ -433,7 +433,7 @@ export default class lighter extends Exchange {
      */
     setMargin(symbol: string, amount: number, params?: Dict): Promise<MarginModification>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;
-    sign(path: string, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: any): {
+    sign(path: string, api?: string[], method?: string, params?: {}, headers?: NullableDict, body?: any): {
         url: string;
         method: string;
         body: any;

@@ -1047,7 +1047,7 @@ export default class bit2c extends Exchange {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const apiUrl = this.safeString(this.urls['api'], 'rest');
         if (apiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
@@ -1055,7 +1055,7 @@ export default class bit2c extends Exchange {
         let url = apiUrl + '/' + this.implodeParams(path, params);
         let requestBody = undefined;
         let requestHeaders = undefined;
-        if (api === 'public') {
+        if (api[0] === 'public') {
             url += '.json';
         }
         else {

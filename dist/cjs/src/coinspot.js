@@ -751,12 +751,13 @@ class coinspot extends coinspot$1["default"] {
         // the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
         return this.milliseconds();
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
         let requestHeaders = headers;
         let requestBody = body;
-        const isVersionedApi = Array.isArray(api);
+        const apiLength = api.length;
+        const isVersionedApi = apiLength > 1;
         const version = isVersionedApi ? api[0] : undefined;
-        const accessType = isVersionedApi ? api[1] : api;
+        const accessType = isVersionedApi ? api[1] : api[0];
         const endpoint = '/' + this.implodeParams(path, params);
         let fullPath = endpoint;
         if (version !== undefined) {

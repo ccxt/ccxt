@@ -4225,7 +4225,7 @@ class whitebit extends whitebit$1["default"] {
     nonce() {
         return this.milliseconds() - this.safeInteger(this.options, 'timeDifference', 0);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit(params, this.extractParams(path));
         const version = this.safeValue(api, 0);
         const accessibility = this.safeString(api, 1);

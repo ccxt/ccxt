@@ -8,256 +8,256 @@
 import { Exchange as _Exchange } from '../base/Exchange.js';
 class Exchange extends _Exchange {
     publicGetInfo(params = {}) {
-        return this.request("info", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('info', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     publicGetInfoFees(params = {}) {
-        return this.request("info/fees", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('info/fees', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     publicGetInfoPrices(params = {}) {
-        return this.request("info/prices", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('info/prices', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     publicGetKline(params = {}) {
-        return this.request("kline", "public", 'GET', params, undefined, undefined, { "cost": 12 });
+        return this.request('kline', ['public'], 'GET', params, undefined, undefined, { 'cost': 12 });
     }
     publicGetKlineMark(params = {}) {
-        return this.request("kline/mark", "public", 'GET', params, undefined, undefined, { "cost": 12 });
+        return this.request('kline/mark', ['public'], 'GET', params, undefined, undefined, { 'cost': 12 });
     }
     publicGetBook(params = {}) {
-        return this.request("book", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('book', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     publicGetTrades(params = {}) {
-        return this.request("trades", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('trades', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     publicGetFundingRateHistory(params = {}) {
-        return this.request("funding_rate/history", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('funding_rate/history', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     publicGetLoanPool(params = {}) {
-        return this.request("loan_pool", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('loan_pool', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     publicGetAccount(params = {}) {
-        return this.request("account", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('account', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     publicGetAccountLoan(params = {}) {
-        return this.request("account/loan", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/loan', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     publicGetAccountSettings(params = {}) {
-        return this.request("account/settings", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/settings', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     publicGetPositions(params = {}) {
-        return this.request("positions", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('positions', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     publicGetTradesHistory(params = {}) {
-        return this.request("trades/history", "public", 'GET', params, undefined, undefined, { "cost": 12 });
+        return this.request('trades/history', ['public'], 'GET', params, undefined, undefined, { 'cost': 12 });
     }
     publicGetFundingHistory(params = {}) {
-        return this.request("funding/history", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('funding/history', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     publicGetPortfolio(params = {}) {
-        return this.request("portfolio", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('portfolio', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     publicGetAccountBalanceHistory(params = {}) {
-        return this.request("account/balance/history", "public", 'GET', params, undefined, undefined, { "cost": 12 });
+        return this.request('account/balance/history', ['public'], 'GET', params, undefined, undefined, { 'cost': 12 });
     }
     publicGetAccountSpotBalanceHistory(params = {}) {
-        return this.request("account/spot_balance/history", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/spot_balance/history', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     publicGetAccountSpotAssetDepositHistory(params = {}) {
-        return this.request("account/spot_asset/deposit/history", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/spot_asset/deposit/history', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     publicGetAccountSpotAssetWithdrawHistory(params = {}) {
-        return this.request("account/spot_asset/withdraw/history", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/spot_asset/withdraw/history', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     publicGetAccountSpotAssetWithdrawPending(params = {}) {
-        return this.request("account/spot_asset/withdraw/pending", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/spot_asset/withdraw/pending', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     publicGetOrders(params = {}) {
-        return this.request("orders", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('orders', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     publicGetOrdersHistory(params = {}) {
-        return this.request("orders/history", "public", 'GET', params, undefined, undefined, { "cost": 12 });
+        return this.request('orders/history', ['public'], 'GET', params, undefined, undefined, { 'cost': 12 });
     }
     publicGetOrdersHistoryById(params = {}) {
-        return this.request("orders/history_by_id", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('orders/history_by_id', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     publicGetOrdersTwap(params = {}) {
-        return this.request("orders/twap", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('orders/twap', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     publicGetOrdersTwapHistory(params = {}) {
-        return this.request("orders/twap/history", "public", 'GET', params, undefined, undefined, { "cost": 12 });
+        return this.request('orders/twap/history', ['public'], 'GET', params, undefined, undefined, { 'cost': 12 });
     }
     publicGetOrdersTwapHistoryById(params = {}) {
-        return this.request("orders/twap/history_by_id", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('orders/twap/history_by_id', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     publicGetSpotAssets(params = {}) {
-        return this.request("spot_assets", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('spot_assets', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     publicGetSpotAssetsBridgeInfo(params = {}) {
-        return this.request("spot_assets/bridge/info", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('spot_assets/bridge/info', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     publicGetSpotAssetsBridgeParametersSymbol(params = {}) {
-        return this.request("spot_assets/bridge/parameters/{symbol}", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('spot_assets/bridge/parameters/{symbol}', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     publicGetLakeList(params = {}) {
-        return this.request("lake/list", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('lake/list', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     publicGetAccountBuilderCodesApprovals(params = {}) {
-        return this.request("account/builder_codes/approvals", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/builder_codes/approvals', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     publicGetBuilderOverview(params = {}) {
-        return this.request("builder/overview", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('builder/overview', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     publicGetBuilderTrades(params = {}) {
-        return this.request("builder/trades", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('builder/trades', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     publicGetLeaderboardBuilderCode(params = {}) {
-        return this.request("leaderboard/builder_code", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('leaderboard/builder_code', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostAccountLeverage(params = {}) {
-        return this.request("account/leverage", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/leverage', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostAccountMargin(params = {}) {
-        return this.request("account/margin", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/margin', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostAccountWithdraw(params = {}) {
-        return this.request("account/withdraw", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/withdraw', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostAccountSettingsAutoLendDisabled(params = {}) {
-        return this.request("account/settings/auto_lend_disabled", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/settings/auto_lend_disabled', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostAccountSettingsSpot(params = {}) {
-        return this.request("account/settings/spot", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/settings/spot', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostAccountSpotAssetWithdraw(params = {}) {
-        return this.request("account/spot_asset/withdraw", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/spot_asset/withdraw', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostAccountSubaccountCreate(params = {}) {
-        return this.request("account/subaccount/create", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/subaccount/create', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostAccountSubaccountList(params = {}) {
-        return this.request("account/subaccount/list", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/subaccount/list', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostAccountSubaccountTransfer(params = {}) {
-        return this.request("account/subaccount/transfer", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/subaccount/transfer', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostAccountSubaccountSpotAssetTransfer(params = {}) {
-        return this.request("account/subaccount/spot_asset/transfer", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/subaccount/spot_asset/transfer', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostPositionsAddIsolatedMargin(params = {}) {
-        return this.request("positions/add_isolated_margin", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('positions/add_isolated_margin', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostOrdersCreate(params = {}) {
-        return this.request("orders/create", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('orders/create', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostOrdersCreateMarket(params = {}) {
-        return this.request("orders/create_market", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('orders/create_market', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostOrdersStopCreate(params = {}) {
-        return this.request("orders/stop/create", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('orders/stop/create', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostPositionsTpsl(params = {}) {
-        return this.request("positions/tpsl", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('positions/tpsl', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostOrdersCancel(params = {}) {
-        return this.request("orders/cancel", "private", 'POST', params, undefined, undefined, { "cost": 0.5 });
+        return this.request('orders/cancel', ['private'], 'POST', params, undefined, undefined, { 'cost': 0.5 });
     }
     privatePostOrdersCancelAll(params = {}) {
-        return this.request("orders/cancel_all", "private", 'POST', params, undefined, undefined, { "cost": 0.5 });
+        return this.request('orders/cancel_all', ['private'], 'POST', params, undefined, undefined, { 'cost': 0.5 });
     }
     privatePostOrdersStopCancel(params = {}) {
-        return this.request("orders/stop/cancel", "private", 'POST', params, undefined, undefined, { "cost": 0.5 });
+        return this.request('orders/stop/cancel', ['private'], 'POST', params, undefined, undefined, { 'cost': 0.5 });
     }
     privatePostOrdersEdit(params = {}) {
-        return this.request("orders/edit", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('orders/edit', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostOrdersBatch(params = {}) {
-        return this.request("orders/batch", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('orders/batch', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostOrdersTwapCreate(params = {}) {
-        return this.request("orders/twap/create", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('orders/twap/create', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostOrdersTwapCancel(params = {}) {
-        return this.request("orders/twap/cancel", "private", 'POST', params, undefined, undefined, { "cost": 0.5 });
+        return this.request('orders/twap/cancel', ['private'], 'POST', params, undefined, undefined, { 'cost': 0.5 });
     }
     privatePostAccountBuilderCodesApprove(params = {}) {
-        return this.request("account/builder_codes/approve", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/builder_codes/approve', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostAccountBuilderCodesRevoke(params = {}) {
-        return this.request("account/builder_codes/revoke", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/builder_codes/revoke', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostBuilderUpdateFeeRate(params = {}) {
-        return this.request("builder/update_fee_rate", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('builder/update_fee_rate', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostReferralUserCodeClaim(params = {}) {
-        return this.request("referral/user/code/claim", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('referral/user/code/claim', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostAgentBind(params = {}) {
-        return this.request("agent/bind", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('agent/bind', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostAgentList(params = {}) {
-        return this.request("agent/list", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('agent/list', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostAgentRevoke(params = {}) {
-        return this.request("agent/revoke", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('agent/revoke', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostAgentRevokeAll(params = {}) {
-        return this.request("agent/revoke_all", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('agent/revoke_all', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostAgentIpWhitelistList(params = {}) {
-        return this.request("agent/ip_whitelist/list", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('agent/ip_whitelist/list', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostAgentIpWhitelistAdd(params = {}) {
-        return this.request("agent/ip_whitelist/add", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('agent/ip_whitelist/add', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostAgentIpWhitelistRemove(params = {}) {
-        return this.request("agent/ip_whitelist/remove", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('agent/ip_whitelist/remove', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostAgentIpWhitelistToggle(params = {}) {
-        return this.request("agent/ip_whitelist/toggle", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('agent/ip_whitelist/toggle', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostAccountApiKeysCreate(params = {}) {
-        return this.request("account/api_keys/create", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/api_keys/create', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostAccountApiKeysRevoke(params = {}) {
-        return this.request("account/api_keys/revoke", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/api_keys/revoke', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostAccountApiKeys(params = {}) {
-        return this.request("account/api_keys", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/api_keys', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostLakeAddBlacklist(params = {}) {
-        return this.request("lake/add_blacklist", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('lake/add_blacklist', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostLakeAddMaxLeverage(params = {}) {
-        return this.request("lake/add_max_leverage", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('lake/add_max_leverage', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostLakeAddWhitelist(params = {}) {
-        return this.request("lake/add_whitelist", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('lake/add_whitelist', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostLakeClaimManager(params = {}) {
-        return this.request("lake/claim_manager", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('lake/claim_manager', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostLakeClaimReferralCode(params = {}) {
-        return this.request("lake/claim_referral_code", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('lake/claim_referral_code', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostLakeCreate(params = {}) {
-        return this.request("lake/create", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('lake/create', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostLakeDeposit(params = {}) {
-        return this.request("lake/deposit", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('lake/deposit', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostLakeRemoveBlacklist(params = {}) {
-        return this.request("lake/remove_blacklist", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('lake/remove_blacklist', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostLakeRemoveMaxLeverage(params = {}) {
-        return this.request("lake/remove_max_leverage", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('lake/remove_max_leverage', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostLakeRemoveWhitelist(params = {}) {
-        return this.request("lake/remove_whitelist", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('lake/remove_whitelist', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostLakeUpdateDepositCap(params = {}) {
-        return this.request("lake/update_deposit_cap", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('lake/update_deposit_cap', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostLakeWithdraw(params = {}) {
-        return this.request("lake/withdraw", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('lake/withdraw', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
 }
 export default Exchange;

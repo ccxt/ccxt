@@ -332,7 +332,7 @@ export default class lbank extends Exchange {
     fetchPublicDepositWithdrawFees(codes?: Strings, params?: Dict): Promise<DepositWithdrawFees>;
     parsePublicDepositWithdrawFees(response: Dict[], codes?: Strings): DepositWithdrawFees;
     parseDepositWithdrawFee(fee: any, currency?: Currency): any;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     convertSecretToPem(secret: any): string;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

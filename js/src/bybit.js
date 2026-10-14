@@ -9997,20 +9997,21 @@ export default class bybit extends Exchange {
         };
         return this.safeString(marginModes, marginMode, marginMode);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const apiName = api[0];
         let requestBody = undefined;
         let requestHeaders = undefined;
-        const apiUrl = this.safeString(this.urls['api'], api);
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         let url = this.implodeHostname(apiUrl) + '/' + path;
-        if (api === 'public') {
+        if (apiName === 'public') {
             if (Object.keys(params).length > 0) {
                 url += '?' + this.rawencode(params);
             }
         }
-        else if (api === 'private') {
+        else if (apiName === 'private') {
             this.checkRequiredCredentials();
             const isOpenapi = url.indexOf('openapi') >= 0;
             const isV3UnifiedMargin = url.indexOf('unified/v3') >= 0;

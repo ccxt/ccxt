@@ -7194,7 +7194,7 @@ export default class bingx extends Exchange {
         }
         return tiers;
     }
-    sign(path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, section = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
         let type = section[0];
         let version = section[1];
         let access = section[2];

@@ -511,7 +511,7 @@ export default class woo extends Exchange {
     repayMargin(code: string, amount: number, symbol?: Str, params?: Dict): Promise<MarginLoan>;
     parseMarginLoan(info: Dict, currency?: Currency): MarginLoan;
     nonce(): number;
-    sign(path: string, section?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, section?: string[], method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     parseIncome(income: Dict, market?: Market): object;
     /**

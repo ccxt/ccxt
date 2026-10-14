@@ -1499,15 +1499,16 @@ class indodax extends indodax$1["default"] {
         }
         return result;
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const apiUrl = this.safeString(this.urls['api'], api);
+    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const apiName = api[0];
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         let url = apiUrl;
         let privateBody = undefined;
         let privateHeaders = undefined;
-        const isPublic = (api === 'public');
+        const isPublic = (apiName === 'public');
         if (isPublic) {
             const query = this.omit(params, this.extractParams(path));
             const requestPath = '/' + this.implodeParams(path, params);

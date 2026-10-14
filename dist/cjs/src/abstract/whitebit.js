@@ -7,415 +7,415 @@ var Exchange$1 = require('../base/Exchange.js');
 // ----------------------------------------------------------------------------
 class Exchange extends Exchange$1["default"] {
     webGetV1Healthcheck(params = {}) {
-        return this.request("v1/healthcheck", "web", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v1/healthcheck', ['web'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v1PublicGetMarkets(params = {}) {
-        return this.request("markets", ["v1", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('markets', ['v1', 'public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v1PublicGetTickers(params = {}) {
-        return this.request("tickers", ["v1", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('tickers', ['v1', 'public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v1PublicGetTicker(params = {}) {
-        return this.request("ticker", ["v1", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('ticker', ['v1', 'public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v1PublicGetSymbols(params = {}) {
-        return this.request("symbols", ["v1", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('symbols', ['v1', 'public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v1PublicGetDepthResult(params = {}) {
-        return this.request("depth/result", ["v1", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('depth/result', ['v1', 'public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v1PublicGetHistory(params = {}) {
-        return this.request("history", ["v1", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('history', ['v1', 'public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v1PublicGetKline(params = {}) {
-        return this.request("kline", ["v1", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('kline', ['v1', 'public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v1PrivatePostAccountBalance(params = {}) {
-        return this.request("account/balance", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/balance', ['v1', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v1PrivatePostOrderNew(params = {}) {
-        return this.request("order/new", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/new', ['v1', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v1PrivatePostOrderCancel(params = {}) {
-        return this.request("order/cancel", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/cancel', ['v1', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v1PrivatePostOrders(params = {}) {
-        return this.request("orders", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('orders', ['v1', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v1PrivatePostAccountOrderHistory(params = {}) {
-        return this.request("account/order_history", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/order_history', ['v1', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v1PrivatePostAccountExecutedHistory(params = {}) {
-        return this.request("account/executed_history", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/executed_history', ['v1', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v1PrivatePostAccountExecutedHistoryAll(params = {}) {
-        return this.request("account/executed_history/all", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/executed_history/all', ['v1', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v1PrivatePostAccountOrder(params = {}) {
-        return this.request("account/order", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/order', ['v1', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v2PublicGetMarkets(params = {}) {
-        return this.request("markets", ["v2", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('markets', ['v2', 'public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v2PublicGetTicker(params = {}) {
-        return this.request("ticker", ["v2", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('ticker', ['v2', 'public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v2PublicGetAssets(params = {}) {
-        return this.request("assets", ["v2", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('assets', ['v2', 'public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v2PublicGetFee(params = {}) {
-        return this.request("fee", ["v2", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('fee', ['v2', 'public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v2PublicGetDepthMarket(params = {}) {
-        return this.request("depth/{market}", ["v2", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('depth/{market}', ['v2', 'public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v2PublicGetTradesMarket(params = {}) {
-        return this.request("trades/{market}", ["v2", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('trades/{market}', ['v2', 'public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v4PublicGetAssets(params = {}) {
-        return this.request("assets", ["v4", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('assets', ['v4', 'public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v4PublicGetCollateralMarkets(params = {}) {
-        return this.request("collateral/markets", ["v4", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('collateral/markets', ['v4', 'public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v4PublicGetFee(params = {}) {
-        return this.request("fee", ["v4", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('fee', ['v4', 'public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v4PublicGetFundingHistoryMarket(params = {}) {
-        return this.request("funding-history/{market}", ["v4", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('funding-history/{market}', ['v4', 'public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v4PublicGetOrderbookDepthMarket(params = {}) {
-        return this.request("orderbook/depth/{market}", ["v4", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('orderbook/depth/{market}', ['v4', 'public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v4PublicGetOrderbookMarket(params = {}) {
-        return this.request("orderbook/{market}", ["v4", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('orderbook/{market}', ['v4', 'public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v4PublicGetTicker(params = {}) {
-        return this.request("ticker", ["v4", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('ticker', ['v4', 'public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v4PublicGetTradesMarket(params = {}) {
-        return this.request("trades/{market}", ["v4", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('trades/{market}', ['v4', 'public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v4PublicGetTime(params = {}) {
-        return this.request("time", ["v4", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('time', ['v4', 'public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v4PublicGetPing(params = {}) {
-        return this.request("ping", ["v4", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('ping', ['v4', 'public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v4PublicGetMarkets(params = {}) {
-        return this.request("markets", ["v4", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('markets', ['v4', 'public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v4PublicGetFutures(params = {}) {
-        return this.request("futures", ["v4", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('futures', ['v4', 'public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v4PublicGetPlatformStatus(params = {}) {
-        return this.request("platform/status", ["v4", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('platform/status', ['v4', 'public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v4PublicGetMiningPool(params = {}) {
-        return this.request("mining-pool", ["v4", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('mining-pool', ['v4', 'public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostCollateralAccountBalance(params = {}) {
-        return this.request("collateral-account/balance", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('collateral-account/balance', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostCollateralAccountBalanceSummary(params = {}) {
-        return this.request("collateral-account/balance-summary", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('collateral-account/balance-summary', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostCollateralAccountPositionsHistory(params = {}) {
-        return this.request("collateral-account/positions/history", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('collateral-account/positions/history', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostCollateralAccountLeverage(params = {}) {
-        return this.request("collateral-account/leverage", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('collateral-account/leverage', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostCollateralAccountPositionsOpen(params = {}) {
-        return this.request("collateral-account/positions/open", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('collateral-account/positions/open', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostCollateralAccountPositionsClosedPnl(params = {}) {
-        return this.request("collateral-account/positions/closed-pnl", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('collateral-account/positions/closed-pnl', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostCollateralAccountSummary(params = {}) {
-        return this.request("collateral-account/summary", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('collateral-account/summary', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostCollateralAccountFundingHistory(params = {}) {
-        return this.request("collateral-account/funding-history", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('collateral-account/funding-history', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostMainAccountAddress(params = {}) {
-        return this.request("main-account/address", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('main-account/address', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostMainAccountBalance(params = {}) {
-        return this.request("main-account/balance", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('main-account/balance', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostMainAccountCreateNewAddress(params = {}) {
-        return this.request("main-account/create-new-address", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('main-account/create-new-address', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostMainAccountCodes(params = {}) {
-        return this.request("main-account/codes", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('main-account/codes', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostMainAccountCodesApply(params = {}) {
-        return this.request("main-account/codes/apply", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('main-account/codes/apply', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostMainAccountCodesMy(params = {}) {
-        return this.request("main-account/codes/my", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('main-account/codes/my', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostMainAccountCodesHistory(params = {}) {
-        return this.request("main-account/codes/history", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('main-account/codes/history', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostMainAccountFiatDepositUrl(params = {}) {
-        return this.request("main-account/fiat-deposit-url", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('main-account/fiat-deposit-url', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostMainAccountHistory(params = {}) {
-        return this.request("main-account/history", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('main-account/history', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostMainAccountWithdraw(params = {}) {
-        return this.request("main-account/withdraw", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('main-account/withdraw', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostMainAccountWithdrawPay(params = {}) {
-        return this.request("main-account/withdraw-pay", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('main-account/withdraw-pay', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostMainAccountExpressWithdrawToken(params = {}) {
-        return this.request("main-account/express-withdraw/token", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('main-account/express-withdraw/token', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostMainAccountTransfer(params = {}) {
-        return this.request("main-account/transfer", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('main-account/transfer', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostMainAccountSmartPlans(params = {}) {
-        return this.request("main-account/smart/plans", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('main-account/smart/plans', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostMainAccountSmartInvestment(params = {}) {
-        return this.request("main-account/smart/investment", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('main-account/smart/investment', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostMainAccountSmartInvestmentClose(params = {}) {
-        return this.request("main-account/smart/investment/close", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('main-account/smart/investment/close', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostMainAccountSmartInvestments(params = {}) {
-        return this.request("main-account/smart/investments", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('main-account/smart/investments', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostMainAccountFee(params = {}) {
-        return this.request("main-account/fee", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('main-account/fee', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostMainAccountSmartInterestPaymentHistory(params = {}) {
-        return this.request("main-account/smart/interest-payment-history", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('main-account/smart/interest-payment-history', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostMainAccountSmartFlexPlans(params = {}) {
-        return this.request("main-account/smart-flex/plans", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('main-account/smart-flex/plans', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostMainAccountSmartFlexInvestments(params = {}) {
-        return this.request("main-account/smart-flex/investments", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('main-account/smart-flex/investments', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostMainAccountSmartFlexInvestmentsHistory(params = {}) {
-        return this.request("main-account/smart-flex/investments/history", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('main-account/smart-flex/investments/history', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostMainAccountSmartFlexInvestmentsPaymentHistory(params = {}) {
-        return this.request("main-account/smart-flex/investments/payment-history", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('main-account/smart-flex/investments/payment-history', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostMainAccountSmartFlexInvestmentsInvest(params = {}) {
-        return this.request("main-account/smart-flex/investments/invest", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('main-account/smart-flex/investments/invest', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostMainAccountSmartFlexInvestmentsWithdraw(params = {}) {
-        return this.request("main-account/smart-flex/investments/withdraw", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('main-account/smart-flex/investments/withdraw', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostMainAccountSmartFlexInvestmentsClose(params = {}) {
-        return this.request("main-account/smart-flex/investments/close", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('main-account/smart-flex/investments/close', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostMainAccountSmartFlexInvestmentsAutoInvest(params = {}) {
-        return this.request("main-account/smart-flex/investments/auto-invest", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('main-account/smart-flex/investments/auto-invest', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostTradeAccountBalance(params = {}) {
-        return this.request("trade-account/balance", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('trade-account/balance', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostTradeAccountExecutedHistory(params = {}) {
-        return this.request("trade-account/executed-history", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('trade-account/executed-history', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostTradeAccountOrderHistory(params = {}) {
-        return this.request("trade-account/order/history", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('trade-account/order/history', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostTradeAccountOrderHistoryQuery(params = {}) {
-        return this.request("trade-account/order/history/query", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('trade-account/order/history/query', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostTradeAccountOrder(params = {}) {
-        return this.request("trade-account/order", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('trade-account/order', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostOrderCollateralLimit(params = {}) {
-        return this.request("order/collateral/limit", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/collateral/limit', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostOrderCollateralMarket(params = {}) {
-        return this.request("order/collateral/market", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/collateral/market', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostOrderCollateralStopLimit(params = {}) {
-        return this.request("order/collateral/stop-limit", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/collateral/stop-limit', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostOrderCollateralTriggerMarket(params = {}) {
-        return this.request("order/collateral/trigger-market", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/collateral/trigger-market', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostOrderCollateralBulk(params = {}) {
-        return this.request("order/collateral/bulk", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/collateral/bulk', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostOrderNew(params = {}) {
-        return this.request("order/new", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/new', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostOrderMarket(params = {}) {
-        return this.request("order/market", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/market', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostOrderStockMarket(params = {}) {
-        return this.request("order/stock_market", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/stock_market', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostOrderStopLimit(params = {}) {
-        return this.request("order/stop_limit", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/stop_limit', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostOrderStopMarket(params = {}) {
-        return this.request("order/stop_market", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/stop_market', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostOrderCancel(params = {}) {
-        return this.request("order/cancel", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/cancel', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostOrderCancelAll(params = {}) {
-        return this.request("order/cancel/all", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/cancel/all', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostOrderCancelBulk(params = {}) {
-        return this.request("order/cancel/bulk", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/cancel/bulk', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostOrderKillSwitch(params = {}) {
-        return this.request("order/kill-switch", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/kill-switch', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostOrderKillSwitchStatus(params = {}) {
-        return this.request("order/kill-switch/status", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/kill-switch/status', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostOrderBulk(params = {}) {
-        return this.request("order/bulk", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/bulk', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostOrderModify(params = {}) {
-        return this.request("order/modify", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/modify', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostOrderConditionalCancel(params = {}) {
-        return this.request("order/conditional-cancel", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/conditional-cancel', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostOrders(params = {}) {
-        return this.request("orders", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('orders', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostOcoOrders(params = {}) {
-        return this.request("oco-orders", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('oco-orders', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostOrderCollateralOco(params = {}) {
-        return this.request("order/collateral/oco", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/collateral/oco', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostOrderOcoCancel(params = {}) {
-        return this.request("order/oco-cancel", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/oco-cancel', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostOrderOtoCancel(params = {}) {
-        return this.request("order/oto-cancel", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/oto-cancel', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostProfileWebsocketToken(params = {}) {
-        return this.request("profile/websocket_token", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('profile/websocket_token', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostConvertEstimate(params = {}) {
-        return this.request("convert/estimate", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('convert/estimate', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostConvertConfirm(params = {}) {
-        return this.request("convert/confirm", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('convert/confirm', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostConvertHistory(params = {}) {
-        return this.request("convert/history", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('convert/history', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostSubAccountCreate(params = {}) {
-        return this.request("sub-account/create", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('sub-account/create', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostSubAccountDelete(params = {}) {
-        return this.request("sub-account/delete", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('sub-account/delete', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostSubAccountEdit(params = {}) {
-        return this.request("sub-account/edit", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('sub-account/edit', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostSubAccountList(params = {}) {
-        return this.request("sub-account/list", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('sub-account/list', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostSubAccountTransfer(params = {}) {
-        return this.request("sub-account/transfer", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('sub-account/transfer', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostSubAccountBlock(params = {}) {
-        return this.request("sub-account/block", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('sub-account/block', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostSubAccountUnblock(params = {}) {
-        return this.request("sub-account/unblock", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('sub-account/unblock', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostSubAccountBalances(params = {}) {
-        return this.request("sub-account/balances", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('sub-account/balances', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostSubAccountTransferHistory(params = {}) {
-        return this.request("sub-account/transfer/history", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('sub-account/transfer/history', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostSubAccountApiKeyCreate(params = {}) {
-        return this.request("sub-account/api-key/create", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('sub-account/api-key/create', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostSubAccountApiKeyEdit(params = {}) {
-        return this.request("sub-account/api-key/edit", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('sub-account/api-key/edit', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostSubAccountApiKeyDelete(params = {}) {
-        return this.request("sub-account/api-key/delete", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('sub-account/api-key/delete', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostSubAccountApiKeyList(params = {}) {
-        return this.request("sub-account/api-key/list", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('sub-account/api-key/list', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostSubAccountApiKeyReset(params = {}) {
-        return this.request("sub-account/api-key/reset", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('sub-account/api-key/reset', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostSubAccountApiKeyIpAddressList(params = {}) {
-        return this.request("sub-account/api-key/ip-address/list", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('sub-account/api-key/ip-address/list', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostSubAccountApiKeyIpAddressCreate(params = {}) {
-        return this.request("sub-account/api-key/ip-address/create", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('sub-account/api-key/ip-address/create', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostSubAccountApiKeyIpAddressDelete(params = {}) {
-        return this.request("sub-account/api-key/ip-address/delete", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('sub-account/api-key/ip-address/delete', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostMiningRewards(params = {}) {
-        return this.request("mining/rewards", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('mining/rewards', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostMiningHashrate(params = {}) {
-        return this.request("mining/hashrate", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('mining/hashrate', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostMiningPayoutDestination(params = {}) {
-        return this.request("mining/payout-destination", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('mining/payout-destination', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostMiningPayoutDestinationEdit(params = {}) {
-        return this.request("mining/payout-destination/edit", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('mining/payout-destination/edit', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostMiningMinersInfo(params = {}) {
-        return this.request("mining/miners/info", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('mining/miners/info', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostMiningWorkersNames(params = {}) {
-        return this.request("mining/workers/names", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('mining/workers/names', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostMiningWorkersHashrate(params = {}) {
-        return this.request("mining/workers/hashrate", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('mining/workers/hashrate', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostMiningWatcherLinksCreate(params = {}) {
-        return this.request("mining/watcher-links/create", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('mining/watcher-links/create', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostMiningWatcherLinksList(params = {}) {
-        return this.request("mining/watcher-links/list", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('mining/watcher-links/list', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostMiningAccountsCreate(params = {}) {
-        return this.request("mining/accounts/create", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('mining/accounts/create', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostMiningAccounts(params = {}) {
-        return this.request("mining/accounts", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('mining/accounts', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostMarketFee(params = {}) {
-        return this.request("market/fee", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('market/fee', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostMarketFeeSingle(params = {}) {
-        return this.request("market/fee/single", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('market/fee/single', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostConditionalOrders(params = {}) {
-        return this.request("conditional-orders", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('conditional-orders', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostTravelRuleVasps(params = {}) {
-        return this.request("travel-rule/vasps", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('travel-rule/vasps', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostTravelRuleDepositVerification(params = {}) {
-        return this.request("travel-rule/deposit/verification", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('travel-rule/deposit/verification', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v4PrivatePostJwt(params = {}) {
-        return this.request("jwt", ["v4", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('jwt', ['v4', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
 }
 

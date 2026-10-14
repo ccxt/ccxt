@@ -3273,7 +3273,7 @@ export default class bitrue extends Exchange {
         //
         return this.parseMarginModification(response, market);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
         let requestBody = undefined;
         let requestHeaders = undefined;
         const type = this.safeString(api, 0);

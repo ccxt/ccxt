@@ -8,76 +8,76 @@
 import { Exchange as _Exchange } from '../base/Exchange.js';
 class Exchange extends _Exchange {
     publicGetApiServerTime(params = {}) {
-        return this.request("api/server_time", "public", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('api/server_time', ['public'], 'GET', params, undefined, undefined, { 'cost': 5 });
     }
     publicGetApiPairs(params = {}) {
-        return this.request("api/pairs", "public", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('api/pairs', ['public'], 'GET', params, undefined, undefined, { 'cost': 5 });
     }
     publicGetApiPriceIncrements(params = {}) {
-        return this.request("api/price_increments", "public", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('api/price_increments', ['public'], 'GET', params, undefined, undefined, { 'cost': 5 });
     }
     publicGetApiSummaries(params = {}) {
-        return this.request("api/summaries", "public", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('api/summaries', ['public'], 'GET', params, undefined, undefined, { 'cost': 5 });
     }
     publicGetApiTickerPair(params = {}) {
-        return this.request("api/ticker/{pair}", "public", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('api/ticker/{pair}', ['public'], 'GET', params, undefined, undefined, { 'cost': 5 });
     }
     publicGetApiTickerAll(params = {}) {
-        return this.request("api/ticker_all", "public", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('api/ticker_all', ['public'], 'GET', params, undefined, undefined, { 'cost': 5 });
     }
     publicGetApiTradesPair(params = {}) {
-        return this.request("api/trades/{pair}", "public", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('api/trades/{pair}', ['public'], 'GET', params, undefined, undefined, { 'cost': 5 });
     }
     publicGetApiDepthPair(params = {}) {
-        return this.request("api/depth/{pair}", "public", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('api/depth/{pair}', ['public'], 'GET', params, undefined, undefined, { 'cost': 5 });
     }
     publicGetTradingviewHistoryV2(params = {}) {
-        return this.request("tradingview/history_v2", "public", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('tradingview/history_v2', ['public'], 'GET', params, undefined, undefined, { 'cost': 5 });
     }
     privatePostGetInfo(params = {}) {
-        return this.request("getInfo", "private", 'POST', params, undefined, undefined, { "cost": 4 });
+        return this.request('getInfo', ['private'], 'POST', params, undefined, undefined, { 'cost': 4 });
     }
     privatePostTransHistory(params = {}) {
-        return this.request("transHistory", "private", 'POST', params, undefined, undefined, { "cost": 4 });
+        return this.request('transHistory', ['private'], 'POST', params, undefined, undefined, { 'cost': 4 });
     }
     privatePostTrade(params = {}) {
-        return this.request("trade", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('trade', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostTradeHistory(params = {}) {
-        return this.request("tradeHistory", "private", 'POST', params, undefined, undefined, { "cost": 4 });
+        return this.request('tradeHistory', ['private'], 'POST', params, undefined, undefined, { 'cost': 4 });
     }
     privatePostOpenOrders(params = {}) {
-        return this.request("openOrders", "private", 'POST', params, undefined, undefined, { "cost": 4 });
+        return this.request('openOrders', ['private'], 'POST', params, undefined, undefined, { 'cost': 4 });
     }
     privatePostOrderHistory(params = {}) {
-        return this.request("orderHistory", "private", 'POST', params, undefined, undefined, { "cost": 4 });
+        return this.request('orderHistory', ['private'], 'POST', params, undefined, undefined, { 'cost': 4 });
     }
     privatePostGetOrder(params = {}) {
-        return this.request("getOrder", "private", 'POST', params, undefined, undefined, { "cost": 4 });
+        return this.request('getOrder', ['private'], 'POST', params, undefined, undefined, { 'cost': 4 });
     }
     privatePostGetOrderByClientOrderId(params = {}) {
-        return this.request("getOrderByClientOrderId", "private", 'POST', params, undefined, undefined, { "cost": 4 });
+        return this.request('getOrderByClientOrderId', ['private'], 'POST', params, undefined, undefined, { 'cost': 4 });
     }
     privatePostCancelOrder(params = {}) {
-        return this.request("cancelOrder", "private", 'POST', params, undefined, undefined, { "cost": 4 });
+        return this.request('cancelOrder', ['private'], 'POST', params, undefined, undefined, { 'cost': 4 });
     }
     privatePostCancelByClientOrderId(params = {}) {
-        return this.request("cancelByClientOrderId", "private", 'POST', params, undefined, undefined, { "cost": 4 });
+        return this.request('cancelByClientOrderId', ['private'], 'POST', params, undefined, undefined, { 'cost': 4 });
     }
     privatePostWithdrawFee(params = {}) {
-        return this.request("withdrawFee", "private", 'POST', params, undefined, undefined, { "cost": 4 });
+        return this.request('withdrawFee', ['private'], 'POST', params, undefined, undefined, { 'cost': 4 });
     }
     privatePostWithdrawCoin(params = {}) {
-        return this.request("withdrawCoin", "private", 'POST', params, undefined, undefined, { "cost": 4 });
+        return this.request('withdrawCoin', ['private'], 'POST', params, undefined, undefined, { 'cost': 4 });
     }
     privatePostListDownline(params = {}) {
-        return this.request("listDownline", "private", 'POST', params, undefined, undefined, { "cost": 4 });
+        return this.request('listDownline', ['private'], 'POST', params, undefined, undefined, { 'cost': 4 });
     }
     privatePostCheckDownline(params = {}) {
-        return this.request("checkDownline", "private", 'POST', params, undefined, undefined, { "cost": 4 });
+        return this.request('checkDownline', ['private'], 'POST', params, undefined, undefined, { 'cost': 4 });
     }
     privatePostCreateVoucher(params = {}) {
-        return this.request("createVoucher", "private", 'POST', params, undefined, undefined, { "cost": 4 });
+        return this.request('createVoucher', ['private'], 'POST', params, undefined, undefined, { 'cost': 4 });
     }
 }
 export default Exchange;

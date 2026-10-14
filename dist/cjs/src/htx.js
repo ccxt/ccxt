@@ -7743,7 +7743,7 @@ class htx extends htx$1["default"] {
     nonce() {
         return this.milliseconds() - this.safeInteger(this.options, 'timeDifference', 0);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
         let signedHeaders = undefined;
         let signedBody = undefined;
         const pathString = path;
@@ -7756,16 +7756,18 @@ class htx extends htx$1["default"] {
         else {
             query = this.omit(params, this.extractParams(path));
         }
-        if (typeof api === 'string') {
+        const apiLength = api.length;
+        if (apiLength === 1) {
             // signing implementation for the old endpoints
-            if ((api === 'public') || (api === 'private')) {
+            const apiName = api[0];
+            if ((apiName === 'public') || (apiName === 'private')) {
                 url += this.version;
             }
-            else if ((api === 'v2Public') || (api === 'v2Private')) {
+            else if ((apiName === 'v2Public') || (apiName === 'v2Private')) {
                 url += 'v2';
             }
             url += '/' + this.implodeParams(path, params);
-            if (api === 'private' || api === 'v2Private') {
+            if (apiName === 'private' || apiName === 'v2Private') {
                 this.checkRequiredCredentials();
                 const timestamp = this.ymdhms(this.nonce(), 'T');
                 let request = {
@@ -7809,7 +7811,7 @@ class htx extends htx$1["default"] {
                     url += '?' + this.urlencode(query);
                 }
             }
-            const baseApiUrl = this.safeString(this.urls['api'], api);
+            const baseApiUrl = this.safeString(this.urls['api'], apiName);
             if (baseApiUrl === undefined) {
                 throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
             }

@@ -593,7 +593,7 @@ export default class btse extends Exchange {
      */
     setLeverage(leverage: int, symbol?: Str, params?: Dict): Promise<Dict>;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    sign(path: string, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: string, api?: string[], method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

@@ -4770,7 +4770,8 @@ class phemex extends phemex$1["default"] {
         }
         return tiers;
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const apiName = api[0];
         const query = this.omit(params, this.extractParams(path));
         const requestPath = '/' + this.implodeParams(path, params);
         let url = requestPath;
@@ -4783,7 +4784,7 @@ class phemex extends phemex$1["default"] {
         }
         let requestBody = undefined;
         let privateHeaders = undefined;
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             const timestamp = this.seconds();
             const xPhemexRequestExpiry = this.safeInteger(this.options, 'x-phemex-request-expiry', 60);
@@ -4809,17 +4810,17 @@ class phemex extends phemex$1["default"] {
             const auth = requestPath + queryString + expiryString + payload;
             privateHeaders['x-phemex-request-signature'] = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
         }
-        const baseApiUrl = this.safeString(this.urls['api'], api);
+        const baseApiUrl = this.safeString(this.urls['api'], apiName);
         if (baseApiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         url = this.implodeHostname(baseApiUrl) + url;
-        const isPrivatePost = (api === 'private') && (method === 'POST');
+        const isPrivatePost = (apiName === 'private') && (method === 'POST');
         let bodyResolved = body;
         if (isPrivatePost) {
             bodyResolved = requestBody;
         }
-        const requestHeaders = (api === 'private') ? privateHeaders : headers;
+        const requestHeaders = (apiName === 'private') ? privateHeaders : headers;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': requestHeaders };
     }
     /**

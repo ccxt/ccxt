@@ -982,7 +982,8 @@ export default class coincheck extends Exchange {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const apiName = api[0];
         let bodySigned = undefined;
         let headersSigned = undefined;
         const apiUrl = this.safeString(this.urls['api'], 'rest');
@@ -991,7 +992,7 @@ export default class coincheck extends Exchange {
         }
         let url = apiUrl + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
-        if (api === 'public') {
+        if (apiName === 'public') {
             if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }

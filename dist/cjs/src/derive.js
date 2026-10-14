@@ -4261,8 +4261,9 @@ class derive extends derive$1["default"] {
         // signs the auth timestamp and feeds incrementingNonce (), which nonceString () extends to the nanosecond-scale action nonce; must be unique per wallet (error 11017) while staying a valid date (error 11018)
         return this.milliseconds() - this.safeInteger(this.options, 'timeDifference', 0);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const apiUrl = this.safeString(this.urls['api'], api);
+    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const apiName = api[0];
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
@@ -4271,7 +4272,7 @@ class derive extends derive$1["default"] {
             const postHeaders = {
                 'Content-Type': 'application/json',
             };
-            if (api === 'private') {
+            if (apiName === 'private') {
                 const now = this.numberToString(this.nonce());
                 const signature = this.signMessage(now, this.privateKey);
                 let deriveWalletAddress = this.safeString(this.options, 'deriveWalletAddress');
