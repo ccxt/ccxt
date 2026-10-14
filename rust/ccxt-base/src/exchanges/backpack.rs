@@ -3336,8 +3336,6 @@ impl BackpackCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
@@ -3397,8 +3395,8 @@ impl BackpackCore {
             }
         }
         url = Value::Str(format!("{}{}", url, endpoint).into());
-        let mut headersResolved: Value = (if (apiName.as_str() == Some("private")) { headersSigned } else { headers });
-        let mut bodyResolved: Value = body;
+        let mut headersResolved: Value = (if (apiName.as_str() == Some("private")) { headersSigned } else { Value::Null });
+        let mut bodyResolved: Value = Value::Null;
         if (apiName.as_str() == Some("private")) && (method.as_str() != Some("GET")) {
             bodyResolved = bodySigned;
         }

@@ -2423,8 +2423,6 @@ impl HibachiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
@@ -2450,7 +2448,7 @@ impl HibachiCore {
         if hasJsonBody {
             if let Value::Dict(__d) = &mut headersValue { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
         }
-        let mut bodyResult: Value = body;
+        let mut bodyResult: Value = Value::Null;
         if hasJsonBody {
             bodyResult = json_stringify(&params);
         }

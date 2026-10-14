@@ -5128,8 +5128,6 @@ impl WoofiproCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let __section_empty = Vec::new();
         let section = section.as_array().unwrap_or(&__section_empty);
         let mut version: Value = section.get(0).cloned().unwrap_or(Value::Null);
@@ -5206,8 +5204,8 @@ impl WoofiproCore {
             let mut signature: Value = eddsa(self.encode(auth), self.base58_to_binary(secret, &[]), Value::Str("ed25519".into()));
             add_element_to_object(&mut requestHeaders, &Value::Str("orderly-signature".into()), self.urlencode_base64(self.base64_to_binary(signature, &[]), &[]));
         }
-        let mut bodyResult: Value = (if (requestBody == Value::Null) { body } else { requestBody });
-        let mut headersResult: Value = (if (requestHeaders == Value::Null) { headers } else { requestHeaders });
+        let mut bodyResult: Value = requestBody;
+        let mut headersResult: Value = requestHeaders;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);

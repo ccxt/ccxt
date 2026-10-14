@@ -1457,8 +1457,6 @@ impl Bit2cCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[]);
@@ -1496,8 +1494,8 @@ impl Bit2cCore {
                 m
             });
         }
-        let mut bodyResult: Value = (if (requestBody == Value::Null) { body } else { requestBody });
-        let mut headersResult: Value = (if (requestHeaders == Value::Null) { headers } else { requestHeaders });
+        let mut bodyResult: Value = requestBody;
+        let mut headersResult: Value = requestHeaders;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);

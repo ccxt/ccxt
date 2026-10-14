@@ -3047,8 +3047,6 @@ impl AlpacaCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut endpoint: Value = Value::Str(format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone())).into());
@@ -3060,13 +3058,10 @@ impl AlpacaCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (headers != Value::Null) {
-            headersValue = headers;
-        }
         if (api.get(1).cloned().unwrap_or(Value::Null).as_str() == Some("private")) {
             self.check_required_credentials(&[]);
-            add_element_to_object(&mut headersValue, &Value::Str("APCA-API-KEY-ID".into()), self.apiKey.clone());
-            add_element_to_object(&mut headersValue, &Value::Str("APCA-API-SECRET-KEY".into()), self.secret.clone());
+            if let Value::Dict(__d) = &mut headersValue { std::sync::Arc::make_mut(__d).insert("APCA-API-KEY-ID".into(), self.apiKey.clone()); }
+            if let Value::Dict(__d) = &mut headersValue { std::sync::Arc::make_mut(__d).insert("APCA-API-SECRET-KEY".into(), self.secret.clone()); }
         }
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
         let mut bodyJson: Value = Value::Null;
@@ -3075,11 +3070,11 @@ impl AlpacaCore {
                 endpoint = Value::Str(format!("{}{}", endpoint, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
             }  else {
                 bodyJson = json_stringify(&query);
-                add_element_to_object(&mut headersValue, &Value::Str("Content-Type".into()), Value::Str("application/json".into()));
+                if let Value::Dict(__d) = &mut headersValue { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
             }
         }
         let mut url: Value = Value::Str(format!("{}{}", self.implode_hostname(baseApiUrl), endpoint).into());
-        let mut bodyResolved: Value = (if (bodyJson == Value::Null) { body } else { bodyJson });
+        let mut bodyResolved: Value = bodyJson;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);

@@ -2541,8 +2541,6 @@ impl BinanceCore {
  * @param {string|string[]} [api] the api group and access level
  * @param {string} [method] HTTP method
  * @param {object} [params] request parameters
- * @param {object} [headers] request headers
- * @param {object} [body] request body
  * @returns {object} a dictionary with url, method, body and headers
  */
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
@@ -2552,8 +2550,6 @@ impl BinanceCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiGroup: Value = api.get(0).cloned().unwrap_or(Value::Null);
@@ -2582,7 +2578,7 @@ impl BinanceCore {
                 m.insert("X-MBX-APIKEY".to_string(), self.apiKey.clone());
             m
         });
-        let mut bodyValue: Value = body;
+        let mut bodyValue: Value = Value::Null;
         if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
             url = Value::Str(format!("{}{}", Value::Str(format!("{}{}", url, Value::Str("?".into())).into()), querystring).into());
         }  else {

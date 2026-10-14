@@ -9596,8 +9596,6 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut authentication: Value = api.get(0).cloned().unwrap_or(Value::Null); // public, private
@@ -9692,7 +9690,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 query = self.omit(query.clone(), Value::Str("query".into()), &[]);
                 bodyJson = json_stringify(&query);
             }
-            let mut bodySigned: Value = (if (bodyJson == Value::Null) { body.clone() } else { bodyJson.clone() });
+            let mut bodySigned: Value = bodyJson.clone();
             let mut bodyPayload: Value = (if (bodySigned == Value::Null) { Value::Str("".into()) } else { bodySigned });
             let mut bodySignature: Value = self.hash(self.encode(bodyPayload), Value::Str("sha512".into()), &[]);
             let mut nonce: Value = self.nonce();
@@ -9712,8 +9710,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             });
         }
-        let mut bodyResolved: Value = (if (bodyJson == Value::Null) { body } else { bodyJson });
-        let mut headersResolved: Value = (if (signedHeaders == Value::Null) { headers } else { signedHeaders });
+        let mut bodyResolved: Value = bodyJson;
+        let mut headersResolved: Value = signedHeaders;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);

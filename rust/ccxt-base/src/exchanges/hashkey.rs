@@ -5226,8 +5226,6 @@ impl HashkeyCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
@@ -5281,7 +5279,7 @@ impl HashkeyCore {
             }
             if let Value::Dict(__d) = &mut headersSigned { std::sync::Arc::make_mut(__d).insert("INPUT-SOURCE".into(), self.safe_string_k(self.options.clone(), "broker", &[Value::Str("10000700011".into())])); }
             if let Value::Dict(__d) = &mut headersSigned { std::sync::Arc::make_mut(__d).insert("broker_sign".into(), signature); }
-            let mut bodyResolved: Value = (if (method.as_str() == Some("GET")) { body.clone() } else { bodySigned });
+            let mut bodyResolved: Value = (if (method.as_str() == Some("GET")) { Value::Null } else { bodySigned });
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url.clone());
@@ -5300,8 +5298,8 @@ impl HashkeyCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), body);
-        m.insert("headers".to_string(), headers);
+        m.insert("body".to_string(), Value::Null);
+        m.insert("headers".to_string(), Value::Null);
     m
 });
 

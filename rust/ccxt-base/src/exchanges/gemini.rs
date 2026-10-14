@@ -2967,8 +2967,6 @@ impl GeminiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
@@ -3011,8 +3009,8 @@ impl GeminiCore {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
         let mut fullUrl: Value = Value::Str(format!("{}{}", apiUrl, url).into());
-        let mut headersResolved: Value = (if (apiName.as_str() == Some("private")) { headersSigned } else { headers });
-        let mut bodyResolved: Value = body;
+        let mut headersResolved: Value = (if (apiName.as_str() == Some("private")) { headersSigned } else { Value::Null });
+        let mut bodyResolved: Value = Value::Null;
         if (method.as_str() == Some("POST")) || (method.as_str() == Some("DELETE")) {
             bodyResolved = json_stringify(&query);
         }

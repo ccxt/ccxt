@@ -3379,8 +3379,6 @@ impl DydxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let __section_empty = Vec::new();
         let section = section.as_array().unwrap_or(&__section_empty);
         let mut requestHeaders: Value = Value::Null;
@@ -3406,8 +3404,8 @@ impl DydxCore {
                 m
             });
         }
-        let mut headersResult: Value = (if (requestHeaders != Value::Null) { requestHeaders } else { headers });
-        let mut bodyResult: Value = (if (requestBody != Value::Null) { requestBody } else { body });
+        let mut headersResult: Value = requestHeaders;
+        let mut bodyResult: Value = requestBody;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);

@@ -6090,8 +6090,6 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
@@ -6141,11 +6139,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         url = Value::Str(format!("{}{}", self.implode_hostname(baseApiUrl), url).into());
         let mut isPrivatePost: bool = (apiName.as_str() == Some("private")) && (method.as_str() == Some("POST"));
-        let mut bodyResolved: Value = body;
+        let mut bodyResolved: Value = Value::Null;
         if isPrivatePost {
             bodyResolved = requestBody;
         }
-        let mut requestHeaders: Value = (if (apiName.as_str() == Some("private")) { privateHeaders } else { headers });
+        let mut requestHeaders: Value = (if (apiName.as_str() == Some("private")) { privateHeaders } else { Value::Null });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);

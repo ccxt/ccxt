@@ -7803,8 +7803,6 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut signed: bool = api.get(0).cloned().unwrap_or(Value::Null).as_str() == Some("private");
@@ -7894,7 +7892,7 @@ impl XtCore {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), urlencoded).into())).into());
             }
         }
-        let mut bodyValue: Value = body;
+        let mut bodyValue: Value = Value::Null;
         if signed {
             bodyValue = signedBody;
         }

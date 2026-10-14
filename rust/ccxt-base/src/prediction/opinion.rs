@@ -3146,8 +3146,6 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {string[]} api the api group and access level
  * @param {string} method the http method
  * @param {object} params the request parameters
- * @param {object} [headers] request headers
- * @param {string} [body] the request body
  * @returns {object} a dict with url, method, body and headers
  */
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
@@ -3157,18 +3155,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let mut apiGroup: Value = api.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut access: Option<String> = self.safe_string(api, Value::Int(1), &[Value::Str("public".into())]).as_str().map(str::to_owned);
         let mut baseUrls: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null);
         let mut baseUrl: Value = self.safe_string(baseUrls.clone(), apiGroup, &[baseUrls.as_map().and_then(|__m| __m.get("opinion")).cloned().unwrap_or(Value::Null)]);
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())).into());
         let mut query: Value = self.omit(params, self.extract_params(path.clone()), &[]);
-        let mut existingHeaders: Value = (if (headers != Value::Null) { headers } else { Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
+        let mut existingHeaders: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         let mut headersExtended: Value = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("Accept".to_string(), Value::Str("application/json".into()));
@@ -3204,7 +3200,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 add_element_to_object(&mut headersExtended, &Value::Str("apikey".into()), apiKey);
             }
         }
-        let mut bodyValue: Value = body;
+        let mut bodyValue: Value = Value::Null;
         if (method.as_str() == Some("GET")) {
             if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());

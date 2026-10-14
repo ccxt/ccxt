@@ -8544,8 +8544,6 @@ impl BingxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let __section_empty = Vec::new();
         let section = section.as_array().unwrap_or(&__section_empty);
         let mut type_var: Value = section.get(0).cloned().unwrap_or(Value::Null);
@@ -8614,8 +8612,8 @@ impl BingxCore {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("?".into()), query).into()), Value::Str("&".into())).into()), Value::Str("signature=".into())).into()), signature).into())).into());
             }
         }
-        let mut bodyResult: Value = (if (requestBody != Value::Null) { requestBody } else { body });
-        let mut headersResult: Value = (if (requestHeaders != Value::Null) { requestHeaders } else { headers });
+        let mut bodyResult: Value = requestBody;
+        let mut headersResult: Value = requestHeaders;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);

@@ -4925,8 +4925,6 @@ impl HitbtcCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
@@ -4951,7 +4949,7 @@ impl HitbtcCore {
                 url = Value::Str(format!("{}{}", url, getRequest).into());
             }
         }
-        let mut bodyResolved: Value = (if (method.as_str() == Some("GET")) { body } else { json_stringify(&params) });
+        let mut bodyResolved: Value = (if (method.as_str() == Some("GET")) { Value::Null } else { json_stringify(&params) });
         if (apiName.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut timestamp: Value = to_string_val(&self.nonce());

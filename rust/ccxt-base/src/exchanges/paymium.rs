@@ -946,8 +946,6 @@ impl PaymiumCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut baseApiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[]);
@@ -973,7 +971,7 @@ impl PaymiumCore {
                 m
             });
             let mut hasQuery: bool = ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64);
-            let mut signedBody: Value = body.clone();
+            let mut signedBody: Value = Value::Null;
             if (method.as_str() == Some("POST")) && hasQuery {
                 signedBody = json_stringify(&query);
             }
@@ -1003,8 +1001,8 @@ impl PaymiumCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), body);
-        m.insert("headers".to_string(), headers);
+        m.insert("body".to_string(), Value::Null);
+        m.insert("headers".to_string(), Value::Null);
     m
 });
 

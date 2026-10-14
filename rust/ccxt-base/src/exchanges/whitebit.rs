@@ -5733,16 +5733,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut version: Value = self.safe_value(api.clone(), Value::Int(0), &[]);
         let mut accessibility: Value = self.safe_string(api, Value::Int(1), &[]);
-        let mut publicHeaders: Value = (if (headers == Value::Null) { Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) } else { headers });
-        add_element_to_object(&mut publicHeaders, &Value::Str("User-Agent".into()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ccxt/".into()), self.id.clone()).into()), Value::Str("-".into())).into()), self.version.clone()).into()));
+        let mut publicHeaders: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
+        if let Value::Dict(__d) = &mut publicHeaders { std::sync::Arc::make_mut(__d).insert("User-Agent".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ccxt/".into()), self.id.clone()).into()), Value::Str("-".into())).into()), self.version.clone()).into())); }
         let mut pathWithParams: Value = Value::Str(format!("{}{}", Value::Str("/".into()), self.implode_params(path, params.clone())).into());
         let mut apiUrl: Value = self.safe_string(get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &version), accessibility.clone(), &[]);
         if (apiUrl == Value::Null) {
@@ -5788,7 +5786,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             });
         }
         let mut isPrivate: bool = accessibility.as_str() == Some("private");
-        let mut requestBody: Value = body;
+        let mut requestBody: Value = Value::Null;
         if isPrivate {
             requestBody = privateBody;
         }

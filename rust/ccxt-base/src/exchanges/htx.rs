@@ -10510,8 +10510,6 @@ impl HtxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let mut signedHeaders: Value = Value::Null;
         let mut signedBody: Value = Value::Null;
         let mut pathString: Value = path.clone();
@@ -10702,8 +10700,8 @@ impl HtxCore {
     m
 })), url).into());
         }
-        let mut headersResolved: Value = (if (signedHeaders != Value::Null) { signedHeaders } else { headers });
-        let mut bodyResolved: Value = (if (signedBody != Value::Null) { signedBody } else { body });
+        let mut headersResolved: Value = signedHeaders;
+        let mut bodyResolved: Value = signedBody;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);

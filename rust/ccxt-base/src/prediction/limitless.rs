@@ -4209,8 +4209,6 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {string[]} [api] the api group and access level
  * @param {string} [method] HTTP method
  * @param {object} [params] request parameters
- * @param {object} [headers] request headers
- * @param {object} [body] request body
  * @returns {object} a dictionary with url, method, body and headers
  */
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
@@ -4220,8 +4218,6 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiGroup: Value = api.get(0).cloned().unwrap_or(Value::Null);
@@ -4235,8 +4231,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (method.as_str() == Some("GET")) && (querystring.as_str() != Some("")) {
             url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), querystring).into())).into());
         }
-        let mut headersValue: Value = headers;
-        let mut bodyValue: Value = body;
+        let mut headersValue: Value = Value::Null;
+        let mut bodyValue: Value = Value::Null;
         if (access.as_str() == Some("private")) {
             let mut bodyString: Value = Value::Str("".into());
             if (headersValue == Value::Null) {

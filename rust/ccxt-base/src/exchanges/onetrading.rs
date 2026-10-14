@@ -2400,8 +2400,6 @@ impl OnetradingCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
@@ -2423,7 +2421,7 @@ impl OnetradingCore {
                     m.insert("Authorization".to_string(), Value::Str(format!("{}{}", Value::Str("Bearer ".into()), self.apiKey.clone()).into()));
                 m
             });
-            let mut bodyJson: Value = (if (method.as_str() == Some("POST")) { json_stringify(&query) } else { body.clone() });
+            let mut bodyJson: Value = (if (method.as_str() == Some("POST")) { json_stringify(&query) } else { Value::Null });
             if (method.as_str() == Some("POST")) {
                 if let Value::Dict(__d) = &mut headersSigned { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
             }  else {
@@ -2444,8 +2442,8 @@ impl OnetradingCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), body);
-        m.insert("headers".to_string(), headers);
+        m.insert("body".to_string(), Value::Null);
+        m.insert("headers".to_string(), Value::Null);
     m
 });
 

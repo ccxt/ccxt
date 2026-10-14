@@ -1719,8 +1719,6 @@ impl BitflyerCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
@@ -1762,8 +1760,8 @@ impl BitflyerCore {
                 m
             });
         }
-        let mut headersResolved: Value = (if (headersSigned == Value::Null) { headers } else { headersSigned });
-        let mut bodyResolved: Value = (if (bodySigned == Value::Null) { body } else { bodySigned });
+        let mut headersResolved: Value = headersSigned;
+        let mut bodyResolved: Value = bodySigned;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);

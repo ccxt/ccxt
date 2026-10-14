@@ -5085,10 +5085,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut requestHeaders: Value = headers;
-        let mut requestBody: Value = body;
+        let mut requestHeaders: Value = Value::Null;
+        let mut requestBody: Value = Value::Null;
         let mut type_var: Value = self.safe_string(api.clone(), Value::Int(0), &[]);
         let mut access: Option<String> = self.safe_string(api, Value::Int(1), &[]).as_str().map(str::to_owned);
         let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), type_var, &[]);

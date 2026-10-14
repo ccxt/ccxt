@@ -1135,8 +1135,6 @@ pub trait ExchangeBase:
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::Null);
@@ -5308,9 +5306,7 @@ pub trait ExchangeBase:
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut config = get_arg(optional_args, 5, Value::Map({
+        let mut config = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
@@ -5349,7 +5345,7 @@ pub trait ExchangeBase:
             }
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 self.set_last_rest_request_timestamp();
-                let mut request: Value = <Self as crate::exchange_generated::ExchangeBase>::sign(self, path.clone(), &[api.clone(), method.clone(), paramsMaxRetriesOnFailureDelay.clone(), headers.clone(), body.clone()]);
+                let mut request: Value = <Self as crate::exchange_generated::ExchangeBase>::sign(self, path.clone(), &[api.clone(), method.clone(), paramsMaxRetriesOnFailureDelay.clone()]);
                 if (fetchData != Value::Null) {
                     add_element_to_object(&mut fetchData, &Value::Str("request".into()), request.clone());
                 }
@@ -5396,13 +5392,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut config = get_arg(optional_args, 5, Value::Map({
+        let mut config = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.fetch2(path, &[api, method, params, headers, body, config]).await;
+        return self.fetch2(path, &[api, method, params, config]).await;
 
     Value::Null
 } }

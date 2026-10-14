@@ -1502,12 +1502,10 @@ impl CoinspotCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut requestHeaders: Value = headers;
-        let mut requestBody: Value = body;
+        let mut requestHeaders: Value = Value::Null;
+        let mut requestBody: Value = Value::Null;
         let mut apiLength: f64 = ((api.len() as i64) as f64);
         let mut isVersionedApi: bool = apiLength > ((1i64) as f64);
         let mut version: Value = (if isVersionedApi { api.get(0).cloned().unwrap_or(Value::Null) } else { Value::Null });

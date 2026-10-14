@@ -1543,8 +1543,6 @@ impl MercadoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
@@ -1585,11 +1583,11 @@ impl MercadoCore {
         }
         let mut requestBody: Value = privateBody;
         if isPublic {
-            requestBody = body;
+            requestBody = Value::Null;
         }
         let mut requestHeaders: Value = privateHeaders;
         if isPublic {
-            requestHeaders = headers;
+            requestHeaders = Value::Null;
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

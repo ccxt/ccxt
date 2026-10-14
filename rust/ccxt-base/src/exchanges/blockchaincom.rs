@@ -1768,8 +1768,6 @@ impl BlockchaincomCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut requestPath: Value = Value::Str(format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone())).into());
@@ -1786,12 +1784,12 @@ impl BlockchaincomCore {
                 m.insert("X-API-Token".to_string(), self.secret.clone());
             m
         });
-        let mut requestHeaders: Value = headers;
+        let mut requestHeaders: Value = Value::Null;
         if isPrivate {
             requestHeaders = privateHeaders.clone();
         }
         let mut isPrivatePost: bool = isPrivate && (method.as_str() != Some("GET"));
-        let mut requestBody: Value = body;
+        let mut requestBody: Value = Value::Null;
         if isPrivatePost {
             requestBody = json_stringify(&query);
         }

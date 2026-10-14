@@ -9693,8 +9693,6 @@ impl OkxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
@@ -9767,11 +9765,11 @@ impl OkxCore {
             let mut signature: Value = self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
             add_element_to_object(&mut privateHeaders, &Value::Str("OK-ACCESS-SIGN".into()), signature);
         }
-        let mut requestBody: Value = body;
+        let mut requestBody: Value = Value::Null;
         if hasJsonBody {
             requestBody = jsonBody;
         }
-        let mut requestHeaders: Value = (if (apiName.as_str() == Some("private")) { privateHeaders } else { headers });
+        let mut requestHeaders: Value = (if (apiName.as_str() == Some("private")) { privateHeaders } else { Value::Null });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);

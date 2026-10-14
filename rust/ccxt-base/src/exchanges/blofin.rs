@@ -4904,8 +4904,6 @@ impl BlofinCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
@@ -4950,7 +4948,7 @@ impl BlofinCore {
             let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&request, &method), timestamp).into()), timestamp).into()), sign_body).into());
             let mut signature: Value = self.string_to_base64(self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]), &[]);
             if let Value::Dict(__d) = &mut signedHeaders { std::sync::Arc::make_mut(__d).insert("ACCESS-SIGN".into(), signature); }
-            let mut bodyResolved: Value = (if (signedBody == Value::Null) { body.clone() } else { signedBody });
+            let mut bodyResolved: Value = signedBody;
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url.clone());
@@ -4964,8 +4962,8 @@ impl BlofinCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), body);
-        m.insert("headers".to_string(), headers);
+        m.insert("body".to_string(), Value::Null);
+        m.insert("headers".to_string(), Value::Null);
     m
 });
 

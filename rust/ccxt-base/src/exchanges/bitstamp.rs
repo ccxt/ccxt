@@ -4366,8 +4366,6 @@ impl BitstampCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
@@ -4391,7 +4389,7 @@ impl BitstampCore {
         if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
             postBody = self.urlencode(query.clone(), &[]);
         }
-        let mut requestBody: Value = body;
+        let mut requestBody: Value = Value::Null;
         if isPrivatePost {
             requestBody = postBody;
         }
@@ -4427,7 +4425,7 @@ impl BitstampCore {
             let mut signature: Value = self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
             add_element_to_object(&mut privateHeaders, &Value::Str("X-Auth-Signature".into()), signature);
         }
-        let mut requestHeaders: Value = (if (apiName.as_str() == Some("public")) { headers } else { privateHeaders });
+        let mut requestHeaders: Value = (if (apiName.as_str() == Some("public")) { Value::Null } else { privateHeaders });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);

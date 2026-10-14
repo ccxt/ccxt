@@ -4106,8 +4106,6 @@ impl NadoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut requestBody: Value = Value::Null;
@@ -4136,7 +4134,7 @@ impl NadoCore {
             if let Value::Dict(__d) = &mut headersValue { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
             requestBody = json_stringify(&query);
         }
-        let mut bodyResult: Value = (if (requestBody != Value::Null) { requestBody } else { body });
+        let mut bodyResult: Value = requestBody;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);

@@ -2972,8 +2972,6 @@ impl UpbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
@@ -2994,7 +2992,7 @@ impl UpbitCore {
             }
         }
         let mut hasBody: bool = (apiName.as_str() == Some("private")) && (method.as_str() != Some("GET")) && (method.as_str() != Some("DELETE"));
-        let mut requestBody: Value = body;
+        let mut requestBody: Value = Value::Null;
         if hasBody {
             requestBody = json_stringify(&params);
         }
@@ -3028,7 +3026,7 @@ impl UpbitCore {
             let mut token: Value = jwt(request, self.encode(self.secret.clone()), Value::Str("sha256".into()), Value::Bool(false), Value::Null);
             add_element_to_object(&mut privateHeaders, &Value::Str("Authorization".into()), Value::Str(format!("{}{}", Value::Str("Bearer ".into()), token).into()));
         }
-        let mut requestHeaders: Value = (if (apiName.as_str() == Some("private")) { privateHeaders } else { headers });
+        let mut requestHeaders: Value = (if (apiName.as_str() == Some("private")) { privateHeaders } else { Value::Null });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);

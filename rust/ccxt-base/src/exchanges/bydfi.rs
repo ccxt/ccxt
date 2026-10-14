@@ -4004,8 +4004,6 @@ impl BydfiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
@@ -4053,8 +4051,8 @@ impl BydfiCore {
             }
         }
         url = Value::Str(format!("{}{}", url, endpoint).into());
-        let mut bodyResolved: Value = (if (requestBody == Value::Null) { body } else { requestBody });
-        let mut headersResolved: Value = (if (requestHeaders == Value::Null) { headers } else { requestHeaders });
+        let mut bodyResolved: Value = requestBody;
+        let mut headersResolved: Value = requestHeaders;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);

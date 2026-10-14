@@ -2639,8 +2639,6 @@ impl BigoneCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
@@ -2682,7 +2680,7 @@ impl BigoneCore {
             }
         }
         if let Value::Dict(__d) = &mut headersValue { std::sync::Arc::make_mut(__d).insert("User-Agent".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ccxt/".into()), self.id.clone()).into()), Value::Str("-".into())).into()), self.version.clone()).into())); }
-        let mut bodyResolved: Value = (if (bodySigned == Value::Null) { body } else { bodySigned });
+        let mut bodyResolved: Value = bodySigned;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);

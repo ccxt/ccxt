@@ -4144,8 +4144,6 @@ impl PolymarketCore {
  * @param {string[]} api the api group and access level
  * @param {string} method the http method
  * @param {object} params the request parameters
- * @param {object} [headers] request headers
- * @param {string} [body] the request body
  * @returns {object} a dict with url, method, body and headers
  */
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
@@ -4155,8 +4153,6 @@ impl PolymarketCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let mut apiGroup: Value = api.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut access: Option<String> = self.safe_string(api, Value::Int(1), &[Value::Str("public".into())]).as_str().map(str::to_owned);
         let mut baseUrls: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null);
@@ -4177,7 +4173,7 @@ impl PolymarketCore {
         if !isArrayBody {
             query = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         }
-        let mut bodyValue: Value = body;
+        let mut bodyValue: Value = Value::Null;
         if (method.as_str() == Some("GET")) {
             // array-valued params must repeat the key (gamma's clob_token_ids rejects
             // comma-joined ids); scalar-only queries keep the plain encoder — the repeat
@@ -4211,10 +4207,10 @@ impl PolymarketCore {
                 bodyValue = json_stringify(&query);
             }
         }
-        let mut headerDefaults: Value = (if (headers != Value::Null) { headers } else { Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
+        let mut headerDefaults: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         let mut headersValue: Value = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("Accept".to_string(), Value::Str("application/json".into()));

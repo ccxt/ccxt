@@ -4950,8 +4950,6 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {string[]} [api] the API group and access level
  * @param {string} [method] HTTP method
  * @param {object} [params] request parameters
- * @param {object} [headers] request headers
- * @param {object} [body] request body
  * @returns {object} a dictionary with url, method, body and headers
  */
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
@@ -4961,8 +4959,6 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         // the venue authenticates every endpoint, so the key is required up front rather than
@@ -4983,10 +4979,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
             }
         }
-        let mut existingHeaders: Value = (if (headers != Value::Null) { headers } else { Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
+        let mut existingHeaders: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         let mut headersValue: Value = existingHeaders;
         let mut authHeaders: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -5011,7 +5007,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (jwtToken != Value::Null) && self.in_array(path, walletPaths).as_bool() == Some(true) {
             if let Value::Dict(__d) = &mut authHeaders { std::sync::Arc::make_mut(__d).insert("Authorization".into(), Value::Str(format!("{}{}", Value::Str("Bearer ".into()), jwtToken).into())); }
         }
-        let mut bodyValue: Value = body;
+        let mut bodyValue: Value = Value::Null;
         if (method.as_str() != Some("GET")) {
             if !(sandboxMode.as_bool() == Some(true)) {
                 self.check_required_credentials(&[]);

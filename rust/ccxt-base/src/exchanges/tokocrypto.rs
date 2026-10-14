@@ -3289,8 +3289,6 @@ impl TokocryptoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
@@ -3316,7 +3314,7 @@ impl TokocryptoCore {
                         m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                     m
                 });
-                let mut bodyStream: Value = (if (method.as_str() != Some("GET")) { self.urlencode(params.clone(), &[]) } else { body.clone() });
+                let mut bodyStream: Value = (if (method.as_str() != Some("GET")) { self.urlencode(params.clone(), &[]) } else { Value::Null });
                 return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url.clone());
@@ -3362,7 +3360,7 @@ impl TokocryptoCore {
             let mut queryInUrl: bool = (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) || (apiName.as_str() == Some("wapi"));
             let mut bodySigned: Value = query.clone();
             if queryInUrl {
-                bodySigned = body.clone();
+                bodySigned = Value::Null;
             }
             if queryInUrl {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), query).into())).into());
@@ -3386,8 +3384,8 @@ impl TokocryptoCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), body);
-        m.insert("headers".to_string(), headers);
+        m.insert("body".to_string(), Value::Null);
+        m.insert("headers".to_string(), Value::Null);
     m
 });
 

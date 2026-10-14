@@ -2764,8 +2764,6 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
@@ -2782,7 +2780,7 @@ impl ApexCore {
             m
         });
         let mut signPath: Value = Value::Str(format!("{}{}", Value::Str("/api/".into()), path).into());
-        let mut signBody: Value = body;
+        let mut signBody: Value = Value::Null;
         if (to_upper(&method).as_str() != Some("POST")) {
             if ((object_keys(&params).len() as i64) as f64) > ((0i64) as f64) {
                 signPath = Value::Str(format!("{}{}", signPath, Value::Str(format!("{}{}", Value::Str("?".into()), self.rawencode(params.clone(), &[])).into())).into());

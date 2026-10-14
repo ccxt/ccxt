@@ -452,8 +452,6 @@ impl RevolutxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut requestHeaders: Value = Value::Null;
@@ -487,7 +485,7 @@ impl RevolutxCore {
                 requestBody = json_stringify(&query);
             }
             let mut requestPath: Value = Value::Str(format!("{}{}", Value::Str("/api/".into()), implodedPath).into());
-            let mut bodyValue: Value = (if (requestBody != Value::Null) { requestBody.clone() } else { body.clone() });
+            let mut bodyValue: Value = requestBody.clone();
             let mut bodyString: Value = (if (bodyValue != Value::Null) { bodyValue } else { Value::Str("".into()) });
             let mut message: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, to_upper(&method)).into()), requestPath).into()), queryString).into()), bodyString).into());
             let mut signature: Value = eddsa(self.encode(message), self.privateKey.clone(), Value::Str("ed25519".into()));
@@ -516,8 +514,8 @@ impl RevolutxCore {
                 });
             }
         }
-        let mut headersResult: Value = (if (requestHeaders != Value::Null) { requestHeaders } else { headers });
-        let mut bodyResult: Value = (if (requestBody != Value::Null) { requestBody } else { body });
+        let mut headersResult: Value = requestHeaders;
+        let mut bodyResult: Value = requestBody;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);

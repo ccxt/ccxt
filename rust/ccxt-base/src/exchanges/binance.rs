@@ -17637,8 +17637,6 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
@@ -17769,8 +17767,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(params.clone(), &[])).into())).into());
             }
         }
-        let mut headersResolved: Value = (if (signedHeaders != Value::Null) { signedHeaders } else { headers });
-        let mut bodyResolved: Value = (if (signedBody != Value::Null) { signedBody } else { body });
+        let mut headersResolved: Value = signedHeaders;
+        let mut bodyResolved: Value = signedBody;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
@@ -17947,13 +17945,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut config = get_arg(optional_args, 5, Value::Map({
+        let mut config = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.fetch2(path, &[api.clone(), method, params, headers, body, config]).await;
+        let mut response: Value = self.fetch2(path, &[api.clone(), method, params, config]).await;
         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
         if (api.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).as_str() == Some("private")) {
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("hasAlreadyAuthenticatedSuccessfully".into(), Value::Bool(true)); }

@@ -5095,11 +5095,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut requestBody: Value = body;
+        let mut requestBody: Value = Value::Null;
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
         let mut urlKey: Value = Value::Str("api".into());
         if is_true(&isTestnet) {

@@ -4883,10 +4883,8 @@ impl ExtendedCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut requestHeaders: Value = headers;
-        let mut requestBody: Value = body;
+        let mut requestHeaders: Value = Value::Null;
+        let mut requestBody: Value = Value::Null;
         let mut version: Value = self.safe_string(api.clone(), Value::Int(0), &[]);
         let mut accessibility: Option<String> = self.safe_string(api, Value::Int(1), &[]).as_str().map(str::to_owned);
         let mut endpoint: Value = Value::Str(format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone())).into());

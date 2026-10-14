@@ -3117,8 +3117,6 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiGroup: Value = api.get(0).cloned().unwrap_or(Value::Null);
@@ -3138,8 +3136,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             baseUrl = self.safe_string(apiUrls.clone(), apiGroup, &[self.safe_string_k(apiUrls.clone(), "public", &[Value::Str("".into())])]);
         }
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("/".into())).into()), path).into());
-        let mut headersValue: Value = headers;
-        let mut bodyValue: Value = body;
+        let mut headersValue: Value = Value::Null;
+        let mut bodyValue: Value = Value::Null;
         if (method.as_str() == Some("POST")) {
             headersValue = Value::Map({
                 let mut m = indexmap::IndexMap::new();

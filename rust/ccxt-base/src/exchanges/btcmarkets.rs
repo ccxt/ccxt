@@ -1925,8 +1925,6 @@ impl BtcmarketsCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
@@ -1968,8 +1966,8 @@ impl BtcmarketsCore {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
         let mut url: Value = Value::Str(format!("{}{}", apiUrl, request).into());
-        let mut headersResult: Value = (if (requestHeaders != Value::Null) { requestHeaders } else { headers });
-        let mut bodyResult: Value = (if (requestBody != Value::Null) { requestBody } else { body });
+        let mut headersResult: Value = requestHeaders;
+        let mut bodyResult: Value = requestBody;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);

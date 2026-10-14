@@ -1473,8 +1473,6 @@ impl BtcturkCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
@@ -1494,7 +1492,7 @@ impl BtcturkCore {
         }
         let mut requestBody: Value = Value::Null;
         if isQueryMethod {
-            requestBody = body;
+            requestBody = Value::Null;
         }  else {
             requestBody = json_stringify(&params);
         }
@@ -1513,7 +1511,7 @@ impl BtcturkCore {
                 m
             });
         }
-        let mut requestHeaders: Value = (if (privateHeaders != Value::Null) { privateHeaders } else { headers });
+        let mut requestHeaders: Value = privateHeaders;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
