@@ -1929,7 +1929,7 @@ export default class hashkey extends Exchange {
             'coin': currency['id'],
         };
         const [ networkCodeInParams, paramsNetworkCode ] = this.handleNetworkCodeAndParams (params);
-        const networkCode: Str = (networkCodeInParams === undefined) ? this.defaultNetworkCode (code) : networkCodeInParams;
+        const networkCode: Str = (networkCodeInParams === undefined) ? this.safeString (this.safeDict (this.options, 'defaultNetworks', {}), code, this.safeString (this.options, 'defaultNetwork')) : networkCodeInParams;
         request['chainType'] = this.networkCodeToId (networkCode, code);
         const response = await this.privateGetApiV1AccountDepositAddress (this.extend (request, paramsNetworkCode));
         //

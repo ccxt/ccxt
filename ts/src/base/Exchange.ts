@@ -4080,8 +4080,9 @@ export class BaseExchange {
     }
 
     afterConstruct (userConfig: Dict = {}) {
-        // networks
-        this.createNetworksByIdObject ();
+        // networksById: inverse of options.networks, explicit options.networksById entries win
+        const networkIdsToCodesGenerated = this.invertFlatStringDictionary (this.safeValue (this.options, 'networks', {}));
+        this.options['networksById'] = this.extend (networkIdsToCodesGenerated, this.safeValue (this.options, 'networksById', {}));
         this.featuresGenerator ();
         // init predefined markets if any
         if (this.markets !== undefined) {
@@ -4315,12 +4316,6 @@ export class BaseExchange {
             throw new ArgumentsRequired (this.id + ' orderbookChecksumMessage() requires a symbol argument');
         }
         return symbol + ' : ' + 'orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options["watchOrderBook"]["checksum"] = false';
-    }
-
-    createNetworksByIdObject () {
-        // automatically generate network-id-to-code mappings
-        const networkIdsToCodesGenerated = this.invertFlatStringDictionary (this.safeValue (this.options, 'networks', {})); // invert defined networks dictionary
-        this.options['networksById'] = this.extend (networkIdsToCodesGenerated, this.safeValue (this.options, 'networksById', {})); // support manually overriden "networksById" dictionary too
     }
 
     getDefaultOptions () {
@@ -5943,30 +5938,6 @@ export class BaseExchange {
         return [ networkCodeInParams, paramsOmitted ];
     }
 
-    defaultNetworkCode (currencyCode: string): Str {
-        let defaultNetworkCode: Str = undefined;
-        const defaultNetworks = this.safeDict (this.options, 'defaultNetworks', {});
-        if (currencyCode in defaultNetworks) {
-            // if currency had set its network in "defaultNetworks", use it
-            defaultNetworkCode = defaultNetworks[currencyCode];
-        } else {
-            // otherwise, try to use the global-scope 'defaultNetwork' value (even if that network is not supported by currency, it doesn't make any problem, this will be just used "at first" if currency supports this network at all)
-            const defaultNetwork = this.safeString (this.options, 'defaultNetwork');
-            if (defaultNetwork !== undefined) {
-                defaultNetworkCode = defaultNetwork;
-            }
-        }
-        return defaultNetworkCode;
-    }
-
-    selectNetworkCodeFromUnifiedNetworks (currencyCode: string, networkCode: any, indexedNetworkEntries: any): Str {
-        return this.selectNetworkKeyFromNetworks (currencyCode, networkCode, indexedNetworkEntries, true);
-    }
-
-    selectNetworkIdFromRawNetworks (currencyCode: string, networkCode: any, indexedNetworkEntries: any): Str {
-        return this.selectNetworkKeyFromNetworks (currencyCode, networkCode, indexedNetworkEntries, false);
-    }
-
     selectNetworkKeyFromNetworks (currencyCode: string, networkCode: Str, indexedNetworkEntries: any, isIndexedByUnifiedNetworkCode = false): Str {
         // this method is used against raw & unparse network entries, which are just indexed by network id
         let chosenNetworkId: Str = undefined;
@@ -5992,7 +5963,7 @@ export class BaseExchange {
                 throw new NotSupported (this.id + ' - no networks were returned for ' + currencyCode);
             } else {
                 // if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
-                const defaultNetworkCode = this.defaultNetworkCode (currencyCode);
+                const defaultNetworkCode = this.safeString (this.safeDict (this.options, 'defaultNetworks', {}), currencyCode, this.safeString (this.options, 'defaultNetwork'));
                 const defaultNetworkId = isIndexedByUnifiedNetworkCode ? defaultNetworkCode : this.networkCodeToId (defaultNetworkCode, currencyCode);
                 if (defaultNetworkId === undefined) {
                     throw new ExchangeError (this.id + ' selectNetworkKeyFromNetworks() missing defaultNetworkId');
@@ -6322,24 +6293,6 @@ export class BaseExchange {
         const value = this.safeBool2 (params, paramName1, paramName2, defaultValue);
         const paramsOmitted = (value !== undefined) ? this.omit (params, [ paramName1, paramName2 ]) : params;
         return [ value, paramsOmitted ];
-    }
-
-    /**
-     * @param {object} params - extra parameters
-     * @param {object} request - existing dictionary of request
-     * @param {string} exchangeSpecificKey - the key for chain id to be set in request
-     * @param {object} currencyCode - (optional) existing dictionary of request
-     * @param {boolean} isRequired - (optional) whether that param is required to be present
-     * @returns {object[]} - returns [request, params] where request is the modified request object and params is the modified params object
-     */
-    handleRequestNetwork (params: Dict, request: Dict, exchangeSpecificKey: string, currencyCode:Str = undefined, isRequired: boolean = false): Dict[] {
-        const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (params);
-        if (networkCode !== undefined) {
-            request[exchangeSpecificKey] = this.networkCodeToId (networkCode, currencyCode);
-        } else if (isRequired) {
-            throw new ArgumentsRequired (this.id + ' - "network" param is required for this request');
-        }
-        return [ request, paramsNetworkCode ];
     }
 
     resolvePath (path: any, params: any): any[] {
