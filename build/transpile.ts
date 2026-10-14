@@ -2522,7 +2522,8 @@ class Transpiler {
                         const annotation = parts[1].trim ()
                         const defaultIndex = annotation.indexOf (' = ')
                         const typeExpression = (defaultIndex === -1) ? annotation : annotation.slice (0, defaultIndex)
-                        const defaultExpression = (defaultIndex === -1) ? '' : annotation.slice (defaultIndex)
+                        // PEP8 E201/E202: list/dict defaults carry ts bracket padding (`[ 'public' ]`)
+                        const defaultExpression = (defaultIndex === -1) ? '' : annotation.slice (defaultIndex).replace (/([\[{]) +/g, '$1').replace (/ +([\]}])/g, '$1')
                         const rawType = unwrapLists (typeExpression.trim ())
                         return variable + ': ' + rawType + defaultExpression
                     } else {
