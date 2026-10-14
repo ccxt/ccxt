@@ -2066,7 +2066,12 @@ public class Paradex extends ParadexApi
         //
         Long timestamp = this.safeInteger(order, "created_at");
         String orderId = this.safeString(order, "id");
-        String clientOrderId = this.omitZero(this.safeString(order, "client_id"));
+        // a client id is free text, omitZero would drop every non-numeric one in php
+        String clientOrderId = this.safeString(order, "client_id");
+        if (java.util.Objects.equals(clientOrderId, ""))
+        {
+            clientOrderId = null;
+        }
         String marketId = this.safeString(order, "market");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = (String) marketResolved.get("symbol");

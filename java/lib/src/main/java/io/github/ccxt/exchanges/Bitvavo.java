@@ -2098,7 +2098,7 @@ public class Bitvavo extends BitvavoApi
                 request.put("operatorId", this.parseToInt(operatorId));
             } else
             {
-                throw new ArgumentsRequired((this.id + " canceAllOrders() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
+                throw new ArgumentsRequired((this.id + " cancelAllOrders() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
             }
             List<Object> response = (this.privateDeleteOrders(this.extend(request, paramsOperatorId))).join();
             //
