@@ -1028,10 +1028,7 @@ func (this *BaseExchange) transformApiNew(api Dict, paths ...string) {
 					path = strings.ToLower(string(path[0])) + path[1:]
 				}
 
-				apiObj := any(paths)
-				if len(paths) == 1 {
-					apiObj = paths[0]
-				}
+				apiObj := append([]string{}, paths...)
 
 				this.TransformedApi[path] = map[string]any{
 					"method": strings.ToUpper(key),

@@ -3609,7 +3609,7 @@ class cryptocom extends cryptocom$1["default"] {
             'tierBased': undefined,
         };
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
         let requestHeaders = headers;
         let requestBody = body;
         const type = this.safeString(api, 0);

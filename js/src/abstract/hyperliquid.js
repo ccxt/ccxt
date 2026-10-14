@@ -8,10 +8,10 @@
 import { Exchange as _Exchange } from '../base/Exchange.js';
 class Exchange extends _Exchange {
     publicPostInfo(params = {}) {
-        return this.request("info", "public", 'POST', params, undefined, undefined, { "cost": 10, "byType": { "l2Book": 2, "allMids": 2, "clearinghouseState": 2, "orderStatus": 2, "spotClearinghouseState": 2, "exchangeStatus": 2, "candleSnapshot": 4 } });
+        return this.request('info', ['public'], 'POST', params, undefined, undefined, { 'cost': 10, 'byType': { 'l2Book': 2, 'allMids': 2, 'clearinghouseState': 2, 'orderStatus': 2, 'spotClearinghouseState': 2, 'exchangeStatus': 2, 'candleSnapshot': 4 } });
     }
     privatePostExchange(params = {}) {
-        return this.request("exchange", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('exchange', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
 }
 export default Exchange;

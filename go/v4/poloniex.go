@@ -5166,7 +5166,7 @@ func (this *Poloniex) Nonce() any {
 	return this.Milliseconds()
 }
 func (this *Poloniex) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -5176,9 +5176,10 @@ func (this *Poloniex) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var isArray bool = IsArray(params)
 	var url any = GetValue(this.Urls["api"], "spot")
-	if this.InArray(api, []any{"swapPublic", "swapPrivate"}) {
+	if this.InArray(apiName, []any{"swapPublic", "swapPrivate"}) {
 		url = GetValue(this.Urls["api"], "swap")
 	}
 	if (method == "GET") && (InOp(params, "symbol")) {
@@ -5188,7 +5189,7 @@ func (this *Poloniex) Sign(path string, optionalArgs ...any) any {
 	var implodedPath string = this.ImplodeParams(path, params)
 	var bodyJson any = nil
 	var signedHeaders any = nil
-	if (api == "public") || (api == "swapPublic") {
+	if (apiName != nil && *apiName == "public") || (apiName != nil && *apiName == "swapPublic") {
 		url = Add(url, "/"+implodedPath)
 		if len(ObjectKeys(query)) > 0 {
 			url = Add(url, "?"+this.Urlencode(query))

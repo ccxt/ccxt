@@ -421,7 +421,7 @@ export default class bullish extends Exchange {
      */
     fetchOpenInterest(symbol: string, params?: Dict): Promise<OpenInterest>;
     parseOpenInterest(interest: any, market?: Market): OpenInterest;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     /**
      * @method
      * @name bullish#signIn

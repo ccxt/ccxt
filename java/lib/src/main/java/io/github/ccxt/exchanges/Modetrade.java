@@ -3773,8 +3773,8 @@ public class Modetrade extends ModetradeApi
 
     public Object sign(Object path, Object section, Object method, Object parameters, Object headers, String body)
     {
-        Object version = Helpers.GetValue(java.util.Objects.requireNonNullElse(section, "public"), 0);
-        Object access = Helpers.GetValue(java.util.Objects.requireNonNullElse(section, "public"), 1);
+        Object version = (section == null || 0 >= ((List<?>)section).size() ? null : ((List<?>)section).get(0));
+        Object access = (section == null || 1 >= ((List<?>)section).size() ? null : ((List<?>)section).get(1));
         String pathWithParams = (String) this.implodeParams(path, parameters);
         String apiUrl = this.safeString(this.urls.get("api"), access);
         if (java.util.Objects.equals(apiUrl, null))

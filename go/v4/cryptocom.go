@@ -4849,7 +4849,7 @@ func (this *Cryptocom) ParseTradingFee(fee any, optionalArgs ...any) map[string]
 	}
 }
 func (this *Cryptocom) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method

@@ -4192,8 +4192,8 @@ public class Extended extends ExtendedApi
     {
         Object requestHeaders = headers;
         String requestBody = body;
-        String version = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 0);
-        String accessibility = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 1);
+        String version = this.safeString(api, 0);
+        String accessibility = this.safeString(api, 1);
         String endpoint = ("/" + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         Boolean queryPost = (java.util.Objects.equals(path, "user/deadmanswitch"));

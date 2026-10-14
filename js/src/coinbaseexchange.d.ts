@@ -323,7 +323,7 @@ export default class coinbaseexchange extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     createDepositAddress(code: string, params?: Dict): Promise<DepositAddress>;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    request(path: string, api?: string, method?: string, params?: Dict, headers?: any, body?: any, config?: Dict): Promise<any>;
+    request(path: string, api?: string[], method?: string, params?: Dict, headers?: any, body?: any, config?: Dict): Promise<any>;
 }

@@ -2317,7 +2317,7 @@ func (this *Luno) fetchDepositWithdrawFeeBody(ch chan AsyncResult[any], code str
 	return nil
 }
 func (this *Luno) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -2327,7 +2327,8 @@ func (this *Luno) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -2337,7 +2338,7 @@ func (this *Luno) Sign(path string, optionalArgs ...any) any {
 	if len(ObjectKeys(query)) > 0 {
 		url += "?" + this.Urlencode(query)
 	}
-	if (api == "private") || (api == "exchangePrivate") {
+	if (apiName != nil && *apiName == "private") || (apiName != nil && *apiName == "exchangePrivate") {
 		this.CheckRequiredCredentials()
 		var auth string = this.StringToBase64(Add(Add(this.ApiKey, ":"), this.Secret))
 		requestHeaders = map[string]any{

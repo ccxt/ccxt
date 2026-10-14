@@ -1145,7 +1145,7 @@ func (this *Zaif) CustomNonce() any {
 	return ToFixed(nonce, 8)
 }
 func (this *Zaif) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -1155,21 +1155,22 @@ func (this *Zaif) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var baseApiUrl *string = this.SafeString(this.Urls["api"], "rest")
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var baseUrl *string = baseApiUrl
 	var url string = *baseUrl + "/"
-	if api == "public" {
+	if apiName != nil && *apiName == "public" {
 		url += "api/" + this.Version + "/" + this.ImplodeParams(path, params)
-	} else if api == "fapi" {
+	} else if apiName != nil && *apiName == "fapi" {
 		url += "fapi/" + this.Version + "/" + this.ImplodeParams(path, params)
 	} else {
 		this.CheckRequiredCredentials()
-		if api == "ecapi" {
+		if apiName != nil && *apiName == "ecapi" {
 			url += "ecapi"
-		} else if api == "tlapi" {
+		} else if apiName != nil && *apiName == "tlapi" {
 			url += "tlapi"
 		} else {
 			url += "tapi"

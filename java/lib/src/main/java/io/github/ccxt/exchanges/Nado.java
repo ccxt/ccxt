@@ -3577,11 +3577,7 @@ public class Nado extends NadoApi
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
         String requestBody = null;
-        Object endpoint = Helpers.GetValue(api, 0);
-        if ((api instanceof String))
-        {
-            endpoint = api;
-        }
+        Object endpoint = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String baseApiUrl = this.safeString(this.urls.get("api"), endpoint);
         if (java.util.Objects.equals(baseApiUrl, null))
         {

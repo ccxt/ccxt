@@ -4283,18 +4283,19 @@ export default class aster extends Exchange {
         const v = this.intToBase16(this.sum(27, signature['v']));
         return '0x' + r.padStart(64, '0') + s.padStart(64, '0') + v;
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const baseApiUrl = this.safeString(this.urls['api'], api);
+    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const apiName = api[0];
+        const baseApiUrl = this.safeString(this.urls['api'], apiName);
         if (baseApiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         let url = baseApiUrl + '/' + path;
-        if (api === 'fapiPublic' || api === 'sapiPublic') {
+        if (apiName === 'fapiPublic' || apiName === 'sapiPublic') {
             if (Object.keys(params).length > 0) {
                 url += '?' + this.rawencode(params);
             }
         }
-        else if (api === 'fapiPrivate' || api === 'sapiPrivate') {
+        else if (apiName === 'fapiPrivate' || apiName === 'sapiPrivate') {
             this.checkRequiredCredentials();
             const nonce = this.milliseconds() * 1000;
             // Sign using EIP-712 typed data per the AsterSignTransaction spec

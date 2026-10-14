@@ -3916,7 +3916,7 @@ func (this *Bitstamp) fetchDepositAddressBody(ch chan AsyncResult[any], code str
 	// the per-currency implicit methods (privatePostBtcAddress etc.) all route
 	// through request(), called here directly to avoid dynamic dispatch
 
-	r := <-this.RequestAsync(name+"_address/", "private", "POST", params)
+	r := <-this.RequestAsync(name+"_address/", []any{"private"}, "POST", params)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -3991,7 +3991,7 @@ func (this *Bitstamp) withdrawBody(ch chan EndpointResult[map[string]any], code 
 		// the per-currency implicit methods (privatePostBtcWithdrawal etc.) all
 		// route through request(), called here directly to avoid dynamic dispatch
 
-		r1 := <-this.RequestAsync(name+"_withdrawal/", "private", "POST", this.Extend(request, paramsWithdrawTag))
+		r1 := <-this.RequestAsync(name+"_withdrawal/", []any{"private"}, "POST", this.Extend(request, paramsWithdrawTag))
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
@@ -4113,7 +4113,7 @@ func (this *Bitstamp) Nonce() any {
 	return this.Milliseconds()
 }
 func (this *Bitstamp) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -4123,7 +4123,8 @@ func (this *Bitstamp) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -4131,7 +4132,7 @@ func (this *Bitstamp) Sign(path string, optionalArgs ...any) any {
 	url += this.Version + "/"
 	url += this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var isPrivatePost bool = (api != "public") && (method == "POST")
+	var isPrivatePost bool = (apiName == nil || *apiName != "public") && (method == "POST")
 	// an empty POST triggers an API0020 error, so empty requests send a dummy object
 	// https://github.com/ccxt/ccxt/issues/6846
 	var emptyPostBody string = this.Urlencode(map[string]any{
@@ -4146,7 +4147,7 @@ func (this *Bitstamp) Sign(path string, optionalArgs ...any) any {
 		requestBody = postBody
 	}
 	var privateHeaders any = nil
-	if api == "public" {
+	if apiName != nil && *apiName == "public" {
 		if len(ObjectKeys(query)) > 0 {
 			url += "?" + this.Urlencode(query)
 		}
@@ -4176,7 +4177,7 @@ func (this *Bitstamp) Sign(path string, optionalArgs ...any) any {
 		AddElementToObject(privateHeaders, "X-Auth-Signature", signature)
 	}
 	var requestHeaders any = func() any {
-		if api == "public" {
+		if apiName != nil && *apiName == "public" {
 			return headers
 		}
 		return privateHeaders

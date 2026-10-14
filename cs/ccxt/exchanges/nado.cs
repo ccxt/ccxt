@@ -3397,10 +3397,6 @@ public partial class nado : Exchange
         parameters ??= new Dictionary<string, object>();
         string? requestBody = null;
         object endpoint = getValue(api, 0);
-        if ((api is string))
-        {
-            endpoint = api;
-        }
         string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), endpoint);
         if ((baseApiUrl == null))
         {

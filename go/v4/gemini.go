@@ -2897,7 +2897,7 @@ func (this *Gemini) fetchDepositAddressesByNetworkBody(ch chan EndpointResult[ma
 	return nil
 }
 func (this *Gemini) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -2907,10 +2907,11 @@ func (this *Gemini) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var url string = "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var headersSigned any = nil
-	if api == "private" {
+	if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		var apiKey any = this.ApiKey
 		if GetIndexOf(apiKey, "account") < 0 {
@@ -2937,13 +2938,13 @@ func (this *Gemini) Sign(path string, optionalArgs ...any) any {
 			url += "?" + this.Urlencode(query)
 		}
 	}
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var fullUrl string = *apiUrl + url
 	var headersResolved any = func() any {
-		if api == "private" {
+		if apiName != nil && *apiName == "private" {
 			return headersSigned
 		}
 		return headers

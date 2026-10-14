@@ -3051,7 +3051,7 @@ func (this *Alpaca) ParseBalance(response any) map[string]any {
 	return this.SafeBalance(result).(map[string]any)
 }
 func (this *Alpaca) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method

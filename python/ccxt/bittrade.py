@@ -1937,19 +1937,20 @@ class bittrade(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        apiName = api[0]
         requestHeaders = None
         requestBody = None
         url = '/'
-        if api == 'market':
+        if apiName == 'market':
             url += 'market'
-        elif (api == 'public') or (api == 'private'):
+        elif (apiName == 'public') or (apiName == 'private'):
             url += self.version
-        elif (api == 'v2Public') or (api == 'v2Private'):
+        elif (apiName == 'v2Public') or (apiName == 'v2Private'):
             url += 'v2'
         url += '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        if api == 'private' or api == 'v2Private':
+        if apiName == 'private' or apiName == 'v2Private':
             self.check_required_credentials()
             timestamp = self.ymdhms(self.milliseconds(), 'T')
             request = {
@@ -1981,7 +1982,7 @@ class bittrade(Exchange, ImplicitAPI):
         else:
             if len(params) > 0:
                 url += '?' + self.urlencode(params)
-        baseApiUrl = self.safe_string(self.urls['api'], api)
+        baseApiUrl = self.safe_string(self.urls['api'], apiName)
         if baseApiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = self.implode_params(baseApiUrl, {

@@ -9278,18 +9278,20 @@ public class Htx extends HtxApi
         {
             query = this.omit(parameters, this.extractParams(path));
         }
-        if ((java.util.Objects.requireNonNullElse(api, "public") instanceof String))
+        Integer apiLength = ((List<?>)api).size();
+        if (java.util.Objects.equals(apiLength, 1))
         {
             // signing implementation for the old endpoints
-            if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private")))
+            Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+            if ((java.util.Objects.equals(apiName, "public")) || (java.util.Objects.equals(apiName, "private")))
             {
                 url = Helpers.add(url, this.version);
-            } else if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "v2Public")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "v2Private")))
+            } else if ((java.util.Objects.equals(apiName, "v2Public")) || (java.util.Objects.equals(apiName, "v2Private")))
             {
                 url = (url + "v2");
             }
             url = (url + ("/" + this.implodeParams(path, parameters)));
-            if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "v2Private"))
+            if (java.util.Objects.equals(apiName, "private") || java.util.Objects.equals(apiName, "v2Private"))
             {
                 this.checkRequiredCredentials(true);
                 String timestamp = this.ymdhms(this.nonce(), "T");
@@ -9340,7 +9342,7 @@ public class Htx extends HtxApi
                     url = (url + ("?" + this.urlencode(query)));
                 }
             }
-            String baseApiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+            String baseApiUrl = this.safeString(this.urls.get("api"), apiName);
             if (java.util.Objects.equals(baseApiUrl, null))
             {
                 throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -9352,10 +9354,10 @@ public class Htx extends HtxApi
         {
             // signing implementation for the new endpoints
             // const [ type, access ] = api;
-            String type = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 0);
-            String access = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 1);
-            String levelOneNestedPath = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 2);
-            String levelTwoNestedPath = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 3);
+            String type = this.safeString(api, 0);
+            String access = this.safeString(api, 1);
+            String levelOneNestedPath = this.safeString(api, 2);
+            String levelTwoNestedPath = this.safeString(api, 3);
             Object hostname = null;
             Object hostnames = this.safeValue(this.urls.get("hostnames"), type);
             if (!(hostnames instanceof String))

@@ -2736,7 +2736,7 @@ class bitstamp extends Exchange {
         $name = $this->get_currency_name($code);
         // the per-currency implicit methods (privatePostBtcAddress etc.) all route
         // through request(), called here directly to avoid dynamic dispatch
-        $response = Async\await($this->request($name . '_address/', 'private', 'POST', $params));
+        $response = Async\await($this->request($name . '_address/', array( 'private' ), 'POST', $params));
         $address = $this->safe_string($response, 'address');
         $tag = $this->safe_string_2($response, 'memo_id', 'destination_tag');
         $this->check_address($address);
@@ -2793,7 +2793,7 @@ class bitstamp extends Exchange {
             $request['address'] = $address;
             // the per-currency implicit methods (privatePostBtcWithdrawal etc.) all
             // route through request(), called here directly to avoid dynamic dispatch
-            $response = Async\await($this->request($name . '_withdrawal/', 'private', 'POST', $this->extend($request, $paramsWithdrawTag)));
+            $response = Async\await($this->request($name . '_withdrawal/', array( 'private' ), 'POST', $this->extend($request, $paramsWithdrawTag)));
         } else {
             $currency = $this->currency($code);
             $request['iban'] = $address;
@@ -2883,8 +2883,9 @@ class bitstamp extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, $api = 'public', mixed $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+    public function sign(string $path, array $api = array('public'), mixed $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $apiName = $api[0];
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
@@ -2892,7 +2893,7 @@ class bitstamp extends Exchange {
         $url .= $this->version . '/';
         $url .= $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
-        $isPrivatePost = ($api !== 'public') && ($method === 'POST');
+        $isPrivatePost = ($apiName !== 'public') && ($method === 'POST');
         // an empty POST triggers an API0020 error, so empty requests send a dummy object
         // https://github.com/ccxt/ccxt/issues/6846
         $emptyPostBody = $this->urlencode(array( 'foo' => 'bar' ));
@@ -2905,7 +2906,7 @@ class bitstamp extends Exchange {
             $requestBody = $postBody;
         }
         $privateHeaders = null;
-        if ($api === 'public') {
+        if ($apiName === 'public') {
             if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
@@ -2934,7 +2935,7 @@ class bitstamp extends Exchange {
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
             $privateHeaders['X-Auth-Signature'] = $signature;
         }
-        $requestHeaders = ($api === 'public') ? $headers : $privateHeaders;
+        $requestHeaders = ($apiName === 'public') ? $headers : $privateHeaders;
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 

@@ -7,304 +7,304 @@ var Exchange$1 = require('../base/Exchange.js');
 // ----------------------------------------------------------------------------
 class Exchange extends Exchange$1["default"] {
     publicGetApiV3Time(params = {}) {
-        return this.request("api/v3/time", "public", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('api/v3/time', ['public'], 'GET', params, undefined, undefined, { 'cost': 5 });
     }
     publicGetApiV3Coins(params = {}) {
-        return this.request("api/v3/coins", "public", 'GET', params, undefined, undefined, { "cost": 25 });
+        return this.request('api/v3/coins', ['public'], 'GET', params, undefined, undefined, { 'cost': 25 });
     }
     publicGetApiV3ExchangeInfo(params = {}) {
-        return this.request("api/v3/exchangeInfo", "public", 'GET', params, undefined, undefined, { "cost": 100 });
+        return this.request('api/v3/exchangeInfo', ['public'], 'GET', params, undefined, undefined, { 'cost': 100 });
     }
     publicGetApiV3Ping(params = {}) {
-        return this.request("api/v3/ping", "public", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('api/v3/ping', ['public'], 'GET', params, undefined, undefined, { 'cost': 5 });
     }
     publicGetApiV3ApiTradingSymbols(params = {}) {
-        return this.request("api/v3/apiTradingSymbols", "public", 'GET', params, undefined, undefined, { "cost": 25 });
+        return this.request('api/v3/apiTradingSymbols', ['public'], 'GET', params, undefined, undefined, { 'cost': 25 });
     }
     publicGetApiV3MarketTickerPrice(params = {}) {
-        return this.request("api/v3/market/ticker/price", "public", 'GET', params, undefined, undefined, { "cost": 20 });
+        return this.request('api/v3/market/ticker/price', ['public'], 'GET', params, undefined, undefined, { 'cost': 20 });
     }
     publicGetApiV3MarketTicker24hr(params = {}) {
-        return this.request("api/v3/market/ticker/24hr", "public", 'GET', params, undefined, undefined, { "cost": 10 });
+        return this.request('api/v3/market/ticker/24hr', ['public'], 'GET', params, undefined, undefined, { 'cost': 10 });
     }
     publicGetApiV3MarketTrades(params = {}) {
-        return this.request("api/v3/market/trades", "public", 'GET', params, undefined, undefined, { "cost": 125 });
+        return this.request('api/v3/market/trades', ['public'], 'GET', params, undefined, undefined, { 'cost': 125 });
     }
     publicGetApiV3MarketKlines(params = {}) {
-        return this.request("api/v3/market/klines", "public", 'GET', params, undefined, undefined, { "cost": 10 });
+        return this.request('api/v3/market/klines', ['public'], 'GET', params, undefined, undefined, { 'cost': 10 });
     }
     publicGetApiV3MarketDepth(params = {}) {
-        return this.request("api/v3/market/depth", "public", 'GET', params, undefined, undefined, { "cost": 25 });
+        return this.request('api/v3/market/depth', ['public'], 'GET', params, undefined, undefined, { 'cost': 25 });
     }
     publicGetApiV3MarketTickerBookTicker(params = {}) {
-        return this.request("api/v3/market/ticker/bookTicker", "public", 'GET', params, undefined, undefined, { "cost": 20 });
+        return this.request('api/v3/market/ticker/bookTicker', ['public'], 'GET', params, undefined, undefined, { 'cost': 20 });
     }
     privateGetApiV3Account(params = {}) {
-        return this.request("api/v3/account/", "private", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('api/v3/account/', ['private'], 'GET', params, undefined, undefined, { 'cost': 5 });
     }
     privateGetApiV3AccountTransferRecords(params = {}) {
-        return this.request("api/v3/account/transferRecords", "private", 'GET', params, undefined, undefined, { "cost": 3 });
+        return this.request('api/v3/account/transferRecords', ['private'], 'GET', params, undefined, undefined, { 'cost': 3 });
     }
     privateGetApiV3Order(params = {}) {
-        return this.request("api/v3/order", "private", 'GET', params, undefined, undefined, { "cost": 2 });
+        return this.request('api/v3/order', ['private'], 'GET', params, undefined, undefined, { 'cost': 2 });
     }
     privateGetApiV3OpenOrders(params = {}) {
-        return this.request("api/v3/openOrders", "private", 'GET', params, undefined, undefined, { "cost": 3 });
+        return this.request('api/v3/openOrders', ['private'], 'GET', params, undefined, undefined, { 'cost': 3 });
     }
     privateGetApiV3AllOrders(params = {}) {
-        return this.request("api/v3/allOrders", "private", 'GET', params, undefined, undefined, { "cost": 10 });
+        return this.request('api/v3/allOrders', ['private'], 'GET', params, undefined, undefined, { 'cost': 10 });
     }
     privateGetApiV3MyTrades(params = {}) {
-        return this.request("api/v3/myTrades", "private", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('api/v3/myTrades', ['private'], 'GET', params, undefined, undefined, { 'cost': 5 });
     }
     privateGetApiV3RebateAffiliateGetAffiliateUIDs(params = {}) {
-        return this.request("api/v3/rebate/affiliate/getAffiliateUIDs", "private", 'GET', params, undefined, undefined, { "cost": 20 });
+        return this.request('api/v3/rebate/affiliate/getAffiliateUIDs', ['private'], 'GET', params, undefined, undefined, { 'cost': 20 });
     }
     privateGetApiV3RebateAffiliateGetChannelUserTradeAndAsset(params = {}) {
-        return this.request("api/v3/rebate/affiliate/getChannelUserTradeAndAsset", "private", 'GET', params, undefined, undefined, { "cost": 20 });
+        return this.request('api/v3/rebate/affiliate/getChannelUserTradeAndAsset', ['private'], 'GET', params, undefined, undefined, { 'cost': 20 });
     }
     privateGetApiV3RebateAffiliateGetAffiliateCommission(params = {}) {
-        return this.request("api/v3/rebate/affiliate/getAffiliateCommission", "private", 'GET', params, undefined, undefined, { "cost": 20 });
+        return this.request('api/v3/rebate/affiliate/getAffiliateCommission', ['private'], 'GET', params, undefined, undefined, { 'cost': 20 });
     }
     privateGetApiV3RebateAffiliateGetInternalWithdrawalStatus(params = {}) {
-        return this.request("api/v3/rebate/affiliate/getInternalWithdrawalStatus", "private", 'GET', params, undefined, undefined, { "cost": 100 });
+        return this.request('api/v3/rebate/affiliate/getInternalWithdrawalStatus', ['private'], 'GET', params, undefined, undefined, { 'cost': 100 });
     }
     privateGetApiV3RebateAffiliateQuerySubChannelTransactions(params = {}) {
-        return this.request("api/v3/rebate/affiliate/querySubChannelTransactions", "private", 'GET', params, undefined, undefined, { "cost": 10 });
+        return this.request('api/v3/rebate/affiliate/querySubChannelTransactions', ['private'], 'GET', params, undefined, undefined, { 'cost': 10 });
     }
     privateGetApiV3AgencyVerifyReferrals(params = {}) {
-        return this.request("api/v3/agency/verifyReferrals", "private", 'GET', params, undefined, undefined, { "cost": 20 });
+        return this.request('api/v3/agency/verifyReferrals', ['private'], 'GET', params, undefined, undefined, { 'cost': 20 });
     }
     privateGetApiV3AgencyGetAssert(params = {}) {
-        return this.request("api/v3/agency/getAssert", "private", 'GET', params, undefined, undefined, { "cost": 20 });
+        return this.request('api/v3/agency/getAssert', ['private'], 'GET', params, undefined, undefined, { 'cost': 20 });
     }
     privateGetApiV3AgencyGetDealData(params = {}) {
-        return this.request("api/v3/agency/getDealData", "private", 'GET', params, undefined, undefined, { "cost": 20 });
+        return this.request('api/v3/agency/getDealData', ['private'], 'GET', params, undefined, undefined, { 'cost': 20 });
     }
     privateGetApiV3ApiReferralCheckUserEligibility(params = {}) {
-        return this.request("api/v3/apiReferral/checkUserEligibility", "private", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('api/v3/apiReferral/checkUserEligibility', ['private'], 'GET', params, undefined, undefined, { 'cost': 5 });
     }
     privateGetApiV3ApiReferralRebateRecentRecord(params = {}) {
-        return this.request("api/v3/apiReferral/rebate/recentRecord", "private", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('api/v3/apiReferral/rebate/recentRecord', ['private'], 'GET', params, undefined, undefined, { 'cost': 5 });
     }
     privateGetApiV3ApiReferralRebateRatio(params = {}) {
-        return this.request("api/v3/apiReferral/rebateRatio", "private", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('api/v3/apiReferral/rebateRatio', ['private'], 'GET', params, undefined, undefined, { 'cost': 5 });
     }
     privateGetApiV3ContentArticlesDetail(params = {}) {
-        return this.request("api/v3/content/articles/detail", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('api/v3/content/articles/detail', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     privateGetApiV3ContentArticlesList(params = {}) {
-        return this.request("api/v3/content/articles/list", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('api/v3/content/articles/list', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     privateGetApiV3ContentArticlesListByCoin(params = {}) {
-        return this.request("api/v3/content/articles/listByCoin", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('api/v3/content/articles/listByCoin', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     privateGetApiV3ContentBannersLatest(params = {}) {
-        return this.request("api/v3/content/banners/latest", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('api/v3/content/banners/latest', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostApiV3AccountBills(params = {}) {
-        return this.request("api/v3/account/bills", "private", 'POST', params, undefined, undefined, { "cost": 5 });
+        return this.request('api/v3/account/bills', ['private'], 'POST', params, undefined, undefined, { 'cost': 5 });
     }
     privatePostApiV3AccountFundingBills(params = {}) {
-        return this.request("api/v3/account/fundingBills", "private", 'POST', params, undefined, undefined, { "cost": 5 });
+        return this.request('api/v3/account/fundingBills', ['private'], 'POST', params, undefined, undefined, { 'cost': 5 });
     }
     privatePostApiV3Order(params = {}) {
-        return this.request("api/v3/order", "private", 'POST', params, undefined, undefined, { "cost": 5 });
+        return this.request('api/v3/order', ['private'], 'POST', params, undefined, undefined, { 'cost': 5 });
     }
     privatePostApiV3OrderBatch(params = {}) {
-        return this.request("api/v3/order/batch", "private", 'POST', params, undefined, undefined, { "cost": 50 });
+        return this.request('api/v3/order/batch', ['private'], 'POST', params, undefined, undefined, { 'cost': 50 });
     }
     privatePostApiV3RebateAffiliateInternalWithdrawal(params = {}) {
-        return this.request("api/v3/rebate/affiliate/internalWithdrawal", "private", 'POST', params, undefined, undefined, { "cost": 100 });
+        return this.request('api/v3/rebate/affiliate/internalWithdrawal', ['private'], 'POST', params, undefined, undefined, { 'cost': 100 });
     }
     privatePostApiV3TaxIncome(params = {}) {
-        return this.request("api/v3/tax/income", "private", 'POST', params, undefined, undefined, { "cost": 5 });
+        return this.request('api/v3/tax/income', ['private'], 'POST', params, undefined, undefined, { 'cost': 5 });
     }
     privateDeleteApiV3Order(params = {}) {
-        return this.request("api/v3/order", "private", 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('api/v3/order', ['private'], 'DELETE', params, undefined, undefined, { 'cost': 1 });
     }
     privateDeleteApiV3OpenOrders(params = {}) {
-        return this.request("api/v3/openOrders", "private", 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('api/v3/openOrders', ['private'], 'DELETE', params, undefined, undefined, { 'cost': 1 });
     }
     privateDeleteApiV3OrderBatch(params = {}) {
-        return this.request("api/v3/order/batch", "private", 'DELETE', params, undefined, undefined, { "cost": 10 });
+        return this.request('api/v3/order/batch', ['private'], 'DELETE', params, undefined, undefined, { 'cost': 10 });
     }
     contractGetCapiV3MarketTime(params = {}) {
-        return this.request("capi/v3/market/time", "contract", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('capi/v3/market/time', ['contract'], 'GET', params, undefined, undefined, { 'cost': 5 });
     }
     contractGetCapiV3MarketExchangeInfo(params = {}) {
-        return this.request("capi/v3/market/exchangeInfo", "contract", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('capi/v3/market/exchangeInfo', ['contract'], 'GET', params, undefined, undefined, { 'cost': 5 });
     }
     contractGetCapiV3MarketDepth(params = {}) {
-        return this.request("capi/v3/market/depth", "contract", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('capi/v3/market/depth', ['contract'], 'GET', params, undefined, undefined, { 'cost': 5 });
     }
     contractGetCapiV3MarketTicker24hr(params = {}) {
-        return this.request("capi/v3/market/ticker/24hr", "contract", 'GET', params, undefined, undefined, { "cost": 200 });
+        return this.request('capi/v3/market/ticker/24hr', ['contract'], 'GET', params, undefined, undefined, { 'cost': 200 });
     }
     contractGetCapiV3MarketTickerBookTicker(params = {}) {
-        return this.request("capi/v3/market/ticker/bookTicker", "contract", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('capi/v3/market/ticker/bookTicker', ['contract'], 'GET', params, undefined, undefined, { 'cost': 5 });
     }
     contractGetCapiV3MarketTrades(params = {}) {
-        return this.request("capi/v3/market/trades", "contract", 'GET', params, undefined, undefined, { "cost": 25 });
+        return this.request('capi/v3/market/trades', ['contract'], 'GET', params, undefined, undefined, { 'cost': 25 });
     }
     contractGetCapiV3MarketKlines(params = {}) {
-        return this.request("capi/v3/market/klines", "contract", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('capi/v3/market/klines', ['contract'], 'GET', params, undefined, undefined, { 'cost': 5 });
     }
     contractGetCapiV3MarketIndexPriceKlines(params = {}) {
-        return this.request("capi/v3/market/indexPriceKlines", "contract", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('capi/v3/market/indexPriceKlines', ['contract'], 'GET', params, undefined, undefined, { 'cost': 5 });
     }
     contractGetCapiV3MarketMarkPriceKlines(params = {}) {
-        return this.request("capi/v3/market/markPriceKlines", "contract", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('capi/v3/market/markPriceKlines', ['contract'], 'GET', params, undefined, undefined, { 'cost': 5 });
     }
     contractGetCapiV3MarketHistoryKlines(params = {}) {
-        return this.request("capi/v3/market/historyKlines", "contract", 'GET', params, undefined, undefined, { "cost": 25 });
+        return this.request('capi/v3/market/historyKlines', ['contract'], 'GET', params, undefined, undefined, { 'cost': 25 });
     }
     contractGetCapiV3MarketSymbolPrice(params = {}) {
-        return this.request("capi/v3/market/symbolPrice", "contract", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('capi/v3/market/symbolPrice', ['contract'], 'GET', params, undefined, undefined, { 'cost': 5 });
     }
     contractGetCapiV3MarketOpenInterest(params = {}) {
-        return this.request("capi/v3/market/openInterest", "contract", 'GET', params, undefined, undefined, { "cost": 10 });
+        return this.request('capi/v3/market/openInterest', ['contract'], 'GET', params, undefined, undefined, { 'cost': 10 });
     }
     contractGetCapiV3MarketPremiumIndex(params = {}) {
-        return this.request("capi/v3/market/premiumIndex", "contract", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('capi/v3/market/premiumIndex', ['contract'], 'GET', params, undefined, undefined, { 'cost': 5 });
     }
     contractGetCapiV3MarketFundingRate(params = {}) {
-        return this.request("capi/v3/market/fundingRate", "contract", 'GET', params, undefined, undefined, { "cost": 25 });
+        return this.request('capi/v3/market/fundingRate', ['contract'], 'GET', params, undefined, undefined, { 'cost': 25 });
     }
     contractGetCapiV3MarketApiTradingSymbols(params = {}) {
-        return this.request("capi/v3/market/apiTradingSymbols", "contract", 'GET', params, undefined, undefined, { "cost": 25 });
+        return this.request('capi/v3/market/apiTradingSymbols', ['contract'], 'GET', params, undefined, undefined, { 'cost': 25 });
     }
     contractPrivateGetCapiV3AccountBalance(params = {}) {
-        return this.request("capi/v3/account/balance", "contractPrivate", 'GET', params, undefined, undefined, { "cost": 10 });
+        return this.request('capi/v3/account/balance', ['contractPrivate'], 'GET', params, undefined, undefined, { 'cost': 10 });
     }
     contractPrivateGetCapiV3AccountCommissionRate(params = {}) {
-        return this.request("capi/v3/account/commissionRate", "contractPrivate", 'GET', params, undefined, undefined, { "cost": 10 });
+        return this.request('capi/v3/account/commissionRate', ['contractPrivate'], 'GET', params, undefined, undefined, { 'cost': 10 });
     }
     contractPrivateGetCapiV3AccountAccountConfig(params = {}) {
-        return this.request("capi/v3/account/accountConfig", "contractPrivate", 'GET', params, undefined, undefined, { "cost": 10 });
+        return this.request('capi/v3/account/accountConfig', ['contractPrivate'], 'GET', params, undefined, undefined, { 'cost': 10 });
     }
     contractPrivateGetCapiV3AccountSymbolConfig(params = {}) {
-        return this.request("capi/v3/account/symbolConfig", "contractPrivate", 'GET', params, undefined, undefined, { "cost": 10 });
+        return this.request('capi/v3/account/symbolConfig', ['contractPrivate'], 'GET', params, undefined, undefined, { 'cost': 10 });
     }
     contractPrivateGetCapiV3AccountPositionAllPosition(params = {}) {
-        return this.request("capi/v3/account/position/allPosition", "contractPrivate", 'GET', params, undefined, undefined, { "cost": 15 });
+        return this.request('capi/v3/account/position/allPosition', ['contractPrivate'], 'GET', params, undefined, undefined, { 'cost': 15 });
     }
     contractPrivateGetCapiV3AccountPositionSinglePosition(params = {}) {
-        return this.request("capi/v3/account/position/singlePosition", "contractPrivate", 'GET', params, undefined, undefined, { "cost": 3 });
+        return this.request('capi/v3/account/position/singlePosition', ['contractPrivate'], 'GET', params, undefined, undefined, { 'cost': 3 });
     }
     contractPrivateGetCapiV3Order(params = {}) {
-        return this.request("capi/v3/order", "contractPrivate", 'GET', params, undefined, undefined, { "cost": 3 });
+        return this.request('capi/v3/order', ['contractPrivate'], 'GET', params, undefined, undefined, { 'cost': 3 });
     }
     contractPrivateGetCapiV3OpenOrders(params = {}) {
-        return this.request("capi/v3/openOrders", "contractPrivate", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('capi/v3/openOrders', ['contractPrivate'], 'GET', params, undefined, undefined, { 'cost': 5 });
     }
     contractPrivateGetCapiV3OrderHistory(params = {}) {
-        return this.request("capi/v3/order/history", "contractPrivate", 'GET', params, undefined, undefined, { "cost": 10 });
+        return this.request('capi/v3/order/history', ['contractPrivate'], 'GET', params, undefined, undefined, { 'cost': 10 });
     }
     contractPrivateGetCapiV3UserTrades(params = {}) {
-        return this.request("capi/v3/userTrades", "contractPrivate", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('capi/v3/userTrades', ['contractPrivate'], 'GET', params, undefined, undefined, { 'cost': 5 });
     }
     contractPrivateGetCapiV3OpenAlgoOrders(params = {}) {
-        return this.request("capi/v3/openAlgoOrders", "contractPrivate", 'GET', params, undefined, undefined, { "cost": 3 });
+        return this.request('capi/v3/openAlgoOrders', ['contractPrivate'], 'GET', params, undefined, undefined, { 'cost': 3 });
     }
     contractPrivateGetCapiV3AllAlgoOrders(params = {}) {
-        return this.request("capi/v3/allAlgoOrders", "contractPrivate", 'GET', params, undefined, undefined, { "cost": 10 });
+        return this.request('capi/v3/allAlgoOrders', ['contractPrivate'], 'GET', params, undefined, undefined, { 'cost': 10 });
     }
     contractPrivateGetCapiV3SimBalance(params = {}) {
-        return this.request("capi/v3/sim/balance", "contractPrivate", 'GET', params, undefined, undefined, { "cost": 10 });
+        return this.request('capi/v3/sim/balance', ['contractPrivate'], 'GET', params, undefined, undefined, { 'cost': 10 });
     }
     contractPrivateGetCapiV3SimPositionAllPosition(params = {}) {
-        return this.request("capi/v3/sim/position/allPosition", "contractPrivate", 'GET', params, undefined, undefined, { "cost": 15 });
+        return this.request('capi/v3/sim/position/allPosition', ['contractPrivate'], 'GET', params, undefined, undefined, { 'cost': 15 });
     }
     contractPrivateGetCapiV3SimOrderHistory(params = {}) {
-        return this.request("capi/v3/sim/order/history", "contractPrivate", 'GET', params, undefined, undefined, { "cost": 10 });
+        return this.request('capi/v3/sim/order/history', ['contractPrivate'], 'GET', params, undefined, undefined, { 'cost': 10 });
     }
     contractPrivateGetCapiV3CopyFollowerHistoryOrders(params = {}) {
-        return this.request("capi/v3/copy/follower/historyOrders", "contractPrivate", 'GET', params, undefined, undefined, { "cost": 10 });
+        return this.request('capi/v3/copy/follower/historyOrders', ['contractPrivate'], 'GET', params, undefined, undefined, { 'cost': 10 });
     }
     contractPrivateGetCapiV3CopyFollowerMyTraders(params = {}) {
-        return this.request("capi/v3/copy/follower/myTraders", "contractPrivate", 'GET', params, undefined, undefined, { "cost": 10 });
+        return this.request('capi/v3/copy/follower/myTraders', ['contractPrivate'], 'GET', params, undefined, undefined, { 'cost': 10 });
     }
     contractPrivateGetCapiV3CopyFollowerOpenOrders(params = {}) {
-        return this.request("capi/v3/copy/follower/openOrders", "contractPrivate", 'GET', params, undefined, undefined, { "cost": 10 });
+        return this.request('capi/v3/copy/follower/openOrders', ['contractPrivate'], 'GET', params, undefined, undefined, { 'cost': 10 });
     }
     contractPrivateGetCapiV3CopyFollowerSettings(params = {}) {
-        return this.request("capi/v3/copy/follower/settings", "contractPrivate", 'GET', params, undefined, undefined, { "cost": 10 });
+        return this.request('capi/v3/copy/follower/settings', ['contractPrivate'], 'GET', params, undefined, undefined, { 'cost': 10 });
     }
     contractPrivateGetCapiV3CopyTraderHistoryOrders(params = {}) {
-        return this.request("capi/v3/copy/trader/historyOrders", "contractPrivate", 'GET', params, undefined, undefined, { "cost": 10 });
+        return this.request('capi/v3/copy/trader/historyOrders', ['contractPrivate'], 'GET', params, undefined, undefined, { 'cost': 10 });
     }
     contractPrivateGetCapiV3CopyTraderOpenOrders(params = {}) {
-        return this.request("capi/v3/copy/trader/openOrders", "contractPrivate", 'GET', params, undefined, undefined, { "cost": 10 });
+        return this.request('capi/v3/copy/trader/openOrders', ['contractPrivate'], 'GET', params, undefined, undefined, { 'cost': 10 });
     }
     contractPrivateGetCapiV3CopyTraderPairs(params = {}) {
-        return this.request("capi/v3/copy/trader/pairs", "contractPrivate", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('capi/v3/copy/trader/pairs', ['contractPrivate'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     contractPrivateGetCapiV3TrailingOpenOrders(params = {}) {
-        return this.request("capi/v3/trailing/openOrders", "contractPrivate", 'GET', params, undefined, undefined, { "cost": 2 });
+        return this.request('capi/v3/trailing/openOrders', ['contractPrivate'], 'GET', params, undefined, undefined, { 'cost': 2 });
     }
     contractPrivateGetCapiV3TrailingHistoryOrders(params = {}) {
-        return this.request("capi/v3/trailing/historyOrders", "contractPrivate", 'GET', params, undefined, undefined, { "cost": 10 });
+        return this.request('capi/v3/trailing/historyOrders', ['contractPrivate'], 'GET', params, undefined, undefined, { 'cost': 10 });
     }
     contractPrivatePostCapiV3AccountIncome(params = {}) {
-        return this.request("capi/v3/account/income", "contractPrivate", 'POST', params, undefined, undefined, { "cost": 5 });
+        return this.request('capi/v3/account/income', ['contractPrivate'], 'POST', params, undefined, undefined, { 'cost': 5 });
     }
     contractPrivatePostCapiV3AccountMarginType(params = {}) {
-        return this.request("capi/v3/account/marginType", "contractPrivate", 'POST', params, undefined, undefined, { "cost": 50 });
+        return this.request('capi/v3/account/marginType', ['contractPrivate'], 'POST', params, undefined, undefined, { 'cost': 50 });
     }
     contractPrivatePostCapiV3AccountLeverage(params = {}) {
-        return this.request("capi/v3/account/leverage", "contractPrivate", 'POST', params, undefined, undefined, { "cost": 20 });
+        return this.request('capi/v3/account/leverage', ['contractPrivate'], 'POST', params, undefined, undefined, { 'cost': 20 });
     }
     contractPrivatePostCapiV3AccountPositionMargin(params = {}) {
-        return this.request("capi/v3/account/positionMargin", "contractPrivate", 'POST', params, undefined, undefined, { "cost": 30 });
+        return this.request('capi/v3/account/positionMargin', ['contractPrivate'], 'POST', params, undefined, undefined, { 'cost': 30 });
     }
     contractPrivatePostCapiV3AccountModifyAutoAppendMargin(params = {}) {
-        return this.request("capi/v3/account/modifyAutoAppendMargin", "contractPrivate", 'POST', params, undefined, undefined, { "cost": 30 });
+        return this.request('capi/v3/account/modifyAutoAppendMargin', ['contractPrivate'], 'POST', params, undefined, undefined, { 'cost': 30 });
     }
     contractPrivatePostCapiV3Order(params = {}) {
-        return this.request("capi/v3/order", "contractPrivate", 'POST', params, undefined, undefined, { "cost": 5 });
+        return this.request('capi/v3/order', ['contractPrivate'], 'POST', params, undefined, undefined, { 'cost': 5 });
     }
     contractPrivatePostCapiV3BatchOrders(params = {}) {
-        return this.request("capi/v3/batchOrders", "contractPrivate", 'POST', params, undefined, undefined, { "cost": 10 });
+        return this.request('capi/v3/batchOrders', ['contractPrivate'], 'POST', params, undefined, undefined, { 'cost': 10 });
     }
     contractPrivatePostCapiV3ClosePositions(params = {}) {
-        return this.request("capi/v3/closePositions", "contractPrivate", 'POST', params, undefined, undefined, { "cost": 50 });
+        return this.request('capi/v3/closePositions', ['contractPrivate'], 'POST', params, undefined, undefined, { 'cost': 50 });
     }
     contractPrivatePostCapiV3AlgoOrder(params = {}) {
-        return this.request("capi/v3/algoOrder", "contractPrivate", 'POST', params, undefined, undefined, { "cost": 5 });
+        return this.request('capi/v3/algoOrder', ['contractPrivate'], 'POST', params, undefined, undefined, { 'cost': 5 });
     }
     contractPrivatePostCapiV3PlaceTpSlOrder(params = {}) {
-        return this.request("capi/v3/placeTpSlOrder", "contractPrivate", 'POST', params, undefined, undefined, { "cost": 5 });
+        return this.request('capi/v3/placeTpSlOrder', ['contractPrivate'], 'POST', params, undefined, undefined, { 'cost': 5 });
     }
     contractPrivatePostCapiV3ModifyTpSlOrder(params = {}) {
-        return this.request("capi/v3/modifyTpSlOrder", "contractPrivate", 'POST', params, undefined, undefined, { "cost": 5 });
+        return this.request('capi/v3/modifyTpSlOrder', ['contractPrivate'], 'POST', params, undefined, undefined, { 'cost': 5 });
     }
     contractPrivatePostCapiV3SimOrder(params = {}) {
-        return this.request("capi/v3/sim/order", "contractPrivate", 'POST', params, undefined, undefined, { "cost": 5 });
+        return this.request('capi/v3/sim/order', ['contractPrivate'], 'POST', params, undefined, undefined, { 'cost': 5 });
     }
     contractPrivatePostCapiV3CopyFollowerClosePos(params = {}) {
-        return this.request("capi/v3/copy/follower/closePos", "contractPrivate", 'POST', params, undefined, undefined, { "cost": 50 });
+        return this.request('capi/v3/copy/follower/closePos', ['contractPrivate'], 'POST', params, undefined, undefined, { 'cost': 50 });
     }
     contractPrivatePostCapiV3CopyFollowerSettings(params = {}) {
-        return this.request("capi/v3/copy/follower/settings", "contractPrivate", 'POST', params, undefined, undefined, { "cost": 10 });
+        return this.request('capi/v3/copy/follower/settings', ['contractPrivate'], 'POST', params, undefined, undefined, { 'cost': 10 });
     }
     contractPrivatePostCapiV3CopyFollowerStopCopy(params = {}) {
-        return this.request("capi/v3/copy/follower/stopCopy", "contractPrivate", 'POST', params, undefined, undefined, { "cost": 10 });
+        return this.request('capi/v3/copy/follower/stopCopy', ['contractPrivate'], 'POST', params, undefined, undefined, { 'cost': 10 });
     }
     contractPrivateDeleteCapiV3Order(params = {}) {
-        return this.request("capi/v3/order", "contractPrivate", 'DELETE', params, undefined, undefined, { "cost": 3 });
+        return this.request('capi/v3/order', ['contractPrivate'], 'DELETE', params, undefined, undefined, { 'cost': 3 });
     }
     contractPrivateDeleteCapiV3BatchOrders(params = {}) {
-        return this.request("capi/v3/batchOrders", "contractPrivate", 'DELETE', params, undefined, undefined, { "cost": 10 });
+        return this.request('capi/v3/batchOrders', ['contractPrivate'], 'DELETE', params, undefined, undefined, { 'cost': 10 });
     }
     contractPrivateDeleteCapiV3AllOpenOrders(params = {}) {
-        return this.request("capi/v3/allOpenOrders", "contractPrivate", 'DELETE', params, undefined, undefined, { "cost": 10 });
+        return this.request('capi/v3/allOpenOrders', ['contractPrivate'], 'DELETE', params, undefined, undefined, { 'cost': 10 });
     }
     contractPrivateDeleteCapiV3AlgoOrder(params = {}) {
-        return this.request("capi/v3/algoOrder", "contractPrivate", 'DELETE', params, undefined, undefined, { "cost": 3 });
+        return this.request('capi/v3/algoOrder', ['contractPrivate'], 'DELETE', params, undefined, undefined, { 'cost': 3 });
     }
     contractPrivateDeleteCapiV3AlgoOpenOrders(params = {}) {
-        return this.request("capi/v3/algoOpenOrders", "contractPrivate", 'DELETE', params, undefined, undefined, { "cost": 10 });
+        return this.request('capi/v3/algoOpenOrders', ['contractPrivate'], 'DELETE', params, undefined, undefined, { 'cost': 10 });
     }
 }
 

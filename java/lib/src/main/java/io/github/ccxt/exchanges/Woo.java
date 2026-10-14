@@ -4071,8 +4071,8 @@ public class Woo extends WooApi
     {
         Map<String, Object> requestHeaders = null;
         Object requestBody = null;
-        String version = this.safeString(java.util.Objects.requireNonNullElse(section, "public"), 0);
-        String access = this.safeString(java.util.Objects.requireNonNullElse(section, "public"), 1);
+        String version = this.safeString(section, 0);
+        String access = this.safeString(section, 1);
         String pathWithParams = (String) this.implodeParams(path, parameters);
         String baseApiUrl = this.safeString(this.urls.get("api"), access);
         if (java.util.Objects.equals(baseApiUrl, null))

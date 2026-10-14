@@ -2186,7 +2186,8 @@ export default class coinbaseexchange extends Exchange {
         } as DepositAddress;
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        const apiName = api[0];
         let requestHeaders: NullableDict = headers;
         let requestBody: Str = body;
         let request = '/' + this.implodeParams (path, params);
@@ -2196,12 +2197,12 @@ export default class coinbaseexchange extends Exchange {
                 request += '?' + this.urlencode (query);
             }
         }
-        const apiUrl = this.safeString (this.urls['api'], api);
+        const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
         const url = this.implodeHostname (apiUrl) + request;
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
             let payload = '';
@@ -2244,7 +2245,7 @@ export default class coinbaseexchange extends Exchange {
         return undefined;
     }
 
-    override async request (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined, config: Dict = {}) {
+    override async request (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined, config: Dict = {}) {
         const response = await this.fetch2 (path, api, method, params, headers, body, config);
         if (typeof response !== 'string') {
             if ('message' in response) {

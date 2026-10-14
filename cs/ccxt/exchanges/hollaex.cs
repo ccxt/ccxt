@@ -2226,7 +2226,7 @@ public partial class hollaex : Exchange
 
     public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object query = this.omit(parameters, this.extractParams(path));
@@ -2246,7 +2246,7 @@ public partial class hollaex : Exchange
         string url = (apiUrl + requestPath);
         string? requestBody = null;
         Dictionary<string, object> requestHeaders = null;
-        if ((api is "private"))
+        if (isEqual(getValue(api, 0), "private"))
         {
             this.checkRequiredCredentials();
             Int64? defaultExpires = this.safeInteger2(this.options, "api-expires", "expires", this.parseToInt(divide(this.timeout, 1000)));

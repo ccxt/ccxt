@@ -7396,7 +7396,7 @@ class bingx extends Exchange {
         return $tiers;
     }
 
-    public function sign(string $path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $section = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $type = $section[0];
         $version = $section[1];
         $access = $section[2];

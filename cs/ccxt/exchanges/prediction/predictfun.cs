@@ -4229,7 +4229,7 @@ public partial class predictfun : PredictionExchange
      * @name predictfun#sign
      * @description builds the request URL and attaches the API key header required by every endpoint
      * @param {string} path the endpoint path
-     * @param {string|string[]} [api] the API group and access level
+     * @param {string[]} [api] the API group and access level
      * @param {string} [method] HTTP method
      * @param {object} [params] request parameters
      * @param {object} [headers] request headers
@@ -4241,7 +4241,7 @@ public partial class predictfun : PredictionExchange
         // the venue authenticates every endpoint, so the key is required up front rather than
         // per access level - a key-less request is answered with a 401 by the API gateway.
         // the testnet is the exception, it is served without an API key at all
-        api ??= "predictfun";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
@@ -4250,7 +4250,7 @@ public partial class predictfun : PredictionExchange
         {
             throw new AuthenticationError ((this.id + " sign() requires the \"apiKey\" credential for all endpoints")) ;
         }
-        object apiGroup = (api is string) ? api : getValue(api, 0);
+        object apiGroup = getValue(api, 0);
         object baseUrls = (this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null);
         string baseUrl = this.safeString(baseUrls, apiGroup, ((string)getValue(baseUrls, "predictfun")));
         string url = ((baseUrl + "/") + this.implodeParams(path, parameters));

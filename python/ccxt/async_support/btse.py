@@ -3534,10 +3534,11 @@ class btse(Exchange, ImplicitAPI):
                 self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
         return None
 
-    def sign(self, path: str, api: object = 'public', method='GET', params={}, headers: object = None, body: object = None):
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params={}, headers: object = None, body: object = None):
+        apiName = api[0]
         requestBody = None
         requestHeaders = None
-        apiUrl = self.safe_string(self.urls['api'], api)
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         baseUrl = apiUrl
@@ -3553,7 +3554,7 @@ class btse(Exchange, ImplicitAPI):
             if len(query) > 0:
                 queryString = self.urlencode(query)
                 url += '?' + queryString
-        if api == 'private':
+        if apiName == 'private':
             self.check_required_credentials()
             nonce = self.nonce()
             bodyString = self.json(query)

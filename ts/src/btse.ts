@@ -3767,10 +3767,11 @@ export default class btse extends Exchange {
         return undefined;
     }
 
-    override sign (path: string, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+        const apiName = api[0];
         let requestBody: Str = undefined;
         let requestHeaders = undefined;
-        const apiUrl = this.safeString (this.urls['api'], api);
+        const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
@@ -3789,7 +3790,7 @@ export default class btse extends Exchange {
                 url += '?' + queryString;
             }
         }
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ();
             let bodyString = this.json (query);

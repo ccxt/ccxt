@@ -5611,7 +5611,7 @@ func (this *Myriad) HandleErrors(code any, reason any, url any, method any, head
  * @returns {object} a dict with url, method, body and headers
  */
 func (this *Myriad) Sign(path string, optionalArgs ...any) any {
-	api := ccxt.GetArg(optionalArgs, 0, "myriad")
+	api := ccxt.GetArg(optionalArgs, 0, []any{"myriad"})
 	_ = api
 	var method string = ccxt.GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -5621,12 +5621,7 @@ func (this *Myriad) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	body := ccxt.GetArg(optionalArgs, 4, nil)
 	_ = body
-	var apiGroup any = func() any {
-		if ccxt.IsString(api) {
-			return api
-		}
-		return ccxt.GetValue(api, 0)
-	}()
+	var apiGroup *string = ccxt.SafeStringPtr(ccxt.GetValue(api, 0))
 	var baseUrls any = this.Urls["api"]
 	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "myriad"))
 	var url string = *baseUrl + "/" + this.ImplodeParams(path, params)

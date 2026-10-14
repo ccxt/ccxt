@@ -1167,9 +1167,10 @@ public class Coinspot extends CoinspotApi
     {
         Object requestHeaders = headers;
         String requestBody = body;
-        Boolean isVersionedApi = false;
-        Object version = ((Boolean.TRUE.equals(isVersionedApi))) ? Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "public"), 0) : null;
-        Object accessType = ((Boolean.TRUE.equals(isVersionedApi))) ? Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "public"), 1) : java.util.Objects.requireNonNullElse(api, "public");
+        Integer apiLength = ((List<?>)api).size();
+        Boolean isVersionedApi = (apiLength != null && apiLength > 1);
+        Object version = ((Boolean.TRUE.equals(isVersionedApi))) ? (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)) : null;
+        Object accessType = ((Boolean.TRUE.equals(isVersionedApi))) ? (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1)) : (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String endpoint = ("/" + this.implodeParams(path, parameters));
         String fullPath = endpoint;
         if (!java.util.Objects.equals(version, null))

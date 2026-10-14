@@ -558,7 +558,7 @@ export default class aster extends Exchange {
     parseTransferStatus(status: Str): Str;
     hashMessage(binaryMessage: any): string;
     signHash(hash: string, privateKey: string): string;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     encodeValuesWithJson(values: Dict): string;
     capitalizeKeys(dict: Dict): Dict;
     loadMarketsAndSignIn(): Promise<void>;

@@ -4664,7 +4664,7 @@ public class Myriad extends MyriadApi
      */
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, Object body)
     {
-        Object apiGroup = (((java.util.Objects.requireNonNullElse(api, "myriad") instanceof String))) ? java.util.Objects.requireNonNullElse(api, "myriad") : Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "myriad"), 0);
+        Object apiGroup = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Object baseUrls = this.urls.get("api");
         String baseUrl = this.safeString(baseUrls, apiGroup, ((Map<String, Object>)baseUrls).get("myriad"));
         String url = ((baseUrl + "/") + this.implodeParams(path, parameters));

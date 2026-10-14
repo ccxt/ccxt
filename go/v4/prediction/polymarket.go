@@ -4026,7 +4026,7 @@ func (this *Polymarket) Nonce() any {
  * @name polymarket#sign
  * @description builds the request url and attaches HMAC-SHA256 authentication headers for private endpoints
  * @param {string} path the endpoint path
- * @param {string|string[]} api the api group and access level
+ * @param {string[]} api the api group and access level
  * @param {string} method the http method
  * @param {object} params the request parameters
  * @param {object} [headers] request headers
@@ -4034,8 +4034,7 @@ func (this *Polymarket) Nonce() any {
  * @returns {object} a dict with url, method, body and headers
  */
 func (this *Polymarket) Sign(path string, optionalArgs ...any) any {
-	// api is either a string ('gamma') or array (['gamma', 'public'])
-	api := ccxt.GetArg(optionalArgs, 0, "gamma")
+	api := ccxt.GetArg(optionalArgs, 0, []any{"gamma"})
 	_ = api
 	var method string = ccxt.GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -4045,18 +4044,8 @@ func (this *Polymarket) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	body := ccxt.GetArg(optionalArgs, 4, nil)
 	_ = body
-	var apiGroup any = func() any {
-		if ccxt.IsString(api) {
-			return api
-		}
-		return ccxt.GetValue(api, 0)
-	}()
-	var access any = func() any {
-		if ccxt.IsString(api) {
-			return "public"
-		}
-		return ccxt.GetValue(api, 1)
-	}()
+	var apiGroup *string = ccxt.SafeStringPtr(ccxt.GetValue(api, 0))
+	var access *string = this.SafeString(api, 1, "public")
 	var baseUrls any = this.Urls["api"]
 	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "gamma"))
 	var url any = *baseUrl + "/" + this.ImplodeParams(path, params)
@@ -4112,7 +4101,7 @@ func (this *Polymarket) Sign(path string, optionalArgs ...any) any {
 		"Accept":       "application/json",
 		"Content-Type": "application/json",
 	}, headerDefaults)
-	if ccxt.IsEqual(access, "private") {
+	if access != nil && *access == "private" {
 		// 'auth/derive-api-key' is built by concatenation so the substring "api" sits at a
 		// string-literal boundary: the php regex transpiler rewrites a bare "api" flanked by
 		// '-' into the local var '$api' (it only skips quote/slash-adjacent matches), which

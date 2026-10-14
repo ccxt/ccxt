@@ -7576,7 +7576,7 @@ class htx extends Exchange {
         return $this->milliseconds() - $this->safe_integer($this->options, 'timeDifference', 0);
     }
 
-    public function sign(string $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $signedHeaders = null;
         $signedBody = null;
         $pathString = $path;
@@ -7588,15 +7588,17 @@ class htx extends Exchange {
         } else {
             $query = $this->omit($params, $this->extract_params($path));
         }
-        if (gettype($api) === 'string') {
+        $apiLength = count($api);
+        if ($apiLength === 1) {
             // signing implementation for the old endpoints
-            if (($api === 'public') || ($api === 'private')) {
+            $apiName = $api[0];
+            if (($apiName === 'public') || ($apiName === 'private')) {
                 $url .= $this->version;
-            } elseif (($api === 'v2Public') || ($api === 'v2Private')) {
+            } elseif (($apiName === 'v2Public') || ($apiName === 'v2Private')) {
                 $url .= 'v2';
             }
             $url .= '/' . $this->implode_params($path, $params);
-            if ($api === 'private' || $api === 'v2Private') {
+            if ($apiName === 'private' || $apiName === 'v2Private') {
                 $this->check_required_credentials();
                 $timestamp = $this->ymdhms($this->nonce(), 'T');
                 $request = array(
@@ -7637,7 +7639,7 @@ class htx extends Exchange {
                     $url .= '?' . $this->urlencode($query);
                 }
             }
-            $baseApiUrl = $this->safe_string($this->urls['api'], $api);
+            $baseApiUrl = $this->safe_string($this->urls['api'], $apiName);
             if ($baseApiUrl === null) {
                 throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
             }

@@ -3942,12 +3942,12 @@ class predictfun extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, mixed $api = 'predictfun', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
+    public function sign(string $path, array $api = array('predictfun'), $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
         /**
          * @ignore
          * builds the request URL and attaches the API key header required by every endpoint
          * @param {string} $path the endpoint $path
-         * @param {string|string[]} [$api] the API group and access level
+         * @param {string[]} [$api] the API group and access level
          * @param {string} [$method] HTTP $method
          * @param {array} [$params] request parameters
          * @param {array} [$headers] request $headers
@@ -3962,7 +3962,7 @@ class predictfun extends Exchange {
         if (($apiKey === null) && !$sandboxMode) {
             throw new AuthenticationError($this->id . ' sign() requires the "apiKey" credential for all endpoints');
         }
-        $apiGroup = gettype($api) === 'string' ? $api : $api[0];
+        $apiGroup = $api[0];
         $baseUrls = $this->urls['api'];
         $baseUrl = $this->safe_string($baseUrls, $apiGroup, $baseUrls['predictfun']);
         $url = $baseUrl . '/' . $this->implode_params($path, $params);

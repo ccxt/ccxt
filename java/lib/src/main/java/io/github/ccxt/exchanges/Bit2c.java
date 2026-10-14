@@ -1271,7 +1271,7 @@ public class Bit2c extends Bit2cApi
         String url = ((apiUrl + "/") + this.implodeParams(path, parameters));
         String requestBody = null;
         Map<String, Object> requestHeaders = null;
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
+        if (java.util.Objects.equals((api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)), "public"))
         {
             url = (url + ".json");
         } else

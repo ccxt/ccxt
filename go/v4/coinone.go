@@ -1738,7 +1738,7 @@ func (this *Coinone) fetchDepositAddressesBody(ch chan AsyncResult[any], optiona
 	return nil
 }
 func (this *Coinone) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -1748,6 +1748,7 @@ func (this *Coinone) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var request string = this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var apiUrl *string = this.SafeString(this.Urls["api"], "rest")
@@ -1755,20 +1756,20 @@ func (this *Coinone) Sign(path string, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *apiUrl + "/"
-	var isPublic bool = (api == "public") || (api == "v2Public")
-	if api == "v2Public" {
+	var isPublic bool = (apiName != nil && *apiName == "public") || (apiName != nil && *apiName == "v2Public")
+	if apiName != nil && *apiName == "v2Public" {
 		var apiUrl2 *string = this.SafeString(this.Urls["api"], "v2Public")
 		if apiUrl2 == nil {
 			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 		}
 		url = *apiUrl2 + "/"
-	} else if api == "v2Private" {
+	} else if apiName != nil && *apiName == "v2Private" {
 		var apiUrl3 *string = this.SafeString(this.Urls["api"], "v2Private")
 		if apiUrl3 == nil {
 			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 		}
 		url = *apiUrl3 + "/"
-	} else if api == "v2_1Private" {
+	} else if apiName != nil && *apiName == "v2_1Private" {
 		var apiUrl4 *string = this.SafeString(this.Urls["api"], "v2_1Private")
 		if apiUrl4 == nil {
 			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
@@ -1787,7 +1788,7 @@ func (this *Coinone) Sign(path string, optionalArgs ...any) any {
 		url += request
 		// the v2.1 api requires a uuid nonce, the older apis use a numeric one
 		var nonce *string = nil
-		if api == "v2_1Private" {
+		if apiName != nil && *apiName == "v2_1Private" {
 			nonce = SafeStringPtr(this.Uuid())
 		} else {
 			nonce = SafeStringPtr(ToString(this.Nonce()))

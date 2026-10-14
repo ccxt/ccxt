@@ -8,127 +8,127 @@
 import { Exchange as _Exchange } from '../base/Exchange.js';
 class Exchange extends _Exchange {
     wwwGetOrderFetchMarkets(params = {}) {
-        return this.request("order/fetchMarkets", "www", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/fetchMarkets', ['www'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     wwwGetOrderFetchTickers(params = {}) {
-        return this.request("order/fetchTickers", "www", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/fetchTickers', ['www'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     wwwGetOrderFetchOrderbook(params = {}) {
-        return this.request("order/fetchOrderbook", "www", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/fetchOrderbook', ['www'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     wwwGetOrderGetTickerWithVolume(params = {}) {
-        return this.request("order/getTickerWithVolume", "www", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/getTickerWithVolume', ['www'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     wwwGetExchangeDataOhlc(params = {}) {
-        return this.request("exchangeData/ohlc", "www", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('exchangeData/ohlc', ['www'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     wwwGetExchangeDataOrderBook(params = {}) {
-        return this.request("exchangeData/orderBook", "www", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('exchangeData/orderBook', ['www'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     wwwGetExchangeDataTradedetails(params = {}) {
-        return this.request("exchangeData/tradedetails", "www", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('exchangeData/tradedetails', ['www'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v1GetPlatformStatus(params = {}) {
-        return this.request("platform/status", "v1", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('platform/status', ['v1'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v1GetTickers(params = {}) {
-        return this.request("tickers", "v1", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('tickers', ['v1'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v1GetOrderbookSellSymbol(params = {}) {
-        return this.request("orderbook/sell/{symbol}", "v1", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('orderbook/sell/{symbol}', ['v1'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v1GetOrderbookBuySymbol(params = {}) {
-        return this.request("orderbook/buy/{symbol}", "v1", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('orderbook/buy/{symbol}', ['v1'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v1PostCurrentCoinBalanceEVERYTHING(params = {}) {
-        return this.request("currentCoinBalance/EVERYTHING", "v1", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('currentCoinBalance/EVERYTHING', ['v1'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v1PostGetApiUsageStatusUSAGE(params = {}) {
-        return this.request("getApiUsageStatus/USAGE", "v1", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('getApiUsageStatus/USAGE', ['v1'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v1PostGetOrderSocketTokenUSAGE(params = {}) {
-        return this.request("getOrderSocketToken/USAGE", "v1", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('getOrderSocketToken/USAGE', ['v1'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v1PostCurrentCoinBalanceSymbol(params = {}) {
-        return this.request("currentCoinBalance/{symbol}", "v1", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('currentCoinBalance/{symbol}', ['v1'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v1PostOrderStatusSymbol(params = {}) {
-        return this.request("orderStatus/{symbol}", "v1", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('orderStatus/{symbol}', ['v1'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v1PostDepositHistorySymbol(params = {}) {
-        return this.request("depositHistory/{symbol}", "v1", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('depositHistory/{symbol}', ['v1'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v1PostWithdrawHistorySymbol(params = {}) {
-        return this.request("withdrawHistory/{symbol}", "v1", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('withdrawHistory/{symbol}', ['v1'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v1PostWithdrawHistoryAllSymbol(params = {}) {
-        return this.request("withdrawHistoryAll/{symbol}", "v1", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('withdrawHistoryAll/{symbol}', ['v1'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v1PostDepositHistoryAllSymbol(params = {}) {
-        return this.request("depositHistoryAll/{symbol}", "v1", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('depositHistoryAll/{symbol}', ['v1'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v1PostUserHistoryNew(params = {}) {
-        return this.request("userHistoryNew", "v1", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('userHistoryNew', ['v1'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v1PostListOpenOrdersSymbol(params = {}) {
-        return this.request("listOpenOrders/{symbol}", "v1", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('listOpenOrders/{symbol}', ['v1'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v1PostListOpenOrdersOtherSymbol(params = {}) {
-        return this.request("listOpenOrdersOther/{symbol}", "v1", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('listOpenOrdersOther/{symbol}', ['v1'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v1PostListOpenStopOrdersSymbol(params = {}) {
-        return this.request("listOpenStopOrders/{symbol}", "v1", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('listOpenStopOrders/{symbol}', ['v1'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v1PostGetCoinAddressSymbol(params = {}) {
-        return this.request("getCoinAddress/{symbol}", "v1", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('getCoinAddress/{symbol}', ['v1'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v1PostPlaceSellOrderSymbol(params = {}) {
-        return this.request("placeSellOrder/{symbol}", "v1", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('placeSellOrder/{symbol}', ['v1'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v1PostPlaceSellOrderOtherSymbol(params = {}) {
-        return this.request("placeSellOrderOther/{symbol}", "v1", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('placeSellOrderOther/{symbol}', ['v1'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v1PostPlaceBuyOrderSymbol(params = {}) {
-        return this.request("placeBuyOrder/{symbol}", "v1", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('placeBuyOrder/{symbol}', ['v1'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v1PostPlaceBuyOrderOtherSymbol(params = {}) {
-        return this.request("placeBuyOrderOther/{symbol}", "v1", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('placeBuyOrderOther/{symbol}', ['v1'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v1PostBuyStopLossSymbol(params = {}) {
-        return this.request("buyStopLoss/{symbol}", "v1", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('buyStopLoss/{symbol}', ['v1'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v1PostSellStopLossSymbol(params = {}) {
-        return this.request("sellStopLoss/{symbol}", "v1", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('sellStopLoss/{symbol}', ['v1'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v1PostCancelOrderSymbol(params = {}) {
-        return this.request("cancelOrder/{symbol}", "v1", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('cancelOrder/{symbol}', ['v1'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v1PostCancelOrderOtherSymbol(params = {}) {
-        return this.request("cancelOrderOther/{symbol}", "v1", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('cancelOrderOther/{symbol}', ['v1'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v1PostCancelStopLossOrderSymbol(params = {}) {
-        return this.request("cancelStopLossOrder/{symbol}", "v1", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('cancelStopLossOrder/{symbol}', ['v1'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v1PostListExecutedOrdersSymbol(params = {}) {
-        return this.request("listExecutedOrders/{symbol}", "v1", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('listExecutedOrders/{symbol}', ['v1'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v1PostPlaceMarketOrderSymbol(params = {}) {
-        return this.request("placeMarketOrder/{symbol}", "v1", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('placeMarketOrder/{symbol}', ['v1'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v1PostPlaceMarketOrderQntySymbol(params = {}) {
-        return this.request("placeMarketOrderQnty/{symbol}", "v1", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('placeMarketOrderQnty/{symbol}', ['v1'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v2PostOrders(params = {}) {
-        return this.request("orders", "v2", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('orders', ['v2'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v2PostCancel(params = {}) {
-        return this.request("cancel", "v2", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('cancel', ['v2'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v2PostGetordersnew(params = {}) {
-        return this.request("getordersnew", "v2", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('getordersnew', ['v2'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v2PostMarginOrders(params = {}) {
-        return this.request("marginOrders", "v2", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('marginOrders', ['v2'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
 }
 export default Exchange;

@@ -2415,8 +2415,9 @@ class upbit extends upbit$1["default"] {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const baseApiUrl = this.safeString(this.urls['api'], api);
+    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const apiName = api[0];
+        const baseApiUrl = this.safeString(this.urls['api'], apiName);
         if (baseApiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
@@ -2430,13 +2431,13 @@ class upbit extends upbit$1["default"] {
                 url += '?' + this.urlencode(query);
             }
         }
-        const hasBody = (api === 'private') && (method !== 'GET') && (method !== 'DELETE');
+        const hasBody = (apiName === 'private') && (method !== 'GET') && (method !== 'DELETE');
         let requestBody = body;
         if (hasBody) {
             requestBody = this.json(params);
         }
         let privateHeaders = undefined;
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             privateHeaders = {};
             const nonce = this.uuid();
@@ -2460,7 +2461,7 @@ class upbit extends upbit$1["default"] {
             const token = rsa.jwt(request, this.encode(this.secret), sha2_js.sha256);
             privateHeaders['Authorization'] = 'Bearer ' + token;
         }
-        const requestHeaders = (api === 'private') ? privateHeaders : headers;
+        const requestHeaders = (apiName === 'private') ? privateHeaders : headers;
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

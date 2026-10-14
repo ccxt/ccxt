@@ -4127,9 +4127,10 @@ class delta extends delta$1["default"] {
             'datetime': datetime,
         };
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = {}, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}, headers = {}, body = undefined) {
+        const apiName = api[0];
         const requestPath = '/' + this.version + '/' + this.implodeParams(path, params);
-        const apiUrl = this.safeString(this.urls['api'], api);
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
@@ -4137,12 +4138,12 @@ class delta extends delta$1["default"] {
         const query = this.omit(params, this.extractParams(path));
         let requestBody = undefined;
         let requestHeaders = undefined;
-        if (api === 'public') {
+        if (apiName === 'public') {
             if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
-        else if (api === 'private') {
+        else if (apiName === 'private') {
             this.checkRequiredCredentials();
             const timestamp = this.seconds().toString();
             requestHeaders = {

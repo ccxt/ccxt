@@ -1838,7 +1838,7 @@ func (this *Coinmate) Nonce() any {
 	return this.Milliseconds()
 }
 func (this *Coinmate) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -1848,6 +1848,7 @@ func (this *Coinmate) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var bodySigned any = nil
 	var headersSigned any = nil
 	var apiUrl *string = this.SafeString(this.Urls["api"], "rest")
@@ -1855,7 +1856,7 @@ func (this *Coinmate) Sign(path string, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *apiUrl + "/" + path
-	if api == "public" {
+	if apiName != nil && *apiName == "public" {
 		if len(ObjectKeys(params)) > 0 {
 			url += "?" + this.Urlencode(params)
 		}

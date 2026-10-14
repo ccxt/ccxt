@@ -2587,15 +2587,16 @@ class ndax(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        apiName = api[0]
         bodySigned = None
         headersSigned = None
-        apiUrl = self.safe_string(self.urls['api'], api)
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        if api == 'public':
+        if apiName == 'public':
             if path == 'Authenticate':
                 auth = self.login + ':' + self.password
                 auth64 = self.string_to_base64(auth)
@@ -2613,7 +2614,7 @@ class ndax(Exchange, ImplicitAPI):
                     query = self.omit(query, 'pending2faToken')
             if len(query) > 0:
                 url += '?' + self.urlencode(query)
-        elif api == 'private':
+        elif apiName == 'private':
             self.check_required_credentials()
             sessionToken = self.safe_string(self.options, 'sessionToken')
             if sessionToken is None:

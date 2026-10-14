@@ -2274,7 +2274,7 @@ public class Binance extends BinanceApi
      */
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, Object body)
     {
-        Object apiGroup = (((java.util.Objects.requireNonNullElse(api, "sapi") instanceof String))) ? java.util.Objects.requireNonNullElse(api, "sapi") : Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "sapi"), 0);
+        Object apiGroup = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Object baseUrls = this.urls.get("api");
         String baseUrl = this.safeString(baseUrls, apiGroup, ((String)((Map<String, Object>)baseUrls).get("sapi")));
         String url = ((baseUrl + "/") + this.implodeParams(path, parameters));

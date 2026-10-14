@@ -1091,16 +1091,17 @@ export default class bitbank extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        const apiName = api[0];
         let query = this.omit (params, this.extractParams (path));
-        const apiUrl = this.safeString (this.urls['api'], api);
+        const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
         let url = this.implodeHostname (apiUrl) + '/';
         let requestBody: Str = undefined;
         let requestHeaders: NullableDict = undefined;
-        if ((api === 'public') || (api === 'markets')) {
+        if ((apiName === 'public') || (apiName === 'markets')) {
             url += this.implodeParams (path, params);
             if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);

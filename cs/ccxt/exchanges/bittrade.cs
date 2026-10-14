@@ -2457,25 +2457,26 @@ public partial class bittrade : Exchange
 
     public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        object apiName = getValue(api, 0);
         Dictionary<string, object> requestHeaders = null;
         string? requestBody = null;
         string url = "/";
-        if ((api is "market"))
+        if ((apiName is "market"))
         {
             url = url + "market";
-        } else if (((api is "public")) || ((api is "private")))
+        } else if (((apiName is "public")) || ((apiName is "private")))
         {
             url = url + this.version;
-        } else if ((isEqual(api, "v2Public")) || (isEqual(api, "v2Private")))
+        } else if ((isEqual(apiName, "v2Public")) || (isEqual(apiName, "v2Private")))
         {
             url = url + "v2";
         }
         url = url + ("/" + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
-        if ((api is "private") || isEqual(api, "v2Private"))
+        if ((apiName is "private") || isEqual(apiName, "v2Private"))
         {
             this.checkRequiredCredentials();
             string timestamp = this.ymdhms(this.milliseconds(), "T");
@@ -2519,7 +2520,7 @@ public partial class bittrade : Exchange
                 url = url + ("?" + this.urlencode(parameters));
             }
         }
-        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((baseApiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;

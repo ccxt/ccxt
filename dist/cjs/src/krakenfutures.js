@@ -3806,13 +3806,14 @@ class krakenfutures extends krakenfutures$1["default"] {
         }
         throw new errors.ExchangeError(feedback); // unknown message
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const apiVersions = this.safeDict(this.options['versions'], api, {});
+    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const apiName = api[0];
+        const apiVersions = this.safeDict(this.options['versions'], apiName, {});
         const methodVersions = this.safeDict(apiVersions, method, {});
         const defaultVersion = this.safeString(methodVersions, path, this.version);
         const version = this.safeString(params, 'version', defaultVersion);
         const paramsOmitted = this.omit(params, 'version');
-        const apiAccess = this.safeDict(this.options['access'], api, {});
+        const apiAccess = this.safeDict(this.options['access'], apiName, {});
         const methodAccess = this.safeDict(apiAccess, method, {});
         const access = this.safeString(methodAccess, path, 'public');
         const endpoint = version + '/' + this.implodeParams(path, paramsOmitted);
@@ -3831,18 +3832,18 @@ class krakenfutures extends krakenfutures$1["default"] {
             }
             query += '?' + postData;
         }
-        const apiUrl = this.safeString(this.urls['api'], api);
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         const url = apiUrl + query;
         const requestBody = (path === 'batchorder') ? postData : body;
         let privateHeaders = undefined;
-        if (api === 'private' || access === 'private') {
+        if (apiName === 'private' || access === 'private') {
             this.checkRequiredCredentials();
             let auth = postData + '/api/';
-            if (api !== 'private') {
-                auth += api + '/';
+            if (apiName !== 'private') {
+                auth += apiName + '/';
             }
             auth += endpoint; // 1
             const hash = this.hash(this.encode(auth), sha2_js.sha256, 'binary'); // 2

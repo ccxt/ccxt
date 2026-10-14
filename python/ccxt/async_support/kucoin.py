@@ -8647,9 +8647,9 @@ class kucoin(Exchange, ImplicitAPI):
         items = self.safe_list_2(data, 'items', 'dataList', [])
         return self.parse_ledger(items, currency, since, limit)
 
-    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config: dict = {}):
+    def calculate_rate_limiter_cost(self, api: list[str], method: object, path: object, params: object, config: dict = {}):
         versions = self.safe_dict(self.options, 'versions', {})
-        apiVersions = self.safe_dict(versions, api, {})
+        apiVersions = self.safe_dict(versions, api[0], {})
         methodVersions = self.safe_dict(apiVersions, method, {})
         defaultVersion = self.safe_string(methodVersions, path, self.options['version'])
         version = self.safe_string(params, 'version', defaultVersion)
@@ -10964,29 +10964,30 @@ class kucoin(Exchange, ImplicitAPI):
             self.options['uta'] = uta
         return uta
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        apiName = api[0]
         #
         # the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
         #                                ↑                 ↑
         #                                ↑                 ↑
         #
         versions = self.safe_dict(self.options, 'versions', {})
-        apiVersions = self.safe_dict(versions, api, {})
+        apiVersions = self.safe_dict(versions, apiName, {})
         methodVersions = self.safe_dict(apiVersions, method, {})
         defaultVersion = self.safe_string(methodVersions, path, self.options['version'])
         version = self.safe_string(params, 'version', defaultVersion)
         paramsOmitted = self.omit(params, 'version')
         endpoint = '/api/' + version + '/' + self.implode_params(path, paramsOmitted)
-        if api == 'utaV2':
+        if apiName == 'utaV2':
             endpoint = '/api/ua/v2/' + self.implode_params(path, paramsOmitted)
-        if api == 'webExchange':
+        if apiName == 'webExchange':
             endpoint = '/' + self.implode_params(path, paramsOmitted)
-        if api == 'earn':
+        if apiName == 'earn':
             endpoint = '/api/v1/' + self.implode_params(path, paramsOmitted)
         isUtaPrivate = False
-        if (api == 'uta') or (api == 'utaPrivate'):
+        if (apiName == 'uta') or (apiName == 'utaPrivate'):
             endpoint = '/api/ua/v1/' + self.implode_params(path, paramsOmitted)
-            if api == 'utaPrivate':
+            if apiName == 'utaPrivate':
                 isUtaPrivate = True
         query = self.omit(paramsOmitted, self.extract_params(path))
         endpart = ''
@@ -10994,7 +10995,7 @@ class kucoin(Exchange, ImplicitAPI):
         if headers is not None:
             headersBase = headers
         bodyJson = body
-        apiUrl = self.safe_string(self.urls['api'], api)
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         tradeType = self.safe_string(query, 'tradeType')
@@ -11008,10 +11009,10 @@ class kucoin(Exchange, ImplicitAPI):
                 endpart = bodyJson
                 headersBase['Content-Type'] = 'application/json'
         headersResult = headersBase
-        isFuturePrivate = (api == 'futuresPrivate')
-        isPrivate = (api == 'private')
-        isBroker = (api == 'broker')
-        isEarn = (api == 'earn')
+        isFuturePrivate = (apiName == 'futuresPrivate')
+        isPrivate = (apiName == 'private')
+        isBroker = (apiName == 'broker')
+        isEarn = (apiName == 'earn')
         if isPrivate or isFuturePrivate or isBroker or isEarn or isUtaPrivate:
             self.check_required_credentials()
             timestamp = str(self.nonce())

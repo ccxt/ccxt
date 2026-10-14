@@ -7186,7 +7186,7 @@ export default class bingx extends Exchange {
         return tiers as LeverageTier[];
     }
 
-    override sign (path: string, section = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, section: string[] = [ 'public' ], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let type = section[0];
         let version = section[1];
         let access = section[2];

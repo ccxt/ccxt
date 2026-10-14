@@ -178,11 +178,12 @@ export default class mudrex extends Exchange {
             },
         });
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const apiName = api[0];
         const apiUrls = this.safeDict(this.urls, 'api', {});
-        const base = this.safeString(apiUrls, api);
+        const base = this.safeString(apiUrls, apiName);
         if (base === undefined) {
-            throw new ExchangeError(this.id + ' unknown API namespace: ' + api);
+            throw new ExchangeError(this.id + ' unknown API namespace: ' + apiName);
         }
         let url = base + '/' + this.implodeParams(path, params);
         let query = this.omit(params, this.extractParams(path));
@@ -195,7 +196,7 @@ export default class mudrex extends Exchange {
             requestHeaders['Partner-Id'] = brokerId;
         }
         const methodUpper = method.toUpperCase();
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             requestHeaders['X-Authentication'] = this.secret;
             if (methodUpper === 'POST' || methodUpper === 'PATCH' || methodUpper === 'DELETE') {

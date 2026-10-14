@@ -4566,9 +4566,10 @@ public class Poloniex extends PoloniexApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Boolean isArray = (parameters instanceof List);
         Object url = ((Map<String, Object>)this.urls.get("api")).get("spot");
-        if (this.inArray(java.util.Objects.requireNonNullElse(api, "public"), new ArrayList<Object>(Arrays.asList("swapPublic", "swapPrivate"))))
+        if (this.inArray(apiName, new ArrayList<Object>(Arrays.asList("swapPublic", "swapPrivate"))))
         {
             url = ((Map<String, Object>)this.urls.get("api")).get("swap");
         }
@@ -4580,7 +4581,7 @@ public class Poloniex extends PoloniexApi
         String implodedPath = (String) this.implodeParams(path, parameters);
         String bodyJson = null;
         Map<String, Object> signedHeaders = null;
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "swapPublic"))
+        if (java.util.Objects.equals(apiName, "public") || java.util.Objects.equals(apiName, "swapPublic"))
         {
             url = (url + ("/" + implodedPath));
             if (((Map<String, Object>)query).size() > 0)

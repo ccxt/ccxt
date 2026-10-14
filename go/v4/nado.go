@@ -4138,10 +4138,7 @@ func (this *Nado) Sign(path string, optionalArgs ...any) any {
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
 	var requestBody any = nil
-	var endpoint any = GetValue(api, 0)
-	if IsString(api) {
-		endpoint = api
-	}
+	var endpoint *string = SafeStringPtr(GetValue(api, 0))
 	var baseApiUrl *string = this.SafeString(this.Urls["api"], endpoint)
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
@@ -4152,7 +4149,7 @@ func (this *Nado) Sign(path string, optionalArgs ...any) any {
 	}
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var headersValue map[string]any = map[string]any{}
-	if (endpoint == "gateway") || (endpoint == "archive") {
+	if (endpoint != nil && *endpoint == "gateway") || (endpoint != nil && *endpoint == "archive") {
 		headersValue["Accept-Encoding"] = "gzip, br, deflate"
 	}
 	if method == "GET" {

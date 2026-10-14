@@ -2732,7 +2732,7 @@ class kalshi extends Exchange {
         ));
     }
 
-    public function sign(string $path, mixed $api = 'kalshi', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
+    public function sign(string $path, array $api = array('kalshi'), $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
         /**
          * @ignore
          * builds the request URL and attaches RSA-PSS SHA-256 authentication $headers for private endpoints
@@ -2744,8 +2744,8 @@ class kalshi extends Exchange {
          * @param {array} [$body] request $body
          * @return {array} a dictionary with $url, $method, $body and $headers
          */
-        $apiGroup = gettype($api) === 'string' ? $api : $api[0];
-        $access = gettype($api) === 'string' ? 'public' : $api[1];
+        $apiGroup = $api[0];
+        $access = $this->safe_string($api, 1, 'public');
         $baseUrls = $this->urls['api'];
         $baseUrl = $this->safe_string($baseUrls, $apiGroup, $baseUrls['kalshi']);
         $implodedPath = $this->implode_params($path, $params);

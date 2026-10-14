@@ -1743,7 +1743,7 @@ func (this *Bitbns) Nonce() any {
 	return this.Milliseconds()
 }
 func (this *Bitbns) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "www")
+	api := GetArg(optionalArgs, 0, []any{"www"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -1754,22 +1754,23 @@ func (this *Bitbns) Sign(path string, optionalArgs ...any) any {
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
 	var urls any = this.Urls
-	if !(InOp(GetValue(urls, "api"), api)) {
-		panic(ExchangeError(Add(Add(this.Id+" does not have a testnet/sandbox URL for ", api), " endpoints")))
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	if !(InOp(GetValue(urls, "api"), apiName)) {
+		panic(ExchangeError(this.Id + " does not have a testnet/sandbox URL for " + *apiName + " endpoints"))
 	}
-	if api != "www" {
+	if apiName == nil || *apiName != "www" {
 		this.CheckRequiredCredentials()
 	}
 	var apiKeyHeaders map[string]any = map[string]any{
 		"X-BITBNS-APIKEY": this.ApiKey,
 	}
 	var requestHeaders any = func() any {
-		if api != "www" {
+		if apiName == nil || *apiName != "www" {
 			return apiKeyHeaders
 		}
 		return headers
 	}()
-	var baseApiUrl *string = this.SafeString(this.Urls["api"], api)
+	var baseApiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

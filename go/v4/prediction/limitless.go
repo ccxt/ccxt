@@ -4245,7 +4245,7 @@ func (this *Limitless) Nonce() any {
  * @name limitless#sign
  * @description builds the request URL and attaches the lmts authentication headers for private endpoints
  * @param {string} path the endpoint path
- * @param {string|string[]} [api] the api group and access level
+ * @param {string[]} [api] the api group and access level
  * @param {string} [method] HTTP method
  * @param {object} [params] request parameters
  * @param {object} [headers] request headers
@@ -4253,7 +4253,7 @@ func (this *Limitless) Nonce() any {
  * @returns {object} a dictionary with url, method, body and headers
  */
 func (this *Limitless) Sign(path string, optionalArgs ...any) any {
-	api := ccxt.GetArg(optionalArgs, 0, "limitless")
+	api := ccxt.GetArg(optionalArgs, 0, []any{"limitless"})
 	_ = api
 	var method string = ccxt.GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -4263,17 +4263,13 @@ func (this *Limitless) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	body := ccxt.GetArg(optionalArgs, 4, nil)
 	_ = body
-	var apiGroup any = func() any {
-		if ccxt.IsString(api) {
-			return api
-		}
-		return ccxt.GetValue(api, 0)
-	}()
+	var apiGroup *string = ccxt.SafeStringPtr(ccxt.GetValue(api, 0))
+	var apiLength int = ccxt.GetArrayLength(api)
 	var access any = func() any {
-		if ccxt.IsString(api) {
-			return "public"
+		if apiLength > 1 {
+			return ccxt.GetValue(api, 1)
 		}
-		return ccxt.GetValue(api, 1)
+		return "public"
 	}()
 	var baseUrls any = this.Urls["api"]
 	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "limitless"))

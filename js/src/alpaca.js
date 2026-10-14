@@ -2195,7 +2195,7 @@ export default class alpaca extends Exchange {
         }
         return this.safeBalance(result);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
         let endpoint = '/' + this.implodeParams(path, params);
         const baseApiUrl = this.safeString(this.urls['api'], api[0]);
         if (baseApiUrl === undefined) {
