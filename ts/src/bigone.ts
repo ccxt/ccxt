@@ -249,7 +249,7 @@ export default class bigone extends Exchange {
                     'DOGE': 'Dogecoin',
                     'XEC': 'ECash',
                     'EOS': 'EOS',
-                    'ETH': 'Ethereum',
+                    'ERC20': 'Ethereum',
                     'ETC': 'EthereumClassic',
                     'ETHW': 'EthereumPow',
                     'FTM': 'Fantom',
