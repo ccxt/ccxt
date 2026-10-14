@@ -326,7 +326,7 @@ export default class deepcoin extends Exchange {
                     'ERC20': 'ERC20',
                     'TRC20': 'TRC20',
                     'ARBITRUM': 'ARBITRUM',
-                    'BSC': 'BSC(BEP20)',
+                    'BEP20': 'BSC(BEP20)',
                     'SOL': 'SOL',
                     'BTC': 'Bitcoin',
                     'ADA': 'Cardano',
@@ -1231,6 +1231,9 @@ export default class deepcoin extends Exchange {
         const defaultNetwork = this.safeString (defaultNetworks, code);
         if ((network === undefined) || (network === '')) {
             network = defaultNetwork;
+        }
+        if (network !== undefined) {
+            network = this.unifiedNetworkCode (network);
         }
         const paramsOmitted = (network !== undefined) ? this.omit (params, 'network') : params;
         const addressess = await this.fetchDepositAddresses ([ code ], paramsOmitted);

@@ -255,13 +255,10 @@ export default class lbank extends Exchange {
                 },
                 'networks': {
                     'ERC20': 'erc20',
-                    'ETH': 'erc20',
                     'TRC20': 'trc20',
-                    'TRX': 'trc20',
                     'OMNI': 'omni',
                     'ASA': 'asa',
                     'BEP20': 'bep20(bsc)',
-                    'BSC': 'bep20(bsc)',
                     'HT': 'heco',
                     'BNB': 'bep2',
                     'BTC': 'btc',
@@ -2294,8 +2291,11 @@ export default class lbank extends Exchange {
         const defaultNetworks = this.safeDict (this.options, 'defaultNetworks');
         const defaultNetwork = this.safeStringUpper (defaultNetworks, currencyCode);
         const networks = this.safeDict (this.options, 'networks', {});
-        let network = this.safeStringUpper (params, 'network', defaultNetwork); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
+        let network = this.safeStringUpper (params, 'network', defaultNetwork); // accepts unified codes and aliases
+        if (network !== undefined) {
+            network = this.unifiedNetworkCode (network);
+        }
+        network = this.safeString (networks, network, network);
         return network;
     }
 
@@ -2376,6 +2376,9 @@ export default class lbank extends Exchange {
         };
         const networks = this.safeDict (this.options, 'networks');
         let network = this.safeStringUpper (params, 'network');
+        if (network !== undefined) {
+            network = this.unifiedNetworkCode (network);
+        }
         network = this.safeString (networks, network, network);
         const paramsOmitted: Dict = (network !== undefined) ? this.omit (params, 'network') : params;
         if (network !== undefined) {
@@ -2444,7 +2447,10 @@ export default class lbank extends Exchange {
         if (tagWithdrawTag !== undefined) {
             request['memo'] = tagWithdrawTag;
         }
-        const network = this.safeStringUpper2 (paramsOmitted, 'network', 'networkName');
+        let network = this.safeStringUpper2 (paramsOmitted, 'network', 'networkName');
+        if (network !== undefined) {
+            network = this.unifiedNetworkCode (network);
+        }
         const paramsOmitted2: Dict = this.omit (paramsOmitted, [ 'network', 'networkName' ]);
         const networks = this.safeDict (this.options, 'networks');
         const networkId = this.safeString (networks, network, network);
