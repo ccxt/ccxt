@@ -1075,10 +1075,11 @@ export default class lcx extends Exchange {
             // the order endpoint only returns closed and canceled orders, open orders are looked up in the open orders list
             if (e instanceof OrderNotFound) {
                 const openOrders = await this.fetchOpenOrders (symbol);
-                for (let i = 0; i < openOrders.length; i++) {
-                    if (openOrders[i]['id'] === id) {
-                        return openOrders[i];
-                    }
+                const matches = this.filterBy (openOrders, 'id', id);
+                const numMatches = matches.length;
+                if (numMatches > 0) {
+                    const openOrder = this.safeDict (matches, 0);
+                    return openOrder as Order;
                 }
             }
             throw e;
