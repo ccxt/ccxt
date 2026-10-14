@@ -324,7 +324,7 @@ export default class lcx extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        // the venue can list the same pair twice, keep the first entry
+        // skip duplicate pair entries
         const entries: Dict[] = [];
         const seen: Dict = {};
         for (let i = 0; i < data.length; i++) {
@@ -673,7 +673,7 @@ export default class lcx extends Exchange {
         if (Array.isArray (trade)) {
             const publicMarket = this.safeMarket (undefined, market);
             const publicTimestamp = this.safeTimestamp (trade, 3);
-            // the venue reports the side of the resting maker order, the unified side is the taker side
+            // the venue reports the maker side, the unified side is the taker side
             const makerSide = this.safeString (trade, 2);
             let takerSide: Str = undefined;
             if (makerSide === 'BUY') {
@@ -717,7 +717,6 @@ export default class lcx extends Exchange {
             'symbol': resolvedMarket['symbol'],
             'type': this.safeStringLower (trade, 'OrderType'),
             'side': this.safeStringLower (trade, 'Side'),
-            // the isTaker flag of the venue is not reliable, it is inverted for maker fills
             'takerOrMaker': undefined,
             'price': this.safeString (trade, 'Price'),
             'amount': this.safeString (trade, 'Amount'),
@@ -1307,7 +1306,7 @@ export default class lcx extends Exchange {
         const type = this.safeStringLower (order, 'OrderType');
         const side = this.safeStringLower (order, 'Side');
         const filled = this.safeString (order, 'Filled');
-        // the venue echoes the order price as the average before any fill happens
+        // the average is only meaningful once the order has fills
         let average: Str = undefined;
         if (Precise.stringGt (filled, '0')) {
             average = this.omitZero (this.safeString (order, 'Average'));

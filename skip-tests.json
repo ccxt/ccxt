@@ -1936,7 +1936,7 @@
                 "timestamp": "not provided by the venue"
             },
             "ticker": {
-                "lastBetweenBidAsk": "books are thin, last trade can be far from the bid/ask median"
+                "lastBetweenBidAsk": "spread is too wide for the 1% last-vs-median check"
             }
         }
     },
