@@ -405,10 +405,7 @@ class BaseExchange {
             this['has' + this.capitalize(k)] = (this.has[k] !== undefined) && (this.has[k] !== false); // converts 'emulated' to true
         }
         this.newUpdates = (this.options.newUpdates !== undefined) ? this.options.newUpdates : true;
-        this.afterConstruct();
-        if ((this.safeBool(userConfig, 'sandbox', false)) || (this.safeBool(userConfig, 'testnet', false))) {
-            this.setSandboxMode(true);
-        }
+        this.afterConstruct(userConfig);
         // exchange specific libs
         this.loadExchangeSpecificFiles();
     }
@@ -3457,7 +3454,7 @@ class BaseExchange {
         }
         return timestamp;
     }
-    afterConstruct() {
+    afterConstruct(userConfig = {}) {
         // networks
         this.createNetworksByIdObject();
         this.featuresGenerator();
@@ -3471,6 +3468,10 @@ class BaseExchange {
         const isSandbox = this.safeBool2(this.options, 'sandbox', 'testnet', false);
         if (isSandbox === true) {
             this.setSandboxMode(isSandbox);
+        }
+        // compatibility for sandbox/testnet options in userConfig
+        if ((this.safeBool(userConfig, 'sandbox', false)) || (this.safeBool(userConfig, 'testnet', false))) {
+            this.setSandboxMode(true);
         }
     }
     initRestRateLimiter() {

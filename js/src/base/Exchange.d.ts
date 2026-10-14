@@ -678,7 +678,7 @@ export declare class BaseExchange {
     isEmptyString(value: any): boolean;
     safeNumberOmitZero(obj: object, key: NullableIndexType, defaultValue?: Num): Num;
     safeIntegerOmitZero(obj: object, key: NullableIndexType, defaultValue?: Int): Int;
-    afterConstruct(): void;
+    afterConstruct(userConfig?: Dict): void;
     initRestRateLimiter(): void;
     featuresGenerator(): void;
     featuresMapper(initialFeatures: Dict, marketType: Str, subType?: Str): any;
