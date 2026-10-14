@@ -694,9 +694,7 @@ public class Weex extends WeexApi
                 }} );
                 put( "networks", new HashMap<String, Object>() {{
                     put( "BEP20", "BEP20(BSC)" );
-                    put( "BSC", "BEP20(BSC)" );
                     put( "ERC20", "ERC20" );
-                    put( "ETH", "ERC20" );
                     put( "POLYGON", "POLYGON(MATIC)" );
                     put( "MATIC", "POLYGON(MATIC)" );
                     put( "ARBITRUM", "ARBITRUM(ARB)" );

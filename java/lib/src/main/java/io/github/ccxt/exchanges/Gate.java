@@ -1640,13 +1640,10 @@ public class Gate extends GateApi
                 put( "networks", new HashMap<String, Object>() {{
                     put( "BTC", "BTC" );
                     put( "BRC20", "BTCBRC" );
-                    put( "ETH", "ETH" );
                     put( "ERC20", "ETH" );
-                    put( "TRX", "TRX" );
                     put( "TRC20", "TRX" );
                     put( "HECO", "HT" );
                     put( "HRC20", "HT" );
-                    put( "BSC", "BSC" );
                     put( "BEP20", "BSC" );
                     put( "SOL", "SOL" );
                     put( "MATIC", "MATIC" );
@@ -1658,7 +1655,7 @@ public class Gate extends GateApi
                     put( "ARBITRUM_NOVA", "ARBNOVA" );
                     put( "BASE", "BASEEVM" );
                     put( "SUI", "SUI" );
-                    put( "CRONOS", "CRO" );
+                    put( "CRC20", "CRO" );
                     put( "CRO", "CRO" );
                     put( "APT", "APT" );
                     put( "SCROLL", "SCROLLETH" );
@@ -3397,7 +3394,7 @@ public class Gate extends GateApi
             Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             Object chainsIndexedByIdRaw = (this.fetchDepositAddressesByNetwork(code, paramsNetworkCode)).join();
             Object chainsIndexedById = chainsIndexedByIdRaw;
-            Object selectedNetworkIdOrCode = this.selectNetworkCodeFromUnifiedNetworks(code, networkCode, chainsIndexedById);
+            Object selectedNetworkIdOrCode = this.selectNetworkKeyFromNetworks(code, networkCode, chainsIndexedById, true);
             return Helpers.GetValue(chainsIndexedById, ((String)selectedNetworkIdOrCode));
         }).thenApply(DepositAddress::new);
 

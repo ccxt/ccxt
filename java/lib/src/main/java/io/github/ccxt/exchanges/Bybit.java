@@ -2081,11 +2081,8 @@ public class Bybit extends BybitApi
                 put( "networks", new HashMap<String, Object>() {{
                     put( "BTC", "BTC" );
                     put( "BRC20", "BTC" );
-                    put( "ETH", "ETH" );
                     put( "ERC20", "ETH" );
-                    put( "TRX", "TRX" );
                     put( "TRC20", "TRX" );
-                    put( "BSC", "BSC" );
                     put( "BEP20", "BSC" );
                     put( "SOL", "SOL" );
                     put( "ACA", "ACA" );
@@ -2146,6 +2143,7 @@ public class Bybit extends BybitApi
                     put( "MOVE", "MOVE" );
                 }} );
                 put( "networksById", new HashMap<String, Object>() {{
+                    put( "BTC", "BTC" );
                     put( "ETH", "ERC20" );
                     put( "TRX", "TRC20" );
                     put( "BSC", "BEP20" );
@@ -7604,7 +7602,7 @@ public class Bybit extends BybitApi
             String networkCode = (String) ((List<Object>) networkCodeparamsOmitedVariable).get(0);
             Map<String, Object> paramsOmited = (Map<String, Object>) ((List<Object>) networkCodeparamsOmitedVariable).get(1);
             Object indexedAddresses = (this.fetchDepositAddressesByNetwork(code, paramsOmited)).join();
-            Object selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks(currency.get("code"), networkCode, indexedAddresses);
+            Object selectedNetworkCode = this.selectNetworkKeyFromNetworks(currency.get("code"), networkCode, indexedAddresses, true);
             return this.safeValue(indexedAddresses, selectedNetworkCode);
         }).thenApply(DepositAddress::new);
 

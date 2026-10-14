@@ -492,7 +492,7 @@ public class Deepcoin extends DeepcoinApi
                     put( "ERC20", "ERC20" );
                     put( "TRC20", "TRC20" );
                     put( "ARBITRUM", "ARBITRUM" );
-                    put( "BSC", "BSC(BEP20)" );
+                    put( "BEP20", "BSC(BEP20)" );
                     put( "SOL", "SOL" );
                     put( "BTC", "Bitcoin" );
                     put( "ADA", "Cardano" );
@@ -1534,6 +1534,10 @@ public class Deepcoin extends DeepcoinApi
             if ((java.util.Objects.equals(network, null)) || (java.util.Objects.equals(network, "")))
             {
                 network = defaultNetwork;
+            }
+            if (!java.util.Objects.equals(network, null))
+            {
+                network = this.safeString(this.networkAliases, network, network);
             }
             Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(network, null)))) ? this.omit(parameters, "network") : parameters;
             List<DepositAddress> addressess = (this.fetchDepositAddresses(new ArrayList<Object>(Arrays.asList(code)), paramsOmitted)).join();

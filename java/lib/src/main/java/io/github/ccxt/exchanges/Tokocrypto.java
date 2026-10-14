@@ -356,7 +356,7 @@ public class Tokocrypto extends TokocryptoApi
                 put( "reverseNetworks", new HashMap<String, Object>() {{
                     put( "tronscan.org", "TRC20" );
                     put( "etherscan.io", "ERC20" );
-                    put( "bscscan.com", "BSC" );
+                    put( "bscscan.com", "BEP20" );
                     put( "explorer.binance.org", "BEP2" );
                     put( "bithomp.com", "XRP" );
                     put( "bloks.io", "EOS" );
@@ -2646,7 +2646,7 @@ public class Tokocrypto extends TokocryptoApi
                 HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
                 h2kMap0.put("info", response);
                 h2kMap0.put("currency", code);
-                h2kMap0.put("network", this.safeString(data, "network"));
+                h2kMap0.put("network", this.networkIdToCode(this.safeString(data, "network"), code));
                 h2kMap0.put("address", address);
                 h2kMap0.put("tag", tag);
                 return h2kMap0;
@@ -2930,7 +2930,7 @@ public class Tokocrypto extends TokocryptoApi
             h2kMap1.put("txid", txid);
             h2kMap1.put("type", type);
             h2kMap1.put("currency", code);
-            h2kMap1.put("network", this.safeString(transaction, "network"));
+            h2kMap1.put("network", this.networkIdToCode(this.safeString(transaction, "network"), code));
             h2kMap1.put("amount", this.safeNumber(transaction, "amount", (Object) null));
             h2kMap1.put("status", this.parseTransactionStatusByType(this.safeString(transaction, "status"), type));
             h2kMap1.put("timestamp", timestamp);

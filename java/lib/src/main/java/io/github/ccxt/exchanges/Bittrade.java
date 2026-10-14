@@ -613,8 +613,8 @@ public class Bittrade extends BittradeApi
             put( "options", new HashMap<String, Object>() {{
                 put( "defaultNetwork", "ERC20" );
                 put( "networks", new HashMap<String, Object>() {{
-                    put( "ETH", "erc20" );
-                    put( "TRX", "trc20" );
+                    put( "ERC20", "erc20" );
+                    put( "TRC20", "trc20" );
                     put( "HRC20", "hrc20" );
                     put( "HECO", "hrc20" );
                     put( "HT", "hrc20" );
@@ -2513,7 +2513,7 @@ public class Bittrade extends BittradeApi
             h2kMap0.put("txid", this.safeString(transaction, "tx-hash"));
             h2kMap0.put("timestamp", timestamp);
             h2kMap0.put("datetime", this.iso8601(timestamp));
-            h2kMap0.put("network", this.safeStringUpper(transaction, "chain"));
+            h2kMap0.put("network", this.networkIdToCode(this.safeStringUpper(transaction, "chain"), code));
             h2kMap0.put("address", this.safeString(transaction, "address"));
             h2kMap0.put("addressTo", null);
             h2kMap0.put("addressFrom", null);
@@ -2593,7 +2593,11 @@ public class Bittrade extends BittradeApi
                 request.put("addr-tag", tagWithdrawTag); // only for XRP?
             }
             Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
-            String network = this.safeStringUpper(paramsWithdrawTag, "network"); // this line allows the user to specify either ERC20 or ETH
+            String network = this.safeStringUpper(paramsWithdrawTag, "network");
+            if (!java.util.Objects.equals(network, null))
+            {
+                network = this.safeString(this.networkAliases, network, network); // accepts aliases like ETH for ERC20
+            }
             network = this.safeStringLower(networks, network, network); // handle ETH>ERC20 alias
             if (!java.util.Objects.equals(network, null))
             {

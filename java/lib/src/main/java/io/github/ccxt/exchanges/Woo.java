@@ -656,7 +656,6 @@ public class Woo extends WooApi
                 put( "sandboxMode", false );
                 put( "createMarketBuyOrderRequiresPrice", true );
                 put( "networks", new HashMap<String, Object>() {{
-                    put( "TRX", "TRX" );
                     put( "TRC20", "TRX" );
                     put( "ERC20", "ETH" );
                     put( "BEP20", "BSC" );
@@ -3994,7 +3993,7 @@ public class Woo extends WooApi
             mapLiteral6.put("amount", amount);
             mapLiteral6.put("addressTo", address);
             mapLiteral6.put("tag", tagWithdrawTag);
-            mapLiteral6.put("network", network);
+            mapLiteral6.put("network", this.safeString(this.networkAliases, network, network));
             mapLiteral6.put("type", "withdrawal");
             mapLiteral6.put("status", "pending");
             Map<String, Object> transactionData = this.extend(data, mapLiteral6);
@@ -5513,7 +5512,7 @@ public class Woo extends WooApi
         for (var i = 0; i < ((List<?>)networkKeys).size(); i++)
         {
             String network = (networkKeys == null || i < 0 || i >= networkKeys.size() ? null : networkKeys.get(i));
-            if (java.util.Objects.equals(network, "ETH"))
+            if (java.util.Objects.equals(network, "ERC20"))
             {
                 return network;
             }

@@ -2448,7 +2448,8 @@ public class Blofin extends BlofinApi
     public String networkCodeToChainId(Object networkCode, Map<String, Object> currency)
     {
         Map<String, Object> aliases = (Map<String, Object>) this.safeDict(this.options, "networkCodeAliases", new HashMap<String, Object>() {{}});
-        String unifiedCode = this.safeString(aliases, networkCode, networkCode);
+        String aliasedCode = this.safeString(aliases, networkCode, networkCode);
+        String unifiedCode = this.safeString(this.networkAliases, aliasedCode, aliasedCode);
         // prefer the exact chain id from the currencies registry when it is
         // loaded, since some ids are currency-specific (USDT on Optimism)
         if (!java.util.Objects.equals(currency, null))

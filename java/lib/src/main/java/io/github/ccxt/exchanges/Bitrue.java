@@ -3183,7 +3183,7 @@ public class Bitrue extends BitrueApi
             String networkId = this.safeString(parts, 1);
             if (!java.util.Objects.equals(networkId, null))
             {
-                network = networkId.toUpperCase();
+                network = this.networkIdToCode(networkId.toUpperCase(), (String) null);
             }
         }
         String code = this.safeCurrencyCode(currencyId, currency);
