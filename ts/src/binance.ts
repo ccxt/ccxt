@@ -1438,11 +1438,8 @@ export default class binance extends Exchange {
                     'BTCSEGWIT': 'SEGWITBTC',
                     'BTCLIGHTNING': 'LIGHTNING',
                     'ERC20': 'ETH',
-                    'ETH': 'ETH',
                     'TRC20': 'TRX',
-                    'TRX': 'TRX',
                     'BEP2': 'BNB',
-                    'BSC': 'BSC',
                     'BEP20': 'BSC',
                     'CHZ2': 'CHZ2', // Chiliz chain new
                     'XRP': 'XRP',
@@ -10567,7 +10564,7 @@ export default class binance extends Exchange {
             for (let j = 0; j < networkList.length; j++) {
                 const networkEntry = this.safeDict (networkList, j);
                 const networkId = this.safeString (networkEntry, 'network');
-                const networkCode = this.safeCurrencyCode (networkId);
+                const networkCode = this.networkIdToCode (networkId, code);
                 const fee = this.safeNumber (networkEntry, 'withdrawFee');
                 if ((code !== undefined) && (networkCode !== undefined)) {
                     withdrawFees[code][networkCode] = fee;
