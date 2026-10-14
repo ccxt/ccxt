@@ -359,7 +359,6 @@ class woo(Exchange, ImplicitAPI):
                 'sandboxMode': False,
                 'createMarketBuyOrderRequiresPrice': True,
                 'networks': {
-                    'TRX': 'TRX',  # WOO X renamed the network id from TRON to TRX
                     'TRC20': 'TRX',
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
@@ -3244,7 +3243,7 @@ class woo(Exchange, ImplicitAPI):
             'amount': amount,
             'addressTo': address,
             'tag': tagWithdrawTag,
-            'network': network,
+            'network': self.safe_string(self.networkAliases, network, network),
             'type': 'withdrawal',
             'status': 'pending',
         })
@@ -4508,7 +4507,7 @@ class woo(Exchange, ImplicitAPI):
         networkKeys = list(networks.keys())
         for i in range(0, len(networkKeys)):
             network = networkKeys[i]
-            if network == 'ETH':
+            if network == 'ERC20':
                 return network
         # if it was not returned according to above options, then return the first network of currency
         return self.safe_string(networkKeys, 0)

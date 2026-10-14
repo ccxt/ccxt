@@ -265,13 +265,10 @@ class lbank(Exchange, ImplicitAPI):
                 },
                 'networks': {
                     'ERC20': 'erc20',
-                    'ETH': 'erc20',
                     'TRC20': 'trc20',
-                    'TRX': 'trc20',
                     'OMNI': 'omni',
                     'ASA': 'asa',
                     'BEP20': 'bep20(bsc)',
-                    'BSC': 'bep20(bsc)',
                     'HT': 'heco',
                     'BNB': 'bep2',
                     'BTC': 'btc',
@@ -2181,9 +2178,9 @@ class lbank(Exchange, ImplicitAPI):
         defaultNetworks = self.safe_dict(self.options, 'defaultNetworks')
         defaultNetwork = self.safe_string_upper(defaultNetworks, currencyCode)
         networks = self.safe_dict(self.options, 'networks', {})
-        network = self.safe_string_upper(params, 'network', defaultNetwork)  # this line allows the user to specify either ERC20 or ETH
-        network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
-        return network
+        networkParam = self.safe_string_upper(params, 'network', defaultNetwork)  # accepts unified codes and aliases
+        networkCode = self.safe_string(self.networkAliases, networkParam, networkParam) if (networkParam is not None) else None
+        return self.safe_string(networks, networkCode, networkCode)
 
     def fetch_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
@@ -2255,6 +2252,8 @@ class lbank(Exchange, ImplicitAPI):
         }
         networks = self.safe_dict(self.options, 'networks')
         network = self.safe_string_upper(params, 'network')
+        if network is not None:
+            network = self.safe_string(self.networkAliases, network, network)
         network = self.safe_string(networks, network, network)
         paramsOmitted = self.omit(params, 'network') if (network is not None) else params
         if network is not None:
@@ -2320,6 +2319,8 @@ class lbank(Exchange, ImplicitAPI):
         if tagWithdrawTag is not None:
             request['memo'] = tagWithdrawTag
         network = self.safe_string_upper_2(paramsOmitted, 'network', 'networkName')
+        if network is not None:
+            network = self.safe_string(self.networkAliases, network, network)
         paramsOmitted2 = self.omit(paramsOmitted, ['network', 'networkName'])
         networks = self.safe_dict(self.options, 'networks')
         networkId = self.safe_string(networks, network, network)

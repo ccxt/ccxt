@@ -3009,7 +3009,7 @@ class whitebit(Exchange, ImplicitAPI):
             'txid': self.safe_string(transaction, 'transactionId'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': self.safe_string(transaction, 'network'),
+            'network': self.network_id_to_code(self.safe_string(transaction, 'network'), self.safe_currency_code(currencyId, currencyResolved)),
             'addressFrom': address if (method == '1') else None,
             'address': address,
             'addressTo': address if (method == '2') else None,

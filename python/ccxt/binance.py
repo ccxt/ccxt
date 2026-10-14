@@ -1459,11 +1459,8 @@ class binance(Exchange, ImplicitAPI):
                     'BTCSEGWIT': 'SEGWITBTC',
                     'BTCLIGHTNING': 'LIGHTNING',
                     'ERC20': 'ETH',
-                    'ETH': 'ETH',
                     'TRC20': 'TRX',
-                    'TRX': 'TRX',
                     'BEP2': 'BNB',
-                    'BSC': 'BSC',
                     'BEP20': 'BSC',
                     'CHZ2': 'CHZ2',  # Chiliz chain new
                     'XRP': 'XRP',
@@ -9957,7 +9954,7 @@ class binance(Exchange, ImplicitAPI):
             for j in range(0, len(networkList)):
                 networkEntry = self.safe_dict(networkList, j)
                 networkId = self.safe_string(networkEntry, 'network')
-                networkCode = self.safe_currency_code(networkId)
+                networkCode = self.network_id_to_code(networkId, code)
                 fee = self.safe_number(networkEntry, 'withdrawFee')
                 if (code is not None) and (networkCode is not None):
                     withdrawFees[code][networkCode] = fee

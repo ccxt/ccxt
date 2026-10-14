@@ -1150,9 +1150,7 @@ class kucoin(Exchange, ImplicitAPI):
                     'BTC': 'btc',
                     'BRC20': 'btc',
                     'BTCNATIVESEGWIT': 'bech32',
-                    'ETH': 'eth',
                     'ERC20': 'eth',
-                    'TRX': 'trx',
                     'TRC20': 'trx',
                     'HECO': 'heco',
                     'HRC20': 'heco',
@@ -3600,7 +3598,7 @@ class kucoin(Exchange, ImplicitAPI):
         return {
             'info': response,
             'currency': currencyId,
-            'network': self.safe_string(data, 'chain'),
+            'network': self.network_id_to_code(self.safe_string(data, 'chain'), code),
             'address': address,
             'tag': self.safe_string(data, 'memo'),
         }

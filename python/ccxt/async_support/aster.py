@@ -3942,6 +3942,8 @@ class aster(Exchange, ImplicitAPI):
         # TODO: check how ARBI signature would work
         networks = self.safe_dict(self.options, 'networks', {})
         network = self.safe_string_upper(paramsWithdrawTag, 'network')
+        if network is not None:
+            network = self.safe_string(self.networkAliases, network, network)  # accepts aliases like ETH for ERC20
         network = self.safe_string(networks, network, network)
         if (chainId is None) and (network is not None):
             chainIds = self.safe_dict(self.options, 'networksToChainId', {})
