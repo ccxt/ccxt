@@ -265,7 +265,7 @@ export default class tokocrypto extends Exchange {
                 'reverseNetworks': {
                     'tronscan.org': 'TRC20',
                     'etherscan.io': 'ERC20',
-                    'bscscan.com': 'BSC',
+                    'bscscan.com': 'BEP20',
                     'explorer.binance.org': 'BEP2',
                     'bithomp.com': 'XRP',
                     'bloks.io': 'EOS',
@@ -2354,7 +2354,7 @@ export default class tokocrypto extends Exchange {
         return {
             'info': response,
             'currency': code,
-            'network': this.safeString (data, 'network'),
+            'network': this.networkIdToCode (this.safeString (data, 'network'), code),
             'address': address,
             'tag': tag,
         } as DepositAddress;
@@ -2602,7 +2602,7 @@ export default class tokocrypto extends Exchange {
             'txid': txid,
             'type': type,
             'currency': code,
-            'network': this.safeString (transaction, 'network'),
+            'network': this.networkIdToCode (this.safeString (transaction, 'network'), code),
             'amount': this.safeNumber (transaction, 'amount'),
             'status': this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type),
             'timestamp': timestamp,
