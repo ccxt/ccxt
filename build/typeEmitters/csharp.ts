@@ -393,6 +393,10 @@ export function csExprOf (idiom: string, recv: string, key: string, elem: string
     if (idiom === 'doubleList') {
         return recv + '.ContainsKey(' + k + ') ? ((IEnumerable<object>)' + recv + '[' + k + ']).Select(x => ((IEnumerable<object>)x).Select(y => Convert.ToDouble(y)).ToList()).ToList() : null';
     }
+    if (idiom === 'objectList') {
+        // mixed-type rows (e.g. L3 order book [price, amount, orderId]) keep their raw elements
+        return recv + '.ContainsKey(' + k + ') ? ((IEnumerable<object>)' + recv + '[' + k + ']).Select(x => ((IEnumerable<object>)x).ToList()).ToList() : null';
+    }
     if (idiom === 'safeValueDict') {
         return 'Exchange.SafeValue(' + recv + ', ' + k + ') != null ? (Dictionary<string, object>)Exchange.SafeValue(' + recv + ', ' + k + ') : null';
     }

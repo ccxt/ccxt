@@ -849,6 +849,72 @@ func parseOrderBookEntries(orderbook map[string]any, key string) [][]float64 {
 	return nil
 }
 
+// level 3 orderbook
+
+// OrderBookL3Entry is one [price, amount, orderId] row of a level 3 order book.
+type OrderBookL3Entry struct {
+	Price   *float64
+	Amount  *float64
+	OrderId *string
+}
+
+type OrderBookL3 struct {
+	Bids      []OrderBookL3Entry
+	Asks      []OrderBookL3Entry
+	Symbol    *string
+	Timestamp *int64
+	Datetime  *string
+	Nonce     *int64
+}
+
+// NewOrderBookL3 initializes an OrderBookL3 struct from a map.
+func NewOrderBookL3(orderbook2 any) OrderBookL3 {
+	if orderbook2 == nil {
+		return OrderBookL3{}
+	}
+	orderbook := orderbook2.(map[string]any)
+	return OrderBookL3{
+		Bids:      parseOrderBookL3Entries(orderbook, "bids"),
+		Asks:      parseOrderBookL3Entries(orderbook, "asks"),
+		Symbol:    SafeStringTyped(orderbook, "symbol"),
+		Timestamp: SafeInt64Typed(orderbook, "timestamp"),
+		Datetime:  SafeStringTyped(orderbook, "datetime"),
+		Nonce:     SafeInt64Typed(orderbook, "nonce"),
+	}
+}
+
+// parseOrderBookL3Entries converts raw [price, amount, orderId] rows to OrderBookL3Entry values.
+func parseOrderBookL3Entries(orderbook map[string]any, key string) []OrderBookL3Entry {
+	value, ok := orderbook[key]
+	if !ok || value == nil {
+		return nil
+	}
+	var rows []any
+	switch v := value.(type) {
+	case []any:
+		rows = v
+	case [][]any:
+		for _, row := range v {
+			rows = append(rows, row)
+		}
+	default:
+		rows = listValueToTypedSlice(value)
+	}
+	result := make([]OrderBookL3Entry, 0, len(rows))
+	for _, row := range rows {
+		entry := listValueToTypedSlice(row)
+		if len(entry) < 3 {
+			continue
+		}
+		result = append(result, OrderBookL3Entry{
+			Price:   SafeFloatTyped(entry, 0),
+			Amount:  SafeFloatTyped(entry, 1),
+			OrderId: SafeStringTyped(entry, 2),
+		})
+	}
+	return result
+}
+
 // tickers
 // Tickers struct
 type Tickers struct {
