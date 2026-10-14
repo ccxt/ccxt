@@ -1880,7 +1880,7 @@ impl CoinoneCore {
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1888,6 +1888,9 @@ impl CoinoneCore {
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
+        let __api_empty = Vec::new();
+        let api = api.as_array().unwrap_or(&__api_empty);
+        let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
         let mut request: Value = self.implode_params(path.clone(), params.clone());
         let mut query: Value = self.omit(params.clone(), self.extract_params(path), &[]);
         let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[]);
@@ -1895,20 +1898,20 @@ impl CoinoneCore {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
         let mut url: Value = Value::Str(format!("{}{}", apiUrl, Value::Str("/".into())).into());
-        let mut isPublic: bool = (api.as_str() == Some("public")) || (api.as_str() == Some("v2Public"));
-        if (api.as_str() == Some("v2Public")) {
+        let mut isPublic: bool = (apiName.as_str() == Some("public")) || (apiName.as_str() == Some("v2Public"));
+        if (apiName.as_str() == Some("v2Public")) {
             let mut apiUrl2: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("v2Public".into()), &[]);
             if (apiUrl2 == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
             }
             url = Value::Str(format!("{}{}", apiUrl2, Value::Str("/".into())).into());
-        }  else if (api.as_str() == Some("v2Private")) {
+        }  else if (apiName.as_str() == Some("v2Private")) {
             let mut apiUrl3: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("v2Private".into()), &[]);
             if (apiUrl3 == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
             }
             url = Value::Str(format!("{}{}", apiUrl3, Value::Str("/".into())).into());
-        }  else if (api.as_str() == Some("v2_1Private")) {
+        }  else if (apiName.as_str() == Some("v2_1Private")) {
             let mut apiUrl4: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("v2_1Private".into()), &[]);
             if (apiUrl4 == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
@@ -1927,7 +1930,7 @@ impl CoinoneCore {
             url = Value::Str(format!("{}{}", url, request).into());
             // the v2.1 api requires a uuid nonce, the older apis use a numeric one
             let mut nonce: Value = Value::Null;
-            if (api.as_str() == Some("v2_1Private")) {
+            if (apiName.as_str() == Some("v2_1Private")) {
                 nonce = self.uuid(&[]);
             }  else {
                 nonce = to_string_val(&self.nonce());

@@ -1287,7 +1287,7 @@ impl ZaifCore {
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1295,21 +1295,24 @@ impl ZaifCore {
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
+        let __api_empty = Vec::new();
+        let api = api.as_array().unwrap_or(&__api_empty);
+        let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
         let mut baseApiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[]);
         if (baseApiUrl == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
         let mut baseUrl: Value = baseApiUrl;
         let mut url: Value = Value::Str(format!("{}{}", baseUrl, Value::Str("/".into())).into());
-        if (api.as_str() == Some("public")) {
+        if (apiName.as_str() == Some("public")) {
             url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("api/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())).into())).into());
-        }  else if (api.as_str() == Some("fapi")) {
+        }  else if (apiName.as_str() == Some("fapi")) {
             url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("fapi/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())).into())).into());
         }  else {
             self.check_required_credentials(&[]);
-            if (api.as_str() == Some("ecapi")) {
+            if (apiName.as_str() == Some("ecapi")) {
                 url = Value::Str(format!("{}{}", url, Value::Str("ecapi".into())).into());
-            }  else if (api.as_str() == Some("tlapi")) {
+            }  else if (apiName.as_str() == Some("tlapi")) {
                 url = Value::Str(format!("{}{}", url, Value::Str("tlapi".into())).into());
             }  else {
                 url = Value::Str(format!("{}{}", url, Value::Str("tapi".into())).into());

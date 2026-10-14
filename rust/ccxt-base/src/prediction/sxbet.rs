@@ -3841,7 +3841,7 @@ impl SxbetCore {
  * @name sxbet#sign
  * @description builds the request url and attaches the x-sx-api-key header; every private v3 route authenticates with the apiKey credential, so its absence fails fast instead of surfacing a raw 401
  * @param {string} path the endpoint path
- * @param {string|string[]} api the api group and access level
+ * @param {string[]} api the api group and access level
  * @param {string} method the http method
  * @param {object} params the request parameters
  * @param {object} [headers] request headers
@@ -3849,7 +3849,7 @@ impl SxbetCore {
  * @returns {object} a dict with url, method, body and headers
  */
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("sxbet".into()));
+        let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("sxbet".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3857,9 +3857,9 @@ impl SxbetCore {
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut apiGroup: Value = (if matches!(&api, Value::Str(_)) { api.clone() } else { get_value(&api, &Value::Int(0)) });
-        let mut accessLevel: Value = (if matches!(&api, Value::Str(_)) { Value::Str("public".into()) } else { get_value(&api, &Value::Int(1)) });
-        if (accessLevel.as_str() == Some("private")) && (self.apiKey.clone() == Value::Null) {
+        let mut apiGroup: Value = api.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut accessLevel: Option<String> = self.safe_string(api, Value::Int(1), &[Value::Str("public".into())]).as_str().map(str::to_owned);
+        if (accessLevel.as_deref() == Some("private")) && (self.apiKey.clone() == Value::Null) {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), path).into()), Value::Str(" is a private endpoint and requires the apiKey credential (the x-sx-api-key header)".into()))));
         }
         let mut baseUrls: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null);

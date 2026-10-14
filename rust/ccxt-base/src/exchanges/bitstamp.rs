@@ -4185,7 +4185,7 @@ impl BitstampCore {
         let mut name: Value = self.get_currency_name(code.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         // the per-currency implicit methods (privatePostBtcAddress etc.) all route
         // through request(), called here directly to avoid dynamic dispatch
-        let mut response: Value = self.request(Value::Str(format!("{}{}", name, Value::Str("_address/".into())).into()), &[Value::Str("private".into()), Value::Str("POST".into()), params]).await;
+        let mut response: Value = self.request(Value::Str(format!("{}{}", name, Value::Str("_address/".into())).into()), &[Value::from(vec![Value::Str("private".into())]), Value::Str("POST".into()), params]).await;
         let mut address: Value = self.safe_string_k(response.clone(), "address", &[]);
         let mut tag: Value = self.safe_string2(response.clone(), Value::Str("memo_id".into()), Value::Str("destination_tag".into()), &[]);
         self.check_address(&[address.clone()]);
@@ -4251,7 +4251,7 @@ impl BitstampCore {
             // the per-currency implicit methods (privatePostBtcWithdrawal etc.) all
             // route through request(), called here directly to avoid dynamic dispatch
             let __ws_arg_24 = self.extend(request.clone(), &[paramsWithdrawTag.clone()]);
-            response = self.request(Value::Str(format!("{}{}", name, Value::Str("_withdrawal/".into())).into()), &[Value::Str("private".into()), Value::Str("POST".into()), __ws_arg_24]).await;
+            response = self.request(Value::Str(format!("{}{}", name, Value::Str("_withdrawal/".into())).into()), &[Value::from(vec![Value::Str("private".into())]), Value::Str("POST".into()), __ws_arg_24]).await;
         }  else {
             currency = self.currency(code);
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("iban".into(), address); }
@@ -4360,7 +4360,7 @@ impl BitstampCore {
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4368,7 +4368,10 @@ impl BitstampCore {
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), api.clone(), &[]);
+        let __api_empty = Vec::new();
+        let api = api.as_array().unwrap_or(&__api_empty);
+        let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
+        let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone(), &[]);
         if (apiUrl == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
@@ -4376,7 +4379,7 @@ impl BitstampCore {
         url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", self.version.clone(), Value::Str("/".into())).into())).into());
         url = Value::Str(format!("{}{}", url, self.implode_params(path.clone(), params.clone())).into());
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
-        let mut isPrivatePost: bool = (api.as_str() != Some("public")) && (method.as_str() == Some("POST"));
+        let mut isPrivatePost: bool = (apiName.as_str() != Some("public")) && (method.as_str() == Some("POST"));
         // an empty POST triggers an API0020 error, so empty requests send a dummy object
         // https://github.com/ccxt/ccxt/issues/6846
         let mut emptyPostBody: Value = self.urlencode(Value::Map({
@@ -4393,7 +4396,7 @@ impl BitstampCore {
             requestBody = postBody;
         }
         let mut privateHeaders: Value = Value::Null;
-        if (api.as_str() == Some("public")) {
+        if (apiName.as_str() == Some("public")) {
             if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
             }
@@ -4424,7 +4427,7 @@ impl BitstampCore {
             let mut signature: Value = self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
             add_element_to_object(&mut privateHeaders, &Value::Str("X-Auth-Signature".into()), signature);
         }
-        let mut requestHeaders: Value = (if (api.as_str() == Some("public")) { headers } else { privateHeaders });
+        let mut requestHeaders: Value = (if (apiName.as_str() == Some("public")) { headers } else { privateHeaders });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
