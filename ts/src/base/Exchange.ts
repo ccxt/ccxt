@@ -661,12 +661,14 @@ export class BaseExchange {
                 this[property] = value;
             }
         }
-        // generate implicit api
-        if (this.api !== undefined) {
-            this.defineRestApi (this.api, 'request');
-        }
         this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
         this.afterConstruct (userConfig);
+        // generate old metainfo interface (after afterConstruct, so hasAutocorrect values are included)
+        const hasKeys = Object.keys (this.has);
+        for (let i = 0; i < hasKeys.length; i++) {
+            const k = hasKeys[i];
+            this['has' + this.capitalize (k)] = (this.has[k] !== undefined) && (this.has[k] !== false); // converts 'emulated' to true
+        }
         // exchange specific libs
         this.loadExchangeSpecificFiles ();
     }
