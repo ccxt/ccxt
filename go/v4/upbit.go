@@ -3250,17 +3250,14 @@ func (this *Upbit) Nonce() any {
 	return this.Milliseconds()
 }
 func (this *Upbit) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
-	var baseApiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var baseApiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -3274,13 +3271,13 @@ func (this *Upbit) Sign(path string, optionalArgs ...any) any {
 			url += "?" + this.Urlencode(query)
 		}
 	}
-	var hasBody bool = (api == "private") && (method != "GET") && (method != "DELETE")
-	var requestBody any = body
+	var hasBody bool = (apiName != nil && *apiName == "private") && (method != "GET") && (method != "DELETE")
+	var requestBody *string = nil
 	if hasBody {
-		requestBody = this.Json(params)
+		requestBody = SafeStringPtr(this.Json(params))
 	}
 	var privateHeaders any = nil
-	if api == "private" {
+	if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		privateHeaders = map[string]any{}
 		var nonce string = this.Uuid()
@@ -3305,10 +3302,10 @@ func (this *Upbit) Sign(path string, optionalArgs ...any) any {
 		AddElementToObject(privateHeaders, "Authorization", "Bearer "+token)
 	}
 	var requestHeaders any = func() any {
-		if api == "private" {
+		if apiName != nil && *apiName == "private" {
 			return privateHeaders
 		}
-		return headers
+		return nil
 	}()
 	return map[string]any{
 		"url":     url,

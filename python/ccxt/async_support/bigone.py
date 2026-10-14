@@ -1884,16 +1884,17 @@ class bigone(Exchange, ImplicitAPI):
         exchangeTimeCorrection = self.safe_integer(self.options, 'exchangeMillisecondsCorrection', 0) * 1000000
         return self.sum(self.microseconds() * 1000, exchangeTimeCorrection)
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
         bodySigned = None
         query = self.omit(params, self.extract_params(path))
-        apiUrl = self.safe_string(self.urls['api'], api)
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         baseUrl = self.implode_hostname(apiUrl)
         url = baseUrl + '/' + self.implode_params(path, params)
         headersValue = {}
-        if api == 'public' or api == 'webExchange' or api == 'contractPublic':
+        if apiName == 'public' or apiName == 'webExchange' or apiName == 'contractPublic':
             if len(query) > 0:
                 url += '?' + self.urlencode(query)
         else:
@@ -1914,7 +1915,7 @@ class bigone(Exchange, ImplicitAPI):
                 headersValue['Content-Type'] = 'application/json'
                 bodySigned = self.json(query)
         headersValue['User-Agent'] = 'ccxt/' + self.id + '-' + self.version
-        bodyResolved = body if (bodySigned is None) else bodySigned
+        bodyResolved = bodySigned
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersValue}
 
     async def fetch_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:

@@ -3273,7 +3273,7 @@ export default class bitrue extends Exchange {
         //
         return this.parseMarginModification(response, market);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         let requestBody = undefined;
         let requestHeaders = undefined;
         const type = this.safeString(api, 0);
@@ -3356,8 +3356,8 @@ export default class bitrue extends Exchange {
                 url += '?' + this.urlencode(paramsOmitted);
             }
         }
-        const bodyResult = (requestBody === undefined) ? body : requestBody;
-        const headersResult = (requestHeaders === undefined) ? headers : requestHeaders;
+        const bodyResult = requestBody;
+        const headersResult = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

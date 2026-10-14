@@ -5533,17 +5533,14 @@ func (this *Derive) Nonce() any {
 	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 func (this *Derive) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -5552,7 +5549,7 @@ func (this *Derive) Sign(path string, optionalArgs ...any) any {
 		var postHeaders map[string]any = map[string]any{
 			"Content-Type": "application/json",
 		}
-		if api == "private" {
+		if apiName != nil && *apiName == "private" {
 			var now *string = this.NumberToString(this.Nonce())
 			var signature string = this.SignMessage(now, this.PrivateKey)
 			var deriveWalletAddress any = DerefScalar(this.SafeString(this.Options, "deriveWalletAddress"))
@@ -5574,8 +5571,8 @@ func (this *Derive) Sign(path string, optionalArgs ...any) any {
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    nil,
+		"headers": nil,
 	}
 }
 

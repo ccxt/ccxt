@@ -2003,18 +2003,19 @@ class bitopro extends Exchange {
         return $this->parse_deposit_withdraw_fees($data, $codes, 'currency');
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $url = '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
-        $requestHeaders = ($headers === null) ? array() : $headers;
-        $isSignedBody = ($api === 'private') && (($method === 'POST') || ($method === 'PUT'));
+        $requestHeaders = array();
+        $isSignedBody = ($apiName === 'private') && (($method === 'POST') || ($method === 'PUT'));
         $signedBody = $this->json($params);
-        $requestBody = $body;
+        $requestBody = null;
         if ($isSignedBody) {
             $requestBody = $signedBody;
         }
         $requestHeaders['X-BITOPRO-API'] = 'ccxt';
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             if ($method === 'POST' || $method === 'PUT') {
                 $payload = base64_encode($signedBody);
@@ -2037,7 +2038,7 @@ class bitopro extends Exchange {
                 $requestHeaders['X-BITOPRO-PAYLOAD'] = $payload;
                 $requestHeaders['X-BITOPRO-SIGNATURE'] = $signature;
             }
-        } elseif ($api === 'public' && $method === 'GET') {
+        } elseif ($apiName === 'public' && $method === 'GET') {
             if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }

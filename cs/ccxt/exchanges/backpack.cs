@@ -2682,13 +2682,14 @@ public partial class backpack : Exchange
         return ((Int64)((object)((this.milliseconds() - timeDifference)))!);
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        object apiName = getValue(api, 0);
         string endpoint = ("/" + path);
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -2697,7 +2698,7 @@ public partial class backpack : Exchange
         object sortedParams = ((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? parameters : this.keysort(parameters);
         Dictionary<string, object> headersSigned = null;
         string? bodySigned = null;
-        if ((api is "private"))
+        if ((apiName is "private"))
         {
             this.checkRequiredCredentials();
             string ts = this.nonce().ToString();
@@ -2743,9 +2744,9 @@ public partial class backpack : Exchange
             }
         }
         url = url + endpoint;
-        object headersResolved = ((api is "private")) ? headersSigned : headers;
-        object bodyResolved = body;
-        if (((api is "private")) && ((method != "GET")))
+        Dictionary<string, object> headersResolved = ((apiName is "private")) ? headersSigned : null;
+        string? bodyResolved = null;
+        if (((apiName is "private")) && ((method != "GET")))
         {
             bodyResolved = bodySigned;
         }

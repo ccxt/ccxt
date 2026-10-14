@@ -6342,9 +6342,9 @@ class mexc extends mexc$1["default"] {
     nonce() {
         return this.milliseconds() - this.safeInteger(this.options, 'timeDifference', 0);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let requestHeaders = headers;
-        let requestBody = body;
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        let requestHeaders = undefined;
+        let requestBody = undefined;
         const section = this.safeString(api, 0);
         const access = this.safeString(api, 1);
         const pathValue = this.implodeParams(path, params);

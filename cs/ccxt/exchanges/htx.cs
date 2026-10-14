@@ -8971,9 +8971,9 @@ public partial class htx : Exchange
         return ((Int64)((object)((this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0))))!);
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> signedHeaders = null;
@@ -8989,18 +8989,20 @@ public partial class htx : Exchange
         {
             query = this.omit(parameters, this.extractParams(path));
         }
-        if ((api is string))
+        int apiLength = getArrayLength(api);
+        if ((apiLength == 1))
         {
             // signing implementation for the old endpoints
-            if (((api is "public")) || ((api is "private")))
+            object apiName = getValue(api, 0);
+            if (((apiName is "public")) || ((apiName is "private")))
             {
                 url = url + this.version;
-            } else if ((isEqual(api, "v2Public")) || (isEqual(api, "v2Private")))
+            } else if ((isEqual(apiName, "v2Public")) || (isEqual(apiName, "v2Private")))
             {
                 url = url + "v2";
             }
             url = url + ("/" + this.implodeParams(path, parameters));
-            if ((api is "private") || isEqual(api, "v2Private"))
+            if ((apiName is "private") || isEqual(apiName, "v2Private"))
             {
                 this.checkRequiredCredentials();
                 string timestamp = this.ymdhms(this.nonce(), "T");
@@ -9051,7 +9053,7 @@ public partial class htx : Exchange
                     url = url + ("?" + this.urlencode(query));
                 }
             }
-            string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+            string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
             if ((baseApiUrl == null))
             {
                 throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -9171,8 +9173,8 @@ public partial class htx : Exchange
     { "hostname", finalHostname },
 }) + url);
         }
-        object headersResolved = ((signedHeaders != null)) ? signedHeaders : headers;
-        object bodyResolved = ((signedBody != null)) ? signedBody : body;
+        Dictionary<string, object> headersResolved = signedHeaders;
+        string? bodyResolved = signedBody;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

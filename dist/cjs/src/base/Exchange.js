@@ -111,7 +111,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
  */
 class BaseExchange {
     // this is updated by vss.js when building
-    static { this.ccxtVersion = '4.5.87'; }
+    static { this.ccxtVersion = '4.5.88'; }
     constructor(userConfig = {}) {
         this.isSandboxModeEnabled = false;
         this.certified = false;
@@ -3147,7 +3147,7 @@ class BaseExchange {
         }
         this.options['enableDemoTrading'] = enable;
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         return { 'url': undefined, 'method': undefined, 'headers': undefined, 'body': undefined };
     }
     async fetchAccounts(params = {}) {
@@ -5790,7 +5790,7 @@ class BaseExchange {
         }
         return results;
     }
-    async fetch2(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}) {
+    async fetch2(path, api = ['public'], method = 'GET', params = {}, config = {}) {
         if (this.enableRateLimit) {
             const cost = this.calculateRateLimiterCost(api, method, path, params, config);
             await this.throttle(cost);
@@ -5809,7 +5809,7 @@ class BaseExchange {
             }
             try {
                 this.setLastRestRequestTimestamp();
-                const request = this.sign(path, api, method, paramsMaxRetriesOnFailureDelay, headers, body);
+                const request = this.sign(path, api, method, paramsMaxRetriesOnFailureDelay);
                 if (fetchData !== undefined) {
                     fetchData['request'] = request;
                 }
@@ -5847,8 +5847,8 @@ class BaseExchange {
         }
         return undefined; // this line is never reached, but exists for c# value return requirement
     }
-    async request(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}) {
-        return await this.fetch2(path, api, method, params, headers, body, config);
+    async request(path, api = ['public'], method = 'GET', params = {}, config = {}) {
+        return await this.fetch2(path, api, method, params, config);
     }
     async loadAccounts(reload = false, params = {}) {
         if (reload) {

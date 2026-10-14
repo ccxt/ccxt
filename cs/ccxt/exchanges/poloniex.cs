@@ -4347,14 +4347,15 @@ public partial class poloniex : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        object apiName = getValue(api, 0);
         bool isArray = ((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
         object url = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "spot");
-        if (this.inArray(api, new List<object>() {"swapPublic", "swapPrivate"}))
+        if (this.inArray(apiName, new List<object>() {"swapPublic", "swapPrivate"}))
         {
             url = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "swap");
         }
@@ -4366,7 +4367,7 @@ public partial class poloniex : Exchange
         string? implodedPath = this.implodeParams(path, parameters);
         string? bodyJson = null;
         Dictionary<string, object> signedHeaders = null;
-        if ((api is "public") || (api is "swapPublic"))
+        if ((apiName is "public") || (apiName is "swapPublic"))
         {
             url = add(url, ("/" + implodedPath));
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
@@ -4409,8 +4410,8 @@ public partial class poloniex : Exchange
                 { "signature", signature },
             };
         }
-        object bodyResolved = ((bodyJson == null)) ? body : bodyJson;
-        object headersResolved = ((signedHeaders == null)) ? headers : signedHeaders;
+        string? bodyResolved = bodyJson;
+        Dictionary<string, object> headersResolved = signedHeaders;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

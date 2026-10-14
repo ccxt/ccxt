@@ -15,7 +15,7 @@ func (this *Hyperliquid) PublicPostInfo(args ...any) <-chan ccxt.AsyncResult[any
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return this.Fetch2Async("info", "public", "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(20)})
+	return this.Fetch2Async("info", []string{"public"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
 // PrivatePostExchange returns a channel that yields a JSON object.
@@ -24,5 +24,5 @@ func (this *Hyperliquid) PrivatePostExchange(args ...any) <-chan ccxt.EndpointRe
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "exchange", "private", "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "exchange", []string{"private"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }

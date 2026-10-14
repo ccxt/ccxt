@@ -3348,17 +3348,15 @@ public class Sxbet extends SxbetApi
      * @name sxbet#sign
      * @description builds the request url and attaches the x-sx-api-key header; every private v3 route authenticates with the apiKey credential, so its absence fails fast instead of surfacing a raw 401
      * @param {string} path the endpoint path
-     * @param {string|string[]} api the api group and access level
+     * @param {string[]} api the api group and access level
      * @param {string} method the http method
      * @param {object} params the request parameters
-     * @param {object} [headers] request headers
-     * @param {string} [body] the request body
      * @returns {object} a dict with url, method, body and headers
      */
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, Object body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiGroup = (((java.util.Objects.requireNonNullElse(api, "sxbet") instanceof String))) ? java.util.Objects.requireNonNullElse(api, "sxbet") : Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "sxbet"), 0);
-        Object accessLevel = (((java.util.Objects.requireNonNullElse(api, "sxbet") instanceof String))) ? "public" : Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "sxbet"), 1);
+        Object apiGroup = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String accessLevel = this.safeString(api, 1, "public");
         if ((java.util.Objects.equals(accessLevel, "private")) && (java.util.Objects.equals(this.apiKey, null)))
         {
             throw new AuthenticationError((((this.id + " ") + path) + " is a private endpoint and requires the apiKey credential (the x-sx-api-key header)")) ;
@@ -3367,7 +3365,7 @@ public class Sxbet extends SxbetApi
         String baseUrl = this.safeString(baseUrls, apiGroup, ((String)((Map<String, Object>)baseUrls).get("sxbet")));
         String url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
-        Object existingHeaders = (((!java.util.Objects.equals(headers, null)))) ? headers : new HashMap<String, Object>() {{}};
+        Map<String, Object> existingHeaders = new HashMap<String, Object>() {{}};
         Map<String, Object> headersExtended = this.extend(new HashMap<String, Object>() {{
             put( "Accept", "application/json" );
             put( "Content-Type", "application/json" );
@@ -3384,7 +3382,7 @@ public class Sxbet extends SxbetApi
             Boolean hasOrdersList = (Helpers.inOp(query, "orders"));
             sendAsQuery = !Boolean.TRUE.equals(hasOrdersList);
         }
-        Object bodyValue = body;
+        String bodyValue = null;
         if (Boolean.TRUE.equals(sendAsQuery))
         {
             String querystring = this.urlencode(query);
@@ -3409,9 +3407,5 @@ public class Sxbet extends SxbetApi
             h2kMap3.put("headers", headersExtended);
             return h2kMap3;
         }
-    }
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
-    {
-        return this.sign(path, api, method, parameters, headers, (Object) (body));
     }
 }

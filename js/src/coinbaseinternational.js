@@ -2343,7 +2343,7 @@ export default class coinbaseinternational extends Exchange {
         //
         return this.parseTransaction(response, currency);
     }
-    sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = [], method = 'GET', params = {}) {
         const version = this.safeString(api, 0);
         const signed = this.safeString(api, 1) === 'private';
         let fullPath = '/' + version + '/' + this.implodeParams(path, params);
@@ -2364,7 +2364,7 @@ export default class coinbaseinternational extends Exchange {
         if (hasSignedBody) {
             signedBody = this.json(query);
         }
-        let requestBody = body;
+        let requestBody = undefined;
         if (hasSignedBody) {
             requestBody = signedBody;
         }
@@ -2382,7 +2382,7 @@ export default class coinbaseinternational extends Exchange {
                 'CB-ACCESS-KEY': this.apiKey,
             };
         }
-        let requestHeaders = headers;
+        let requestHeaders = undefined;
         if (signed) {
             requestHeaders = signedHeaders;
         }

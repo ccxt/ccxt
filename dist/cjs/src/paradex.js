@@ -3412,7 +3412,8 @@ class paradex extends paradex$1["default"] {
         const sorted = this.sortBy(rates, 'timestamp');
         return this.filterBySymbolSinceLimit(sorted, this.safeString(market, 'symbol'), since, limit);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         let version = this.version;
         let pathValue = path;
         if (path.indexOf('v2/') === 0) {
@@ -3427,12 +3428,12 @@ class paradex extends paradex$1["default"] {
         }
         let url = this.implodeHostname(baseApiUrl) + '/' + this.implodeParams(pathValue, params);
         const query = this.omit(params, this.extractParams(pathValue));
-        if (api === 'public') {
+        if (apiName === 'public') {
             if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
-        else if (api === 'private') {
+        else if (apiName === 'private') {
             const privateHeaders = {
                 'Accept': 'application/json',
                 'PARADEX-PARTNER': this.safeString(this.options, 'broker', 'CCXT'),
@@ -3481,10 +3482,10 @@ class paradex extends paradex$1["default"] {
             //         url += '?' + this.urlencode (query);
             //     }
             // }
-            const bodyResolved = (privateBody !== undefined) ? privateBody : body;
+            const bodyResolved = privateBody;
             return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': privateHeaders };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

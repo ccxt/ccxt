@@ -1981,17 +1981,18 @@ export default class bigone extends Exchange {
         return this.sum (this.microseconds () * 1000, exchangeTimeCorrection);
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
         let bodySigned: Str = undefined;
         const query = this.omit (params, this.extractParams (path));
-        const apiUrl = this.safeString (this.urls['api'], api);
+        const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
         const baseUrl = this.implodeHostname (apiUrl);
         let url = baseUrl + '/' + this.implodeParams (path, params);
         const headersValue: NullableDict = {};
-        if (api === 'public' || api === 'webExchange' || api === 'contractPublic') {
+        if (apiName === 'public' || apiName === 'webExchange' || apiName === 'contractPublic') {
             if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
@@ -2016,7 +2017,7 @@ export default class bigone extends Exchange {
             }
         }
         headersValue['User-Agent'] = 'ccxt/' + this.id + '-' + this.version;
-        const bodyResolved: Str = (bodySigned === undefined) ? body : bodySigned;
+        const bodyResolved: Str = bodySigned;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersValue };
     }
 

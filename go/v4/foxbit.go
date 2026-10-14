@@ -2742,22 +2742,18 @@ func (this *Foxbit) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var headers map[string]any = GetArgMap(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
-	var version any = GetValue(api, 0)
-	var urlPath any = GetValue(api, 1)
-	var fullPath any = Add(Add(Add("/rest/", version), "/"), this.ImplodeParams(path, params))
-	if version == "status" {
+	var version *string = SafeStringPtr(GetValue(api, 0))
+	var urlPath *string = SafeStringPtr(GetValue(api, 1))
+	var fullPath string = "/rest/" + *version + "/" + this.ImplodeParams(path, params)
+	if version != nil && *version == "status" {
 		fullPath = "/status"
-		urlPath = "status"
+		urlPath = SafeStringPtr("status")
 	}
 	var apiUrl *string = this.SafeString(this.Urls["api"], urlPath)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = Add(apiUrl, fullPath)
+	var url string = *apiUrl + fullPath
 	var paramsOmitted any = this.Omit(params, this.ExtractParams(path))
 	var timestamp int64 = this.Milliseconds()
 	var query string = ""
@@ -2767,7 +2763,7 @@ func (this *Foxbit) Sign(path string, optionalArgs ...any) any {
 		var paramKeysLength int = len(paramKeys)
 		if paramKeysLength > 0 {
 			query = this.Urlencode(paramsOmitted)
-			url = Add(url, "?"+query)
+			url += "?" + query
 		}
 		for i := 0; i < len(paramKeys); i++ {
 			var key string = paramKeys[i]
@@ -2780,7 +2776,7 @@ func (this *Foxbit) Sign(path string, optionalArgs ...any) any {
 			}
 		}
 	}
-	var requestBody any = body
+	var requestBody any = nil
 	if (method == "POST") || (method == "PUT") {
 		requestBody = this.Json(paramsOmitted)
 	}
@@ -2793,7 +2789,7 @@ func (this *Foxbit) Sign(path string, optionalArgs ...any) any {
 		"X-FB-CLIENT":         "ccxt",
 		"X-FB-CLIENT-VERSION": this.GetCcxtVersion(),
 	}
-	if urlPath == "private" {
+	if urlPath != nil && *urlPath == "private" {
 		this.CheckRequiredCredentials()
 		var preHash *string = SafeStringPtr(Add(Add(Add(Add(this.NumberToString(timestamp), method), fullPath), signatureQuery), bodyToSignature))
 		var signature string = this.Hmac(this.Encode(preHash), this.Encode(this.Secret), sha256, "hex")

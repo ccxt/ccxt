@@ -2662,17 +2662,18 @@ export default class tokocrypto extends Exchange {
         //
         return this.parseTransaction(response, currency);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        if (!(api in this.urls['api']['rest'])) {
-            throw new NotSupported(this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        if (!(apiName in this.urls['api']['rest'])) {
+            throw new NotSupported(this.id + ' does not have a testnet/sandbox URL for ' + apiName + ' endpoints');
         }
-        const baseApiUrl = this.safeString(this.urls['api']['rest'], api);
+        const baseApiUrl = this.safeString(this.urls['api']['rest'], apiName);
         if (baseApiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         let url = baseApiUrl;
         url += '/' + path;
-        if (api === 'wapi') {
+        if (apiName === 'wapi') {
             url += '.html';
         }
         const userDataStream = (path === 'userDataStream') || (path === 'listenKey');
@@ -2683,14 +2684,14 @@ export default class tokocrypto extends Exchange {
                     'X-MBX-APIKEY': this.apiKey,
                     'Content-Type': 'application/x-www-form-urlencoded',
                 };
-                const bodyStream = (method !== 'GET') ? this.urlencode(params) : body;
+                const bodyStream = (method !== 'GET') ? this.urlencode(params) : undefined;
                 return { 'url': url, 'method': method, 'body': bodyStream, 'headers': headersStream };
             }
             else {
                 throw new AuthenticationError(this.id + ' userDataStream endpoint requires `apiKey` credential');
             }
         }
-        else if ((api === 'private') || (api === 'sapi' && path !== 'system/status') || (api === 'sapiV3') || (api === 'wapi' && path !== 'systemStatus') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2')) {
+        else if ((apiName === 'private') || (apiName === 'sapi' && path !== 'system/status') || (apiName === 'sapiV3') || (apiName === 'wapi' && path !== 'systemStatus') || (apiName === 'dapiPrivate') || (apiName === 'dapiPrivateV2') || (apiName === 'fapiPrivate') || (apiName === 'fapiPrivateV2')) {
             this.checkRequiredCredentials();
             let query = undefined;
             const defaultRecvWindow = this.safeInteger(this.options, 'recvWindow');
@@ -2704,7 +2705,7 @@ export default class tokocrypto extends Exchange {
             if (recvWindow !== undefined) {
                 extendedParams['recvWindow'] = recvWindow;
             }
-            if ((api === 'sapi') && (path === 'asset/dust')) {
+            if ((apiName === 'sapi') && (path === 'asset/dust')) {
                 query = this.urlencodeWithArrayRepeat(extendedParams);
             }
             else if ((path === 'batchOrders') || (path.indexOf('sub-account') >= 0) || (path === 'capital/withdraw/apply') || (path.indexOf('staking') >= 0)) {
@@ -2718,10 +2719,10 @@ export default class tokocrypto extends Exchange {
             const headersSigned = {
                 'X-MBX-APIKEY': this.apiKey,
             };
-            const queryInUrl = (method === 'GET') || (method === 'DELETE') || (api === 'wapi');
+            const queryInUrl = (method === 'GET') || (method === 'DELETE') || (apiName === 'wapi');
             let bodySigned = query;
             if (queryInUrl) {
-                bodySigned = body;
+                bodySigned = undefined;
             }
             if (queryInUrl) {
                 url += '?' + query;
@@ -2736,7 +2737,7 @@ export default class tokocrypto extends Exchange {
                 url += '?' + this.urlencode(params);
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if ((code === 418) || (code === 429)) {

@@ -2047,11 +2047,12 @@ export default class gemini extends Exchange {
         return this.indexBy (results, 'network') as DepositAddresses;
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
         let url = '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         let headersSigned: NullableDict = undefined;
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials ();
             const apiKey = this.apiKey;
             if (apiKey.indexOf ('account') < 0) {
@@ -2078,13 +2079,13 @@ export default class gemini extends Exchange {
                 url += '?' + this.urlencode (query);
             }
         }
-        const apiUrl = this.safeString (this.urls['api'], api);
+        const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
         const fullUrl = apiUrl + url;
-        const headersResolved = (api === 'private') ? headersSigned : headers;
-        let bodyResolved = body;
+        const headersResolved = (apiName === 'private') ? headersSigned : undefined;
+        let bodyResolved = undefined;
         if ((method === 'POST') || (method === 'DELETE')) {
             bodyResolved = this.json (query);
         }

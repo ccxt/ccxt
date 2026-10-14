@@ -4281,13 +4281,14 @@ class hashkey(Exchange, ImplicitAPI):
             'tierBased': True,
         }
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        apiUrl = self.safe_string(self.urls['api'], api)
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + '/' + path
         query = None
-        if api == 'private':
+        if apiName == 'private':
             self.check_required_credentials()
             timestamp = self.milliseconds()
             additionalParams = {
@@ -4319,13 +4320,13 @@ class hashkey(Exchange, ImplicitAPI):
                     bodySigned = query
             headersSigned['INPUT-SOURCE'] = self.safe_string(self.options, 'broker', '10000700011')
             headersSigned['broker_sign'] = signature
-            bodyResolved = body if (method == 'GET') else bodySigned
+            bodyResolved = None if (method == 'GET') else bodySigned
             return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersSigned}
         else:
             query = self.urlencode(params)
             if len(query) != 0:
                 url += '?' + query
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}
 
     def custom_urlencode(self, params: dict = {}) -> Str:
         result = self.urlencode(params)

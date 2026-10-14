@@ -9950,12 +9950,8 @@ func (this *Gate) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
-	var authentication any = GetValue(api, 0) // public, private
-	var typeVar any = GetValue(api, 1)        // spot, margin, future, delivery
+	var authentication *string = SafeStringPtr(GetValue(api, 0)) // public, private
+	var typeVar *string = SafeStringPtr(GetValue(api, 1))        // spot, margin, future, delivery
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var pathImploded string
 	var bodyJson any = nil
@@ -9988,16 +9984,16 @@ func (this *Gate) Sign(path string, optionalArgs ...any) any {
 	} else {
 		endPart = ("/" + pathImploded)
 	}
-	var entirePath any = Add(Add("/", typeVar), endPart)
-	if (typeVar == "subAccounts") || (typeVar == "withdrawals") {
+	var entirePath any = Add("/"+*typeVar, endPart)
+	if (typeVar != nil && *typeVar == "subAccounts") || (typeVar != nil && *typeVar == "withdrawals") {
 		entirePath = endPart
 	}
 	var url any = GetValue(GetValue(this.Urls["api"], authentication), typeVar)
 	if IsEqual(url, nil) {
-		panic(NotSupported(Add(Add(this.Id+" does not have a testnet for the ", typeVar), " market type.")))
+		panic(NotSupported(this.Id + " does not have a testnet for the " + *typeVar + " market type."))
 	}
 	url = Add(url, entirePath)
-	if authentication == "public" {
+	if authentication != nil && *authentication == "public" {
 		if len(ObjectKeys(query)) > 0 {
 			url = Add(url, "?"+this.Urlencode(query))
 		}
@@ -10006,7 +10002,7 @@ func (this *Gate) Sign(path string, optionalArgs ...any) any {
 		var queryString string = ""
 		var rawQueryString string = ""
 		var requiresURLEncoding bool = false
-		if ((typeVar == "futures") || (typeVar == "delivery")) && (method == "POST") {
+		if ((typeVar != nil && *typeVar == "futures") || (typeVar != nil && *typeVar == "delivery")) && (method == "POST") {
 			var pathParts []string = strings.Split(pathImploded, "/")
 			var secondPart *string = this.SafeString(pathParts, 1, "")
 			requiresURLEncoding = (func() int {
@@ -10046,12 +10042,7 @@ func (this *Gate) Sign(path string, optionalArgs ...any) any {
 			query = this.Omit(query, "query")
 			bodyJson = this.Json(query)
 		}
-		var bodySigned any = func() any {
-			if bodyJson == nil {
-				return body
-			}
-			return bodyJson
-		}()
+		var bodySigned any = bodyJson
 		var bodyPayload any = func() any {
 			if bodySigned == nil {
 				return ""
@@ -10074,18 +10065,8 @@ func (this *Gate) Sign(path string, optionalArgs ...any) any {
 			"Content-Type": "application/json",
 		}
 	}
-	var bodyResolved any = func() any {
-		if bodyJson == nil {
-			return body
-		}
-		return bodyJson
-	}()
-	var headersResolved any = func() any {
-		if signedHeaders == nil {
-			return headers
-		}
-		return signedHeaders
-	}()
+	var bodyResolved any = bodyJson
+	var headersResolved any = signedHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,
@@ -10321,11 +10302,11 @@ func (this *Gate) fetchOpenInterestHistoryBody(ch chan AsyncResult[any], symbol 
 		request["from"] = this.ParseToInt(float64(*since) / 1000)
 	}
 
-	listEp9607 := <-this.PublicFuturesGetSettleContractStats(this.Extend(request, paramsPaginate))
-	if listEp9607.Err != nil {
-		panic(listEp9607.Err)
+	listEp9588 := <-this.PublicFuturesGetSettleContractStats(this.Extend(request, paramsPaginate))
+	if listEp9588.Err != nil {
+		panic(listEp9588.Err)
 	}
-	var response []any = listEp9607.Value
+	var response []any = listEp9588.Value
 
 	//
 	//    [
@@ -10437,11 +10418,11 @@ func (this *Gate) fetchSettlementHistoryBody(ch chan AsyncResult[[]any], optiona
 		request["limit"] = limit
 	}
 
-	listEp9716 := <-this.PublicOptionsGetSettlements(this.Extend(request, paramsMarketType))
-	if listEp9716.Err != nil {
-		panic(listEp9716.Err)
+	listEp9697 := <-this.PublicOptionsGetSettlements(this.Extend(request, paramsMarketType))
+	if listEp9697.Err != nil {
+		panic(listEp9697.Err)
 	}
-	var response []any = listEp9716.Value
+	var response []any = listEp9697.Value
 	//
 	//     [
 	//         {
@@ -11064,11 +11045,11 @@ func (this *Gate) fetchUnderlyingAssetsBody(ch chan AsyncResult[any], optionalAr
 		panic(NotSupported(this.Id + " fetchUnderlyingAssets() supports option markets only"))
 	}
 
-	listEp10298 := <-this.PublicOptionsGetUnderlyings(paramsMarketType)
-	if listEp10298.Err != nil {
-		panic(listEp10298.Err)
+	listEp10279 := <-this.PublicOptionsGetUnderlyings(paramsMarketType)
+	if listEp10279.Err != nil {
+		panic(listEp10279.Err)
 	}
-	var response []any = listEp10298.Value
+	var response []any = listEp10279.Value
 	//
 	//    [
 	//        {
@@ -11140,11 +11121,11 @@ func (this *Gate) fetchLiquidationsBody(ch chan AsyncResult[any], symbol string,
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("to", request, params)
 
-	listEp10367 := <-this.PublicFuturesGetSettleLiqOrders(this.Extend(requestUntil, paramsUntil))
-	if listEp10367.Err != nil {
-		panic(listEp10367.Err)
+	listEp10348 := <-this.PublicFuturesGetSettleLiqOrders(this.Extend(requestUntil, paramsUntil))
+	if listEp10348.Err != nil {
+		panic(listEp10348.Err)
 	}
-	var response []any = listEp10367.Value
+	var response []any = listEp10348.Value
 
 	//
 	//     [
@@ -11394,11 +11375,11 @@ func (this *Gate) fetchGreeksBody(ch chan AsyncResult[map[string]any], symbol st
 		"underlying": GetValue(market["info"], "underlying"),
 	}
 
-	listEp10602 := <-this.PublicOptionsGetTickers(this.Extend(request, params))
-	if listEp10602.Err != nil {
-		panic(listEp10602.Err)
+	listEp10583 := <-this.PublicOptionsGetTickers(this.Extend(request, params))
+	if listEp10583.Err != nil {
+		panic(listEp10583.Err)
 	}
-	var response []any = listEp10602.Value
+	var response []any = listEp10583.Value
 	//
 	//     [
 	//         {
@@ -11639,18 +11620,18 @@ func (this *Gate) fetchLeveragesBody(ch chan AsyncResult[any], optionalArgs ...a
 	if isUnified != nil && *isUnified == true {
 		marketIdRequest = "currency_pair"
 
-		listEp10824 := <-this.PublicMarginGetUniCurrencyPairs(paramsOmitted)
-		if listEp10824.Err != nil {
-			panic(listEp10824.Err)
+		listEp10805 := <-this.PublicMarginGetUniCurrencyPairs(paramsOmitted)
+		if listEp10805.Err != nil {
+			panic(listEp10805.Err)
 		}
-		response = listEp10824.Value
+		response = listEp10805.Value
 	} else {
 
-		listEp10827 := <-this.PublicMarginGetCurrencyPairs(paramsOmitted)
-		if listEp10827.Err != nil {
-			panic(listEp10827.Err)
+		listEp10808 := <-this.PublicMarginGetCurrencyPairs(paramsOmitted)
+		if listEp10808.Err != nil {
+			panic(listEp10808.Err)
 		}
-		response = listEp10827.Value // deprecated
+		response = listEp10808.Value // deprecated
 	}
 
 	ch <- AsyncResult[any]{Value: this.ParseLeverages(this.ToArray(response), symbolsNormalized, marketIdRequest, "spot")}
@@ -11784,11 +11765,11 @@ func (this *Gate) fetchOptionChainBody(ch chan AsyncResult[any], code string, op
 		"underlying": Add(currency["code"], "_USDT"),
 	}
 
-	listEp10951 := <-this.PublicOptionsGetContracts(this.Extend(request, params))
-	if listEp10951.Err != nil {
-		panic(listEp10951.Err)
+	listEp10932 := <-this.PublicOptionsGetContracts(this.Extend(request, params))
+	if listEp10932.Err != nil {
+		panic(listEp10932.Err)
 	}
-	var response []any = listEp10951.Value
+	var response []any = listEp10932.Value
 
 	//
 	//     [

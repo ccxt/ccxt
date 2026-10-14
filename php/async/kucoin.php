@@ -9498,9 +9498,9 @@ class kucoin extends Exchange {
         return $this->parse_ledger($items, $currency, $since, $limit);
     }
 
-    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
+    public function calculate_rate_limiter_cost(array $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
         $versions = $this->safe_dict($this->options, 'versions', array());
-        $apiVersions = $this->safe_dict($versions, $api, array());
+        $apiVersions = $this->safe_dict($versions, $api[0], array());
         $methodVersions = $this->safe_dict($apiVersions, $method, array());
         $defaultVersion = $this->safe_string($methodVersions, $path, $this->options['version']);
         $version = $this->safe_string($params, 'version', $defaultVersion);
@@ -12104,43 +12104,41 @@ class kucoin extends Exchange {
         return $uta;
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         //
         // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
         //                                ↑                 ↑
         //                                ↑                 ↑
         //
         $versions = $this->safe_dict($this->options, 'versions', array());
-        $apiVersions = $this->safe_dict($versions, $api, array());
+        $apiVersions = $this->safe_dict($versions, $apiName, array());
         $methodVersions = $this->safe_dict($apiVersions, $method, array());
         $defaultVersion = $this->safe_string($methodVersions, $path, $this->options['version']);
         $version = $this->safe_string($params, 'version', $defaultVersion);
         $paramsOmitted = $this->omit($params, 'version');
         $endpoint = '/api/' . $version . '/' . $this->implode_params($path, $paramsOmitted);
-        if ($api === 'utaV2') {
+        if ($apiName === 'utaV2') {
             $endpoint = '/api/ua/v2/' . $this->implode_params($path, $paramsOmitted);
         }
-        if ($api === 'webExchange') {
+        if ($apiName === 'webExchange') {
             $endpoint = '/' . $this->implode_params($path, $paramsOmitted);
         }
-        if ($api === 'earn') {
+        if ($apiName === 'earn') {
             $endpoint = '/api/v1/' . $this->implode_params($path, $paramsOmitted);
         }
         $isUtaPrivate = false;
-        if (($api === 'uta') || ($api === 'utaPrivate')) {
+        if (($apiName === 'uta') || ($apiName === 'utaPrivate')) {
             $endpoint = '/api/ua/v1/' . $this->implode_params($path, $paramsOmitted);
-            if ($api === 'utaPrivate') {
+            if ($apiName === 'utaPrivate') {
                 $isUtaPrivate = true;
             }
         }
         $query = $this->omit($paramsOmitted, $this->extract_params($path));
         $endpart = '';
         $headersBase = array();
-        if ($headers !== null) {
-            $headersBase = $headers;
-        }
-        $bodyJson = $body;
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        $bodyJson = null;
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
@@ -12158,10 +12156,10 @@ class kucoin extends Exchange {
             }
         }
         $headersResult = $headersBase;
-        $isFuturePrivate = ($api === 'futuresPrivate');
-        $isPrivate = ($api === 'private');
-        $isBroker = ($api === 'broker');
-        $isEarn = ($api === 'earn');
+        $isFuturePrivate = ($apiName === 'futuresPrivate');
+        $isPrivate = ($apiName === 'private');
+        $isBroker = ($apiName === 'broker');
+        $isEarn = ($apiName === 'earn');
         if ($isPrivate || $isFuturePrivate || $isBroker || $isEarn || $isUtaPrivate) {
             $this->check_required_credentials();
             $timestamp = (string) $this->nonce();

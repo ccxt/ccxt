@@ -10013,19 +10013,20 @@ class bybit extends Exchange {
         return $this->safe_string($marginModes, $marginMode, $marginMode);
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $requestBody = null;
         $requestHeaders = null;
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $this->implode_hostname($apiUrl) . '/' . $path;
-        if ($api === 'public') {
+        if ($apiName === 'public') {
             if (count($params) > 0) {
                 $url .= '?' . $this->rawencode($params);
             }
-        } elseif ($api === 'private') {
+        } elseif ($apiName === 'private') {
             $this->check_required_credentials();
             $isOpenapi = mb_strpos($url, 'openapi') !== false;
             $isV3UnifiedMargin = mb_strpos($url, 'unified/v3') !== false;
@@ -10114,12 +10115,12 @@ class bybit extends Exchange {
         }
         if ($method === 'POST') {
             $brokerId = $this->safe_string($this->options, 'brokerId', 'CCXT');
-            $headersBase = ($requestHeaders === null) ? $headers : $requestHeaders;
+            $headersBase = $requestHeaders;
             $requestHeaders = ($headersBase === null) ? array() : $headersBase;
             $requestHeaders['Referer'] = $brokerId;
         }
-        $bodyResolved = ($requestBody === null) ? $body : $requestBody;
-        $headersResolved = ($requestHeaders === null) ? $headers : $requestHeaders;
+        $bodyResolved = $requestBody;
+        $headersResolved = $requestHeaders;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 

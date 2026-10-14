@@ -2919,11 +2919,9 @@ class nado(Exchange, ImplicitAPI):
             return marketId[0:-5]
         return marketId
 
-    def sign(self, path: str, api: object = [], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = [], method='GET', params: dict = {}) -> dict:
         requestBody = None
         endpoint = api[0]
-        if isinstance(api, str):
-            endpoint = api
         baseApiUrl = self.safe_string(self.urls['api'], endpoint)
         if baseApiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
@@ -2940,7 +2938,7 @@ class nado(Exchange, ImplicitAPI):
         else:
             headersValue['Content-Type'] = 'application/json'
             requestBody = self.json(query)
-        bodyResult = requestBody if (requestBody is not None) else body
+        bodyResult = requestBody
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersValue}
 
     def handle_errors(self, httpCode: Int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

@@ -1782,9 +1782,10 @@ export default class hibachi extends Exchange {
             'percentage': undefined,
         });
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         const endpoint = '/' + this.implodeParams(path, params);
-        const apiUrl = this.safeString(this.urls['api'], api);
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
@@ -1801,11 +1802,11 @@ export default class hibachi extends Exchange {
         if (hasJsonBody) {
             headersValue['Content-Type'] = 'application/json';
         }
-        let bodyResult = body;
+        let bodyResult = undefined;
         if (hasJsonBody) {
             bodyResult = this.json(params);
         }
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             headersValue['Authorization'] = this.apiKey;
         }

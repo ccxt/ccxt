@@ -3643,13 +3643,13 @@ public class Bitrue extends BitrueApi
 
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object requestBody = null;
         Map<String, Object> requestHeaders = null;
-        String type = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 0);
-        String version = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 1);
-        String access = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 2);
+        String type = this.safeString(api, 0);
+        String version = this.safeString(api, 1);
+        String access = this.safeString(api, 2);
         String apiUrl = this.safeString(this.urls.get("api"), type);
         if (java.util.Objects.equals(apiUrl, null))
         {
@@ -3736,8 +3736,8 @@ public class Bitrue extends BitrueApi
                 url = (url + ("?" + this.urlencode(paramsOmitted)));
             }
         }
-        Object bodyResult = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
-        Object headersResult = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
+        Object bodyResult = requestBody;
+        Map<String, Object> headersResult = requestHeaders;
         {
             HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
             h2kMap3.put("url", url);

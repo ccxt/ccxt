@@ -2887,7 +2887,7 @@ class modetrade(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: str, section='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, section: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         version = section[0]
         access = section[1]
         pathWithParams = self.implode_params(path, params)
@@ -2939,7 +2939,7 @@ class modetrade(Exchange, ImplicitAPI):
                     url += '?' + self.urlencode(paramsSigned)
                     auth += '?' + self.rawencode(paramsSigned)
                 signedHeaders['content-type'] = 'application/x-www-form-urlencoded'
-                signedBody = '' if (method == 'DELETE') else body
+                signedBody = '' if (method == 'DELETE') else None
             secret = self.secret
             if secret.find('ed25519:') >= 0:
                 parts = secret.split('ed25519:')
@@ -2947,7 +2947,7 @@ class modetrade(Exchange, ImplicitAPI):
             signature = self.eddsa(self.encode(auth), self.base58_to_binary(secret), 'ed25519')
             signedHeaders['orderly-signature'] = self.urlencode_base64(self.base64_to_binary(signature))
             return {'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders}
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if (response is None) or (response is None):

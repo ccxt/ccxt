@@ -4334,29 +4334,25 @@ func (this *Modetrade) Nonce() any {
 	return this.Milliseconds()
 }
 func (this *Modetrade) Sign(path string, optionalArgs ...any) any {
-	section := GetArg(optionalArgs, 0, "public")
+	section := GetArg(optionalArgs, 0, []any{"public"})
 	_ = section
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
-	var version any = GetValue(section, 0)
-	var access any = GetValue(section, 1)
+	var version *string = SafeStringPtr(GetValue(section, 0))
+	var access *string = SafeStringPtr(GetValue(section, 1))
 	var pathWithParams string = this.ImplodeParams(path, params)
 	var apiUrl *string = this.SafeString(this.Urls["api"], access)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = Add(Add(*apiUrl+"/", version), "/")
+	var url string = *apiUrl + "/" + *version + "/"
 	var paramsSorted map[string]any = this.Keysort(this.Omit(params, this.ExtractParams(path)))
-	if access == "public" {
-		url = Add(url, pathWithParams)
+	if access != nil && *access == "public" {
+		url += pathWithParams
 		if len(paramsSorted) > 0 {
-			url = Add(url, "?"+this.Urlencode(paramsSorted))
+			url += "?" + this.Urlencode(paramsSorted)
 		}
 	} else {
 		this.CheckRequiredCredentials()
@@ -4382,7 +4378,7 @@ func (this *Modetrade) Sign(path string, optionalArgs ...any) any {
 		}
 		var auth any = ""
 		var ts string = ToString(this.Nonce())
-		url = Add(url, pathWithParams)
+		url += pathWithParams
 		var apiKey any = this.ApiKey
 		if GetIndexOf(apiKey, "ed25519:") < 0 {
 			apiKey = Add("ed25519:", apiKey)
@@ -4392,7 +4388,7 @@ func (this *Modetrade) Sign(path string, optionalArgs ...any) any {
 			"orderly-key":        apiKey,
 			"orderly-timestamp":  ts,
 		}
-		auth = Add(Add(Add(ts+method+"/", version), "/"), pathWithParams)
+		auth = ts + method + "/" + *version + "/" + pathWithParams
 		var signedBody any = nil
 		if (method == "POST") || (method == "PUT") {
 			signedBody = this.Json(paramsSigned)
@@ -4400,7 +4396,7 @@ func (this *Modetrade) Sign(path string, optionalArgs ...any) any {
 			signedHeaders["content-type"] = "application/json"
 		} else {
 			if len(paramsSigned) > 0 {
-				url = Add(url, "?"+this.Urlencode(paramsSigned))
+				url += "?" + this.Urlencode(paramsSigned)
 				auth = Add(auth, "?"+this.Rawencode(paramsSigned))
 			}
 			signedHeaders["content-type"] = "application/x-www-form-urlencoded"
@@ -4408,7 +4404,7 @@ func (this *Modetrade) Sign(path string, optionalArgs ...any) any {
 				if method == "DELETE" {
 					return ""
 				}
-				return body
+				return nil
 			}()
 		}
 		var secret any = this.Secret
@@ -4433,8 +4429,8 @@ func (this *Modetrade) Sign(path string, optionalArgs ...any) any {
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    nil,
+		"headers": nil,
 	}
 }
 func (this *Modetrade) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {

@@ -4093,8 +4093,9 @@ class derive(Exchange, ImplicitAPI):
         # signs the auth timestamp and feeds incrementingNonce (), which nonceString () extends to the nanosecond-scale action nonce; must be unique per wallet (error 11017) while staying a valid date (error 11018)
         return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        apiUrl = self.safe_string(self.urls['api'], api)
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + '/' + path
@@ -4102,7 +4103,7 @@ class derive(Exchange, ImplicitAPI):
             postHeaders = {
                 'Content-Type': 'application/json',
             }
-            if api == 'private':
+            if apiName == 'private':
                 now = self.number_to_string(self.nonce())
                 signature = self.sign_message(now, self.privateKey)
                 deriveWalletAddress = self.safe_string(self.options, 'deriveWalletAddress')
@@ -4113,4 +4114,4 @@ class derive(Exchange, ImplicitAPI):
                 postHeaders['X-DeriveSignature'] = signature
             postBody = self.json(params)
             return {'url': url, 'method': method, 'body': postBody, 'headers': postHeaders}
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}

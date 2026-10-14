@@ -6918,13 +6918,13 @@ public partial class mexc : Exchange
         return ((Int64)((object)((this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0))))!);
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object requestHeaders = headers;
-        object requestBody = body;
+        Dictionary<string, object> requestHeaders = null;
+        object requestBody = null;
         string? section = this.safeString(api, 0);
         string? access = this.safeString(api, 1);
         string? pathValue = this.implodeParams(path, parameters);
@@ -6984,7 +6984,7 @@ public partial class mexc : Exchange
             if (((method == "POST")) || ((method == "PUT")) || ((method == "DELETE")))
             {
                 requestHeaders = ((requestHeaders == null)) ? new Dictionary<string, object>() {} : requestHeaders;
-                ((IDictionary<string,object>)requestHeaders)["Content-Type"] = "application/json";
+                requestHeaders["Content-Type"] = "application/json";
             }
         } else if (section == "contract" || section == "spot2")
         {
@@ -7027,7 +7027,7 @@ public partial class mexc : Exchange
                 }
                 auth = ((this.apiKey + timestamp) + (auth));
                 string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
-                ((IDictionary<string,object>)requestHeaders)["Signature"] = signature;
+                requestHeaders["Signature"] = signature;
             }
         }
         return new Dictionary<string, object>() {

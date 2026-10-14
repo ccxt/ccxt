@@ -1823,37 +1823,34 @@ func (this *Blockchaincom) fetchOrderBody(ch chan AsyncResult[map[string]any], i
 	return nil
 }
 func (this *Blockchaincom) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
 	var requestPath string = "/" + this.ImplodeParams(path, params)
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *apiUrl + requestPath
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var isPrivate bool = (api == "private")
+	var isPrivate bool = (apiName != nil && *apiName == "private")
 	var privateHeaders map[string]any = map[string]any{
 		"X-API-Token": this.Secret,
 	}
-	var requestHeaders any = headers
+	var requestHeaders map[string]any = nil
 	if isPrivate {
 		requestHeaders = privateHeaders
 	}
 	var isPrivatePost bool = isPrivate && (method != "GET")
-	var requestBody any = body
+	var requestBody *string = nil
 	if isPrivatePost {
-		requestBody = this.Json(query)
+		requestBody = SafeStringPtr(this.Json(query))
 	}
-	if api == "public" {
+	if apiName != nil && *apiName == "public" {
 		if len(ObjectKeys(query)) > 0 {
 			url += "?" + this.Urlencode(query)
 		}

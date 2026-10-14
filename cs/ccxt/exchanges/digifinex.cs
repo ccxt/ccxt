@@ -5336,7 +5336,7 @@ public partial class digifinex : Exchange
         return ccxt.BaseExchange.ToDict(await this.privateSwapPostAccountPositionMode(this.extend(request, parameters)));
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -5397,7 +5397,7 @@ public partial class digifinex : Exchange
                 }
             }
             bool hasPostBody = ((method == "POST")) && ((urlencoded != null)) && (urlencoded != "");
-            object requestBody = body;
+            string? requestBody = null;
             if (hasPostBody)
             {
                 requestBody = urlencoded;
@@ -5423,8 +5423,8 @@ public partial class digifinex : Exchange
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", null },
+            { "headers", null },
         };
     }
 

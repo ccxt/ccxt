@@ -3938,13 +3938,14 @@ public class Grvt extends GrvtApi
         return Helpers.toLongOrNull(requestId);
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object requestHeaders = headers;
-        String requestBody = body;
+        Map<String, Object> requestHeaders = null;
+        String requestBody = null;
         Object requestPath = path;
         Object query = this.omit(parameters, this.extractParams(requestPath));
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -3977,7 +3978,7 @@ public class Grvt extends GrvtApi
                 requestBody = this.json(parameters);
             }
         }
-        Boolean isPrivate = ((String)java.util.Objects.requireNonNullElse(api, "public")).startsWith("private");
+        Boolean isPrivate = ((String)apiName).startsWith("private");
         if (java.util.Objects.equals(isPrivate, true))
         {
             this.checkRequiredCredentials(true);
@@ -3990,7 +3991,7 @@ public class Grvt extends GrvtApi
             }};
             if ((java.util.Objects.equals(((String)requestPath).endsWith("auth/api_key/login"), true)) || (java.util.Objects.equals(((String)requestPath).endsWith("auth/wallet/login"), true)))
             {
-                ((Map<String, Object>)requestHeaders).put("Cookie", "rm=true;");
+                requestHeaders.put("Cookie", "rm=true;");
             } else
             {
                 String accountId = this.safeString(this.options, "AuthAccountId");
@@ -3999,8 +4000,8 @@ public class Grvt extends GrvtApi
                 {
                     throw new AuthenticationError((this.id + " : at first, you need to authenticate with exchange using signIn() method.")) ;
                 }
-                ((Map<String, Object>)requestHeaders).put("Cookie", cookieValue);
-                ((Map<String, Object>)requestHeaders).put("X-Grvt-Account-Id", accountId);
+                requestHeaders.put("Cookie", cookieValue);
+                requestHeaders.put("X-Grvt-Account-Id", accountId);
             }
         }
         {

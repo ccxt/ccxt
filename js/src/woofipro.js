@@ -3439,7 +3439,7 @@ export default class woofipro extends Exchange {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, section = ['public'], method = 'GET', params = {}) {
         const version = section[0];
         const access = section[1];
         const pathWithParams = this.implodeParams(path, params);
@@ -3511,8 +3511,8 @@ export default class woofipro extends Exchange {
             const signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519);
             requestHeaders['orderly-signature'] = this.urlencodeBase64(this.base64ToBinary(signature));
         }
-        const bodyResult = (requestBody === undefined) ? body : requestBody;
-        const headersResult = (requestHeaders === undefined) ? headers : requestHeaders;
+        const bodyResult = requestBody;
+        const headersResult = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

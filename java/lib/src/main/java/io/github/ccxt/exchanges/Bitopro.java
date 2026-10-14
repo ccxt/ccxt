@@ -2187,29 +2187,30 @@ public class Bitopro extends BitoproApi
 
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String url = ("/" + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
-        Object requestHeaders = (((java.util.Objects.equals(headers, null)))) ? new HashMap<String, Object>() {{}} : headers;
-        Boolean isSignedBody = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private")) && ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PUT")));
+        Map<String, Object> requestHeaders = new HashMap<String, Object>() {{}};
+        Boolean isSignedBody = (java.util.Objects.equals(apiName, "private")) && ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PUT")));
         String signedBody = this.json(parameters);
-        String requestBody = body;
+        String requestBody = null;
         if (Boolean.TRUE.equals(isSignedBody))
         {
             requestBody = signedBody;
         }
-        ((Map<String, Object>)requestHeaders).put("X-BITOPRO-API", "ccxt");
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        requestHeaders.put("X-BITOPRO-API", "ccxt");
+        if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PUT"))
             {
                 String payload = this.stringToBase64(signedBody);
                 String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha384());
-                ((Map<String, Object>)requestHeaders).put("X-BITOPRO-APIKEY", this.apiKey);
-                ((Map<String, Object>)requestHeaders).put("X-BITOPRO-PAYLOAD", payload);
-                ((Map<String, Object>)requestHeaders).put("X-BITOPRO-SIGNATURE", signature);
+                requestHeaders.put("X-BITOPRO-APIKEY", this.apiKey);
+                requestHeaders.put("X-BITOPRO-PAYLOAD", payload);
+                requestHeaders.put("X-BITOPRO-SIGNATURE", signature);
             } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"))
             {
                 if (Helpers.objectKeys(query).size() > 0)
@@ -2223,11 +2224,11 @@ public class Bitopro extends BitoproApi
                 String data = this.json(rawData);
                 String payload = this.stringToBase64(data);
                 String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha384());
-                ((Map<String, Object>)requestHeaders).put("X-BITOPRO-APIKEY", this.apiKey);
-                ((Map<String, Object>)requestHeaders).put("X-BITOPRO-PAYLOAD", payload);
-                ((Map<String, Object>)requestHeaders).put("X-BITOPRO-SIGNATURE", signature);
+                requestHeaders.put("X-BITOPRO-APIKEY", this.apiKey);
+                requestHeaders.put("X-BITOPRO-PAYLOAD", payload);
+                requestHeaders.put("X-BITOPRO-SIGNATURE", signature);
             }
-        } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public") && java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
+        } else if (java.util.Objects.equals(apiName, "public") && java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
             if (Helpers.objectKeys(query).size() > 0)
             {

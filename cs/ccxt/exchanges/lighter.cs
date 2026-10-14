@@ -3939,13 +3939,14 @@ public partial class lighter : Exchange
         };
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        object apiName = getValue(api, 0);
         object url = null;
-        if ((api is "root"))
+        if ((apiName is "root"))
         {
             string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "public");
             if ((baseApiUrl == null))
@@ -3955,7 +3956,7 @@ public partial class lighter : Exchange
             url = this.implodeHostname(baseApiUrl);
         } else
         {
-            string? baseApiUrl2 = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+            string? baseApiUrl2 = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
             if ((baseApiUrl2 == null))
             {
                 throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -3963,7 +3964,7 @@ public partial class lighter : Exchange
             url = ((((this.implodeHostname(baseApiUrl2) + "/api/") + this.version) + "/") + path);
         }
         Dictionary<string, object> authHeaders = null;
-        if ((api is "private"))
+        if ((apiName is "private"))
         {
             authHeaders = new Dictionary<string, object>() {
                 { "Authorization", this.createAuth(parameters) },
@@ -3985,20 +3986,20 @@ public partial class lighter : Exchange
             }
             url = add(url, ("?" + this.rawencode(parameters)));
         }
-        if ((api is "private"))
+        if ((apiName is "private"))
         {
             return new Dictionary<string, object>() {
                 { "url", url },
                 { "method", method },
-                { "body", body },
+                { "body", null },
                 { "headers", authHeaders },
             };
         }
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", null },
+            { "headers", null },
         };
     }
 

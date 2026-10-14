@@ -3684,14 +3684,15 @@ class kraken extends Exchange {
         );
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $url = '/' . $this->version . '/' . $api . '/' . $path;
-        if ($api === 'public') {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
+        $url = '/' . $this->version . '/' . $apiName . '/' . $path;
+        if ($apiName === 'public') {
             if (count($params) > 0) {
                 // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
                 $url .= '?' . $this->urlencode_nested($params);
             }
-        } elseif ($api === 'private') {
+        } elseif ($apiName === 'private') {
             $price = $this->safe_string($params, 'price');
             $isTriggerPercent = false;
             if ($price !== null) {
@@ -3725,7 +3726,7 @@ class kraken extends Exchange {
             } else {
                 $headersSigned['Content-Type'] = 'application/x-www-form-urlencoded';
             }
-            $baseApiUrl = $this->safe_string($this->urls['api'], $api);
+            $baseApiUrl = $this->safe_string($this->urls['api'], $apiName);
             if ($baseApiUrl === null) {
                 throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
             }
@@ -3734,11 +3735,11 @@ class kraken extends Exchange {
         } else {
             $url = '/' . $path;
         }
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
-        return array( 'url' => $apiUrl . $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $apiUrl . $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
     public function nonce(): float {

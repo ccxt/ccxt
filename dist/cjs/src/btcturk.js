@@ -1070,11 +1070,12 @@ class btcturk extends btcturk$1["default"] {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         if (this.id === 'btctrader') {
             throw new errors.ExchangeError(this.id + ' is an abstract base API for BTCExchange, BTCTurk');
         }
-        const apiUrl = this.safeString(this.urls['api'], api);
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
@@ -1087,13 +1088,13 @@ class btcturk extends btcturk$1["default"] {
         }
         let requestBody = undefined;
         if (isQueryMethod) {
-            requestBody = body;
+            requestBody = undefined;
         }
         else {
             requestBody = this.json(params);
         }
         let privateHeaders = undefined;
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             const nonce = this.nonce().toString();
             const secret = this.base64ToBinary(this.secret);
@@ -1105,7 +1106,7 @@ class btcturk extends btcturk$1["default"] {
                 'Content-Type': 'application/json',
             };
         }
-        const requestHeaders = (privateHeaders !== undefined) ? privateHeaders : headers;
+        const requestHeaders = privateHeaders;
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

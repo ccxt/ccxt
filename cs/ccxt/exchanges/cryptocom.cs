@@ -4223,13 +4223,13 @@ public partial class cryptocom : Exchange
         };
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object requestHeaders = headers;
-        object requestBody = body;
+        Dictionary<string, object> requestHeaders = null;
+        string? requestBody = null;
         string? type = this.safeString(api, 0);
         string? access = this.safeString(api, 1);
         string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), type);
@@ -4272,7 +4272,7 @@ public partial class cryptocom : Exchange
             {
                 string paramsString = "{}";
                 string arrayString = "[]";
-                requestBody = ((string)requestBody).Replace(arrayString, (string)paramsString);
+                requestBody = requestBody.Replace(arrayString, (string)paramsString);
             }
             requestHeaders = new Dictionary<string, object>() {
                 { "Content-Type", "application/json" },

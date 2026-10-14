@@ -6775,7 +6775,7 @@ public partial class xt : Exchange
         return null;
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -6889,7 +6889,7 @@ public partial class xt : Exchange
                 url = url + ("?" + urlencoded);
             }
         }
-        object bodyValue = body;
+        string? bodyValue = null;
         if (signed)
         {
             bodyValue = signedBody;

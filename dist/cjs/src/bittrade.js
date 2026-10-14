@@ -2080,22 +2080,23 @@ class bittrade extends bittrade$1["default"] {
         //
         return this.parseTransaction(response, currency);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         let requestHeaders = undefined;
         let requestBody = undefined;
         let url = '/';
-        if (api === 'market') {
+        if (apiName === 'market') {
             url += 'market';
         }
-        else if ((api === 'public') || (api === 'private')) {
+        else if ((apiName === 'public') || (apiName === 'private')) {
             url += this.version;
         }
-        else if ((api === 'v2Public') || (api === 'v2Private')) {
+        else if ((apiName === 'v2Public') || (apiName === 'v2Private')) {
             url += 'v2';
         }
         url += '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
-        if (api === 'private' || api === 'v2Private') {
+        if (apiName === 'private' || apiName === 'v2Private') {
             this.checkRequiredCredentials();
             const timestamp = this.ymdhms(this.milliseconds(), 'T');
             let request = {
@@ -2133,15 +2134,15 @@ class bittrade extends bittrade$1["default"] {
                 url += '?' + this.urlencode(params);
             }
         }
-        const baseApiUrl = this.safeString(this.urls['api'], api);
+        const baseApiUrl = this.safeString(this.urls['api'], apiName);
         if (baseApiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         url = this.implodeParams(baseApiUrl, {
             'hostname': this.hostname,
         }) + url;
-        const headersResult = (requestHeaders !== undefined) ? requestHeaders : headers;
-        const bodyResult = (requestBody !== undefined) ? requestBody : body;
+        const headersResult = requestHeaders;
+        const bodyResult = requestBody;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

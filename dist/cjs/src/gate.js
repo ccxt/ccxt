@@ -7200,7 +7200,7 @@ class gate extends gate$1["default"] {
         }
         return this.milliseconds() - timeDifference;
     }
-    sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = [], method = 'GET', params = {}) {
         const authentication = api[0]; // public, private
         const type = api[1]; // spot, margin, future, delivery
         let query = this.omit(params, this.extractParams(path));
@@ -7288,7 +7288,7 @@ class gate extends gate$1["default"] {
                 query = this.omit(query, 'query');
                 bodyJson = this.json(query);
             }
-            const bodySigned = (bodyJson === undefined) ? body : bodyJson;
+            const bodySigned = bodyJson;
             const bodyPayload = (bodySigned === undefined) ? '' : bodySigned;
             const bodySignature = this.hash(this.encode(bodyPayload), sha2_js.sha512);
             const nonce = this.nonce();
@@ -7306,8 +7306,8 @@ class gate extends gate$1["default"] {
                 'Content-Type': 'application/json',
             };
         }
-        const bodyResolved = (bodyJson === undefined) ? body : bodyJson;
-        const headersResolved = (signedHeaders === undefined) ? headers : signedHeaders;
+        const bodyResolved = bodyJson;
+        const headersResolved = signedHeaders;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     async modifyMarginHelper(symbol, amount, params = {}) {

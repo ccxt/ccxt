@@ -7138,7 +7138,7 @@ class gate extends Exchange {
         return $this->milliseconds() - $timeDifference;
     }
 
-    public function sign(string $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array(), $method = 'GET', $params = array()): array {
         $authentication = $api[0]; // public, private
         $type = $api[1]; // spot, margin, future, delivery
         $query = $this->omit($params, $this->extract_params($path));
@@ -7221,7 +7221,7 @@ class gate extends Exchange {
                 $query = $this->omit($query, 'query');
                 $bodyJson = $this->json($query);
             }
-            $bodySigned = ($bodyJson === null) ? $body : $bodyJson;
+            $bodySigned = $bodyJson;
             $bodyPayload = ($bodySigned === null) ? '' : $bodySigned;
             $bodySignature = $this->hash($this->encode($bodyPayload), 'sha512');
             $nonce = $this->nonce();
@@ -7239,8 +7239,8 @@ class gate extends Exchange {
                 'Content-Type' => 'application/json',
             );
         }
-        $bodyResolved = ($bodyJson === null) ? $body : $bodyJson;
-        $headersResolved = ($signedHeaders === null) ? $headers : $signedHeaders;
+        $bodyResolved = $bodyJson;
+        $headersResolved = $signedHeaders;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 

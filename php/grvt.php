@@ -3295,12 +3295,13 @@ class grvt extends Exchange {
         return $requestId;
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $requestHeaders = $headers;
-        $requestBody = $body;
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $requestHeaders = null;
+        $requestBody = null;
         $requestPath = $path;
         $query = $this->omit($params, $this->extract_params($requestPath));
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        $apiName = $api[0];
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
@@ -3327,7 +3328,7 @@ class grvt extends Exchange {
                 $requestBody = $this->json($params);
             }
         }
-        $isPrivate = str_starts_with($api, 'private');
+        $isPrivate = str_starts_with($apiName, 'private');
         if ($isPrivate === true) {
             $this->check_required_credentials();
             if ($queryString !== '') {

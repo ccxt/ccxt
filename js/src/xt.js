@@ -5905,7 +5905,7 @@ export default class xt extends Exchange {
         }
         return undefined;
     }
-    sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = [], method = 'GET', params = {}) {
         const signed = api[0] === 'private';
         const endpoint = api[1];
         const request = '/' + this.implodeParams(path, params);
@@ -6000,7 +6000,7 @@ export default class xt extends Exchange {
                 url += '?' + urlencoded;
             }
         }
-        let bodyValue = body;
+        let bodyValue = undefined;
         if (signed) {
             bodyValue = signedBody;
         }

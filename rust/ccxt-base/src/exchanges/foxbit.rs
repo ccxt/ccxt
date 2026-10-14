@@ -2718,11 +2718,11 @@ impl FoxbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut version: Value = get_value(&api, &Value::Int(0));
-        let mut urlPath: Value = get_value(&api, &Value::Int(1));
-        let mut fullPath: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("/rest/".into()), &version), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())).into());
+        let __api_empty = Vec::new();
+        let api = api.as_array().unwrap_or(&__api_empty);
+        let mut version: Value = api.get(0).cloned().unwrap_or(Value::Null);
+        let mut urlPath: Value = api.get(1).cloned().unwrap_or(Value::Null);
+        let mut fullPath: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/rest/".into()), version).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())).into());
         if (version.as_str() == Some("status")) {
             fullPath = Value::Str("/status".into());
             urlPath = Value::Str("status".into());
@@ -2758,7 +2758,7 @@ impl FoxbitCore {
             }
             }
         }
-        let mut requestBody: Value = body;
+        let mut requestBody: Value = Value::Null;
         if (method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")) {
             requestBody = json_stringify(&paramsOmitted);
         }

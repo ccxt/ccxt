@@ -2703,7 +2703,7 @@ public partial class coinbaseinternational : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -2732,7 +2732,7 @@ public partial class coinbaseinternational : Exchange
         {
             signedBody = this.json(query);
         }
-        object requestBody = body;
+        string? requestBody = null;
         if (hasSignedBody)
         {
             requestBody = signedBody;
@@ -2752,7 +2752,7 @@ public partial class coinbaseinternational : Exchange
                 { "CB-ACCESS-KEY", this.apiKey },
             };
         }
-        object requestHeaders = headers;
+        Dictionary<string, object> requestHeaders = null;
         if (signed)
         {
             requestHeaders = signedHeaders;

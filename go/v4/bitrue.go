@@ -4024,16 +4024,12 @@ func (this *Bitrue) setMarginBody(ch chan AsyncResult[any], symbol any, amount a
 	return nil
 }
 func (this *Bitrue) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	var requestBody any = nil
 	var requestHeaders any = nil
 	var typeVar *string = this.SafeString(api, 0)
@@ -4111,18 +4107,8 @@ func (this *Bitrue) Sign(path string, optionalArgs ...any) any {
 			url = Add(url, "?"+this.Urlencode(paramsOmitted))
 		}
 	}
-	var bodyResult any = func() any {
-		if requestBody == nil {
-			return body
-		}
-		return requestBody
-	}()
-	var headersResult any = func() any {
-		if requestHeaders == nil {
-			return headers
-		}
-		return requestHeaders
-	}()
+	var bodyResult any = requestBody
+	var headersResult any = requestHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,

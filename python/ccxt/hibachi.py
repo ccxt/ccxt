@@ -1716,9 +1716,10 @@ class hibachi(Exchange, ImplicitAPI):
             'percentage': None,
         })
 
-    def sign(self, path: str, api='public', method: object = 'GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: object = 'GET', params: dict = {}) -> dict:
+        apiName = api[0]
         endpoint = '/' + self.implode_params(path, params)
-        apiUrl = self.safe_string(self.urls['api'], api)
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + endpoint
@@ -1731,10 +1732,10 @@ class hibachi(Exchange, ImplicitAPI):
         hasJsonBody = (method == 'POST' or method == 'PUT' or method == 'DELETE')
         if hasJsonBody:
             headersValue['Content-Type'] = 'application/json'
-        bodyResult = body
+        bodyResult = None
         if hasJsonBody:
             bodyResult = self.json(params)
-        if api == 'private':
+        if apiName == 'private':
             self.check_required_credentials()
             headersValue['Authorization'] = self.apiKey
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersValue}

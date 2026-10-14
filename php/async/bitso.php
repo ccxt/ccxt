@@ -2054,9 +2054,9 @@ class bitso extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $requestHeaders = $headers;
-        $requestBody = $body;
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $requestHeaders = null;
+        $requestBody = null;
         $endpoint = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($method === 'GET' || $method === 'DELETE') {
@@ -2069,7 +2069,7 @@ class bitso extends Exchange {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $apiUrl . $endpoint;
-        if ($api === 'private') {
+        if ($api[0] === 'private') {
             $this->check_required_credentials();
             // bitso rejects a nonce that is not higher than the previous one (error 104)
             $nonce = (string) $this->incrementing_nonce();

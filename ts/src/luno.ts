@@ -1706,8 +1706,9 @@ export default class luno extends Exchange {
         return this.assignDefaultDepositWithdrawFees (result, currency) as DepositWithdrawFee;
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        const apiUrl = this.safeString (this.urls['api'], api);
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
+        const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
@@ -1717,15 +1718,15 @@ export default class luno extends Exchange {
         if (Object.keys (query).length > 0) {
             url += '?' + this.urlencode (query);
         }
-        if ((api === 'private') || (api === 'exchangePrivate')) {
+        if ((apiName === 'private') || (apiName === 'exchangePrivate')) {
             this.checkRequiredCredentials ();
             const auth = this.stringToBase64 (this.apiKey + ':' + this.secret);
             requestHeaders = {
                 'Authorization': 'Basic ' + auth,
             };
         }
-        const headersResolved = (requestHeaders === undefined) ? headers : requestHeaders;
-        return { 'url': url, 'method': method, 'body': body, 'headers': headersResolved };
+        const headersResolved = requestHeaders;
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': headersResolved };
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

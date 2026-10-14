@@ -1912,7 +1912,7 @@ class foxbit(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def sign(self, path: str, api: object = [], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = [], method='GET', params: dict = {}) -> dict:
         version = api[0]
         urlPath = api[1]
         fullPath = '/rest/' + version + '/' + self.implode_params(path, params)
@@ -1940,7 +1940,7 @@ class foxbit(Exchange, ImplicitAPI):
                     signatureQuery += key + '=' + value
                 if i < paramKeysLength - 1:
                     signatureQuery += '&'
-        requestBody = body
+        requestBody = None
         if method == 'POST' or method == 'PUT':
             requestBody = self.json(paramsOmitted)
         bodyToSignature = ''

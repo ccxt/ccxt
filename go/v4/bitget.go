@@ -16378,12 +16378,8 @@ func (this *Bitget) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
-	var signed bool = IsEqual(GetValue(api, 0), "private")
-	var endpoint any = GetValue(api, 1)
+	var signed bool = (GetValue(api, 0) == "private")
+	var endpoint *string = SafeStringPtr(GetValue(api, 1))
 	var pathPart string = "/api"
 	var request string = "/" + this.ImplodeParams(path, params)
 	var payload string = pathPart + request
@@ -16438,16 +16434,11 @@ func (this *Bitget) Sign(path string, optionalArgs ...any) any {
 			AddElementToObject(requestHeaders, "Content-Type", "application/json")
 		}
 	}
-	var headersResult any = func() any {
-		if requestHeaders == nil {
-			return headers
-		}
-		return requestHeaders
-	}()
+	var headersResult any = requestHeaders
 	var sandboxMode *bool = this.SafeBool2(this.Options, "sandboxMode", "sandbox", false)
 	if (sandboxMode != nil && *sandboxMode == true) && (path != "v2/public/time") && (path != "v3/market/current-fund-rate") {
 		// https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336
-		if IsEqual(headersResult, nil) {
+		if headersResult == nil {
 			headersResult = map[string]any{}
 		}
 		var productType *string = this.SafeString(params, "productType")
@@ -16455,12 +16446,7 @@ func (this *Bitget) Sign(path string, optionalArgs ...any) any {
 			AddElementToObject(headersResult, "PAPTRADING", "1")
 		}
 	}
-	var bodyResult any = func() any {
-		if requestBody == nil {
-			return body
-		}
-		return requestBody
-	}()
+	var bodyResult any = requestBody
 	return map[string]any{
 		"url":     url,
 		"method":  method,

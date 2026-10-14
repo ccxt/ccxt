@@ -6151,8 +6151,6 @@ impl DigifinexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let mut signed: bool = self.safe_string(api.clone(), Value::Int(0), &[]).as_str() == Some("private");
         let mut endpoint: Option<String> = self.safe_string(api, Value::Int(1), &[]).as_str().map(str::to_owned);
         let mut pathPart: Value = Value::Str("/swap/v2".into());
@@ -6197,7 +6195,7 @@ impl DigifinexCore {
                 }
             }
             let mut hasPostBody: bool = (method.as_str() == Some("POST")) && (urlencoded != Value::Null) && (urlencoded.as_str() != Some(""));
-            let mut requestBody: Value = body.clone();
+            let mut requestBody: Value = Value::Null;
             if hasPostBody {
                 requestBody = urlencoded.clone();
             }
@@ -6225,8 +6223,8 @@ impl DigifinexCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), body);
-        m.insert("headers".to_string(), headers);
+        m.insert("body".to_string(), Value::Null);
+        m.insert("headers".to_string(), Value::Null);
     m
 });
 

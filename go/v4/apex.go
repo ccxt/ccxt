@@ -2750,17 +2750,14 @@ func (this *Apex) ParsePosition(position any, optionalArgs ...any) any {
 	})
 }
 func (this *Apex) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var headers map[string]any = GetArgMap(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
-	var baseApiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var baseApiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -2771,7 +2768,7 @@ func (this *Apex) Sign(path string, optionalArgs ...any) any {
 		"Content-Type": "application/x-www-form-urlencoded",
 	}
 	var signPath string = "/api/" + path
-	var signBody any = body
+	var signBody *string = nil
 	if strings.ToUpper(method) != "POST" {
 		if len(ObjectKeys(params)) > 0 {
 			signPath += "?" + this.Rawencode(params)
@@ -2779,14 +2776,14 @@ func (this *Apex) Sign(path string, optionalArgs ...any) any {
 		}
 	} else {
 		var sortedQuery map[string]any = this.Keysort(params)
-		signBody = this.Rawencode(sortedQuery)
+		signBody = SafeStringPtr(this.Rawencode(sortedQuery))
 	}
-	if api == "private" {
+	if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		var timestamp string = strconv.FormatInt(this.Milliseconds(), 10)
-		var messageString any = timestamp + strings.ToUpper(method) + signPath
+		var messageString string = timestamp + strings.ToUpper(method) + signPath
 		if signBody != nil {
-			messageString = Add(messageString, signBody)
+			messageString = messageString + *signBody
 		}
 		var signature string = this.Hmac(this.Encode(messageString), this.Encode(this.StringToBase64(this.Secret)), sha256, "base64")
 		headersValue["APEX-SIGNATURE"] = signature

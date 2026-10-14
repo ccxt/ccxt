@@ -3819,10 +3819,11 @@ class poloniex extends poloniex$1["default"] {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         const isArray = Array.isArray(params);
         let url = this.urls['api']['spot'];
-        if (this.inArray(api, ['swapPublic', 'swapPrivate'])) {
+        if (this.inArray(apiName, ['swapPublic', 'swapPrivate'])) {
             url = this.urls['api']['swap'];
         }
         if (method === 'GET' && ('symbol' in params)) {
@@ -3832,7 +3833,7 @@ class poloniex extends poloniex$1["default"] {
         const implodedPath = this.implodeParams(path, params);
         let bodyJson = undefined;
         let signedHeaders = undefined;
-        if (api === 'public' || api === 'swapPublic') {
+        if (apiName === 'public' || apiName === 'swapPublic') {
             url += '/' + implodedPath;
             if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
@@ -3868,8 +3869,8 @@ class poloniex extends poloniex$1["default"] {
                 'signature': signature,
             };
         }
-        const bodyResolved = (bodyJson === undefined) ? body : bodyJson;
-        const headersResolved = (signedHeaders === undefined) ? headers : signedHeaders;
+        const bodyResolved = bodyJson;
+        const headersResolved = signedHeaders;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

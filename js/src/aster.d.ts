@@ -1,5 +1,5 @@
 import Exchange from './abstract/aster.js';
-import type { Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, LastPrice, LastPrices, LedgerEntry, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, PositionModeInfo, FundingHistory } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, LastPrice, LastPrices, LedgerEntry, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, PositionModeInfo, FundingHistory } from './base/types.js';
 /**
  * @class aster
  * @augments Exchange
@@ -558,7 +558,7 @@ export default class aster extends Exchange {
     parseTransferStatus(status: Str): Str;
     hashMessage(binaryMessage: any): string;
     signHash(hash: string, privateKey: string): string;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     encodeValuesWithJson(values: Dict): string;
     capitalizeKeys(dict: Dict): Dict;
     loadMarketsAndSignIn(): Promise<void>;

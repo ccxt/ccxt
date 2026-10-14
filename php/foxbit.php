@@ -2035,7 +2035,7 @@ class foxbit extends Exchange {
         );
     }
 
-    public function sign(string $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array(), $method = 'GET', $params = array()): array {
         $version = $api[0];
         $urlPath = $api[1];
         $fullPath = '/rest/' . $version . '/' . $this->implode_params($path, $params);
@@ -2070,7 +2070,7 @@ class foxbit extends Exchange {
                 }
             }
         }
-        $requestBody = $body;
+        $requestBody = null;
         if ($method === 'POST' || $method === 'PUT') {
             $requestBody = $this->json($paramsOmitted);
         }

@@ -582,14 +582,7 @@ public class BaseExchange {
                     // lowercase first letter
                     path = path.substring(0, 1).toLowerCase() + path.substring(1);
 
-                    Object apiObj;
-                    if (paths.size() > 1) {
-                        apiObj = new ArrayList<>(paths); // keep a copy
-                    } else if (paths.size() == 1) {
-                        apiObj = paths.get(0);
-                    } else {
-                        apiObj = null; // defensive; original C# would blow up here
-                    }
+                    Object apiObj = new ArrayList<>(paths);
 
                     Map<String, Object> entry = new HashMap<>();
                     entry.put("method", key.toUpperCase());
@@ -2568,13 +2561,11 @@ public class BaseExchange {
             Object costObj = endpointInfo.get("cost");
             Object cost = (costObj != null) ? costObj : 1;
 
-            Map<String, Object> emptyMap = new HashMap<>();
             Map<String, Object> costMap  = new HashMap<>();
             costMap.put("cost", cost);
 
-            // body = null here, same as in your C# comment
             // try {
-            return (CompletableFuture<T>) this.fetch2(path, api, method, parameters, emptyMap, null, costMap);
+            return (CompletableFuture<T>) this.fetch2(path, api, method, parameters, costMap);
                 // return CompletableFuture.completedFuture(res);
             // } catch (Exception e) {
             //     // throw e;
@@ -5053,7 +5044,7 @@ public Object describe()
         Helpers.addElementToObject(this.options, "enableDemoTrading", enable);
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         return new HashMap<String, Object>() {{
             put( "url", null );
@@ -8683,14 +8674,14 @@ public Object describe()
         return results;
     }
 
-    public CompletableFuture<Object> fetch2(Object path, Object api, Object method, Object parameters, Object headers, Object body, Map<String, Object> config)
+    public CompletableFuture<Object> fetch2(Object path, Object api, Object method, Object parameters, Map<String, Object> config)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
             if (this.enableRateLimit)
             {
-                Object cost = this.calculateRateLimiterCost(java.util.Objects.requireNonNullElse(api, "public"), java.util.Objects.requireNonNullElse(method, "GET"), path, parameters, config);
+                Object cost = this.calculateRateLimiterCost(api, java.util.Objects.requireNonNullElse(method, "GET"), path, parameters, config);
                 (this.throttle(cost)).join();
             }
             Integer retries = 0;
@@ -8720,7 +8711,7 @@ public Object describe()
                 try
                 {
                     this.setLastRestRequestTimestamp();
-                    Object request = this.sign(path, java.util.Objects.requireNonNullElse(api, "public"), java.util.Objects.requireNonNullElse(method, "GET"), paramsMaxRetriesOnFailureDelay, headers, Helpers.toStringArg(body));
+                    Object request = this.sign(path, api, java.util.Objects.requireNonNullElse(method, "GET"), paramsMaxRetriesOnFailureDelay);
                     if (!java.util.Objects.equals(fetchData, null))
                     {
                         fetchData.put("request", request);
@@ -8768,12 +8759,12 @@ public Object describe()
 
     }
 
-    public CompletableFuture<Object> request(Object path, Object api, Object method, Object parameters, Object headers, Object body, Map<String, Object> config)
+    public CompletableFuture<Object> request(Object path, Object api, Object method, Object parameters, Map<String, Object> config)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.fetch2(path, java.util.Objects.requireNonNullElse(api, "public"), java.util.Objects.requireNonNullElse(method, "GET"), parameters, headers, body, config)).join();
+            return (this.fetch2(path, api, java.util.Objects.requireNonNullElse(method, "GET"), parameters, config)).join();
         });
 
     }

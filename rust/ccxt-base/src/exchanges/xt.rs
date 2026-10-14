@@ -7803,10 +7803,10 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut signed: bool = get_value(&api, &Value::Int(0)).as_str() == Some("private");
-        let mut endpoint: Value = get_value(&api, &Value::Int(1));
+        let __api_empty = Vec::new();
+        let api = api.as_array().unwrap_or(&__api_empty);
+        let mut signed: bool = api.get(0).cloned().unwrap_or(Value::Null).as_str() == Some("private");
+        let mut endpoint: Value = api.get(1).cloned().unwrap_or(Value::Null);
         let mut request: Value = Value::Str(format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone())).into());
         let mut payload: Value = Value::Null;
         if (endpoint.as_str() == Some("spot")) || (endpoint.as_str() == Some("user")) {
@@ -7892,7 +7892,7 @@ impl XtCore {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), urlencoded).into())).into());
             }
         }
-        let mut bodyValue: Value = body;
+        let mut bodyValue: Value = Value::Null;
         if signed {
             bodyValue = signedBody;
         }

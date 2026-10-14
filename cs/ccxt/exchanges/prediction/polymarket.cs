@@ -3307,21 +3307,18 @@ public partial class polymarket : PredictionExchange
      * @name polymarket#sign
      * @description builds the request url and attaches HMAC-SHA256 authentication headers for private endpoints
      * @param {string} path the endpoint path
-     * @param {string|string[]} api the api group and access level
+     * @param {string[]} api the api group and access level
      * @param {string} method the http method
      * @param {object} params the request parameters
-     * @param {object} [headers] request headers
-     * @param {string} [body] the request body
      * @returns {object} a dict with url, method, body and headers
      */
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        // api is either a string ('gamma') or array (['gamma', 'public'])
-        api ??= "gamma";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object apiGroup = (api is string) ? api : getValue(api, 0);
-        object access = (api is string) ? "public" : getValue(api, 1);
+        object apiGroup = getValue(api, 0);
+        string? access = this.safeString(api, 1, "public");
         object baseUrls = (this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null);
         object baseUrl = this.safeString(baseUrls, apiGroup, getValue(baseUrls, "gamma"));
         object url = add(add(baseUrl, "/"), this.implodeParams(path, parameters));
@@ -3339,7 +3336,7 @@ public partial class polymarket : PredictionExchange
         {
             query = this.omit(parameters, this.extractParams(path));
         }
-        object bodyValue = body;
+        string? bodyValue = null;
         if ((method == "GET"))
         {
             // array-valued params must repeat the key (gamma's clob_token_ids rejects
@@ -3378,12 +3375,12 @@ public partial class polymarket : PredictionExchange
                 bodyValue = this.json(query);
             }
         }
-        object headerDefaults = ((headers != null)) ? headers : new Dictionary<string, object>() {};
+        Dictionary<string, object> headerDefaults = new Dictionary<string, object>() {};
         Dictionary<string, object> headersValue = this.extend(new Dictionary<string, object>() {
             { "Accept", "application/json" },
             { "Content-Type", "application/json" },
         }, headerDefaults);
-        if ((access is "private"))
+        if (access == "private")
         {
             // 'auth/derive-api-key' is built by concatenation so the substring "api" sits at a
             // string-literal boundary: the php regex transpiler rewrites a bare "api" flanked by

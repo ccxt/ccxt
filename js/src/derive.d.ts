@@ -1,5 +1,5 @@
 import Exchange from './abstract/derive.js';
-import type { Dict, List, Currencies, Transaction, Currency, CurrencyInterface, FundingHistory, Market, Str, Strings, Ticker, Int, int, Trade, OrderType, OrderSide, Num, FundingRateHistory, FundingRate, Balances, Order, Position, NullableDict, OHLCV, OpenInterest, Account, TransferEntry, Greeks, Option, BorrowInterest } from './base/types.js';
+import type { Dict, List, Currencies, Transaction, Currency, CurrencyInterface, FundingHistory, Market, Str, Strings, Ticker, Int, int, Trade, OrderType, OrderSide, Num, FundingRateHistory, FundingRate, Balances, Order, Position, OHLCV, OpenInterest, Account, TransferEntry, Greeks, Option, BorrowInterest } from './base/types.js';
 /**
  * @class derive
  * @augments Exchange
@@ -510,5 +510,5 @@ export default class derive extends Exchange {
     handleDeriveWalletAddress(methodName: string, params: Dict): [Str, Dict];
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     nonce(): number;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
 }

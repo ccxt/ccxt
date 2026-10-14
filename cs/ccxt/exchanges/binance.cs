@@ -15822,17 +15822,18 @@ public partial class binance : Exchange
         return (((scheme + "//") + domain) + "/");
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        object apiName = getValue(api, 0);
         object urls = this.urls;
-        if (!(inOp(getValue(urls, "api"), api)))
+        if (!(inOp(getValue(urls, "api"), apiName)))
         {
-            throw new NotSupported ((((this.id + " does not have a testnet/sandbox URL for ") + (api)) + " endpoints")) ;
+            throw new NotSupported ((((this.id + " does not have a testnet/sandbox URL for ") + (apiName)) + " endpoints")) ;
         }
-        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((baseApiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -15871,14 +15872,14 @@ public partial class binance : Exchange
             {
                 throw new AuthenticationError ((this.id + " userDataStream endpoint requires `apiKey` credential")) ;
             }
-        } else if (((api is "private")) || ((api is "eapiPrivate")) || ((api is "sapi") && (path != "system/status")) || (isEqual(api, "sapiV2")) || (isEqual(api, "sapiV3")) || (isEqual(api, "sapiV4")) || ((api is "dapiPrivate")) || (isEqual(api, "dapiPrivateV2")) || ((api is "fapiPrivate")) || (isEqual(api, "fapiPrivateV2")) || (isEqual(api, "fapiPrivateV3")) || (isEqual(api, "papiV2") || (api is "papi") && (path != "ping")))
+        } else if (((apiName is "private")) || ((apiName is "eapiPrivate")) || ((apiName is "sapi") && (path != "system/status")) || (isEqual(apiName, "sapiV2")) || (isEqual(apiName, "sapiV3")) || (isEqual(apiName, "sapiV4")) || ((apiName is "dapiPrivate")) || (isEqual(apiName, "dapiPrivateV2")) || ((apiName is "fapiPrivate")) || (isEqual(apiName, "fapiPrivateV2")) || (isEqual(apiName, "fapiPrivateV3")) || (isEqual(apiName, "papiV2") || (apiName is "papi") && (path != "ping")))
         {
             this.checkRequiredCredentials();
             if ((url.IndexOf("testnet.binancefuture.com", StringComparison.Ordinal) > -1) && this.isSandboxModeEnabled && (!(this.safeBool(this.options, "disableFuturesSandboxWarning", false) == true)))
             {
                 throw new NotSupported ((this.id + " testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.")) ;
             }
-            object requestParams = this.handleClientOrderId(parameters, api, path, method);
+            object requestParams = this.handleClientOrderId(parameters, apiName, path, method);
             object query = null;
             // handle batchOrders
             if (((path == "batchOrders")) && (((method == "POST")) || ((method == "PUT"))))
@@ -15900,7 +15901,7 @@ public partial class binance : Exchange
             {
                 extendedParams["recvWindow"] = recvWindow;
             }
-            if (((api is "sapi")) && ((path == "asset/dust")))
+            if (((apiName is "sapi")) && ((path == "asset/dust")))
             {
                 query = this.urlencodeWithArrayRepeat(extendedParams);
             } else if (((path == "batchOrders")) || (path.IndexOf("sub-account", StringComparison.Ordinal) >= 0) || ((path == "capital/withdraw/apply")) || (path.IndexOf("staking", StringComparison.Ordinal) >= 0) || (path.IndexOf("simple-earn", StringComparison.Ordinal) >= 0))
@@ -15972,8 +15973,8 @@ public partial class binance : Exchange
                 url = url + ("?" + this.urlencode(parameters));
             }
         }
-        object headersResolved = ((signedHeaders != null)) ? signedHeaders : headers;
-        object bodyResolved = ((signedBody != null)) ? signedBody : body;
+        Dictionary<string, object> headersResolved = signedHeaders;
+        object bodyResolved = signedBody;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
@@ -16146,15 +16147,15 @@ public partial class binance : Exchange
         return this.safeValue(config, "cost", 1);
     }
 
-    public async override Task<object> request(string path, object api = null, object method = null, object parameters = null, object headers = null, object body = null, object config = null)
+    public async override Task<object> request(string path, object api = null, object method = null, object parameters = null, object config = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         config ??= new Dictionary<string, object>();
-        object response = await this.fetch2(path, api, method, parameters, headers, body, config);
+        object response = await this.fetch2(path, api, method, parameters, config);
         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
-        if ((api is "private"))
+        if (isEqual(getValue(api, 0), "private"))
         {
             this.options["hasAlreadyAuthenticatedSuccessfully"] = true;
         }

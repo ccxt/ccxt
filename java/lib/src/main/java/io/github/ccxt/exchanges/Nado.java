@@ -3574,14 +3574,10 @@ public class Nado extends NadoApi
         return marketId;
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         String requestBody = null;
-        Object endpoint = Helpers.GetValue(api, 0);
-        if ((api instanceof String))
-        {
-            endpoint = api;
-        }
+        Object endpoint = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String baseApiUrl = this.safeString(this.urls.get("api"), endpoint);
         if (java.util.Objects.equals(baseApiUrl, null))
         {
@@ -3609,7 +3605,7 @@ public class Nado extends NadoApi
             headersValue.put("Content-Type", "application/json");
             requestBody = this.json(query);
         }
-        String bodyResult = (((!java.util.Objects.equals(requestBody, null)))) ? requestBody : body;
+        String bodyResult = requestBody;
         {
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
             h2kMap1.put("url", url);

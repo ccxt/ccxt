@@ -1985,7 +1985,7 @@ class hollaex(Exchange, ImplicitAPI):
         coins = self.safe_dict(response, 'coins', {})
         return self.parse_deposit_withdraw_fees(coins, codes, 'symbol')
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         query = self.omit(params, self.extract_params(path))
         requestPath = '/' + self.version + '/' + self.implode_params(path, params)
         if (method == 'GET') or (method == 'DELETE'):
@@ -1997,7 +1997,7 @@ class hollaex(Exchange, ImplicitAPI):
         url = apiUrl + requestPath
         requestBody = None
         requestHeaders = None
-        if api == 'private':
+        if api[0] == 'private':
             self.check_required_credentials()
             defaultExpires = self.safe_integer_2(self.options, 'api-expires', 'expires', self.parse_to_int(self.timeout / 1000))
             expires = self.sum(self.seconds(), defaultExpires)
@@ -2014,8 +2014,8 @@ class hollaex(Exchange, ImplicitAPI):
                     auth += requestBody
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
             requestHeaders['api-signature'] = signature
-        bodyResult = body if (requestBody is None) else requestBody
-        headersResult = headers if (requestHeaders is None) else requestHeaders
+        bodyResult = requestBody
+        headersResult = requestHeaders
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

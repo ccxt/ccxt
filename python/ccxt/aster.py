@@ -4060,15 +4060,16 @@ class aster(Exchange, ImplicitAPI):
         v = self.int_to_base16(self.sum(27, signature['v']))
         return '0x' + r.rjust(64, '0') + s.rjust(64, '0') + v
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        baseApiUrl = self.safe_string(self.urls['api'], api)
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
+        baseApiUrl = self.safe_string(self.urls['api'], apiName)
         if baseApiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = baseApiUrl + '/' + path
-        if api == 'fapiPublic' or api == 'sapiPublic':
+        if apiName == 'fapiPublic' or apiName == 'sapiPublic':
             if len(params) > 0:
                 url += '?' + self.rawencode(params)
-        elif api == 'fapiPrivate' or api == 'sapiPrivate':
+        elif apiName == 'fapiPrivate' or apiName == 'sapiPrivate':
             self.check_required_credentials()
             nonce = self.milliseconds() * 1000
             # Sign using EIP-712 typed data per the AsterSignTransaction spec
@@ -4133,7 +4134,7 @@ class aster(Exchange, ImplicitAPI):
                     'Content-Type': 'application/x-www-form-urlencoded',
                 }
                 return {'url': url, 'method': method, 'body': queryString, 'headers': formHeaders}
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}
 
     def encode_values_with_json(self, values: dict) -> str:
         encodedString = ''

@@ -10504,14 +10504,12 @@ impl HtxCore {
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let mut signedHeaders: Value = Value::Null;
         let mut signedBody: Value = Value::Null;
         let mut pathString: Value = path.clone();
@@ -10526,15 +10524,17 @@ impl HtxCore {
         }  else {
             query = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         }
-        if matches!(&api, Value::Str(_)) {
+        let mut apiLength: f64 = ((api.len() as i64) as f64);
+        if (apiLength == 1.0) {
             // signing implementation for the old endpoints
-            if (api.as_str() == Some("public")) || (api.as_str() == Some("private")) {
+            let mut apiName: Value = api.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+            if (apiName.as_str() == Some("public")) || (apiName.as_str() == Some("private")) {
                 url = Value::Str(format!("{}{}", url, self.version.clone()).into());
-            }  else if (api.as_str() == Some("v2Public")) || (api.as_str() == Some("v2Private")) {
+            }  else if (apiName.as_str() == Some("v2Public")) || (apiName.as_str() == Some("v2Private")) {
                 url = Value::Str(format!("{}{}", url, Value::Str("v2".into())).into());
             }
             url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone())).into())).into());
-            if (api.as_str() == Some("private")) || (api.as_str() == Some("v2Private")) {
+            if (apiName.as_str() == Some("private")) || (apiName.as_str() == Some("v2Private")) {
                 self.check_required_credentials(&[]);
                 let mut timestamp: Value = self.ymdhms(self.nonce(), &[Value::Str("T".into())]);
                 let mut request: Value = Value::Map({
@@ -10585,7 +10585,7 @@ impl HtxCore {
                     url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
                 }
             }
-            let mut baseApiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), api.clone(), &[]);
+            let mut baseApiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName, &[]);
             if (baseApiUrl == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
             }
@@ -10700,8 +10700,8 @@ impl HtxCore {
     m
 })), url).into());
         }
-        let mut headersResolved: Value = (if (signedHeaders != Value::Null) { signedHeaders } else { headers });
-        let mut bodyResolved: Value = (if (signedBody != Value::Null) { signedBody } else { body });
+        let mut headersResolved: Value = signedHeaders;
+        let mut bodyResolved: Value = signedBody;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);

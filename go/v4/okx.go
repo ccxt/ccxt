@@ -9102,16 +9102,13 @@ func (this *Okx) fetchTransfersBody(ch chan AsyncResult[any], optionalArgs ...an
 	return nil
 }
 func (this *Okx) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var isArray bool = IsArray(params)
 	var request string = "/api/" + this.Version + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
@@ -9124,11 +9121,11 @@ func (this *Okx) Sign(path string, optionalArgs ...any) any {
 	var hasJsonBody bool = false
 	var jsonBody any = nil
 	// const type = this.getPathAuthenticationType (path);
-	if api == "public" {
+	if apiName != nil && *apiName == "public" {
 		if len(ObjectKeys(query)) > 0 {
 			url += "?" + this.Urlencode(query)
 		}
-	} else if api == "private" {
+	} else if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		// inject id in implicit api call
 		if (method == "POST") && ((path == "trade/batch-orders") || (path == "trade/order-algo") || (path == "trade/order")) {
@@ -9180,15 +9177,15 @@ func (this *Okx) Sign(path string, optionalArgs ...any) any {
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256, "base64")
 		AddElementToObject(privateHeaders, "OK-ACCESS-SIGN", signature)
 	}
-	var requestBody any = body
+	var requestBody any = nil
 	if hasJsonBody {
 		requestBody = jsonBody
 	}
 	var requestHeaders any = func() any {
-		if api == "private" {
+		if apiName != nil && *apiName == "private" {
 			return privateHeaders
 		}
-		return headers
+		return nil
 	}()
 	return map[string]any{
 		"url":     url,
@@ -9295,11 +9292,11 @@ func (this *Okx) fetchFundingIntervalBody(ch chan AsyncResult[map[string]any], s
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes692915 map[string]any = r.Value
-	if retRes692915 == nil {
+	var retRes693015 map[string]any = r.Value
+	if retRes693015 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes692915}
+		ch <- AsyncResult[map[string]any]{Value: retRes693015}
 	}
 	return nil
 }
@@ -10337,11 +10334,11 @@ func (this *Okx) reduceMarginBody(ch chan EndpointResult[map[string]any], symbol
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes772415 map[string]any = MapTyped(r.Value)
-	if retRes772415 == nil {
+	var retRes772515 map[string]any = MapTyped(r.Value)
+	if retRes772515 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes772415, Raw: retRes772415}
+		ch <- EndpointResult[map[string]any]{Value: retRes772515, Raw: retRes772515}
 	}
 	return nil
 }
@@ -10371,11 +10368,11 @@ func (this *Okx) addMarginBody(ch chan AsyncResult[map[string]any], symbol strin
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes773815 map[string]any = MapTyped(r.Value)
-	if retRes773815 == nil {
+	var retRes773915 map[string]any = MapTyped(r.Value)
+	if retRes773915 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes773815}
+		ch <- AsyncResult[map[string]any]{Value: retRes773915}
 	}
 	return nil
 }

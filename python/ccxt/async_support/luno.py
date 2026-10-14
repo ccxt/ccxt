@@ -1632,8 +1632,9 @@ class luno(Exchange, ImplicitAPI):
         result['withdraw']['percentage'] = False
         return self.assign_default_deposit_withdraw_fees(result, currency)
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        apiUrl = self.safe_string(self.urls['api'], api)
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + '/' + self.version + '/' + self.implode_params(path, params)
@@ -1641,14 +1642,14 @@ class luno(Exchange, ImplicitAPI):
         requestHeaders = None
         if len(query) > 0:
             url += '?' + self.urlencode(query)
-        if (api == 'private') or (api == 'exchangePrivate'):
+        if (apiName == 'private') or (apiName == 'exchangePrivate'):
             self.check_required_credentials()
             auth = self.string_to_base64(self.apiKey + ':' + self.secret)
             requestHeaders = {
                 'Authorization': 'Basic ' + auth,
             }
-        headersResolved = headers if (requestHeaders is None) else requestHeaders
-        return {'url': url, 'method': method, 'body': body, 'headers': headersResolved}
+        headersResolved = requestHeaders
+        return {'url': url, 'method': method, 'body': None, 'headers': headersResolved}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:

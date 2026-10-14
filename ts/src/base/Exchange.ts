@@ -3697,7 +3697,7 @@ export class BaseExchange {
         this.options['enableDemoTrading'] = enable;
     }
 
-    sign (path: string, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
         return { 'url': undefined, 'method': undefined, 'headers': undefined, 'body': undefined };
     }
 
@@ -6491,7 +6491,7 @@ export class BaseExchange {
         return results;
     }
 
-    async fetch2 (path: string, api: any = 'public', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined, config: Dict = {}): Promise<any> {
+    async fetch2 (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, config: Dict = {}): Promise<any> {
         if (this.enableRateLimit) {
             const cost = this.calculateRateLimiterCost (api, method, path, params, config);
             await this.throttle (cost);
@@ -6510,7 +6510,7 @@ export class BaseExchange {
             }
             try {
                 this.setLastRestRequestTimestamp ();
-                const request = this.sign (path, api, method, paramsMaxRetriesOnFailureDelay, headers, body);
+                const request = this.sign (path, api, method, paramsMaxRetriesOnFailureDelay);
                 if (fetchData !== undefined) {
                     fetchData['request'] = request;
                 }
@@ -6546,8 +6546,8 @@ export class BaseExchange {
         return undefined; // this line is never reached, but exists for c# value return requirement
     }
 
-    async request (path: string, api: any = 'public', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined, config: Dict = {}): Promise<any> {
-        return await this.fetch2 (path, api, method, params, headers, body, config);
+    async request (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, config: Dict = {}): Promise<any> {
+        return await this.fetch2 (path, api, method, params, config);
     }
 
     async loadAccounts (reload = false, params: Dict = {}): Promise<Account[]> {
@@ -7120,7 +7120,7 @@ export class BaseExchange {
         return undefined;
     }
 
-    calculateRateLimiterCost (api: any, method: any, path: any, params: any, config: Dict = {}) {
+    calculateRateLimiterCost (api: string[], method: any, path: any, params: any, config: Dict = {}) {
         return this.safeValue (config, 'cost', 1);
     }
 

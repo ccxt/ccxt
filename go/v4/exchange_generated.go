@@ -988,16 +988,12 @@ func (this *BaseExchange) EnableDemoTrading(enable any) {
 	this.Options.Store("enableDemoTrading", enable)
 }
 func (this *BaseExchange) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var headers map[string]any = GetArgMap(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	return map[string]any{
 		"url":     nil,
 		"method":  nil,
@@ -4943,17 +4939,13 @@ func (this *BaseExchange) fetch2Body(ch chan AsyncResult[any], path any, optiona
 	defer ReturnPanicError(ch)
 	chSent := false
 	_ = chSent
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
-	var config map[string]any = GetArgMap(optionalArgs, 5, map[string]any{})
+	var config map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = config
 	if this.EnableRateLimit {
 		var cost any = this.CalculateRateLimiterCost(api, method, path, params, config)
@@ -5019,7 +5011,7 @@ func (this *BaseExchange) fetch2Body(ch chan AsyncResult[any], path any, optiona
 				// try block:
 				this.SetLastRestRequestTimestamp()
 
-				var request any = this.DerivedExchange.Sign(StringArg(path), api, method, paramsMaxRetriesOnFailureDelay, headers, body)
+				var request any = this.DerivedExchange.Sign(StringArg(path), api, method, paramsMaxRetriesOnFailureDelay)
 				PanicOnError(request)
 				if fetchData != nil {
 					AddElementToObject(fetchData, "request", request)
@@ -5058,20 +5050,16 @@ func (this *BaseExchange) RequestAsync(path any, optionalArgs ...any) <-chan Asy
 func (this *BaseExchange) requestBody(ch chan AsyncResult[any], path any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
-	var config map[string]any = GetArgMap(optionalArgs, 5, map[string]any{})
+	var config map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = config
 
-	r := <-this.Fetch2Async(path, api, method, params, headers, body, config)
+	r := <-this.Fetch2Async(path, api, method, params, config)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -11589,8 +11577,8 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan EndpointResult[
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv11110, _ := r.Value.([]any)
-	var retRes1021115 []any = listRecv11110
+	listRecv11098, _ := r.Value.([]any)
+	var retRes1021115 []any = listRecv11098
 	if retRes1021115 == nil {
 		ch <- EndpointResult[[]any]{}
 	} else {
