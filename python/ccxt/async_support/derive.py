@@ -80,7 +80,7 @@ class derive(Exchange, ImplicitAPI):
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
-                'fetchLedger': True,
+                'fetchLedger': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
                 'fetchLiquidations': False,
