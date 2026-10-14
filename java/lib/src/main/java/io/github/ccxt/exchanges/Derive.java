@@ -4607,14 +4607,13 @@ public class Derive extends DeriveApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the L1 address to withdraw to
-     * @param {string} [tag] not used by derive.withdraw
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.max_fee_usd] the maximum accepted fee in usd, default 1, or 10 with force_batch
      * @param {bool} [params.force_batch] pay the higher fee to have the withdrawal batch proven immediately
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Object tag, Object parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -4690,10 +4689,6 @@ public class Derive extends DeriveApi
             return transaction;
         }).thenApply(Transaction::new);
 
-    }
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
-    {
-        return this.withdraw(code, amount, address, (Object) (parameters), new HashMap<String, Object>() {{}});
     }
 
     /**
