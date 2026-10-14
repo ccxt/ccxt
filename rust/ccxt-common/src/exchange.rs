@@ -1517,11 +1517,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         if matches!(self.mock_response, Value::Null) && matches!(self.mock_response_by_url, Value::Null) {
             self.throttle(&[cost]).await;
         }
-        let api_arg = if scope_segments.len() == 1 {
-            Value::Str(scope_segments[0].clone().into())
-        } else {
-            Value::Array(scope_segments.iter().map(|s| Value::Str(s.clone().into())).collect())
-        };
+        let api_arg = Value::Array(scope_segments.iter().map(|s| Value::Str(s.clone().into())).collect());
         let scope_lookup: String = scope_segments.first().cloned().unwrap_or_default();
         // Static dispatch to the derived exchange's sign override.
         let signed = crate::exchange::DerivedExchange::sign(
@@ -1600,11 +1596,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
                 format!("implicit API method {name} not found in api block"),
             )),
         };
-        let api = if scope_segments.len() == 1 {
-            Value::Str(scope_segments[0].clone().into())
-        } else {
-            Value::Array(scope_segments.iter().map(|s| Value::Str(s.clone().into())).collect())
-        };
+        let api = Value::Array(scope_segments.iter().map(|s| Value::Str(s.clone().into())).collect());
         let cost = if matches!(self.enableRateLimit, Value::Bool(true)) {
             self.call_dynamic(
                 "calculate_rate_limiter_cost",
@@ -1625,11 +1617,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             .get(name)
             .cloned()
             .ok_or_else(|| ExchangeError::new("NotSupported", format!("implicit API method {name} not found in api block")))?;
-        let api = if scope_segments.len() == 1 {
-            Value::Str(scope_segments[0].clone().into())
-        } else {
-            Value::Array(scope_segments.iter().map(|s| Value::Str(s.clone().into())).collect())
-        };
+        let api = Value::Array(scope_segments.iter().map(|s| Value::Str(s.clone().into())).collect());
         Ok(self.call_dynamic(
             "calculate_rate_limiter_cost",
             vec![api, Value::Str(verb.into()), Value::Str(path.into()), params, config],
