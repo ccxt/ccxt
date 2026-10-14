@@ -3367,12 +3367,8 @@ func (this *Dydx) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	var requestHeaders any = nil
-	var requestBody any = nil
+	var requestBody *string = nil
 	var pathWithParams string = this.ImplodeParams(path, params)
 	var apiUrl *string = this.SafeString(this.Urls["api"], GetValue(section, 0))
 	if apiUrl == nil {
@@ -3387,23 +3383,13 @@ func (this *Dydx) Sign(path string, optionalArgs ...any) any {
 			url = Add(url, "?"+this.Urlencode(paramsSorted))
 		}
 	} else {
-		requestBody = this.Json(paramsSorted)
+		requestBody = SafeStringPtr(this.Json(paramsSorted))
 		requestHeaders = map[string]any{
 			"Content-type": "application/json",
 		}
 	}
-	var headersResult any = func() any {
-		if requestHeaders != nil {
-			return requestHeaders
-		}
-		return headers
-	}()
-	var bodyResult any = func() any {
-		if requestBody != nil {
-			return requestBody
-		}
-		return body
-	}()
+	var headersResult any = requestHeaders
+	var bodyResult *string = requestBody
 	return map[string]any{
 		"url":     url,
 		"method":  method,

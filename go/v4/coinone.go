@@ -1744,10 +1744,6 @@ func (this *Coinone) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var request string = this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
@@ -1776,7 +1772,7 @@ func (this *Coinone) Sign(path string, optionalArgs ...any) any {
 		}
 		url = *apiUrl4 + "/"
 	}
-	var requestBody any = nil
+	var requestBody *string = nil
 	var requestHeaders any = nil
 	if isPublic {
 		url += request
@@ -1798,7 +1794,7 @@ func (this *Coinone) Sign(path string, optionalArgs ...any) any {
 			"nonce":        nonce,
 		}, params))
 		var payload string = this.StringToBase64(json)
-		requestBody = payload
+		requestBody = SafeStringPtr(payload)
 		var secret string = ToUpper(this.Secret)
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(secret), sha512)
 		requestHeaders = map[string]any{
@@ -1807,18 +1803,8 @@ func (this *Coinone) Sign(path string, optionalArgs ...any) any {
 			"X-COINONE-SIGNATURE": signature,
 		}
 	}
-	var bodyResolved any = func() any {
-		if requestBody == nil {
-			return body
-		}
-		return requestBody
-	}()
-	var headersResolved any = func() any {
-		if requestHeaders == nil {
-			return headers
-		}
-		return requestHeaders
-	}()
+	var bodyResolved *string = requestBody
+	var headersResolved any = requestHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,

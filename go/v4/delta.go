@@ -5160,10 +5160,6 @@ func (this *Delta) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var headers map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var requestPath string = "/" + this.Version + "/" + this.ImplodeParams(path, params)
 	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
@@ -5200,18 +5196,8 @@ func (this *Delta) Sign(path string, optionalArgs ...any) any {
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 		AddElementToObject(requestHeaders, "signature", signature)
 	}
-	var bodyResult any = func() any {
-		if requestBody == nil {
-			return body
-		}
-		return requestBody
-	}()
-	var headersResult any = func() any {
-		if requestHeaders == nil {
-			return headers
-		}
-		return requestHeaders
-	}()
+	var bodyResult any = requestBody
+	var headersResult any = requestHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,

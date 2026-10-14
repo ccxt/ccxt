@@ -4166,10 +4166,6 @@ func (this *Bitfinex) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var request string = "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
@@ -4183,7 +4179,7 @@ func (this *Bitfinex) Sign(path string, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *apiUrl + "/" + request
-	var requestBody any = nil
+	var requestBody *string = nil
 	var requestHeaders any = nil
 	if apiName != nil && *apiName == "public" {
 		if len(ObjectKeys(query)) > 0 {
@@ -4194,8 +4190,8 @@ func (this *Bitfinex) Sign(path string, optionalArgs ...any) any {
 		this.CheckRequiredCredentials()
 		// bitfinex rejects a nonce that is not greater than the previous one for the key (error 10114)
 		var nonce string = ToString(this.IncrementingNonce())
-		requestBody = this.Json(query)
-		var auth *string = SafeStringPtr(Add("/api/"+request+nonce, requestBody))
+		requestBody = SafeStringPtr(this.Json(query))
+		var auth string = "/api/" + request + nonce + *requestBody
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha384)
 		requestHeaders = map[string]any{
 			"bfx-nonce":     nonce,
@@ -4204,18 +4200,8 @@ func (this *Bitfinex) Sign(path string, optionalArgs ...any) any {
 			"Content-Type":  "application/json",
 		}
 	}
-	var bodyResolved any = func() any {
-		if requestBody == nil {
-			return body
-		}
-		return requestBody
-	}()
-	var headersResolved any = func() any {
-		if requestHeaders == nil {
-			return headers
-		}
-		return requestHeaders
-	}()
+	var bodyResolved *string = requestBody
+	var headersResolved any = requestHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,
@@ -5155,11 +5141,11 @@ func (this *Bitfinex) fetchLiquidationsBody(ch chan AsyncResult[any], symbol str
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, paramsPaginate)
 
-	listEp4895 := <-this.PublicGetLiquidationsHist(this.Extend(requestUntil, paramsUntil))
-	if listEp4895.Err != nil {
-		panic(listEp4895.Err)
+	listEp4881 := <-this.PublicGetLiquidationsHist(this.Extend(requestUntil, paramsUntil))
+	if listEp4881.Err != nil {
+		panic(listEp4881.Err)
 	}
-	var response []any = listEp4895.Value
+	var response []any = listEp4881.Value
 
 	//
 	//     [

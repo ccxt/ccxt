@@ -1749,10 +1749,6 @@ func (this *Bitbns) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	var urls any = this.Urls
 	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	if !(InOp(GetValue(urls, "api"), apiName)) {
@@ -1768,7 +1764,7 @@ func (this *Bitbns) Sign(path string, optionalArgs ...any) any {
 		if apiName == nil || *apiName != "www" {
 			return apiKeyHeaders
 		}
-		return headers
+		return nil
 	}()
 	var baseApiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if baseApiUrl == nil {
@@ -1787,7 +1783,7 @@ func (this *Bitbns) Sign(path string, optionalArgs ...any) any {
 		if method == "POST" {
 			return SafeStringPtr(postBody)
 		}
-		return body
+		return nil
 	}()
 	if method == "GET" {
 		if queryLength > 0 {

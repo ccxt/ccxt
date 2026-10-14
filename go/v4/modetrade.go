@@ -4340,10 +4340,6 @@ func (this *Modetrade) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
 	var version *string = SafeStringPtr(GetValue(section, 0))
 	var access *string = SafeStringPtr(GetValue(section, 1))
 	var pathWithParams string = this.ImplodeParams(path, params)
@@ -4408,7 +4404,7 @@ func (this *Modetrade) Sign(path string, optionalArgs ...any) any {
 				if method == "DELETE" {
 					return ""
 				}
-				return body
+				return nil
 			}()
 		}
 		var secret any = this.Secret
@@ -4433,8 +4429,8 @@ func (this *Modetrade) Sign(path string, optionalArgs ...any) any {
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    nil,
+		"headers": nil,
 	}
 }
 func (this *Modetrade) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {

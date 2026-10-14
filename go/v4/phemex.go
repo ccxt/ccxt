@@ -5964,10 +5964,6 @@ func (this *Phemex) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var requestPath string = "/" + this.ImplodeParams(path, params)
@@ -6013,7 +6009,7 @@ func (this *Phemex) Sign(path string, optionalArgs ...any) any {
 	}
 	url = this.ImplodeHostname(baseApiUrl) + url
 	var isPrivatePost bool = (apiName != nil && *apiName == "private") && (method == "POST")
-	var bodyResolved *string = body
+	var bodyResolved *string = nil
 	if isPrivatePost {
 		bodyResolved = requestBody
 	}
@@ -6021,7 +6017,7 @@ func (this *Phemex) Sign(path string, optionalArgs ...any) any {
 		if apiName != nil && *apiName == "private" {
 			return privateHeaders
 		}
-		return headers
+		return nil
 	}()
 	return map[string]any{
 		"url":     url,

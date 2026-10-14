@@ -5493,10 +5493,6 @@ func (this *Hashkey) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
@@ -5543,7 +5539,7 @@ func (this *Hashkey) Sign(path string, optionalArgs ...any) any {
 		headersSigned["broker_sign"] = signature
 		var bodyResolved any = func() any {
 			if method == "GET" {
-				return body
+				return nil
 			}
 			return bodySigned
 		}()
@@ -5562,8 +5558,8 @@ func (this *Hashkey) Sign(path string, optionalArgs ...any) any {
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    nil,
+		"headers": nil,
 	}
 }
 func (this *Hashkey) CustomUrlencode(optionalArgs ...any) string {

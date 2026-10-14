@@ -4115,13 +4115,9 @@ func (this *Bullish) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
 	var apiName *string = SafeStringPtr(GetValue(api, 0))
-	var requestHeaders any = headers
-	var requestBody any = body
+	var requestHeaders any = nil
+	var requestBody *string = nil
 	var request any = this.Omit(params, this.ExtractParams(path))
 	var endpoint string = "/" + this.ImplodeParams(path, params)
 	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
@@ -4142,8 +4138,8 @@ func (this *Bullish) Sign(path string, optionalArgs ...any) any {
 				"BX-SIGNATURE": signature,
 			}
 		} else if method == "POST" {
-			requestBody = this.Json(params)
-			var payload *string = SafeStringPtr(Add(timestamp+nonce+method+"/trading-api/"+path, requestBody))
+			requestBody = SafeStringPtr(this.Json(params))
+			var payload string = timestamp + nonce + method + "/trading-api/" + path + *requestBody
 			var digest any = this.Hash(this.Encode(payload), sha256, "hex")
 			var signature string = this.Hmac(this.Encode(digest), this.Encode(this.Secret), sha256, "hex")
 			requestHeaders = map[string]any{

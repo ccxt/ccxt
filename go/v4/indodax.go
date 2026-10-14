@@ -2010,10 +2010,6 @@ func (this *Indodax) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
@@ -2045,11 +2041,11 @@ func (this *Indodax) Sign(path string, optionalArgs ...any) any {
 	}
 	var requestBody any = privateBody
 	if isPublic {
-		requestBody = body
+		requestBody = nil
 	}
 	var requestHeaders any = privateHeaders
 	if isPublic {
-		requestHeaders = headers
+		requestHeaders = nil
 	}
 	return map[string]any{
 		"url":     url,

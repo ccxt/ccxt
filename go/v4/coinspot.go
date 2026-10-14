@@ -1261,12 +1261,8 @@ func (this *Coinspot) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
-	var requestHeaders any = headers
-	var requestBody any = body
+	var requestHeaders map[string]any = nil
+	var requestBody any = nil
 	var apiLength int = GetArrayLength(api)
 	var isVersionedApi bool = (apiLength > 1)
 	var version any = func() any {

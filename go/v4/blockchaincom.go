@@ -1829,10 +1829,6 @@ func (this *Blockchaincom) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
 	var requestPath string = "/" + this.ImplodeParams(path, params)
 	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
@@ -1845,14 +1841,14 @@ func (this *Blockchaincom) Sign(path string, optionalArgs ...any) any {
 	var privateHeaders map[string]any = map[string]any{
 		"X-API-Token": this.Secret,
 	}
-	var requestHeaders any = headers
+	var requestHeaders map[string]any = nil
 	if isPrivate {
 		requestHeaders = privateHeaders
 	}
 	var isPrivatePost bool = isPrivate && (method != "GET")
-	var requestBody any = body
+	var requestBody *string = nil
 	if isPrivatePost {
-		requestBody = this.Json(query)
+		requestBody = SafeStringPtr(this.Json(query))
 	}
 	if apiName != nil && *apiName == "public" {
 		if len(ObjectKeys(query)) > 0 {

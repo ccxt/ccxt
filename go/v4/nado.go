@@ -4133,11 +4133,7 @@ func (this *Nado) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var headers map[string]any = GetArgMap(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
-	var requestBody any = nil
+	var requestBody *string = nil
 	var endpoint *string = SafeStringPtr(GetValue(api, 0))
 	var baseApiUrl *string = this.SafeString(this.Urls["api"], endpoint)
 	if baseApiUrl == nil {
@@ -4158,14 +4154,9 @@ func (this *Nado) Sign(path string, optionalArgs ...any) any {
 		}
 	} else {
 		headersValue["Content-Type"] = "application/json"
-		requestBody = this.Json(query)
+		requestBody = SafeStringPtr(this.Json(query))
 	}
-	var bodyResult any = func() any {
-		if requestBody != nil {
-			return requestBody
-		}
-		return body
-	}()
+	var bodyResult *string = requestBody
 	return map[string]any{
 		"url":     url,
 		"method":  method,

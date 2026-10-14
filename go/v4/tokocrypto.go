@@ -3285,10 +3285,6 @@ func (this *Tokocrypto) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	if !(InOp(GetValue(this.Urls["api"], "rest"), apiName)) {
 		panic(NotSupported(this.Id + " does not have a testnet/sandbox URL for " + *apiName + " endpoints"))
@@ -3314,7 +3310,7 @@ func (this *Tokocrypto) Sign(path string, optionalArgs ...any) any {
 				if method != "GET" {
 					return SafeStringPtr(this.Urlencode(params))
 				}
-				return body
+				return nil
 			}()
 			return map[string]any{
 				"url":     url,
@@ -3354,7 +3350,7 @@ func (this *Tokocrypto) Sign(path string, optionalArgs ...any) any {
 		var queryInUrl bool = (method == "GET") || (method == "DELETE") || (apiName != nil && *apiName == "wapi")
 		var bodySigned any = query
 		if queryInUrl {
-			bodySigned = body
+			bodySigned = nil
 		}
 		if queryInUrl {
 			url = Add(url, Add("?", query))
@@ -3375,8 +3371,8 @@ func (this *Tokocrypto) Sign(path string, optionalArgs ...any) any {
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    nil,
+		"headers": nil,
 	}
 }
 func (this *Tokocrypto) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {

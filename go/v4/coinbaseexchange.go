@@ -3082,13 +3082,9 @@ func (this *Coinbaseexchange) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
 	var apiName *string = SafeStringPtr(GetValue(api, 0))
-	var requestHeaders any = headers
-	var requestBody any = body
+	var requestHeaders map[string]any = nil
+	var requestBody any = nil
 	var request string = "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if method == "GET" {
@@ -3177,14 +3173,10 @@ func (this *Coinbaseexchange) requestBody(ch chan AsyncResult[any], path any, op
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
-	var config map[string]any = GetArgMap(optionalArgs, 5, map[string]any{})
+	var config map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = config
 
-	r := <-this.Fetch2Async(path, api, method, params, headers, body, config)
+	r := <-this.Fetch2Async(path, api, method, params, config)
 	if r.Err != nil {
 		panic(r.Err)
 	}

@@ -2742,10 +2742,6 @@ func (this *Foxbit) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var headers map[string]any = GetArgMap(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
 	var version *string = SafeStringPtr(GetValue(api, 0))
 	var urlPath *string = SafeStringPtr(GetValue(api, 1))
 	var fullPath string = "/rest/" + *version + "/" + this.ImplodeParams(path, params)
@@ -2780,7 +2776,7 @@ func (this *Foxbit) Sign(path string, optionalArgs ...any) any {
 			}
 		}
 	}
-	var requestBody any = body
+	var requestBody any = nil
 	if (method == "POST") || (method == "PUT") {
 		requestBody = this.Json(paramsOmitted)
 	}

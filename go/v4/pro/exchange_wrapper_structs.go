@@ -305,8 +305,6 @@ type Fetch2Options = ccxt.Fetch2Options
 var WithFetch2Api = ccxt.WithFetch2Api
 var WithFetch2Method = ccxt.WithFetch2Method
 var WithFetch2Params = ccxt.WithFetch2Params
-var WithFetch2Headers = ccxt.WithFetch2Headers
-var WithFetch2Body = ccxt.WithFetch2Body
 
 type FetchBorrowInterestOptionsStruct = ccxt.FetchBorrowInterestOptionsStruct
 type FetchBorrowInterestOptions = ccxt.FetchBorrowInterestOptions

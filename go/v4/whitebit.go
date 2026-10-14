@@ -5903,20 +5903,11 @@ func (this *Whitebit) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var headers map[string]any = GetArgMap(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var version any = this.SafeValue(api, 0)
 	var accessibility *string = this.SafeString(api, 1)
-	var publicHeaders map[string]any = func() map[string]any {
-		if headers == nil {
-			return map[string]any{}
-		}
-		return headers
-	}()
-	AddElementToObject(publicHeaders, "User-Agent", "ccxt/"+this.Id+"-"+this.Version)
+	var publicHeaders map[string]any = map[string]any{}
+	publicHeaders["User-Agent"] = "ccxt/" + this.Id + "-" + this.Version
 	var pathWithParams string = "/" + this.ImplodeParams(path, params)
 	var apiUrl *string = this.SafeString(GetValue(this.Urls["api"], version), accessibility)
 	if apiUrl == nil {
@@ -5952,11 +5943,11 @@ func (this *Whitebit) Sign(path string, optionalArgs ...any) any {
 		}
 	}
 	var isPrivate bool = (accessibility != nil && *accessibility == "private")
-	var requestBody any = body
+	var requestBody any = nil
 	if isPrivate {
 		requestBody = privateBody
 	}
-	var requestHeaders any = publicHeaders
+	var requestHeaders map[string]any = publicHeaders
 	if isPrivate {
 		requestHeaders = privateHeaders
 	}

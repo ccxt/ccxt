@@ -4918,10 +4918,6 @@ func (this *Kraken) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var url string = "/" + this.Version + "/" + *apiName + "/" + path
 	if apiName != nil && *apiName == "public" {
@@ -4993,8 +4989,8 @@ func (this *Kraken) Sign(path string, optionalArgs ...any) any {
 	return map[string]any{
 		"url":     *apiUrl + url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    nil,
+		"headers": nil,
 	}
 }
 func (this *Kraken) Nonce() any {

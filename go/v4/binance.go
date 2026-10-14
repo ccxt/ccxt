@@ -17430,10 +17430,6 @@ func (this *Binance) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var urls any = this.Urls
 	if !(InOp(GetValue(urls, "api"), apiName)) {
@@ -17554,18 +17550,8 @@ func (this *Binance) Sign(path string, optionalArgs ...any) any {
 			url = Add(url, "?"+this.Urlencode(params))
 		}
 	}
-	var headersResolved any = func() any {
-		if signedHeaders != nil {
-			return signedHeaders
-		}
-		return headers
-	}()
-	var bodyResolved any = func() any {
-		if signedBody != nil {
-			return signedBody
-		}
-		return body
-	}()
+	var headersResolved any = signedHeaders
+	var bodyResolved any = signedBody
 	return map[string]any{
 		"url":     url,
 		"method":  method,
@@ -17740,14 +17726,10 @@ func (this *Binance) requestBody(ch chan AsyncResult[any], path any, optionalArg
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
-	var config map[string]any = GetArgMap(optionalArgs, 5, map[string]any{})
+	var config map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = config
 
-	r := <-this.Fetch2Async(path, api, method, params, headers, body, config)
+	r := <-this.Fetch2Async(path, api, method, params, config)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -18907,18 +18889,18 @@ func (this *Binance) fetchOpenInterestHistoryBody(ch chan AsyncResult[any], symb
 	var response []any = nil
 	if market["inverse"] == true {
 
-		listEp17661 := <-this.DapiDataGetOpenInterestHist(this.Extend(request, paramsOmitted))
-		if listEp17661.Err != nil {
-			panic(listEp17661.Err)
+		listEp17643 := <-this.DapiDataGetOpenInterestHist(this.Extend(request, paramsOmitted))
+		if listEp17643.Err != nil {
+			panic(listEp17643.Err)
 		}
-		response = listEp17661.Value
+		response = listEp17643.Value
 	} else {
 
-		listEp17664 := <-this.FapiDataGetOpenInterestHist(this.Extend(request, paramsOmitted))
-		if listEp17664.Err != nil {
-			panic(listEp17664.Err)
+		listEp17646 := <-this.FapiDataGetOpenInterestHist(this.Extend(request, paramsOmitted))
+		if listEp17646.Err != nil {
+			panic(listEp17646.Err)
 		}
-		response = listEp17664.Value
+		response = listEp17646.Value
 	}
 
 	//
@@ -19436,11 +19418,11 @@ func (this *Binance) fetchGreeksBody(ch chan AsyncResult[map[string]any], symbol
 		"symbol": market["id"],
 	}
 
-	listEp18139 := <-this.EapiPublicGetMark(this.Extend(request, params))
-	if listEp18139.Err != nil {
-		panic(listEp18139.Err)
+	listEp18121 := <-this.EapiPublicGetMark(this.Extend(request, params))
+	if listEp18121.Err != nil {
+		panic(listEp18121.Err)
 	}
-	var response []any = listEp18139.Value
+	var response []any = listEp18121.Value
 
 	//
 	//     [
@@ -19507,11 +19489,11 @@ func (this *Binance) fetchAllGreeksBody(ch chan AsyncResult[any], optionalArgs .
 		}
 	}
 
-	listEp18203 := <-this.EapiPublicGetMark(this.Extend(request, params))
-	if listEp18203.Err != nil {
-		panic(listEp18203.Err)
+	listEp18185 := <-this.EapiPublicGetMark(this.Extend(request, params))
+	if listEp18185.Err != nil {
+		panic(listEp18185.Err)
 	}
-	var response []any = listEp18203.Value
+	var response []any = listEp18185.Value
 
 	//
 	//     [
@@ -19593,8 +19575,8 @@ func (this *Binance) fetchTradingLimitsBody(ch chan EndpointResult[map[string]an
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv18343, _ := r.Value.([]any)
-	var markets []any = listRecv18343
+	listRecv18325, _ := r.Value.([]any)
+	var markets []any = listRecv18325
 	var tradingLimits map[string]any = map[string]any{}
 	for i := 0; i < len(markets); i++ {
 		var market any = GetValue(markets, i)
@@ -19778,11 +19760,11 @@ func (this *Binance) fetchMarginModeBody(ch chan AsyncResult[any], symbol any, o
 			"symbol": market["id"],
 		}
 
-		listEp18444 := <-this.FapiPrivateGetSymbolConfig(this.Extend(request, paramsSubType))
-		if listEp18444.Err != nil {
-			panic(listEp18444.Err)
+		listEp18426 := <-this.FapiPrivateGetSymbolConfig(this.Extend(request, paramsSubType))
+		if listEp18426.Err != nil {
+			panic(listEp18426.Err)
 		}
-		response = listEp18444.Value
+		response = listEp18426.Value
 	} else if subType != nil && *subType == "inverse" {
 
 		r1 := <-this.FetchMarginModesAsync([]any{symbol}, paramsSubType)
@@ -19866,11 +19848,11 @@ func (this *Binance) fetchOptionBody(ch chan AsyncResult[map[string]any], symbol
 		"symbol": market["id"],
 	}
 
-	listEp18522 := <-this.EapiPublicGetTicker(this.Extend(request, params))
-	if listEp18522.Err != nil {
-		panic(listEp18522.Err)
+	listEp18504 := <-this.EapiPublicGetTicker(this.Extend(request, params))
+	if listEp18504.Err != nil {
+		panic(listEp18504.Err)
 	}
-	var response []any = listEp18522.Value
+	var response []any = listEp18504.Value
 	//
 	//     [
 	//         {
@@ -20018,18 +20000,18 @@ func (this *Binance) fetchMarginAdjustmentHistoryBody(ch chan AsyncResult[[]any]
 	var response []any = nil
 	if market["linear"] == true {
 
-		listEp18667 := <-this.FapiPrivateGetPositionMarginHistory(this.Extend(request, paramsOmitted))
-		if listEp18667.Err != nil {
-			panic(listEp18667.Err)
+		listEp18649 := <-this.FapiPrivateGetPositionMarginHistory(this.Extend(request, paramsOmitted))
+		if listEp18649.Err != nil {
+			panic(listEp18649.Err)
 		}
-		response = listEp18667.Value
+		response = listEp18649.Value
 	} else if market["inverse"] == true {
 
-		listEp18670 := <-this.DapiPrivateGetPositionMarginHistory(this.Extend(request, paramsOmitted))
-		if listEp18670.Err != nil {
-			panic(listEp18670.Err)
+		listEp18652 := <-this.DapiPrivateGetPositionMarginHistory(this.Extend(request, paramsOmitted))
+		if listEp18652.Err != nil {
+			panic(listEp18652.Err)
 		}
-		response = listEp18670.Value
+		response = listEp18652.Value
 	} else {
 		panic(BadRequest(Add(this.Id+" fetchMarginAdjustmentHistory () is not supported for markets of type ", market["type"])))
 	}
@@ -20083,11 +20065,11 @@ func (this *Binance) fetchConvertCurrenciesBody(ch chan EndpointResult[map[strin
 		}
 	}
 
-	listEp18721 := <-this.SapiGetConvertAssetInfo(params)
-	if listEp18721.Err != nil {
-		panic(listEp18721.Err)
+	listEp18703 := <-this.SapiGetConvertAssetInfo(params)
+	if listEp18703.Err != nil {
+		panic(listEp18703.Err)
 	}
-	var response []any = listEp18721.Value
+	var response []any = listEp18703.Value
 	//
 	//     [
 	//         {
@@ -20583,18 +20565,18 @@ func (this *Binance) fetchFundingIntervalsBody(ch chan AsyncResult[map[string]an
 	var response []any = nil
 	if this.IsLinear(typeVar, subType) {
 
-		listEp19181 := <-this.FapiPublicGetFundingInfo(paramsSubType)
-		if listEp19181.Err != nil {
-			panic(listEp19181.Err)
+		listEp19163 := <-this.FapiPublicGetFundingInfo(paramsSubType)
+		if listEp19163.Err != nil {
+			panic(listEp19163.Err)
 		}
-		response = listEp19181.Value
+		response = listEp19163.Value
 	} else if this.IsInverse(typeVar, subType) {
 
-		listEp19184 := <-this.DapiPublicGetFundingInfo(paramsSubType)
-		if listEp19184.Err != nil {
-			panic(listEp19184.Err)
+		listEp19166 := <-this.DapiPublicGetFundingInfo(paramsSubType)
+		if listEp19166.Err != nil {
+			panic(listEp19166.Err)
 		}
-		response = listEp19184.Value
+		response = listEp19166.Value
 	} else {
 		panic(NotSupported(this.Id + " fetchFundingIntervals() supports linear and inverse swap contracts only"))
 	}
@@ -20675,19 +20657,19 @@ func (this *Binance) fetchLongShortRatioHistoryBody(ch chan AsyncResult[any], op
 	if subType != nil && *subType == "linear" {
 		AddElementToObject(requestUntil, "symbol", market["id"])
 
-		listEp19262 := <-this.FapiDataGetGlobalLongShortAccountRatio(this.Extend(requestUntil, paramsSubType))
-		if listEp19262.Err != nil {
-			panic(listEp19262.Err)
+		listEp19244 := <-this.FapiDataGetGlobalLongShortAccountRatio(this.Extend(requestUntil, paramsSubType))
+		if listEp19244.Err != nil {
+			panic(listEp19244.Err)
 		}
-		response = listEp19262.Value
+		response = listEp19244.Value
 	} else if subType != nil && *subType == "inverse" {
 		requestUntil["pair"] = GetValue(market["info"], "pair")
 
-		listEp19266 := <-this.DapiDataGetGlobalLongShortAccountRatio(this.Extend(requestUntil, paramsSubType))
-		if listEp19266.Err != nil {
-			panic(listEp19266.Err)
+		listEp19248 := <-this.DapiDataGetGlobalLongShortAccountRatio(this.Extend(requestUntil, paramsSubType))
+		if listEp19248.Err != nil {
+			panic(listEp19248.Err)
 		}
-		response = listEp19266.Value
+		response = listEp19248.Value
 	} else {
 		panic(BadRequest(this.Id + " fetchLongShortRatioHistory() supports linear and inverse subTypes only"))
 	}
@@ -20821,34 +20803,34 @@ func (this *Binance) fetchPositionsADLRankBody(ch chan AsyncResult[any], optiona
 	if subType != nil && *subType == "linear" {
 		if isPortfolioMargin {
 
-			listEp19390 := <-this.PapiGetUmAdlQuantile(paramsPapi)
-			if listEp19390.Err != nil {
-				panic(listEp19390.Err)
+			listEp19372 := <-this.PapiGetUmAdlQuantile(paramsPapi)
+			if listEp19372.Err != nil {
+				panic(listEp19372.Err)
 			}
-			response = listEp19390.Value
+			response = listEp19372.Value
 		} else {
 
-			listEp19393 := <-this.FapiPrivateGetAdlQuantile(paramsPapi)
-			if listEp19393.Err != nil {
-				panic(listEp19393.Err)
+			listEp19375 := <-this.FapiPrivateGetAdlQuantile(paramsPapi)
+			if listEp19375.Err != nil {
+				panic(listEp19375.Err)
 			}
-			response = listEp19393.Value
+			response = listEp19375.Value
 		}
 	} else if subType != nil && *subType == "inverse" {
 		if isPortfolioMargin {
 
-			listEp19398 := <-this.PapiGetCmAdlQuantile(paramsPapi)
-			if listEp19398.Err != nil {
-				panic(listEp19398.Err)
+			listEp19380 := <-this.PapiGetCmAdlQuantile(paramsPapi)
+			if listEp19380.Err != nil {
+				panic(listEp19380.Err)
 			}
-			response = listEp19398.Value
+			response = listEp19380.Value
 		} else {
 
-			listEp19401 := <-this.DapiPrivateGetAdlQuantile(paramsPapi)
-			if listEp19401.Err != nil {
-				panic(listEp19401.Err)
+			listEp19383 := <-this.DapiPrivateGetAdlQuantile(paramsPapi)
+			if listEp19383.Err != nil {
+				panic(listEp19383.Err)
 			}
-			response = listEp19401.Value
+			response = listEp19383.Value
 		}
 	} else {
 		panic(BadRequest(this.Id + " fetchPositionsADLRank() supports linear and inverse subTypes only"))

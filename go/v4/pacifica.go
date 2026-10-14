@@ -5185,11 +5185,7 @@ func (this *Pacifica) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var headers map[string]any = GetArgMap(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
-	var requestBody any = body
+	var requestBody *string = nil
 	var isTestnet bool = this.IsSandboxModeEnabled
 	var urlKey string = "api"
 	if isTestnet {
@@ -5212,7 +5208,7 @@ func (this *Pacifica) Sign(path string, optionalArgs ...any) any {
 		headersValue["Accept"] = "*/*"
 	}
 	if method == "POST" {
-		requestBody = this.Json(paramsOmitted)
+		requestBody = SafeStringPtr(this.Json(paramsOmitted))
 	}
 	if !IsEqual(this.HandleOption("sign", "apiKey"), nil) {
 		headersValue["PF-API-KEY"] = GetValue(this.Options, "apiKey")

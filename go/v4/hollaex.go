@@ -2710,10 +2710,6 @@ func (this *Hollaex) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var requestPath string = "/" + this.Version + "/" + this.ImplodeParams(path, params)
 	if (method == "GET") || (method == "DELETE") {
@@ -2748,18 +2744,8 @@ func (this *Hollaex) Sign(path string, optionalArgs ...any) any {
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 		AddElementToObject(requestHeaders, "api-signature", signature)
 	}
-	var bodyResult any = func() any {
-		if requestBody == nil {
-			return body
-		}
-		return requestBody
-	}()
-	var headersResult any = func() any {
-		if requestHeaders == nil {
-			return headers
-		}
-		return requestHeaders
-	}()
+	var bodyResult any = requestBody
+	var headersResult any = requestHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,

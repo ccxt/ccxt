@@ -6014,10 +6014,6 @@ func (this *Weex) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var headers map[string]any = GetArgMap(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
 	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var endpoint string = this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
@@ -6029,7 +6025,7 @@ func (this *Weex) Sign(path string, optionalArgs ...any) any {
 	}
 	var isPrivate bool = (apiName != nil && *apiName == "private") || (apiName != nil && *apiName == "contractPrivate")
 	var hasJsonBody bool = isPrivate && ((method == "POST") || isBatch)
-	var requestBody any = body
+	var requestBody any = nil
 	if hasJsonBody {
 		requestBody = this.Json(query)
 	}

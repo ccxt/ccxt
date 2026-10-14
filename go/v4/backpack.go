@@ -3177,10 +3177,6 @@ func (this *Backpack) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var endpoint string = "/" + path
 	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
@@ -3239,9 +3235,9 @@ func (this *Backpack) Sign(path string, optionalArgs ...any) any {
 		if apiName != nil && *apiName == "private" {
 			return headersSigned
 		}
-		return headers
+		return nil
 	}()
-	var bodyResolved *string = body
+	var bodyResolved *string = nil
 	if (apiName != nil && *apiName == "private") && (method != "GET") {
 		bodyResolved = bodySigned
 	}

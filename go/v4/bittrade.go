@@ -3077,13 +3077,9 @@ func (this *Bittrade) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var requestHeaders any = nil
-	var requestBody any = nil
+	var requestBody *string = nil
 	var url string = "/"
 	if apiName != nil && *apiName == "market" {
 		url += "market"
@@ -3118,7 +3114,7 @@ func (this *Bittrade) Sign(path string, optionalArgs ...any) any {
 		})
 		url += "?" + auth
 		if method == "POST" {
-			requestBody = this.Json(query)
+			requestBody = SafeStringPtr(this.Json(query))
 			requestHeaders = map[string]any{
 				"Content-Type": "application/json",
 			}
@@ -3139,18 +3135,8 @@ func (this *Bittrade) Sign(path string, optionalArgs ...any) any {
 	url = this.ImplodeParams(baseApiUrl, map[string]any{
 		"hostname": this.Hostname,
 	}) + url
-	var headersResult any = func() any {
-		if requestHeaders != nil {
-			return requestHeaders
-		}
-		return headers
-	}()
-	var bodyResult any = func() any {
-		if requestBody != nil {
-			return requestBody
-		}
-		return body
-	}()
+	var headersResult any = requestHeaders
+	var bodyResult *string = requestBody
 	return map[string]any{
 		"url":     url,
 		"method":  method,

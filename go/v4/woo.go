@@ -4589,10 +4589,6 @@ func (this *Woo) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	var requestHeaders any = nil
 	var requestBody any = nil
 	var version *string = this.SafeString(section, 0)
@@ -4665,18 +4661,8 @@ func (this *Woo) Sign(path string, optionalArgs ...any) any {
 		}
 		AddElementToObject(requestHeaders, "x-api-signature", this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256))
 	}
-	var headersResult any = func() any {
-		if requestHeaders != nil {
-			return requestHeaders
-		}
-		return headers
-	}()
-	var bodyResult any = func() any {
-		if requestBody != nil {
-			return requestBody
-		}
-		return body
-	}()
+	var headersResult any = requestHeaders
+	var bodyResult any = requestBody
 	return map[string]any{
 		"url":     url,
 		"method":  method,

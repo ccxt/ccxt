@@ -4029,8 +4029,6 @@ func (this *Polymarket) Nonce() any {
  * @param {string[]} api the api group and access level
  * @param {string} method the http method
  * @param {object} params the request parameters
- * @param {object} [headers] request headers
- * @param {string} [body] the request body
  * @returns {object} a dict with url, method, body and headers
  */
 func (this *Polymarket) Sign(path string, optionalArgs ...any) any {
@@ -4040,10 +4038,6 @@ func (this *Polymarket) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := ccxt.GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := ccxt.GetArg(optionalArgs, 4, nil)
-	_ = body
 	var apiGroup *string = ccxt.SafeStringPtr(ccxt.GetValue(api, 0))
 	var access *string = this.SafeString(api, 1, "public")
 	var baseUrls any = this.Urls["api"]
@@ -4061,7 +4055,7 @@ func (this *Polymarket) Sign(path string, optionalArgs ...any) any {
 	if !isArrayBody {
 		query = this.Omit(params, this.ExtractParams(path))
 	}
-	var bodyValue any = body
+	var bodyValue *string = nil
 	if method == "GET" {
 		// array-valued params must repeat the key (gamma's clob_token_ids rejects
 		// comma-joined ids); scalar-only queries keep the plain encoder — the repeat
@@ -4083,20 +4077,15 @@ func (this *Polymarket) Sign(path string, optionalArgs ...any) any {
 			url = ccxt.Add(url, "?"+querystring)
 		}
 	} else if isArrayBody {
-		bodyValue = this.Json(params)
+		bodyValue = ccxt.SafeStringPtr(this.Json(params))
 	} else {
 		var queryKeys []string = ccxt.ObjectKeys(query)
 		var queryKeysLength int = len(queryKeys)
 		if queryKeysLength > 0 {
-			bodyValue = this.Json(query)
+			bodyValue = ccxt.SafeStringPtr(this.Json(query))
 		}
 	}
-	var headerDefaults any = func() any {
-		if !ccxt.IsEqual(headers, nil) {
-			return headers
-		}
-		return map[string]any{}
-	}()
+	var headerDefaults map[string]any = map[string]any{}
 	var headersValue map[string]any = this.Extend(map[string]any{
 		"Accept":       "application/json",
 		"Content-Type": "application/json",
@@ -4143,7 +4132,7 @@ func (this *Polymarket) Sign(path string, optionalArgs ...any) any {
 			// @polymarket/clob-client — query params are sent separately, not signed
 			var requestPath string = "/" + this.ImplodeParams(path, params)
 			var auth any = timestamp + method + requestPath
-			if !ccxt.IsEqual(bodyValue, nil) {
+			if bodyValue != nil {
 				auth = ccxt.Add(auth, bodyValue)
 			}
 			// the L2 api secret is base64url-encoded; decode it to raw bytes for the HMAC key.

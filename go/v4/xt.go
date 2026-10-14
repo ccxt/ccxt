@@ -7916,10 +7916,6 @@ func (this *Xt) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var headers map[string]any = GetArgMap(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
 	var signed bool = (GetValue(api, 0) == "private")
 	var endpoint *string = SafeStringPtr(GetValue(api, 1))
 	var request string = "/" + this.ImplodeParams(path, params)
@@ -8010,7 +8006,7 @@ func (this *Xt) Sign(path string, optionalArgs ...any) any {
 			url = Add(url, "?"+urlencoded)
 		}
 	}
-	var bodyValue any = body
+	var bodyValue any = nil
 	if signed {
 		bodyValue = signedBody
 	}

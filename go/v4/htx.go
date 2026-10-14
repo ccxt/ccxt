@@ -10299,10 +10299,6 @@ func (this *Htx) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	var signedHeaders any = nil
 	var signedBody any = nil
 	var pathString string = path
@@ -10467,18 +10463,8 @@ func (this *Htx) Sign(path string, optionalArgs ...any) any {
 			"hostname": finalHostname,
 		}) + url
 	}
-	var headersResolved any = func() any {
-		if signedHeaders != nil {
-			return signedHeaders
-		}
-		return headers
-	}()
-	var bodyResolved any = func() any {
-		if signedBody != nil {
-			return signedBody
-		}
-		return body
-	}()
+	var headersResolved any = signedHeaders
+	var bodyResolved any = signedBody
 	return map[string]any{
 		"url":     url,
 		"method":  method,

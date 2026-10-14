@@ -3524,13 +3524,9 @@ func (this *Bitvavo) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
 	var apiName *string = SafeStringPtr(GetValue(api, 0))
-	var requestHeaders any = headers
-	var requestBody any = body
+	var requestHeaders map[string]any = nil
+	var requestBody any = nil
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var url string = "/" + this.Version + "/" + this.ImplodeParams(path, params)
 	var getOrDelete bool = (method == "GET") || (method == "DELETE")

@@ -15927,10 +15927,6 @@ func (this *Kucoin) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
 	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	//
 	// the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
@@ -15962,11 +15958,8 @@ func (this *Kucoin) Sign(path string, optionalArgs ...any) any {
 	}
 	var query any = this.Omit(paramsOmitted, this.ExtractParams(path))
 	var endpart any = ""
-	var headersBase any = map[string]any{}
-	if headers != nil {
-		headersBase = headers
-	}
-	var bodyJson any = body
+	var headersBase map[string]any = map[string]any{}
+	var bodyJson any = nil
 	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
@@ -15981,10 +15974,10 @@ func (this *Kucoin) Sign(path string, optionalArgs ...any) any {
 			}
 			bodyJson = this.Json(query)
 			endpart = bodyJson
-			AddElementToObject(headersBase, "Content-Type", "application/json")
+			headersBase["Content-Type"] = "application/json"
 		}
 	}
-	var headersResult any = headersBase
+	var headersResult map[string]any = headersBase
 	var isFuturePrivate bool = (apiName != nil && *apiName == "futuresPrivate")
 	var isPrivate bool = (apiName != nil && *apiName == "private")
 	var isBroker bool = (apiName != nil && *apiName == "broker")
@@ -16106,11 +16099,11 @@ func (this *Kucoin) fetchTransfersBody(ch chan AsyncResult[any], optionalArgs ..
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes1186319 []any = ListTyped(r1.Value)
-		if retRes1186319 == nil {
+		var retRes1186019 []any = ListTyped(r1.Value)
+		if retRes1186019 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes1186319}
+			ch <- AsyncResult[any]{Value: retRes1186019}
 		}
 		return nil
 	}

@@ -4947,12 +4947,8 @@ func (this *Extended) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
-	var requestHeaders any = headers
-	var requestBody any = body
+	var requestHeaders map[string]any = nil
+	var requestBody *string = nil
 	var version *string = this.SafeString(api, 0)
 	var accessibility *string = this.SafeString(api, 1)
 	var endpoint string = "/" + this.ImplodeParams(path, params)
@@ -4971,7 +4967,7 @@ func (this *Extended) Sign(path string, optionalArgs ...any) any {
 			"X-Api-Key": this.ApiKey,
 		}
 		if ((method == "POST") || (method == "PATCH")) && !queryPost {
-			requestBody = this.Json(query)
+			requestBody = SafeStringPtr(this.Json(query))
 			AddElementToObject(requestHeaders, "Content-Type", "application/json")
 		}
 	}

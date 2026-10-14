@@ -4861,10 +4861,6 @@ func (this *Krakenfutures) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var apiVersions map[string]any = SafeMapTyped(GetValue(this.Options, "versions"), apiName)
 	var methodVersions map[string]any = SafeMapTyped(apiVersions, method)
@@ -4897,7 +4893,7 @@ func (this *Krakenfutures) Sign(path string, optionalArgs ...any) any {
 		if path == "batchorder" {
 			return SafeStringPtr(postData)
 		}
-		return body
+		return nil
 	}()
 	var privateHeaders any = nil
 	if (apiName != nil && *apiName == "private") || (access != nil && *access == "private") {
@@ -4917,12 +4913,7 @@ func (this *Krakenfutures) Sign(path string, optionalArgs ...any) any {
 			"Authent":      signature,
 		}
 	}
-	var requestHeaders any = func() any {
-		if privateHeaders != nil {
-			return privateHeaders
-		}
-		return headers
-	}()
+	var requestHeaders any = privateHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,

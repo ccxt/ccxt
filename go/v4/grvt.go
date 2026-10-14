@@ -4467,12 +4467,8 @@ func (this *Grvt) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
-	var requestHeaders any = headers
-	var requestBody any = body
+	var requestHeaders map[string]any = nil
+	var requestBody *string = nil
 	var requestPath string = path
 	var query any = this.Omit(params, this.ExtractParams(requestPath))
 	var apiName *string = SafeStringPtr(GetValue(api, 0))
@@ -4498,9 +4494,9 @@ func (this *Grvt) Sign(path string, optionalArgs ...any) any {
 		var paramsKeys []string = ObjectKeys(params)
 		var paramsKeysLength int = len(paramsKeys)
 		if paramsKeysLength == 0 {
-			requestBody = "{}"
+			requestBody = SafeStringPtr("{}")
 		} else {
-			requestBody = this.Json(params)
+			requestBody = SafeStringPtr(this.Json(params))
 		}
 	}
 	var isPrivate bool = strings.HasPrefix(*apiName, "private")

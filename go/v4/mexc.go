@@ -8245,12 +8245,8 @@ func (this *Mexc) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
-	var requestHeaders any = headers
-	var requestBody any = body
+	var requestHeaders any = nil
+	var requestBody any = nil
 	var section *string = this.SafeString(api, 0)
 	var access *string = this.SafeString(api, 1)
 	var pathValue string = this.ImplodeParams(path, params)
