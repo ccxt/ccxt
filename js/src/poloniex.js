@@ -3820,7 +3820,7 @@ export default class poloniex extends Exchange {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
         const isArray = Array.isArray(params);
         let url = this.urls['api']['spot'];
@@ -3870,8 +3870,8 @@ export default class poloniex extends Exchange {
                 'signature': signature,
             };
         }
-        const bodyResolved = (bodyJson === undefined) ? body : bodyJson;
-        const headersResolved = (signedHeaders === undefined) ? headers : signedHeaders;
+        const bodyResolved = bodyJson;
+        const headersResolved = signedHeaders;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

@@ -7744,7 +7744,7 @@ export default class htx extends Exchange {
     nonce() {
         return this.milliseconds() - this.safeInteger(this.options, 'timeDifference', 0);
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         let signedHeaders = undefined;
         let signedBody = undefined;
         const pathString = path;
@@ -7915,8 +7915,8 @@ export default class htx extends Exchange {
                 'hostname': finalHostname,
             }) + url;
         }
-        const headersResolved = (signedHeaders !== undefined) ? signedHeaders : headers;
-        const bodyResolved = (signedBody !== undefined) ? signedBody : body;
+        const headersResolved = signedHeaders;
+        const bodyResolved = signedBody;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

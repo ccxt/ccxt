@@ -4128,7 +4128,7 @@ export default class delta extends Exchange {
             'datetime': datetime,
         };
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = {}, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
         const requestPath = '/' + this.version + '/' + this.implodeParams(path, params);
         const apiUrl = this.safeString(this.urls['api'], apiName);
@@ -4167,8 +4167,8 @@ export default class delta extends Exchange {
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             requestHeaders['signature'] = signature;
         }
-        const bodyResult = (requestBody === undefined) ? body : requestBody;
-        const headersResult = (requestHeaders === undefined) ? headers : requestHeaders;
+        const bodyResult = requestBody;
+        const headersResult = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

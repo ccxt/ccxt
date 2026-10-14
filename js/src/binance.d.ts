@@ -1288,11 +1288,11 @@ export default class binance extends Exchange {
     parseLedgerEntryType(type: Str): Str;
     getNetworkCodeByNetworkUrl(currencyCode: Str, depositUrl?: Str): Str;
     getBaseDomainFromUrl(url: Str): Str;
-    sign(path: string, api?: string[], method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     getExceptionsByUrl(url: Str, exactOrBroad: string): import("./base/types.js").Dictionary<any>;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: Dict): any;
-    request(path: string, api?: string[], method?: any, params?: Dict, headers?: any, body?: any, config?: Dict): Promise<any>;
+    request(path: string, api?: string[], method?: any, params?: Dict, config?: Dict): Promise<any>;
     modifyMarginHelper(symbol: string, amount: any, addOrReduce: any, params?: Dict): Promise<MarginModification>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;
     /**

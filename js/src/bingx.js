@@ -7194,7 +7194,7 @@ export default class bingx extends Exchange {
         }
         return tiers;
     }
-    sign(path, section = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, section = ['public'], method = 'GET', params = {}) {
         let type = section[0];
         let version = section[1];
         let access = section[2];
@@ -7264,8 +7264,8 @@ export default class bingx extends Exchange {
                 url += '?' + query + '&' + 'signature=' + signature;
             }
         }
-        const bodyResult = (requestBody !== undefined) ? requestBody : body;
-        const headersResult = (requestHeaders !== undefined) ? requestHeaders : headers;
+        const bodyResult = requestBody;
+        const headersResult = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
     nonce() {

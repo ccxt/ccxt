@@ -13554,7 +13554,7 @@ export default class binance extends Exchange {
         }
         return scheme + '//' + domain + '/';
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
         const urls = this.urls;
         if (!(apiName in urls['api'])) {
@@ -13680,8 +13680,8 @@ export default class binance extends Exchange {
                 url += '?' + this.urlencode(params);
             }
         }
-        const headersResolved = (signedHeaders !== undefined) ? signedHeaders : headers;
-        const bodyResolved = (signedBody !== undefined) ? signedBody : body;
+        const headersResolved = signedHeaders;
+        const bodyResolved = signedBody;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     getExceptionsByUrl(url, exactOrBroad) {
@@ -13822,8 +13822,8 @@ export default class binance extends Exchange {
         }
         return this.safeValue(config, 'cost', 1);
     }
-    async request(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined, config = {}) {
-        const response = await this.fetch2(path, api, method, params, headers, body, config);
+    async request(path, api = ['public'], method = 'GET', params = {}, config = {}) {
+        const response = await this.fetch2(path, api, method, params, config);
         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
         if (api[0] === 'private') {
             this.options['hasAlreadyAuthenticatedSuccessfully'] = true;

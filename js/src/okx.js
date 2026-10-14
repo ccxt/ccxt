@@ -6788,7 +6788,7 @@ export default class okx extends Exchange {
         const transfers = this.safeList(response, 'data', []);
         return this.parseTransfers(transfers, currency, since, limit, params);
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
         const isArray = Array.isArray(params);
         const request = '/api/' + this.version + '/' + this.implodeParams(path, params);
@@ -6859,11 +6859,11 @@ export default class okx extends Exchange {
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256, 'base64');
             privateHeaders['OK-ACCESS-SIGN'] = signature;
         }
-        let requestBody = body;
+        let requestBody = undefined;
         if (hasJsonBody) {
             requestBody = jsonBody;
         }
-        const requestHeaders = (apiName === 'private') ? privateHeaders : headers;
+        const requestHeaders = (apiName === 'private') ? privateHeaders : undefined;
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
     parseFundingRate(contract, market = undefined) {

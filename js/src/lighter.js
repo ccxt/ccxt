@@ -3361,7 +3361,7 @@ export default class lighter extends Exchange {
             'datetime': this.iso8601(timestamp),
         };
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
         let url = undefined;
         if (apiName === 'root') {
@@ -3394,9 +3394,9 @@ export default class lighter extends Exchange {
             url += '?' + this.rawencode(params);
         }
         if (apiName === 'private') {
-            return { 'url': url, 'method': method, 'body': body, 'headers': authHeaders };
+            return { 'url': url, 'method': method, 'body': undefined, 'headers': authHeaders };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if ((response === undefined) || (response === null)) {

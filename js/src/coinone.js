@@ -1278,7 +1278,7 @@ export default class coinone extends Exchange {
         }
         return result;
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
         const request = this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
@@ -1342,8 +1342,8 @@ export default class coinone extends Exchange {
                 'X-COINONE-SIGNATURE': signature,
             };
         }
-        const bodyResolved = (requestBody === undefined) ? body : requestBody;
-        const headersResolved = (requestHeaders === undefined) ? headers : requestHeaders;
+        const bodyResolved = requestBody;
+        const headersResolved = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

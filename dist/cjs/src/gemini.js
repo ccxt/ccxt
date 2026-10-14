@@ -2023,7 +2023,7 @@ class gemini extends gemini$1["default"] {
         // single network, so the last address the venue lists for it wins — same as before)
         return this.indexBy(results, 'network');
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
         let url = '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
@@ -2061,8 +2061,8 @@ class gemini extends gemini$1["default"] {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         const fullUrl = apiUrl + url;
-        const headersResolved = (apiName === 'private') ? headersSigned : headers;
-        let bodyResolved = body;
+        const headersResolved = (apiName === 'private') ? headersSigned : undefined;
+        let bodyResolved = undefined;
         if ((method === 'POST') || (method === 'DELETE')) {
             bodyResolved = this.json(query);
         }

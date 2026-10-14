@@ -1781,7 +1781,7 @@ class cex extends cex$1["default"] {
             'tag': undefined,
         };
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
         const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
@@ -1817,7 +1817,7 @@ class cex extends cex$1["default"] {
             };
             return { 'url': url, 'method': method, 'body': bodySigned, 'headers': headersSigned };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         // in some cases, like from createOrder, exchange returns nested escaped JSON string:

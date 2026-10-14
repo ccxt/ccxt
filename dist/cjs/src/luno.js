@@ -1691,7 +1691,7 @@ class luno extends luno$1["default"] {
         result['withdraw']['percentage'] = false;
         return this.assignDefaultDepositWithdrawFees(result, currency);
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
         const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
@@ -1710,8 +1710,8 @@ class luno extends luno$1["default"] {
                 'Authorization': 'Basic ' + auth,
             };
         }
-        const headersResolved = (requestHeaders === undefined) ? headers : requestHeaders;
-        return { 'url': url, 'method': method, 'body': body, 'headers': headersResolved };
+        const headersResolved = requestHeaders;
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': headersResolved };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

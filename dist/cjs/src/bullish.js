@@ -2938,10 +2938,10 @@ class bullish extends bullish$1["default"] {
             'quoteVolume': undefined,
         }, market);
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
-        let requestHeaders = headers;
-        let requestBody = body;
+        let requestHeaders = undefined;
+        let requestBody = undefined;
         const request = this.omit(params, this.extractParams(path));
         const endpoint = '/' + this.implodeParams(path, params);
         const apiUrl = this.safeString(this.urls['api'], apiName);

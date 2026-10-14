@@ -1500,7 +1500,7 @@ export default class indodax extends Exchange {
         }
         return result;
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
         const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
@@ -1533,11 +1533,11 @@ export default class indodax extends Exchange {
         }
         let requestBody = privateBody;
         if (isPublic) {
-            requestBody = body;
+            requestBody = undefined;
         }
         let requestHeaders = privateHeaders;
         if (isPublic) {
-            requestHeaders = headers;
+            requestHeaders = undefined;
         }
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }

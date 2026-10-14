@@ -4283,7 +4283,7 @@ export default class aster extends Exchange {
         const v = this.intToBase16(this.sum(27, signature['v']));
         return '0x' + r.padStart(64, '0') + s.padStart(64, '0') + v;
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
         const baseApiUrl = this.safeString(this.urls['api'], apiName);
         if (baseApiUrl === undefined) {
@@ -4367,7 +4367,7 @@ export default class aster extends Exchange {
                 return { 'url': url, 'method': method, 'body': queryString, 'headers': formHeaders };
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     encodeValuesWithJson(values) {
         let encodedString = '';

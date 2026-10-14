@@ -177,7 +177,7 @@ class mudrex extends mudrex$1["default"] {
             },
         });
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
         const apiUrls = this.safeDict(this.urls, 'api', {});
         const base = this.safeString(apiUrls, apiName);
@@ -186,10 +186,7 @@ class mudrex extends mudrex$1["default"] {
         }
         let url = base + '/' + this.implodeParams(path, params);
         let query = this.omit(params, this.extractParams(path));
-        let requestHeaders = {};
-        if (headers !== undefined) {
-            requestHeaders = this.extend({}, headers);
-        }
+        const requestHeaders = {};
         const brokerId = this.safeString(this.options, 'broker');
         if (brokerId !== undefined) {
             requestHeaders['Partner-Id'] = brokerId;

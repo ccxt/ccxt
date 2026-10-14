@@ -3047,7 +3047,7 @@ export default class deepcoin extends Exchange {
         const data = this.safeList(response, 'data', []);
         return this.parseOrder(data, market);
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
         let requestPath = path;
         if (method === 'GET') {
@@ -3072,7 +3072,7 @@ export default class deepcoin extends Exchange {
                 'DC-ACCESS-PASSPHRASE': this.password,
                 'appid': '200103',
             };
-            const requestBody = (method !== 'GET') ? this.json(params) : body;
+            const requestBody = (method !== 'GET') ? this.json(params) : undefined;
             if (method !== 'GET') {
                 privateHeaders['Content-Type'] = 'application/json';
                 payload += requestBody;
@@ -3081,7 +3081,7 @@ export default class deepcoin extends Exchange {
             privateHeaders['DC-ACCESS-SIGN'] = signature;
             return { 'url': url, 'method': method, 'body': requestBody, 'headers': privateHeaders };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         const data = this.safeDict(response, 'data', {});

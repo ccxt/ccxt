@@ -4226,11 +4226,11 @@ export default class whitebit extends Exchange {
     nonce() {
         return this.milliseconds() - this.safeInteger(this.options, 'timeDifference', 0);
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const query = this.omit(params, this.extractParams(path));
         const version = this.safeValue(api, 0);
         const accessibility = this.safeString(api, 1);
-        const publicHeaders = (headers === undefined) ? {} : headers;
+        const publicHeaders = {};
         publicHeaders['User-Agent'] = 'ccxt/' + this.id + '-' + this.version;
         const pathWithParams = '/' + this.implodeParams(path, params);
         const apiUrl = this.safeString(this.urls['api'][version], accessibility);
@@ -4263,7 +4263,7 @@ export default class whitebit extends Exchange {
             };
         }
         const isPrivate = (accessibility === 'private');
-        let requestBody = body;
+        let requestBody = undefined;
         if (isPrivate) {
             requestBody = privateBody;
         }

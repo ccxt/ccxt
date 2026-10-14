@@ -3749,7 +3749,7 @@ export default class btse extends Exchange {
         }
         return undefined;
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
         let requestBody = undefined;
         let requestHeaders = undefined;
@@ -3803,8 +3803,8 @@ export default class btse extends Exchange {
                 'BROKER-ID': 'ccxt',
             };
         }
-        const bodyResolved = (requestBody === undefined) ? body : requestBody;
-        const headersResolved = (requestHeaders === undefined) ? headers : requestHeaders;
+        const bodyResolved = requestBody;
+        const headersResolved = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     futuresRequestId(market) {

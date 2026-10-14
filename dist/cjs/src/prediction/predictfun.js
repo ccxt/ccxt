@@ -3871,11 +3871,9 @@ class predictfun extends predictfun$1["default"] {
      * @param {string[]} [api] the API group and access level
      * @param {string} [method] HTTP method
      * @param {object} [params] request parameters
-     * @param {object} [headers] request headers
-     * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    sign(path, api = ['predictfun'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['predictfun'], method = 'GET', params = {}) {
         // the venue authenticates every endpoint, so the key is required up front rather than
         // per access level - a key-less request is answered with a 401 by the API gateway.
         // the testnet is the exception, it is served without an API key at all
@@ -3894,7 +3892,7 @@ class predictfun extends predictfun$1["default"] {
                 url += '?' + this.urlencode(query);
             }
         }
-        const existingHeaders = (headers !== undefined) ? headers : {};
+        const existingHeaders = {};
         const headersValue = existingHeaders;
         const authHeaders = {};
         if ((apiKey !== undefined) && (!sandboxMode)) {
@@ -3930,7 +3928,7 @@ class predictfun extends predictfun$1["default"] {
         if ((jwtToken !== undefined) && this.inArray(path, walletPaths)) {
             authHeaders['Authorization'] = 'Bearer ' + jwtToken;
         }
-        let bodyValue = body;
+        let bodyValue = undefined;
         if (method !== 'GET') {
             if (!sandboxMode) {
                 this.checkRequiredCredentials();

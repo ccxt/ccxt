@@ -1910,7 +1910,7 @@ export default class zebpay extends Exchange {
             'datetime': undefined,
         };
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         let bodySigned = undefined;
         let headersSigned = undefined;
         const paramsOmitted = this.omit(params, 'defaultType');
@@ -1972,8 +1972,8 @@ export default class zebpay extends Exchange {
             };
             headersSigned['Content-Type'] = 'application/json';
         }
-        const headersResolved = (headersSigned === undefined) ? headers : headersSigned;
-        const bodyResolved = (bodySigned === undefined) ? body : bodySigned;
+        const headersResolved = headersSigned;
+        const bodyResolved = bodySigned;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

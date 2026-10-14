@@ -2690,7 +2690,7 @@ class ndax extends ndax$1["default"] {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
         let bodySigned = undefined;
         let headersSigned = undefined;
@@ -2752,8 +2752,8 @@ class ndax extends ndax$1["default"] {
                 }
             }
         }
-        const headersResolved = (headersSigned === undefined) ? headers : headersSigned;
-        const bodyResolved = (bodySigned === undefined) ? body : bodySigned;
+        const headersResolved = headersSigned;
+        const bodyResolved = bodySigned;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

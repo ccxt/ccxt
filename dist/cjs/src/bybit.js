@@ -9992,7 +9992,7 @@ class bybit extends bybit$1["default"] {
         };
         return this.safeString(marginModes, marginMode, marginMode);
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
         let requestBody = undefined;
         let requestHeaders = undefined;
@@ -10103,12 +10103,12 @@ class bybit extends bybit$1["default"] {
         }
         if (method === 'POST') {
             const brokerId = this.safeString(this.options, 'brokerId', 'CCXT');
-            const headersBase = (requestHeaders === undefined) ? headers : requestHeaders;
+            const headersBase = requestHeaders;
             requestHeaders = (headersBase === undefined) ? {} : headersBase;
             requestHeaders['Referer'] = brokerId;
         }
-        const bodyResolved = (requestBody === undefined) ? body : requestBody;
-        const headersResolved = (requestHeaders === undefined) ? headers : requestHeaders;
+        const bodyResolved = requestBody;
+        const headersResolved = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

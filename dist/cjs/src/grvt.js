@@ -3268,9 +3268,9 @@ class grvt extends grvt$1["default"] {
         this.options['requestId'] = requestId;
         return requestId;
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let requestHeaders = headers;
-        let requestBody = body;
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        let requestHeaders = undefined;
+        let requestBody = undefined;
         let requestPath = path;
         const query = this.omit(params, this.extractParams(requestPath));
         const apiName = api[0];

@@ -3872,7 +3872,7 @@ export default class hitbtc extends Exchange {
         }
         return undefined;
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
         const query = this.omit(params, this.extractParams(path));
         const implodedPath = this.implodeParams(path, params);
@@ -3893,7 +3893,7 @@ export default class hitbtc extends Exchange {
                 url = url + getRequest;
             }
         }
-        const bodyResolved = (method === 'GET') ? body : this.json(params);
+        const bodyResolved = (method === 'GET') ? undefined : this.json(params);
         if (apiName === 'private') {
             this.checkRequiredCredentials();
             const timestamp = this.nonce().toString();

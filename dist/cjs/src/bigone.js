@@ -1977,7 +1977,7 @@ class bigone extends bigone$1["default"] {
         const exchangeTimeCorrection = this.safeInteger(this.options, 'exchangeMillisecondsCorrection', 0) * 1000000;
         return this.sum(this.microseconds() * 1000, exchangeTimeCorrection);
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
         let bodySigned = undefined;
         const query = this.omit(params, this.extractParams(path));
@@ -2015,7 +2015,7 @@ class bigone extends bigone$1["default"] {
             }
         }
         headersValue['User-Agent'] = 'ccxt/' + this.id + '-' + this.version;
-        const bodyResolved = (bodySigned === undefined) ? body : bodySigned;
+        const bodyResolved = bodySigned;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersValue };
     }
     /**

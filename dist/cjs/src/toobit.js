@@ -3228,7 +3228,7 @@ class toobit extends toobit$1["default"] {
             'percentage': undefined,
         });
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
         const baseApiUrl = this.safeString(this.urls['api'], apiName);
         if (baseApiUrl === undefined) {
@@ -3270,7 +3270,7 @@ class toobit extends toobit$1["default"] {
             else {
                 queryString = this.urlencode(queryExtended);
             }
-            let payloadBody = body;
+            let payloadBody = undefined;
             if (isPost || isDelete) {
                 payloadBody = privateBody;
             }
@@ -3292,13 +3292,13 @@ class toobit extends toobit$1["default"] {
                 'X-BB-API-PLATFORM': this.safeString(this.options, 'brokerId', '177321641268789'),
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
-            let requestBody = body;
+            let requestBody = undefined;
             if (isPost || isDelete) {
                 requestBody = privateBody;
             }
             return { 'url': url, 'method': method, 'body': requestBody, 'headers': privateHeaders };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

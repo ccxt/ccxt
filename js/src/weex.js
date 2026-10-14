@@ -4334,7 +4334,7 @@ export default class weex extends Exchange {
         super.setSandboxMode(enable);
         this.options['sandboxMode'] = enable;
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
         let endpoint = this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
@@ -4346,7 +4346,7 @@ export default class weex extends Exchange {
         }
         const isPrivate = (apiName === 'private') || (apiName === 'contractPrivate');
         const hasJsonBody = isPrivate && ((method === 'POST') || isBatch);
-        let requestBody = body;
+        let requestBody = undefined;
         if (hasJsonBody) {
             requestBody = this.json(query);
         }

@@ -7,445 +7,445 @@ var Exchange$1 = require('../base/Exchange.js');
 // ----------------------------------------------------------------------------
 class Exchange extends Exchange$1["default"] {
     publicGetAuth(params = {}) {
-        return this.request('auth', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('auth', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetExchangeToken(params = {}) {
-        return this.request('exchange_token', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('exchange_token', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetForkToken(params = {}) {
-        return this.request('fork_token', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('fork_token', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetSetHeartbeat(params = {}) {
-        return this.request('set_heartbeat', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('set_heartbeat', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetDisableHeartbeat(params = {}) {
-        return this.request('disable_heartbeat', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('disable_heartbeat', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetGetTime(params = {}) {
-        return this.request('get_time', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_time', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetHello(params = {}) {
-        return this.request('hello', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('hello', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetStatus(params = {}) {
-        return this.request('status', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('status', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetTest(params = {}) {
-        return this.request('test', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('test', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetSubscribe(params = {}) {
-        return this.request('subscribe', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('subscribe', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetUnsubscribe(params = {}) {
-        return this.request('unsubscribe', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('unsubscribe', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetUnsubscribeAll(params = {}) {
-        return this.request('unsubscribe_all', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('unsubscribe_all', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetGetAnnouncements(params = {}) {
-        return this.request('get_announcements', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_announcements', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetGetAprHistory(params = {}) {
-        return this.request('get_apr_history', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_apr_history', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetGetBookSummaryByCurrency(params = {}) {
-        return this.request('get_book_summary_by_currency', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_book_summary_by_currency', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetGetBookSummaryByInstrument(params = {}) {
-        return this.request('get_book_summary_by_instrument', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_book_summary_by_instrument', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetGetContractSize(params = {}) {
-        return this.request('get_contract_size', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_contract_size', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetGetCurrencies(params = {}) {
-        return this.request('get_currencies', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_currencies', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetGetDeliveryPrices(params = {}) {
-        return this.request('get_delivery_prices', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_delivery_prices', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetGetExpirations(params = {}) {
-        return this.request('get_expirations', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_expirations', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetGetFundingChartData(params = {}) {
-        return this.request('get_funding_chart_data', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_funding_chart_data', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetGetFundingRateHistory(params = {}) {
-        return this.request('get_funding_rate_history', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_funding_rate_history', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetGetFundingRateValue(params = {}) {
-        return this.request('get_funding_rate_value', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_funding_rate_value', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetGetHistoricalVolatility(params = {}) {
-        return this.request('get_historical_volatility', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_historical_volatility', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetGetIndex(params = {}) {
-        return this.request('get_index', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_index', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetGetIndexChartData(params = {}) {
-        return this.request('get_index_chart_data', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_index_chart_data', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetGetIndexPrice(params = {}) {
-        return this.request('get_index_price', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_index_price', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetGetIndexPriceNames(params = {}) {
-        return this.request('get_index_price_names', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_index_price_names', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetGetInstrument(params = {}) {
-        return this.request('get_instrument', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_instrument', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetGetInstruments(params = {}) {
-        return this.request('get_instruments', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_instruments', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetGetLastSettlementsByCurrency(params = {}) {
-        return this.request('get_last_settlements_by_currency', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_last_settlements_by_currency', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetGetLastSettlementsByInstrument(params = {}) {
-        return this.request('get_last_settlements_by_instrument', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_last_settlements_by_instrument', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetGetLastTradesByCurrency(params = {}) {
-        return this.request('get_last_trades_by_currency', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_last_trades_by_currency', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetGetLastTradesByCurrencyAndTime(params = {}) {
-        return this.request('get_last_trades_by_currency_and_time', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_last_trades_by_currency_and_time', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetGetLastTradesByInstrument(params = {}) {
-        return this.request('get_last_trades_by_instrument', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_last_trades_by_instrument', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetGetLastTradesByInstrumentAndTime(params = {}) {
-        return this.request('get_last_trades_by_instrument_and_time', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_last_trades_by_instrument_and_time', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetGetMarkPriceHistory(params = {}) {
-        return this.request('get_mark_price_history', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_mark_price_history', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetGetOrderBook(params = {}) {
-        return this.request('get_order_book', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_order_book', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetGetSupportedIndexNames(params = {}) {
-        return this.request('get_supported_index_names', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_supported_index_names', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetGetTradeVolumes(params = {}) {
-        return this.request('get_trade_volumes', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_trade_volumes', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetGetTradingviewChartData(params = {}) {
-        return this.request('get_tradingview_chart_data', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_tradingview_chart_data', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetGetVolatilityIndexData(params = {}) {
-        return this.request('get_volatility_index_data', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_volatility_index_data', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetTicker(params = {}) {
-        return this.request('ticker', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('ticker', ['public'], 'GET', params, { 'cost': 1 });
     }
     privateGetLogout(params = {}) {
-        return this.request('logout', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('logout', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetEnableCancelOnDisconnect(params = {}) {
-        return this.request('enable_cancel_on_disconnect', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('enable_cancel_on_disconnect', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetDisableCancelOnDisconnect(params = {}) {
-        return this.request('disable_cancel_on_disconnect', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('disable_cancel_on_disconnect', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetGetCancelOnDisconnect(params = {}) {
-        return this.request('get_cancel_on_disconnect', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_cancel_on_disconnect', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetSubscribe(params = {}) {
-        return this.request('subscribe', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('subscribe', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetUnsubscribe(params = {}) {
-        return this.request('unsubscribe', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('unsubscribe', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetUnsubscribeAll(params = {}) {
-        return this.request('unsubscribe_all', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('unsubscribe_all', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetChangeApiKeyName(params = {}) {
-        return this.request('change_api_key_name', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('change_api_key_name', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetChangeScopeInApiKey(params = {}) {
-        return this.request('change_scope_in_api_key', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('change_scope_in_api_key', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetChangeSubaccountName(params = {}) {
-        return this.request('change_subaccount_name', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('change_subaccount_name', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetCreateApiKey(params = {}) {
-        return this.request('create_api_key', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('create_api_key', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetCreateSubaccount(params = {}) {
-        return this.request('create_subaccount', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('create_subaccount', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetDisableApiKey(params = {}) {
-        return this.request('disable_api_key', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('disable_api_key', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetDisableTfaForSubaccount(params = {}) {
-        return this.request('disable_tfa_for_subaccount', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('disable_tfa_for_subaccount', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetEnableAffiliateProgram(params = {}) {
-        return this.request('enable_affiliate_program', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('enable_affiliate_program', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetEnableApiKey(params = {}) {
-        return this.request('enable_api_key', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('enable_api_key', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetGetAccessLog(params = {}) {
-        return this.request('get_access_log', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_access_log', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetGetAccountSummary(params = {}) {
-        return this.request('get_account_summary', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_account_summary', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetGetAccountSummaries(params = {}) {
-        return this.request('get_account_summaries', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_account_summaries', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetGetAffiliateProgramInfo(params = {}) {
-        return this.request('get_affiliate_program_info', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_affiliate_program_info', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetGetCurrencies(params = {}) {
-        return this.request('get_currencies', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_currencies', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetGetEmailLanguage(params = {}) {
-        return this.request('get_email_language', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_email_language', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetGetNewAnnouncements(params = {}) {
-        return this.request('get_new_announcements', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_new_announcements', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetGetPortfolioMargins(params = {}) {
-        return this.request('get_portfolio_margins', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_portfolio_margins', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetGetPosition(params = {}) {
-        return this.request('get_position', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_position', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetGetPositions(params = {}) {
-        return this.request('get_positions', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_positions', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetGetSubaccounts(params = {}) {
-        return this.request('get_subaccounts', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_subaccounts', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetGetSubaccountsDetails(params = {}) {
-        return this.request('get_subaccounts_details', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_subaccounts_details', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetGetTransactionLog(params = {}) {
-        return this.request('get_transaction_log', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_transaction_log', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetListApiKeys(params = {}) {
-        return this.request('list_api_keys', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('list_api_keys', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetRemoveApiKey(params = {}) {
-        return this.request('remove_api_key', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('remove_api_key', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetRemoveSubaccount(params = {}) {
-        return this.request('remove_subaccount', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('remove_subaccount', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetResetApiKey(params = {}) {
-        return this.request('reset_api_key', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('reset_api_key', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetSetAnnouncementAsRead(params = {}) {
-        return this.request('set_announcement_as_read', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('set_announcement_as_read', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetSetApiKeyAsDefault(params = {}) {
-        return this.request('set_api_key_as_default', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('set_api_key_as_default', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetSetDisabledTradingProducts(params = {}) {
-        return this.request('set_disabled_trading_products', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('set_disabled_trading_products', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetSetEmailForSubaccount(params = {}) {
-        return this.request('set_email_for_subaccount', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('set_email_for_subaccount', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetSetEmailLanguage(params = {}) {
-        return this.request('set_email_language', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('set_email_language', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetSetPasswordForSubaccount(params = {}) {
-        return this.request('set_password_for_subaccount', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('set_password_for_subaccount', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetSimulatePortfolio(params = {}) {
-        return this.request('simulate_portfolio', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('simulate_portfolio', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetToggleNotificationsFromSubaccount(params = {}) {
-        return this.request('toggle_notifications_from_subaccount', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('toggle_notifications_from_subaccount', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetToggleSubaccountLogin(params = {}) {
-        return this.request('toggle_subaccount_login', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('toggle_subaccount_login', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetApproveBlockTrade(params = {}) {
-        return this.request('approve_block_trade', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('approve_block_trade', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetExecuteBlockTrade(params = {}) {
-        return this.request('execute_block_trade', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('execute_block_trade', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetGetBlockTrade(params = {}) {
-        return this.request('get_block_trade', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_block_trade', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetGetBlockTradeRequests(params = {}) {
-        return this.request('get_block_trade_requests', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_block_trade_requests', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetGetBlockTrades(params = {}) {
-        return this.request('get_block_trades', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_block_trades', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetGetLastBlockTradesByCurrency(params = {}) {
-        return this.request('get_last_block_trades_by_currency', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_last_block_trades_by_currency', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetInvalidateBlockTradeSignature(params = {}) {
-        return this.request('invalidate_block_trade_signature', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('invalidate_block_trade_signature', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetRejectBlockTrade(params = {}) {
-        return this.request('reject_block_trade', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('reject_block_trade', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetSimulateBlockTrade(params = {}) {
-        return this.request('simulate_block_trade', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('simulate_block_trade', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetVerifyBlockTrade(params = {}) {
-        return this.request('verify_block_trade', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('verify_block_trade', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetBuy(params = {}) {
-        return this.request('buy', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('buy', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetSell(params = {}) {
-        return this.request('sell', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('sell', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetEdit(params = {}) {
-        return this.request('edit', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('edit', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetEditByLabel(params = {}) {
-        return this.request('edit_by_label', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('edit_by_label', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetCancel(params = {}) {
-        return this.request('cancel', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('cancel', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetCancelAll(params = {}) {
-        return this.request('cancel_all', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('cancel_all', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetCancelAllByCurrency(params = {}) {
-        return this.request('cancel_all_by_currency', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('cancel_all_by_currency', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetCancelAllByInstrument(params = {}) {
-        return this.request('cancel_all_by_instrument', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('cancel_all_by_instrument', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetCancelByLabel(params = {}) {
-        return this.request('cancel_by_label', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('cancel_by_label', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetCancelQuotes(params = {}) {
-        return this.request('cancel_quotes', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('cancel_quotes', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetClosePosition(params = {}) {
-        return this.request('close_position', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('close_position', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetGetMargins(params = {}) {
-        return this.request('get_margins', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_margins', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetGetMmpConfig(params = {}) {
-        return this.request('get_mmp_config', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_mmp_config', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetGetMmpStatus(params = {}) {
-        return this.request('get_mmp_status', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_mmp_status', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetGetOpenOrders(params = {}) {
-        return this.request('get_open_orders', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_open_orders', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetGetOpenOrdersByCurrency(params = {}) {
-        return this.request('get_open_orders_by_currency', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_open_orders_by_currency', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetGetOpenOrdersByInstrument(params = {}) {
-        return this.request('get_open_orders_by_instrument', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_open_orders_by_instrument', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetGetOpenOrdersByLabel(params = {}) {
-        return this.request('get_open_orders_by_label', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_open_orders_by_label', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetGetOrderHistoryByCurrency(params = {}) {
-        return this.request('get_order_history_by_currency', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_order_history_by_currency', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetGetOrderHistoryByInstrument(params = {}) {
-        return this.request('get_order_history_by_instrument', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_order_history_by_instrument', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetGetOrderMarginByIds(params = {}) {
-        return this.request('get_order_margin_by_ids', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_order_margin_by_ids', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetGetOrderState(params = {}) {
-        return this.request('get_order_state', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_order_state', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetGetOrderStateByLabel(params = {}) {
-        return this.request('get_order_state_by_label', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_order_state_by_label', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetGetStopOrderHistory(params = {}) {
-        return this.request('get_stop_order_history', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_stop_order_history', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetGetTriggerOrderHistory(params = {}) {
-        return this.request('get_trigger_order_history', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_trigger_order_history', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetGetUserTradesByCurrency(params = {}) {
-        return this.request('get_user_trades_by_currency', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_user_trades_by_currency', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetGetUserTradesByCurrencyAndTime(params = {}) {
-        return this.request('get_user_trades_by_currency_and_time', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_user_trades_by_currency_and_time', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetGetUserTradesByInstrument(params = {}) {
-        return this.request('get_user_trades_by_instrument', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_user_trades_by_instrument', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetGetUserTradesByInstrumentAndTime(params = {}) {
-        return this.request('get_user_trades_by_instrument_and_time', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_user_trades_by_instrument_and_time', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetGetUserTradesByOrder(params = {}) {
-        return this.request('get_user_trades_by_order', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_user_trades_by_order', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetMassQuote(params = {}) {
-        return this.request('mass_quote', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('mass_quote', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetMovePositions(params = {}) {
-        return this.request('move_positions', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('move_positions', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetResetMmp(params = {}) {
-        return this.request('reset_mmp', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('reset_mmp', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetSetMmpConfig(params = {}) {
-        return this.request('set_mmp_config', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('set_mmp_config', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetGetSettlementHistoryByInstrument(params = {}) {
-        return this.request('get_settlement_history_by_instrument', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_settlement_history_by_instrument', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetGetSettlementHistoryByCurrency(params = {}) {
-        return this.request('get_settlement_history_by_currency', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_settlement_history_by_currency', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetAddToAddressBook(params = {}) {
-        return this.request('add_to_address_book', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('add_to_address_book', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetCancelTransferById(params = {}) {
-        return this.request('cancel_transfer_by_id', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('cancel_transfer_by_id', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetCancelWithdrawal(params = {}) {
-        return this.request('cancel_withdrawal', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('cancel_withdrawal', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetCreateDepositAddress(params = {}) {
-        return this.request('create_deposit_address', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('create_deposit_address', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetGetAddressBook(params = {}) {
-        return this.request('get_address_book', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_address_book', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetGetCurrentDepositAddress(params = {}) {
-        return this.request('get_current_deposit_address', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_current_deposit_address', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetGetDeposits(params = {}) {
-        return this.request('get_deposits', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_deposits', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetGetRewardEligibility(params = {}) {
-        return this.request('get_reward_eligibility', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_reward_eligibility', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetGetTransfers(params = {}) {
-        return this.request('get_transfers', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_transfers', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetGetWithdrawals(params = {}) {
-        return this.request('get_withdrawals', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('get_withdrawals', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetRemoveFromAddressBook(params = {}) {
-        return this.request('remove_from_address_book', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('remove_from_address_book', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetSetClearanceOriginator(params = {}) {
-        return this.request('set_clearance_originator', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('set_clearance_originator', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetSubmitTransferToSubaccount(params = {}) {
-        return this.request('submit_transfer_to_subaccount', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('submit_transfer_to_subaccount', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetSubmitTransferToUser(params = {}) {
-        return this.request('submit_transfer_to_user', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('submit_transfer_to_user', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetUpdateInAddressBook(params = {}) {
-        return this.request('update_in_address_book', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('update_in_address_book', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetWithdraw(params = {}) {
-        return this.request('withdraw', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('withdraw', ['private'], 'GET', params, { 'cost': 1 });
     }
 }
 

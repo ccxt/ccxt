@@ -1249,7 +1249,7 @@ export default class blockchaincom extends Exchange {
         //
         return this.parseOrder(response);
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const requestPath = '/' + this.implodeParams(path, params);
         const apiName = api[0];
         const apiUrl = this.safeString(this.urls['api'], apiName);
@@ -1262,12 +1262,12 @@ export default class blockchaincom extends Exchange {
         const privateHeaders = {
             'X-API-Token': this.secret,
         };
-        let requestHeaders = headers;
+        let requestHeaders = undefined;
         if (isPrivate) {
             requestHeaders = privateHeaders;
         }
         const isPrivatePost = isPrivate && (method !== 'GET');
-        let requestBody = body;
+        let requestBody = undefined;
         if (isPrivatePost) {
             requestBody = this.json(query);
         }

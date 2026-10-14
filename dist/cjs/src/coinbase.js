@@ -5326,7 +5326,7 @@ class coinbase extends coinbase$1["default"] {
         }
         return this.milliseconds() - timeDifference;
     }
-    sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = [], method = 'GET', params = {}) {
         let requestBody = undefined;
         let requestHeaders = undefined;
         const version = this.safeString(api, 0);
@@ -5434,8 +5434,8 @@ class coinbase extends coinbase$1["default"] {
                 }
             }
         }
-        const bodyResolved = (requestBody === undefined) ? body : requestBody;
-        const headersResolved = (requestHeaders === undefined) ? headers : requestHeaders;
+        const bodyResolved = requestBody;
+        const headersResolved = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

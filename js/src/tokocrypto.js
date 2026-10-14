@@ -2662,7 +2662,7 @@ export default class tokocrypto extends Exchange {
         //
         return this.parseTransaction(response, currency);
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
         if (!(apiName in this.urls['api']['rest'])) {
             throw new NotSupported(this.id + ' does not have a testnet/sandbox URL for ' + apiName + ' endpoints');
@@ -2684,7 +2684,7 @@ export default class tokocrypto extends Exchange {
                     'X-MBX-APIKEY': this.apiKey,
                     'Content-Type': 'application/x-www-form-urlencoded',
                 };
-                const bodyStream = (method !== 'GET') ? this.urlencode(params) : body;
+                const bodyStream = (method !== 'GET') ? this.urlencode(params) : undefined;
                 return { 'url': url, 'method': method, 'body': bodyStream, 'headers': headersStream };
             }
             else {
@@ -2722,7 +2722,7 @@ export default class tokocrypto extends Exchange {
             const queryInUrl = (method === 'GET') || (method === 'DELETE') || (apiName === 'wapi');
             let bodySigned = query;
             if (queryInUrl) {
-                bodySigned = body;
+                bodySigned = undefined;
             }
             if (queryInUrl) {
                 url += '?' + query;
@@ -2737,7 +2737,7 @@ export default class tokocrypto extends Exchange {
                 url += '?' + this.urlencode(params);
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if ((code === 418) || (code === 429)) {

@@ -7,1414 +7,1414 @@ var okx$1 = require('../okx.js');
 // ----------------------------------------------------------------------------
 class okx extends okx$1["default"] {
     publicGetMarketTickers(params = {}) {
-        return this.request('market/tickers', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('market/tickers', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetMarketTicker(params = {}) {
-        return this.request('market/ticker', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('market/ticker', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetMarketBooks(params = {}) {
-        return this.request('market/books', ['public'], 'GET', params, undefined, undefined, { 'cost': 0.5 });
+        return this.request('market/books', ['public'], 'GET', params, { 'cost': 0.5 });
     }
     publicGetMarketBooksFull(params = {}) {
-        return this.request('market/books-full', ['public'], 'GET', params, undefined, undefined, { 'cost': 2 });
+        return this.request('market/books-full', ['public'], 'GET', params, { 'cost': 2 });
     }
     publicGetMarketBooksRpi(params = {}) {
-        return this.request('market/books-rpi', ['public'], 'GET', params, undefined, undefined, { 'cost': 0.5 });
+        return this.request('market/books-rpi', ['public'], 'GET', params, { 'cost': 0.5 });
     }
     publicGetMarketCandles(params = {}) {
-        return this.request('market/candles', ['public'], 'GET', params, undefined, undefined, { 'cost': 0.5 });
+        return this.request('market/candles', ['public'], 'GET', params, { 'cost': 0.5 });
     }
     publicGetMarketHistoryCandles(params = {}) {
-        return this.request('market/history-candles', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('market/history-candles', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetMarketTrades(params = {}) {
-        return this.request('market/trades', ['public'], 'GET', params, undefined, undefined, { 'cost': 0.2 });
+        return this.request('market/trades', ['public'], 'GET', params, { 'cost': 0.2 });
     }
     publicGetMarketHistoryTrades(params = {}) {
-        return this.request('market/history-trades', ['public'], 'GET', params, undefined, undefined, { 'cost': 2 });
+        return this.request('market/history-trades', ['public'], 'GET', params, { 'cost': 2 });
     }
     publicGetMarketOptionInstrumentFamilyTrades(params = {}) {
-        return this.request('market/option/instrument-family-trades', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('market/option/instrument-family-trades', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetMarketPlatform24Volume(params = {}) {
-        return this.request('market/platform-24-volume', ['public'], 'GET', params, undefined, undefined, { 'cost': 10 });
+        return this.request('market/platform-24-volume', ['public'], 'GET', params, { 'cost': 10 });
     }
     publicGetMarketCallAuctionDetail(params = {}) {
-        return this.request('market/call-auction-detail', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('market/call-auction-detail', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetMarketCallAuctionDetails(params = {}) {
-        return this.request('market/call-auction-details', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('market/call-auction-details', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetMarketBooksSbe(params = {}) {
-        return this.request('market/books-sbe', ['public'], 'GET', params, undefined, undefined, { 'cost': 10 });
+        return this.request('market/books-sbe', ['public'], 'GET', params, { 'cost': 10 });
     }
     publicGetMarketBlockTickers(params = {}) {
-        return this.request('market/block-tickers', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('market/block-tickers', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetMarketBlockTicker(params = {}) {
-        return this.request('market/block-ticker', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('market/block-ticker', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetMarketSprdTicker(params = {}) {
-        return this.request('market/sprd-ticker', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('market/sprd-ticker', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetMarketSprdCandles(params = {}) {
-        return this.request('market/sprd-candles', ['public'], 'GET', params, undefined, undefined, { 'cost': 0.5 });
+        return this.request('market/sprd-candles', ['public'], 'GET', params, { 'cost': 0.5 });
     }
     publicGetMarketSprdHistoryCandles(params = {}) {
-        return this.request('market/sprd-history-candles', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('market/sprd-history-candles', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetMarketIndexTickers(params = {}) {
-        return this.request('market/index-tickers', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('market/index-tickers', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetMarketIndexCandles(params = {}) {
-        return this.request('market/index-candles', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('market/index-candles', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetMarketHistoryIndexCandles(params = {}) {
-        return this.request('market/history-index-candles', ['public'], 'GET', params, undefined, undefined, { 'cost': 2 });
+        return this.request('market/history-index-candles', ['public'], 'GET', params, { 'cost': 2 });
     }
     publicGetMarketMarkPriceCandles(params = {}) {
-        return this.request('market/mark-price-candles', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('market/mark-price-candles', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetMarketHistoryMarkPriceCandles(params = {}) {
-        return this.request('market/history-mark-price-candles', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('market/history-mark-price-candles', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetMarketExchangeRate(params = {}) {
-        return this.request('market/exchange-rate', ['public'], 'GET', params, undefined, undefined, { 'cost': 20 });
+        return this.request('market/exchange-rate', ['public'], 'GET', params, { 'cost': 20 });
     }
     publicGetMarketIndexComponents(params = {}) {
-        return this.request('market/index-components', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('market/index-components', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetMarketOpenOracle(params = {}) {
-        return this.request('market/open-oracle', ['public'], 'GET', params, undefined, undefined, { 'cost': 50 });
+        return this.request('market/open-oracle', ['public'], 'GET', params, { 'cost': 50 });
     }
     publicGetMarketBooksLite(params = {}) {
-        return this.request('market/books-lite', ['public'], 'GET', params, undefined, undefined, { 'cost': 1.6666666666666667 });
+        return this.request('market/books-lite', ['public'], 'GET', params, { 'cost': 1.6666666666666667 });
     }
     publicGetPublicOptionTrades(params = {}) {
-        return this.request('public/option-trades', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('public/option-trades', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetPublicBlockTrades(params = {}) {
-        return this.request('public/block-trades', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('public/block-trades', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetPublicInstruments(params = {}) {
-        return this.request('public/instruments', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('public/instruments', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetPublicEstimatedPrice(params = {}) {
-        return this.request('public/estimated-price', ['public'], 'GET', params, undefined, undefined, { 'cost': 2 });
+        return this.request('public/estimated-price', ['public'], 'GET', params, { 'cost': 2 });
     }
     publicGetPublicDeliveryExerciseHistory(params = {}) {
-        return this.request('public/delivery-exercise-history', ['public'], 'GET', params, undefined, undefined, { 'cost': 0.5 });
+        return this.request('public/delivery-exercise-history', ['public'], 'GET', params, { 'cost': 0.5 });
     }
     publicGetPublicEstimatedSettlementInfo(params = {}) {
-        return this.request('public/estimated-settlement-info', ['public'], 'GET', params, undefined, undefined, { 'cost': 2 });
+        return this.request('public/estimated-settlement-info', ['public'], 'GET', params, { 'cost': 2 });
     }
     publicGetPublicSettlementHistory(params = {}) {
-        return this.request('public/settlement-history', ['public'], 'GET', params, undefined, undefined, { 'cost': 0.5 });
+        return this.request('public/settlement-history', ['public'], 'GET', params, { 'cost': 0.5 });
     }
     publicGetPublicFundingRate(params = {}) {
-        return this.request('public/funding-rate', ['public'], 'GET', params, undefined, undefined, { 'cost': 2 });
+        return this.request('public/funding-rate', ['public'], 'GET', params, { 'cost': 2 });
     }
     publicGetPublicFundingRateHistory(params = {}) {
-        return this.request('public/funding-rate-history', ['public'], 'GET', params, undefined, undefined, { 'cost': 2 });
+        return this.request('public/funding-rate-history', ['public'], 'GET', params, { 'cost': 2 });
     }
     publicGetPublicOpenInterest(params = {}) {
-        return this.request('public/open-interest', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('public/open-interest', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetPublicPriceLimit(params = {}) {
-        return this.request('public/price-limit', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('public/price-limit', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetPublicOptSummary(params = {}) {
-        return this.request('public/opt-summary', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('public/opt-summary', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetPublicDiscountRateInterestFreeQuota(params = {}) {
-        return this.request('public/discount-rate-interest-free-quota', ['public'], 'GET', params, undefined, undefined, { 'cost': 10 });
+        return this.request('public/discount-rate-interest-free-quota', ['public'], 'GET', params, { 'cost': 10 });
     }
     publicGetPublicTime(params = {}) {
-        return this.request('public/time', ['public'], 'GET', params, undefined, undefined, { 'cost': 2 });
+        return this.request('public/time', ['public'], 'GET', params, { 'cost': 2 });
     }
     publicGetPublicMarkPrice(params = {}) {
-        return this.request('public/mark-price', ['public'], 'GET', params, undefined, undefined, { 'cost': 2 });
+        return this.request('public/mark-price', ['public'], 'GET', params, { 'cost': 2 });
     }
     publicGetPublicPositionTiers(params = {}) {
-        return this.request('public/position-tiers', ['public'], 'GET', params, undefined, undefined, { 'cost': 2 });
+        return this.request('public/position-tiers', ['public'], 'GET', params, { 'cost': 2 });
     }
     publicGetPublicInterestRateLoanQuota(params = {}) {
-        return this.request('public/interest-rate-loan-quota', ['public'], 'GET', params, undefined, undefined, { 'cost': 10 });
+        return this.request('public/interest-rate-loan-quota', ['public'], 'GET', params, { 'cost': 10 });
     }
     publicGetPublicUnderlying(params = {}) {
-        return this.request('public/underlying', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('public/underlying', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetPublicInsuranceFund(params = {}) {
-        return this.request('public/insurance-fund', ['public'], 'GET', params, undefined, undefined, { 'cost': 2 });
+        return this.request('public/insurance-fund', ['public'], 'GET', params, { 'cost': 2 });
     }
     publicGetPublicConvertContractCoin(params = {}) {
-        return this.request('public/convert-contract-coin', ['public'], 'GET', params, undefined, undefined, { 'cost': 2 });
+        return this.request('public/convert-contract-coin', ['public'], 'GET', params, { 'cost': 2 });
     }
     publicGetPublicInstrumentTickBands(params = {}) {
-        return this.request('public/instrument-tick-bands', ['public'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('public/instrument-tick-bands', ['public'], 'GET', params, { 'cost': 4 });
     }
     publicGetPublicPremiumHistory(params = {}) {
-        return this.request('public/premium-history', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('public/premium-history', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetPublicEconomicCalendar(params = {}) {
-        return this.request('public/economic-calendar', ['public'], 'GET', params, undefined, undefined, { 'cost': 50 });
+        return this.request('public/economic-calendar', ['public'], 'GET', params, { 'cost': 50 });
     }
     publicGetPublicMarketDataHistory(params = {}) {
-        return this.request('public/market-data-history', ['public'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('public/market-data-history', ['public'], 'GET', params, { 'cost': 4 });
     }
     publicGetPublicEventContractEvents(params = {}) {
-        return this.request('public/event-contract/events', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('public/event-contract/events', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetPublicEventContractMarkets(params = {}) {
-        return this.request('public/event-contract/markets', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('public/event-contract/markets', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetPublicEventContractSeries(params = {}) {
-        return this.request('public/event-contract/series', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('public/event-contract/series', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetPublicVipInterestRateLoanQuota(params = {}) {
-        return this.request('public/vip-interest-rate-loan-quota', ['public'], 'GET', params, undefined, undefined, { 'cost': 10 });
+        return this.request('public/vip-interest-rate-loan-quota', ['public'], 'GET', params, { 'cost': 10 });
     }
     publicGetPublicMmInstrumentTypes(params = {}) {
-        return this.request('public/mm-instrument-types', ['public'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('public/mm-instrument-types', ['public'], 'GET', params, { 'cost': 4 });
     }
     publicGetPublicDeltaHedgeCurrencies(params = {}) {
-        return this.request('public/delta-hedge-currencies', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('public/delta-hedge-currencies', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetRubikStatTradingDataSupportCoin(params = {}) {
-        return this.request('rubik/stat/trading-data/support-coin', ['public'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('rubik/stat/trading-data/support-coin', ['public'], 'GET', params, { 'cost': 4 });
     }
     publicGetRubikStatContractsOpenInterestHistory(params = {}) {
-        return this.request('rubik/stat/contracts/open-interest-history', ['public'], 'GET', params, undefined, undefined, { 'cost': 2 });
+        return this.request('rubik/stat/contracts/open-interest-history', ['public'], 'GET', params, { 'cost': 2 });
     }
     publicGetRubikStatTakerVolume(params = {}) {
-        return this.request('rubik/stat/taker-volume', ['public'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('rubik/stat/taker-volume', ['public'], 'GET', params, { 'cost': 4 });
     }
     publicGetRubikStatTakerVolumeContract(params = {}) {
-        return this.request('rubik/stat/taker-volume-contract', ['public'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('rubik/stat/taker-volume-contract', ['public'], 'GET', params, { 'cost': 4 });
     }
     publicGetRubikStatMarginLoanRatio(params = {}) {
-        return this.request('rubik/stat/margin/loan-ratio', ['public'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('rubik/stat/margin/loan-ratio', ['public'], 'GET', params, { 'cost': 4 });
     }
     publicGetRubikStatContractsLongShortAccountRatioContractTopTrader(params = {}) {
-        return this.request('rubik/stat/contracts/long-short-account-ratio-contract-top-trader', ['public'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('rubik/stat/contracts/long-short-account-ratio-contract-top-trader', ['public'], 'GET', params, { 'cost': 4 });
     }
     publicGetRubikStatContractsLongShortPositionRatioContractTopTrader(params = {}) {
-        return this.request('rubik/stat/contracts/long-short-position-ratio-contract-top-trader', ['public'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('rubik/stat/contracts/long-short-position-ratio-contract-top-trader', ['public'], 'GET', params, { 'cost': 4 });
     }
     publicGetRubikStatContractsLongShortAccountRatioContract(params = {}) {
-        return this.request('rubik/stat/contracts/long-short-account-ratio-contract', ['public'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('rubik/stat/contracts/long-short-account-ratio-contract', ['public'], 'GET', params, { 'cost': 4 });
     }
     publicGetRubikStatContractsLongShortAccountRatio(params = {}) {
-        return this.request('rubik/stat/contracts/long-short-account-ratio', ['public'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('rubik/stat/contracts/long-short-account-ratio', ['public'], 'GET', params, { 'cost': 4 });
     }
     publicGetRubikStatContractsOpenInterestVolume(params = {}) {
-        return this.request('rubik/stat/contracts/open-interest-volume', ['public'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('rubik/stat/contracts/open-interest-volume', ['public'], 'GET', params, { 'cost': 4 });
     }
     publicGetRubikStatOptionOpenInterestVolume(params = {}) {
-        return this.request('rubik/stat/option/open-interest-volume', ['public'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('rubik/stat/option/open-interest-volume', ['public'], 'GET', params, { 'cost': 4 });
     }
     publicGetRubikStatOptionOpenInterestVolumeRatio(params = {}) {
-        return this.request('rubik/stat/option/open-interest-volume-ratio', ['public'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('rubik/stat/option/open-interest-volume-ratio', ['public'], 'GET', params, { 'cost': 4 });
     }
     publicGetRubikStatOptionOpenInterestVolumeExpiry(params = {}) {
-        return this.request('rubik/stat/option/open-interest-volume-expiry', ['public'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('rubik/stat/option/open-interest-volume-expiry', ['public'], 'GET', params, { 'cost': 4 });
     }
     publicGetRubikStatOptionOpenInterestVolumeStrike(params = {}) {
-        return this.request('rubik/stat/option/open-interest-volume-strike', ['public'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('rubik/stat/option/open-interest-volume-strike', ['public'], 'GET', params, { 'cost': 4 });
     }
     publicGetRubikStatOptionTakerBlockVolume(params = {}) {
-        return this.request('rubik/stat/option/taker-block-volume', ['public'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('rubik/stat/option/taker-block-volume', ['public'], 'GET', params, { 'cost': 4 });
     }
     publicGetSystemStatus(params = {}) {
-        return this.request('system/status', ['public'], 'GET', params, undefined, undefined, { 'cost': 50 });
+        return this.request('system/status', ['public'], 'GET', params, { 'cost': 50 });
     }
     publicGetSprdSpreads(params = {}) {
-        return this.request('sprd/spreads', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('sprd/spreads', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetSprdBooks(params = {}) {
-        return this.request('sprd/books', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('sprd/books', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetSprdPublicTrades(params = {}) {
-        return this.request('sprd/public-trades', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('sprd/public-trades', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetSprdTicker(params = {}) {
-        return this.request('sprd/ticker', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('sprd/ticker', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetTradingBotGridAiParam(params = {}) {
-        return this.request('tradingBot/grid/ai-param', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/grid/ai-param', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetTradingBotGridMinInvestment(params = {}) {
-        return this.request('tradingBot/grid/min-investment', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/grid/min-investment', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetTradingBotPublicRsiBackTesting(params = {}) {
-        return this.request('tradingBot/public/rsi-back-testing', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/public/rsi-back-testing', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetTradingBotGridGridQuantity(params = {}) {
-        return this.request('tradingBot/grid/grid-quantity', ['public'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('tradingBot/grid/grid-quantity', ['public'], 'GET', params, { 'cost': 4 });
     }
     publicGetAssetExchangeList(params = {}) {
-        return this.request('asset/exchange-list', ['public'], 'GET', params, undefined, undefined, { 'cost': 1.6666666666666667 });
+        return this.request('asset/exchange-list', ['public'], 'GET', params, { 'cost': 1.6666666666666667 });
     }
     publicGetFinanceStakingDefiEthApyHistory(params = {}) {
-        return this.request('finance/staking-defi/eth/apy-history', ['public'], 'GET', params, undefined, undefined, { 'cost': 1.6666666666666667 });
+        return this.request('finance/staking-defi/eth/apy-history', ['public'], 'GET', params, { 'cost': 1.6666666666666667 });
     }
     publicGetFinanceStakingDefiSolApyHistory(params = {}) {
-        return this.request('finance/staking-defi/sol/apy-history', ['public'], 'GET', params, undefined, undefined, { 'cost': 1.6666666666666667 });
+        return this.request('finance/staking-defi/sol/apy-history', ['public'], 'GET', params, { 'cost': 1.6666666666666667 });
     }
     publicGetFinanceSavingsLendingRateSummary(params = {}) {
-        return this.request('finance/savings/lending-rate-summary', ['public'], 'GET', params, undefined, undefined, { 'cost': 1.6666666666666667 });
+        return this.request('finance/savings/lending-rate-summary', ['public'], 'GET', params, { 'cost': 1.6666666666666667 });
     }
     publicGetFinanceSavingsLendingRateHistory(params = {}) {
-        return this.request('finance/savings/lending-rate-history', ['public'], 'GET', params, undefined, undefined, { 'cost': 1.6666666666666667 });
+        return this.request('finance/savings/lending-rate-history', ['public'], 'GET', params, { 'cost': 1.6666666666666667 });
     }
     publicGetFinanceFixedLoanLendingOffers(params = {}) {
-        return this.request('finance/fixed-loan/lending-offers', ['public'], 'GET', params, undefined, undefined, { 'cost': 3.3333333333333335 });
+        return this.request('finance/fixed-loan/lending-offers', ['public'], 'GET', params, { 'cost': 3.3333333333333335 });
     }
     publicGetFinanceFixedLoanLendingApyHistory(params = {}) {
-        return this.request('finance/fixed-loan/lending-apy-history', ['public'], 'GET', params, undefined, undefined, { 'cost': 3.3333333333333335 });
+        return this.request('finance/fixed-loan/lending-apy-history', ['public'], 'GET', params, { 'cost': 3.3333333333333335 });
     }
     publicGetFinanceFixedLoanPendingLendingVolume(params = {}) {
-        return this.request('finance/fixed-loan/pending-lending-volume', ['public'], 'GET', params, undefined, undefined, { 'cost': 3.3333333333333335 });
+        return this.request('finance/fixed-loan/pending-lending-volume', ['public'], 'GET', params, { 'cost': 3.3333333333333335 });
     }
     publicGetFinanceSfpDcdProducts(params = {}) {
-        return this.request('finance/sfp/dcd/products', ['public'], 'GET', params, undefined, undefined, { 'cost': 0.6666666666666666 });
+        return this.request('finance/sfp/dcd/products', ['public'], 'GET', params, { 'cost': 0.6666666666666666 });
     }
     publicGetCopytradingPublicConfig(params = {}) {
-        return this.request('copytrading/public-config', ['public'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('copytrading/public-config', ['public'], 'GET', params, { 'cost': 4 });
     }
     publicGetCopytradingPublicLeadTraders(params = {}) {
-        return this.request('copytrading/public-lead-traders', ['public'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('copytrading/public-lead-traders', ['public'], 'GET', params, { 'cost': 4 });
     }
     publicGetCopytradingPublicWeeklyPnl(params = {}) {
-        return this.request('copytrading/public-weekly-pnl', ['public'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('copytrading/public-weekly-pnl', ['public'], 'GET', params, { 'cost': 4 });
     }
     publicGetCopytradingPublicPnl(params = {}) {
-        return this.request('copytrading/public-pnl', ['public'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('copytrading/public-pnl', ['public'], 'GET', params, { 'cost': 4 });
     }
     publicGetCopytradingPublicStats(params = {}) {
-        return this.request('copytrading/public-stats', ['public'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('copytrading/public-stats', ['public'], 'GET', params, { 'cost': 4 });
     }
     publicGetCopytradingPublicPreferenceCurrency(params = {}) {
-        return this.request('copytrading/public-preference-currency', ['public'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('copytrading/public-preference-currency', ['public'], 'GET', params, { 'cost': 4 });
     }
     publicGetCopytradingPublicCurrentSubpositions(params = {}) {
-        return this.request('copytrading/public-current-subpositions', ['public'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('copytrading/public-current-subpositions', ['public'], 'GET', params, { 'cost': 4 });
     }
     publicGetCopytradingPublicSubpositionsHistory(params = {}) {
-        return this.request('copytrading/public-subpositions-history', ['public'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('copytrading/public-subpositions-history', ['public'], 'GET', params, { 'cost': 4 });
     }
     publicGetCopytradingPublicCopyTraders(params = {}) {
-        return this.request('copytrading/public-copy-traders', ['public'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('copytrading/public-copy-traders', ['public'], 'GET', params, { 'cost': 4 });
     }
     publicGetSupportAnnouncements(params = {}) {
-        return this.request('support/announcements', ['public'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('support/announcements', ['public'], 'GET', params, { 'cost': 4 });
     }
     publicGetSupportAnnouncementsTypes(params = {}) {
-        return this.request('support/announcements-types', ['public'], 'GET', params, undefined, undefined, { 'cost': 20 });
+        return this.request('support/announcements-types', ['public'], 'GET', params, { 'cost': 20 });
     }
     publicGetSupportAnnouncementTypes(params = {}) {
-        return this.request('support/announcement-types', ['public'], 'GET', params, undefined, undefined, { 'cost': 20 });
+        return this.request('support/announcement-types', ['public'], 'GET', params, { 'cost': 20 });
     }
     publicPostTradingBotGridMinInvestment(params = {}) {
-        return this.request('tradingBot/grid/min-investment', ['public'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/grid/min-investment', ['public'], 'POST', params, { 'cost': 1 });
     }
     privateGetRfqCounterparties(params = {}) {
-        return this.request('rfq/counterparties', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('rfq/counterparties', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetRfqMakerInstrumentSettings(params = {}) {
-        return this.request('rfq/maker-instrument-settings', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('rfq/maker-instrument-settings', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetRfqMmpConfig(params = {}) {
-        return this.request('rfq/mmp-config', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('rfq/mmp-config', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetRfqRfqs(params = {}) {
-        return this.request('rfq/rfqs', ['private'], 'GET', params, undefined, undefined, { 'cost': 10 });
+        return this.request('rfq/rfqs', ['private'], 'GET', params, { 'cost': 10 });
     }
     privateGetRfqQuotes(params = {}) {
-        return this.request('rfq/quotes', ['private'], 'GET', params, undefined, undefined, { 'cost': 10 });
+        return this.request('rfq/quotes', ['private'], 'GET', params, { 'cost': 10 });
     }
     privateGetRfqTrades(params = {}) {
-        return this.request('rfq/trades', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('rfq/trades', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetRfqPublicTrades(params = {}) {
-        return this.request('rfq/public-trades', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('rfq/public-trades', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetSprdOrder(params = {}) {
-        return this.request('sprd/order', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('sprd/order', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetSprdOrdersPending(params = {}) {
-        return this.request('sprd/orders-pending', ['private'], 'GET', params, undefined, undefined, { 'cost': 2 });
+        return this.request('sprd/orders-pending', ['private'], 'GET', params, { 'cost': 2 });
     }
     privateGetSprdOrdersHistory(params = {}) {
-        return this.request('sprd/orders-history', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('sprd/orders-history', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetSprdOrdersHistoryArchive(params = {}) {
-        return this.request('sprd/orders-history-archive', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('sprd/orders-history-archive', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetSprdTrades(params = {}) {
-        return this.request('sprd/trades', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('sprd/trades', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetTradeOrder(params = {}) {
-        return this.request('trade/order', ['private'], 'GET', params, undefined, undefined, { 'cost': 0.3333333333333333 });
+        return this.request('trade/order', ['private'], 'GET', params, { 'cost': 0.3333333333333333 });
     }
     privateGetTradeOrdersPending(params = {}) {
-        return this.request('trade/orders-pending', ['private'], 'GET', params, undefined, undefined, { 'cost': 0.3333333333333333 });
+        return this.request('trade/orders-pending', ['private'], 'GET', params, { 'cost': 0.3333333333333333 });
     }
     privateGetTradeOrdersHistory(params = {}) {
-        return this.request('trade/orders-history', ['private'], 'GET', params, undefined, undefined, { 'cost': 0.5 });
+        return this.request('trade/orders-history', ['private'], 'GET', params, { 'cost': 0.5 });
     }
     privateGetTradeOrdersHistoryArchive(params = {}) {
-        return this.request('trade/orders-history-archive', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('trade/orders-history-archive', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetTradeFills(params = {}) {
-        return this.request('trade/fills', ['private'], 'GET', params, undefined, undefined, { 'cost': 0.3333333333333333 });
+        return this.request('trade/fills', ['private'], 'GET', params, { 'cost': 0.3333333333333333 });
     }
     privateGetTradeFillsHistory(params = {}) {
-        return this.request('trade/fills-history', ['private'], 'GET', params, undefined, undefined, { 'cost': 2 });
+        return this.request('trade/fills-history', ['private'], 'GET', params, { 'cost': 2 });
     }
     privateGetTradeFillsArchive(params = {}) {
-        return this.request('trade/fills-archive', ['private'], 'GET', params, undefined, undefined, { 'cost': 2 });
+        return this.request('trade/fills-archive', ['private'], 'GET', params, { 'cost': 2 });
     }
     privateGetTradeOrderAlgo(params = {}) {
-        return this.request('trade/order-algo', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('trade/order-algo', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetTradeOrdersAlgoPending(params = {}) {
-        return this.request('trade/orders-algo-pending', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('trade/orders-algo-pending', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetTradeOrdersAlgoHistory(params = {}) {
-        return this.request('trade/orders-algo-history', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('trade/orders-algo-history', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetTradeEasyConvertCurrencyList(params = {}) {
-        return this.request('trade/easy-convert-currency-list', ['private'], 'GET', params, undefined, undefined, { 'cost': 20 });
+        return this.request('trade/easy-convert-currency-list', ['private'], 'GET', params, { 'cost': 20 });
     }
     privateGetTradeEasyConvertHistory(params = {}) {
-        return this.request('trade/easy-convert-history', ['private'], 'GET', params, undefined, undefined, { 'cost': 20 });
+        return this.request('trade/easy-convert-history', ['private'], 'GET', params, { 'cost': 20 });
     }
     privateGetTradeOneClickRepayCurrencyList(params = {}) {
-        return this.request('trade/one-click-repay-currency-list', ['private'], 'GET', params, undefined, undefined, { 'cost': 20 });
+        return this.request('trade/one-click-repay-currency-list', ['private'], 'GET', params, { 'cost': 20 });
     }
     privateGetTradeOneClickRepayCurrencyListV2(params = {}) {
-        return this.request('trade/one-click-repay-currency-list-v2', ['private'], 'GET', params, undefined, undefined, { 'cost': 20 });
+        return this.request('trade/one-click-repay-currency-list-v2', ['private'], 'GET', params, { 'cost': 20 });
     }
     privateGetTradeOneClickRepayHistory(params = {}) {
-        return this.request('trade/one-click-repay-history', ['private'], 'GET', params, undefined, undefined, { 'cost': 20 });
+        return this.request('trade/one-click-repay-history', ['private'], 'GET', params, { 'cost': 20 });
     }
     privateGetTradeOneClickRepayHistoryV2(params = {}) {
-        return this.request('trade/one-click-repay-history-v2', ['private'], 'GET', params, undefined, undefined, { 'cost': 20 });
+        return this.request('trade/one-click-repay-history-v2', ['private'], 'GET', params, { 'cost': 20 });
     }
     privateGetTradeAccountRateLimit(params = {}) {
-        return this.request('trade/account-rate-limit', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('trade/account-rate-limit', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetAssetCurrencies(params = {}) {
-        return this.request('asset/currencies', ['private'], 'GET', params, undefined, undefined, { 'cost': 1.6666666666666667 });
+        return this.request('asset/currencies', ['private'], 'GET', params, { 'cost': 1.6666666666666667 });
     }
     privateGetAssetBalances(params = {}) {
-        return this.request('asset/balances', ['private'], 'GET', params, undefined, undefined, { 'cost': 1.6666666666666667 });
+        return this.request('asset/balances', ['private'], 'GET', params, { 'cost': 1.6666666666666667 });
     }
     privateGetAssetNonTradableAssets(params = {}) {
-        return this.request('asset/non-tradable-assets', ['private'], 'GET', params, undefined, undefined, { 'cost': 1.6666666666666667 });
+        return this.request('asset/non-tradable-assets', ['private'], 'GET', params, { 'cost': 1.6666666666666667 });
     }
     privateGetAssetAssetValuation(params = {}) {
-        return this.request('asset/asset-valuation', ['private'], 'GET', params, undefined, undefined, { 'cost': 10 });
+        return this.request('asset/asset-valuation', ['private'], 'GET', params, { 'cost': 10 });
     }
     privateGetAssetTransferState(params = {}) {
-        return this.request('asset/transfer-state', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('asset/transfer-state', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetAssetBills(params = {}) {
-        return this.request('asset/bills', ['private'], 'GET', params, undefined, undefined, { 'cost': 1.6666666666666667 });
+        return this.request('asset/bills', ['private'], 'GET', params, { 'cost': 1.6666666666666667 });
     }
     privateGetAssetBillsHistory(params = {}) {
-        return this.request('asset/bills-history', ['private'], 'GET', params, undefined, undefined, { 'cost': 10 });
+        return this.request('asset/bills-history', ['private'], 'GET', params, { 'cost': 10 });
     }
     privateGetAssetDepositLightning(params = {}) {
-        return this.request('asset/deposit-lightning', ['private'], 'GET', params, undefined, undefined, { 'cost': 5 });
+        return this.request('asset/deposit-lightning', ['private'], 'GET', params, { 'cost': 5 });
     }
     privateGetAssetDepositAddress(params = {}) {
-        return this.request('asset/deposit-address', ['private'], 'GET', params, undefined, undefined, { 'cost': 1.6666666666666667 });
+        return this.request('asset/deposit-address', ['private'], 'GET', params, { 'cost': 1.6666666666666667 });
     }
     privateGetAssetDepositHistory(params = {}) {
-        return this.request('asset/deposit-history', ['private'], 'GET', params, undefined, undefined, { 'cost': 1.6666666666666667 });
+        return this.request('asset/deposit-history', ['private'], 'GET', params, { 'cost': 1.6666666666666667 });
     }
     privateGetAssetWithdrawalHistory(params = {}) {
-        return this.request('asset/withdrawal-history', ['private'], 'GET', params, undefined, undefined, { 'cost': 1.6666666666666667 });
+        return this.request('asset/withdrawal-history', ['private'], 'GET', params, { 'cost': 1.6666666666666667 });
     }
     privateGetAssetDepositWithdrawStatus(params = {}) {
-        return this.request('asset/deposit-withdraw-status', ['private'], 'GET', params, undefined, undefined, { 'cost': 20 });
+        return this.request('asset/deposit-withdraw-status', ['private'], 'GET', params, { 'cost': 20 });
     }
     privateGetAssetMonthlyStatement(params = {}) {
-        return this.request('asset/monthly-statement', ['private'], 'GET', params, undefined, undefined, { 'cost': 2 });
+        return this.request('asset/monthly-statement', ['private'], 'GET', params, { 'cost': 2 });
     }
     privateGetAssetConvertCurrencies(params = {}) {
-        return this.request('asset/convert/currencies', ['private'], 'GET', params, undefined, undefined, { 'cost': 1.6666666666666667 });
+        return this.request('asset/convert/currencies', ['private'], 'GET', params, { 'cost': 1.6666666666666667 });
     }
     privateGetAssetConvertCurrencyPair(params = {}) {
-        return this.request('asset/convert/currency-pair', ['private'], 'GET', params, undefined, undefined, { 'cost': 1.6666666666666667 });
+        return this.request('asset/convert/currency-pair', ['private'], 'GET', params, { 'cost': 1.6666666666666667 });
     }
     privateGetAssetConvertHistory(params = {}) {
-        return this.request('asset/convert/history', ['private'], 'GET', params, undefined, undefined, { 'cost': 1.6666666666666667 });
+        return this.request('asset/convert/history', ['private'], 'GET', params, { 'cost': 1.6666666666666667 });
     }
     privateGetFiatDepositPaymentMethods(params = {}) {
-        return this.request('fiat/deposit-payment-methods', ['private'], 'GET', params, undefined, undefined, { 'cost': 3.3333333333333335 });
+        return this.request('fiat/deposit-payment-methods', ['private'], 'GET', params, { 'cost': 3.3333333333333335 });
     }
     privateGetFiatWithdrawalPaymentMethods(params = {}) {
-        return this.request('fiat/withdrawal-payment-methods', ['private'], 'GET', params, undefined, undefined, { 'cost': 3.3333333333333335 });
+        return this.request('fiat/withdrawal-payment-methods', ['private'], 'GET', params, { 'cost': 3.3333333333333335 });
     }
     privateGetFiatDepositOrderHistory(params = {}) {
-        return this.request('fiat/deposit-order-history', ['private'], 'GET', params, undefined, undefined, { 'cost': 3.3333333333333335 });
+        return this.request('fiat/deposit-order-history', ['private'], 'GET', params, { 'cost': 3.3333333333333335 });
     }
     privateGetFiatDeposit(params = {}) {
-        return this.request('fiat/deposit', ['private'], 'GET', params, undefined, undefined, { 'cost': 3.3333333333333335 });
+        return this.request('fiat/deposit', ['private'], 'GET', params, { 'cost': 3.3333333333333335 });
     }
     privateGetFiatWithdrawalOrderHistory(params = {}) {
-        return this.request('fiat/withdrawal-order-history', ['private'], 'GET', params, undefined, undefined, { 'cost': 3.3333333333333335 });
+        return this.request('fiat/withdrawal-order-history', ['private'], 'GET', params, { 'cost': 3.3333333333333335 });
     }
     privateGetFiatWithdrawal(params = {}) {
-        return this.request('fiat/withdrawal', ['private'], 'GET', params, undefined, undefined, { 'cost': 3.3333333333333335 });
+        return this.request('fiat/withdrawal', ['private'], 'GET', params, { 'cost': 3.3333333333333335 });
     }
     privateGetFiatBuySellCurrencies(params = {}) {
-        return this.request('fiat/buy-sell/currencies', ['private'], 'GET', params, undefined, undefined, { 'cost': 1.6666666666666667 });
+        return this.request('fiat/buy-sell/currencies', ['private'], 'GET', params, { 'cost': 1.6666666666666667 });
     }
     privateGetFiatBuySellCurrencyPair(params = {}) {
-        return this.request('fiat/buy-sell/currency-pair', ['private'], 'GET', params, undefined, undefined, { 'cost': 1.6666666666666667 });
+        return this.request('fiat/buy-sell/currency-pair', ['private'], 'GET', params, { 'cost': 1.6666666666666667 });
     }
     privateGetFiatBuySellHistory(params = {}) {
-        return this.request('fiat/buy-sell/history', ['private'], 'GET', params, undefined, undefined, { 'cost': 1.6666666666666667 });
+        return this.request('fiat/buy-sell/history', ['private'], 'GET', params, { 'cost': 1.6666666666666667 });
     }
     privateGetAccountInstruments(params = {}) {
-        return this.request('account/instruments', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('account/instruments', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetAccountBalance(params = {}) {
-        return this.request('account/balance', ['private'], 'GET', params, undefined, undefined, { 'cost': 2 });
+        return this.request('account/balance', ['private'], 'GET', params, { 'cost': 2 });
     }
     privateGetAccountPositions(params = {}) {
-        return this.request('account/positions', ['private'], 'GET', params, undefined, undefined, { 'cost': 2 });
+        return this.request('account/positions', ['private'], 'GET', params, { 'cost': 2 });
     }
     privateGetAccountPositionsHistory(params = {}) {
-        return this.request('account/positions-history', ['private'], 'GET', params, undefined, undefined, { 'cost': 2 });
+        return this.request('account/positions-history', ['private'], 'GET', params, { 'cost': 2 });
     }
     privateGetAccountAccountPositionRisk(params = {}) {
-        return this.request('account/account-position-risk', ['private'], 'GET', params, undefined, undefined, { 'cost': 2 });
+        return this.request('account/account-position-risk', ['private'], 'GET', params, { 'cost': 2 });
     }
     privateGetAccountBills(params = {}) {
-        return this.request('account/bills', ['private'], 'GET', params, undefined, undefined, { 'cost': 2 });
+        return this.request('account/bills', ['private'], 'GET', params, { 'cost': 2 });
     }
     privateGetAccountBillsArchive(params = {}) {
-        return this.request('account/bills-archive', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('account/bills-archive', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetAccountBillsHistoryArchive(params = {}) {
-        return this.request('account/bills-history-archive', ['private'], 'GET', params, undefined, undefined, { 'cost': 2 });
+        return this.request('account/bills-history-archive', ['private'], 'GET', params, { 'cost': 2 });
     }
     privateGetAccountConfig(params = {}) {
-        return this.request('account/config', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('account/config', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetAccountSubtypes(params = {}) {
-        return this.request('account/subtypes', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('account/subtypes', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetAccountMaxSize(params = {}) {
-        return this.request('account/max-size', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('account/max-size', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetAccountMaxAvailSize(params = {}) {
-        return this.request('account/max-avail-size', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('account/max-avail-size', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetAccountLeverageInfo(params = {}) {
-        return this.request('account/leverage-info', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('account/leverage-info', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetAccountAdjustLeverageInfo(params = {}) {
-        return this.request('account/adjust-leverage-info', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('account/adjust-leverage-info', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetAccountMaxLoan(params = {}) {
-        return this.request('account/max-loan', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('account/max-loan', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetAccountTradeFee(params = {}) {
-        return this.request('account/trade-fee', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('account/trade-fee', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetAccountInterestAccrued(params = {}) {
-        return this.request('account/interest-accrued', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('account/interest-accrued', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetAccountInterestRate(params = {}) {
-        return this.request('account/interest-rate', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('account/interest-rate', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetAccountMaxWithdrawal(params = {}) {
-        return this.request('account/max-withdrawal', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('account/max-withdrawal', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetAccountRiskState(params = {}) {
-        return this.request('account/risk-state', ['private'], 'GET', params, undefined, undefined, { 'cost': 2 });
+        return this.request('account/risk-state', ['private'], 'GET', params, { 'cost': 2 });
     }
     privateGetAccountInterestLimits(params = {}) {
-        return this.request('account/interest-limits', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('account/interest-limits', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetAccountSpotBorrowRepayHistory(params = {}) {
-        return this.request('account/spot-borrow-repay-history', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('account/spot-borrow-repay-history', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetAccountGreeks(params = {}) {
-        return this.request('account/greeks', ['private'], 'GET', params, undefined, undefined, { 'cost': 2 });
+        return this.request('account/greeks', ['private'], 'GET', params, { 'cost': 2 });
     }
     privateGetAccountPositionTiers(params = {}) {
-        return this.request('account/position-tiers', ['private'], 'GET', params, undefined, undefined, { 'cost': 2 });
+        return this.request('account/position-tiers', ['private'], 'GET', params, { 'cost': 2 });
     }
     privateGetAccountSetAccountSwitchPrecheck(params = {}) {
-        return this.request('account/set-account-switch-precheck', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('account/set-account-switch-precheck', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetAccountCollateralAssets(params = {}) {
-        return this.request('account/collateral-assets', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('account/collateral-assets', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetAccountMmpConfig(params = {}) {
-        return this.request('account/mmp-config', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('account/mmp-config', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetAccountMovePositionsHistory(params = {}) {
-        return this.request('account/move-positions-history', ['private'], 'GET', params, undefined, undefined, { 'cost': 10 });
+        return this.request('account/move-positions-history', ['private'], 'GET', params, { 'cost': 10 });
     }
     privateGetAccountPrecheckSetDeltaNeutral(params = {}) {
-        return this.request('account/precheck-set-delta-neutral', ['private'], 'GET', params, undefined, undefined, { 'cost': 20 });
+        return this.request('account/precheck-set-delta-neutral', ['private'], 'GET', params, { 'cost': 20 });
     }
     privateGetAccountQuickMarginBorrowRepayHistory(params = {}) {
-        return this.request('account/quick-margin-borrow-repay-history', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('account/quick-margin-borrow-repay-history', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetAccountBorrowRepayHistory(params = {}) {
-        return this.request('account/borrow-repay-history', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('account/borrow-repay-history', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetAccountVipInterestAccrued(params = {}) {
-        return this.request('account/vip-interest-accrued', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('account/vip-interest-accrued', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetAccountVipInterestDeducted(params = {}) {
-        return this.request('account/vip-interest-deducted', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('account/vip-interest-deducted', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetAccountVipLoanOrderList(params = {}) {
-        return this.request('account/vip-loan-order-list', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('account/vip-loan-order-list', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetAccountVipLoanOrderDetail(params = {}) {
-        return this.request('account/vip-loan-order-detail', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('account/vip-loan-order-detail', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetAccountFixedLoanBorrowingLimit(params = {}) {
-        return this.request('account/fixed-loan/borrowing-limit', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('account/fixed-loan/borrowing-limit', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetAccountFixedLoanBorrowingQuote(params = {}) {
-        return this.request('account/fixed-loan/borrowing-quote', ['private'], 'GET', params, undefined, undefined, { 'cost': 5 });
+        return this.request('account/fixed-loan/borrowing-quote', ['private'], 'GET', params, { 'cost': 5 });
     }
     privateGetAccountFixedLoanBorrowingOrdersList(params = {}) {
-        return this.request('account/fixed-loan/borrowing-orders-list', ['private'], 'GET', params, undefined, undefined, { 'cost': 5 });
+        return this.request('account/fixed-loan/borrowing-orders-list', ['private'], 'GET', params, { 'cost': 5 });
     }
     privateGetAccountSpotManualBorrowRepay(params = {}) {
-        return this.request('account/spot-manual-borrow-repay', ['private'], 'GET', params, undefined, undefined, { 'cost': 30 });
+        return this.request('account/spot-manual-borrow-repay', ['private'], 'GET', params, { 'cost': 30 });
     }
     privateGetAccountSetAutoRepay(params = {}) {
-        return this.request('account/set-auto-repay', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('account/set-auto-repay', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetUsersSubaccountList(params = {}) {
-        return this.request('users/subaccount/list', ['private'], 'GET', params, undefined, undefined, { 'cost': 10 });
+        return this.request('users/subaccount/list', ['private'], 'GET', params, { 'cost': 10 });
     }
     privateGetAccountSubaccountBalances(params = {}) {
-        return this.request('account/subaccount/balances', ['private'], 'GET', params, undefined, undefined, { 'cost': 3.3333333333333335 });
+        return this.request('account/subaccount/balances', ['private'], 'GET', params, { 'cost': 3.3333333333333335 });
     }
     privateGetAssetSubaccountBalances(params = {}) {
-        return this.request('asset/subaccount/balances', ['private'], 'GET', params, undefined, undefined, { 'cost': 3.3333333333333335 });
+        return this.request('asset/subaccount/balances', ['private'], 'GET', params, { 'cost': 3.3333333333333335 });
     }
     privateGetAccountSubaccountMaxWithdrawal(params = {}) {
-        return this.request('account/subaccount/max-withdrawal', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('account/subaccount/max-withdrawal', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetAssetSubaccountBills(params = {}) {
-        return this.request('asset/subaccount/bills', ['private'], 'GET', params, undefined, undefined, { 'cost': 1.6666666666666667 });
+        return this.request('asset/subaccount/bills', ['private'], 'GET', params, { 'cost': 1.6666666666666667 });
     }
     privateGetAssetSubaccountManagedSubaccountBills(params = {}) {
-        return this.request('asset/subaccount/managed-subaccount-bills', ['private'], 'GET', params, undefined, undefined, { 'cost': 1.6666666666666667 });
+        return this.request('asset/subaccount/managed-subaccount-bills', ['private'], 'GET', params, { 'cost': 1.6666666666666667 });
     }
     privateGetUsersEntrustSubaccountList(params = {}) {
-        return this.request('users/entrust-subaccount-list', ['private'], 'GET', params, undefined, undefined, { 'cost': 10 });
+        return this.request('users/entrust-subaccount-list', ['private'], 'GET', params, { 'cost': 10 });
     }
     privateGetAccountSubaccountInterestLimits(params = {}) {
-        return this.request('account/subaccount/interest-limits', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('account/subaccount/interest-limits', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetUsersSubaccountApikey(params = {}) {
-        return this.request('users/subaccount/apikey', ['private'], 'GET', params, undefined, undefined, { 'cost': 10 });
+        return this.request('users/subaccount/apikey', ['private'], 'GET', params, { 'cost': 10 });
     }
     privateGetTradingBotGridOrdersAlgoPending(params = {}) {
-        return this.request('tradingBot/grid/orders-algo-pending', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/grid/orders-algo-pending', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetTradingBotGridOrdersAlgoHistory(params = {}) {
-        return this.request('tradingBot/grid/orders-algo-history', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/grid/orders-algo-history', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetTradingBotGridOrdersAlgoDetails(params = {}) {
-        return this.request('tradingBot/grid/orders-algo-details', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/grid/orders-algo-details', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetTradingBotGridSubOrders(params = {}) {
-        return this.request('tradingBot/grid/sub-orders', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/grid/sub-orders', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetTradingBotGridPositions(params = {}) {
-        return this.request('tradingBot/grid/positions', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/grid/positions', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetTradingBotGridAiParam(params = {}) {
-        return this.request('tradingBot/grid/ai-param', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/grid/ai-param', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetTradingBotSignalSignals(params = {}) {
-        return this.request('tradingBot/signal/signals', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/signal/signals', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetTradingBotSignalOrdersAlgoDetails(params = {}) {
-        return this.request('tradingBot/signal/orders-algo-details', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/signal/orders-algo-details', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetTradingBotSignalOrdersAlgoPending(params = {}) {
-        return this.request('tradingBot/signal/orders-algo-pending', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/signal/orders-algo-pending', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetTradingBotSignalOrdersAlgoHistory(params = {}) {
-        return this.request('tradingBot/signal/orders-algo-history', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/signal/orders-algo-history', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetTradingBotSignalPositions(params = {}) {
-        return this.request('tradingBot/signal/positions', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/signal/positions', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetTradingBotSignalPositionsHistory(params = {}) {
-        return this.request('tradingBot/signal/positions-history', ['private'], 'GET', params, undefined, undefined, { 'cost': 2 });
+        return this.request('tradingBot/signal/positions-history', ['private'], 'GET', params, { 'cost': 2 });
     }
     privateGetTradingBotSignalSubOrders(params = {}) {
-        return this.request('tradingBot/signal/sub-orders', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/signal/sub-orders', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetTradingBotSignalEventHistory(params = {}) {
-        return this.request('tradingBot/signal/event-history', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/signal/event-history', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetTradingBotRecurringOrdersAlgoPending(params = {}) {
-        return this.request('tradingBot/recurring/orders-algo-pending', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/recurring/orders-algo-pending', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetTradingBotRecurringOrdersAlgoHistory(params = {}) {
-        return this.request('tradingBot/recurring/orders-algo-history', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/recurring/orders-algo-history', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetTradingBotRecurringOrdersAlgoDetails(params = {}) {
-        return this.request('tradingBot/recurring/orders-algo-details', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/recurring/orders-algo-details', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetTradingBotRecurringSubOrders(params = {}) {
-        return this.request('tradingBot/recurring/sub-orders', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/recurring/sub-orders', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetTradingBotDcaOngoingList(params = {}) {
-        return this.request('tradingBot/dca/ongoing-list', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/dca/ongoing-list', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetTradingBotDcaHistoryList(params = {}) {
-        return this.request('tradingBot/dca/history-list', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/dca/history-list', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetTradingBotDcaOrders(params = {}) {
-        return this.request('tradingBot/dca/orders', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/dca/orders', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetTradingBotDcaPositionDetails(params = {}) {
-        return this.request('tradingBot/dca/position-details', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/dca/position-details', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetTradingBotDcaCycleList(params = {}) {
-        return this.request('tradingBot/dca/cycle-list', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/dca/cycle-list', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetFinanceSavingsBalance(params = {}) {
-        return this.request('finance/savings/balance', ['private'], 'GET', params, undefined, undefined, { 'cost': 1.6666666666666667 });
+        return this.request('finance/savings/balance', ['private'], 'GET', params, { 'cost': 1.6666666666666667 });
     }
     privateGetFinanceSavingsLendingHistory(params = {}) {
-        return this.request('finance/savings/lending-history', ['private'], 'GET', params, undefined, undefined, { 'cost': 1.6666666666666667 });
+        return this.request('finance/savings/lending-history', ['private'], 'GET', params, { 'cost': 1.6666666666666667 });
     }
     privateGetFinanceStakingDefiOffers(params = {}) {
-        return this.request('finance/staking-defi/offers', ['private'], 'GET', params, undefined, undefined, { 'cost': 3.3333333333333335 });
+        return this.request('finance/staking-defi/offers', ['private'], 'GET', params, { 'cost': 3.3333333333333335 });
     }
     privateGetFinanceStakingDefiOrdersActive(params = {}) {
-        return this.request('finance/staking-defi/orders-active', ['private'], 'GET', params, undefined, undefined, { 'cost': 3.3333333333333335 });
+        return this.request('finance/staking-defi/orders-active', ['private'], 'GET', params, { 'cost': 3.3333333333333335 });
     }
     privateGetFinanceStakingDefiOrdersHistory(params = {}) {
-        return this.request('finance/staking-defi/orders-history', ['private'], 'GET', params, undefined, undefined, { 'cost': 3.3333333333333335 });
+        return this.request('finance/staking-defi/orders-history', ['private'], 'GET', params, { 'cost': 3.3333333333333335 });
     }
     privateGetFinanceStakingDefiEthProductInfo(params = {}) {
-        return this.request('finance/staking-defi/eth/product-info', ['private'], 'GET', params, undefined, undefined, { 'cost': 3.3333333333333335 });
+        return this.request('finance/staking-defi/eth/product-info', ['private'], 'GET', params, { 'cost': 3.3333333333333335 });
     }
     privateGetFinanceStakingDefiEthBalance(params = {}) {
-        return this.request('finance/staking-defi/eth/balance', ['private'], 'GET', params, undefined, undefined, { 'cost': 1.6666666666666667 });
+        return this.request('finance/staking-defi/eth/balance', ['private'], 'GET', params, { 'cost': 1.6666666666666667 });
     }
     privateGetFinanceStakingDefiEthPurchaseRedeemHistory(params = {}) {
-        return this.request('finance/staking-defi/eth/purchase-redeem-history', ['private'], 'GET', params, undefined, undefined, { 'cost': 1.6666666666666667 });
+        return this.request('finance/staking-defi/eth/purchase-redeem-history', ['private'], 'GET', params, { 'cost': 1.6666666666666667 });
     }
     privateGetFinanceStakingDefiSolProductInfo(params = {}) {
-        return this.request('finance/staking-defi/sol/product-info', ['private'], 'GET', params, undefined, undefined, { 'cost': 3.3333333333333335 });
+        return this.request('finance/staking-defi/sol/product-info', ['private'], 'GET', params, { 'cost': 3.3333333333333335 });
     }
     privateGetFinanceStakingDefiSolBalance(params = {}) {
-        return this.request('finance/staking-defi/sol/balance', ['private'], 'GET', params, undefined, undefined, { 'cost': 1.6666666666666667 });
+        return this.request('finance/staking-defi/sol/balance', ['private'], 'GET', params, { 'cost': 1.6666666666666667 });
     }
     privateGetFinanceStakingDefiSolPurchaseRedeemHistory(params = {}) {
-        return this.request('finance/staking-defi/sol/purchase-redeem-history', ['private'], 'GET', params, undefined, undefined, { 'cost': 1.6666666666666667 });
+        return this.request('finance/staking-defi/sol/purchase-redeem-history', ['private'], 'GET', params, { 'cost': 1.6666666666666667 });
     }
     privateGetFinanceFlexibleLoanBorrowCurrencies(params = {}) {
-        return this.request('finance/flexible-loan/borrow-currencies', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('finance/flexible-loan/borrow-currencies', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetFinanceFlexibleLoanCollateralAssets(params = {}) {
-        return this.request('finance/flexible-loan/collateral-assets', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('finance/flexible-loan/collateral-assets', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetFinanceFlexibleLoanMaxCollateralRedeemAmount(params = {}) {
-        return this.request('finance/flexible-loan/max-collateral-redeem-amount', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('finance/flexible-loan/max-collateral-redeem-amount', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetFinanceFlexibleLoanLoanInfo(params = {}) {
-        return this.request('finance/flexible-loan/loan-info', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('finance/flexible-loan/loan-info', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetFinanceFlexibleLoanLoanHistory(params = {}) {
-        return this.request('finance/flexible-loan/loan-history', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('finance/flexible-loan/loan-history', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetFinanceFlexibleLoanInterestAccrued(params = {}) {
-        return this.request('finance/flexible-loan/interest-accrued', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('finance/flexible-loan/interest-accrued', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetFinanceFlexibleLoanEmodeInfo(params = {}) {
-        return this.request('finance/flexible-loan/emode-info', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('finance/flexible-loan/emode-info', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetFinanceOkusdLimits(params = {}) {
-        return this.request('finance/okusd/limits', ['private'], 'GET', params, undefined, undefined, { 'cost': 10 });
+        return this.request('finance/okusd/limits', ['private'], 'GET', params, { 'cost': 10 });
     }
     privateGetFinanceOkusdAccount(params = {}) {
-        return this.request('finance/okusd/account', ['private'], 'GET', params, undefined, undefined, { 'cost': 10 });
+        return this.request('finance/okusd/account', ['private'], 'GET', params, { 'cost': 10 });
     }
     privateGetFinanceOkusdSubscribeHistory(params = {}) {
-        return this.request('finance/okusd/subscribe/history', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('finance/okusd/subscribe/history', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetFinanceOkusdRedeemHistory(params = {}) {
-        return this.request('finance/okusd/redeem/history', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('finance/okusd/redeem/history', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetFinanceOkusdRewardsHistory(params = {}) {
-        return this.request('finance/okusd/rewards/history', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('finance/okusd/rewards/history', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetFinanceOkusdRateHistory(params = {}) {
-        return this.request('finance/okusd/rate/history', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('finance/okusd/rate/history', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetFinanceStableRewardsProductInfo(params = {}) {
-        return this.request('finance/stable-rewards/product-info', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('finance/stable-rewards/product-info', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetFinanceStableRewardsBalance(params = {}) {
-        return this.request('finance/stable-rewards/balance', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('finance/stable-rewards/balance', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetFinanceStableRewardsApyHistory(params = {}) {
-        return this.request('finance/stable-rewards/apy-history', ['private'], 'GET', params, undefined, undefined, { 'cost': 1.6666666666666667 });
+        return this.request('finance/stable-rewards/apy-history', ['private'], 'GET', params, { 'cost': 1.6666666666666667 });
     }
     privateGetUsersGlpTodayperformance(params = {}) {
-        return this.request('users/glp/todayperformance', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('users/glp/todayperformance', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetUsersGlpHistoricalperformance(params = {}) {
-        return this.request('users/glp/historicalperformance', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('users/glp/historicalperformance', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetCopytradingCurrentSubpositions(params = {}) {
-        return this.request('copytrading/current-subpositions', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('copytrading/current-subpositions', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetCopytradingSubpositionsHistory(params = {}) {
-        return this.request('copytrading/subpositions-history', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('copytrading/subpositions-history', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetCopytradingInstruments(params = {}) {
-        return this.request('copytrading/instruments', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('copytrading/instruments', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetCopytradingProfitSharingDetails(params = {}) {
-        return this.request('copytrading/profit-sharing-details', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('copytrading/profit-sharing-details', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetCopytradingTotalProfitSharing(params = {}) {
-        return this.request('copytrading/total-profit-sharing', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('copytrading/total-profit-sharing', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetCopytradingUnrealizedProfitSharingDetails(params = {}) {
-        return this.request('copytrading/unrealized-profit-sharing-details', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('copytrading/unrealized-profit-sharing-details', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetCopytradingTotalUnrealizedProfitSharing(params = {}) {
-        return this.request('copytrading/total-unrealized-profit-sharing', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('copytrading/total-unrealized-profit-sharing', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetCopytradingConfig(params = {}) {
-        return this.request('copytrading/config', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('copytrading/config', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetCopytradingCopySettings(params = {}) {
-        return this.request('copytrading/copy-settings', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('copytrading/copy-settings', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetCopytradingCurrentLeadTraders(params = {}) {
-        return this.request('copytrading/current-lead-traders', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('copytrading/current-lead-traders', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetCopytradingBatchLeverageInfo(params = {}) {
-        return this.request('copytrading/batch-leverage-info', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('copytrading/batch-leverage-info', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetCopytradingLeadTradersHistory(params = {}) {
-        return this.request('copytrading/lead-traders-history', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('copytrading/lead-traders-history', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetBrokerDmaSubaccountInfo(params = {}) {
-        return this.request('broker/dma/subaccount-info', ['private'], 'GET', params, undefined, undefined, { 'cost': 2 });
+        return this.request('broker/dma/subaccount-info', ['private'], 'GET', params, { 'cost': 2 });
     }
     privateGetBrokerDmaSubaccountTradeFee(params = {}) {
-        return this.request('broker/dma/subaccount-trade-fee', ['private'], 'GET', params, undefined, undefined, { 'cost': 10 });
+        return this.request('broker/dma/subaccount-trade-fee', ['private'], 'GET', params, { 'cost': 10 });
     }
     privateGetBrokerDmaSubaccountApikey(params = {}) {
-        return this.request('broker/dma/subaccount/apikey', ['private'], 'GET', params, undefined, undefined, { 'cost': 10 });
+        return this.request('broker/dma/subaccount/apikey', ['private'], 'GET', params, { 'cost': 10 });
     }
     privateGetBrokerDmaRebatePerOrders(params = {}) {
-        return this.request('broker/dma/rebate-per-orders', ['private'], 'GET', params, undefined, undefined, { 'cost': 300 });
+        return this.request('broker/dma/rebate-per-orders', ['private'], 'GET', params, { 'cost': 300 });
     }
     privateGetBrokerFdRebatePerOrders(params = {}) {
-        return this.request('broker/fd/rebate-per-orders', ['private'], 'GET', params, undefined, undefined, { 'cost': 300 });
+        return this.request('broker/fd/rebate-per-orders', ['private'], 'GET', params, { 'cost': 300 });
     }
     privateGetBrokerFdIfRebate(params = {}) {
-        return this.request('broker/fd/if-rebate', ['private'], 'GET', params, undefined, undefined, { 'cost': 5 });
+        return this.request('broker/fd/if-rebate', ['private'], 'GET', params, { 'cost': 5 });
     }
     privateGetBrokerNdInfo(params = {}) {
-        return this.request('broker/nd/info', ['private'], 'GET', params, undefined, undefined, { 'cost': 10 });
+        return this.request('broker/nd/info', ['private'], 'GET', params, { 'cost': 10 });
     }
     privateGetBrokerNdSubaccountInfo(params = {}) {
-        return this.request('broker/nd/subaccount-info', ['private'], 'GET', params, undefined, undefined, { 'cost': 10 });
+        return this.request('broker/nd/subaccount-info', ['private'], 'GET', params, { 'cost': 10 });
     }
     privateGetBrokerNdSubaccountApikey(params = {}) {
-        return this.request('broker/nd/subaccount/apikey', ['private'], 'GET', params, undefined, undefined, { 'cost': 10 });
+        return this.request('broker/nd/subaccount/apikey', ['private'], 'GET', params, { 'cost': 10 });
     }
     privateGetAssetBrokerNdSubaccountDepositAddress(params = {}) {
-        return this.request('asset/broker/nd/subaccount-deposit-address', ['private'], 'GET', params, undefined, undefined, { 'cost': 1.6666666666666667 });
+        return this.request('asset/broker/nd/subaccount-deposit-address', ['private'], 'GET', params, { 'cost': 1.6666666666666667 });
     }
     privateGetAssetBrokerNdSubaccountDepositHistory(params = {}) {
-        return this.request('asset/broker/nd/subaccount-deposit-history', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('asset/broker/nd/subaccount-deposit-history', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetAssetBrokerNdSubaccountWithdrawalHistory(params = {}) {
-        return this.request('asset/broker/nd/subaccount-withdrawal-history', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('asset/broker/nd/subaccount-withdrawal-history', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetBrokerNdRebateDaily(params = {}) {
-        return this.request('broker/nd/rebate-daily', ['private'], 'GET', params, undefined, undefined, { 'cost': 100 });
+        return this.request('broker/nd/rebate-daily', ['private'], 'GET', params, { 'cost': 100 });
     }
     privateGetBrokerNdRebatePerOrders(params = {}) {
-        return this.request('broker/nd/rebate-per-orders', ['private'], 'GET', params, undefined, undefined, { 'cost': 300 });
+        return this.request('broker/nd/rebate-per-orders', ['private'], 'GET', params, { 'cost': 300 });
     }
     privateGetFinanceSfpDcdOrder(params = {}) {
-        return this.request('finance/sfp/dcd/order', ['private'], 'GET', params, undefined, undefined, { 'cost': 2 });
+        return this.request('finance/sfp/dcd/order', ['private'], 'GET', params, { 'cost': 2 });
     }
     privateGetFinanceSfpDcdOrders(params = {}) {
-        return this.request('finance/sfp/dcd/orders', ['private'], 'GET', params, undefined, undefined, { 'cost': 2 });
+        return this.request('finance/sfp/dcd/orders', ['private'], 'GET', params, { 'cost': 2 });
     }
     privateGetFinanceSfpDcdCurrencyPair(params = {}) {
-        return this.request('finance/sfp/dcd/currency-pair', ['private'], 'GET', params, undefined, undefined, { 'cost': 2 });
+        return this.request('finance/sfp/dcd/currency-pair', ['private'], 'GET', params, { 'cost': 2 });
     }
     privateGetFinanceSfpDcdOrderStatus(params = {}) {
-        return this.request('finance/sfp/dcd/order-status', ['private'], 'GET', params, undefined, undefined, { 'cost': 2 });
+        return this.request('finance/sfp/dcd/order-status', ['private'], 'GET', params, { 'cost': 2 });
     }
     privateGetFinanceSfpDcdOrderHistory(params = {}) {
-        return this.request('finance/sfp/dcd/order-history', ['private'], 'GET', params, undefined, undefined, { 'cost': 2 });
+        return this.request('finance/sfp/dcd/order-history', ['private'], 'GET', params, { 'cost': 2 });
     }
     privateGetAffiliateInviteeDetail(params = {}) {
-        return this.request('affiliate/invitee/detail', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('affiliate/invitee/detail', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetAffiliatePerformanceSummary(params = {}) {
-        return this.request('affiliate/performance/summary', ['private'], 'GET', params, undefined, undefined, { 'cost': 3.3333333333333335 });
+        return this.request('affiliate/performance/summary', ['private'], 'GET', params, { 'cost': 3.3333333333333335 });
     }
     privateGetAffiliateInviteeList(params = {}) {
-        return this.request('affiliate/invitee/list', ['private'], 'GET', params, undefined, undefined, { 'cost': 3.3333333333333335 });
+        return this.request('affiliate/invitee/list', ['private'], 'GET', params, { 'cost': 3.3333333333333335 });
     }
     privateGetAffiliateLinkList(params = {}) {
-        return this.request('affiliate/link/list', ['private'], 'GET', params, undefined, undefined, { 'cost': 3.3333333333333335 });
+        return this.request('affiliate/link/list', ['private'], 'GET', params, { 'cost': 3.3333333333333335 });
     }
     privateGetAffiliateCoInviterList(params = {}) {
-        return this.request('affiliate/co-inviter/list', ['private'], 'GET', params, undefined, undefined, { 'cost': 3.3333333333333335 });
+        return this.request('affiliate/co-inviter/list', ['private'], 'GET', params, { 'cost': 3.3333333333333335 });
     }
     privateGetAffiliateSubAffiliateList(params = {}) {
-        return this.request('affiliate/sub-affiliate/list', ['private'], 'GET', params, undefined, undefined, { 'cost': 3.3333333333333335 });
+        return this.request('affiliate/sub-affiliate/list', ['private'], 'GET', params, { 'cost': 3.3333333333333335 });
     }
     privateGetUsersPartnerIfRebate(params = {}) {
-        return this.request('users/partner/if-rebate', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('users/partner/if-rebate', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetSupportAnnouncements(params = {}) {
-        return this.request('support/announcements', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
+        return this.request('support/announcements', ['private'], 'GET', params, { 'cost': 4 });
     }
     privatePostRfqCreateRfq(params = {}) {
-        return this.request('rfq/create-rfq', ['private'], 'POST', params, undefined, undefined, { 'cost': 4 });
+        return this.request('rfq/create-rfq', ['private'], 'POST', params, { 'cost': 4 });
     }
     privatePostRfqCancelRfq(params = {}) {
-        return this.request('rfq/cancel-rfq', ['private'], 'POST', params, undefined, undefined, { 'cost': 4 });
+        return this.request('rfq/cancel-rfq', ['private'], 'POST', params, { 'cost': 4 });
     }
     privatePostRfqCancelBatchRfqs(params = {}) {
-        return this.request('rfq/cancel-batch-rfqs', ['private'], 'POST', params, undefined, undefined, { 'cost': 10 });
+        return this.request('rfq/cancel-batch-rfqs', ['private'], 'POST', params, { 'cost': 10 });
     }
     privatePostRfqCancelAllRfqs(params = {}) {
-        return this.request('rfq/cancel-all-rfqs', ['private'], 'POST', params, undefined, undefined, { 'cost': 10 });
+        return this.request('rfq/cancel-all-rfqs', ['private'], 'POST', params, { 'cost': 10 });
     }
     privatePostRfqExecuteQuote(params = {}) {
-        return this.request('rfq/execute-quote', ['private'], 'POST', params, undefined, undefined, { 'cost': 15 });
+        return this.request('rfq/execute-quote', ['private'], 'POST', params, { 'cost': 15 });
     }
     privatePostRfqMakerInstrumentSettings(params = {}) {
-        return this.request('rfq/maker-instrument-settings', ['private'], 'POST', params, undefined, undefined, { 'cost': 4 });
+        return this.request('rfq/maker-instrument-settings', ['private'], 'POST', params, { 'cost': 4 });
     }
     privatePostRfqMmpReset(params = {}) {
-        return this.request('rfq/mmp-reset', ['private'], 'POST', params, undefined, undefined, { 'cost': 4 });
+        return this.request('rfq/mmp-reset', ['private'], 'POST', params, { 'cost': 4 });
     }
     privatePostRfqMmpConfig(params = {}) {
-        return this.request('rfq/mmp-config', ['private'], 'POST', params, undefined, undefined, { 'cost': 100 });
+        return this.request('rfq/mmp-config', ['private'], 'POST', params, { 'cost': 100 });
     }
     privatePostRfqCreateQuote(params = {}) {
-        return this.request('rfq/create-quote', ['private'], 'POST', params, undefined, undefined, { 'cost': 0.4 });
+        return this.request('rfq/create-quote', ['private'], 'POST', params, { 'cost': 0.4 });
     }
     privatePostRfqCancelQuote(params = {}) {
-        return this.request('rfq/cancel-quote', ['private'], 'POST', params, undefined, undefined, { 'cost': 0.4 });
+        return this.request('rfq/cancel-quote', ['private'], 'POST', params, { 'cost': 0.4 });
     }
     privatePostRfqCancelBatchQuotes(params = {}) {
-        return this.request('rfq/cancel-batch-quotes', ['private'], 'POST', params, undefined, undefined, { 'cost': 10 });
+        return this.request('rfq/cancel-batch-quotes', ['private'], 'POST', params, { 'cost': 10 });
     }
     privatePostRfqCancelAllQuotes(params = {}) {
-        return this.request('rfq/cancel-all-quotes', ['private'], 'POST', params, undefined, undefined, { 'cost': 10 });
+        return this.request('rfq/cancel-all-quotes', ['private'], 'POST', params, { 'cost': 10 });
     }
     privatePostRfqCancelAllAfter(params = {}) {
-        return this.request('rfq/cancel-all-after', ['private'], 'POST', params, undefined, undefined, { 'cost': 10 });
+        return this.request('rfq/cancel-all-after', ['private'], 'POST', params, { 'cost': 10 });
     }
     privatePostSprdOrder(params = {}) {
-        return this.request('sprd/order', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('sprd/order', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostSprdCancelOrder(params = {}) {
-        return this.request('sprd/cancel-order', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('sprd/cancel-order', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostSprdMassCancel(params = {}) {
-        return this.request('sprd/mass-cancel', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('sprd/mass-cancel', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostSprdAmendOrder(params = {}) {
-        return this.request('sprd/amend-order', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('sprd/amend-order', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostSprdCancelAllAfter(params = {}) {
-        return this.request('sprd/cancel-all-after', ['private'], 'POST', params, undefined, undefined, { 'cost': 10 });
+        return this.request('sprd/cancel-all-after', ['private'], 'POST', params, { 'cost': 10 });
     }
     privatePostTradeOrder(params = {}) {
-        return this.request('trade/order', ['private'], 'POST', params, undefined, undefined, { 'cost': 0.3333333333333333 });
+        return this.request('trade/order', ['private'], 'POST', params, { 'cost': 0.3333333333333333 });
     }
     privatePostTradeBatchOrders(params = {}) {
-        return this.request('trade/batch-orders', ['private'], 'POST', params, undefined, undefined, { 'cost': 0.06666666666666667 });
+        return this.request('trade/batch-orders', ['private'], 'POST', params, { 'cost': 0.06666666666666667 });
     }
     privatePostTradeCancelOrder(params = {}) {
-        return this.request('trade/cancel-order', ['private'], 'POST', params, undefined, undefined, { 'cost': 0.3333333333333333 });
+        return this.request('trade/cancel-order', ['private'], 'POST', params, { 'cost': 0.3333333333333333 });
     }
     privatePostTradeCancelBatchOrders(params = {}) {
-        return this.request('trade/cancel-batch-orders', ['private'], 'POST', params, undefined, undefined, { 'cost': 0.06666666666666667 });
+        return this.request('trade/cancel-batch-orders', ['private'], 'POST', params, { 'cost': 0.06666666666666667 });
     }
     privatePostTradeAmendOrder(params = {}) {
-        return this.request('trade/amend-order', ['private'], 'POST', params, undefined, undefined, { 'cost': 0.3333333333333333 });
+        return this.request('trade/amend-order', ['private'], 'POST', params, { 'cost': 0.3333333333333333 });
     }
     privatePostTradeAmendBatchOrders(params = {}) {
-        return this.request('trade/amend-batch-orders', ['private'], 'POST', params, undefined, undefined, { 'cost': 0.006666666666666667 });
+        return this.request('trade/amend-batch-orders', ['private'], 'POST', params, { 'cost': 0.006666666666666667 });
     }
     privatePostTradeClosePosition(params = {}) {
-        return this.request('trade/close-position', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('trade/close-position', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTradeFillsArchive(params = {}) {
-        return this.request('trade/fills-archive', ['private'], 'POST', params, undefined, undefined, { 'cost': 172800 });
+        return this.request('trade/fills-archive', ['private'], 'POST', params, { 'cost': 172800 });
     }
     privatePostTradeCancelAdvanceAlgos(params = {}) {
-        return this.request('trade/cancel-advance-algos', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('trade/cancel-advance-algos', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTradeEasyConvert(params = {}) {
-        return this.request('trade/easy-convert', ['private'], 'POST', params, undefined, undefined, { 'cost': 20 });
+        return this.request('trade/easy-convert', ['private'], 'POST', params, { 'cost': 20 });
     }
     privatePostTradeOneClickRepay(params = {}) {
-        return this.request('trade/one-click-repay', ['private'], 'POST', params, undefined, undefined, { 'cost': 20 });
+        return this.request('trade/one-click-repay', ['private'], 'POST', params, { 'cost': 20 });
     }
     privatePostTradeOneClickRepayV2(params = {}) {
-        return this.request('trade/one-click-repay-v2', ['private'], 'POST', params, undefined, undefined, { 'cost': 20 });
+        return this.request('trade/one-click-repay-v2', ['private'], 'POST', params, { 'cost': 20 });
     }
     privatePostTradeMassCancel(params = {}) {
-        return this.request('trade/mass-cancel', ['private'], 'POST', params, undefined, undefined, { 'cost': 4 });
+        return this.request('trade/mass-cancel', ['private'], 'POST', params, { 'cost': 4 });
     }
     privatePostTradeCancelAllAfter(params = {}) {
-        return this.request('trade/cancel-all-after', ['private'], 'POST', params, undefined, undefined, { 'cost': 10 });
+        return this.request('trade/cancel-all-after', ['private'], 'POST', params, { 'cost': 10 });
     }
     privatePostTradeOrderPrecheck(params = {}) {
-        return this.request('trade/order-precheck', ['private'], 'POST', params, undefined, undefined, { 'cost': 4 });
+        return this.request('trade/order-precheck', ['private'], 'POST', params, { 'cost': 4 });
     }
     privatePostTradeOrderAlgo(params = {}) {
-        return this.request('trade/order-algo', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('trade/order-algo', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTradeCancelAlgos(params = {}) {
-        return this.request('trade/cancel-algos', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('trade/cancel-algos', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTradeAmendAlgos(params = {}) {
-        return this.request('trade/amend-algos', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('trade/amend-algos', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostAssetTransfer(params = {}) {
-        return this.request('asset/transfer', ['private'], 'POST', params, undefined, undefined, { 'cost': 5 });
+        return this.request('asset/transfer', ['private'], 'POST', params, { 'cost': 5 });
     }
     privatePostAssetWithdrawal(params = {}) {
-        return this.request('asset/withdrawal', ['private'], 'POST', params, undefined, undefined, { 'cost': 1.6666666666666667 });
+        return this.request('asset/withdrawal', ['private'], 'POST', params, { 'cost': 1.6666666666666667 });
     }
     privatePostAssetWithdrawalLightning(params = {}) {
-        return this.request('asset/withdrawal-lightning', ['private'], 'POST', params, undefined, undefined, { 'cost': 5 });
+        return this.request('asset/withdrawal-lightning', ['private'], 'POST', params, { 'cost': 5 });
     }
     privatePostAssetCancelWithdrawal(params = {}) {
-        return this.request('asset/cancel-withdrawal', ['private'], 'POST', params, undefined, undefined, { 'cost': 1.6666666666666667 });
+        return this.request('asset/cancel-withdrawal', ['private'], 'POST', params, { 'cost': 1.6666666666666667 });
     }
     privatePostAssetConvertDustAssets(params = {}) {
-        return this.request('asset/convert-dust-assets', ['private'], 'POST', params, undefined, undefined, { 'cost': 10 });
+        return this.request('asset/convert-dust-assets', ['private'], 'POST', params, { 'cost': 10 });
     }
     privatePostAssetMonthlyStatement(params = {}) {
-        return this.request('asset/monthly-statement', ['private'], 'POST', params, undefined, undefined, { 'cost': 1296000 });
+        return this.request('asset/monthly-statement', ['private'], 'POST', params, { 'cost': 1296000 });
     }
     privatePostAssetConvertEstimateQuote(params = {}) {
-        return this.request('asset/convert/estimate-quote', ['private'], 'POST', params, undefined, undefined, { 'cost': 50 });
+        return this.request('asset/convert/estimate-quote', ['private'], 'POST', params, { 'cost': 50 });
     }
     privatePostAssetConvertTrade(params = {}) {
-        return this.request('asset/convert/trade', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('asset/convert/trade', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostFiatCreateWithdrawal(params = {}) {
-        return this.request('fiat/create-withdrawal', ['private'], 'POST', params, undefined, undefined, { 'cost': 3.3333333333333335 });
+        return this.request('fiat/create-withdrawal', ['private'], 'POST', params, { 'cost': 3.3333333333333335 });
     }
     privatePostFiatCancelWithdrawal(params = {}) {
-        return this.request('fiat/cancel-withdrawal', ['private'], 'POST', params, undefined, undefined, { 'cost': 3.3333333333333335 });
+        return this.request('fiat/cancel-withdrawal', ['private'], 'POST', params, { 'cost': 3.3333333333333335 });
     }
     privatePostFiatBuySellQuote(params = {}) {
-        return this.request('fiat/buy-sell/quote', ['private'], 'POST', params, undefined, undefined, { 'cost': 50 });
+        return this.request('fiat/buy-sell/quote', ['private'], 'POST', params, { 'cost': 50 });
     }
     privatePostFiatBuySellTrade(params = {}) {
-        return this.request('fiat/buy-sell/trade', ['private'], 'POST', params, undefined, undefined, { 'cost': 50 });
+        return this.request('fiat/buy-sell/trade', ['private'], 'POST', params, { 'cost': 50 });
     }
     privatePostAccountBillsHistoryArchive(params = {}) {
-        return this.request('account/bills-history-archive', ['private'], 'POST', params, undefined, undefined, { 'cost': 72000 });
+        return this.request('account/bills-history-archive', ['private'], 'POST', params, { 'cost': 72000 });
     }
     privatePostAccountSetPositionMode(params = {}) {
-        return this.request('account/set-position-mode', ['private'], 'POST', params, undefined, undefined, { 'cost': 4 });
+        return this.request('account/set-position-mode', ['private'], 'POST', params, { 'cost': 4 });
     }
     privatePostAccountSetLeverage(params = {}) {
-        return this.request('account/set-leverage', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('account/set-leverage', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostAccountPositionMarginBalance(params = {}) {
-        return this.request('account/position/margin-balance', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('account/position/margin-balance', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostAccountSetFeeType(params = {}) {
-        return this.request('account/set-fee-type', ['private'], 'POST', params, undefined, undefined, { 'cost': 4 });
+        return this.request('account/set-fee-type', ['private'], 'POST', params, { 'cost': 4 });
     }
     privatePostAccountSetGreeks(params = {}) {
-        return this.request('account/set-greeks', ['private'], 'POST', params, undefined, undefined, { 'cost': 4 });
+        return this.request('account/set-greeks', ['private'], 'POST', params, { 'cost': 4 });
     }
     privatePostAccountSetIsolatedMode(params = {}) {
-        return this.request('account/set-isolated-mode', ['private'], 'POST', params, undefined, undefined, { 'cost': 4 });
+        return this.request('account/set-isolated-mode', ['private'], 'POST', params, { 'cost': 4 });
     }
     privatePostAccountSpotManualBorrowRepay(params = {}) {
-        return this.request('account/spot-manual-borrow-repay', ['private'], 'POST', params, undefined, undefined, { 'cost': 30 });
+        return this.request('account/spot-manual-borrow-repay', ['private'], 'POST', params, { 'cost': 30 });
     }
     privatePostAccountSetAutoRepay(params = {}) {
-        return this.request('account/set-auto-repay', ['private'], 'POST', params, undefined, undefined, { 'cost': 4 });
+        return this.request('account/set-auto-repay', ['private'], 'POST', params, { 'cost': 4 });
     }
     privatePostAccountQuickMarginBorrowRepay(params = {}) {
-        return this.request('account/quick-margin-borrow-repay', ['private'], 'POST', params, undefined, undefined, { 'cost': 4 });
+        return this.request('account/quick-margin-borrow-repay', ['private'], 'POST', params, { 'cost': 4 });
     }
     privatePostAccountBorrowRepay(params = {}) {
-        return this.request('account/borrow-repay', ['private'], 'POST', params, undefined, undefined, { 'cost': 1.6666666666666667 });
+        return this.request('account/borrow-repay', ['private'], 'POST', params, { 'cost': 1.6666666666666667 });
     }
     privatePostAccountSimulatedMargin(params = {}) {
-        return this.request('account/simulated_margin', ['private'], 'POST', params, undefined, undefined, { 'cost': 10 });
+        return this.request('account/simulated_margin', ['private'], 'POST', params, { 'cost': 10 });
     }
     privatePostAccountPositionBuilder(params = {}) {
-        return this.request('account/position-builder', ['private'], 'POST', params, undefined, undefined, { 'cost': 10 });
+        return this.request('account/position-builder', ['private'], 'POST', params, { 'cost': 10 });
     }
     privatePostAccountPositionBuilderGraph(params = {}) {
-        return this.request('account/position-builder-graph', ['private'], 'POST', params, undefined, undefined, { 'cost': 50 });
+        return this.request('account/position-builder-graph', ['private'], 'POST', params, { 'cost': 50 });
     }
     privatePostAccountSetRiskOffsetType(params = {}) {
-        return this.request('account/set-riskOffset-type', ['private'], 'POST', params, undefined, undefined, { 'cost': 2 });
+        return this.request('account/set-riskOffset-type', ['private'], 'POST', params, { 'cost': 2 });
     }
     privatePostAccountSetRiskOffsetAmt(params = {}) {
-        return this.request('account/set-riskOffset-amt', ['private'], 'POST', params, undefined, undefined, { 'cost': 2 });
+        return this.request('account/set-riskOffset-amt', ['private'], 'POST', params, { 'cost': 2 });
     }
     privatePostAccountActivateOption(params = {}) {
-        return this.request('account/activate-option', ['private'], 'POST', params, undefined, undefined, { 'cost': 4 });
+        return this.request('account/activate-option', ['private'], 'POST', params, { 'cost': 4 });
     }
     privatePostAccountSetAutoLoan(params = {}) {
-        return this.request('account/set-auto-loan', ['private'], 'POST', params, undefined, undefined, { 'cost': 4 });
+        return this.request('account/set-auto-loan', ['private'], 'POST', params, { 'cost': 4 });
     }
     privatePostAccountAccountLevelSwitchPreset(params = {}) {
-        return this.request('account/account-level-switch-preset', ['private'], 'POST', params, undefined, undefined, { 'cost': 4 });
+        return this.request('account/account-level-switch-preset', ['private'], 'POST', params, { 'cost': 4 });
     }
     privatePostAccountSetAccountLevel(params = {}) {
-        return this.request('account/set-account-level', ['private'], 'POST', params, undefined, undefined, { 'cost': 4 });
+        return this.request('account/set-account-level', ['private'], 'POST', params, { 'cost': 4 });
     }
     privatePostAccountSetCollateralAssets(params = {}) {
-        return this.request('account/set-collateral-assets', ['private'], 'POST', params, undefined, undefined, { 'cost': 4 });
+        return this.request('account/set-collateral-assets', ['private'], 'POST', params, { 'cost': 4 });
     }
     privatePostAccountMmpReset(params = {}) {
-        return this.request('account/mmp-reset', ['private'], 'POST', params, undefined, undefined, { 'cost': 4 });
+        return this.request('account/mmp-reset', ['private'], 'POST', params, { 'cost': 4 });
     }
     privatePostAccountMmpConfig(params = {}) {
-        return this.request('account/mmp-config', ['private'], 'POST', params, undefined, undefined, { 'cost': 50 });
+        return this.request('account/mmp-config', ['private'], 'POST', params, { 'cost': 50 });
     }
     privatePostAccountFixedLoanBorrowingOrder(params = {}) {
-        return this.request('account/fixed-loan/borrowing-order', ['private'], 'POST', params, undefined, undefined, { 'cost': 5 });
+        return this.request('account/fixed-loan/borrowing-order', ['private'], 'POST', params, { 'cost': 5 });
     }
     privatePostAccountFixedLoanAmendBorrowingOrder(params = {}) {
-        return this.request('account/fixed-loan/amend-borrowing-order', ['private'], 'POST', params, undefined, undefined, { 'cost': 5 });
+        return this.request('account/fixed-loan/amend-borrowing-order', ['private'], 'POST', params, { 'cost': 5 });
     }
     privatePostAccountFixedLoanManualReborrow(params = {}) {
-        return this.request('account/fixed-loan/manual-reborrow', ['private'], 'POST', params, undefined, undefined, { 'cost': 5 });
+        return this.request('account/fixed-loan/manual-reborrow', ['private'], 'POST', params, { 'cost': 5 });
     }
     privatePostAccountFixedLoanRepayBorrowingOrder(params = {}) {
-        return this.request('account/fixed-loan/repay-borrowing-order', ['private'], 'POST', params, undefined, undefined, { 'cost': 5 });
+        return this.request('account/fixed-loan/repay-borrowing-order', ['private'], 'POST', params, { 'cost': 5 });
     }
     privatePostAccountMovePositions(params = {}) {
-        return this.request('account/move-positions', ['private'], 'POST', params, undefined, undefined, { 'cost': 10 });
+        return this.request('account/move-positions', ['private'], 'POST', params, { 'cost': 10 });
     }
     privatePostAccountSetAutoEarn(params = {}) {
-        return this.request('account/set-auto-earn', ['private'], 'POST', params, undefined, undefined, { 'cost': 10 });
+        return this.request('account/set-auto-earn', ['private'], 'POST', params, { 'cost': 10 });
     }
     privatePostAccountSetSettleCurrency(params = {}) {
-        return this.request('account/set-settle-currency', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('account/set-settle-currency', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostAccountSetTradingConfig(params = {}) {
-        return this.request('account/set-trading-config', ['private'], 'POST', params, undefined, undefined, { 'cost': 20 });
+        return this.request('account/set-trading-config', ['private'], 'POST', params, { 'cost': 20 });
     }
     privatePostAccountDemoAdjustBalance(params = {}) {
-        return this.request('account/demo-adjust-balance', ['private'], 'POST', params, undefined, undefined, { 'cost': 20 });
+        return this.request('account/demo-adjust-balance', ['private'], 'POST', params, { 'cost': 20 });
     }
     privatePostAssetSubaccountTransfer(params = {}) {
-        return this.request('asset/subaccount/transfer', ['private'], 'POST', params, undefined, undefined, { 'cost': 10 });
+        return this.request('asset/subaccount/transfer', ['private'], 'POST', params, { 'cost': 10 });
     }
     privatePostAccountSubaccountSetLoanAllocation(params = {}) {
-        return this.request('account/subaccount/set-loan-allocation', ['private'], 'POST', params, undefined, undefined, { 'cost': 4 });
+        return this.request('account/subaccount/set-loan-allocation', ['private'], 'POST', params, { 'cost': 4 });
     }
     privatePostUsersSubaccountCreateSubaccount(params = {}) {
-        return this.request('users/subaccount/create-subaccount', ['private'], 'POST', params, undefined, undefined, { 'cost': 10 });
+        return this.request('users/subaccount/create-subaccount', ['private'], 'POST', params, { 'cost': 10 });
     }
     privatePostUsersSubaccountApikey(params = {}) {
-        return this.request('users/subaccount/apikey', ['private'], 'POST', params, undefined, undefined, { 'cost': 10 });
+        return this.request('users/subaccount/apikey', ['private'], 'POST', params, { 'cost': 10 });
     }
     privatePostUsersSubaccountModifyApikey(params = {}) {
-        return this.request('users/subaccount/modify-apikey', ['private'], 'POST', params, undefined, undefined, { 'cost': 10 });
+        return this.request('users/subaccount/modify-apikey', ['private'], 'POST', params, { 'cost': 10 });
     }
     privatePostUsersSubaccountSubaccountApikey(params = {}) {
-        return this.request('users/subaccount/subaccount-apikey', ['private'], 'POST', params, undefined, undefined, { 'cost': 10 });
+        return this.request('users/subaccount/subaccount-apikey', ['private'], 'POST', params, { 'cost': 10 });
     }
     privatePostUsersSubaccountDeleteApikey(params = {}) {
-        return this.request('users/subaccount/delete-apikey', ['private'], 'POST', params, undefined, undefined, { 'cost': 10 });
+        return this.request('users/subaccount/delete-apikey', ['private'], 'POST', params, { 'cost': 10 });
     }
     privatePostUsersSubaccountSetTransferOut(params = {}) {
-        return this.request('users/subaccount/set-transfer-out', ['private'], 'POST', params, undefined, undefined, { 'cost': 10 });
+        return this.request('users/subaccount/set-transfer-out', ['private'], 'POST', params, { 'cost': 10 });
     }
     privatePostTradingBotGridOrderAlgo(params = {}) {
-        return this.request('tradingBot/grid/order-algo', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/grid/order-algo', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTradingBotGridCopyOrderAlgo(params = {}) {
-        return this.request('tradingBot/grid/copy-order-algo', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/grid/copy-order-algo', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTradingBotGridAmendAlgoBasicParam(params = {}) {
-        return this.request('tradingBot/grid/amend-algo-basic-param', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/grid/amend-algo-basic-param', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTradingBotGridAmendOrderAlgo(params = {}) {
-        return this.request('tradingBot/grid/amend-order-algo', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/grid/amend-order-algo', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTradingBotGridStopOrderAlgo(params = {}) {
-        return this.request('tradingBot/grid/stop-order-algo', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/grid/stop-order-algo', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTradingBotGridClosePosition(params = {}) {
-        return this.request('tradingBot/grid/close-position', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/grid/close-position', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTradingBotGridCancelCloseOrder(params = {}) {
-        return this.request('tradingBot/grid/cancel-close-order', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/grid/cancel-close-order', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTradingBotGridOrderInstantTrigger(params = {}) {
-        return this.request('tradingBot/grid/order-instant-trigger', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/grid/order-instant-trigger', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTradingBotGridWithdrawIncome(params = {}) {
-        return this.request('tradingBot/grid/withdraw-income', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/grid/withdraw-income', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTradingBotGridComputeMarginBalance(params = {}) {
-        return this.request('tradingBot/grid/compute-margin-balance', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/grid/compute-margin-balance', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTradingBotGridMarginBalance(params = {}) {
-        return this.request('tradingBot/grid/margin-balance', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/grid/margin-balance', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTradingBotGridMinInvestment(params = {}) {
-        return this.request('tradingBot/grid/min-investment', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/grid/min-investment', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTradingBotGridAdjustInvestment(params = {}) {
-        return this.request('tradingBot/grid/adjust-investment', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/grid/adjust-investment', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTradingBotSignalCreateSignal(params = {}) {
-        return this.request('tradingBot/signal/create-signal', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/signal/create-signal', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTradingBotSignalOrderAlgo(params = {}) {
-        return this.request('tradingBot/signal/order-algo', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/signal/order-algo', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTradingBotSignalStopOrderAlgo(params = {}) {
-        return this.request('tradingBot/signal/stop-order-algo', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/signal/stop-order-algo', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTradingBotSignalMarginBalance(params = {}) {
-        return this.request('tradingBot/signal/margin-balance', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/signal/margin-balance', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTradingBotSignalAmendTPSL(params = {}) {
-        return this.request('tradingBot/signal/amendTPSL', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/signal/amendTPSL', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTradingBotSignalSetInstruments(params = {}) {
-        return this.request('tradingBot/signal/set-instruments', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/signal/set-instruments', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTradingBotSignalClosePosition(params = {}) {
-        return this.request('tradingBot/signal/close-position', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/signal/close-position', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTradingBotSignalSubOrder(params = {}) {
-        return this.request('tradingBot/signal/sub-order', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/signal/sub-order', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTradingBotSignalCancelSubOrder(params = {}) {
-        return this.request('tradingBot/signal/cancel-sub-order', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/signal/cancel-sub-order', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTradingBotRecurringOrderAlgo(params = {}) {
-        return this.request('tradingBot/recurring/order-algo', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/recurring/order-algo', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTradingBotRecurringAmendOrderAlgo(params = {}) {
-        return this.request('tradingBot/recurring/amend-order-algo', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/recurring/amend-order-algo', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTradingBotRecurringStopOrderAlgo(params = {}) {
-        return this.request('tradingBot/recurring/stop-order-algo', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/recurring/stop-order-algo', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTradingBotDcaCreate(params = {}) {
-        return this.request('tradingBot/dca/create', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/dca/create', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTradingBotDcaAmendOrderAlgo(params = {}) {
-        return this.request('tradingBot/dca/amend-order-algo', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/dca/amend-order-algo', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTradingBotDcaStop(params = {}) {
-        return this.request('tradingBot/dca/stop', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/dca/stop', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTradingBotDcaOrdersManualBuy(params = {}) {
-        return this.request('tradingBot/dca/orders/manual-buy', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/dca/orders/manual-buy', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTradingBotDcaSettingsReinvestment(params = {}) {
-        return this.request('tradingBot/dca/settings/reinvestment', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/dca/settings/reinvestment', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTradingBotDcaSettingsTakeProfit(params = {}) {
-        return this.request('tradingBot/dca/settings/take-profit', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/dca/settings/take-profit', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTradingBotDcaMarginAdd(params = {}) {
-        return this.request('tradingBot/dca/margin/add', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/dca/margin/add', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTradingBotDcaMarginReduce(params = {}) {
-        return this.request('tradingBot/dca/margin/reduce', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/dca/margin/reduce', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTradingBotRecurringAddInvestment(params = {}) {
-        return this.request('tradingBot/recurring/add-investment', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/recurring/add-investment', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTradingBotRecurringAmendPriceRange(params = {}) {
-        return this.request('tradingBot/recurring/amend-price-range', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/recurring/amend-price-range', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTradingBotRecurringAmendRecurringAmount(params = {}) {
-        return this.request('tradingBot/recurring/amend-recurring-amount', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/recurring/amend-recurring-amount', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTradingBotRecurringAmendRecurringTime(params = {}) {
-        return this.request('tradingBot/recurring/amend-recurring-time', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/recurring/amend-recurring-time', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTradingBotRecurringPause(params = {}) {
-        return this.request('tradingBot/recurring/pause', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/recurring/pause', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTradingBotRecurringRestart(params = {}) {
-        return this.request('tradingBot/recurring/restart', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tradingBot/recurring/restart', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostFinanceSavingsPurchaseRedempt(params = {}) {
-        return this.request('finance/savings/purchase-redempt', ['private'], 'POST', params, undefined, undefined, { 'cost': 1.6666666666666667 });
+        return this.request('finance/savings/purchase-redempt', ['private'], 'POST', params, { 'cost': 1.6666666666666667 });
     }
     privatePostFinanceSavingsSetLendingRate(params = {}) {
-        return this.request('finance/savings/set-lending-rate', ['private'], 'POST', params, undefined, undefined, { 'cost': 1.6666666666666667 });
+        return this.request('finance/savings/set-lending-rate', ['private'], 'POST', params, { 'cost': 1.6666666666666667 });
     }
     privatePostFinanceStakingDefiPurchase(params = {}) {
-        return this.request('finance/staking-defi/purchase', ['private'], 'POST', params, undefined, undefined, { 'cost': 5 });
+        return this.request('finance/staking-defi/purchase', ['private'], 'POST', params, { 'cost': 5 });
     }
     privatePostFinanceStakingDefiRedeem(params = {}) {
-        return this.request('finance/staking-defi/redeem', ['private'], 'POST', params, undefined, undefined, { 'cost': 5 });
+        return this.request('finance/staking-defi/redeem', ['private'], 'POST', params, { 'cost': 5 });
     }
     privatePostFinanceStakingDefiCancel(params = {}) {
-        return this.request('finance/staking-defi/cancel', ['private'], 'POST', params, undefined, undefined, { 'cost': 5 });
+        return this.request('finance/staking-defi/cancel', ['private'], 'POST', params, { 'cost': 5 });
     }
     privatePostFinanceStakingDefiEthPurchase(params = {}) {
-        return this.request('finance/staking-defi/eth/purchase', ['private'], 'POST', params, undefined, undefined, { 'cost': 5 });
+        return this.request('finance/staking-defi/eth/purchase', ['private'], 'POST', params, { 'cost': 5 });
     }
     privatePostFinanceStakingDefiEthRedeem(params = {}) {
-        return this.request('finance/staking-defi/eth/redeem', ['private'], 'POST', params, undefined, undefined, { 'cost': 5 });
+        return this.request('finance/staking-defi/eth/redeem', ['private'], 'POST', params, { 'cost': 5 });
     }
     privatePostFinanceStakingDefiEthCancelRedeem(params = {}) {
-        return this.request('finance/staking-defi/eth/cancel-redeem', ['private'], 'POST', params, undefined, undefined, { 'cost': 5 });
+        return this.request('finance/staking-defi/eth/cancel-redeem', ['private'], 'POST', params, { 'cost': 5 });
     }
     privatePostFinanceStakingDefiSolPurchase(params = {}) {
-        return this.request('finance/staking-defi/sol/purchase', ['private'], 'POST', params, undefined, undefined, { 'cost': 5 });
+        return this.request('finance/staking-defi/sol/purchase', ['private'], 'POST', params, { 'cost': 5 });
     }
     privatePostFinanceStakingDefiSolRedeem(params = {}) {
-        return this.request('finance/staking-defi/sol/redeem', ['private'], 'POST', params, undefined, undefined, { 'cost': 5 });
+        return this.request('finance/staking-defi/sol/redeem', ['private'], 'POST', params, { 'cost': 5 });
     }
     privatePostFinanceStakingDefiSolCancelRedeem(params = {}) {
-        return this.request('finance/staking-defi/sol/cancel-redeem', ['private'], 'POST', params, undefined, undefined, { 'cost': 5 });
+        return this.request('finance/staking-defi/sol/cancel-redeem', ['private'], 'POST', params, { 'cost': 5 });
     }
     privatePostFinanceFlexibleLoanMaxLoan(params = {}) {
-        return this.request('finance/flexible-loan/max-loan', ['private'], 'POST', params, undefined, undefined, { 'cost': 4 });
+        return this.request('finance/flexible-loan/max-loan', ['private'], 'POST', params, { 'cost': 4 });
     }
     privatePostFinanceFlexibleLoanAdjustCollateral(params = {}) {
-        return this.request('finance/flexible-loan/adjust-collateral', ['private'], 'POST', params, undefined, undefined, { 'cost': 4 });
+        return this.request('finance/flexible-loan/adjust-collateral', ['private'], 'POST', params, { 'cost': 4 });
     }
     privatePostFinanceFlexibleLoanBorrow(params = {}) {
-        return this.request('finance/flexible-loan/borrow', ['private'], 'POST', params, undefined, undefined, { 'cost': 10 });
+        return this.request('finance/flexible-loan/borrow', ['private'], 'POST', params, { 'cost': 10 });
     }
     privatePostFinanceFlexibleLoanRepay(params = {}) {
-        return this.request('finance/flexible-loan/repay', ['private'], 'POST', params, undefined, undefined, { 'cost': 10 });
+        return this.request('finance/flexible-loan/repay', ['private'], 'POST', params, { 'cost': 10 });
     }
     privatePostFinanceOkusdSubscribe(params = {}) {
-        return this.request('finance/okusd/subscribe', ['private'], 'POST', params, undefined, undefined, { 'cost': 20 });
+        return this.request('finance/okusd/subscribe', ['private'], 'POST', params, { 'cost': 20 });
     }
     privatePostFinanceOkusdRedeem(params = {}) {
-        return this.request('finance/okusd/redeem', ['private'], 'POST', params, undefined, undefined, { 'cost': 20 });
+        return this.request('finance/okusd/redeem', ['private'], 'POST', params, { 'cost': 20 });
     }
     privatePostCopytradingAlgoOrder(params = {}) {
-        return this.request('copytrading/algo-order', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('copytrading/algo-order', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostCopytradingCloseSubposition(params = {}) {
-        return this.request('copytrading/close-subposition', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('copytrading/close-subposition', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostCopytradingSetInstruments(params = {}) {
-        return this.request('copytrading/set-instruments', ['private'], 'POST', params, undefined, undefined, { 'cost': 4 });
+        return this.request('copytrading/set-instruments', ['private'], 'POST', params, { 'cost': 4 });
     }
     privatePostCopytradingAmendProfitSharingRatio(params = {}) {
-        return this.request('copytrading/amend-profit-sharing-ratio', ['private'], 'POST', params, undefined, undefined, { 'cost': 4 });
+        return this.request('copytrading/amend-profit-sharing-ratio', ['private'], 'POST', params, { 'cost': 4 });
     }
     privatePostCopytradingFirstCopySettings(params = {}) {
-        return this.request('copytrading/first-copy-settings', ['private'], 'POST', params, undefined, undefined, { 'cost': 4 });
+        return this.request('copytrading/first-copy-settings', ['private'], 'POST', params, { 'cost': 4 });
     }
     privatePostCopytradingAmendCopySettings(params = {}) {
-        return this.request('copytrading/amend-copy-settings', ['private'], 'POST', params, undefined, undefined, { 'cost': 4 });
+        return this.request('copytrading/amend-copy-settings', ['private'], 'POST', params, { 'cost': 4 });
     }
     privatePostCopytradingStopCopyTrading(params = {}) {
-        return this.request('copytrading/stop-copy-trading', ['private'], 'POST', params, undefined, undefined, { 'cost': 4 });
+        return this.request('copytrading/stop-copy-trading', ['private'], 'POST', params, { 'cost': 4 });
     }
     privatePostCopytradingBatchSetLeverage(params = {}) {
-        return this.request('copytrading/batch-set-leverage', ['private'], 'POST', params, undefined, undefined, { 'cost': 4 });
+        return this.request('copytrading/batch-set-leverage', ['private'], 'POST', params, { 'cost': 4 });
     }
     privatePostBrokerNdCreateSubaccount(params = {}) {
-        return this.request('broker/nd/create-subaccount', ['private'], 'POST', params, undefined, undefined, { 'cost': 0.25 });
+        return this.request('broker/nd/create-subaccount', ['private'], 'POST', params, { 'cost': 0.25 });
     }
     privatePostBrokerNdDeleteSubaccount(params = {}) {
-        return this.request('broker/nd/delete-subaccount', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('broker/nd/delete-subaccount', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostBrokerNdSubaccountApikey(params = {}) {
-        return this.request('broker/nd/subaccount/apikey', ['private'], 'POST', params, undefined, undefined, { 'cost': 0.25 });
+        return this.request('broker/nd/subaccount/apikey', ['private'], 'POST', params, { 'cost': 0.25 });
     }
     privatePostBrokerNdSubaccountModifyApikey(params = {}) {
-        return this.request('broker/nd/subaccount/modify-apikey', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('broker/nd/subaccount/modify-apikey', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostBrokerNdSubaccountDeleteApikey(params = {}) {
-        return this.request('broker/nd/subaccount/delete-apikey', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('broker/nd/subaccount/delete-apikey', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostBrokerNdSetSubaccountLevel(params = {}) {
-        return this.request('broker/nd/set-subaccount-level', ['private'], 'POST', params, undefined, undefined, { 'cost': 4 });
+        return this.request('broker/nd/set-subaccount-level', ['private'], 'POST', params, { 'cost': 4 });
     }
     privatePostBrokerNdSetSubaccountFeeRate(params = {}) {
-        return this.request('broker/nd/set-subaccount-fee-rate', ['private'], 'POST', params, undefined, undefined, { 'cost': 4 });
+        return this.request('broker/nd/set-subaccount-fee-rate', ['private'], 'POST', params, { 'cost': 4 });
     }
     privatePostBrokerNdSetSubaccountAssets(params = {}) {
-        return this.request('broker/nd/set-subaccount-assets', ['private'], 'POST', params, undefined, undefined, { 'cost': 0.25 });
+        return this.request('broker/nd/set-subaccount-assets', ['private'], 'POST', params, { 'cost': 0.25 });
     }
     privatePostAssetBrokerNdSubaccountDepositAddress(params = {}) {
-        return this.request('asset/broker/nd/subaccount-deposit-address', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('asset/broker/nd/subaccount-deposit-address', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostAssetBrokerNdModifySubaccountDepositAddress(params = {}) {
-        return this.request('asset/broker/nd/modify-subaccount-deposit-address', ['private'], 'POST', params, undefined, undefined, { 'cost': 1.6666666666666667 });
+        return this.request('asset/broker/nd/modify-subaccount-deposit-address', ['private'], 'POST', params, { 'cost': 1.6666666666666667 });
     }
     privatePostBrokerNdRebatePerOrders(params = {}) {
-        return this.request('broker/nd/rebate-per-orders', ['private'], 'POST', params, undefined, undefined, { 'cost': 36000 });
+        return this.request('broker/nd/rebate-per-orders', ['private'], 'POST', params, { 'cost': 36000 });
     }
     privatePostFinanceSfpDcdQuote(params = {}) {
-        return this.request('finance/sfp/dcd/quote', ['private'], 'POST', params, undefined, undefined, { 'cost': 10 });
+        return this.request('finance/sfp/dcd/quote', ['private'], 'POST', params, { 'cost': 10 });
     }
     privatePostFinanceSfpDcdOrder(params = {}) {
-        return this.request('finance/sfp/dcd/order', ['private'], 'POST', params, undefined, undefined, { 'cost': 10 });
+        return this.request('finance/sfp/dcd/order', ['private'], 'POST', params, { 'cost': 10 });
     }
     privatePostFinanceSfpDcdTrade(params = {}) {
-        return this.request('finance/sfp/dcd/trade', ['private'], 'POST', params, undefined, undefined, { 'cost': 10 });
+        return this.request('finance/sfp/dcd/trade', ['private'], 'POST', params, { 'cost': 10 });
     }
     privatePostFinanceSfpDcdRedeemQuote(params = {}) {
-        return this.request('finance/sfp/dcd/redeem-quote', ['private'], 'POST', params, undefined, undefined, { 'cost': 10 });
+        return this.request('finance/sfp/dcd/redeem-quote', ['private'], 'POST', params, { 'cost': 10 });
     }
     privatePostFinanceSfpDcdRedeem(params = {}) {
-        return this.request('finance/sfp/dcd/redeem', ['private'], 'POST', params, undefined, undefined, { 'cost': 10 });
+        return this.request('finance/sfp/dcd/redeem', ['private'], 'POST', params, { 'cost': 10 });
     }
     privatePostBrokerNdReportSubaccountIp(params = {}) {
-        return this.request('broker/nd/report-subaccount-ip', ['private'], 'POST', params, undefined, undefined, { 'cost': 0.25 });
+        return this.request('broker/nd/report-subaccount-ip', ['private'], 'POST', params, { 'cost': 0.25 });
     }
     privatePostBrokerDmaSubaccountApikey(params = {}) {
-        return this.request('broker/dma/subaccount/apikey', ['private'], 'POST', params, undefined, undefined, { 'cost': 0.25 });
+        return this.request('broker/dma/subaccount/apikey', ['private'], 'POST', params, { 'cost': 0.25 });
     }
     privatePostBrokerDmaTrades(params = {}) {
-        return this.request('broker/dma/trades', ['private'], 'POST', params, undefined, undefined, { 'cost': 36000 });
+        return this.request('broker/dma/trades', ['private'], 'POST', params, { 'cost': 36000 });
     }
     privatePostBrokerFdRebatePerOrders(params = {}) {
-        return this.request('broker/fd/rebate-per-orders', ['private'], 'POST', params, undefined, undefined, { 'cost': 36000 });
+        return this.request('broker/fd/rebate-per-orders', ['private'], 'POST', params, { 'cost': 36000 });
     }
 }
 

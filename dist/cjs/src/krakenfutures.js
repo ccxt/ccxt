@@ -3806,7 +3806,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         }
         throw new errors.ExchangeError(feedback); // unknown message
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
         const apiVersions = this.safeDict(this.options['versions'], apiName, {});
         const methodVersions = this.safeDict(apiVersions, method, {});
@@ -3837,7 +3837,7 @@ class krakenfutures extends krakenfutures$1["default"] {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         const url = apiUrl + query;
-        const requestBody = (path === 'batchorder') ? postData : body;
+        const requestBody = (path === 'batchorder') ? postData : undefined;
         let privateHeaders = undefined;
         if (apiName === 'private' || access === 'private') {
             this.checkRequiredCredentials();
@@ -3856,7 +3856,7 @@ class krakenfutures extends krakenfutures$1["default"] {
                 'Authent': signature,
             };
         }
-        const requestHeaders = (privateHeaders !== undefined) ? privateHeaders : headers;
+        const requestHeaders = privateHeaders;
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 }

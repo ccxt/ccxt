@@ -4770,7 +4770,7 @@ class phemex extends phemex$1["default"] {
         }
         return tiers;
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
         const query = this.omit(params, this.extractParams(path));
         const requestPath = '/' + this.implodeParams(path, params);
@@ -4816,11 +4816,11 @@ class phemex extends phemex$1["default"] {
         }
         url = this.implodeHostname(baseApiUrl) + url;
         const isPrivatePost = (apiName === 'private') && (method === 'POST');
-        let bodyResolved = body;
+        let bodyResolved = undefined;
         if (isPrivatePost) {
             bodyResolved = requestBody;
         }
-        const requestHeaders = (apiName === 'private') ? privateHeaders : headers;
+        const requestHeaders = (apiName === 'private') ? privateHeaders : undefined;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': requestHeaders };
     }
     /**

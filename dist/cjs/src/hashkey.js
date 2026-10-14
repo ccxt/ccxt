@@ -4492,7 +4492,7 @@ class hashkey extends hashkey$1["default"] {
             'tierBased': true,
         };
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
         const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
@@ -4537,7 +4537,7 @@ class hashkey extends hashkey$1["default"] {
             }
             headersSigned['INPUT-SOURCE'] = this.safeString(this.options, 'broker', '10000700011');
             headersSigned['broker_sign'] = signature;
-            const bodyResolved = (method === 'GET') ? body : bodySigned;
+            const bodyResolved = (method === 'GET') ? undefined : bodySigned;
             return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersSigned };
         }
         else {
@@ -4546,7 +4546,7 @@ class hashkey extends hashkey$1["default"] {
                 url += '?' + query;
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     customUrlencode(params = {}) {
         let result = this.urlencode(params);

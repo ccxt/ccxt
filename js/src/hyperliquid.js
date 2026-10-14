@@ -5140,7 +5140,7 @@ export default class hyperliquid extends Exchange {
         }
         return undefined;
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
         const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
@@ -5151,11 +5151,11 @@ export default class hyperliquid extends Exchange {
         const postHeaders = {
             'Content-Type': 'application/json',
         };
-        let requestHeaders = headers;
+        let requestHeaders = undefined;
         if (isPost) {
             requestHeaders = postHeaders;
         }
-        let requestBody = body;
+        let requestBody = undefined;
         if (isPost) {
             requestBody = this.json(params);
         }

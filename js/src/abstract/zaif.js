@@ -8,115 +8,115 @@
 import { Exchange as _Exchange } from '../base/Exchange.js';
 class Exchange extends _Exchange {
     publicGetDepthPair(params = {}) {
-        return this.request('depth/{pair}', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('depth/{pair}', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetCurrenciesPair(params = {}) {
-        return this.request('currencies/{pair}', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('currencies/{pair}', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetCurrenciesAll(params = {}) {
-        return this.request('currencies/all', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('currencies/all', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetCurrencyPairsPair(params = {}) {
-        return this.request('currency_pairs/{pair}', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('currency_pairs/{pair}', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetCurrencyPairsAll(params = {}) {
-        return this.request('currency_pairs/all', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('currency_pairs/all', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetLastPricePair(params = {}) {
-        return this.request('last_price/{pair}', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('last_price/{pair}', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetTickerPair(params = {}) {
-        return this.request('ticker/{pair}', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('ticker/{pair}', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetTradesPair(params = {}) {
-        return this.request('trades/{pair}', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('trades/{pair}', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetVaspInfoVaspMasterId(params = {}) {
-        return this.request('vasp_info/{vasp_master_id}', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('vasp_info/{vasp_master_id}', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetCountryInfoCode(params = {}) {
-        return this.request('country_info/{code}', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('country_info/{code}', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetCorpTypeIdInfoId(params = {}) {
-        return this.request('corp_type_id_info/{id}', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('corp_type_id_info/{id}', ['public'], 'GET', params, { 'cost': 1 });
     }
     privatePostActiveOrders(params = {}) {
-        return this.request('active_orders', ['private'], 'POST', params, undefined, undefined, { 'cost': 5 });
+        return this.request('active_orders', ['private'], 'POST', params, { 'cost': 5 });
     }
     privatePostCancelOrder(params = {}) {
-        return this.request('cancel_order', ['private'], 'POST', params, undefined, undefined, { 'cost': 5 });
+        return this.request('cancel_order', ['private'], 'POST', params, { 'cost': 5 });
     }
     privatePostDepositHistory(params = {}) {
-        return this.request('deposit_history', ['private'], 'POST', params, undefined, undefined, { 'cost': 5 });
+        return this.request('deposit_history', ['private'], 'POST', params, { 'cost': 5 });
     }
     privatePostGetIdInfo(params = {}) {
-        return this.request('get_id_info', ['private'], 'POST', params, undefined, undefined, { 'cost': 5 });
+        return this.request('get_id_info', ['private'], 'POST', params, { 'cost': 5 });
     }
     privatePostGetInfo(params = {}) {
-        return this.request('get_info', ['private'], 'POST', params, undefined, undefined, { 'cost': 10 });
+        return this.request('get_info', ['private'], 'POST', params, { 'cost': 10 });
     }
     privatePostGetInfo2(params = {}) {
-        return this.request('get_info2', ['private'], 'POST', params, undefined, undefined, { 'cost': 5 });
+        return this.request('get_info2', ['private'], 'POST', params, { 'cost': 5 });
     }
     privatePostGetPersonalInfo(params = {}) {
-        return this.request('get_personal_info', ['private'], 'POST', params, undefined, undefined, { 'cost': 5 });
+        return this.request('get_personal_info', ['private'], 'POST', params, { 'cost': 5 });
     }
     privatePostTrade(params = {}) {
-        return this.request('trade', ['private'], 'POST', params, undefined, undefined, { 'cost': 5 });
+        return this.request('trade', ['private'], 'POST', params, { 'cost': 5 });
     }
     privatePostTradeHistory(params = {}) {
-        return this.request('trade_history', ['private'], 'POST', params, undefined, undefined, { 'cost': 50 });
+        return this.request('trade_history', ['private'], 'POST', params, { 'cost': 50 });
     }
     privatePostWithdraw(params = {}) {
-        return this.request('withdraw', ['private'], 'POST', params, undefined, undefined, { 'cost': 5 });
+        return this.request('withdraw', ['private'], 'POST', params, { 'cost': 5 });
     }
     privatePostWithdrawHistory(params = {}) {
-        return this.request('withdraw_history', ['private'], 'POST', params, undefined, undefined, { 'cost': 5 });
+        return this.request('withdraw_history', ['private'], 'POST', params, { 'cost': 5 });
     }
     ecapiPostCreateInvoice(params = {}) {
-        return this.request('createInvoice', ['ecapi'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('createInvoice', ['ecapi'], 'POST', params, { 'cost': 1 });
     }
     ecapiPostGetInvoice(params = {}) {
-        return this.request('getInvoice', ['ecapi'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('getInvoice', ['ecapi'], 'POST', params, { 'cost': 1 });
     }
     ecapiPostGetInvoiceIdsByOrderNumber(params = {}) {
-        return this.request('getInvoiceIdsByOrderNumber', ['ecapi'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('getInvoiceIdsByOrderNumber', ['ecapi'], 'POST', params, { 'cost': 1 });
     }
     ecapiPostCancelInvoice(params = {}) {
-        return this.request('cancelInvoice', ['ecapi'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('cancelInvoice', ['ecapi'], 'POST', params, { 'cost': 1 });
     }
     tlapiPostGetPositions(params = {}) {
-        return this.request('get_positions', ['tlapi'], 'POST', params, undefined, undefined, { 'cost': 66 });
+        return this.request('get_positions', ['tlapi'], 'POST', params, { 'cost': 66 });
     }
     tlapiPostPositionHistory(params = {}) {
-        return this.request('position_history', ['tlapi'], 'POST', params, undefined, undefined, { 'cost': 66 });
+        return this.request('position_history', ['tlapi'], 'POST', params, { 'cost': 66 });
     }
     tlapiPostActivePositions(params = {}) {
-        return this.request('active_positions', ['tlapi'], 'POST', params, undefined, undefined, { 'cost': 5 });
+        return this.request('active_positions', ['tlapi'], 'POST', params, { 'cost': 5 });
     }
     tlapiPostCreatePosition(params = {}) {
-        return this.request('create_position', ['tlapi'], 'POST', params, undefined, undefined, { 'cost': 33 });
+        return this.request('create_position', ['tlapi'], 'POST', params, { 'cost': 33 });
     }
     tlapiPostChangePosition(params = {}) {
-        return this.request('change_position', ['tlapi'], 'POST', params, undefined, undefined, { 'cost': 33 });
+        return this.request('change_position', ['tlapi'], 'POST', params, { 'cost': 33 });
     }
     tlapiPostCancelPosition(params = {}) {
-        return this.request('cancel_position', ['tlapi'], 'POST', params, undefined, undefined, { 'cost': 33 });
+        return this.request('cancel_position', ['tlapi'], 'POST', params, { 'cost': 33 });
     }
     fapiGetGroupsGroupId(params = {}) {
-        return this.request('groups/{group_id}', ['fapi'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('groups/{group_id}', ['fapi'], 'GET', params, { 'cost': 1 });
     }
     fapiGetLastPriceGroupIdPair(params = {}) {
-        return this.request('last_price/{group_id}/{pair}', ['fapi'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('last_price/{group_id}/{pair}', ['fapi'], 'GET', params, { 'cost': 1 });
     }
     fapiGetTickerGroupIdPair(params = {}) {
-        return this.request('ticker/{group_id}/{pair}', ['fapi'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('ticker/{group_id}/{pair}', ['fapi'], 'GET', params, { 'cost': 1 });
     }
     fapiGetTradesGroupIdPair(params = {}) {
-        return this.request('trades/{group_id}/{pair}', ['fapi'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('trades/{group_id}/{pair}', ['fapi'], 'GET', params, { 'cost': 1 });
     }
     fapiGetDepthGroupIdPair(params = {}) {
-        return this.request('depth/{group_id}/{pair}', ['fapi'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('depth/{group_id}/{pair}', ['fapi'], 'GET', params, { 'cost': 1 });
     }
 }
 export default Exchange;

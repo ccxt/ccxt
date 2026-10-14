@@ -1166,7 +1166,7 @@ class cryptomus extends cryptomus$1["default"] {
             'taker': takerFees,
         };
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const endpoint = this.implodeParams(path, params);
         const paramsOmitted = this.omit(params, this.extractParams(path));
         const apiName = api[0];
@@ -1195,7 +1195,7 @@ class cryptomus extends cryptomus$1["default"] {
             const stringToSign = jsonParamsBase64 + this.secret;
             const signature = this.hash(this.encode(stringToSign), legacy_js.md5);
             privateHeaders['sign'] = signature;
-            const privateBody = (method !== 'GET') ? jsonParams : body;
+            const privateBody = (method !== 'GET') ? jsonParams : undefined;
             return { 'url': url, 'method': method, 'body': privateBody, 'headers': privateHeaders };
         }
         else {
@@ -1204,7 +1204,7 @@ class cryptomus extends cryptomus$1["default"] {
                 url += '?' + query;
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

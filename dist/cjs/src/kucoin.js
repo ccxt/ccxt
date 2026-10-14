@@ -11764,7 +11764,7 @@ class kucoin extends kucoin$1["default"] {
         }
         return uta;
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
         //
         // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
@@ -11796,11 +11796,8 @@ class kucoin extends kucoin$1["default"] {
         }
         const query = this.omit(paramsOmitted, this.extractParams(path));
         let endpart = '';
-        let headersBase = {};
-        if (headers !== undefined) {
-            headersBase = headers;
-        }
-        let bodyJson = body;
+        const headersBase = {};
+        let bodyJson = undefined;
         const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');

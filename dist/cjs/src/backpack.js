@@ -2331,7 +2331,7 @@ class backpack extends backpack$1["default"] {
         }
         return this.milliseconds() - timeDifference;
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
         let endpoint = '/' + path;
         const apiUrl = this.safeString(this.urls['api'], apiName);
@@ -2382,8 +2382,8 @@ class backpack extends backpack$1["default"] {
             }
         }
         url += endpoint;
-        const headersResolved = (apiName === 'private') ? headersSigned : headers;
-        let bodyResolved = body;
+        const headersResolved = (apiName === 'private') ? headersSigned : undefined;
+        let bodyResolved = undefined;
         if ((apiName === 'private') && (method !== 'GET')) {
             bodyResolved = bodySigned;
         }

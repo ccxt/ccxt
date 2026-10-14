@@ -601,7 +601,7 @@ export declare class BaseExchange {
      * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
      */
     enableDemoTrading(enable: boolean): void;
-    sign(path: string, api?: string[], method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     fetchAccounts(params?: Dict): Promise<Account[]>;
     watchLiquidations(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Liquidation[]>;
     watchLiquidationsForSymbols(symbols: string[], since?: Int, limit?: Int, params?: Dict): Promise<Liquidation[]>;
@@ -856,8 +856,8 @@ export declare class BaseExchange {
     getSymbolsForMarketType(marketType?: Str, subType?: Str, symbolWithActiveStatus?: boolean, symbolWithUnknownStatus?: boolean): string[];
     filterByArray(objects: any, key: IndexType, values?: any, indexed?: boolean): any;
     filterOutByArray(objects: any, key: IndexType, values?: any, indexed?: boolean): any;
-    fetch2(path: string, api?: string[], method?: string, params?: Dict, headers?: any, body?: any, config?: Dict): Promise<any>;
-    request(path: string, api?: string[], method?: string, params?: Dict, headers?: any, body?: any, config?: Dict): Promise<any>;
+    fetch2(path: string, api?: string[], method?: string, params?: Dict, config?: Dict): Promise<any>;
+    request(path: string, api?: string[], method?: string, params?: Dict, config?: Dict): Promise<any>;
     loadAccounts(reload?: boolean, params?: Dict): Promise<Account[]>;
     buildOHLCVC(trades: Trade[], timeframe?: string, since?: number, limit?: number): OHLCVC[];
     parseTradingViewOHLCV(ohlcvs: any, market?: Market, timeframe?: string, since?: Int, limit?: Int): OHLCV[];

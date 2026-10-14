@@ -2745,7 +2745,7 @@ export default class bitstamp extends Exchange {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
         const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
@@ -2763,7 +2763,7 @@ export default class bitstamp extends Exchange {
         if (Object.keys(query).length > 0) {
             postBody = this.urlencode(query);
         }
-        let requestBody = body;
+        let requestBody = undefined;
         if (isPrivatePost) {
             requestBody = postBody;
         }
@@ -2798,7 +2798,7 @@ export default class bitstamp extends Exchange {
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             privateHeaders['X-Auth-Signature'] = signature;
         }
-        const requestHeaders = (apiName === 'public') ? headers : privateHeaders;
+        const requestHeaders = (apiName === 'public') ? undefined : privateHeaders;
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

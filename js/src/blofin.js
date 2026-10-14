@@ -3482,7 +3482,7 @@ export default class blofin extends Exchange {
         }
         return undefined;
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
         let request = '/api/' + this.version + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
@@ -3525,9 +3525,9 @@ export default class blofin extends Exchange {
             const auth = request + method + timestamp + timestamp + sign_body;
             const signature = this.stringToBase64(this.hmac(this.encode(auth), this.encode(this.secret), sha256));
             signedHeaders['ACCESS-SIGN'] = signature;
-            const bodyResolved = (signedBody === undefined) ? body : signedBody;
+            const bodyResolved = signedBody;
             return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': signedHeaders };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 }

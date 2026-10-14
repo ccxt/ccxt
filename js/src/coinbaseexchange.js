@@ -2164,10 +2164,10 @@ export default class coinbaseexchange extends Exchange {
             'info': response,
         };
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
-        let requestHeaders = headers;
-        let requestBody = body;
+        let requestHeaders = undefined;
+        let requestBody = undefined;
         let request = '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         if (method === 'GET') {
@@ -2222,8 +2222,8 @@ export default class coinbaseexchange extends Exchange {
         }
         return undefined;
     }
-    async request(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined, config = {}) {
-        const response = await this.fetch2(path, api, method, params, headers, body, config);
+    async request(path, api = ['public'], method = 'GET', params = {}, config = {}) {
+        const response = await this.fetch2(path, api, method, params, config);
         if (typeof response !== 'string') {
             if ('message' in response) {
                 throw new ExchangeError(this.id + ' ' + this.json(response));

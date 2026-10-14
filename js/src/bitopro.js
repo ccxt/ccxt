@@ -1886,14 +1886,14 @@ export default class bitopro extends Exchange {
         const data = this.safeList(response, 'data', []);
         return this.parseDepositWithdrawFees(data, codes, 'currency');
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
         let url = '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
-        const requestHeaders = (headers === undefined) ? {} : headers;
+        const requestHeaders = {};
         const isSignedBody = (apiName === 'private') && ((method === 'POST') || (method === 'PUT'));
         const signedBody = this.json(params);
-        let requestBody = body;
+        let requestBody = undefined;
         if (isSignedBody) {
             requestBody = signedBody;
         }
