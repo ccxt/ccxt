@@ -3477,7 +3477,7 @@ func (this *Bitrue) ParseTransaction(transaction any, optionalArgs ...any) map[s
 		currencyId = this.SafeString(parts, 0)
 		var networkId *string = this.SafeString(parts, 1)
 		if networkId != nil {
-			network = SafeStringPtr(strings.ToUpper(*networkId))
+			network = this.NetworkIdToCode(strings.ToUpper(*networkId))
 		}
 	}
 	var code *string = this.SafeCurrencyCode(currencyId, currency)

@@ -1004,7 +1004,7 @@ func (this *Coinmate) ParseTransaction(transaction any, optionalArgs ...any) map
 		"txid":        this.SafeString(transaction, "txid"),
 		"type":        this.SafeStringLower(transaction, "transferType"),
 		"currency":    code,
-		"network":     this.SafeString(transaction, "walletType"),
+		"network":     this.NetworkIdToCode(this.SafeString(transaction, "walletType"), code),
 		"amount":      this.SafeNumber(transaction, "amount"),
 		"status":      this.ParseTransactionStatus(this.SafeString(transaction, "transferStatus")),
 		"timestamp":   timestamp,

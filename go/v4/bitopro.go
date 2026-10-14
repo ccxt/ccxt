@@ -270,11 +270,8 @@ func (this *Bitopro) Describe() any {
 		"options": map[string]any{
 			"networks": map[string]any{
 				"ERC20": "ERC20",
-				"ETH":   "ERC20",
-				"TRX":   "TRX",
 				"TRC20": "TRX",
 				"BEP20": "BSC",
-				"BSC":   "BSC",
 			},
 			"fetchCurrencies": map[string]any{
 				"fiatCurrencies": []any{"TWD"},
@@ -2374,7 +2371,7 @@ func (this *Bitopro) withdrawBody(ch chan EndpointResult[map[string]any], code s
 			if requestedNetwork == nil {
 				return nil
 			}
-			return this.SafeString(networks, requestedNetwork)
+			return this.SafeString(networks, this.SafeString(this.NetworkAliases, requestedNetwork, requestedNetwork))
 		}()
 		if networkId == nil {
 			panic(ExchangeError(Add(this.Id+" invalid network ", requestedNetwork)))

@@ -597,7 +597,7 @@ func (this *Coinbaseexchange) Describe() any {
 		"options": map[string]any{
 			"networks": map[string]any{
 				"BTC":      "bitcoin",
-				"ETH":      "ethereum",
+				"ERC20":    "ethereum",
 				"SOL":      "solana",
 				"ARBITRUM": "arbitrum",
 				"AVAXC":    "avacchain",

@@ -463,7 +463,7 @@ func (this *Deepcoin) Describe() any {
 				"ERC20":    "ERC20",
 				"TRC20":    "TRC20",
 				"ARBITRUM": "ARBITRUM",
-				"BSC":      "BSC(BEP20)",
+				"BEP20":    "BSC(BEP20)",
 				"SOL":      "SOL",
 				"BTC":      "Bitcoin",
 				"ADA":      "Cardano",
@@ -1696,6 +1696,9 @@ func (this *Deepcoin) fetchDepositAddressBody(ch chan AsyncResult[any], code str
 	if (network == nil) || (network != nil && *network == "") {
 		network = defaultNetwork
 	}
+	if network != nil {
+		network = this.SafeString(this.NetworkAliases, network, network)
+	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if network != nil {
 			return this.OmitDict(params, "network")
@@ -2367,11 +2370,11 @@ func (this *Deepcoin) createMarketOrderWithCostBody(ch chan AsyncResult[map[stri
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes180915 map[string]any = r.Value
-	if retRes180915 == nil {
+	var retRes181215 map[string]any = r.Value
+	if retRes181215 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes180915}
+		ch <- AsyncResult[map[string]any]{Value: retRes181215}
 	}
 	return nil
 }
@@ -2403,11 +2406,11 @@ func (this *Deepcoin) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any],
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes182315 map[string]any = r.Value
-	if retRes182315 == nil {
+	var retRes182615 map[string]any = r.Value
+	if retRes182615 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes182315}
+		ch <- AsyncResult[any]{Value: retRes182615}
 	}
 	return nil
 }
@@ -2439,11 +2442,11 @@ func (this *Deepcoin) createMarketSellOrderWithCostBody(ch chan AsyncResult[any]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes183715 map[string]any = r.Value
-	if retRes183715 == nil {
+	var retRes184015 map[string]any = r.Value
+	if retRes184015 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes183715}
+		ch <- AsyncResult[any]{Value: retRes184015}
 	}
 	return nil
 }
@@ -2645,11 +2648,11 @@ func (this *Deepcoin) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]any
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes196919 []any = ListTyped(r1.Value)
-		if retRes196919 == nil {
+		var retRes197219 []any = ListTyped(r1.Value)
+		if retRes197219 == nil {
 			ch <- AsyncResult[[]any]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]any]{Value: retRes196919}
+			ch <- AsyncResult[[]any]{Value: retRes197219}
 		}
 		return nil
 	}
@@ -2811,11 +2814,11 @@ func (this *Deepcoin) fetchCanceledOrdersBody(ch chan AsyncResult[[]any], option
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes209115 []any = r.Value
-	if retRes209115 == nil {
+	var retRes209415 []any = r.Value
+	if retRes209415 == nil {
 		ch <- AsyncResult[[]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]any]{Value: retRes209115}
+		ch <- AsyncResult[[]any]{Value: retRes209415}
 	}
 	return nil
 }
@@ -2860,11 +2863,11 @@ func (this *Deepcoin) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes211015 []any = r.Value
-	if retRes211015 == nil {
+	var retRes211315 []any = r.Value
+	if retRes211315 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes211015}
+		ch <- AsyncResult[any]{Value: retRes211315}
 	}
 	return nil
 }
@@ -4046,11 +4049,11 @@ func (this *Deepcoin) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs .
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes297019 []any = ListTyped(r1.Value)
-		if retRes297019 == nil {
+		var retRes297319 []any = ListTyped(r1.Value)
+		if retRes297319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes297019}
+			ch <- AsyncResult[any]{Value: retRes297319}
 		}
 		return nil
 	}
@@ -4166,11 +4169,11 @@ func (this *Deepcoin) fetchOrderTradesBody(ch chan AsyncResult[any], id string, 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes304615 []any = ListTyped(r1.Value)
-	if retRes304615 == nil {
+	var retRes304915 []any = ListTyped(r1.Value)
+	if retRes304915 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes304615}
+		ch <- AsyncResult[any]{Value: retRes304915}
 	}
 	return nil
 }

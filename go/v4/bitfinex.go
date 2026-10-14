@@ -1264,7 +1264,7 @@ func (this *Bitfinex) ParseCurrencyCustom(id any, indexed map[string]any, indexe
 			networks[*network] = map[string]any{
 				"info":      networkId,
 				"id":        strings.ToLower(*networkId),
-				"network":   networkId,
+				"network":   network,
 				"active":    nil,
 				"deposit":   IsEqual(this.SafeInteger(dwStatuses, 1), 1),
 				"withdraw":  IsEqual(this.SafeInteger(dwStatuses, 2), 1),
@@ -3408,7 +3408,8 @@ func (this *Bitfinex) fetchDepositAddressBody(ch chan AsyncResult[any], code str
 	}
 	var currency map[string]any = this.Currency(code)
 	// if not provided explicitly we will try to match using the currency name
-	var network *string = this.SafeString(params, "network", code)
+	var networkParam *string = this.SafeString(params, "network", code)
+	var network *string = this.SafeString(this.NetworkAliases, networkParam, networkParam)
 	var currencyNetworks map[string]any = SafeMapTyped(currency, "networks")
 	var currencyNetwork map[string]any = SafeMapTyped(currencyNetworks, network)
 	var networkId *string = this.SafeString(currencyNetwork, "id")
@@ -3915,7 +3916,8 @@ func (this *Bitfinex) withdrawBody(ch chan EndpointResult[map[string]any], code 
 	}
 	var currency map[string]any = this.Currency(code)
 	// if not provided explicitly we will try to match using the currency name
-	var network *string = this.SafeString(paramsWithdrawTag, "network", code)
+	var networkParam *string = this.SafeString(paramsWithdrawTag, "network", code)
+	var network *string = this.SafeString(this.NetworkAliases, networkParam, networkParam)
 	var paramsOmitted map[string]any = this.OmitDict(paramsWithdrawTag, "network")
 	var currencyNetworks map[string]any = SafeMapTyped(currency, "networks")
 	var currencyNetwork map[string]any = SafeMapTyped(currencyNetworks, network)
@@ -4396,11 +4398,11 @@ func (this *Bitfinex) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes323319 []any = ListTyped(r1.Value)
-		if retRes323319 == nil {
+		var retRes323519 []any = ListTyped(r1.Value)
+		if retRes323519 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes323319}
+			ch <- AsyncResult[any]{Value: retRes323519}
 		}
 		return nil
 	}
@@ -4580,11 +4582,11 @@ func (this *Bitfinex) fetchFundingRateHistoryBody(ch chan AsyncResult[any], opti
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes335119 []any = ListTyped(r1.Value)
-		if retRes335119 == nil {
+		var retRes335319 []any = ListTyped(r1.Value)
+		if retRes335319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes335119}
+			ch <- AsyncResult[any]{Value: retRes335319}
 		}
 		return nil
 	}
@@ -4944,11 +4946,11 @@ func (this *Bitfinex) fetchOpenInterestHistoryBody(ch chan AsyncResult[any], sym
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes362919 []any = ListTyped(r1.Value)
-		if retRes362919 == nil {
+		var retRes363119 []any = ListTyped(r1.Value)
+		if retRes363119 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes362919}
+			ch <- AsyncResult[any]{Value: retRes363119}
 		}
 		return nil
 	}
@@ -5123,11 +5125,11 @@ func (this *Bitfinex) fetchLiquidationsBody(ch chan AsyncResult[any], symbol str
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes376719 []any = ListTyped(r1.Value)
-		if retRes376719 == nil {
+		var retRes376919 []any = ListTyped(r1.Value)
+		if retRes376919 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes376719}
+			ch <- AsyncResult[any]{Value: retRes376919}
 		}
 		return nil
 	}
@@ -5141,11 +5143,11 @@ func (this *Bitfinex) fetchLiquidationsBody(ch chan AsyncResult[any], symbol str
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, paramsPaginate)
 
-	listEp4881 := <-this.PublicGetLiquidationsHist(this.Extend(requestUntil, paramsUntil))
-	if listEp4881.Err != nil {
-		panic(listEp4881.Err)
+	listEp4883 := <-this.PublicGetLiquidationsHist(this.Extend(requestUntil, paramsUntil))
+	if listEp4883.Err != nil {
+		panic(listEp4883.Err)
 	}
-	var response []any = listEp4881.Value
+	var response []any = listEp4883.Value
 
 	//
 	//     [
