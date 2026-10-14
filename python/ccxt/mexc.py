@@ -2289,7 +2289,7 @@ class mexc(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         if market['spot'] is not True:
-            raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
+            raise NotSupported(self.id + ' createMarketSellOrderWithCost() supports spot orders only')
         req = {
             'cost': cost,
         }

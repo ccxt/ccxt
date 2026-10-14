@@ -4939,7 +4939,7 @@ class kucoin(Exchange, ImplicitAPI):
             request['clientOid'] = clientOrderId
         else:
             if id is None:
-                raise ArgumentsRequired(self.id + ' fetchOrder() requires an id argument or clientOrderId parameter')
+                raise ArgumentsRequired(self.id + ' cancelOrder() requires an id argument or clientOrderId parameter')
             request['orderId'] = id
         if self.markets is None:
             self.load_markets()

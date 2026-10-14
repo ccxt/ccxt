@@ -1579,7 +1579,12 @@ class testMainClass:
             while (frame_id is not None) and not self.ws_request_was_sent(exchange, url, frame_id) and (waited_sent < 5000):
                 exchange.sleep(50)
                 waited_sent = waited_sent + 50
-            inject_ws_message(exchange, url, messages[i])
+            # a frame given as { "binary": "<base16>" } is replayed as a binary frame (e.g. SBE)
+            frame = messages[i]
+            binary_frame = exchange.safe_string(frame, 'binary')
+            if binary_frame is not None:
+                frame = exchange.base16_to_binary(binary_frame)
+            inject_ws_message(exchange, url, frame)
             # threaded runtimes resolve futures on another thread — wait for
             # the consumed frame to settle so the pending check above does not
             # observe a stale future and burn the next frame early; frames

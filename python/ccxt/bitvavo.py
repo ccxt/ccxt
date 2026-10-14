@@ -1691,7 +1691,7 @@ class bitvavo(Exchange, ImplicitAPI):
         if operatorId is not None:
             request['operatorId'] = self.parse_to_int(operatorId)
         else:
-            raise ArgumentsRequired(self.id + ' canceAllOrders() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890')
+            raise ArgumentsRequired(self.id + ' cancelAllOrders() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890')
         response = self.privateDeleteOrders(self.extend(request, paramsOperatorId))
         #
         #     [

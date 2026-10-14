@@ -3172,7 +3172,7 @@ class pacifica(Exchange, ImplicitAPI):
         marketId = self.safe_string(income, 'symbol')
         marketResolved = self.safe_market(marketId, market)
         symbol = marketResolved['symbol']
-        amount = self.safe_string(income, 'amount')
+        amount = self.safe_string(income, 'payout')
         code = self.safe_currency_code('USDC')
         rate = self.safe_number(income, 'rate')
         return {
