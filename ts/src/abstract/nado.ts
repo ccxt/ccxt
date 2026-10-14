@@ -37,7 +37,7 @@ abstract class Exchange extends _Exchange {
         return this.request ("orderbook", ["gatewayV2","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     archivePost (params = {}): Promise<Dict> {
-        return this.request ("", "archive", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("", ["archive"], 'POST', params, undefined, undefined, {"cost":1});
     }
     archiveV2PublicGetTickers (params = {}): Promise<Dict> {
         return this.request ("tickers", ["archiveV2","public"], 'GET', params, undefined, undefined, {"cost":1});

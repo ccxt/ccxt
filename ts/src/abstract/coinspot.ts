@@ -10,76 +10,76 @@ import { Exchange as _Exchange } from '../base/Exchange.js';
 
 abstract class Exchange extends _Exchange {
     publicGetLatest (params = {}): Promise<Dict> {
-        return this.request ("latest", "public", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ("latest", ["public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     privatePostOrders (params = {}): Promise<Dict> {
-        return this.request ("orders", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("orders", ["private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostOrdersHistory (params = {}): Promise<Dict> {
-        return this.request ("orders/history", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("orders/history", ["private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostMyCoinDeposit (params = {}): Promise<Dict> {
-        return this.request ("my/coin/deposit", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("my/coin/deposit", ["private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostMyCoinSend (params = {}): Promise<Dict> {
-        return this.request ("my/coin/send", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("my/coin/send", ["private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostQuoteBuy (params = {}): Promise<Dict> {
-        return this.request ("quote/buy", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("quote/buy", ["private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostQuoteSell (params = {}): Promise<Dict> {
-        return this.request ("quote/sell", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("quote/sell", ["private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostMyBalances (params = {}): Promise<Dict> {
-        return this.request ("my/balances", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("my/balances", ["private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostMyOrders (params = {}): Promise<Dict> {
-        return this.request ("my/orders", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("my/orders", ["private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostMyBuy (params = {}): Promise<Dict> {
-        return this.request ("my/buy", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("my/buy", ["private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostMySell (params = {}): Promise<Dict> {
-        return this.request ("my/sell", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("my/sell", ["private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostMyBuyCancel (params = {}): Promise<Dict> {
-        return this.request ("my/buy/cancel", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("my/buy/cancel", ["private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostMySellCancel (params = {}): Promise<Dict> {
-        return this.request ("my/sell/cancel", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("my/sell/cancel", ["private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostRoMyBalances (params = {}): Promise<Dict> {
-        return this.request ("ro/my/balances", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("ro/my/balances", ["private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostRoMyBalancesCointype (params = {}): Promise<Dict> {
-        return this.request ("ro/my/balances/{cointype}", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("ro/my/balances/{cointype}", ["private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostRoMyDeposits (params = {}): Promise<Dict> {
-        return this.request ("ro/my/deposits", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("ro/my/deposits", ["private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostRoMyWithdrawals (params = {}): Promise<Dict> {
-        return this.request ("ro/my/withdrawals", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("ro/my/withdrawals", ["private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostRoMyTransactions (params = {}): Promise<Dict> {
-        return this.request ("ro/my/transactions", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("ro/my/transactions", ["private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostRoMyTransactionsCointype (params = {}): Promise<Dict> {
-        return this.request ("ro/my/transactions/{cointype}", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("ro/my/transactions/{cointype}", ["private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostRoMyTransactionsOpen (params = {}): Promise<Dict> {
-        return this.request ("ro/my/transactions/open", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("ro/my/transactions/open", ["private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostRoMyTransactionsCointypeOpen (params = {}): Promise<Dict> {
-        return this.request ("ro/my/transactions/{cointype}/open", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("ro/my/transactions/{cointype}/open", ["private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostRoMySendreceive (params = {}): Promise<Dict> {
-        return this.request ("ro/my/sendreceive", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("ro/my/sendreceive", ["private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostRoMyAffiliatepayments (params = {}): Promise<Dict> {
-        return this.request ("ro/my/affiliatepayments", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("ro/my/affiliatepayments", ["private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostRoMyReferralpayments (params = {}): Promise<Dict> {
-        return this.request ("ro/my/referralpayments", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ("ro/my/referralpayments", ["private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v2PublicGetLatest (params = {}): Promise<Dict> {
         return this.request ("latest", ["v2","public"], 'GET', params, undefined, undefined, {"cost":1});

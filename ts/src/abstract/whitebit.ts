@@ -10,7 +10,7 @@ import { Exchange as _Exchange } from '../base/Exchange.js';
 
 abstract class Exchange extends _Exchange {
     webGetV1Healthcheck (params = {}): Promise<Dict> {
-        return this.request ("v1/healthcheck", "web", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ("v1/healthcheck", ["web"], 'GET', params, undefined, undefined, {"cost":1});
     }
     v1PublicGetMarkets (params = {}): Promise<Dict> {
         return this.request ("markets", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
