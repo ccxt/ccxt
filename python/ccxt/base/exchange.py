@@ -3822,7 +3822,7 @@ class BaseExchange(object):
             return None
         return timestamp
 
-    def after_construct(self):
+    def after_construct(self, userConfig: dict = {}):
         # networks
         self.create_networks_by_id_object()
         self.features_generator()
@@ -3835,6 +3835,9 @@ class BaseExchange(object):
         isSandbox = self.safe_bool_2(self.options, 'sandbox', 'testnet', False)
         if isSandbox is True:
             self.set_sandbox_mode(isSandbox)
+        # compatibility for sandbox/testnet options in userConfig
+        if (self.safe_bool(userConfig, 'sandbox', False)) or (self.safe_bool(userConfig, 'testnet', False)):
+            self.set_sandbox_mode(True)
 
     def init_rest_rate_limiter(self):
         if self.rateLimit is None or (self.id is not None and self.rateLimit == -1):
