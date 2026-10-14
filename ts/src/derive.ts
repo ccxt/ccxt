@@ -3982,14 +3982,13 @@ export default class derive extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the L1 address to withdraw to
-     * @param {string} [tag] not used by derive.withdraw
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.max_fee_usd] the maximum accepted fee in usd, default 1, or 10 with force_batch
      * @param {bool} [params.force_batch] pay the higher fee to have the withdrawal batch proven immediately
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
