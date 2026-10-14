@@ -496,7 +496,7 @@ export default class lcx extends Exchange {
         //     }
         //
         const marketId = this.safeString (ticker, 'symbol');
-        const resolvedMarket = this.safeMarket (marketId, market);
+        const resolvedMarket = this.safeMarket (marketId, market, '/');
         const timestamp = this.safeTimestamp (ticker, 'lastUpdated');
         const last = this.safeString (ticker, 'lastPrice');
         return this.safeTicker ({
@@ -698,7 +698,7 @@ export default class lcx extends Exchange {
             }, publicMarket);
         }
         const marketId = this.safeString (trade, 'Pair');
-        const resolvedMarket = this.safeMarket (marketId, market);
+        const resolvedMarket = this.safeMarket (marketId, market, '/');
         const timestamp = this.safeTimestamp (trade, 'CreatedAt');
         let fee = undefined;
         const feeCost = this.safeString (trade, 'Fee');
@@ -1202,7 +1202,10 @@ export default class lcx extends Exchange {
         const request: Dict = {
             'orderStatus': 'CLOSED',
         };
-        return await this.fetchCanceledAndClosedOrders (symbol, since, limit, this.extend (request, params));
+        const orders = await this.fetchCanceledAndClosedOrders (symbol, since, undefined, this.extend (request, params));
+        // the orderStatus filter is not applied by the venue, so filter on the client side
+        const closed = this.filterBy (orders, 'status', 'closed');
+        return this.filterBySinceLimit (closed, since, limit);
     }
 
     /**
@@ -1221,7 +1224,10 @@ export default class lcx extends Exchange {
         const request: Dict = {
             'orderStatus': 'CANCEL',
         };
-        return await this.fetchCanceledAndClosedOrders (symbol, since, limit, this.extend (request, params));
+        const orders = await this.fetchCanceledAndClosedOrders (symbol, since, undefined, this.extend (request, params));
+        // the orderStatus filter is not applied by the venue, so filter on the client side
+        const canceled = this.filterBy (orders, 'status', 'canceled');
+        return this.filterBySinceLimit (canceled, since, limit);
     }
 
     /**
@@ -1297,7 +1303,7 @@ export default class lcx extends Exchange {
         //     }
         //
         const marketId = this.safeString (order, 'Pair');
-        const resolvedMarket = this.safeMarket (marketId, market);
+        const resolvedMarket = this.safeMarket (marketId, market, '/');
         const symbol = resolvedMarket['symbol'];
         let timestamp = this.safeTimestamp (order, 'CreatedAt');
         const lastUpdateTimestamp = this.safeTimestamp (order, 'UpdatedAt');
@@ -1332,7 +1338,7 @@ export default class lcx extends Exchange {
                 feeCurrency = resolvedMarket['quote'];
             }
             fee = {
-                'cost': feeCost,
+                'cost': this.parseNumber (feeCost),
                 'currency': feeCurrency,
             };
         }
