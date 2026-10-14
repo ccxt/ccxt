@@ -2286,6 +2286,13 @@ public partial class kucoinfutures : kucoin
         return await this.callAsync<Dictionary<string, object>> ("utaGetMarketFiatPrice",parameters);
     }
 
+    /// <summary>Calls the utaV2GetMarketFundingRate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> utaV2GetMarketFundingRate (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("utaV2GetMarketFundingRate",parameters);
+    }
+
     /// <summary>Calls the utaPrivateGetMarketOrderbook endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> utaPrivateGetMarketOrderbook (object parameters = null)

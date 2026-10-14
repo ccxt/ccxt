@@ -1,3 +1,4 @@
+import type { Num } from '../types.js';
 declare class Throttler {
     static QUEUE_COMPACTION_THRESHOLD: number;
     running: boolean;

@@ -4,7 +4,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/zebpay.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { BadRequest, AuthenticationError, NotSupported, RateLimitExceeded, ExchangeNotAvailable, ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, InsufficientFunds } from './base/errors.js';
-import type { Balances, Currencies, CurrencyInterface, Dict, Int, int, Leverage, Leverages, List, MarginModification, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Status, Endpoint } from './base/types.js';
+import type { Balances, Currencies, CurrencyInterface, Dict, Int, int, Leverage, Leverages, List, MarginModification, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Status, Endpoint, Position } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -239,17 +239,16 @@ export default class zebpay extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    override async fetchStatus (params = {}): Promise<Status> {
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchStatus', undefined, params);
+    override async fetchStatus (params: Dict = {}): Promise<Status> {
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchStatus', undefined, params);
         const isSpot = (type === 'spot');
         let response = undefined;
         let data: NullableDict = {};
         if (isSpot) {
-            response = await this.publicSpotGetV2SystemStatus (params);
+            response = await this.publicSpotGetV2SystemStatus (paramsMarketType);
             data = response;
         } else {
-            response = await this.publicSwapGetV1SystemStatus (params);
+            response = await this.publicSwapGetV1SystemStatus (paramsMarketType);
             data = this.safeDict (response, 'data', {});
         }
         //
@@ -282,17 +281,16 @@ export default class zebpay extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the poloniexfutures server
      */
-    override async fetchTime (params = {}): Promise<Int> {
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
+    override async fetchTime (params: Dict = {}): Promise<Int> {
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
         const isSpot = (type === 'spot');
         let response = undefined;
         let data: NullableDict = {};
         if (isSpot) {
-            response = await this.publicSpotGetV2SystemTime (params);
+            response = await this.publicSpotGetV2SystemTime (paramsMarketType);
             data = response;
         } else {
-            response = await this.publicSwapGetV1SystemTime (params);
+            response = await this.publicSwapGetV1SystemTime (paramsMarketType);
             data = this.safeDict (response, 'data', {});
         }
         //
@@ -319,13 +317,13 @@ export default class zebpay extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const promisesUnresolved: List = [];
         const fetchMarketsOptions = this.safeDict (this.options, 'fetchMarkets');
         const defaultMarkets = [ 'spot', 'swap' ];
         const types = this.safeList (fetchMarketsOptions, 'types', defaultMarkets);
         for (let i = 0; i < types.length; i++) {
-            const type = types[i];
+            const type = this.safeString (types, i);
             if (type === 'spot') {
                 promisesUnresolved.push (this.fetchSpotMarkets (params));
             } else if (type === 'swap') {
@@ -348,7 +346,7 @@ export default class zebpay extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    override async fetchCurrencies (params = {}): Promise<Currencies> {
+    override async fetchCurrencies (params: Dict = {}): Promise<Currencies> {
         const response = await this.publicSpotGetV2ExCurrencies (params);
         //
         //     {
@@ -390,7 +388,7 @@ export default class zebpay extends Exchange {
         const code = this.safeCurrencyCode (currencyId);
         const name = this.safeString (rawCurrency, 'name');
         const precision = this.parseNumber (this.parsePrecision (this.safeString (rawCurrency, 'precision')));
-        const chains = this.safeList (rawCurrency, 'chains', []);
+        const chains: Dict[] = this.safeList (rawCurrency, 'chains', []);
         const networks: Dict = {};
         let minWithdrawFeeString: Str = undefined;
         let minWithdrawString: Str = undefined;
@@ -401,9 +399,9 @@ export default class zebpay extends Exchange {
             const chain = chains[j];
             const networkId = this.safeString (chain, 'chainId');
             const networkCode = this.networkIdToCode (networkId, code);
-            const depositAllowed = this.safeBool (chain, 'isDepositEnabled') === true;
+            const depositAllowed = this.safeBool (chain, 'isDepositEnabled', false);
             deposit = (depositAllowed) ? depositAllowed : deposit;
-            const withdrawAllowed = this.safeBool (chain, 'isWithdrawEnabled') === true;
+            const withdrawAllowed = this.safeBool (chain, 'isWithdrawEnabled', false);
             withdraw = (withdrawAllowed) ? withdrawAllowed : withdraw;
             const withdrawFeeString = this.safeString (chain, 'withdrawalFee');
             if (withdrawFeeString !== undefined) {
@@ -479,13 +477,13 @@ export default class zebpay extends Exchange {
      * @param {object} [params.side] side to fetch trading fee
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    override async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
+    override async fetchTradingFee (symbol: string, params: Dict = {}): Promise<TradingFeeInterface> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
         let response = undefined;
-        let data;
+        let data: NullableDict = undefined;
         const request: Dict = {
             'symbol': market['id'],
         };
@@ -535,14 +533,13 @@ export default class zebpay extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    override async fetchTradingFees (params = {}): Promise<TradingFees> {
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchTradingFees', undefined, params);
+    override async fetchTradingFees (params: Dict = {}): Promise<TradingFees> {
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTradingFees', undefined, params);
         let response = undefined;
         if (type === 'spot') {
-            response = await this.publicSpotGetV2ExTradefees (params);
+            response = await this.publicSpotGetV2ExTradefees (paramsMarketType);
         } else {
-            response = await this.publicSwapGetV1ExchangeTradefees (params);
+            response = await this.publicSwapGetV1ExchangeTradefees (paramsMarketType);
         }
         //
         // {
@@ -577,11 +574,11 @@ export default class zebpay extends Exchange {
      * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-order-book
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#get-order-book
      * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -589,11 +586,11 @@ export default class zebpay extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
         let response = undefined;
         if (market['spot'] === true) {
-            if (limit !== undefined) {
-                request['limit'] = limit;
-            }
             //
             //       {
             //         "asks": [
@@ -626,7 +623,7 @@ export default class zebpay extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -671,17 +668,16 @@ export default class zebpay extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
+    override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
         if (type !== 'spot') {
             throw new NotSupported (this.id + ' fetchTickers() does not support ' + type + ' markets');
         }
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
-        const response = await this.publicSpotGetV2MarketAllTickers (params);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
+        const response = await this.publicSpotGetV2MarketAllTickers (paramsMarketType);
         //
         //     [
         //        {
@@ -700,8 +696,8 @@ export default class zebpay extends Exchange {
         //        }
         //     ]
         //
-        const tickerList = this.safeList (response, 'data', []);
-        return this.parseTickers (tickerList, symbols);
+        const tickerList: Dict[] = this.safeList (response, 'data', []);
+        return this.parseTickers (tickerList, symbolsNormalized);
     }
 
     /**
@@ -713,50 +709,56 @@ export default class zebpay extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch. Swap: 1–1000, omit for 1000
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch (inclusive). Swap: requires since
      * @param {int} [params.endtime] the latest time in ms to fetch orders for
+     * @param {string} [params.priceType] *swap only* LTP (default) or MARK_PRICE
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (limit === undefined) {
-            limit = 100; // default is 200
-        }
         const request: Dict = {
             'symbol': market['id'],
         };
-        if (market['spot'] === true) {
-            request['interval'] = this.safeString (this.timeframes, timeframe, timeframe);
-        } else {
-            request['interval'] = timeframe;
-        }
-        if ((market['contract'] === true) && (limit !== undefined)) {
-            request['limit'] = limit;
-        }
-        if (since !== undefined) {
-            if (market['spot'] === true) {
-                request['startTime'] = since;
-            } else {
-                request['since'] = since;
-            }
-        }
         const until = this.safeInteger2 (params, 'until', 'endtime');
-        if (until !== undefined) {
-            request['endTime'] = until;
-            params = this.omit (params, [ 'endtime', 'until' ]);
-        }
+        const paramsOmitted = this.omit (params, [ 'until', 'endtime', 'endTime', 'interval', 'startTime' ]);
         let response = undefined;
+        let limitResolved: Int = limit;
         if (market['spot'] === true) {
+            if (limit === undefined) {
+                limitResolved = 100;
+            }
+            request['interval'] = this.safeString (this.timeframes, timeframe, timeframe);
+            if (since !== undefined) {
+                request['startTime'] = since;
+            }
+            if (until !== undefined) {
+                request['endTime'] = until;
+            }
             if (until === undefined || since === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a both a since and until/endtime parameter for spot markets');
             }
-            response = await this.publicSpotGetV2MarketKlines (this.extend (request, params));
+            const paramsSpot = this.omit (paramsOmitted, 'priceType');
+            response = await this.publicSpotGetV2MarketKlines (this.extend (request, paramsSpot));
         } else {
-            response = await this.publicSwapPostV1MarketKlines (this.extend (request, params));
+            request['timeframe'] = timeframe;
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            if (since !== undefined) {
+                request['since'] = since;
+            }
+            if (until !== undefined) {
+                if (since === undefined) {
+                    throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a since argument when params["until"] is used');
+                }
+                request['until'] = until;
+            }
+            response = await this.publicSwapPostV1MarketKlines (this.extend (request, paramsOmitted));
         }
         //
         //             [
@@ -790,7 +792,7 @@ export default class zebpay extends Exchange {
         //             ]
         //
         const data = this.safeList (response, 'data', []) as List;
-        return this.parseOHLCVs (data, market, timeframe, since, limit);
+        return this.parseOHLCVs (data, market, timeframe, since, limitResolved);
     }
 
     /**
@@ -805,7 +807,7 @@ export default class zebpay extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -849,7 +851,7 @@ export default class zebpay extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -857,13 +859,12 @@ export default class zebpay extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         let response = undefined;
         if (type === 'spot') {
             throw new NotSupported (this.id + ' fetchMyTrades() does not support spot markets');
         } else {
-            response = await this.privateSwapGetV1TradeHistory (params);
+            response = await this.privateSwapGetV1TradeHistory (paramsMarketType);
         }
         const data = this.safeDict (response, 'data', {});
         const items = this.safeList (data, 'items', []) as List;
@@ -882,9 +883,8 @@ export default class zebpay extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrderTrades', undefined, params);
+    override async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOrderTrades', undefined, params);
         if (type !== 'spot') {
             throw new NotSupported (this.id + ' fetchOrderTrades() does not support ' + type + ' markets');
         }
@@ -894,7 +894,7 @@ export default class zebpay extends Exchange {
         const request: Dict = {
             'orderId': id,
         };
-        const response = await this.privateSpotGetV2ExOrderFills (this.extend (request, params));
+        const response = await this.privateSpotGetV2ExOrderFills (this.extend (request, paramsMarketType));
         //
         //         {
         //             "orderId": "456789",
@@ -954,8 +954,8 @@ export default class zebpay extends Exchange {
         const orderId = this.safeString2 (trade, 'id', 'order');
         const timestamp = this.safeInteger2 (trade, 'timestamp', 'tradeTime');
         const marketId = this.safeString (trade, 'symbol');
-        market = this.safeMarket (marketId, market, '_');
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market, '_');
+        const symbol = marketResolved['symbol'];
         const side = this.safeStringLower (trade, 'side');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString2 (trade, 'amount', 'quantity');
@@ -973,7 +973,7 @@ export default class zebpay extends Exchange {
             'amount': amountString,
             'cost': this.safeString (trade, 'cost'),
             'fee': this.safeDict (trade, 'fee'),
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -985,18 +985,17 @@ export default class zebpay extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const isSpot = (type === 'spot');
         let response = undefined;
         if (isSpot) {
-            response = await this.privateSpotGetV2AccountBalance (params);
+            response = await this.privateSpotGetV2AccountBalance (paramsMarketType);
         } else {
-            response = await this.privateSwapGetV1WalletBalance (params);
+            response = await this.privateSwapGetV1WalletBalance (paramsMarketType);
         }
         //
         //     {
@@ -1038,7 +1037,7 @@ export default class zebpay extends Exchange {
      * @param {string} [params.positionId] PositionId of the order.
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1046,21 +1045,19 @@ export default class zebpay extends Exchange {
         const upperCaseType = type.toUpperCase ();
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         const stopLossPrice = this.safeString (params, 'stopLossPrice');
-        params = this.omit (params, [ 'marginAsset', 'takeProfitPrice', 'takeProfitPrice' ]);
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
-        }
+        let query: Dict = this.omit (params, [ 'marginAsset', 'takeProfitPrice', 'takeProfitPrice' ]);
+        this.checkRequiredArgument ('createOrder', side, 'side');
         let request: Dict = {
             'symbol': market['id'],
             'side': side.toUpperCase (),
         };
         let response = undefined;
         if (market['spot'] === true) {
-            [ request, params ] = this.orderRequest (symbol, type, amount, request, price, params);
-            response = await this.privateSpotPostV2ExOrders (this.extend (request, params));
+            [ request, query ] = this.orderRequest (symbol, type, amount, request, price, query);
+            response = await this.privateSpotPostV2ExOrders (this.extend (request, query));
         } else {
-            const marginAsset = this.safeString (params, 'marginAsset', 'INR');
-            const formType = this.safeStringUpper (params, 'formType', 'ORDER_FORM');
+            const marginAsset = this.safeString (query, 'marginAsset', 'INR');
+            const formType = this.safeStringUpper (query, 'formType', 'ORDER_FORM');
             request['formType'] = formType;
             request['amount'] = this.parseToNumeric (this.amountToPrecision (market['id'], amount));
             request['marginAsset'] = marginAsset;
@@ -1073,7 +1070,7 @@ export default class zebpay extends Exchange {
                 if (hasSL) {
                     request['stopLossPrice'] = this.parseToNumeric (this.priceToPrecision (symbol, stopLossPrice));
                 }
-                response = await this.privateSwapPostV1TradeOrderAddTPSL (this.extend (request, params));
+                response = await this.privateSwapPostV1TradeOrderAddTPSL (this.extend (request, query));
             } else {
                 request['type'] = upperCaseType;
                 if (type === 'limit') {
@@ -1082,7 +1079,7 @@ export default class zebpay extends Exchange {
                     }
                     request['price'] = this.parseToNumeric (this.priceToPrecision (symbol, price));
                 }
-                response = await this.privateSwapPostV1TradeOrder (this.extend (request, params));
+                response = await this.privateSwapPostV1TradeOrder (this.extend (request, query));
             }
         }
         //
@@ -1096,13 +1093,13 @@ export default class zebpay extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    orderRequest (symbol: any, type: any, amount: any, request: any, price: Num = undefined, params = {}) {
+    orderRequest (symbol: string, type: string, amount: Num, request: Dict, price: Num = undefined, params: Dict = {}) {
         const upperCaseType = type.toUpperCase ();
         const triggerPrice = this.safeString (params, 'stopLossPrice');
         const quoteOrderQty = this.safeString2 (params, 'quoteOrderQty', 'cost', undefined);
         const timeInForce = this.safeString (params, 'timeInForce', 'GTC');
         const clientOrderId = this.safeString (params, 'clientOrderId', this.uuid ());
-        params = this.omit (params, [ 'stopLossPrice', 'cost', 'timeInForce', 'clientOrderId' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'stopLossPrice', 'cost', 'timeInForce', 'clientOrderId' ]);
         request['type'] = upperCaseType;
         request['clientOrderId'] = clientOrderId;
         request['timeInForce'] = timeInForce;
@@ -1118,7 +1115,7 @@ export default class zebpay extends Exchange {
             request['amount'] = this.amountToPrecision (symbol, amount);
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        return [ request, params ];
+        return [ request, paramsOmitted ];
     }
 
     /**
@@ -1133,7 +1130,7 @@ export default class zebpay extends Exchange {
      * @param {object} [params.timestamp] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1173,16 +1170,15 @@ export default class zebpay extends Exchange {
      * @param {int} [params.timestamp] the timestamp of the request in ms
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelAllOrders (symbol: Str = undefined, params = {}) {
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', undefined, params);
+    override async cancelAllOrders (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('cancelAllOrders', undefined, params);
         if (type !== 'spot') {
             throw new NotSupported (this.id + ' cancelAllOrders() does not support ' + type + ' markets');
         }
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const response = await this.privateSpotDeleteV2ExOrdersCancelAll (params);
+        const response = await this.privateSpotDeleteV2ExOrdersCancelAll (paramsMarketType);
         //
         //    {
         //        "data": {
@@ -1208,7 +1204,7 @@ export default class zebpay extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1217,7 +1213,7 @@ export default class zebpay extends Exchange {
             'symbol': market['id'],
         };
         let response = undefined;
-        let orders: List = [];
+        let orders: Dict[] = [];
         if (market['spot'] === true) {
             request['currentPage'] = 1;
             if (limit !== undefined) {
@@ -1225,7 +1221,7 @@ export default class zebpay extends Exchange {
             }
             response = await this.privateSpotGetV2ExOrders (this.extend (request, params));
             const responseData = this.safeDict (response, 'data', {});
-            orders = this.safeList (responseData, 'items', []) as List;
+            orders = this.safeList (responseData, 'items', []);
         } else {
             if (since !== undefined) {
                 request['since'] = since;
@@ -1235,7 +1231,7 @@ export default class zebpay extends Exchange {
             }
             response = await this.privateSwapGetV1TradeOrderOpenOrders (this.extend (request, params));
             const responseData = this.safeDict (response, 'data', {});
-            orders = this.safeList (responseData, 'data', []) as List;
+            orders = this.safeList (responseData, 'data', []);
         }
         //
         //     {
@@ -1278,7 +1274,7 @@ export default class zebpay extends Exchange {
      * @param {string} [params.timestamp] cancel order by client order id
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1340,8 +1336,8 @@ export default class zebpay extends Exchange {
         //      }
         //
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         const type = this.safeString (order, 'type');
         const timestamp = this.safeNumber (order, 'timestamp');
         const datetime = this.iso8601 (timestamp);
@@ -1376,7 +1372,7 @@ export default class zebpay extends Exchange {
             'lastUpdateTimestamp': undefined,
             'average': undefined,
             'trades': undefined,
-        }, market);
+        }, marketResolved);
         return parsedOrder;
     }
 
@@ -1391,7 +1387,7 @@ export default class zebpay extends Exchange {
      * @param {string} [params.positionId] client order id of the order
      * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    override async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
+    override async closePosition (symbol: string, side: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1413,7 +1409,7 @@ export default class zebpay extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    override async fetchLeverages (symbols: Strings = undefined, params = {}): Promise<Leverages> {
+    override async fetchLeverages (symbols: Strings = undefined, params: Dict = {}): Promise<Leverages> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1443,7 +1439,7 @@ export default class zebpay extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    override async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+    override async fetchLeverage (symbol: string, params: Dict = {}): Promise<Leverage> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1471,7 +1467,7 @@ export default class zebpay extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params: Dict = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -1499,7 +1495,7 @@ export default class zebpay extends Exchange {
      * @param {object} [params] Not used by krakenfutures
      * @returns Parsed exchange response for positions
      */
-    override async fetchPositions (symbols: Strings = undefined, params = {}) {
+    override async fetchPositions (symbols: Strings = undefined, params: Dict = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1521,9 +1517,9 @@ export default class zebpay extends Exchange {
         //        ],
         //    }
         //
-        const positions = this.safeList (response, 'data', []);
+        const positions: Dict[] = this.safeList (response, 'data', []);
         const result = this.parsePositions (positions);
-        return this.filterByArrayPositions (result, 'symbol', symbols, false);
+        return this.filterByArrayPositions (result, 'symbol', symbols);
     }
 
     /**
@@ -1538,7 +1534,7 @@ export default class zebpay extends Exchange {
      * @param {string} [params.timestamp] Tiemstamp.
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    override async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+    override async addMargin (symbol: string, amount: number, params: Dict = {}): Promise<MarginModification> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1585,7 +1581,7 @@ export default class zebpay extends Exchange {
      * @param {string} [params.timestamp] Tiemstamp.
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    override async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+    override async reduceMargin (symbol: string, amount: number, params: Dict = {}): Promise<MarginModification> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1614,7 +1610,7 @@ export default class zebpay extends Exchange {
         });
     }
 
-    async fetchSpotMarkets (params: any = {}): Promise<Market[]> {
+    async fetchSpotMarkets (params: Dict = {}): Promise<Market[]> {
         const response = await this.publicSpotGetV2ExExchangeInfo (params);
         //
         //    {
@@ -1636,7 +1632,7 @@ export default class zebpay extends Exchange {
         //
         const result: List = [];
         const data = this.safeDict (response, 'data', {});
-        const markets = this.safeList (data, 'symbols', []);
+        const markets: Dict[] = this.safeList (data, 'symbols', []);
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'symbol');
@@ -1644,6 +1640,9 @@ export default class zebpay extends Exchange {
             const quoteId = this.safeString (market, 'quoteAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const symbol = base + '/' + quote;
             result.push ({
                 'id': id,
@@ -1688,7 +1687,7 @@ export default class zebpay extends Exchange {
         return result;
     }
 
-    async fetchSwapMarkets (params: any = {}): Promise<Market[]> {
+    async fetchSwapMarkets (params: Dict = {}): Promise<Market[]> {
         const response = await this.publicSwapGetV1MarketMarkets (params);
         //
         //    {
@@ -1715,7 +1714,7 @@ export default class zebpay extends Exchange {
         //
         const result: List = [];
         const data = this.safeDict (response, 'data', {});
-        const markets = this.safeList (data, 'symbols', []);
+        const markets: Dict[] = this.safeList (data, 'symbols', []);
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'symbol');
@@ -1723,6 +1722,9 @@ export default class zebpay extends Exchange {
             const quoteId = this.safeString (market, 'quoteAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const settle = this.safeCurrencyCode (quoteId);
             const status = this.safeString (market, 'status');
             const symbol = base + '/' + quote;
@@ -1767,9 +1769,9 @@ export default class zebpay extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        const currencyList = this.safeList (response, 'data', []);
+        const currencyList: Dict[] = this.safeList (response, 'data', []);
         for (let i = 0; i < currencyList.length; i++) {
-            const entry = currencyList[i];
+            const entry = this.safeDict (currencyList, i);
             const account = this.account ();
             account['total'] = this.safeString (entry, 'total');
             account['free'] = this.safeString (entry, 'free');
@@ -1798,7 +1800,7 @@ export default class zebpay extends Exchange {
         const leverage = this.safeNumber (position, 'leverage');
         const datetime = this.safeString (position, 'datetime');
         const marketId = this.safeString (position, 'symbol');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         return {
             'info': position,
             'symbol': marketId,
@@ -1813,12 +1815,12 @@ export default class zebpay extends Exchange {
             'leverage': leverage,
             'unrealizedPnl': undefined,
             'contracts': this.safeNumber (position, 'contracts'),
-            'contractSize': this.safeNumber (market, 'contractSize'),
+            'contractSize': this.safeNumber (marketResolved, 'contractSize'),
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
             'markPrice': undefined,
             'collateral': undefined,
-            'marginType': 'isolated',
+            'marginMode': 'isolated',
             'side': this.safeString (position, 'side'),
             'percentage': undefined,
         };
@@ -1873,15 +1875,14 @@ export default class zebpay extends Exchange {
         //
         const timestamp = this.safeInteger2 (ticker, 'timestamp', 'ts');
         const marketId = this.safeString (ticker, 'symbol');
-        market = this.safeMarket (marketId);
+        const marketResolved: Market = this.safeMarket (marketId);
         const close = this.safeString (ticker, 'close');
         const last = this.safeString (ticker, 'last');
         const percentage = this.safeString (ticker, 'percentage');
         const bidVolume = this.safeString (ticker, 'bidVolume');
         const askVolume = this.safeString (ticker, 'askVolume');
         return this.safeTicker ({
-            'id': marketId,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeString (ticker, 'high'),
@@ -1902,10 +1903,10 @@ export default class zebpay extends Exchange {
             'quoteVolume': this.safeString (ticker, 'quoteVolume'),
             'markPrice': undefined,
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
-    override parseMarginModification (info: any, market: Market = undefined): MarginModification {
+    override parseMarginModification (info: Dict, market: Market = undefined): MarginModification {
         //
         //    {
         //         "symbol": "BTCINR",
@@ -1915,7 +1916,6 @@ export default class zebpay extends Exchange {
         //         "status": "ok"
         //    }
         //
-        const timestamp = this.milliseconds ();
         return {
             'info': info,
             'symbol': this.safeString (market, 'id'),
@@ -1925,31 +1925,45 @@ export default class zebpay extends Exchange {
             'total': undefined,
             'code': this.safeString (info, 'code'),
             'status': this.safeString (info, 'status'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined) {
-        params = this.omit (params, 'defaultType');
+    override sign (path: string, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        let bodySigned: Str = undefined;
+        let headersSigned: NullableDict = undefined;
+        const paramsOmitted: Dict = this.omit (params, 'defaultType');
         const isV1 = path.indexOf ('v1/') > -1;
-        const marketType = isV1 ? 'swap' : 'spot';
-        let url = this.urls['api'][marketType];
-        const tail = '/api/' + this.implodeParams (path, params);
+        let marketType: Str = 'spot';
+        if (isV1) {
+            marketType = 'swap';
+        }
+        const baseApiUrl = this.safeString (this.urls['api'], marketType);
+        if (baseApiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url: string = baseApiUrl;
+        const tail = '/api/' + this.implodeParams (path, paramsOmitted);
         url += tail;
         const timestamp = this.milliseconds ().toString ();
         let signature = '';
-        const query = this.omit (params, this.extractParams (path));
+        const query = this.omit (paramsOmitted, this.extractParams (path));
         const queryLength = Object.keys (query).length;
         const access = this.safeString (api, 0, 'public');
         if (access === 'public') {
             if (method === 'GET' || method === 'DELETE') {
-                if ((queryLength !== undefined) && (queryLength !== 0)) {
+                if (queryLength !== 0) {
                     url += '?' + this.urlencode (query);
                 }
             } else {
-                body = JSON.stringify (params);
-                headers = {
+                const priceType = this.safeString (paramsOmitted, 'priceType');
+                const paramsBody = this.omit (paramsOmitted, 'priceType');
+                if (priceType !== undefined) {
+                    url += '?' + this.urlencode ({ 'priceType': priceType });
+                }
+                bodySigned = JSON.stringify (paramsBody);
+                headersSigned = {
                     'Referrer': 'ccxt',
                     'Content-Type': 'application/json',
                 };
@@ -1957,25 +1971,27 @@ export default class zebpay extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             const isSpot = marketType === 'spot';
-            params['timestamp'] = timestamp;
+            paramsOmitted['timestamp'] = timestamp;
             if (method === 'GET' || (method === 'DELETE' && isSpot)) {
                 // For GET/DELETE: Append params to URL and sign the query string
-                const queryString = this.urlencode (params);
+                const queryString = this.urlencode (paramsOmitted);
                 signature = this.hmac (this.encode (queryString), this.encode (this.secret), sha256, 'hex');
                 url += '?' + queryString;
             } else {
                 // For POST/PUT: Convert body to JSON and sign the stringified payload
-                body = this.json (params);
-                signature = this.hmac (this.encode (body), this.encode (this.secret), sha256, 'hex');
+                bodySigned = this.json (paramsOmitted);
+                signature = this.hmac (this.encode (bodySigned), this.encode (this.secret), sha256, 'hex');
             }
-            headers = {
+            headersSigned = {
                 'Referrer': 'ccxt',
                 'X-AUTH-APIKEY': this.apiKey,
                 'X-AUTH-SIGNATURE': signature,
             };
-            headers['Content-Type'] = 'application/json';
+            headersSigned['Content-Type'] = 'application/json';
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const headersResolved: NullableDict = (headersSigned === undefined) ? headers : headersSigned;
+        const bodyResolved: Str = (bodySigned === undefined) ? body : bodySigned;
+        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

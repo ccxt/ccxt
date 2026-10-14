@@ -9,45 +9,12 @@ import (
 )
 
 type PreciseStruct struct {
-	Decimals any
-	integer  *big.Int
+	Decimals   any
+	integer    *big.Int
+	baseNumber int64
 }
 
 var Precise = &PreciseStruct{}
-
-// static bounded lookup table for 10^n, n in [0, 128] — order-independent,
-// never invalidated, uniform O(1) cost for any input (falls back to
-// exponentiation for exponents beyond the table). Entries are only ever
-// used as read-only operation operands, never as receivers, so they are
-// never mutated.
-var precisePow10Table = func() []*big.Int {
-	table := make([]*big.Int, 129)
-	table[0] = big.NewInt(1)
-	ten := big.NewInt(10)
-	for i := 1; i <= 128; i++ {
-		table[i] = new(big.Int).Mul(table[i-1], ten)
-	}
-	return table
-}()
-
-func precisePow10(exponent int64) *big.Int {
-	if exponent >= 0 && exponent < int64(len(precisePow10Table)) {
-		return precisePow10Table[exponent]
-	}
-	return new(big.Int).Exp(big.NewInt(preciseBaseNumber), big.NewInt(exponent), nil)
-}
-
-const preciseBaseNumber = 10
-
-// internal constructor from an already-computed integer — arithmetic
-// methods use this to avoid formatting the result to a decimal string and
-// re-parsing it through the public constructor
-func newPrecise(integer *big.Int, decimals int) *PreciseStruct {
-	return &PreciseStruct{
-		Decimals: decimals,
-		integer:  integer,
-	}
-}
 
 func NewPrecise(number2 any, dec2 ...any) *PreciseStruct {
 	var dec int
@@ -56,21 +23,18 @@ func NewPrecise(number2 any, dec2 ...any) *PreciseStruct {
 	} else {
 		dec = math.MinInt32
 	}
-	// fmt.Sprintf is only needed for non-string inputs, which are rare
-	var number string
-	if s, ok := number2.(string); ok {
-		number = s
-	} else {
-		number = fmt.Sprintf("%v", number2)
+
+	// a maybe-undefined operand may arrive as a pointer; format the pointed-at value
+	number2 = derefScalar(number2)
+	number := fmt.Sprintf("%v", number2)
+	p := &PreciseStruct{
+		baseNumber: 10,
 	}
-	p := &PreciseStruct{}
-	p.integer = new(big.Int)
+
 	if dec == math.MinInt32 {
-		// scientific notation is rare — only lower and split when an
-		// exponent marker is actually present
 		modified := 0
-		if strings.IndexByte(number, 'e') > -1 || strings.IndexByte(number, 'E') > -1 {
-			numberLowerCase := strings.ToLower(number)
+		numberLowerCase := strings.ToLower(number)
+		if strings.Contains(numberLowerCase, "e") {
 			parts := strings.Split(numberLowerCase, "e")
 			number = parts[0]
 			modified, _ = strconv.Atoi(parts[1])
@@ -79,23 +43,27 @@ func NewPrecise(number2 any, dec2 ...any) *PreciseStruct {
 		var newDecimals int
 		if decimalIndex > -1 {
 			newDecimals = len(number) - decimalIndex - 1
+		} else {
+			newDecimals = 0
 		}
-		// strip every dot, not just the first — slicing around the first dot
-		// only would leave residual dots on malformed multi-dot input, and
-		// SetString would then silently parse just the leading digit prefix
+		p.Decimals = newDecimals
 		integerString := strings.Replace(number, ".", "", -1)
+		p.integer = new(big.Int)
 		p.integer.SetString(integerString, 10)
 		p.Decimals = newDecimals - modified
 	} else {
+		p.integer = new(big.Int)
 		p.integer.SetString(number, 10)
 		p.Decimals = dec
 	}
+
 	return p
 }
 
 func (p *PreciseStruct) Mul(other *PreciseStruct) *PreciseStruct {
 	integer := new(big.Int).Mul(p.integer, other.integer)
-	return newPrecise(integer, p.Decimals.(int)+other.Decimals.(int))
+	decimals := derefScalar(p.Decimals).(int) + derefScalar(other.Decimals).(int)
+	return NewPrecise(integer.String(), decimals)
 }
 
 func (p *PreciseStruct) Div(other *PreciseStruct, precision2 ...any) *PreciseStruct {
@@ -105,94 +73,63 @@ func (p *PreciseStruct) Div(other *PreciseStruct, precision2 ...any) *PreciseStr
 	}
 	distance := precision - ParseInt(p.Decimals) + ParseInt(other.Decimals)
 	var numerator *big.Int
+
 	if distance == 0 {
 		numerator = p.integer
 	} else if distance < 0 {
-		exponent := precisePow10(-distance)
+		exponent := new(big.Int).Exp(big.NewInt(p.baseNumber), big.NewInt(int64(-distance)), nil)
 		// Quo truncates toward zero, matching JS BigInt division (big.Int.Div is Euclidean and rounds toward -inf for negatives)
 		numerator = new(big.Int).Quo(p.integer, exponent)
 	} else {
-		exponent := precisePow10(distance)
+		exponent := new(big.Int).Exp(big.NewInt(p.baseNumber), big.NewInt(int64(distance)), nil)
 		numerator = new(big.Int).Mul(p.integer, exponent)
 	}
 	result := new(big.Int).Quo(numerator, other.integer)
-	return newPrecise(result, int(precision))
+	return NewPrecise(result.String(), precision)
 }
 
 func (p *PreciseStruct) Add(other *PreciseStruct) *PreciseStruct {
 	if p.Decimals == other.Decimals {
 		integerResult := new(big.Int).Add(p.integer, other.integer)
-		return newPrecise(integerResult, p.Decimals.(int))
-	}
-	var smaller, bigger *PreciseStruct
-	if p.Decimals.(int) < other.Decimals.(int) {
-		smaller = p
-		bigger = other
+		return NewPrecise(integerResult.String(), derefScalar(p.Decimals).(int))
 	} else {
-		smaller = other
-		bigger = p
+		var smaller, bigger *PreciseStruct
+		if derefScalar(p.Decimals).(int) < derefScalar(other.Decimals).(int) {
+			smaller = p
+			bigger = other
+		} else {
+			smaller = other
+			bigger = p
+		}
+		exponent := derefScalar(bigger.Decimals).(int) - derefScalar(smaller.Decimals).(int)
+		normalized := new(big.Int).Mul(smaller.integer, new(big.Int).Exp(big.NewInt(p.baseNumber), big.NewInt(int64(exponent)), nil))
+		result := new(big.Int).Add(normalized, bigger.integer)
+		return NewPrecise(result.String(), derefScalar(bigger.Decimals).(int))
 	}
-	exponent := int64(bigger.Decimals.(int) - smaller.Decimals.(int))
-	normalized := new(big.Int).Mul(smaller.integer, precisePow10(exponent))
-	result := new(big.Int).Add(normalized, bigger.integer)
-	return newPrecise(result, bigger.Decimals.(int))
 }
 
 func (p *PreciseStruct) Mod(other *PreciseStruct) *PreciseStruct {
-	pDecimals := p.Decimals.(int)
-	otherDecimals := other.Decimals.(int)
-	rationizerNumerator := otherDecimals - pDecimals
-	if rationizerNumerator < 0 {
-		rationizerNumerator = 0
-	}
-	numerator := new(big.Int).Mul(p.integer, precisePow10(int64(rationizerNumerator)))
-	rationizerDenominator := pDecimals - otherDecimals
-	if rationizerDenominator < 0 {
-		rationizerDenominator = 0
-	}
-	denominator := new(big.Int).Mul(other.integer, precisePow10(int64(rationizerDenominator)))
+	rationizerNumerator := int(math.Max(float64(-derefScalar(p.Decimals).(int)+derefScalar(other.Decimals).(int)), 0))
+	numerator := new(big.Int).Mul(p.integer, new(big.Int).Exp(big.NewInt(p.baseNumber), big.NewInt(int64(rationizerNumerator)), nil))
+	rationizerDenominator := int(math.Max(float64(-derefScalar(other.Decimals).(int)+derefScalar(p.Decimals).(int)), 0))
+	denominator := new(big.Int).Mul(other.integer, new(big.Int).Exp(big.NewInt(p.baseNumber), big.NewInt(int64(rationizerDenominator)), nil))
 	result := new(big.Int).Mod(numerator, denominator)
-	return newPrecise(result, rationizerDenominator+otherDecimals)
+	return NewPrecise(result.String(), rationizerDenominator+derefScalar(other.Decimals).(int))
 }
 
 func (p *PreciseStruct) Sub(other *PreciseStruct) *PreciseStruct {
-	// inlined addition of the negation, avoiding an intermediate instance
-	if p.Decimals == other.Decimals {
-		result := new(big.Int).Sub(p.integer, other.integer)
-		return newPrecise(result, p.Decimals.(int))
-	}
-	var smallerInteger, biggerInteger *big.Int
-	var smallerDecimals, biggerDecimals int
-	var pIsBigger bool
-	if p.Decimals.(int) > other.Decimals.(int) {
-		smallerInteger = other.integer
-		smallerDecimals = other.Decimals.(int)
-		biggerInteger = p.integer
-		biggerDecimals = p.Decimals.(int)
-		pIsBigger = true
-	} else {
-		smallerInteger = p.integer
-		smallerDecimals = p.Decimals.(int)
-		biggerInteger = other.integer
-		biggerDecimals = other.Decimals.(int)
-	}
-	normalized := new(big.Int).Mul(smallerInteger, precisePow10(int64(biggerDecimals-smallerDecimals)))
-	var result *big.Int
-	if pIsBigger {
-		result = new(big.Int).Sub(biggerInteger, normalized)
-	} else {
-		result = new(big.Int).Sub(normalized, biggerInteger)
-	}
-	return newPrecise(result, biggerDecimals)
+	negative := NewPrecise(new(big.Int).Neg(other.integer).String(), derefScalar(other.Decimals).(int))
+	return p.Add(negative)
 }
 
 func (p *PreciseStruct) Or(other *PreciseStruct) *PreciseStruct {
 	integer := new(big.Int).Or(p.integer, other.integer)
-	return newPrecise(integer, p.Decimals.(int)+other.Decimals.(int))
+	decimals := derefScalar(p.Decimals).(int) + derefScalar(other.Decimals).(int)
+	return NewPrecise(integer.String(), decimals)
 }
 
 func (p *PreciseStruct) Neg() *PreciseStruct {
-	return newPrecise(new(big.Int).Neg(p.integer), p.Decimals.(int))
+	return NewPrecise(new(big.Int).Neg(p.integer).String(), derefScalar(p.Decimals).(int))
 }
 
 func (p *PreciseStruct) Min(other *PreciseStruct) *PreciseStruct {
@@ -209,317 +146,368 @@ func (p *PreciseStruct) Max(other *PreciseStruct) *PreciseStruct {
 	return other
 }
 
-// aligned comparison without intermediate instance allocation: aligns the
-// operand with fewer decimals by multiplying its integer by 10^difference,
-// then compares the scaled integers
-func (p *PreciseStruct) cmp(other *PreciseStruct) int {
-	pDecimals := p.Decimals.(int)
-	otherDecimals := other.Decimals.(int)
-	if pDecimals == otherDecimals {
-		return p.integer.Cmp(other.integer)
-	}
-	if pDecimals > otherDecimals {
-		scaled := new(big.Int).Mul(other.integer, precisePow10(int64(pDecimals-otherDecimals)))
-		return p.integer.Cmp(scaled)
-	}
-	scaled := new(big.Int).Mul(p.integer, precisePow10(int64(otherDecimals-pDecimals)))
-	return scaled.Cmp(other.integer)
-}
-
 func (p *PreciseStruct) Gt(other *PreciseStruct) bool {
-	return p.cmp(other) > 0
+	sum := p.Sub(other)
+	return sum.integer.Cmp(big.NewInt(0)) > 0
 }
 
 func (p *PreciseStruct) Ge(other *PreciseStruct) bool {
-	return p.cmp(other) >= 0
+	sum := p.Sub(other)
+	return sum.integer.Cmp(big.NewInt(0)) >= 0
 }
 
 func (p *PreciseStruct) Lt(other *PreciseStruct) bool {
-	return p.cmp(other) < 0
+	return other.Gt(p)
 }
 
 func (p *PreciseStruct) Le(other *PreciseStruct) bool {
-	return p.cmp(other) <= 0
+	return other.Ge(p)
 }
 
 func (p *PreciseStruct) Abs() *PreciseStruct {
-	return newPrecise(new(big.Int).Abs(p.integer), p.Decimals.(int))
+	var result *big.Int
+	if p.integer.Cmp(big.NewInt(0)) < 0 {
+		result = new(big.Int).Mul(p.integer, big.NewInt(-1))
+	} else {
+		result = p.integer
+	}
+	return NewPrecise(result.String(), derefScalar(p.Decimals).(int))
 }
 
-// internal: strips trailing zero digits from the integer representation
-// and returns the reduced digit string (sign included) so String() and
-// ToString() avoid a second integer-to-string conversion
-func (p *PreciseStruct) reduceDigits() string {
+func (p *PreciseStruct) Reduce() *PreciseStruct {
 	str := p.integer.String()
-	if str == "0" {
-		p.Decimals = 0
-		return str
+	start := len(str) - 1
+	if start == 0 {
+		if str == "0" {
+			p.Decimals = 0
+		}
+		return p
 	}
-	i := len(str) - 1
+	i := start
 	for ; i >= 0; i-- {
 		if str[i] != '0' {
 			break
 		}
 	}
-	difference := len(str) - 1 - i
+	difference := int64(start - i)
 	if difference == 0 {
-		return str
+		return p
 	}
-	p.Decimals = int(ParseInt(p.Decimals) - int64(difference))
-	// SetString reuses the receiver's storage instead of allocating a new big.Int
+	p.Decimals = int(ParseInt(p.Decimals) - difference) // TODO: loss of precision by converting to int, should be int64
+	p.integer = new(big.Int)
 	p.integer.SetString(str[:i+1], 10)
-	return str[:i+1]
-}
-
-// reduces the representation in place, returns the instance so calls can
-// be chained (NewPrecise("10.00").Reduce().String())
-func (p *PreciseStruct) Reduce() *PreciseStruct {
-	p.reduceDigits()
 	return p
 }
 
 func (p *PreciseStruct) Equals(other *PreciseStruct) bool {
 	p.Reduce()
 	other.Reduce()
-	return p.integer.Cmp(other.integer) == 0 && p.Decimals.(int) == other.Decimals.(int)
-}
-
-// formats a reduced unsigned digit string with the given decimals count:
-// decimals <= 0 appends -decimals zeros, otherwise inserts the decimal
-// point (padding with a leading "0." when there are fewer digits than
-// decimals)
-func formatPreciseDigits(sign, digits string, intDecimals int) string {
-	if intDecimals <= 0 {
-		return sign + digits + strings.Repeat("0", -intDecimals)
-	}
-	length := len(digits)
-	if length > intDecimals {
-		index := length - intDecimals
-		return sign + digits[:index] + "." + digits[index:]
-	}
-	return sign + "0." + strings.Repeat("0", intDecimals-length) + digits
+	return p.integer.Cmp(other.integer) == 0 && derefScalar(p.Decimals).(int) == derefScalar(other.Decimals).(int)
 }
 
 func (p *PreciseStruct) String() string {
-	digits := p.reduceDigits()
+	p.Reduce()
 	sign := ""
-	if digits[0] == '-' {
+	var abs *big.Int
+	if p.integer.Cmp(big.NewInt(0)) < 0 {
 		sign = "-"
-		digits = digits[1:]
+		abs = new(big.Int).Mul(p.integer, big.NewInt(-1))
+	} else {
+		abs = p.integer
 	}
-	intDecimals := 0
+	absParsed := abs.String()
+	var intDecimals int
 	switch v := p.Decimals.(type) {
 	case int:
 		intDecimals = v
 	case int64:
-		intDecimals = int(v) // TODO: loss of precision by converting to int, should be int64
+		intDecimals = int(v) // TODO: loss of precsion by converting to int, should be int64
 	}
-	return formatPreciseDigits(sign, digits, intDecimals)
+	padSize := intDecimals
+	if padSize < 0 {
+		padSize = 0
+	}
+	integerArray := strings.Split(fmt.Sprintf("%0*s", padSize, absParsed), "")
+	index := len(integerArray) - intDecimals
+	item := ""
+	if index == 0 {
+		item = "0."
+	} else if intDecimals < 0 {
+		item = strings.Repeat("0", -intDecimals)
+	} else if intDecimals == 0 {
+		item = ""
+	} else {
+		item = "."
+	}
+	arrayIndex := index
+	if arrayIndex > len(integerArray) {
+		arrayIndex = len(integerArray)
+	}
+	integerArray = append(integerArray[:arrayIndex], append([]string{item}, integerArray[arrayIndex:]...)...)
+	return sign + strings.Join(integerArray, "")
 }
 
-func (p *PreciseStruct) ToString() string {
-	digits := p.reduceDigits()
-	sign := ""
-	if digits[0] == '-' {
-		sign = "-"
-		digits = digits[1:]
-	}
-	intPDecimals := int(ParseInt(p.Decimals))
-	if intPDecimals > 0 {
-		// historical behavior of this method: pads the digits with
-		// `decimals` leading zeros, then inserts the decimal point after
-		// the original digit count ("123" with 2 decimals renders as
-		// "001.23") — preserved because transpiled exchange code calls it
-		padded := strings.Repeat("0", intPDecimals) + digits
-		index := len(digits)
-		return sign + padded[:index] + "." + padded[index:]
-	}
-	return formatPreciseDigits(sign, digits, intPDecimals)
-}
-
-func StringMul(string1, string2 any) any {
+func StringMul(string1, string2 any) *string {
+	string1, string2 = derefScalar(string1), derefScalar(string2)
 	if string1 == nil || string2 == nil {
 		return nil
 	}
-	return NewPrecise(string1.(string)).Mul(NewPrecise(string2.(string))).String()
+	res := NewPrecise(derefScalar(string1).(string)).Mul(NewPrecise(derefScalar(string2).(string))).String()
+	return &res
 }
 
-func StringDiv(string1, string2 any, precision ...any) any {
+func StringDiv(string1, string2 any, precision ...any) *string {
+	string1, string2 = derefScalar(string1), derefScalar(string2)
 	if string1 == nil || string2 == nil {
 		return nil
 	}
-	string2Precise := NewPrecise(string2.(string))
-	if string2Precise.integer.Sign() == 0 {
+	string2Precise := NewPrecise(derefScalar(string2).(string))
+	if string2Precise.integer.Cmp(big.NewInt(0)) == 0 {
 		return nil
 	}
-	stringDiv := NewPrecise(string1.(string)).Div(string2Precise, precision...)
-	return stringDiv.String()
+	stringDiv := NewPrecise(derefScalar(string1).(string)).Div(string2Precise, precision...)
+	res := stringDiv.String()
+	return &res
 }
 
-func StringSub(string1, string2 any) any {
+func StringSub(string1, string2 any) *string {
+	string1, string2 = derefScalar(string1), derefScalar(string2)
 	if string1 == nil || string2 == nil {
 		return nil
 	}
-	return NewPrecise(string1.(string)).Sub(NewPrecise(string2.(string))).String()
+	res := NewPrecise(derefScalar(string1).(string)).Sub(NewPrecise(derefScalar(string2).(string))).String()
+	return &res
 }
 
 // func (this *PreciseStruct) stringSub(string1, string2 any) string {
 // 	return StringSub(string1, string2)
 // }
 
-func StringAdd(string1, string2 any) any {
+func StringAdd(string1, string2 any) *string {
+	string1, string2 = derefScalar(string1), derefScalar(string2)
 	if string1 == nil || string2 == nil {
 		return nil
 	}
-	return NewPrecise(string1.(string)).Add(NewPrecise(string2.(string))).String()
+	res := NewPrecise(derefScalar(string1).(string)).Add(NewPrecise(derefScalar(string2).(string))).String()
+	return &res
 }
 
-func StringOr(string1, string2 any) any {
+func StringOr(string1, string2 any) *string {
+	string1, string2 = derefScalar(string1), derefScalar(string2)
 	if string1 == nil || string2 == nil {
 		return nil
 	}
-	return NewPrecise(string1.(string)).Or(NewPrecise(string2.(string))).String()
+	res := NewPrecise(derefScalar(string1).(string)).Or(NewPrecise(derefScalar(string2).(string))).String()
+	return &res
 }
 
 func StringGt(a, b any) bool {
+	a, b = derefScalar(a), derefScalar(b)
 	if a == nil || b == nil {
 		return false
 	}
-	return NewPrecise(a.(string)).Gt(NewPrecise(b.(string)))
+	return NewPrecise(derefScalar(a).(string)).Gt(NewPrecise(derefScalar(b).(string)))
 }
 
 func StringEq(a, b any) bool {
+	a, b = derefScalar(a), derefScalar(b)
 	if a == nil || b == nil {
 		return false
 	}
-	return NewPrecise(a.(string)).Equals(NewPrecise(b.(string)))
+	return NewPrecise(derefScalar(a).(string)).Equals(NewPrecise(derefScalar(b).(string)))
 }
 
-func StringMax(a, b any) any {
+func StringMax(a, b any) *string {
+	a, b = derefScalar(a), derefScalar(b)
 	if a == nil || b == nil {
 		return nil
 	}
-	return NewPrecise(a.(string)).Max(NewPrecise(b.(string))).String()
+	res := NewPrecise(derefScalar(a).(string)).Max(NewPrecise(derefScalar(b).(string))).String()
+	return &res
 }
 
 func StringEquals(a, b any) bool {
+	a, b = derefScalar(a), derefScalar(b)
 	if a == nil || b == nil {
 		return false
 	}
-	return NewPrecise(a.(string)).Equals(NewPrecise(b.(string)))
+	return NewPrecise(derefScalar(a).(string)).Equals(NewPrecise(derefScalar(b).(string)))
 }
 
-func StringMin(string1, string2 any) any {
+func StringMin(string1, string2 any) *string {
+	string1, string2 = derefScalar(string1), derefScalar(string2)
 	if string1 == nil || string2 == nil {
 		return nil
 	}
-	return NewPrecise(string1.(string)).Min(NewPrecise(string2.(string))).String()
+	res := NewPrecise(derefScalar(string1).(string)).Min(NewPrecise(derefScalar(string2).(string))).String()
+	return &res
 }
 
 func StringLt(a, b any) bool {
+	a, b = derefScalar(a), derefScalar(b)
 	if a == nil || b == nil {
 		return false
 	}
-	return NewPrecise(a.(string)).Lt(NewPrecise(b.(string)))
+	return NewPrecise(derefScalar(a).(string)).Lt(NewPrecise(derefScalar(b).(string)))
 }
 
-func StringAbs(a any) any {
+func StringAbs(a any) *string {
+	a = derefScalar(a)
 	if a == nil {
 		return nil
 	}
-	return NewPrecise(a.(string)).Abs().String()
+	res := NewPrecise(derefScalar(a).(string)).Abs().String()
+	return &res
 }
 
-func StringNeg(a any) any {
+func StringNeg(a any) *string {
+	a = derefScalar(a)
 	if a == nil {
 		return nil
 	}
-	return NewPrecise(a.(string)).Neg().String()
+	res := NewPrecise(derefScalar(a).(string)).Neg().String()
+	return &res
 }
 
 func StringLe(a, b any) bool {
+	a, b = derefScalar(a), derefScalar(b)
 	if a == nil || b == nil {
 		return false
 	}
-	return NewPrecise(a.(string)).Le(NewPrecise(b.(string)))
+	return NewPrecise(derefScalar(a).(string)).Le(NewPrecise(derefScalar(b).(string)))
 }
 
 func StringGe(a, b any) bool {
+	a, b = derefScalar(a), derefScalar(b)
 	if a == nil || b == nil {
 		return false
 	}
-	return NewPrecise(a.(string)).Ge(NewPrecise(b.(string)))
+	return NewPrecise(derefScalar(a).(string)).Ge(NewPrecise(derefScalar(b).(string)))
 }
 
-func StringMod(a, b any) any {
+func StringMod(a, b any) *string {
+	a, b = derefScalar(a), derefScalar(b)
 	if a == nil || b == nil {
 		return nil
 	}
-	return NewPrecise(a.(string)).Mod(NewPrecise(b.(string))).String()
+	res := NewPrecise(derefScalar(a).(string)).Mod(NewPrecise(derefScalar(b).(string))).String()
+	return &res
+}
+
+func (p *PreciseStruct) ToString() string {
+	p.Reduce() // Call the reduce method if any
+
+	// Determine the sign and absolute value
+	var sign string
+	abs := new(big.Int)
+	if p.integer.Sign() < 0 {
+		sign = "-"
+		abs.Neg(p.integer) // Negate the integer to get the absolute value
+	} else {
+		sign = ""
+		abs.Set(p.integer) // Copy the positive value of the integer
+	}
+
+	intPDecimals := ParseInt(p.Decimals)
+
+	// Convert the absolute value to a string
+	// integerStr := fmt.Sprintf("%0*d", intPDecimals+ParseInt(len(abs.String())), abs)
+	// integerArray := strings.Split(integerStr, "")
+	// // Calculate the index to insert the decimal point
+	var item string
+
+	absParsed := abs.String()
+	padSize := 0
+	if intPDecimals > 0 {
+		padSize = int(intPDecimals)
+	}
+	absParsed = fmt.Sprintf("%0*s", len(absParsed)+padSize, absParsed)
+	integerArray := strings.Split(absParsed, "")
+	// index := len(integerArray) - intPDecimals
+	index := ParseInt(len(integerArray)) - intPDecimals
+
+	// Handle cases based on the value of decimals
+	if index == 0 {
+		item = "0."
+	} else if intPDecimals < 0 {
+		item = strings.Repeat("0", -int(intPDecimals))
+	} else if intPDecimals == 0 {
+		item = ""
+	} else {
+		item = "."
+	}
+
+	arrayIndex := index
+	arrayLength := ParseInt(len(integerArray))
+	if index > arrayLength {
+		arrayIndex = arrayLength
+	}
+	integerArray = append(integerArray[:arrayIndex], append([]string{item}, integerArray[arrayIndex:]...)...)
+	return sign + strings.Join(integerArray, "")
 }
 
 // wrappers
 
-func (e *PreciseStruct) StringMul(string1, string2 any) any {
-	return StringMul(string1, string2)
+func (e *PreciseStruct) StringMul(string1, string2 any) *string {
+	return StringMul(derefScalar(string1), derefScalar(string2))
 }
 
-func (e *PreciseStruct) StringDiv(string1, string2 any, precision ...any) any {
-	return StringDiv(string1, string2, precision...)
+func (e *PreciseStruct) StringDiv(string1, string2 any, precision ...any) *string {
+	return StringDiv(derefScalar(string1), derefScalar(string2), precision...)
 }
 
-func (e *PreciseStruct) StringSub(string1, string2 any) any {
-	return StringSub(string1, string2)
+func (e *PreciseStruct) StringSub(string1, string2 any) *string {
+	return StringSub(derefScalar(string1), derefScalar(string2))
 }
 
-func (e *PreciseStruct) StringAdd(string1, string2 any) any {
-	return StringAdd(string1, string2)
+func (e *PreciseStruct) StringAdd(string1, string2 any) *string {
+	return StringAdd(derefScalar(string1), derefScalar(string2))
 }
 
-func (e *PreciseStruct) StringOr(string1, string2 any) any {
-	return StringOr(string1, string2)
+func (e *PreciseStruct) StringOr(string1, string2 any) *string {
+	return StringOr(derefScalar(string1), derefScalar(string2))
 }
 
 func (e *PreciseStruct) StringGt(a, b any) bool {
-	return StringGt(a, b)
+	return StringGt(derefScalar(a), derefScalar(b))
 }
 
 func (e *PreciseStruct) StringEq(a, b any) bool {
-	return StringEq(a, b)
+	return StringEq(derefScalar(a), derefScalar(b))
 }
 
-func (e *PreciseStruct) StringMax(a, b any) any {
-	return StringMax(a, b)
+func (e *PreciseStruct) StringMax(a, b any) *string {
+	return StringMax(derefScalar(a), derefScalar(b))
 }
 
 func (e *PreciseStruct) StringEquals(a, b any) bool {
-	return StringEquals(a, b)
+	return StringEquals(derefScalar(a), derefScalar(b))
 }
 
-func (e *PreciseStruct) StringMin(string1, string2 any) any {
-	return StringMin(string1, string2)
+func (e *PreciseStruct) StringMin(string1, string2 any) *string {
+	return StringMin(derefScalar(string1), derefScalar(string2))
 }
 
 func (e *PreciseStruct) StringLt(a, b any) bool {
-	return StringLt(a, b)
+	return StringLt(derefScalar(a), derefScalar(b))
 }
 
-func (e *PreciseStruct) StringAbs(a any) any {
-	return StringAbs(a)
+func (e *PreciseStruct) StringAbs(a any) *string {
+	return StringAbs(derefScalar(a))
 }
 
-func (e *PreciseStruct) StringNeg(a any) any {
-	return StringNeg(a)
+func (e *PreciseStruct) StringNeg(a any) *string {
+	return StringNeg(derefScalar(a))
 }
 
 func (e *PreciseStruct) StringLe(a, b any) bool {
-	return StringLe(a, b)
+	return StringLe(derefScalar(a), derefScalar(b))
 }
 
 func (e *PreciseStruct) StringGe(a, b any) bool {
-	return StringGe(a, b)
+	return StringGe(derefScalar(a), derefScalar(b))
 }
 
-func (e *PreciseStruct) StringMod(a, b any) any {
-	return StringMod(a, b)
+func (e *PreciseStruct) StringMod(a, b any) *string {
+	return StringMod(derefScalar(a), derefScalar(b))
 }

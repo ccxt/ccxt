@@ -8,81 +8,225 @@
 import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    publicGetLatest (params?: {}): Promise<Dict>;
-    privatePostOrders (params?: {}): Promise<Dict>;
-    privatePostOrdersHistory (params?: {}): Promise<Dict>;
-    privatePostMyCoinDeposit (params?: {}): Promise<Dict>;
-    privatePostMyCoinSend (params?: {}): Promise<Dict>;
-    privatePostQuoteBuy (params?: {}): Promise<Dict>;
-    privatePostQuoteSell (params?: {}): Promise<Dict>;
-    privatePostMyBalances (params?: {}): Promise<Dict>;
-    privatePostMyOrders (params?: {}): Promise<Dict>;
-    privatePostMyBuy (params?: {}): Promise<Dict>;
-    privatePostMySell (params?: {}): Promise<Dict>;
-    privatePostMyBuyCancel (params?: {}): Promise<Dict>;
-    privatePostMySellCancel (params?: {}): Promise<Dict>;
-    privatePostRoMyBalances (params?: {}): Promise<Dict>;
-    privatePostRoMyBalancesCointype (params?: {}): Promise<Dict>;
-    privatePostRoMyDeposits (params?: {}): Promise<Dict>;
-    privatePostRoMyWithdrawals (params?: {}): Promise<Dict>;
-    privatePostRoMyTransactions (params?: {}): Promise<Dict>;
-    privatePostRoMyTransactionsCointype (params?: {}): Promise<Dict>;
-    privatePostRoMyTransactionsOpen (params?: {}): Promise<Dict>;
-    privatePostRoMyTransactionsCointypeOpen (params?: {}): Promise<Dict>;
-    privatePostRoMySendreceive (params?: {}): Promise<Dict>;
-    privatePostRoMyAffiliatepayments (params?: {}): Promise<Dict>;
-    privatePostRoMyReferralpayments (params?: {}): Promise<Dict>;
-    v2PublicGetLatest (params?: {}): Promise<Dict>;
-    v2PublicGetLatestCointype (params?: {}): Promise<Dict>;
-    v2PublicGetLatestCointypeMarkettype (params?: {}): Promise<Dict>;
-    v2PublicGetBuypriceCointype (params?: {}): Promise<Dict>;
-    v2PublicGetBuypriceCointypeMarkettype (params?: {}): Promise<Dict>;
-    v2PublicGetSellpriceCointype (params?: {}): Promise<Dict>;
-    v2PublicGetSellpriceCointypeMarkettype (params?: {}): Promise<Dict>;
-    v2PublicGetOrdersOpenCointype (params?: {}): Promise<Dict>;
-    v2PublicGetOrdersOpenCointypeMarkettype (params?: {}): Promise<Dict>;
-    v2PublicGetOrdersCompletedCointype (params?: {}): Promise<Dict>;
-    v2PublicGetOrdersCompletedCointypeMarkettype (params?: {}): Promise<Dict>;
-    v2PublicGetOrdersSummaryCompletedCointype (params?: {}): Promise<Dict>;
-    v2PublicGetOrdersSummaryCompletedCointypeMarkettype (params?: {}): Promise<Dict>;
-    v2PrivatePostStatus (params?: {}): Promise<Dict>;
-    v2PrivatePostMyCoinDeposit (params?: {}): Promise<Dict>;
-    v2PrivatePostQuoteBuyNow (params?: {}): Promise<Dict>;
-    v2PrivatePostQuoteSellNow (params?: {}): Promise<Dict>;
-    v2PrivatePostQuoteSwapNow (params?: {}): Promise<Dict>;
-    v2PrivatePostMyBuy (params?: {}): Promise<Dict>;
-    v2PrivatePostMyBuyEdit (params?: {}): Promise<Dict>;
-    v2PrivatePostMySell (params?: {}): Promise<Dict>;
-    v2PrivatePostMySellEdit (params?: {}): Promise<Dict>;
-    v2PrivatePostMyBuyNow (params?: {}): Promise<Dict>;
-    v2PrivatePostMyBuyNowCoinlist (params?: {}): Promise<Dict>;
-    v2PrivatePostMySellNow (params?: {}): Promise<Dict>;
-    v2PrivatePostMySellNowCoinlist (params?: {}): Promise<Dict>;
-    v2PrivatePostMySwapNow (params?: {}): Promise<Dict>;
-    v2PrivatePostMyBuyCancel (params?: {}): Promise<Dict>;
-    v2PrivatePostMyBuyCancelAll (params?: {}): Promise<Dict>;
-    v2PrivatePostMySellCancel (params?: {}): Promise<Dict>;
-    v2PrivatePostMySellCancelAll (params?: {}): Promise<Dict>;
-    v2PrivatePostMyCoinWithdrawSenddetails (params?: {}): Promise<Dict>;
-    v2PrivatePostMyCoinWithdrawSend (params?: {}): Promise<Dict>;
-    v2PrivatePostMyCoinWithdrawSendAsync (params?: {}): Promise<Dict>;
-    v2PrivatePostMyCoinWithdrawSendStatus (params?: {}): Promise<Dict>;
-    v2PrivatePostRoStatus (params?: {}): Promise<Dict>;
-    v2PrivatePostRoOrdersMarketOpen (params?: {}): Promise<Dict>;
-    v2PrivatePostRoOrdersMarketCompleted (params?: {}): Promise<Dict>;
-    v2PrivatePostRoMyBalances (params?: {}): Promise<Dict>;
-    v2PrivatePostRoMyBalanceCointype (params?: {}): Promise<Dict>;
-    v2PrivatePostRoMyOrdersMarketOpen (params?: {}): Promise<Dict>;
-    v2PrivatePostRoMyOrdersLimitOpen (params?: {}): Promise<Dict>;
-    v2PrivatePostRoMyOrdersCompleted (params?: {}): Promise<Dict>;
-    v2PrivatePostRoMyOrdersMarketCompleted (params?: {}): Promise<Dict>;
-    v2PrivatePostRoMySendreceive (params?: {}): Promise<Dict>;
-    v2PrivatePostRoMyDeposits (params?: {}): Promise<Dict>;
-    v2PrivatePostRoMyWithdrawals (params?: {}): Promise<Dict>;
-    v2PrivatePostRoMyAffiliatepayments (params?: {}): Promise<Dict>;
-    v2PrivatePostRoMyReferralpayments (params?: {}): Promise<Dict>;
+abstract class Exchange extends _Exchange {
+    publicGetLatest (params = {}): Promise<Dict> {
+        return this.request ("latest", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privatePostOrders (params = {}): Promise<Dict> {
+        return this.request ("orders", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostOrdersHistory (params = {}): Promise<Dict> {
+        return this.request ("orders/history", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostMyCoinDeposit (params = {}): Promise<Dict> {
+        return this.request ("my/coin/deposit", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostMyCoinSend (params = {}): Promise<Dict> {
+        return this.request ("my/coin/send", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostQuoteBuy (params = {}): Promise<Dict> {
+        return this.request ("quote/buy", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostQuoteSell (params = {}): Promise<Dict> {
+        return this.request ("quote/sell", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostMyBalances (params = {}): Promise<Dict> {
+        return this.request ("my/balances", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostMyOrders (params = {}): Promise<Dict> {
+        return this.request ("my/orders", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostMyBuy (params = {}): Promise<Dict> {
+        return this.request ("my/buy", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostMySell (params = {}): Promise<Dict> {
+        return this.request ("my/sell", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostMyBuyCancel (params = {}): Promise<Dict> {
+        return this.request ("my/buy/cancel", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostMySellCancel (params = {}): Promise<Dict> {
+        return this.request ("my/sell/cancel", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostRoMyBalances (params = {}): Promise<Dict> {
+        return this.request ("ro/my/balances", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostRoMyBalancesCointype (params = {}): Promise<Dict> {
+        return this.request ("ro/my/balances/{cointype}", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostRoMyDeposits (params = {}): Promise<Dict> {
+        return this.request ("ro/my/deposits", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostRoMyWithdrawals (params = {}): Promise<Dict> {
+        return this.request ("ro/my/withdrawals", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostRoMyTransactions (params = {}): Promise<Dict> {
+        return this.request ("ro/my/transactions", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostRoMyTransactionsCointype (params = {}): Promise<Dict> {
+        return this.request ("ro/my/transactions/{cointype}", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostRoMyTransactionsOpen (params = {}): Promise<Dict> {
+        return this.request ("ro/my/transactions/open", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostRoMyTransactionsCointypeOpen (params = {}): Promise<Dict> {
+        return this.request ("ro/my/transactions/{cointype}/open", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostRoMySendreceive (params = {}): Promise<Dict> {
+        return this.request ("ro/my/sendreceive", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostRoMyAffiliatepayments (params = {}): Promise<Dict> {
+        return this.request ("ro/my/affiliatepayments", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostRoMyReferralpayments (params = {}): Promise<Dict> {
+        return this.request ("ro/my/referralpayments", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v2PublicGetLatest (params = {}): Promise<Dict> {
+        return this.request ("latest", ["v2","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v2PublicGetLatestCointype (params = {}): Promise<Dict> {
+        return this.request ("latest/{cointype}", ["v2","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v2PublicGetLatestCointypeMarkettype (params = {}): Promise<Dict> {
+        return this.request ("latest/{cointype}/{markettype}", ["v2","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v2PublicGetBuypriceCointype (params = {}): Promise<Dict> {
+        return this.request ("buyprice/{cointype}", ["v2","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v2PublicGetBuypriceCointypeMarkettype (params = {}): Promise<Dict> {
+        return this.request ("buyprice/{cointype}/{markettype}", ["v2","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v2PublicGetSellpriceCointype (params = {}): Promise<Dict> {
+        return this.request ("sellprice/{cointype}", ["v2","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v2PublicGetSellpriceCointypeMarkettype (params = {}): Promise<Dict> {
+        return this.request ("sellprice/{cointype}/{markettype}", ["v2","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v2PublicGetOrdersOpenCointype (params = {}): Promise<Dict> {
+        return this.request ("orders/open/{cointype}", ["v2","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v2PublicGetOrdersOpenCointypeMarkettype (params = {}): Promise<Dict> {
+        return this.request ("orders/open/{cointype}/{markettype}", ["v2","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v2PublicGetOrdersCompletedCointype (params = {}): Promise<Dict> {
+        return this.request ("orders/completed/{cointype}", ["v2","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v2PublicGetOrdersCompletedCointypeMarkettype (params = {}): Promise<Dict> {
+        return this.request ("orders/completed/{cointype}/{markettype}", ["v2","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v2PublicGetOrdersSummaryCompletedCointype (params = {}): Promise<Dict> {
+        return this.request ("orders/summary/completed/{cointype}", ["v2","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v2PublicGetOrdersSummaryCompletedCointypeMarkettype (params = {}): Promise<Dict> {
+        return this.request ("orders/summary/completed/{cointype}/{markettype}", ["v2","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v2PrivatePostStatus (params = {}): Promise<Dict> {
+        return this.request ("status", ["v2","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v2PrivatePostMyCoinDeposit (params = {}): Promise<Dict> {
+        return this.request ("my/coin/deposit", ["v2","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v2PrivatePostQuoteBuyNow (params = {}): Promise<Dict> {
+        return this.request ("quote/buy/now", ["v2","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v2PrivatePostQuoteSellNow (params = {}): Promise<Dict> {
+        return this.request ("quote/sell/now", ["v2","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v2PrivatePostQuoteSwapNow (params = {}): Promise<Dict> {
+        return this.request ("quote/swap/now", ["v2","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v2PrivatePostMyBuy (params = {}): Promise<Dict> {
+        return this.request ("my/buy", ["v2","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v2PrivatePostMyBuyEdit (params = {}): Promise<Dict> {
+        return this.request ("my/buy/edit", ["v2","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v2PrivatePostMySell (params = {}): Promise<Dict> {
+        return this.request ("my/sell", ["v2","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v2PrivatePostMySellEdit (params = {}): Promise<Dict> {
+        return this.request ("my/sell/edit", ["v2","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v2PrivatePostMyBuyNow (params = {}): Promise<Dict> {
+        return this.request ("my/buy/now", ["v2","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v2PrivatePostMyBuyNowCoinlist (params = {}): Promise<Dict> {
+        return this.request ("my/buy/now/coinlist", ["v2","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v2PrivatePostMySellNow (params = {}): Promise<Dict> {
+        return this.request ("my/sell/now", ["v2","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v2PrivatePostMySellNowCoinlist (params = {}): Promise<Dict> {
+        return this.request ("my/sell/now/coinlist", ["v2","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v2PrivatePostMySwapNow (params = {}): Promise<Dict> {
+        return this.request ("my/swap/now", ["v2","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v2PrivatePostMyBuyCancel (params = {}): Promise<Dict> {
+        return this.request ("my/buy/cancel", ["v2","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v2PrivatePostMyBuyCancelAll (params = {}): Promise<Dict> {
+        return this.request ("my/buy/cancel/all", ["v2","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v2PrivatePostMySellCancel (params = {}): Promise<Dict> {
+        return this.request ("my/sell/cancel", ["v2","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v2PrivatePostMySellCancelAll (params = {}): Promise<Dict> {
+        return this.request ("my/sell/cancel/all", ["v2","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v2PrivatePostMyCoinWithdrawSenddetails (params = {}): Promise<Dict> {
+        return this.request ("my/coin/withdraw/senddetails", ["v2","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v2PrivatePostMyCoinWithdrawSend (params = {}): Promise<Dict> {
+        return this.request ("my/coin/withdraw/send", ["v2","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v2PrivatePostMyCoinWithdrawSendAsync (params = {}): Promise<Dict> {
+        return this.request ("my/coin/withdraw/send/async", ["v2","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v2PrivatePostMyCoinWithdrawSendStatus (params = {}): Promise<Dict> {
+        return this.request ("my/coin/withdraw/send/status", ["v2","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v2PrivatePostRoStatus (params = {}): Promise<Dict> {
+        return this.request ("ro/status", ["v2","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v2PrivatePostRoOrdersMarketOpen (params = {}): Promise<Dict> {
+        return this.request ("ro/orders/market/open", ["v2","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v2PrivatePostRoOrdersMarketCompleted (params = {}): Promise<Dict> {
+        return this.request ("ro/orders/market/completed", ["v2","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v2PrivatePostRoMyBalances (params = {}): Promise<Dict> {
+        return this.request ("ro/my/balances", ["v2","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v2PrivatePostRoMyBalanceCointype (params = {}): Promise<Dict> {
+        return this.request ("ro/my/balance/{cointype}", ["v2","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v2PrivatePostRoMyOrdersMarketOpen (params = {}): Promise<Dict> {
+        return this.request ("ro/my/orders/market/open", ["v2","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v2PrivatePostRoMyOrdersLimitOpen (params = {}): Promise<Dict> {
+        return this.request ("ro/my/orders/limit/open", ["v2","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v2PrivatePostRoMyOrdersCompleted (params = {}): Promise<Dict> {
+        return this.request ("ro/my/orders/completed", ["v2","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v2PrivatePostRoMyOrdersMarketCompleted (params = {}): Promise<Dict> {
+        return this.request ("ro/my/orders/market/completed", ["v2","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v2PrivatePostRoMySendreceive (params = {}): Promise<Dict> {
+        return this.request ("ro/my/sendreceive", ["v2","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v2PrivatePostRoMyDeposits (params = {}): Promise<Dict> {
+        return this.request ("ro/my/deposits", ["v2","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v2PrivatePostRoMyWithdrawals (params = {}): Promise<Dict> {
+        return this.request ("ro/my/withdrawals", ["v2","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v2PrivatePostRoMyAffiliatepayments (params = {}): Promise<Dict> {
+        return this.request ("ro/my/affiliatepayments", ["v2","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v2PrivatePostRoMyReferralpayments (params = {}): Promise<Dict> {
+        return this.request ("ro/my/referralpayments", ["v2","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
 }
-abstract class Exchange extends _Exchange {}
-
 export default Exchange

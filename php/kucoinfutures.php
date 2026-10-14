@@ -39,7 +39,7 @@ class kucoinfutures extends kucoin {
         ));
     }
 
-    public function fetch_bids_asks(?array $symbols = null, $params = array()) {
+    public function fetch_bids_asks(?array $symbols = null, $params = array()): array {
         /**
          * fetches the bid and ask price and volume for multiple markets
          * @param {string[]} [$symbols] unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
@@ -73,7 +73,6 @@ class kucoinfutures extends kucoin {
             'amount' => $amountToPrecision,
         );
         $toAccountString = $this->parse_transfer_type($toAccount);
-        $response = null;
         if ($toAccountString === 'TRADE' || $toAccountString === 'MAIN') {
             $request['recAccountType'] = $toAccountString;
             $response = $this->futuresPrivatePostTransferOut($this->extend($request, $params));
@@ -123,7 +122,7 @@ class kucoinfutures extends kucoin {
         ));
     }
 
-    public function parse_transfer_type(mixed $transferType) {
+    public function parse_transfer_type(?string $transferType): ?string {
         $transferTypes = array(
             'spot' => 'TRADE',
             'funding' => 'MAIN',

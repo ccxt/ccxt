@@ -371,8 +371,8 @@ class alpaca extends Exchange {
                         ),
                         'timeInForce' => array(
                             'IOC' => true,
-                            'FOK' => true,
-                            'PO' => true,
+                            'FOK' => false, // {"code":42210000,"message":"invalid crypto time_in_force"} — verified live 2026-09-13
+                            'PO' => false, // {"code":40010001,"message":"invalid time_in_force for crypto order"} — verified live 2026-09-13
                             'GTD' => false,
                         ),
                         'hedged' => false,
@@ -442,6 +442,7 @@ class alpaca extends Exchange {
                     '40410000' => '\\ccxt\\InvalidOrder', // { "code": 40410000, "message": "order is not found."}
                     '40010001' => '\\ccxt\\BadRequest', // {"code":40010001,"message":"invalid order type for crypto order"}
                     '40110000' => '\\ccxt\\PermissionDenied', // { "code": 40110000, "message": "request is not authorized"}
+                    '42210000' => '\\ccxt\\BadRequest', // {"code":42210000,"message":"invalid crypto time_in_force"}
                     '42910000' => '\\ccxt\\RateLimitExceeded', // {"code":42910000,"message":"rate limit exceeded"}
                 ),
                 'broad' => array(
@@ -470,25 +471,11 @@ class alpaca extends Exchange {
         //         next_close: '2023-11-22T16:00:00-05:00'
         //     }
         //
-        $timestamp = $this->safe_string($response, 'timestamp');
+        $timestamp = $this->parse8601($this->safe_string($response, 'timestamp'));
         if ($timestamp === null) {
             throw new ExchangeError($this->id . ' fetchTime() missing timestamp');
         }
-        $localTime = mb_substr($timestamp, 0, 23 - 0);
-        if ($timestamp === null) {
-            throw new ExchangeError($this->id . ' fetchTime() missing timestamp');
-        }
-        $jetlagStrStart = strlen($timestamp) - 6;
-        if ($timestamp === null) {
-            throw new ExchangeError($this->id . ' fetchTime() missing timestamp');
-        }
-        $jetlagStrEnd = strlen($timestamp) - 3;
-        if ($timestamp === null) {
-            throw new ExchangeError($this->id . ' fetchTime() missing timestamp');
-        }
-        $jetlag = mb_substr($timestamp, $jetlagStrStart, $jetlagStrEnd - $jetlagStrStart);
-        $iso = $this->parse_to_int($this->parse8601($localTime)) - $this->parse_to_numeric($jetlag) * 3600 * 1000;
-        return $iso;
+        return $timestamp;
     }
 
     public function fetch_markets($params = array()): array {
@@ -565,6 +552,9 @@ class alpaca extends Exchange {
         // We can safely coerce us_equity quote to USD
         if ($quote === null && $assetClass === 'us_equity') {
             $quote = 'USD';
+        }
+        if (($base === null) || ($quote === null)) {
+            return null;
         }
         $symbol = $base . '/' . $quote;
         $status = $this->safe_string($asset, 'status');
@@ -655,7 +645,7 @@ class alpaca extends Exchange {
             'symbols' => $marketId,
             'loc' => $loc,
         );
-        $params = $this->omit($params, array( 'loc', 'method' ));
+        $paramsOmitted = $this->omit($params, array( 'loc', 'method' ));
         $symbolTrades = null;
         if ($method === 'marketPublicGetV1beta3CryptoLocTrades') {
             if ($since !== null) {
@@ -664,7 +654,7 @@ class alpaca extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = $this->marketPublicGetV1beta3CryptoLocTrades($this->extend($request, $params));
+            $response = $this->marketPublicGetV1beta3CryptoLocTrades($this->extend($request, $paramsOmitted));
             //
             //    {
             //        "next_page_token": null,
@@ -684,7 +674,7 @@ class alpaca extends Exchange {
             $trades = $this->safe_dict($response, 'trades', array());
             $symbolTrades = $this->safe_list($trades, $marketId, array());
         } elseif ($method === 'marketPublicGetV1beta3CryptoLocLatestTrades') {
-            $response = $this->marketPublicGetV1beta3CryptoLocLatestTrades($this->extend($request, $params));
+            $response = $this->marketPublicGetV1beta3CryptoLocLatestTrades($this->extend($request, $paramsOmitted));
             //
             //    {
             //       "trades": {
@@ -804,14 +794,15 @@ class alpaca extends Exchange {
         $loc = $this->safe_string($params, 'loc', 'us');
         $method = $this->safe_string($params, 'method', 'marketPublicGetV1beta3CryptoLocBars');
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
+        $query = null;
+        list($paginate, $query) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         $paginationCalls = 10;
-        list($paginationCalls, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginationCalls', 10);
+        list($paginationCalls, $query) = $this->handle_option_integer_and_params($query, 'fetchOHLCV', 'paginationCalls', 10);
         $request = array(
             'symbols' => $marketId,
             'loc' => $loc,
         );
-        $params = $this->omit($params, array( 'loc', 'method' ));
+        $query = $this->omit($query, array( 'loc', 'method' ));
         $ohlcvs = null;
         if ($method === 'marketPublicGetV1beta3CryptoLocBars') {
             if ($limit !== null) {
@@ -820,13 +811,13 @@ class alpaca extends Exchange {
             if ($since !== null) {
                 $request['start'] = $this->iso8601($since);
             }
-            $until = $this->safe_integer($params, 'until');
+            $until = $this->safe_integer($query, 'until');
             if ($until !== null) {
-                $params = $this->omit($params, 'until');
+                $query = $this->omit($query, 'until');
                 $request['end'] = $this->iso8601($until);
             }
             $request['timeframe'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-            $response = $this->marketPublicGetV1beta3CryptoLocBars($this->extend($request, $params));
+            $response = $this->marketPublicGetV1beta3CryptoLocBars($this->extend($request, $query));
             //
             //    {
             //        "bars": {
@@ -867,7 +858,7 @@ class alpaca extends Exchange {
                         break;
                     }
                     $request['page_token'] = $pageToken;
-                    $response = $this->marketPublicGetV1beta3CryptoLocBars($this->extend($request, $params));
+                    $response = $this->marketPublicGetV1beta3CryptoLocBars($this->extend($request, $query));
                     $bars = $this->safe_dict($response, 'bars', array());
                     $page = $this->safe_list($bars, $marketId, array());
                     $pageLength = count($page);
@@ -879,7 +870,7 @@ class alpaca extends Exchange {
                 }
             }
         } elseif ($method === 'marketPublicGetV1beta3CryptoLocLatestBars') {
-            $response = $this->marketPublicGetV1beta3CryptoLocLatestBars($this->extend($request, $params));
+            $response = $this->marketPublicGetV1beta3CryptoLocLatestBars($this->extend($request, $query));
             //
             //    {
             //        "bars": {
@@ -932,21 +923,22 @@ class alpaca extends Exchange {
 
     public function fetch_ticker(string $symbol, $params = array()): array {
         /**
-         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          *
          * @see https://docs.alpaca.markets/reference/cryptosnapshots-1
          *
-         * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+         * @param {string} $symbol unified $symbol of the market to fetch the $ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->loc] crypto location, default => us
-         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $symbol = $this->symbol($symbol);
-        $tickers = $this->fetch_tickers(array( $symbol ), $params);
-        return $this->safe_dict($tickers, $symbol);
+        $symbolValue = $this->symbol($symbol);
+        $tickers = $this->fetch_tickers(array( $symbolValue ), $params);
+        $ticker = $this->safe_dict($tickers, $symbolValue);
+        return $ticker;
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array()): array {
@@ -963,20 +955,18 @@ class alpaca extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        if ($symbols === null) {
-            // every listed market is a crypto market because fetchMarkets requests asset_class=crypto, so default to all of them
-            $allSymbols = $this->sort($this->symbols); // symbol iteration order differs per language
-            $symbols = $allSymbols;
-        }
-        $symbols = $this->market_symbols($symbols);
+        // every listed market is a crypto market because fetchMarkets requests asset_class=crypto, so default to all of them
+        // symbol iteration order differs per language
+        $symbolsSorted = ($symbols === null) ? $this->sort($this->symbols) : $symbols;
+        $symbolsNormalized = $this->market_symbols($symbolsSorted);
         $loc = $this->safe_string($params, 'loc', 'us');
-        $ids = $this->market_ids($symbols);
+        $ids = $this->market_ids($symbolsNormalized);
         $request = array(
             'symbols' => implode(',', $ids),
             'loc' => $loc,
         );
-        $params = $this->omit($params, 'loc');
-        $response = $this->marketPublicGetV1beta3CryptoLocSnapshots($this->extend($request, $params));
+        $paramsOmitted = $this->omit($params, 'loc');
+        $response = $this->marketPublicGetV1beta3CryptoLocSnapshots($this->extend($request, $paramsOmitted));
         //
         //     {
         //         "snapshots": {
@@ -1066,10 +1056,10 @@ class alpaca extends Exchange {
             ), $market);
             $results[] = $ticker;
         }
-        return $this->filter_by_array($results, 'symbol', $symbols);
+        return $this->filter_by_array($results, 'symbol', $symbolsNormalized);
     }
 
-    public function generate_client_order_id(mixed $params) {
+    public function generate_client_order_id(array $params): ?string {
         $clientOrderIdprefix = $this->safe_string($this->options, 'clientOrderId');
         $uuid = $this->uuid();
         $parts = explode('-', $uuid);
@@ -1079,7 +1069,7 @@ class alpaca extends Exchange {
         return $clientOrderId;
     }
 
-    public function create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array()) {
+    public function create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array()): array {
         /**
          * create a market order by providing the $symbol, $side and $cost
          *
@@ -1100,7 +1090,7 @@ class alpaca extends Exchange {
         return $this->create_order($symbol, 'market', $side, 0, null, $this->extend($req, $params));
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()): array {
         /**
          * create a market buy order by providing the $symbol and $cost
          *
@@ -1120,7 +1110,7 @@ class alpaca extends Exchange {
         return $this->create_order($symbol, 'market', 'buy', 0, null, $this->extend($req, $params));
     }
 
-    public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array()) {
+    public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array()): array {
         /**
          * create a market sell order by providing the $symbol and $cost
          *
@@ -1140,7 +1130,7 @@ class alpaca extends Exchange {
         return $this->create_order($symbol, 'market', 'sell', $cost, null, $this->extend($req, $params));
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade $order
          *
@@ -1153,6 +1143,7 @@ class alpaca extends Exchange {
          * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->triggerPrice] The $price at which a trigger $order is triggered at
+         * @param {string} [$params->timeInForce] 'GTC' or 'IOC', the venue supports only these two for crypto orders, defaults to 'GTC'
          * @param {float} [$params->cost] *$market orders only* the $cost of the $order in units of the quote currency
          * @return {array} an ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
@@ -1168,6 +1159,7 @@ class alpaca extends Exchange {
         );
         $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stop_price');
         if ($triggerPrice !== null) {
+            $newType = null;
             if (mb_strpos($type, 'limit') !== false) {
                 $newType = 'stop_limit';
             } else {
@@ -1181,18 +1173,17 @@ class alpaca extends Exchange {
         }
         $cost = $this->safe_string($params, 'cost');
         if ($cost !== null) {
-            $params = $this->omit($params, 'cost');
             $request['notional'] = $this->cost_to_precision($symbol, $cost);
         } else {
             $request['qty'] = $this->amount_to_precision($symbol, $amount);
         }
-        $defaultTIF = null;
-        list($defaultTIF, $params) = $this->handle_option_and_params($params, 'createOrder', 'timeInForce');
-        $request['time_in_force'] = $defaultTIF;
-        $params = $this->omit($params, array( 'timeInForce', 'triggerPrice' ));
-        $request['client_order_id'] = $this->generate_client_order_id($params);
-        $params = $this->omit($params, array( 'clientOrderId' ));
-        $order = $this->traderPrivatePostV2Orders($this->extend($request, $params));
+        $paramsCost = ($cost !== null) ? $this->omit($params, 'cost') : $params;
+        list($defaultTIF, $paramsTimeInForce) = $this->handle_option_string_and_params($paramsCost, 'createOrder', 'timeInForce');
+        // the venue only accepts lowercase values, normalize the unified uppercase spellings
+        $request['time_in_force'] = ($defaultTIF !== null) ? strtolower($defaultTIF) : $defaultTIF;
+        $paramsOmitted = $this->omit($paramsTimeInForce, array( 'timeInForce', 'triggerPrice' ));
+        $request['client_order_id'] = $this->generate_client_order_id($paramsOmitted);
+        $order = $this->traderPrivatePostV2Orders($this->extend($request, $this->omit($paramsOmitted, array( 'clientOrderId' ))));
         //
         //   {
         //      "id": "61e69015-8549-4bfd-b9c3-01e75843f47d",
@@ -1232,7 +1223,7 @@ class alpaca extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open order
          *
@@ -1256,7 +1247,7 @@ class alpaca extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): array {
         /**
          * cancel all open orders in a market
          *
@@ -1281,7 +1272,7 @@ class alpaca extends Exchange {
         }
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetches information on an $order made by the user
          *
@@ -1331,12 +1322,12 @@ class alpaca extends Exchange {
         }
         $until = $this->safe_integer($params, 'until');
         if ($until !== null) {
-            $params = $this->omit($params, 'until');
             $request['until'] = $this->iso8601($until);
         }
+        $paramsOmitted = ($until !== null) ? $this->omit($params, 'until') : $params;
         if ($since !== null) {
             $request['after'] = $this->iso8601($since);
-            $direction = $this->safe_string($params, 'direction');
+            $direction = $this->safe_string($paramsOmitted, 'direction');
             if ($direction === null) {
                 // the server default is desc, so a limit would truncate the newest window instead of the range starting at since — request oldest-first like krakenfutures does
                 $request['direction'] = 'asc';
@@ -1345,7 +1336,7 @@ class alpaca extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->traderPrivateGetV2Orders($this->extend($request, $params));
+        $response = $this->traderPrivateGetV2Orders($this->extend($request, $paramsOmitted));
         //
         //     [
         //         {
@@ -1429,7 +1420,7 @@ class alpaca extends Exchange {
         return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
         /**
          * edit a trade order
          *
@@ -1443,7 +1434,7 @@ class alpaca extends Exchange {
          * @param {float} [$price] the $price for the order, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->triggerPrice] the $price to trigger a stop order
-         * @param {string} [$params->timeInForce] for crypto trading either 'gtc' or 'ioc' can be used
+         * @param {string} [$params->timeInForce] 'GTC' or 'IOC', the venue supports only these two for crypto orders, defaults to 'GTC'
          * @param {string} [$params->clientOrderId] a unique identifier for the order, automatically generated if not sent
          * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
@@ -1463,19 +1454,18 @@ class alpaca extends Exchange {
         $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stop_price');
         if ($triggerPrice !== null) {
             $request['stop_price'] = $this->price_to_precision($symbol, $triggerPrice);
-            $params = $this->omit($params, 'triggerPrice');
         }
+        $paramsTrigger = ($triggerPrice !== null) ? $this->omit($params, 'triggerPrice') : $params;
         if ($price !== null) {
             $request['limit_price'] = $this->price_to_precision($symbol, $price);
         }
-        $timeInForce = null;
-        list($timeInForce, $params) = $this->handle_option_and_params($params, 'editOrder', 'timeInForce', 'gtc');
+        list($timeInForce, $paramsTimeInForce) = $this->handle_option_string_and_params($paramsTrigger, 'editOrder', 'timeInForce', 'gtc');
         if ($timeInForce !== null) {
-            $request['time_in_force'] = $timeInForce;
+            // the venue only accepts lowercase values, normalize the unified uppercase spellings
+            $request['time_in_force'] = strtolower($timeInForce);
         }
-        $request['client_order_id'] = $this->generate_client_order_id($params);
-        $params = $this->omit($params, array( 'clientOrderId' ));
-        $response = $this->traderPrivatePatchV2OrdersOrderId($this->extend($request, $params));
+        $request['client_order_id'] = $this->generate_client_order_id($paramsTimeInForce);
+        $response = $this->traderPrivatePatchV2OrdersOrderId($this->extend($request, $this->omit($paramsTimeInForce, array( 'clientOrderId' ))));
         return $this->parse_order($response, $market);
     }
 
@@ -1519,8 +1509,8 @@ class alpaca extends Exchange {
         //    }
         //
         $marketId = $this->safe_string($order, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $marketResolved['symbol'];
         $alpacaStatus = $this->safe_string($order, 'status');
         $status = $this->parse_order_status($alpacaStatus);
         $feeValue = $this->safe_string($order, 'commission');
@@ -1528,7 +1518,7 @@ class alpaca extends Exchange {
         if ($feeValue !== null) {
             $fee = array(
                 'cost' => $feeValue,
-                'currency' => 'USD',
+                'currency' => 'USD', // commission is denominated per the account currency; crypto fills omit the field entirely — their fee is taken from the received asset, verified live 2026-09-15
             );
         }
         $orderType = $this->safe_string($order, 'order_type');
@@ -1545,7 +1535,7 @@ class alpaca extends Exchange {
             'clientOrderId' => $this->safe_string($order, 'client_order_id'),
             'timestamp' => $timestamp,
             'datetime' => $datetime,
-            'lastTradeTimeStamp' => null,
+            'lastTradeTimestamp' => $this->parse8601($this->safe_string($order, 'filled_at')), // set on complete fills only — per-fill timestamps for partials come from the account activities used by fetchMyTrades, and updated_at also moves on non-fill transitions so it is no substitute
             'status' => $status,
             'symbol' => $symbol,
             'type' => $orderType,
@@ -1562,29 +1552,44 @@ class alpaca extends Exchange {
             'trades' => null,
             'fee' => $fee,
             'info' => $order,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function parse_order_status(?string $status) {
         $statuses = array(
             'pending_new' => 'open',
             'accepted' => 'open',
+            'accepted_for_bidding' => 'open',
             'new' => 'open',
             'partially_filled' => 'open',
             'activated' => 'open',
+            'done_for_day' => 'open', // no more executions on that day, the order itself stays live
+            'stopped' => 'open', // a fill is guaranteed at a stated price but has not occurred yet
+            'suspended' => 'open',
+            'held' => 'open',
+            'pending_replace' => 'open',
+            'pending_cancel' => 'canceling',
             'filled' => 'closed',
+            'calculated' => 'closed', // completed for the day, settlement calculations are pending
+            'canceled' => 'canceled',
+            'replaced' => 'canceled', // the venue closes the replaced id and opens a new order id for the replacement
+            'expired' => 'expired',
+            'rejected' => 'rejected',
         );
         return $this->safe_string($statuses, $status, $status);
     }
 
     public function parse_time_in_force(?string $timeInForce) {
         $timeInForces = array(
-            'day' => 'Day',
+            'day' => 'Day', // equities-only value kept as-is deliberately: crypto orders reject it with 42210000, verified live 2026-09-13, and the unified set has no day spelling either way
+            'gtc' => 'GTC',
+            'ioc' => 'IOC',
+            'fok' => 'FOK',
         );
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all trades made by the user
          *
@@ -1610,17 +1615,17 @@ class alpaca extends Exchange {
         }
         $until = $this->safe_integer($params, 'until');
         if ($until !== null) {
-            $params = $this->omit($params, 'until');
             $request['until'] = $this->iso8601($until);
         }
+        $paramsOmitted = ($until !== null) ? $this->omit($params, 'until') : $params;
         if ($since !== null) {
             $request['after'] = $this->iso8601($since);
         }
         if ($limit !== null) {
             $request['page_size'] = $limit;
         }
-        list($request, $params) = $this->handle_until_option('until', $request, $params);
-        $response = $this->traderPrivateGetV2AccountActivitiesActivityType($this->extend($request, $params));
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('until', $request, $paramsOmitted);
+        $response = $this->traderPrivateGetV2AccountActivitiesActivityType($this->extend($requestUntil, $paramsUntil));
         //
         //     [
         //         {
@@ -1732,7 +1737,7 @@ class alpaca extends Exchange {
         return $this->parse_deposit_address($response, $currency);
     }
 
-    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "asset_id": "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
@@ -1742,7 +1747,7 @@ class alpaca extends Exchange {
         //
         $parsedCurrency = null;
         if ($currency !== null) {
-            $parsedCurrency = $currency['id'];
+            $parsedCurrency = $this->safe_string($currency, 'id');
         }
         return array(
             'info' => $depositAddress,
@@ -1753,7 +1758,7 @@ class alpaca extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
+    public function withdraw(string $code, float $amount, string $address, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -1762,25 +1767,26 @@ class alpaca extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag a memo for the transaction
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->check_address($address);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
+        $this->check_address($address, $code, $tagWithdrawTag);
         if ($this->markets === null) {
             $this->load_markets();
         }
         $currency = $this->currency($code);
-        if (($tag !== null) && ($tag !== '')) {
-            $address = $address . ':' . $tag;
+        $addressValue = $address;
+        if (($tagWithdrawTag !== null) && ($tagWithdrawTag !== '')) {
+            $addressValue = $address . ':' . $tagWithdrawTag;
         }
         $request = array(
             'asset' => $currency['id'],
-            'address' => $address,
+            'address' => $addressValue,
             'amount' => $this->number_to_string($amount),
         );
-        $response = $this->traderPrivatePostV2WalletsTransfers($this->extend($request, $params));
+        $response = $this->traderPrivatePostV2WalletsTransfers($this->extend($request, $paramsWithdrawTag));
         //
         //     {
         //         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
@@ -1806,7 +1812,7 @@ class alpaca extends Exchange {
         $this->options['sandboxMode'] = $enable;
     }
 
-    public function fetch_transactions_helper(mixed $type, mixed $code, mixed $since, mixed $limit, mixed $params): array {
+    public function fetch_transactions_helper(string $type, ?string $code, mixed $since, mixed $limit, mixed $params): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -1844,7 +1850,10 @@ class alpaca extends Exchange {
                 $activityType = $this->safe_string($entry, 'activity_type');
                 $amount = $this->safe_string($entry, 'net_amount');
                 $isIncoming = ($activityType === 'CSD') || (($activityType === 'TRANS') && !Precise::string_lt($amount, '0'));
-                $entryDirection = $isIncoming ? 'INCOMING' : 'OUTGOING';
+                $entryDirection = 'OUTGOING';
+                if ($isIncoming) {
+                    $entryDirection = 'INCOMING';
+                }
                 if (($type === 'BOTH') || ($entryDirection === $type)) {
                     $filtered[] = $entry;
                 }
@@ -2056,7 +2065,7 @@ class alpaca extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction_type(mixed $type) {
+    public function parse_transaction_type(?string $type): ?string {
         $types = array(
             'INCOMING' => 'deposit',
             'OUTGOING' => 'withdrawal',
@@ -2069,14 +2078,20 @@ class alpaca extends Exchange {
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
          * @see https://docs.alpaca.markets/reference/getaccount-1
+         * @see https://docs.alpaca.markets/reference/getallopenpositions
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~. note that `info` is
+         * the composite `array( $account, $positions )` wrapper of both raw venue payloads, not the bare $account payload it was
+         * before crypto $positions were included — read `info['account']['cash']` where `info['cash']` used to be read
          */
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $response = $this->traderPrivateGetV2Account($params);
+        // the two calls stay sequential deliberately — the static request harness records one request per case,
+        // and concurrent calls make the recorded url nondeterministic per language
+        $account = $this->traderPrivateGetV2Account($params);
+        $positions = $this->traderPrivateGetV2Positions();
         //
         //     {
         //         "id": "43a01bde-4eb1-64fssc26adb5",
@@ -2125,42 +2140,108 @@ class alpaca extends Exchange {
         //         "pending_reg_taf_fees": "0"
         //     }
         //
+        $response = array(
+            'account' => $account,
+            'positions' => $positions,
+        );
         return $this->parse_balance($response);
     }
 
     public function parse_balance(mixed $response): array {
+        //
+        // crypto holdings live on the positions endpoint, the account endpoint carries only the cash currency
+        //
+        //     "positions": [
+        //         {
+        //             "asset_id": "64bbff51-59d6-4b3c-9351-13ad85e3c752",
+        //             "symbol": "BTCUSD",
+        //             "exchange": "CRYPTO",
+        //             "asset_class": "crypto",
+        //             "asset_marginable": false,
+        //             "qty": "0.000207296",
+        //             "avg_entry_price": "80037",
+        //             "side": "long",
+        //             "market_value": "16.592345",
+        //             "cost_basis": "16.59135",
+        //             "unrealized_pl": "0.000995",
+        //             "unrealized_plpc": "0.00006",
+        //             "current_price": "80041.8",
+        //             "qty_available": "0.000207296"
+        //         }
+        //     ]
+        //
+        $account = $this->safe_dict($response, 'account', array());
+        $positions = $this->safe_list($response, 'positions', array());
         $result = array( 'info' => $response );
-        $account = $this->account();
-        $currencyId = $this->safe_string($response, 'currency');
+        $currencyId = $this->safe_string($account, 'currency');
         $code = $this->safe_currency_code($currencyId);
-        $account['free'] = $this->safe_string($response, 'cash');
-        $account['total'] = $this->safe_string($response, 'equity');
         if ($code !== null) {
-            $result[$code] = $account;
+            $cashAccount = $this->account();
+            $cashAccount['free'] = $this->safe_string($account, 'cash'); // cash already excludes the amounts held for open orders, verified live 2026-09-16
+            $equity = $this->safe_string($account, 'equity');
+            $positionsValue = $this->safe_string($account, 'position_market_value');
+            $cashAccount['total'] = Precise::string_sub($equity, $positionsValue); // equity minus the positions market value equals cash plus open-order holds; stringSub degrades to undefined when either field is absent and safeBalance then derives the total from free
+            $result[$code] = $cashAccount;
+        }
+        for ($i = 0; $i < count($positions); $i++) {
+            $position = $this->safe_dict($positions, $i);
+            $positionSymbol = $this->safe_string($position, 'symbol');
+            if ($positionSymbol === null) {
+                continue;
+            }
+            $baseId = null;
+            if (mb_strpos($positionSymbol, '/') !== false) {
+                $parts = explode('/', $positionSymbol);
+                $baseId = $this->safe_string($parts, 0);
+            } else {
+                // crypto position symbols come compressed with a USD tail, e.g. BTCUSD or USDTUSD
+                $baseLength = strlen($positionSymbol) - 3;
+                if (($baseLength > 0) && (mb_substr($positionSymbol, $baseLength) === 'USD')) {
+                    $baseId = mb_substr($positionSymbol, 0, $baseLength - 0);
+                }
+            }
+            if ($baseId === null) {
+                continue; // an unrecognized position symbol shape must not break the whole balance
+            }
+            $positionCode = $this->safe_currency_code($baseId);
+            if (($positionCode !== null) && !(is_array($result) && array_key_exists($positionCode ?? '', $result))) {
+                $positionAccount = $this->account();
+                $positionAccount['free'] = $this->safe_string($position, 'qty_available');
+                $positionAccount['total'] = $this->safe_string($position, 'qty');
+                $result[$positionCode] = $positionAccount;
+            }
         }
         return $this->safe_balance($result);
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $endpoint = '/' . $this->implode_params($path, $params);
-        $url = $this->implode_hostname($this->urls['api'][$api[0]]);
-        $headers = ($headers !== null) ? $headers : array();
+        $baseApiUrl = $this->safe_string($this->urls['api'], $api[0]);
+        if ($baseApiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $headersValue = array();
+        if ($headers !== null) {
+            $headersValue = $headers;
+        }
         if ($api[1] === 'private') {
             $this->check_required_credentials();
-            $headers['APCA-API-KEY-ID'] = $this->apiKey;
-            $headers['APCA-API-SECRET-KEY'] = $this->secret;
+            $headersValue['APCA-API-KEY-ID'] = $this->apiKey;
+            $headersValue['APCA-API-SECRET-KEY'] = $this->secret;
         }
         $query = $this->omit($params, $this->extract_params($path));
+        $bodyJson = null;
         if (count($query) > 0) {
             if (($method === 'GET') || ($method === 'DELETE')) {
                 $endpoint .= '?' . $this->urlencode($query);
             } else {
-                $body = $this->json($query);
-                $headers['Content-Type'] = 'application/json';
+                $bodyJson = $this->json($query);
+                $headersValue['Content-Type'] = 'application/json';
             }
         }
-        $url = $url . $endpoint;
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        $url = $this->implode_hostname($baseApiUrl) . $endpoint;
+        $bodyResolved = ($bodyJson === null) ? $body : $bodyJson;
+        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersValue );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

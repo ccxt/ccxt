@@ -13,9 +13,9 @@ public partial class testMainClass : BaseTest
         object trades = await invokeExchangeDynamically(exchange, "fetchMyTrades", symbol);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, trades, symbol);
         Int64 now = exchange.milliseconds();
-        for (int i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(trades); i++)
         {
-            testTrade(exchange, skippedProperties, method, getValue(trades, i), symbol, now);
+            testTrade(exchange, skippedProperties, method, getValue(trades, i), symbol, now, false);
         }
         testSharedMethods.assertTimestampOrder(exchange, method, symbol, trades);
         return true;

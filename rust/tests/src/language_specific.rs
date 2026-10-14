@@ -45,7 +45,7 @@ pub fn test_types_rest() -> Result<(), String> {
     returns::<Balances>(b.fetch_balance(n.clone()));
     returns::<Position>(b.fetch_position("BTC/USDT", n.clone()));
     returns::<Transfer>(b.transfer("USDT", 1.0, "spot", "swap", n.clone()));
-    returns::<Transaction>(b.withdraw("USDT", 1.0, "0x0", None, n.clone()));
+    returns::<Transaction>(b.withdraw("USDT", 1.0, "0x0", n.clone()));
     returns::<LedgerEntry>(b.fetch_ledger_entry("id", Some("USDT"), n.clone()));
     returns::<FundingRate>(b.fetch_funding_rate("BTC/USDT:USDT", n.clone()));
     returns::<Greeks>(b.fetch_greeks("BTC/USDT", n.clone()));
@@ -145,7 +145,40 @@ pub async fn test_throttler_performance() -> Result<(), String> {
 
 pub async fn run_async() -> Result<(), String> {
     test_ws_initialization().await?;
+    test_response_mock_reset().await?;
     test_throttler_performance().await?;
+    Ok(())
+}
+
+/// Exercise the actual snapshot -> cached Core mock lifecycle without network I/O.
+pub async fn test_response_mock_reset() -> Result<(), String> {
+    use crate::{assert_eq_msg, assert_true};
+    use crate::test_helpers::{initExchange, setFetchResponse};
+    use futures::FutureExt;
+
+    let config = Value::from_json(&serde_json::json!({
+        "httpProxy": "http://fake:8080", "httpsProxy": "http://fake:8080",
+        "enableRateLimit": false,
+    }));
+    let mut exchange = initExchange(Value::str("binance"), &[config]);
+    // Replacing the fixture must reach the same cached Core.
+    for timestamp in [1700000000000_i64, 1700000001000_i64] {
+        setFetchResponse(&mut exchange,
+            Value::from_json(&serde_json::json!({ "serverTime": timestamp })));
+        let result = crate::live_dispatch::dispatch(&mut exchange, "fetchTime", vec![]).await;
+        assert_eq_msg!(result, Value::Int(timestamp), "dispatch must use the current fixture");
+    }
+    // This is the same reset used after a static response fixture.
+    setFetchResponse(&mut exchange, Value::Null);
+    let result = std::panic::AssertUnwindSafe(
+        crate::live_dispatch::dispatch(&mut exchange, "fetchTime", vec![]),
+    ).catch_unwind().await;
+    let error = match result {
+        Err(payload) => crate::test_helpers::panic_to_value(payload),
+        Ok(_) => return Err("cleared mock must not survive into the next dispatch".to_string()),
+    };
+    assert_true!(error.to_string().contains("InvalidProxySettings"),
+        "cleared mock must reach the proxy guard before any network request");
     Ok(())
 }
 

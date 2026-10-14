@@ -73,7 +73,8 @@ func TestClientRejectRetainedWithoutWaiter(t *testing.T) {
 	client.Reject(NewError("NetworkError", "boom"), hash)
 	f := client.NewFuture(hash)
 	select {
-	case v := <-f.Await():
+	case received := <-f.Await():
+		v := outcomeOf(received)
 		if _, isErr := v.(error); !isErr {
 			t.Fatalf("expected retained error, got %v", v)
 		}
@@ -83,12 +84,13 @@ func TestClientRejectRetainedWithoutWaiter(t *testing.T) {
 	// drained once: the next consumer is not poisoned by the old error
 	f2 := client.NewFuture(hash)
 	select {
-	case v := <-f2.Await():
+	case received := <-f2.Await():
+		v := outcomeOf(received)
 		t.Fatalf("stale rejection served twice: %v", v)
 	case <-time.After(30 * time.Millisecond):
 	}
 	client.Resolve("fresh", hash)
-	if v := <-f2.Await(); v != "fresh" {
+	if v := outcomeOf(<-f2.Await()); v != "fresh" {
 		t.Fatalf("expected fresh, got %v", v)
 	}
 }

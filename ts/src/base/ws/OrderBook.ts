@@ -184,7 +184,6 @@ class IndexedOrderBook extends OrderBook {
 //     }
 // }
 
-
 // // ----------------------------------------------------------------------------
 // // incremental and indexed (2 in 1)
 
@@ -201,6 +200,7 @@ class IndexedOrderBook extends OrderBook {
 
 export {
     OrderBook,
+    OrderBook as WsOrderBook,
     CountedOrderBook,
     IndexedOrderBook,
     // IncrementalOrderBook,

@@ -16,38 +16,38 @@ pub fn testLiquidation(mut exchange: Value, mut skippedProperties: Value, mut me
     let mut m = indexmap::IndexMap::new();
     m
 }));
-            m.insert("symbol".to_string(), Value::Str("ETH/BTC".to_string()));
-            m.insert("contracts".to_string(), exchange.parse_number(Value::Str("1.234".to_string()), &[]));
-            m.insert("contractSize".to_string(), exchange.parse_number(Value::Str("1.234".to_string()), &[]));
-            m.insert("price".to_string(), exchange.parse_number(Value::Str("1.234".to_string()), &[]));
-            m.insert("baseValue".to_string(), exchange.parse_number(Value::Str("1.234".to_string()), &[]));
-            m.insert("quoteValue".to_string(), exchange.parse_number(Value::Str("1.234".to_string()), &[]));
+            m.insert("symbol".to_string(), Value::Str("ETH/BTC".into()));
+            m.insert("contracts".to_string(), exchange.parse_number(Value::Str("1.234".into()), &[]));
+            m.insert("contractSize".to_string(), exchange.parse_number(Value::Str("1.234".into()), &[]));
+            m.insert("price".to_string(), exchange.parse_number(Value::Str("1.234".into()), &[]));
+            m.insert("baseValue".to_string(), exchange.parse_number(Value::Str("1.234".into()), &[]));
+            m.insert("quoteValue".to_string(), exchange.parse_number(Value::Str("1.234".into()), &[]));
             m.insert("timestamp".to_string(), Value::Int(1502962946216));
-            m.insert("datetime".to_string(), Value::Str("2017-09-01T00:00:00".to_string()));
+            m.insert("datetime".to_string(), Value::Str("2017-09-01T00:00:00".into()));
         m
     });
     // todo: atm, many exchanges fail, so temporarily decrease stict mode
-    let mut emptyAllowedFor: Value = Value::List(vec![Value::Str("timestamp".to_string()), Value::Str("datetime".to_string()), Value::Str("quoteValue".to_string()), Value::Str("baseValue".to_string()), Value::Str("previousClose".to_string()), Value::Str("price".to_string()), Value::Str("contractSize".to_string()), Value::Str("contracts".to_string())]);
+    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("timestamp".into()), Value::Str("datetime".into()), Value::Str("quoteValue".into()), Value::Str("baseValue".into()), Value::Str("previousClose".into()), Value::Str("price".into()), Value::Str("contractSize".into()), Value::Str("contracts".into())]);
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone(), emptyAllowedFor.clone()]);
     crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone()]);
     let mut logText: Value = crate::tests_support::shared::log_template(exchange.clone(), method.clone(), entry.clone());
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("contracts".to_string()).clone(), Value::Str("0".to_string()).clone()]);
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("contractSize".to_string()).clone(), Value::Str("0".to_string()).clone()]);
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("price".to_string()).clone(), Value::Str("0".to_string()).clone()]);
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("baseValue".to_string()).clone(), Value::Str("0".to_string()).clone()]);
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("quoteValue".to_string()).clone(), Value::Str("0".to_string()).clone()]);
-    let mut contracts: Value = exchange.safe_string(entry.clone(), Value::Str("contracts".to_string()), &[]);
-    let mut contractSize: Value = exchange.safe_string(entry.clone(), Value::Str("contractSize".to_string()), &[]);
-    let mut price: Value = exchange.safe_string(entry.clone(), Value::Str("price".to_string()), &[]);
-    let mut baseValue: Value = exchange.safe_string(entry.clone(), Value::Str("baseValue".to_string()), &[]);
-    if is_true(&(!is_equal(&contracts, &Value::Null))) && is_true(&(!is_equal(&contracts, &Value::Str("".to_string())))) && is_true(&(!is_equal(&contractSize, &Value::Null))) && is_true(&(!is_equal(&contractSize, &Value::Str("".to_string())))) {
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("contracts".into()).clone(), Value::Str("0".into()).clone()]);
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("contractSize".into()).clone(), Value::Str("0".into()).clone()]);
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("price".into()).clone(), Value::Str("0".into()).clone()]);
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("baseValue".into()).clone(), Value::Str("0".into()).clone()]);
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("quoteValue".into()).clone(), Value::Str("0".into()).clone()]);
+    let mut contracts: Value = exchange.safe_string(entry.clone(), Value::Str("contracts".into()), &[]);
+    let mut contractSize: Value = exchange.safe_string(entry.clone(), Value::Str("contractSize".into()), &[]);
+    let mut price: Value = exchange.safe_string(entry.clone(), Value::Str("price".into()), &[]);
+    let mut baseValue: Value = exchange.safe_string(entry.clone(), Value::Str("baseValue".into()), &[]);
+    if (contracts != Value::Null) && (contracts.as_str() != Some("")) && (contractSize != Value::Null) && (contractSize.as_str() != Some("")) {
         assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringEq(&baseValue, &ccxt::precise::Precise::stringMul(&contracts, &contractSize)))));
-        if is_true(&(!is_equal(&price, &Value::Null))) && is_true(&(!is_equal(&price, &Value::Str("".to_string())))) {
+        if (price != Value::Null) && (price.as_str() != Some("")) {
             assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringEq(&baseValue, &ccxt::precise::Precise::stringMul(&ccxt::precise::Precise::stringMul(&contracts, &contractSize), &price)))));
         }
     }
     // if singular was called, then symbol needs to be asserted
-    if is_equal(&method, &Value::Str("watchLiquidations".to_string())) || is_equal(&method, &Value::Str("fetchLiquidations".to_string())) {
-        crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("symbol".to_string()).clone(), symbol.clone()]);
+    if (method.as_str() == Some("watchLiquidations")) || (method.as_str() == Some("fetchLiquidations")) {
+        crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("symbol".into()).clone(), symbol.clone()]);
     }
 }

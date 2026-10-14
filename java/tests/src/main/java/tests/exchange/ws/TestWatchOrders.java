@@ -2,8 +2,10 @@ package tests.exchange.ws;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 import tests.exchange.*;
+import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -15,7 +17,7 @@ public class TestWatchOrders extends BaseTest {
     public CompletableFuture<Object> testWatchOrders(Exchange exchange, Object skippedProperties, Object symbol)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         String method = "watchOrders";
         Object now = exchange.milliseconds();
@@ -26,10 +28,10 @@ public class TestWatchOrders extends BaseTest {
             Boolean success = true;
             try
             {
-                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchOrders", new Object[]{symbol})).join();
-                if (Helpers.isTrue(Helpers.isEqual(response, null)))
+                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchOrders", new Object[]{Helpers.toStringArg(symbol), (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
+                if (java.util.Objects.equals(response, null))
                 {
-                    throw new RuntimeException((String)Helpers.add(exchange.id, " watch returned undefined response")) ;
+                    throw new RuntimeException((String)(exchange.id + " watch returned undefined response")) ;
                 }
             } catch(Exception e)
             {
@@ -41,15 +43,15 @@ public class TestWatchOrders extends BaseTest {
                 // continue;
                 success = false;
             }
-            if (Helpers.isTrue(Helpers.isEqual(success, true)))
+            if (java.util.Objects.equals(success, true))
             {
-                if (Helpers.isTrue(Helpers.isEqual(response, null)))
+                if (java.util.Objects.equals(response, null))
                 {
-                    throw new RuntimeException((String)Helpers.add(exchange.id, " watch returned undefined response")) ;
+                    throw new RuntimeException((String)(exchange.id + " watch returned undefined response")) ;
                 }
                 TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
                 now = exchange.milliseconds();
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+                for (var i = 0; i < Helpers.getArrayLength(response); i++)
                 {
                     TestOrder.testOrder(exchange, skippedProperties, method, Helpers.GetValue(response, i), symbol, now);
                 }

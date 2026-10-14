@@ -85,7 +85,7 @@ class coinone extends \ccxt\async\coinone {
         return $orderbook->limit();
     }
 
-    public function handle_order_book(mixed $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         //     {
         //         "response_type": "DATA",
@@ -110,11 +110,14 @@ class coinone extends \ccxt\async\coinone {
         //         }
         //     }
         //
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_dict($message, 'data', array());
         $baseId = $this->safe_string_upper($data, 'target_currency');
         $quoteId = $this->safe_string_upper($data, 'quote_currency');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return;
+        }
         $symbol = $this->symbol($base . '/' . $quote);
         $timestamp = $this->safe_integer($data, 'timestamp');
         $orderbook = $this->safe_value($this->orderbooks, $symbol);
@@ -124,8 +127,8 @@ class coinone extends \ccxt\async\coinone {
             $orderbook->reset();
         }
         $orderbook['symbol'] = $symbol;
-        $asks = $this->safe_value($data, 'asks', array());
-        $bids = $this->safe_value($data, 'bids', array());
+        $asks = $this->safe_list($data, 'asks', array());
+        $bids = $this->safe_list($data, 'bids', array());
         $this->handle_deltas($orderbook['asks'], $asks);
         $this->handle_deltas($orderbook['bids'], $bids);
         $orderbook['timestamp'] = $timestamp;
@@ -172,7 +175,7 @@ class coinone extends \ccxt\async\coinone {
         return Async\await($this->watch($url, $messageHash, $message, $messageHash));
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message) {
         //
         //     {
         //         "response_type": "DATA",
@@ -202,9 +205,12 @@ class coinone extends \ccxt\async\coinone {
         //         }
         //     }
         //
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_dict($message, 'data', array());
         $ticker = $this->parse_ws_ticker($data);
         $symbol = $ticker['symbol'];
+        if ($symbol === null) {
+            return;
+        }
         $this->tickers[$symbol] = $ticker;
         $messageHash = 'ticker:' . $symbol;
         $client->resolve($this->tickers[$symbol], $messageHash);
@@ -242,7 +248,10 @@ class coinone extends \ccxt\async\coinone {
         $quoteId = $this->safe_string($ticker, 'quote_currency');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        $symbol = $this->symbol($base . '/' . $quote);
+        $symbol = null;
+        if (($base !== null) && ($quote !== null)) {
+            $symbol = $this->symbol($base . '/' . $quote);
+        }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -299,13 +308,14 @@ class coinone extends \ccxt\async\coinone {
         );
         $message = $this->extend($request, $params);
         $trades = Async\await($this->watch($url, $messageHash, $message, $messageHash));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($market['symbol'], $limit);
+            $limitResolved = $trades->getLimit($market['symbol'], $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         //     {
         //         "response_type": "DATA",
@@ -321,7 +331,7 @@ class coinone extends \ccxt\async\coinone {
         //         }
         //     }
         //
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_dict($message, 'data', array());
         $trade = $this->parse_ws_trade($data);
         $symbol = $trade['symbol'];
         $stored = $this->safe_value($this->trades, $symbol);
@@ -351,10 +361,13 @@ class coinone extends \ccxt\async\coinone {
         $quoteId = $this->safe_string_upper($trade, 'quote_currency');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        $symbol = $base . '/' . $quote;
+        $symbol = null;
+        if (($base !== null) && ($quote !== null)) {
+            $symbol = $base . '/' . $quote;
+        }
         $timestamp = $this->safe_integer($trade, 'timestamp');
-        $market = $this->safe_market($symbol, $market);
-        $isSellerMaker = $this->safe_value($trade, 'is_seller_maker');
+        $marketResolved = $this->safe_market($symbol, $market);
+        $isSellerMaker = $this->safe_bool($trade, 'is_seller_maker');
         $side = null;
         if ($isSellerMaker !== null) {
             $side = ($isSellerMaker === true) ? 'sell' : 'buy';
@@ -367,7 +380,7 @@ class coinone extends \ccxt\async\coinone {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'order' => null,
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'type' => null,
             'side' => $side,
             'takerOrMaker' => null,
@@ -375,10 +388,10 @@ class coinone extends \ccxt\async\coinone {
             'amount' => $amountString,
             'cost' => null,
             'fee' => null,
-        ), $market);
+        ), $marketResolved);
     }
 
-    public function handle_error_message(Client $client, mixed $message): ?bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         //
         //     {
         //         "response_type": "ERROR",
@@ -393,7 +406,7 @@ class coinone extends \ccxt\async\coinone {
         return false;
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         if ($this->handle_error_message($client, $message) === true) {
             return;
         }
@@ -426,13 +439,13 @@ class coinone extends \ccxt\async\coinone {
         }
     }
 
-    public function ping(Client $client) {
+    public function ping(Client $client): array {
         return array(
             'request_type' => 'PING',
         );
     }
 
-    public function handle_pong(Client $client, mixed $message) {
+    public function handle_pong(Client $client, array $message): array {
         //
         //     {
         //         "response_type":"PONG"

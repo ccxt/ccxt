@@ -6,6 +6,7 @@ import io.github.ccxt.api.BybiteuApi;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import io.github.ccxt.BaseExchange;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -69,6 +70,10 @@ public class Bybiteu extends BybiteuApi
             }} );
             put( "options", new HashMap<String, Object>() {{
                 put( "mica", true );
+                put( "defaultType", "spot" );
+                put( "fetchMarkets", new HashMap<String, Object>() {{
+                    put( "types", new ArrayList<Object>(Arrays.asList("spot")) );
+                }} );
             }} );
         }});
     }

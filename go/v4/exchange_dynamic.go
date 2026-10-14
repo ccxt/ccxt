@@ -63,9 +63,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
 	case "bithumb":
 		bithumbItf := NewBithumb(exchangeArgs)
 		return bithumbItf, true
-	case "bitmex":
-		bitmexItf := NewBitmex(exchangeArgs)
-		return bitmexItf, true
 	case "bitopro":
 		bitoproItf := NewBitopro(exchangeArgs)
 		return bitoproItf, true
@@ -114,6 +111,9 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
 	case "bybiteu":
 		bybiteuItf := NewBybiteu(exchangeArgs)
 		return bybiteuItf, true
+	case "bybitid":
+		bybitidItf := NewBybitid(exchangeArgs)
+		return bybitidItf, true
 	case "bydfi":
 		bydfiItf := NewBydfi(exchangeArgs)
 		return bydfiItf, true
@@ -132,9 +132,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
 	case "coincheck":
 		coincheckItf := NewCoincheck(exchangeArgs)
 		return coincheckItf, true
-	case "coinex":
-		coinexItf := NewCoinex(exchangeArgs)
-		return coinexItf, true
 	case "coinmate":
 		coinmateItf := NewCoinmate(exchangeArgs)
 		return coinmateItf, true

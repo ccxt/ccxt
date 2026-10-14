@@ -308,7 +308,7 @@ class hollaex(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_markets(self, params={}) -> list[Market]:
+    async def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for hollaex
 
@@ -367,7 +367,7 @@ class hollaex(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(keys)):
             key = keys[i]
-            market = pairs[key]
+            market = self.safe_dict(pairs, key)
             baseId = self.safe_string(market, 'pair_base')
             quoteId = self.safe_string(market, 'pair_2')
             base = self.common_currency_code(baseId.upper())
@@ -387,7 +387,7 @@ class hollaex(Exchange, ImplicitAPI):
                 'swap': False,
                 'future': False,
                 'option': False,
-                'active': self.safe_value(market, 'active'),
+                'active': self.safe_bool(market, 'active'),
                 'contract': False,
                 'linear': None,
                 'inverse': None,
@@ -423,7 +423,7 @@ class hollaex(Exchange, ImplicitAPI):
             })
         return result
 
-    async def fetch_currencies(self, params={}) -> Currencies:
+    async def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
         fetches all available currencies on an exchange
 
@@ -508,7 +508,9 @@ class hollaex(Exchange, ImplicitAPI):
         code = self.safe_currency_code(id)
         withdrawalLimits = self.safe_list(rawCurrency, 'withdrawal_limits', [])
         rawType = self.safe_string(rawCurrency, 'type')
-        type = 'crypto' if (rawType == 'blockchain') else 'other'
+        type = 'other'
+        if rawType == 'blockchain':
+            type = 'crypto'
         rawNetworks = self.safe_dict(rawCurrency, 'withdrawal_fees', {})
         networks = {}
         networkIds = list(rawNetworks.keys())
@@ -551,14 +553,14 @@ class hollaex(Exchange, ImplicitAPI):
                 },
                 'withdraw': {
                     'min': None,
-                    'max': self.safe_value(withdrawalLimits, 0),
+                    'max': self.safe_number(withdrawalLimits, 0),
                 },
             },
             'networks': networks,
             'type': type,
         })
 
-    async def fetch_order_books(self, symbols: Strings = None, limit: Int = None, params={}) -> OrderBooks:
+    async def fetch_order_books(self, symbols: Strings = None, limit: Int = None, params: dict = {}) -> OrderBooks:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
 
@@ -582,7 +584,7 @@ class hollaex(Exchange, ImplicitAPI):
             result[symbol] = self.parse_order_book(orderbook, symbol, timestamp)
         return result
 
-    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -619,11 +621,11 @@ class hollaex(Exchange, ImplicitAPI):
         #         // ...
         #     }
         #
-        orderbook = self.safe_value(response, market['id'])
+        orderbook = self.safe_dict(response, market['id'])
         timestamp = self.parse8601(self.safe_string(orderbook, 'timestamp'))
         return self.parse_order_book(orderbook, market['symbol'], timestamp)
 
-    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -653,7 +655,7 @@ class hollaex(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(response, market)
 
-    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
@@ -665,7 +667,7 @@ class hollaex(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols)
+        symbolsNormalized = self.market_symbols(symbols)
         response = await self.publicGetTickers(params)
         #
         #     {
@@ -682,9 +684,9 @@ class hollaex(Exchange, ImplicitAPI):
         #         // ...
         #     }
         #
-        return self.parse_tickers(response, symbols)
+        return self.parse_tickers(response, symbolsNormalized)
 
-    def parse_tickers(self, tickers: object, symbols: Strings = None, params={}) -> Tickers:
+    def parse_tickers(self, tickers: object, symbols: Strings = None, params: dict = {}) -> Tickers:
         result = {}
         keys = list(tickers.keys())
         for i in range(0, len(keys)):
@@ -724,8 +726,8 @@ class hollaex(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(ticker, 'symbol')
-        market = self.safe_market(marketId, market, '-')
-        symbol = market['symbol']
+        marketResolved = self.safe_market(marketId, market, '-')
+        symbol = marketResolved['symbol']
         timestamp = self.parse8601(self.safe_string_2(ticker, 'time', 'timestamp'))
         close = self.safe_string(ticker, 'close')
         return self.safe_ticker({
@@ -749,9 +751,9 @@ class hollaex(Exchange, ImplicitAPI):
             'average': None,
             'baseVolume': self.safe_string(ticker, 'volume'),
             'quoteVolume': None,
-        }, market)
+        }, marketResolved)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -810,8 +812,8 @@ class hollaex(Exchange, ImplicitAPI):
         #  }
         #
         marketId = self.safe_string(trade, 'symbol')
-        market = self.safe_market(marketId, market, '-')
-        symbol = market['symbol']
+        marketResolved = self.safe_market(marketId, market, '-')
+        symbol = marketResolved['symbol']
         datetime = self.safe_string(trade, 'timestamp')
         timestamp = self.parse8601(datetime)
         side = self.safe_string(trade, 'side')
@@ -840,9 +842,9 @@ class hollaex(Exchange, ImplicitAPI):
             'amount': amountString,
             'cost': None,
             'fee': fee,
-        }, market)
+        }, marketResolved)
 
-    async def fetch_trading_fees(self, params={}) -> TradingFees:
+    async def fetch_trading_fees(self, params: dict = {}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
 
@@ -882,10 +884,10 @@ class hollaex(Exchange, ImplicitAPI):
         #         ...
         #     }
         #
-        firstTier = self.safe_value(response, '1', {})
-        fees = self.safe_value(firstTier, 'fees', {})
-        makerFees = self.safe_value(fees, 'maker', {})
-        takerFees = self.safe_value(fees, 'taker', {})
+        firstTier = self.safe_dict(response, '1', {})
+        fees = self.safe_dict(firstTier, 'fees', {})
+        makerFees = self.safe_dict(fees, 'maker', {})
+        takerFees = self.safe_dict(fees, 'taker', {})
         result = {}
         for i in range(0, len(self.symbols)):
             symbol = self.symbols[i]
@@ -902,7 +904,7 @@ class hollaex(Exchange, ImplicitAPI):
             }
         return result
 
-    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         hollaex has large gaps between candles, so it's recommended to specify since
 
@@ -925,10 +927,10 @@ class hollaex(Exchange, ImplicitAPI):
         }
         paginate = False
         maxLimit = 500
-        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', paginate)
-        if paginate:
-            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit)
-        until = self.safe_integer(params, 'until')
+        paginateOption, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', paginate)
+        if paginateOption:
+            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit)
+        until = self.safe_integer(paramsPaginate, 'until')
         timeDelta = self.parse_timeframe(timeframe) * maxLimit * 1000
         start = since
         now = self.milliseconds()
@@ -938,8 +940,8 @@ class hollaex(Exchange, ImplicitAPI):
             start = until - timeDelta
         request['from'] = self.parse_to_int(start / 1000)  # convert to seconds
         request['to'] = self.parse_to_int(until / 1000)  # convert to seconds
-        params = self.omit(params, 'until')
-        response = await self.publicGetChart(self.extend(request, params))
+        paramsOmitted = self.omit(paramsPaginate, 'until')
+        response = await self.publicGetChart(self.extend(request, paramsOmitted))
         #
         #     [
         #         {
@@ -997,7 +999,7 @@ class hollaex(Exchange, ImplicitAPI):
                 result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_balance(self, params={}) -> Balances:
+    async def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -1066,7 +1068,7 @@ class hollaex(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -1083,7 +1085,7 @@ class hollaex(Exchange, ImplicitAPI):
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -1100,7 +1102,7 @@ class hollaex(Exchange, ImplicitAPI):
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_order(self, id: str, symbol: Str = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an order made by the user
 
@@ -1144,7 +1146,7 @@ class hollaex(Exchange, ImplicitAPI):
             raise OrderNotFound(self.id + ' fetchOrder() could not find order id ' + id)
         return self.parse_order(order)
 
-    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -1259,7 +1261,7 @@ class hollaex(Exchange, ImplicitAPI):
         amount = self.safe_string(order, 'size')
         filled = self.safe_string(order, 'filled')
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        meta = self.safe_value(order, 'meta', {})
+        meta = self.safe_dict(order, 'meta', {})
         postOnly = self.safe_bool(meta, 'post_only', False)
         return self.safe_order({
             'id': id,
@@ -1285,7 +1287,7 @@ class hollaex(Exchange, ImplicitAPI):
             'average': None,
         }, market)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -1313,7 +1315,7 @@ class hollaex(Exchange, ImplicitAPI):
             # 'meta': {}, // other options such as post_only
         }
         triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'stop'])
-        meta = self.safe_value(params, 'meta', {})
+        meta = self.safe_dict(params, 'meta', {})
         exchangeSpecificParam = self.safe_bool(meta, 'post_only', False)
         isMarketOrder = type == 'market'
         postOnly = self.is_post_only(isMarketOrder, exchangeSpecificParam, params)
@@ -1323,8 +1325,8 @@ class hollaex(Exchange, ImplicitAPI):
             request['stop'] = self.price_to_precision(symbol, triggerPrice)
         if postOnly:
             request['meta'] = {'post_only': True}
-        params = self.omit(params, ['postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stop'])
-        response = await self.privatePostOrder(self.extend(request, params))
+        paramsOmitted = self.omit(params, ['postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stop'])
+        response = await self.privatePostOrder(self.extend(request, paramsOmitted))
         #
         #     {
         #         "fee": 0,
@@ -1350,7 +1352,7 @@ class hollaex(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    async def cancel_order(self, id: str, symbol: Str = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
@@ -1382,7 +1384,7 @@ class hollaex(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    async def cancel_all_orders(self, symbol: Str = None, params={}):
+    async def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel all open orders in a market
 
@@ -1418,7 +1420,7 @@ class hollaex(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market)
 
-    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -1468,7 +1470,7 @@ class hollaex(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: dict, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "currency":"usdt",
@@ -1487,17 +1489,17 @@ class hollaex(Exchange, ImplicitAPI):
             tag = self.safe_string(parts, 1)
         self.check_address(address)
         currencyId = self.safe_string(depositAddress, 'currency')
-        currency = self.safe_currency(currencyId, currency)
+        currencyResolved = self.safe_currency(currencyId, currency)
         network = self.safe_string(depositAddress, 'network')
         return {
             'info': depositAddress,
-            'currency': currency['code'],
+            'currency': currencyResolved['code'],
             'network': network,
             'address': address,
             'tag': tag,
         }
 
-    async def fetch_deposit_addresses(self, codes: Strings = None, params={}) -> list[DepositAddress]:
+    async def fetch_deposit_addresses(self, codes: Strings = None, params: dict = {}) -> list[DepositAddress]:
         """
         fetch deposit addresses for multiple currencies and chain types
 
@@ -1510,8 +1512,8 @@ class hollaex(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         network = self.safe_string(params, 'network')
-        params = self.omit(params, 'network')
-        response = await self.privateGetUser(params)
+        paramsOmitted = self.omit(params, 'network')
+        response = await self.privateGetUser(paramsOmitted)
         #
         #     {
         #         "id":620,
@@ -1557,11 +1559,15 @@ class hollaex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        wallet = self.safe_value(response, 'wallet', [])
-        addresses = wallet if (network is None) else self.filter_by(wallet, 'network', network)
+        wallet = self.safe_list(response, 'wallet', [])
+        addresses = None
+        if network is None:
+            addresses = wallet
+        else:
+            addresses = self.filter_by(wallet, 'network', network)
         return self.parse_deposit_addresses(addresses, codes, False)
 
-    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -1663,11 +1669,11 @@ class hollaex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         transaction = self.safe_dict(data, 0, {})
         return self.parse_transaction(transaction, currency)
 
-    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -1776,10 +1782,10 @@ class hollaex(Exchange, ImplicitAPI):
             addressTo = address
             tagTo = tag
         currencyId = self.safe_string(transaction, 'currency')
-        currency = self.safe_currency(currencyId, currency)
+        currencyResolved = self.safe_currency(currencyId, currency)
         status = self.safe_value(transaction, 'status')
-        dismissed = self.safe_value(transaction, 'dismissed')
-        rejected = self.safe_value(transaction, 'rejected')
+        dismissed = self.safe_bool(transaction, 'dismissed')
+        rejected = self.safe_bool(transaction, 'rejected')
         if status is True:
             status = 'ok'
         elif dismissed is True:
@@ -1789,7 +1795,7 @@ class hollaex(Exchange, ImplicitAPI):
         else:
             status = 'pending'
         feeCurrencyId = self.safe_string(transaction, 'fee_coin')
-        feeCurrencyCode = self.safe_currency_code(feeCurrencyId, currency)
+        feeCurrencyCode = self.safe_currency_code(feeCurrencyId, currencyResolved)
         feeCost = self.safe_number(transaction, 'fee')
         fee = None
         if feeCost is not None:
@@ -1812,7 +1818,7 @@ class hollaex(Exchange, ImplicitAPI):
             'tagTo': tagTo,
             'type': type,
             'amount': amount,
-            'currency': currency['code'],
+            'currency': currencyResolved['code'],
             'status': status,
             'updated': updated,
             'comment': self.safe_string(transaction, 'message'),
@@ -1820,7 +1826,7 @@ class hollaex(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -1829,28 +1835,29 @@ class hollaex(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tag, params = self.handle_withdraw_tag_and_params(tag, params)
-        self.check_address(address)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
+        self.check_address(address, code, tagWithdrawTag)
         if self.markets is None:
             await self.load_markets()
         currency = self.currency(code)
-        if tag is not None:
-            address += ':' + tag
-        network = self.safe_string(params, 'network')
+        addressWithTag = address
+        if tagWithdrawTag is not None:
+            addressWithTag = address + ':' + tagWithdrawTag
+        network = self.safe_string(paramsWithdrawTag, 'network')
         if network is None:
             raise ArgumentsRequired(self.id + ' withdraw() requires a network parameter')
-        params = self.omit(params, 'network')
+        paramsOmitted = self.omit(paramsWithdrawTag, 'network')
         request = {
             'currency': currency['id'],
             'amount': amount,
-            'address': address,
+            'address': addressWithTag,
             'network': self.network_code_to_id(network, code),
         }
-        response = await self.privatePostUserWithdrawal(self.extend(request, params))
+        response = await self.privatePostUserWithdrawal(self.extend(request, paramsOmitted))
         #
         #     {
         #         "message": "Withdrawal request is in the queue and will be processed.",
@@ -1863,7 +1870,7 @@ class hollaex(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None):
+    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None) -> object:
         #
         #    "bch":{
         #        "id":4,
@@ -1906,16 +1913,16 @@ class hollaex(Exchange, ImplicitAPI):
             },
             'networks': {},
         }
-        allowWithdrawal = self.safe_value(fee, 'allow_withdrawal')
+        allowWithdrawal = self.safe_bool(fee, 'allow_withdrawal')
         if allowWithdrawal is True:
             result['withdraw'] = {'fee': self.safe_number(fee, 'withdrawal_fee'), 'percentage': False}
-        withdrawalFees = self.safe_value(fee, 'withdrawal_fees')
+        withdrawalFees = self.safe_dict(fee, 'withdrawal_fees')
         if withdrawalFees is not None:
             keys = list(withdrawalFees.keys())
             keysLength = len(keys)
             for i in range(0, keysLength):
                 key = keys[i]
-                value = withdrawalFees[key]
+                value = self.safe_dict(withdrawalFees, key)
                 currencyId = self.safe_string(value, 'symbol')
                 currencyCode = self.safe_currency_code(currencyId)
                 networkCode = self.network_id_to_code(key, currencyCode)
@@ -1929,7 +1936,7 @@ class hollaex(Exchange, ImplicitAPI):
                 }
         return result
 
-    async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}) -> DepositWithdrawFees:
+    async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params: dict = {}) -> DepositWithdrawFees:
         """
         fetch deposit and withdraw fees
 
@@ -1978,31 +1985,38 @@ class hollaex(Exchange, ImplicitAPI):
         coins = self.safe_dict(response, 'coins', {})
         return self.parse_deposit_withdraw_fees(coins, codes, 'symbol')
 
-    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         query = self.omit(params, self.extract_params(path))
-        path = '/' + self.version + '/' + self.implode_params(path, params)
+        requestPath = '/' + self.version + '/' + self.implode_params(path, params)
         if (method == 'GET') or (method == 'DELETE'):
             if len(query) > 0:
-                path += '?' + self.urlencode(query)
-        url = self.urls['api']['rest'] + path
+                requestPath += '?' + self.urlencode(query)
+        apiUrl = self.safe_string(self.urls['api'], 'rest')
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + requestPath
+        requestBody = None
+        requestHeaders = None
         if api == 'private':
             self.check_required_credentials()
             defaultExpires = self.safe_integer_2(self.options, 'api-expires', 'expires', self.parse_to_int(self.timeout / 1000))
             expires = self.sum(self.seconds(), defaultExpires)
             expiresString = str(expires)
-            auth = method + path + expiresString
-            headers = {
+            auth = method + requestPath + expiresString
+            requestHeaders = {
                 'api-key': self.apiKey,
                 'api-expires': expiresString,
             }
             if method == 'POST':
-                headers['Content-type'] = 'application/json'
+                requestHeaders['Content-type'] = 'application/json'
                 if len(query) > 0:
-                    body = self.json(query)
-                    auth += body
+                    requestBody = self.json(query)
+                    auth += requestBody
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
-            headers['api-signature'] = signature
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+            requestHeaders['api-signature'] = signature
+        bodyResult = body if (requestBody is None) else requestBody
+        headersResult = headers if (requestHeaders is None) else requestHeaders
+        return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         # { "message": "Invalid token" }

@@ -23,6 +23,7 @@ import io.github.ccxt.errors.AuthenticationError;
 // import io.github.ccxt.wrappers.Binance;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
+import io.github.ccxt.Helpers;
 import io.github.ccxt.MetaData;
 import io.github.ccxt.Version;
 
@@ -191,55 +192,10 @@ public class Main {
         }
     }
 
+    // every exchange method has one typed signature: resolve it by name, omitted trailing args padded
     public static Object callDynamic(Object instance, String methodName, Object... args) {
-        Class<?> clazz = instance.getClass();
-
         try {
-            Class<?>[] paramTypes = Arrays.stream(args)
-                                        .map(a -> a == null ? null : a.getClass())
-                                        .toArray(Class<?>[]::new);
-
-            try {
-                Method m = clazz.getMethod(methodName, paramTypes);
-                return m.invoke(instance, args);
-            } catch (NoSuchMethodException ignore) {
-                // Try matching a varargs method
-            }
-
-            // Try varargs method: (Object, Object[])
-            for (Method m : clazz.getMethods()) {
-                if (!m.getName().equals(methodName)) continue;
-
-                if (m.isVarArgs()) {
-                    Class<?>[] types = m.getParameterTypes();
-
-                    int fixedCount = types.length - 1;
-
-                    if (args.length < fixedCount) continue;
-
-                    Object[] invokeArgs = new Object[types.length];
-
-                    for (int i = 0; i < fixedCount; i++) {
-                        invokeArgs[i] = args[i];
-                    }
-
-                    // Build the varargs array
-                    Class<?> varType = types[fixedCount].getComponentType();
-                    int varCount = args.length - fixedCount;
-
-                    Object varArray = Array.newInstance(varType, varCount);
-                    for (int i = 0; i < varCount; i++) {
-                        Array.set(varArray, i, args[fixedCount + i]);
-                    }
-
-                    invokeArgs[fixedCount] = varArray;
-
-                    return m.invoke(instance, invokeArgs);
-                }
-            }
-
-            throw new NoSuchMethodException("Method " + methodName + " not found");
-
+            return Helpers.callDynamically(instance, methodName, args);
         } catch (Exception e) {
             throw new RuntimeException("Error calling method: " + methodName, e);
         }
@@ -315,7 +271,7 @@ public class Main {
             if (Main.verbose) {
                 instance.verbose = true;
             }
-            instance.loadMarkets().get();
+            instance.loadMarkets(false, new java.util.HashMap<String, Object>()).get();
 
             while (true) {
                 var f = callDynamic(instance, methodName, params);

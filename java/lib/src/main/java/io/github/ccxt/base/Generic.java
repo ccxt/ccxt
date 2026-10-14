@@ -43,7 +43,7 @@ public class Generic {
 
     // ---------- sortBy ----------
 
-    public static List<Object> sortBy(Object array, Object value1, Object desc2, Object defaultValue2) {
+    public static <T> List<T> sortBy(Object array, Object value1, Object desc2, Object defaultValue2) {
         boolean desc = (desc2 instanceof Boolean b) ? b : false;
         Object defaultValue = (defaultValue2 != null) ? defaultValue2 : "";
         List<Object> lst = (List<Object>) array;
@@ -65,7 +65,7 @@ public class Generic {
             });
         }
         if (desc) Collections.reverse(sorted);
-        return sorted;
+        return (List<T>) (List<?>) sorted;
     }
 
     /**
@@ -106,7 +106,7 @@ public class Generic {
         }
     }
 
-    public static List<Object> sortBy2(Object array, Object key1, Object key2, Object desc2) {
+    public static <T> List<T> sortBy2(Object array, Object key1, Object key2, Object desc2) {
         boolean desc = (desc2 instanceof Boolean b) ? b : false;
         List<Object> lst = (List<Object>) array;
 
@@ -123,14 +123,14 @@ public class Generic {
                 }, Comparator.nullsFirst(Comparator.naturalOrder()))
             );
             if (desc) Collections.reverse(sorted);
-            return sorted;
+            return (List<T>) (List<?>) sorted;
         }
         return null;
     }
 
     // ---------- filterBy ----------
 
-    public static List<Object> filterBy(Object aa, Object key, Object value) {
+    public static <T> List<T> filterBy(Object aa, Object key, Object value) {
         List<Object> targetA;
         if (aa instanceof List) {
             targetA = (List<Object>) aa;
@@ -146,7 +146,7 @@ public class Generic {
                 out.add(elem);
             }
         }
-        return out;
+        return (List<T>) (List<?>) out;
     }
 
     // ---------- extend / Extend (shallow merge) ----------

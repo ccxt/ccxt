@@ -36,7 +36,7 @@ class dydx(ccxt.async_support.dydx):
             'exceptions': {},
         })
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -59,11 +59,12 @@ class dydx(ccxt.async_support.dydx):
             'id': market['id'],
         }
         trades = await self.watch(url, messageHash, self.extend(request, params), messageHash)
+        limitResolved = limit
         if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+            limitResolved = trades.getLimit(symbol, limit)
+        return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)
 
-    async def un_watch_trades(self, symbol: str, params={}) -> object:
+    async def un_watch_trades(self, symbol: str, params: dict = {}) -> object:
         """
         unsubscribes from the trades channel
 
@@ -85,7 +86,7 @@ class dydx(ccxt.async_support.dydx):
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
-    def handle_trades(self, client: object, message: object):
+    def handle_trades(self, client: Client, message: dict):
         #
         # {
         #     "type": "subscribed",
@@ -125,7 +126,7 @@ class dydx(ccxt.async_support.dydx):
         messageHash = 'trade' + ':' + symbol
         client.resolve(stored, messageHash)
 
-    def parse_ws_trade(self, trade: object, market: Market = None):
+    def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # {
         #     "id": "02b6148d0000000200000003",
@@ -154,7 +155,7 @@ class dydx(ccxt.async_support.dydx):
             'fee': None,
         }, market)
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -178,7 +179,7 @@ class dydx(ccxt.async_support.dydx):
         orderbook = await self.watch(url, messageHash, self.extend(request, params), messageHash)
         return orderbook.limit()
 
-    async def un_watch_order_book(self, symbol: str, params={}) -> object:
+    async def un_watch_order_book(self, symbol: str, params: dict = {}) -> object:
         """
         unWatches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -200,7 +201,7 @@ class dydx(ccxt.async_support.dydx):
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
-    def handle_order_book(self, client: Client, message: object):
+    def handle_order_book(self, client: Client, message: dict):
         #
         # {
         #     "type": "subscribed",
@@ -250,7 +251,7 @@ class dydx(ccxt.async_support.dydx):
             bidAsk = self.parse_order_book_bid_ask(delta, 'price', 'size')
             bookside.storeArray(bidAsk)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -275,11 +276,12 @@ class dydx(ccxt.async_support.dydx):
             'id': market['id'] + '/' + resolution,
         }
         ohlcv = await self.watch(url, messageHash, self.extend(request, params), messageHash)
+        limitResolved = limit
         if self.newUpdates:
-            limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+            limitResolved = ohlcv.getLimit(symbol, limit)
+        return self.filter_by_since_limit(ohlcv, since, limitResolved, 0, True)
 
-    async def un_watch_ohlcv(self, symbol: str, timeframe='1m', params={}) -> object:
+    async def un_watch_ohlcv(self, symbol: str, timeframe='1m', params: dict = {}) -> object:
         """
         unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -304,7 +306,7 @@ class dydx(ccxt.async_support.dydx):
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
-    def handle_ohlcv(self, client: Client, message: object):
+    def handle_ohlcv(self, client: Client, message: dict):
         #
         # {
         #     "type": "subscribed",
@@ -368,7 +370,7 @@ class dydx(ccxt.async_support.dydx):
         messageHash = 'ohlcv:' + symbol
         ohlcv = self.safe_dict(candles, 0, content)
         parsed = self.parse_ohlcv(ohlcv, market)
-        self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
+        self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
         stored = self.safe_value(self.ohlcvs[symbol], timeframe)
         if stored is None:
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
@@ -377,7 +379,7 @@ class dydx(ccxt.async_support.dydx):
         stored.append(parsed)
         client.resolve(stored, messageHash)
 
-    def handle_error_message(self, client: Client, message: object) -> bool:
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         #
         # {
         #     "type": "error",
@@ -393,7 +395,7 @@ class dydx(ccxt.async_support.dydx):
             client.reject(e)
         return True
 
-    def handle_message(self, client: Client, message: object):
+    def handle_message(self, client: Client, message: dict):
         type = self.safe_string(message, 'type')
         if type == 'error':
             self.handle_error_message(client, message)

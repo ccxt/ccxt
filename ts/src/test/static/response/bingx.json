@@ -1,8 +1,187 @@
 {
     "exchange": "bingx",
-    "skipKeys": [ "tranId", "timestamp", "id" ],
+    "skipKeys": [ "tranId", "timestamp" ],
     "options": {},
     "methods": {
+        "fetchWithdrawals": [
+            {
+                "description": "withdrawal history parses completed and internal flags",
+                "method": "fetchWithdrawals",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "sourceAddress": "0x065ac3d33fec104fba9f2f4d674afaa7c4ebcf43",
+                        "address": "0xB288C9D8c080758C4AAEC8A718f788509c37c80A",
+                        "amount": "1305.090704",
+                        "applyTime": "2025-04-11T15:05:00.000+08:00",
+                        "coin": "USDT",
+                        "id": "1428162604814426117",
+                        "withdrawOrderId": "",
+                        "network": "ERC20",
+                        "transferType": 1,
+                        "status": 6,
+                        "transactionFee": "7",
+                        "confirmNo": 64,
+                        "info": "",
+                        "txId": "0x3d5b77583d4092350a10ea18f1b5ccac1d41cc836c225baae592c2f3e5e07379"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "sourceAddress": "0x065ac3d33fec104fba9f2f4d674afaa7c4ebcf43",
+                            "address": "0xB288C9D8c080758C4AAEC8A718f788509c37c80A",
+                            "amount": "1305.090704",
+                            "applyTime": "2025-04-11T15:05:00.000+08:00",
+                            "coin": "USDT",
+                            "id": "1428162604814426117",
+                            "withdrawOrderId": "",
+                            "network": "ERC20",
+                            "transferType": 1,
+                            "status": 6,
+                            "transactionFee": "7",
+                            "confirmNo": 64,
+                            "info": "",
+                            "txId": "0x3d5b77583d4092350a10ea18f1b5ccac1d41cc836c225baae592c2f3e5e07379"
+                        },
+                        "id": "1428162604814426117",
+                        "txid": "0x3d5b77583d4092350a10ea18f1b5ccac1d41cc836c225baae592c2f3e5e07379",
+                        "type": "withdrawal",
+                        "currency": "USDT",
+                        "network": "ERC20",
+                        "amount": 1305.090704,
+                        "status": "ok",
+                        "timestamp": 1744355100000,
+                        "datetime": "2025-04-11T07:05:00.000Z",
+                        "address": "0xB288C9D8c080758C4AAEC8A718f788509c37c80A",
+                        "addressFrom": null,
+                        "addressTo": "0xB288C9D8c080758C4AAEC8A718f788509c37c80A",
+                        "tag": null,
+                        "tagFrom": null,
+                        "tagTo": null,
+                        "updated": null,
+                        "comment": null,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 7,
+                            "rate": null
+                        },
+                        "internal": false
+                    }
+                ]
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "deposit in progress parses as pending",
+                "method": "fetchDeposits",
+                "input": [
+                    "ETH"
+                ],
+                "httpResponse": [
+                    {
+                        "amount": "0.0008",
+                        "coin": "ETH",
+                        "network": "ERC20",
+                        "status": 6,
+                        "address": "0x999d9c69003aba3081f101b464f8b09767e1ce50",
+                        "sourceAddress": "0xb288c9d8c080758c4aaec8a718f788509c37c80a",
+                        "txId": "0x38f724ef74a4c0fe5c93b6e8f7e225c27ed619d43392b9b757bc9bcdb342daef",
+                        "insertTime": 1791010370713,
+                        "unlockConfirm": "12/12",
+                        "confirmTimes": "64/64"
+                    },
+                    {
+                        "amount": "0.006",
+                        "coin": "ETH",
+                        "network": "ERC20",
+                        "status": 1,
+                        "address": "0x999d9c69003aba3081f101b464f8b09767e1ce50",
+                        "sourceAddress": "0xb288c9d8c080758c4aaec8a718f788509c37c80a",
+                        "txId": "0x78b63c8ed0aecd85c118f2dcdc29228f49c82f17f16d7dbeab085140eb30d636",
+                        "insertTime": 1790688190280,
+                        "unlockConfirm": "12/12",
+                        "confirmTimes": "64/64"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "amount": "0.006",
+                            "coin": "ETH",
+                            "network": "ERC20",
+                            "status": 1,
+                            "address": "0x999d9c69003aba3081f101b464f8b09767e1ce50",
+                            "sourceAddress": "0xb288c9d8c080758c4aaec8a718f788509c37c80a",
+                            "txId": "0x78b63c8ed0aecd85c118f2dcdc29228f49c82f17f16d7dbeab085140eb30d636",
+                            "insertTime": 1790688190280,
+                            "unlockConfirm": "12/12",
+                            "confirmTimes": "64/64"
+                        },
+                        "id": null,
+                        "txid": "0x78b63c8ed0aecd85c118f2dcdc29228f49c82f17f16d7dbeab085140eb30d636",
+                        "type": "deposit",
+                        "currency": "ETH",
+                        "network": "ETH",
+                        "amount": 0.006,
+                        "status": "ok",
+                        "timestamp": 1790688190280,
+                        "datetime": "2026-09-29T13:23:10.280Z",
+                        "address": "0x999d9c69003aba3081f101b464f8b09767e1ce50",
+                        "addressFrom": null,
+                        "addressTo": "0x999d9c69003aba3081f101b464f8b09767e1ce50",
+                        "tag": null,
+                        "tagFrom": null,
+                        "tagTo": null,
+                        "updated": null,
+                        "comment": null,
+                        "fee": {
+                            "currency": "ETH",
+                            "cost": null,
+                            "rate": null
+                        },
+                        "internal": null
+                    },
+                    {
+                        "info": {
+                            "amount": "0.0008",
+                            "coin": "ETH",
+                            "network": "ERC20",
+                            "status": 6,
+                            "address": "0x999d9c69003aba3081f101b464f8b09767e1ce50",
+                            "sourceAddress": "0xb288c9d8c080758c4aaec8a718f788509c37c80a",
+                            "txId": "0x38f724ef74a4c0fe5c93b6e8f7e225c27ed619d43392b9b757bc9bcdb342daef",
+                            "insertTime": 1791010370713,
+                            "unlockConfirm": "12/12",
+                            "confirmTimes": "64/64"
+                        },
+                        "id": null,
+                        "txid": "0x38f724ef74a4c0fe5c93b6e8f7e225c27ed619d43392b9b757bc9bcdb342daef",
+                        "type": "deposit",
+                        "currency": "ETH",
+                        "network": "ETH",
+                        "amount": 0.0008,
+                        "status": "pending",
+                        "timestamp": 1791010370713,
+                        "datetime": "2026-10-03T06:52:50.713Z",
+                        "address": "0x999d9c69003aba3081f101b464f8b09767e1ce50",
+                        "addressFrom": null,
+                        "addressTo": "0x999d9c69003aba3081f101b464f8b09767e1ce50",
+                        "tag": null,
+                        "tagFrom": null,
+                        "tagTo": null,
+                        "updated": null,
+                        "comment": null,
+                        "fee": {
+                            "currency": "ETH",
+                            "cost": null,
+                            "rate": null
+                        },
+                        "internal": null
+                    }
+                ]
+            }
+        ],
         "fetchInverseSwapMarkets": [
             {
                 "description": "active Coin-M contract metadata",
@@ -964,6 +1143,346 @@
                     "previousFundingTimestamp": null,
                     "previousFundingDatetime": null,
                     "interval": null
+                }
+            },
+            {
+                "description": "linear funding metadata 1h",
+                "method": "fetchFundingRate",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": {
+                        "symbol": "BTC-USDT",
+                        "markPrice": "104701.1",
+                        "indexPrice": "104748.9",
+                        "lastFundingRate": "0.00004900",
+                        "nextFundingTime": "1749830400000",
+                        "fundingIntervalHours": 1,
+                        "updateTime": 1749801600000
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTC-USDT",
+                        "markPrice": "104701.1",
+                        "indexPrice": "104748.9",
+                        "lastFundingRate": "0.00004900",
+                        "nextFundingTime": "1749830400000",
+                        "fundingIntervalHours": 1,
+                        "updateTime": 1749801600000
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "markPrice": 104701.1,
+                    "indexPrice": 104748.9,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": 1749801600000,
+                    "datetime": "2025-06-13T08:00:00.000Z",
+                    "fundingRate": 4.9e-05,
+                    "fundingTimestamp": null,
+                    "fundingDatetime": null,
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": 1749830400000,
+                    "nextFundingDatetime": "2025-06-13T16:00:00.000Z",
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": "1h"
+                }
+            },
+            {
+                "description": "linear funding metadata 2h",
+                "method": "fetchFundingRate",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": {
+                        "symbol": "BTC-USDT",
+                        "markPrice": "104701.1",
+                        "indexPrice": "104748.9",
+                        "lastFundingRate": "0.00004900",
+                        "nextFundingTime": "1749830400000",
+                        "fundingIntervalHours": 2,
+                        "updateTime": 1749801600000
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTC-USDT",
+                        "markPrice": "104701.1",
+                        "indexPrice": "104748.9",
+                        "lastFundingRate": "0.00004900",
+                        "nextFundingTime": "1749830400000",
+                        "fundingIntervalHours": 2,
+                        "updateTime": 1749801600000
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "markPrice": 104701.1,
+                    "indexPrice": 104748.9,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": 1749801600000,
+                    "datetime": "2025-06-13T08:00:00.000Z",
+                    "fundingRate": 4.9e-05,
+                    "fundingTimestamp": null,
+                    "fundingDatetime": null,
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": 1749830400000,
+                    "nextFundingDatetime": "2025-06-13T16:00:00.000Z",
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": "2h"
+                }
+            },
+            {
+                "description": "linear funding metadata 4h",
+                "method": "fetchFundingRate",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": {
+                        "symbol": "BTC-USDT",
+                        "markPrice": "104701.1",
+                        "indexPrice": "104748.9",
+                        "lastFundingRate": "0.00004900",
+                        "nextFundingTime": "1749830400000",
+                        "fundingIntervalHours": 4,
+                        "updateTime": 1749801600000
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTC-USDT",
+                        "markPrice": "104701.1",
+                        "indexPrice": "104748.9",
+                        "lastFundingRate": "0.00004900",
+                        "nextFundingTime": "1749830400000",
+                        "fundingIntervalHours": 4,
+                        "updateTime": 1749801600000
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "markPrice": 104701.1,
+                    "indexPrice": 104748.9,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": 1749801600000,
+                    "datetime": "2025-06-13T08:00:00.000Z",
+                    "fundingRate": 4.9e-05,
+                    "fundingTimestamp": null,
+                    "fundingDatetime": null,
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": 1749830400000,
+                    "nextFundingDatetime": "2025-06-13T16:00:00.000Z",
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": "4h"
+                }
+            },
+            {
+                "description": "linear funding metadata 8h",
+                "method": "fetchFundingRate",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": {
+                        "symbol": "BTC-USDT",
+                        "markPrice": "104701.1",
+                        "indexPrice": "104748.9",
+                        "lastFundingRate": "0.00004900",
+                        "nextFundingTime": "1749830400000",
+                        "fundingIntervalHours": 8,
+                        "updateTime": 1749801600000
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTC-USDT",
+                        "markPrice": "104701.1",
+                        "indexPrice": "104748.9",
+                        "lastFundingRate": "0.00004900",
+                        "nextFundingTime": "1749830400000",
+                        "fundingIntervalHours": 8,
+                        "updateTime": 1749801600000
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "markPrice": 104701.1,
+                    "indexPrice": 104748.9,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": 1749801600000,
+                    "datetime": "2025-06-13T08:00:00.000Z",
+                    "fundingRate": 4.9e-05,
+                    "fundingTimestamp": null,
+                    "fundingDatetime": null,
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": 1749830400000,
+                    "nextFundingDatetime": "2025-06-13T16:00:00.000Z",
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": "8h"
+                }
+            },
+            {
+                "description": "linear funding metadata only fundingIntervalHours",
+                "method": "fetchFundingRate",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": {
+                        "symbol": "BTC-USDT",
+                        "markPrice": "104701.1",
+                        "indexPrice": "104748.9",
+                        "lastFundingRate": "0.00004900",
+                        "nextFundingTime": "1749830400000",
+                        "fundingIntervalHours": "4"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTC-USDT",
+                        "markPrice": "104701.1",
+                        "indexPrice": "104748.9",
+                        "lastFundingRate": "0.00004900",
+                        "nextFundingTime": "1749830400000",
+                        "fundingIntervalHours": "4"
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "markPrice": 104701.1,
+                    "indexPrice": 104748.9,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "fundingRate": 4.9e-05,
+                    "fundingTimestamp": null,
+                    "fundingDatetime": null,
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": 1749830400000,
+                    "nextFundingDatetime": "2025-06-13T16:00:00.000Z",
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": "4h"
+                }
+            },
+            {
+                "description": "linear funding metadata only updateTime",
+                "method": "fetchFundingRate",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": {
+                        "symbol": "BTC-USDT",
+                        "markPrice": "104701.1",
+                        "indexPrice": "104748.9",
+                        "lastFundingRate": "0.00004900",
+                        "nextFundingTime": "1749830400000",
+                        "updateTime": "1749801600000"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTC-USDT",
+                        "markPrice": "104701.1",
+                        "indexPrice": "104748.9",
+                        "lastFundingRate": "0.00004900",
+                        "nextFundingTime": "1749830400000",
+                        "updateTime": "1749801600000"
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "markPrice": 104701.1,
+                    "indexPrice": 104748.9,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": 1749801600000,
+                    "datetime": "2025-06-13T08:00:00.000Z",
+                    "fundingRate": 4.9e-05,
+                    "fundingTimestamp": null,
+                    "fundingDatetime": null,
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": 1749830400000,
+                    "nextFundingDatetime": "2025-06-13T16:00:00.000Z",
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": null
+                }
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "multiple funding rates preserve metadata",
+                "method": "fetchFundingRates",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": [
+                        {
+                            "symbol": "BTC-USDT",
+                            "markPrice": "104701.1",
+                            "indexPrice": "104748.9",
+                            "lastFundingRate": "0.00004900",
+                            "nextFundingTime": "1749830400000",
+                            "fundingIntervalHours": 1,
+                            "updateTime": 1749801600000
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC/USDT:USDT": {
+                        "info": {
+                            "symbol": "BTC-USDT",
+                            "markPrice": "104701.1",
+                            "indexPrice": "104748.9",
+                            "lastFundingRate": "0.00004900",
+                            "nextFundingTime": "1749830400000",
+                            "fundingIntervalHours": 1,
+                            "updateTime": 1749801600000
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "markPrice": 104701.1,
+                        "indexPrice": 104748.9,
+                        "interestRate": null,
+                        "estimatedSettlePrice": null,
+                        "timestamp": 1749801600000,
+                        "datetime": "2025-06-13T08:00:00.000Z",
+                        "fundingRate": 4.9e-05,
+                        "fundingTimestamp": null,
+                        "fundingDatetime": null,
+                        "nextFundingRate": null,
+                        "nextFundingTimestamp": 1749830400000,
+                        "nextFundingDatetime": "2025-06-13T16:00:00.000Z",
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null,
+                        "interval": "1h"
+                    }
                 }
             }
         ],
@@ -2099,6 +2618,95 @@
             }
         ],
         "createOrder": [
+            {
+                "description": "spot conditional take-stop limit order",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.0001,
+                    29990,
+                    {
+                        "stopLossPrice": 30000
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "retryable": "0",
+                    "data": {
+                        "symbol": "BTC-USDT",
+                        "orderId": "2105228788877918210",
+                        "transactTime": "1790760631",
+                        "price": "0",
+                        "stopPrice": "30000",
+                        "origQty": "0.0001",
+                        "executedQty": "0",
+                        "cummulativeQuoteQty": "0",
+                        "status": "NEW",
+                        "type": "TAKE_STOP_LIMIT",
+                        "side": "BUY",
+                        "clientOrderID": "",
+                        "clientUserID": "",
+                        "msg": "",
+                        "bxUid": ""
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTC-USDT",
+                        "orderId": "2105228788877918210",
+                        "transactTime": "1790760631",
+                        "price": "0",
+                        "stopPrice": "30000",
+                        "origQty": "0.0001",
+                        "executedQty": "0",
+                        "cummulativeQuoteQty": "0",
+                        "status": "NEW",
+                        "type": "TAKE_STOP_LIMIT",
+                        "side": "BUY",
+                        "clientOrderID": "",
+                        "clientUserID": "",
+                        "msg": "",
+                        "bxUid": ""
+                    },
+                    "id": "2105228788877918210",
+                    "clientOrderId": null,
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1790760631000,
+                    "datetime": "2026-09-30T09:30:31.000Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "buy",
+                    "price": null,
+                    "triggerPrice": 30000,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "average": null,
+                    "cost": 0,
+                    "amount": 0.0001,
+                    "filled": 0,
+                    "remaining": 0.0001,
+                    "status": "open",
+                    "fee": {
+                        "currency": "BTC",
+                        "cost": null
+                    },
+                    "trades": [],
+                    "reduceOnly": null,
+                    "fees": [
+                        {
+                            "currency": "BTC",
+                            "cost": null
+                        }
+                    ],
+                    "stopPrice": 30000
+                }
+            },
             {
                 "description": "with stopLoss (exchange-specific)",
                 "method": "createOrder",
@@ -3515,7 +4123,7 @@
                 },
                 "parsedResponse": [
                     {
-                        "id": null,
+                        "id": "97244554",
                         "info": {
                             "orderId": "1817441228670648320",
                             "symbol": "SOL-USD",
@@ -3537,7 +4145,6 @@
                         "datetime": "2024-07-28T06:05:30.000Z",
                         "symbol": "SOL/USD:SOL",
                         "order": "1817441228670648320",
-                        "orderId": "1817441228670648320",
                         "type": null,
                         "side": "buy",
                         "takerOrMaker": "taker",
@@ -3594,7 +4201,7 @@
                 },
                 "parsedResponse": [
                     {
-                        "id": null,
+                        "id": "97244555",
                         "info": {
                             "orderId": "1817441228670648321",
                             "symbol": "BTC-USD",
@@ -3616,7 +4223,6 @@
                         "datetime": "2024-07-28T06:05:30.000Z",
                         "symbol": "BTC/USD:BTC",
                         "order": "1817441228670648321",
-                        "orderId": "1817441228670648321",
                         "type": null,
                         "side": "buy",
                         "takerOrMaker": "taker",
@@ -4258,6 +4864,135 @@
         ],
         "fetchTrades": [
             {
+                "description": "public swap trade fillId fallback preserves id and t precedence",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    3
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "data": [
+                        {
+                            "time": 1789884514243,
+                            "isBuyerMaker": true,
+                            "price": "80407.1",
+                            "qty": "0.0041",
+                            "quoteQty": "329.67",
+                            "fillId": "729450238",
+                            "ts": 1789884514243
+                        },
+                        {
+                            "time": 1789884514244,
+                            "isBuyerMaker": true,
+                            "price": "80407.1",
+                            "qty": "0.0041",
+                            "quoteQty": "329.67",
+                            "fillId": "729450239",
+                            "ts": 1789884514244,
+                            "id": "123"
+                        },
+                        {
+                            "time": 1789884514245,
+                            "isBuyerMaker": true,
+                            "price": "80407.1",
+                            "qty": "0.0041",
+                            "quoteQty": "329.67",
+                            "fillId": "729450240",
+                            "ts": 1789884514245,
+                            "t": "456"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "729450238",
+                        "info": {
+                            "time": 1789884514243,
+                            "isBuyerMaker": true,
+                            "price": "80407.1",
+                            "qty": "0.0041",
+                            "quoteQty": "329.67",
+                            "fillId": "729450238",
+                            "ts": 1789884514243
+                        },
+                        "timestamp": 1789884514243,
+                        "datetime": "2026-09-20T06:08:34.243Z",
+                        "symbol": "BTC/USDT:USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 80407.1,
+                        "amount": 0.0041,
+                        "cost": 329.67,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": "123",
+                        "info": {
+                            "time": 1789884514244,
+                            "isBuyerMaker": true,
+                            "price": "80407.1",
+                            "qty": "0.0041",
+                            "quoteQty": "329.67",
+                            "fillId": "729450239",
+                            "ts": 1789884514244,
+                            "id": "123"
+                        },
+                        "timestamp": 1789884514244,
+                        "datetime": "2026-09-20T06:08:34.244Z",
+                        "symbol": "BTC/USDT:USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 80407.1,
+                        "amount": 0.0041,
+                        "cost": 329.67,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": "456",
+                        "info": {
+                            "time": 1789884514245,
+                            "isBuyerMaker": true,
+                            "price": "80407.1",
+                            "qty": "0.0041",
+                            "quoteQty": "329.67",
+                            "fillId": "729450240",
+                            "ts": 1789884514245,
+                            "t": "456"
+                        },
+                        "timestamp": 1789884514245,
+                        "datetime": "2026-09-20T06:08:34.245Z",
+                        "symbol": "BTC/USDT:USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 80407.1,
+                        "amount": 0.0041,
+                        "cost": 329.67,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            },
+            {
                 "description": "public spot trades",
                 "method": "fetchTrades",
                 "input": [
@@ -4485,6 +5220,173 @@
             }
         ],
         "fetchOrder": [
+            {
+                "description": "spot conditional take-stop limit order parses as a trigger order",
+                "method": "fetchOrder",
+                "input": [
+                    "2105228788877918210",
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "retryable": "0",
+                    "data": {
+                        "symbol": "BTC-USDT",
+                        "orderId": "2105228788877918210",
+                        "price": "29990",
+                        "StopPrice": "30000",
+                        "origQty": "0.0001",
+                        "executedQty": "0",
+                        "cummulativeQuoteQty": "0",
+                        "status": "NEW",
+                        "type": "TAKE_STOP_LIMIT",
+                        "side": "BUY",
+                        "time": "1790760631184",
+                        "updateTime": "1790760631184",
+                        "origQuoteOrderQty": "0",
+                        "fee": "0",
+                        "feeAsset": "BTC",
+                        "clientOrderID": "",
+                        "avgPrice": "0"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTC-USDT",
+                        "orderId": "2105228788877918210",
+                        "price": "29990",
+                        "StopPrice": "30000",
+                        "origQty": "0.0001",
+                        "executedQty": "0",
+                        "cummulativeQuoteQty": "0",
+                        "status": "NEW",
+                        "type": "TAKE_STOP_LIMIT",
+                        "side": "BUY",
+                        "time": "1790760631184",
+                        "updateTime": "1790760631184",
+                        "origQuoteOrderQty": "0",
+                        "fee": "0",
+                        "feeAsset": "BTC",
+                        "clientOrderID": "",
+                        "avgPrice": "0"
+                    },
+                    "id": "2105228788877918210",
+                    "clientOrderId": null,
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1790760631184,
+                    "datetime": "2026-09-30T09:30:31.184Z",
+                    "lastTradeTimestamp": 1790760631184,
+                    "lastUpdateTimestamp": 1790760631184,
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "buy",
+                    "price": 29990,
+                    "triggerPrice": 30000,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "average": null,
+                    "cost": 0,
+                    "amount": 0.0001,
+                    "filled": 0,
+                    "remaining": 0.0001,
+                    "status": "open",
+                    "fee": {
+                        "currency": "BTC",
+                        "cost": "0"
+                    },
+                    "trades": [],
+                    "reduceOnly": null,
+                    "fees": [
+                        {
+                            "currency": "BTC",
+                            "cost": 0
+                        }
+                    ],
+                    "stopPrice": 30000
+                }
+            },
+            {
+                "description": "spot order preserves REST cumulative quote amount precedence over websocket alias",
+                "method": "fetchOrder",
+                "input": [
+                    "230000000000000001",
+                    "LTC/USDT"
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "data": {
+                        "symbol": "LTC-USDT",
+                        "orderId": "230000000000000001",
+                        "price": "110",
+                        "origQty": "5",
+                        "executedQty": "3",
+                        "cummulativeQuoteQty": "282",
+                        "Z": "999",
+                        "status": "PARTIALLY_FILLED",
+                        "type": "LIMIT",
+                        "side": "BUY",
+                        "time": 1720000000020,
+                        "updateTime": 1720000000020,
+                        "fee": "0",
+                        "feeAsset": "USDT"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "LTC-USDT",
+                        "orderId": "230000000000000001",
+                        "price": "110",
+                        "origQty": "5",
+                        "executedQty": "3",
+                        "cummulativeQuoteQty": "282",
+                        "Z": "999",
+                        "status": "PARTIALLY_FILLED",
+                        "type": "LIMIT",
+                        "side": "BUY",
+                        "time": 1720000000020,
+                        "updateTime": 1720000000020,
+                        "fee": "0",
+                        "feeAsset": "USDT"
+                    },
+                    "id": "230000000000000001",
+                    "clientOrderId": null,
+                    "symbol": "LTC/USDT",
+                    "timestamp": 1720000000020,
+                    "datetime": "2024-07-03T09:46:40.020Z",
+                    "lastTradeTimestamp": 1720000000020,
+                    "lastUpdateTimestamp": 1720000000020,
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "buy",
+                    "price": 110,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "average": 94,
+                    "cost": 282,
+                    "amount": 5,
+                    "filled": 3,
+                    "remaining": 2,
+                    "status": "open",
+                    "fee": {
+                        "currency": "USDT",
+                        "cost": "0"
+                    },
+                    "trades": [],
+                    "reduceOnly": null,
+                    "fees": [
+                        {
+                            "currency": "USDT",
+                            "cost": 0
+                        }
+                    ],
+                    "stopPrice": null
+                }
+            },
             {
                 "description": "fetch inverse swap order fee currency",
                 "method": "fetchOrder",

@@ -15,14 +15,14 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertTimestampAndDatetime(exchange, skippedProperties, method, entry, now, 0);
         object logText = testSharedMethods.logTemplate(exchange, method, entry);
         //
-        assert(isGreaterThanOrEqual(getArrayLength(entry), 6), add("ohlcv array length should be >= 6;", logText));
-        if (!isTrue((inOp(skippedProperties, "roundTimestamp"))))
+        assert(getArrayLength(entry) >= 6, ("ohlcv array length should be >= 6;" + (logText)));
+        if (!(inOp(skippedProperties, "roundTimestamp")))
         {
             testSharedMethods.assertRoundMinuteTimestamp(exchange, skippedProperties, method, entry, 0);
         }
         string? high = exchange.safeString(entry, 2);
         string? low = exchange.safeString(entry, 3);
-        if (isTrue(inOp(skippedProperties, "compareOHLCV")))
+        if (inOp(skippedProperties, "compareOHLCV"))
         {
             return;
         }
@@ -30,7 +30,7 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, "1", low);
         testSharedMethods.assertLessOrEqual(exchange, skippedProperties, method, entry, "4", high);
         testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, "4", low);
-        assert(isTrue((isEqual(symbol, null))) || isTrue(((symbol is string))), add(add(add("symbol ", symbol), " is incorrect"), logText)); // todo: check with standard symbol check
+        assert(((symbol == null)) || ((symbol is string)), ((("symbol " + (symbol)) + " is incorrect") + (logText))); // todo: check with standard symbol check
     }
 
 }

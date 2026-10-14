@@ -13,15 +13,15 @@ public partial class BaseTest
                 { "id", "sampleex" },
             });
             Int64 ms = exchange.milliseconds();
-            string fileName = add(add("ccxt-test-io-", ((object)ms).ToString()), ".ccxtfile");
+            string fileName = (("ccxt-test-io-" + ((object)ms).ToString()) + ".ccxtfile");
             // upper tmp dir
             object tempDir = exchange.getTempDir();
-            Assert(isTrue(!isEqual(tempDir, null)) && isTrue(!isEqual(tempDir, "")), "temp dir should not be empty");
+            Assert((tempDir != null) && !isEqual(tempDir, ""), "temp dir should not be empty");
             object filePath = add(tempDir, fileName); // '../../../../../../../../../../../../tmp/' + fileName;
             string fileContent = "hello world";
-            Assert(exchange.writeFile(filePath, fileContent), add("can not write file ", filePath));
-            Assert(exchange.existsFile(filePath), add("file does not exist: ", filePath));
+            Assert(exchange.writeFile(filePath, fileContent), ("can not write file " + (filePath)));
+            Assert(exchange.existsFile(filePath), ("file does not exist: " + (filePath)));
             object readContent = exchange.readFile(filePath);
-            Assert(isEqual(readContent, fileContent), add(add(add("file content mismatch. Expected: ", fileContent), ", got: "), readContent));
+            Assert(isEqual(readContent, fileContent), ((("file content mismatch. Expected: " + fileContent) + ", got: ") + (readContent)));
         }
 }

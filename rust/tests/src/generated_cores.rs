@@ -28,7 +28,6 @@ pub(crate) use ccxt::exchanges::{
     bitflyer::BitflyerCore,
     bitget::BitgetCore,
     bithumb::BithumbCore,
-    bitmex::BitmexCore,
     bitopro::BitoproCore,
     bitrue::BitrueCore,
     bitso::BitsoCore,
@@ -45,13 +44,13 @@ pub(crate) use ccxt::exchanges::{
     bullish::BullishCore,
     bybit::BybitCore,
     bybiteu::BybiteuCore,
+    bybitid::BybitidCore,
     bydfi::BydfiCore,
     cex::CexCore,
     coinbase::CoinbaseCore,
     coinbaseexchange::CoinbaseexchangeCore,
     coinbaseinternational::CoinbaseinternationalCore,
     coincheck::CoincheckCore,
-    coinex::CoinexCore,
     coinmate::CoinmateCore,
     coinone::CoinoneCore,
     coinsph::CoinsphCore,
@@ -122,10 +121,19 @@ pub(crate) use ccxt::prediction::{
     myriad::MyriadCore,
     opinion::OpinionCore,
     polymarket::PolymarketCore,
+    predictfun::PredictfunCore,
+    sxbet::SxbetCore,
 };
 
 pub(crate) use ccxt::prediction::binance::BinanceCore as PredBinanceCore;
 pub(crate) use ccxt::prediction::hyperliquid::HyperliquidCore as PredHyperliquidCore;
+pub(crate) use ccxt::prediction::kalshi::KalshiCore as PredKalshiCore;
+pub(crate) use ccxt::prediction::limitless::LimitlessCore as PredLimitlessCore;
+pub(crate) use ccxt::prediction::myriad::MyriadCore as PredMyriadCore;
+pub(crate) use ccxt::prediction::opinion::OpinionCore as PredOpinionCore;
+pub(crate) use ccxt::prediction::polymarket::PolymarketCore as PredPolymarketCore;
+pub(crate) use ccxt::prediction::predictfun::PredictfunCore as PredPredictfunCore;
+pub(crate) use ccxt::prediction::sxbet::SxbetCore as PredSxbetCore;
 
 pub(crate) use ccxt_pro::pro::{
     alpaca::AlpacaCore as WsAlpacaCore,
@@ -141,7 +149,6 @@ pub(crate) use ccxt_pro::pro::{
     bitfinex::BitfinexCore as WsBitfinexCore,
     bitget::BitgetCore as WsBitgetCore,
     bithumb::BithumbCore as WsBithumbCore,
-    bitmex::BitmexCore as WsBitmexCore,
     bitopro::BitoproCore as WsBitoproCore,
     bitrue::BitrueCore as WsBitrueCore,
     bitstamp::BitstampCore as WsBitstampCore,
@@ -152,13 +159,13 @@ pub(crate) use ccxt_pro::pro::{
     bullish::BullishCore as WsBullishCore,
     bybit::BybitCore as WsBybitCore,
     bybiteu::BybiteuCore as WsBybiteuCore,
+    bybitid::BybitidCore as WsBybitidCore,
     bydfi::BydfiCore as WsBydfiCore,
     cex::CexCore as WsCexCore,
     coinbase::CoinbaseCore as WsCoinbaseCore,
     coinbaseexchange::CoinbaseexchangeCore as WsCoinbaseexchangeCore,
     coinbaseinternational::CoinbaseinternationalCore as WsCoinbaseinternationalCore,
     coincheck::CoincheckCore as WsCoincheckCore,
-    coinex::CoinexCore as WsCoinexCore,
     coinone::CoinoneCore as WsCoinoneCore,
     cryptocom::CryptocomCore as WsCryptocomCore,
     deepcoin::DeepcoinCore as WsDeepcoinCore,
@@ -226,7 +233,6 @@ macro_rules! for_each_core {
         $cb!(bitflyer, BitflyerCore);
         $cb!(bitget, BitgetCore);
         $cb!(bithumb, BithumbCore);
-        $cb!(bitmex, BitmexCore);
         $cb!(bitopro, BitoproCore);
         $cb!(bitrue, BitrueCore);
         $cb!(bitso, BitsoCore);
@@ -243,13 +249,13 @@ macro_rules! for_each_core {
         $cb!(bullish, BullishCore);
         $cb!(bybit, BybitCore);
         $cb!(bybiteu, BybiteuCore);
+        $cb!(bybitid, BybitidCore);
         $cb!(bydfi, BydfiCore);
         $cb!(cex, CexCore);
         $cb!(coinbase, CoinbaseCore);
         $cb!(coinbaseexchange, CoinbaseexchangeCore);
         $cb!(coinbaseinternational, CoinbaseinternationalCore);
         $cb!(coincheck, CoincheckCore);
-        $cb!(coinex, CoinexCore);
         $cb!(coinmate, CoinmateCore);
         $cb!(coinone, CoinoneCore);
         $cb!(coinsph, CoinsphCore);
@@ -306,7 +312,9 @@ macro_rules! for_each_core {
         $cb!(phemex, PhemexCore);
         $cb!(poloniex, PoloniexCore);
         $cb!(polymarket, PolymarketCore);
+        $cb!(predictfun, PredictfunCore);
         $cb!(revolutx, RevolutxCore);
+        $cb!(sxbet, SxbetCore);
         $cb!(tokocrypto, TokocryptoCore);
         $cb!(toobit, ToobitCore);
         $cb!(upbit, UpbitCore);
@@ -336,7 +344,6 @@ macro_rules! for_each_ws_core {
         $cb!(bitfinex, WsBitfinexCore);
         $cb!(bitget, WsBitgetCore);
         $cb!(bithumb, WsBithumbCore);
-        $cb!(bitmex, WsBitmexCore);
         $cb!(bitopro, WsBitoproCore);
         $cb!(bitrue, WsBitrueCore);
         $cb!(bitstamp, WsBitstampCore);
@@ -347,13 +354,13 @@ macro_rules! for_each_ws_core {
         $cb!(bullish, WsBullishCore);
         $cb!(bybit, WsBybitCore);
         $cb!(bybiteu, WsBybiteuCore);
+        $cb!(bybitid, WsBybitidCore);
         $cb!(bydfi, WsBydfiCore);
         $cb!(cex, WsCexCore);
         $cb!(coinbase, WsCoinbaseCore);
         $cb!(coinbaseexchange, WsCoinbaseexchangeCore);
         $cb!(coinbaseinternational, WsCoinbaseinternationalCore);
         $cb!(coincheck, WsCoincheckCore);
-        $cb!(coinex, WsCoinexCore);
         $cb!(coinone, WsCoinoneCore);
         $cb!(cryptocom, WsCryptocomCore);
         $cb!(deepcoin, WsDeepcoinCore);

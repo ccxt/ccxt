@@ -1960,6 +1960,12 @@ abstract class kucoin extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function utav2_get_market_funding_rate($params = array()) {
+        return $this->request('market/funding-rate', 'utaV2', 'GET', $params, null, null, array("cost" => 6));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function utaprivate_get_market_orderbook($params = array()) {
         return $this->request('market/orderbook', 'utaPrivate', 'GET', $params, null, null, array("cost" => 6));
     }
@@ -4116,6 +4122,12 @@ abstract class kucoin extends \ccxt\Exchange {
      */
     public function utaGetMarketFiatPrice($params = array()) {
         return $this->request('market/fiat-price', 'uta', 'GET', $params, null, null, array("cost" => 6));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function utaV2GetMarketFundingRate($params = array()) {
+        return $this->request('market/funding-rate', 'utaV2', 'GET', $params, null, null, array("cost" => 6));
     }
     /**
      * @return array<string, mixed>

@@ -19,12 +19,16 @@ if [ "$HAS_RELEVANT_CHANGES" = "false" ]; then
 fi
 
 # Lint TS files
-MODIFIED_TS_FILES=$(git diff --name-only upstream/master -- 'ts/**/*.ts')
+# Deleted paths cannot be linted. Keep rename destinations and preserve spaces.
+MODIFIED_TS_FILES=()
+while IFS= read -r -d '' file; do
+    MODIFIED_TS_FILES+=("$file")
+done < <(git diff --name-only --diff-filter=d -z upstream/master -- 'ts/**/*.ts')
 
 ESLINT_EXIT_CODE=0
 # Run eslint on the modified files
-if [ "$MODIFIED_TS_FILES" != "" ]; then
-    eslint $MODIFIED_TS_FILES
+if [ "${#MODIFIED_TS_FILES[@]}" -gt 0 ]; then
+    eslint "${MODIFIED_TS_FILES[@]}"
     ESLINT_EXIT_CODE=$?
 fi
 

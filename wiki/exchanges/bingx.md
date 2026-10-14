@@ -559,7 +559,7 @@ bingx.fetchPosition (symbol, params?)
 <a name="createMarketOrderWithCost" id="createmarketorderwithcost"></a>
 
 ### createMarketOrderWithCost{docsify-ignore}
-create a spot market order by providing the symbol, side and cost
+create a spot or linear swap market order by providing the symbol, side and cost
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
@@ -581,7 +581,7 @@ bingx.createMarketOrderWithCost (symbol, side, cost, params?)
 <a name="createMarketBuyOrderWithCost" id="createmarketbuyorderwithcost"></a>
 
 ### createMarketBuyOrderWithCost{docsify-ignore}
-create a spot market buy order by providing the symbol and cost
+create a spot or linear swap market buy order by providing the symbol and cost
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
@@ -602,7 +602,7 @@ bingx.createMarketBuyOrderWithCost (symbol, cost, params?)
 <a name="createMarketSellOrderWithCost" id="createmarketsellorderwithcost"></a>
 
 ### createMarketSellOrderWithCost{docsify-ignore}
-create a spot market sell order by providing the symbol and cost
+create a spot or linear swap market sell order by providing the symbol and cost
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
@@ -649,17 +649,18 @@ create a trade order
 | params.timeInForce | <code>string</code> | No | spot supports 'PO', 'GTC' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK' |
 | params.reduceOnly | <code>bool</code> | No | *swap only* true or false whether the order is reduce only |
 | params.triggerPrice | <code>float</code> | No | triggerPrice at which the attached take profit / stop loss order will be triggered |
-| params.stopLossPrice | <code>float</code> | No | stop loss trigger price |
-| params.takeProfitPrice | <code>float</code> | No | take profit trigger price |
-| params.cost | <code>float</code> | No | *spot only* the quote quantity that can be used as an alternative for the amount |
-| params.quoteOrderQty | <code>float</code> | No | *spot only* the quote quantity, an alternative to params.cost |
+| params.stopLossPrice | <code>float</code> | No | stop loss trigger price, a spot order is placed as TAKE_STOP and parsed back with triggerPrice |
+| params.takeProfitPrice | <code>float</code> | No | take profit trigger price, a spot order is placed as TAKE_STOP and parsed back with triggerPrice |
+| params.cost | <code>float</code> | No | *spot and linear swap only* the quote quantity that can be used as an alternative for the amount |
+| params.quoteOrderQty | <code>float</code> | No | *spot and linear swap only* the quote quantity, an alternative to params.cost |
 | params.trailingAmount | <code>float</code> | No | *swap only* the quote amount to trail away from the current market price |
 | params.trailingPercent | <code>float</code> | No | *swap only* the percent to trail away from the current market price |
+| params.trailingTriggerPrice | <code>float</code> | No | *swap only* the price to activate a trailing order at |
 | params.takeProfit | <code>object</code> | No | *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered |
 | params.takeProfit.triggerPrice | <code>float</code> | No | take profit trigger price |
 | params.stopLoss | <code>object</code> | No | *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered |
 | params.stopLoss.triggerPrice | <code>float</code> | No | stop loss trigger price |
-| params.test | <code>boolean</code> | No | *swap only* whether to use the test endpoint or not, default is false |
+| params.test | <code>boolean</code> | No | *linear swap only* whether to use the test endpoint or not, default is false |
 | params.positionSide | <code>string</code> | No | *contracts only* "BOTH" for one way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode |
 | params.hedged | <code>boolean</code> | No | *swap only* whether the order is in hedged mode or one way mode |
 | params.closePosition | <code>bool</code> | No | *swap only* true to close the entire position with a TP/SL order, in which case the quantity is not sent |
@@ -852,7 +853,7 @@ fetches information on multiple orders made by the user
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
+| symbol | <code>string</code> | No | unified market symbol of the market orders were made in |
 | since | <code>int</code> | No | the earliest time in ms to fetch orders for |
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
@@ -861,7 +862,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-bingx.fetchOrders (symbol, since?, limit?, params?)
+bingx.fetchOrders (symbol?, since?, limit?, params?)
 ```
 
 
@@ -913,7 +914,7 @@ fetches information on multiple closed orders made by the user
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the closed orders |
+| symbol | <code>string</code> | No | unified market symbol of the closed orders |
 | since | <code>int</code> | No | timestamp in ms of the earliest order |
 | limit | <code>int</code> | No | the max number of closed orders to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
@@ -922,7 +923,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-bingx.fetchClosedOrders (symbol, since?, limit?, params?)
+bingx.fetchClosedOrders (symbol?, since?, limit?, params?)
 ```
 
 
@@ -944,7 +945,7 @@ fetches information on multiple canceled orders made by the user
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the canceled orders |
+| symbol | <code>string</code> | No | unified market symbol of the canceled orders |
 | since | <code>int</code> | No | timestamp in ms of the earliest order |
 | limit | <code>int</code> | No | the max number of canceled orders to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
@@ -953,7 +954,7 @@ fetches information on multiple canceled orders made by the user
 
 
 ```javascript
-bingx.fetchCanceledOrders (symbol, since?, limit?, params?)
+bingx.fetchCanceledOrders (symbol?, since?, limit?, params?)
 ```
 
 
@@ -1300,13 +1301,13 @@ make a withdrawal
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | the amount to withdraw |
 | address | <code>string</code> | Yes | the address to withdraw to |
-| tag | <code>string</code> | No |  |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
 | params.walletType | <code>int</code> | No | 1 fund (funding) account, 2 standard account, 3 perpetual account, 15 spot account |
 
 
 ```javascript
-bingx.withdraw (code, amount, address, tag?, params?)
+bingx.withdraw (code, amount, address, params?)
 ```
 
 

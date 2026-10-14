@@ -27,18 +27,18 @@ func TestLiquidation(exchange ccxt.ICoreExchange, skippedProperties any, method 
 	AssertGreater(exchange, skippedProperties, method, entry, "price", "0")
 	AssertGreater(exchange, skippedProperties, method, entry, "baseValue", "0")
 	AssertGreater(exchange, skippedProperties, method, entry, "quoteValue", "0")
-	var contracts any = exchange.SafeString(entry, "contracts")
-	var contractSize any = exchange.SafeString(entry, "contractSize")
-	var price any = exchange.SafeString(entry, "price")
-	var baseValue any = exchange.SafeString(entry, "baseValue")
-	if IsTrue(IsTrue(IsTrue(IsTrue((!IsEqual(contracts, nil))) && IsTrue((!IsEqual(contracts, "")))) && IsTrue((!IsEqual(contractSize, nil)))) && IsTrue((!IsEqual(contractSize, "")))) {
+	var contracts any = ccxt.DerefScalar(exchange.SafeString(entry, "contracts"))
+	var contractSize any = ccxt.DerefScalar(exchange.SafeString(entry, "contractSize"))
+	var price any = ccxt.DerefScalar(exchange.SafeString(entry, "price"))
+	var baseValue any = ccxt.DerefScalar(exchange.SafeString(entry, "baseValue"))
+	if (!IsEqual(contracts, nil)) && (contracts != "") && (!IsEqual(contractSize, nil)) && (contractSize != "") {
 		Assert(ccxt.Precise.StringEq(baseValue, ccxt.Precise.StringMul(contracts, contractSize)), Add("baseValue == contracts * contractSize", logText))
-		if IsTrue(IsTrue((!IsEqual(price, nil))) && IsTrue((!IsEqual(price, "")))) {
+		if (!IsEqual(price, nil)) && (price != "") {
 			Assert(ccxt.Precise.StringEq(baseValue, ccxt.Precise.StringMul(ccxt.Precise.StringMul(contracts, contractSize), price)), Add("quoteValue == contracts * contractSize * price", logText))
 		}
 	}
 	// if singular was called, then symbol needs to be Asserted
-	if IsTrue(IsTrue(IsEqual(method, "watchLiquidations")) || IsTrue(IsEqual(method, "fetchLiquidations"))) {
+	if (method == "watchLiquidations") || (method == "fetchLiquidations") {
 		AssertSymbol(exchange, skippedProperties, method, entry, "symbol", symbol)
 	}
 }

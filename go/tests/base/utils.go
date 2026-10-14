@@ -8,6 +8,7 @@ import (
 	"os"
 	"reflect"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -72,6 +73,14 @@ func NetworkError(v ...any) error {
 
 func SetFetchResponse(exchange ccxt.ICoreExchange, response any) ccxt.ICoreExchange {
 	exchange.SetFetchResponse(response)
+	return exchange
+}
+
+// SetFetchResponseByUrl serves a body per url fragment for methods that call
+// several endpoints; one shared body cannot cover two endpoints of different
+// declared shapes.
+func SetFetchResponseByUrl(exchange ccxt.ICoreExchange, responsesByUrl any) ccxt.ICoreExchange {
+	exchange.SetFetchResponseByUrl(responsesByUrl)
 	return exchange
 }
 
@@ -305,9 +314,9 @@ func CallMethodSync(testFiles2 any, methodName2 any, exchange any, skippedProper
 // 	return nil
 // }
 
-func CallMethod(testFiles2 any, methodName2 any, exchange any, skippedProperties any, args2 any) <-chan any {
+func CallMethod(testFiles2 any, methodName2 any, exchange any, skippedProperties any, args2 any) <-chan ccxt.AsyncResult[any] {
 	// Create the return channel
-	ch := make(chan any, 1)
+	ch := make(chan ccxt.AsyncResult[any], 1)
 
 	go func() {
 		defer close(ch)
@@ -327,7 +336,7 @@ func CallMethod(testFiles2 any, methodName2 any, exchange any, skippedProperties
 		// Retrieve the function from testFiles
 		method, exists := testFiles[methodName]
 		if !exists {
-			ch <- fmt.Errorf("panic:method %s not found in testFiles", methodName)
+			ch <- ccxt.AsyncResult[any]{Err: fmt.Errorf("panic:method %s not found in testFiles", methodName)}
 			return
 		}
 
@@ -335,7 +344,7 @@ func CallMethod(testFiles2 any, methodName2 any, exchange any, skippedProperties
 		methodVal := reflect.ValueOf(method)
 		if methodVal.Kind() != reflect.Func {
 			// Return an error if the item is not a function
-			ch <- fmt.Errorf("%s is not a function", methodName)
+			ch <- ccxt.AsyncResult[any]{Err: fmt.Errorf("%s is not a function", methodName)}
 			return
 		}
 
@@ -347,7 +356,7 @@ func CallMethod(testFiles2 any, methodName2 any, exchange any, skippedProperties
 
 		// Check if the number of arguments matches the function's requirements
 		if methodVal.Type().NumIn() != len(in) {
-			ch <- fmt.Errorf("panic:method %s requires %d arguments, but %d were provided", methodName, methodVal.Type().NumIn(), len(in))
+			ch <- ccxt.AsyncResult[any]{Err: fmt.Errorf("panic:method %s requires %d arguments, but %d were provided", methodName, methodVal.Type().NumIn(), len(in))}
 			return
 		}
 
@@ -361,14 +370,18 @@ func CallMethod(testFiles2 any, methodName2 any, exchange any, skippedProperties
 				if !ok {
 					break // result channel is closed
 				}
-				ch <- val.Interface() // pass the value to the output channel
+				if outcome, isOutcome := val.Interface().(ccxt.AsyncOutcome); isOutcome {
+					ch <- ccxt.AsyncResult[any]{Value: outcome.Boxed(), Err: outcome.Failure()}
+				} else {
+					ch <- ccxt.AsyncResult[any]{Value: val.Interface()}
+				}
 			}
 			// close(ch) // close the output channel after all values are received
 			return
 		} else if len(res) > 0 {
-			ch <- res[0].Interface()
+			ch <- ccxt.AsyncResult[any]{Value: res[0].Interface()}
 		} else {
-			ch <- nil
+			ch <- ccxt.AsyncResult[any]{}
 		}
 	}()
 
@@ -433,25 +446,107 @@ func CallMethod(testFiles2 any, methodName2 any, exchange any, skippedProperties
 // }
 
 // callExchangeMethodDynamically function to call exchange methods dynamically
-func CallExchangeMethodDynamically(exchange any, methodName2 any, args2 any) <-chan any {
+func CallExchangeMethodDynamically(exchange any, methodName2 any, args2 any) <-chan ccxt.AsyncResult[any] {
 	arg := args2.([]any)
-	ch := make(chan any)
+	ch := make(chan ccxt.AsyncResult[any])
 	go func() {
 		defer close(ch)
-		defer func() {
-			if r := recover(); r != nil {
-				if r != "break" {
-					ch <- "panic:" + ToString(r)
-				}
-			}
-		}()
+		defer ReturnPanicError(ch)
 		exchangeType := exchange.(ccxt.ICoreExchange)
 		exchangeType.WarmUpCache()
+		arg = coerceArgs(exchange, methodName2.(string), arg)
 		res := <-CallInternalMethod(exchangeType.GetCache(), exchange, methodName2.(string), arg...)
-		PanicOnError(res)
+		res.Value = DetypeForComparison(res.Value)
 		ch <- res
 	}()
 	return ch
+}
+
+// unified structs a core may return instead of a map (grows with each struct-typed family)
+var detypedStructs = map[reflect.Type]bool{
+	reflect.TypeOf(ccxt.Ticker{}): true,
+}
+
+// DetypeForComparison projects unified Go structs (Ticker, ...) and containers of them onto
+// the map shape the static fixtures store: lowerCamel keys, nil pointers dropped, Info as "info".
+func DetypeForComparison(value any) any {
+	if value == nil {
+		return nil
+	}
+	rv := reflect.ValueOf(value)
+	switch rv.Kind() {
+	case reflect.Struct:
+		if !detypedStructs[rv.Type()] {
+			return value
+		}
+		out := map[string]any{}
+		for i := 0; i < rv.NumField(); i++ {
+			field := rv.Type().Field(i)
+			if !field.IsExported() {
+				continue
+			}
+			fv := rv.Field(i)
+			if (fv.Kind() == reflect.Ptr || fv.Kind() == reflect.Map || fv.Kind() == reflect.Slice || fv.Kind() == reflect.Interface) && fv.IsNil() {
+				if field.Name != "Info" {
+					out[strings.ToLower(field.Name[:1])+field.Name[1:]] = nil
+				}
+				continue
+			}
+			if fv.Kind() == reflect.Ptr {
+				fv = fv.Elem()
+			}
+			out[strings.ToLower(field.Name[:1])+field.Name[1:]] = DetypeForComparison(fv.Interface())
+		}
+		return out
+	case reflect.Map:
+		if rv.Type().Key().Kind() != reflect.String || rv.IsNil() {
+			return value
+		}
+		out := map[string]any{}
+		for _, k := range rv.MapKeys() {
+			out[k.String()] = DetypeForComparison(rv.MapIndex(k).Interface())
+		}
+		return out
+	case reflect.Slice:
+		if k := rv.Type().Elem().Kind(); rv.IsNil() || (k != reflect.Struct && k != reflect.Interface && k != reflect.Map) {
+			return value
+		}
+		out := make([]any, rv.Len())
+		for i := 0; i < rv.Len(); i++ {
+			out[i] = DetypeForComparison(rv.Index(i).Interface())
+		}
+		return out
+	}
+	return value
+}
+
+// coerceArgs converts fixture string args to int64 where the method's parameter is int64
+// and the string is exactly an integer; the library itself rejects strings.
+func coerceArgs(exchange any, methodName string, args []any) []any {
+	name := ccxt.Capitalize(methodName)
+	method := reflect.ValueOf(exchange).MethodByName(name + "Async")
+	if !method.IsValid() {
+		method = reflect.ValueOf(exchange).MethodByName(name)
+	}
+	if !method.IsValid() {
+		return args
+	}
+	methodType := method.Type()
+	fixed := methodType.NumIn()
+	if methodType.IsVariadic() {
+		fixed--
+	}
+	result := append([]any{}, args...)
+	for k := 0; k < fixed && k < len(result); k++ {
+		str, isString := result[k].(string)
+		if !isString || methodType.In(k).Kind() != reflect.Int64 {
+			continue
+		}
+		if i, err := strconv.ParseInt(str, 10, 64); err == nil && strconv.FormatInt(i, 10) == str {
+			result[k] = i
+		}
+	}
+	return result
 }
 
 // callExchangeMethodDynamicallySync function that throws an error

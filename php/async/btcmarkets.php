@@ -301,11 +301,11 @@ class btcmarkets extends Exchange {
         ));
     }
 
-    public function fetch_transactions_with_method(mixed $method, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_transactions_with_method(string $method, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_transactions_with_method(...))($method, $code, $since, $limit, $params);
     }
 
-    private function do_fetch_transactions_with_method(mixed $method, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    private function do_fetch_transactions_with_method(string $method, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -399,7 +399,7 @@ class btcmarkets extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction_type(mixed $type) {
+    public function parse_transaction_type(?string $type): ?string {
         $statuses = array(
             'Withdraw' => 'withdrawal',
             'Deposit' => 'deposit',
@@ -548,8 +548,11 @@ class btcmarkets extends Exchange {
         $id = $this->safe_string($market, 'marketId');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $symbol = $base . '/' . $quote;
-        $fees = $this->safe_value($this->safe_dict($this->options, 'fees', array()), $quote, $this->fees);
+        $fees = $this->safe_dict($this->safe_dict($this->options, 'fees', array()), $quote, $this->fees);
         $pricePrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'priceDecimals')));
         $minAmount = $this->safe_number($market, 'minOrderAmount');
         $maxAmount = $this->safe_number($market, 'maxOrderAmount');
@@ -636,7 +639,7 @@ class btcmarkets extends Exchange {
     public function parse_balance(mixed $response): array {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
-            $balance = $response[$i];
+            $balance = $this->safe_dict($response, $i);
             $currencyId = $this->safe_string($balance, 'assetName');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -801,8 +804,8 @@ class btcmarkets extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($ticker, 'marketId');
-        $market = $this->safe_market($marketId, $market, '-');
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market, '-');
+        $symbol = $marketResolved['symbol'];
         $timestamp = $this->parse8601($this->safe_string($ticker, 'timestamp'));
         $last = $this->safe_string($ticker, 'lastPrice');
         $baseVolume = $this->safe_string($ticker, 'volume24h');
@@ -830,7 +833,7 @@ class btcmarkets extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
@@ -918,8 +921,13 @@ class btcmarkets extends Exchange {
         //
         $timestamp = $this->parse8601($this->safe_string($trade, 'timestamp'));
         $marketId = $this->safe_string($trade, 'marketId');
-        $market = $this->safe_market($marketId, $market, '-');
-        $feeCurrencyCode = ($market['quote'] === 'AUD') ? $market['quote'] : $market['base'];
+        $marketResolved = $this->safe_market($marketId, $market, '-');
+        $feeCurrencyCode = null;
+        if ($marketResolved['quote'] === 'AUD') {
+            $feeCurrencyCode = $marketResolved['quote'];
+        } else {
+            $feeCurrencyCode = $marketResolved['base'];
+        }
         $side = $this->safe_string($trade, 'side');
         if ($side === 'Bid') {
             $side = 'buy';
@@ -945,7 +953,7 @@ class btcmarkets extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'order' => $orderId,
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'type' => null,
             'side' => $side,
             'price' => $priceString,
@@ -953,7 +961,7 @@ class btcmarkets extends Exchange {
             'cost' => null,
             'takerOrMaker' => $takerOrMaker,
             'fee' => $fee,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -991,7 +999,7 @@ class btcmarkets extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -1028,7 +1036,7 @@ class btcmarkets extends Exchange {
             // 'clientOrderId': this.uuid (),
         );
         $lowercaseType = strtolower($type);
-        $orderTypes = $this->safe_value($this->options, 'orderTypes', array(
+        $orderTypes = $this->safe_dict($this->options, 'orderTypes', array(
             'limit' => 'Limit',
             'market' => 'Market',
             'stop' => 'Stop',
@@ -1053,16 +1061,15 @@ class btcmarkets extends Exchange {
         }
         if ($priceIsRequired) {
             if ($price === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument for a ' . $type . 'order');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a price argument for a ' . $type . 'order');
             } else {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
         }
         if ($triggerPriceIsRequired) {
             $triggerPrice = $this->safe_number($params, 'triggerPrice');
-            $params = $this->omit($params, 'triggerPrice');
             if ($triggerPrice === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice parameter for a ' . $type . 'order');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a triggerPrice parameter for a ' . $type . 'order');
             } else {
                 $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
             }
@@ -1071,8 +1078,12 @@ class btcmarkets extends Exchange {
         if ($clientOrderId !== null) {
             $request['clientOrderId'] = $clientOrderId;
         }
-        $params = $this->omit($params, 'clientOrderId');
-        $response = Async\await($this->privatePostOrders($this->extend($request, $params)));
+        $paramsTriggerPrice = $params;
+        if ($triggerPriceIsRequired) {
+            $paramsTriggerPrice = $this->omit($params, 'triggerPrice');
+        }
+        $paramsOmitted = $this->omit($paramsTriggerPrice, 'clientOrderId');
+        $response = Async\await($this->privatePostOrders($this->extend($request, $paramsOmitted)));
         //
         //     {
         //         "orderId": "7524",
@@ -1095,7 +1106,7 @@ class btcmarkets extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_orders(...))($ids, $symbol, $params);
     }
 
@@ -1146,7 +1157,7 @@ class btcmarkets extends Exchange {
         return $this->parse_orders($orders);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -1177,7 +1188,7 @@ class btcmarkets extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function calculate_fee(string $symbol, string $type, string $side, float $amount, float $price, $takerOrMaker = 'taker', $params = array()) {
+    public function calculate_fee(string $symbol, string $type, string $side, float $amount, float $price, mixed $takerOrMaker = 'taker', $params = array()) {
         /**
          * calculates the presumptive fee that would be charged for an order
          * @param {string} $symbol unified $market $symbol
@@ -1193,13 +1204,13 @@ class btcmarkets extends Exchange {
         $currency = null;
         $cost = null;
         if ($market['quote'] === 'AUD') {
-            $currency = $market['quote'];
+            $currency = $this->safe_string($market, 'quote');
             $amountString = $this->number_to_string($amount);
             $priceString = $this->number_to_string($price);
             $otherUnitsAmount = Precise::string_mul($amountString, $priceString);
             $cost = $this->cost_to_precision($symbol, $otherUnitsAmount);
         } else {
-            $currency = $market['base'];
+            $currency = $this->safe_string($market, 'base');
             $cost = $this->amount_to_precision($symbol, $amount);
         }
         $rate = $this->safe_value($market, $takerOrMaker);
@@ -1253,7 +1264,7 @@ class btcmarkets extends Exchange {
         //
         $timestamp = $this->parse8601($this->safe_string($order, 'creationTime'));
         $marketId = $this->safe_string($order, 'marketId');
-        $market = $this->safe_market($marketId, $market, '-');
+        $marketResolved = $this->safe_market($marketId, $market, '-');
         $side = $this->safe_string($order, 'side');
         if ($side === 'Bid') {
             $side = 'buy';
@@ -1276,7 +1287,7 @@ class btcmarkets extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'type' => $type,
             'timeInForce' => $timeInForce,
             'postOnly' => $postOnly,
@@ -1291,10 +1302,10 @@ class btcmarkets extends Exchange {
             'status' => $status,
             'trades' => null,
             'fee' => null,
-        ), $market);
+        ), $marketResolved);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
     }
 
@@ -1396,7 +1407,7 @@ class btcmarkets extends Exchange {
         return $this->filter_by($orders, 'status', 'closed');
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -1458,11 +1469,11 @@ class btcmarkets extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal
          *
@@ -1471,11 +1482,11 @@ class btcmarkets extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -1485,13 +1496,13 @@ class btcmarkets extends Exchange {
             'amount' => $this->currency_to_precision($code, $amount),
         );
         if ($code !== 'AUD') {
-            $this->check_address($address);
+            $this->check_address($address, $code, $tagWithdrawTag);
             $request['toAddress'] = $address;
         }
-        if ($tag !== null) {
-            $request['toAddress'] = $address . '?dt=' . $tag;
+        if ($tagWithdrawTag !== null) {
+            $request['toAddress'] = $address . '?dt=' . $tagWithdrawTag;
         }
-        $response = Async\await($this->privatePostWithdrawals($this->extend($request, $params)));
+        $response = Async\await($this->privatePostWithdrawals($this->extend($request, $paramsWithdrawTag)));
         //
         //      {
         //          "id": "4126657",
@@ -1511,11 +1522,13 @@ class btcmarkets extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds();
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $requestHeaders = null;
+        $requestBody = null;
         $request = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->keysort($this->omit($params, $this->extract_params($path)));
         if ($api === 'private') {
@@ -1528,11 +1541,11 @@ class btcmarkets extends Exchange {
                     $request .= '?' . $this->urlencode($query);
                 }
             } else {
-                $body = $this->json($query);
-                $auth .= $body;
+                $requestBody = $this->json($query);
+                $auth .= $requestBody;
             }
             $signature = $this->hmac($this->encode($auth), $secret, 'sha512', 'base64');
-            $headers = array(
+            $requestHeaders = array(
                 'Accept' => 'application/json',
                 'Accept-Charset' => 'UTF-8',
                 'Content-Type' => 'application/json',
@@ -1545,8 +1558,14 @@ class btcmarkets extends Exchange {
                 $request .= '?' . $this->urlencode($query);
             }
         }
-        $url = $this->urls['api'][$api] . $request;
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . $request;
+        $headersResult = ($requestHeaders !== null) ? $requestHeaders : $headers;
+        $bodyResult = ($requestBody !== null) ? $requestBody : $body;
+        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

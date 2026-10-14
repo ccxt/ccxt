@@ -393,9 +393,11 @@ public partial class BaseExchange
                          .ToArray();
     }
 
-    public object ecdsa(object request, object secret, Delegate alg = null, Delegate hash = null) => Ecdsa(request, secret, alg, hash);
+    // every return path of Ecdsa is the fresh { r, s, v } row it builds (or a throw), so the
+    // declared type names the box the value already has; the wrapper forwards it unchanged
+    public Dictionary<string, object> ecdsa(object request, object secret, Delegate alg = null, Delegate hash = null) => Ecdsa(request, secret, alg, hash);
 
-    public static object Ecdsa(object request, object secret, Delegate curve = null, Delegate hash = null)
+    public static Dictionary<string, object> Ecdsa(object request, object secret, Delegate curve = null, Delegate hash = null)
     {
         var curveName = "secp256k1";
         if (curve != null)

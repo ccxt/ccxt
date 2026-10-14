@@ -16,21 +16,21 @@ pub fn testTransfer(mut exchange: Value, mut skippedProperties: Value, mut metho
     let mut m = indexmap::IndexMap::new();
     m
 }));
-            m.insert("id".to_string(), Value::Str("1234".to_string()));
+            m.insert("id".to_string(), Value::Str("1234".into()));
             m.insert("timestamp".to_string(), Value::Int(1502962946216));
-            m.insert("datetime".to_string(), Value::Str("2017-08-17 12:42:48.000".to_string()));
-            m.insert("currency".to_string(), Value::Str("USDT".to_string()));
-            m.insert("amount".to_string(), exchange.parse_number(Value::Str("1.234".to_string()), &[]));
-            m.insert("fromAccount".to_string(), Value::Str("spot".to_string()));
-            m.insert("toAccount".to_string(), Value::Str("swap".to_string()));
-            m.insert("status".to_string(), Value::Str("ok".to_string()));
+            m.insert("datetime".to_string(), Value::Str("2017-08-17 12:42:48.000".into()));
+            m.insert("currency".to_string(), Value::Str("USDT".into()));
+            m.insert("amount".to_string(), exchange.parse_number(Value::Str("1.234".into()), &[]));
+            m.insert("fromAccount".to_string(), Value::Str("spot".into()));
+            m.insert("toAccount".to_string(), Value::Str("swap".into()));
+            m.insert("status".to_string(), Value::Str("ok".into()));
         m
     });
-    let mut emptyAllowedFor: Value = Value::List(vec![Value::Str("fromAccount".to_string()), Value::Str("toAccount".to_string())]);
+    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("fromAccount".into()), Value::Str("toAccount".into())]);
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone(), emptyAllowedFor.clone()]);
     crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), exchange.milliseconds().clone()]);
-    crate::tests_support::shared::assert_currency_code(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), get_value(&entry, &Value::Str("currency".to_string())).clone(), requestedCode.clone()]);
+    crate::tests_support::shared::assert_currency_code(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), entry.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null).clone(), requestedCode.clone()]);
     //
-    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("status".to_string()).clone(), Value::List(vec![Value::Str("ok".to_string()), Value::Str("pending".to_string()), Value::Str("failed".to_string())]).clone()]);
-    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("amount".to_string()).clone(), Value::Str("0".to_string()).clone()]);
+    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("status".into()).clone(), Value::from(vec![Value::Str("ok".into()), Value::Str("pending".into()), Value::Str("failed".into())]).clone()]);
+    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("amount".into()).clone(), Value::Str("0".into()).clone()]);
 }

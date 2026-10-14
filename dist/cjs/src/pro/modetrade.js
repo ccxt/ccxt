@@ -82,7 +82,11 @@ class modetrade extends modetrade$1["default"] {
         if (this.accountId !== undefined && this.accountId !== '') {
             id = this.accountId;
         }
-        const url = this.urls['api']['ws']['public'] + '/' + id;
+        const wsUrl = this.safeString(this.urls['api']['ws'], 'public');
+        if (wsUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' watchPublic() has no public websocket url');
+        }
+        const url = wsUrl + '/' + id;
         const requestId = this.requestId(url);
         const subscribe = {
             'id': requestId,
@@ -166,7 +170,6 @@ class modetrade extends modetrade$1["default"] {
         }
         const name = 'ticker';
         const market = this.market(symbol);
-        symbol = market['symbol'];
         const topic = market['id'] + '@' + name;
         const request = {
             'event': 'subscribe',
@@ -253,7 +256,7 @@ class modetrade extends modetrade$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        const symbolsNormalized = this.marketSymbols(symbols);
         const name = 'tickers';
         const topic = name;
         const request = {
@@ -262,7 +265,7 @@ class modetrade extends modetrade$1["default"] {
         };
         const message = this.extend(request, params);
         const tickers = await this.watchPublic(topic, message);
-        return this.filterByArray(tickers, 'symbol', symbols);
+        return this.filterByArray(tickers, 'symbol', symbolsNormalized);
     }
     handleTickers(client, message) {
         //
@@ -310,7 +313,7 @@ class modetrade extends modetrade$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        const symbolsNormalized = this.marketSymbols(symbols);
         const name = 'bbos';
         const topic = name;
         const request = {
@@ -319,7 +322,7 @@ class modetrade extends modetrade$1["default"] {
         };
         const message = this.extend(request, params);
         const tickers = await this.watchPublic(topic, message);
-        return this.filterByArray(tickers, 'symbol', symbols);
+        return this.filterByArray(tickers, 'symbol', symbolsNormalized);
     }
     handleBidAsk(client, message) {
         //
@@ -353,8 +356,8 @@ class modetrade extends modetrade$1["default"] {
     }
     parseWsBidAsk(ticker, market = undefined) {
         const marketId = this.safeString(ticker, 'symbol');
-        market = this.safeMarket(marketId, market);
-        const symbol = this.safeString(market, 'symbol');
+        const marketResolved = this.safeMarket(marketId, market);
+        const symbol = this.safeString(marketResolved, 'symbol');
         const timestamp = this.safeInteger(ticker, 'ts');
         return this.safeTicker({
             'symbol': symbol,
@@ -365,7 +368,7 @@ class modetrade extends modetrade$1["default"] {
             'bid': this.safeString(ticker, 'bid'),
             'bidVolume': this.safeString(ticker, 'bidSize'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -396,10 +399,11 @@ class modetrade extends modetrade$1["default"] {
         };
         const message = this.extend(request, params);
         const ohlcv = await this.watchPublic(topic, message);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = ohlcv.getLimit(market['symbol'], limit);
+            limitResolved = ohlcv.getLimit(market['symbol'], limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
     }
     handleOHLCV(client, message) {
         //
@@ -438,8 +442,8 @@ class modetrade extends modetrade$1["default"] {
             this.safeNumber(data, 'close'),
             this.safeNumber(data, 'volume'),
         ];
-        this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
-        let stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
+        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
+        let stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             stored = new Cache.ArrayCacheByTimestamp(limit);
@@ -465,7 +469,7 @@ class modetrade extends modetrade$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = market['symbol'];
         const topic = market['id'] + '@trade';
         const request = {
             'event': 'subscribe',
@@ -473,10 +477,11 @@ class modetrade extends modetrade$1["default"] {
         };
         const message = this.extend(request, params);
         const trades = await this.watchPublic(topic, message);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit(market['symbol'], limit);
+            limitResolved = trades.getLimit(market['symbol'], limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(trades, symbolValue, since, limitResolved, true);
     }
     handleTrade(client, message) {
         //
@@ -546,8 +551,8 @@ class modetrade extends modetrade$1["default"] {
         //     }
         //
         const marketId = this.safeString(trade, 'symbol');
-        market = this.safeMarket(marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market);
+        const symbol = marketResolved['symbol'];
         const price = this.safeString2(trade, 'executedPrice', 'price');
         const amount = this.safeString2(trade, 'executedQuantity', 'size');
         const cost = Precise["default"].stringMul(price, amount);
@@ -580,7 +585,7 @@ class modetrade extends modetrade$1["default"] {
             'type': this.safeStringLower(trade, 'type'),
             'fee': fee,
             'info': trade,
-        }, market);
+        }, marketResolved);
     }
     handleAuth(client, message) {
         //
@@ -591,7 +596,7 @@ class modetrade extends modetrade$1["default"] {
         //     }
         //
         const messageHash = 'authenticated';
-        const success = this.safeValue(message, 'success');
+        const success = this.safeBool(message, 'success');
         if (success === true) {
             // client.resolve (message, messageHash);
             const future = this.safeValue(client.futures, 'authenticated');
@@ -608,7 +613,11 @@ class modetrade extends modetrade$1["default"] {
     }
     async authenticate(params = {}) {
         this.checkRequiredCredentials();
-        const url = this.urls['api']['ws']['private'] + '/' + this.accountId;
+        const wsUrl = this.safeString(this.urls['api']['ws'], 'private');
+        if (wsUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' authenticate() has no private websocket url');
+        }
+        const url = wsUrl + '/' + this.accountId;
         const client = this.client(url);
         const messageHash = 'authenticated';
         const event = 'auth';
@@ -638,7 +647,11 @@ class modetrade extends modetrade$1["default"] {
     }
     async watchPrivate(messageHash, message, params = {}) {
         await this.authenticate(params);
-        const url = this.urls['api']['ws']['private'] + '/' + this.accountId;
+        const wsUrl = this.safeString(this.urls['api']['ws'], 'private');
+        if (wsUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' watchPrivate() has no private websocket url');
+        }
+        const url = wsUrl + '/' + this.accountId;
         const requestId = this.requestId(url);
         const subscribe = {
             'id': requestId,
@@ -648,7 +661,11 @@ class modetrade extends modetrade$1["default"] {
     }
     async watchPrivateMultiple(messageHashes, message, params = {}) {
         await this.authenticate(params);
-        const url = this.urls['api']['ws']['private'] + '/' + this.accountId;
+        const wsUrl = this.safeString(this.urls['api']['ws'], 'private');
+        if (wsUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' watchPrivateMultiple() has no private websocket url');
+        }
+        const url = wsUrl + '/' + this.accountId;
         const requestId = this.requestId(url);
         const subscribe = {
             'id': requestId,
@@ -674,24 +691,29 @@ class modetrade extends modetrade$1["default"] {
             await this.loadMarkets();
         }
         const trigger = this.safeBool2(params, 'stop', 'trigger', false);
-        const topic = (trigger === true) ? 'algoexecutionreport' : 'executionreport';
-        params = this.omit(params, ['stop', 'trigger']);
+        let topic = 'executionreport';
+        if (trigger === true) {
+            topic = 'algoexecutionreport';
+        }
+        const paramsOmitted = this.omit(params, ['stop', 'trigger']);
         let messageHash = topic;
+        let symbolResolved = undefined;
         if (symbol !== undefined) {
             const market = this.market(symbol);
-            symbol = market['symbol'];
-            messageHash += ':' + symbol;
+            symbolResolved = this.safeString(market, 'symbol');
+            messageHash += ':' + symbolResolved;
         }
         const request = {
             'event': 'subscribe',
             'topic': topic,
         };
-        const message = this.extend(request, params);
+        const message = this.extend(request, paramsOmitted);
         const orders = await this.watchPrivate(messageHash, message);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit(symbol, limit);
+            limitResolved = orders.getLimit(symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
     }
     /**
      * @method
@@ -711,24 +733,29 @@ class modetrade extends modetrade$1["default"] {
             await this.loadMarkets();
         }
         const trigger = this.safeBool2(params, 'stop', 'trigger', false);
-        const topic = (trigger === true) ? 'algoexecutionreport' : 'executionreport';
-        params = this.omit(params, 'stop');
+        let topic = 'executionreport';
+        if (trigger === true) {
+            topic = 'algoexecutionreport';
+        }
+        const paramsOmitted = this.omit(params, 'stop');
         let messageHash = 'myTrades';
+        let symbolResolved = undefined;
         if (symbol !== undefined) {
             const market = this.market(symbol);
-            symbol = market['symbol'];
-            messageHash += ':' + symbol;
+            symbolResolved = this.safeString(market, 'symbol');
+            messageHash += ':' + symbolResolved;
         }
         const request = {
             'event': 'subscribe',
             'topic': topic,
         };
-        const message = this.extend(request, params);
+        const message = this.extend(request, paramsOmitted);
         const orders = await this.watchPrivate(messageHash, message);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit(symbol, limit);
+            limitResolved = orders.getLimit(symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
     }
     parseWsOrder(order, market = undefined) {
         //
@@ -798,8 +825,8 @@ class modetrade extends modetrade$1["default"] {
         //
         const orderId = this.safeString(order, 'orderId');
         const marketId = this.safeString(order, 'symbol');
-        market = this.safeMarket(marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market);
+        const symbol = marketResolved['symbol'];
         const timestamp = this.safeInteger(order, 'timestamp');
         const fee = {
             'cost': this.safeString(order, 'totalFee'),
@@ -995,24 +1022,28 @@ class modetrade extends modetrade$1["default"] {
             await this.loadMarkets();
         }
         const messageHashes = [];
-        symbols = this.marketSymbols(symbols);
-        if ((symbols !== undefined) && !this.isEmpty(symbols)) {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
+        const symbolsNormalized = this.marketSymbols(symbols);
+        if ((symbolsNormalized !== undefined) && !this.isEmpty(symbolsNormalized)) {
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const symbol = symbolsNormalized[i];
                 messageHashes.push('positions::' + symbol);
             }
         }
         else {
             messageHashes.push('positions');
         }
-        const url = this.urls['api']['ws']['private'] + '/' + this.accountId;
+        const wsUrl = this.safeString(this.urls['api']['ws'], 'private');
+        if (wsUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' watchPositions() has no private websocket url');
+        }
+        const url = wsUrl + '/' + this.accountId;
         const client = this.client(url);
-        this.setPositionsCache(client, symbols);
+        this.setPositionsCache(client, symbolsNormalized);
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.handleOption('watchPositions', 'awaitPositionsSnapshot', true);
         if ((fetchPositionsSnapshot === true) && (awaitPositionsSnapshot === true) && (this.positions === undefined)) {
             const snapshot = await client.future('fetchPositionsSnapshot');
-            return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
+            return this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true);
         }
         const request = {
             'event': 'subscribe',
@@ -1022,7 +1053,7 @@ class modetrade extends modetrade$1["default"] {
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit(this.positions, symbolsNormalized, since, limit, true);
     }
     setPositionsCache(client, type, symbols = undefined) {
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', false);
@@ -1096,7 +1127,7 @@ class modetrade extends modetrade$1["default"] {
         const cache = this.positions;
         const newPositions = [];
         for (let i = 0; i < rawPositions.length; i++) {
-            const rawPosition = rawPositions[i];
+            const rawPosition = this.safeDict(rawPositions, i);
             const marketId = this.safeString(rawPosition, 'symbol');
             const market = this.safeMarket(marketId);
             const position = this.parseWsPosition(rawPosition, market);
@@ -1133,7 +1164,7 @@ class modetrade extends modetrade$1["default"] {
         //     }
         //
         const contract = this.safeString(position, 'symbol');
-        market = this.safeMarket(contract, market);
+        const marketResolved = this.safeMarket(contract, market);
         let size = this.safeString(position, 'positionQty');
         let side = undefined;
         if (Precise["default"].stringGt(size, '0')) {
@@ -1142,7 +1173,7 @@ class modetrade extends modetrade$1["default"] {
         else {
             side = 'short';
         }
-        const contractSize = this.safeString(market, 'contractSize');
+        const contractSize = this.safeString(marketResolved, 'contractSize');
         const markPrice = this.safeString(position, 'markPrice');
         const timestamp = this.safeInteger(position, 'timestamp');
         const entryPrice = this.safeString(position, 'averageOpenPrice');
@@ -1152,7 +1183,7 @@ class modetrade extends modetrade$1["default"] {
         return this.safePosition({
             'info': position,
             'id': undefined,
-            'symbol': this.safeString(market, 'symbol'),
+            'symbol': this.safeString(marketResolved, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastUpdateTimestamp': undefined,
@@ -1238,7 +1269,7 @@ class modetrade extends modetrade$1["default"] {
         this.balance['datetime'] = this.iso8601(ts);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const value = balances[key];
+            const value = this.safeDict(balances, key);
             const code = this.safeCurrencyCode(key);
             let account = this.account();
             if ((code !== undefined) && (code in this.balance)) {

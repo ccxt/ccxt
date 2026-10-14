@@ -270,7 +270,10 @@ class kalshi extends kalshi$1["default"] {
                 const parsed = this.parseBinaryMarketToOutcomes(raw);
                 const eventTicker = this.safeString(raw, 'event_ticker');
                 const eventTitle = this.safeString(raw, 'title', eventTicker);
-                const eventKey = (eventTitle !== undefined && eventTitle !== '') ? this.shortenSlug(eventTitle) : undefined;
+                let eventKey = undefined;
+                if (eventTitle !== undefined && eventTitle !== '') {
+                    eventKey = this.shortenSlug(eventTitle);
+                }
                 for (let j = 0; j < parsed.length; j++) {
                     const m = parsed[j];
                     flatMarkets.push(m);
@@ -334,7 +337,10 @@ class kalshi extends kalshi$1["default"] {
             const symbolLength = this.parseToInt(outcomeSymbol.length);
             const suffix = outcomeSymbol.slice(symbolLength - 3);
             const isNo = (suffix === '-NO');
-            const baseTicker = isNo ? outcomeSymbol.slice(0, symbolLength - 3) : outcomeSymbol;
+            let baseTicker = outcomeSymbol;
+            if (isNo) {
+                baseTicker = outcomeSymbol.slice(0, symbolLength - 3);
+            }
             let response = undefined;
             try {
                 response = await this.kalshiPublicGetMarketsTicker({ 'ticker': baseTicker });
@@ -413,7 +419,10 @@ class kalshi extends kalshi$1["default"] {
             // parseToInt-wrapped .length — see the fetchOutcome comment (php count()/python slice traps)
             const symbolLength = this.parseToInt(outcomeSymbol.length);
             const suffix = outcomeSymbol.slice(symbolLength - 3);
-            const baseTicker = (suffix === '-NO') ? outcomeSymbol.slice(0, symbolLength - 3) : outcomeSymbol;
+            let baseTicker = outcomeSymbol;
+            if (suffix === '-NO') {
+                baseTicker = outcomeSymbol.slice(0, symbolLength - 3);
+            }
             if (!(baseTicker in seen)) {
                 seen[baseTicker] = true;
                 tickers.push(baseTicker);
@@ -573,7 +582,10 @@ class kalshi extends kalshi$1["default"] {
             seriesTicker = seriesParts.join('-');
         }
         // market symbol (no outcome suffix)
-        const subtitleOrTicker = (subtitle !== undefined) ? subtitle : ticker;
+        let subtitleOrTicker = ticker;
+        if (subtitle !== undefined) {
+            subtitleOrTicker = subtitle;
+        }
         const marketSymbol = this.slugToMarketSymbol(eventTicker, subtitleOrTicker);
         // kalshi exposes the per-market price tick via price_ranges[].step (a dollar value,
         // e.g. "0.0010" for deci-cent markets, "0.0100" for cent markets); older responses
@@ -805,9 +817,9 @@ class kalshi extends kalshi$1["default"] {
     }
     parsePredictionOpenInterest(interest, market = undefined) {
         //
-        //     { "ticker": "...", "open_interest_fp": "60802.01", ... }   // open interest in contracts
+        //     { "ticker": "...", "open_interest_fp": "60802.01", "updated_time": "2026-04-09T10:32:47.890506Z", ... }   // the market object of GET /markets/{ticker}, open interest in contracts
         //
-        const timestamp = this.milliseconds();
+        const timestamp = this.parse8601(this.safeString(interest, 'updated_time'));
         const openInterest = this.safeOpenInterest({
             'symbol': this.safeSymbol(undefined, market),
             'openInterestAmount': this.safeNumber2(interest, 'open_interest_fp', 'open_interest'),
@@ -892,7 +904,7 @@ class kalshi extends kalshi$1["default"] {
         const outcomeObj = this.safeOutcome(this.safeString(marketAny, 'outcome'), marketAny);
         const outcomeLabel = (market !== undefined && market !== null) ? this.safeString(market, 'label', this.safeString(market['info'], 'outcomeLabel', 'YES')) : 'YES';
         const isNo = outcomeLabel.toUpperCase() === 'NO';
-        const now = this.milliseconds();
+        const timestamp = this.parse8601(this.safeString(raw, 'updated_time'));
         const outcome = this.safeString(outcomeObj, 'outcome');
         const yesAsk = this.safeNumber(raw, 'yes_ask_dollars');
         const yesBid = this.safeNumber(raw, 'yes_bid_dollars');
@@ -913,8 +925,20 @@ class kalshi extends kalshi$1["default"] {
             close = last;
         }
         // the book is quoted in the yes token, the no side mirrors with sizes swapped
-        const bidSizeString = (isNo) ? this.safeString(raw, 'yes_ask_size_fp') : this.safeString(raw, 'yes_bid_size_fp');
-        const askSizeString = (isNo) ? this.safeString(raw, 'yes_bid_size_fp') : this.safeString(raw, 'yes_ask_size_fp');
+        let bidSizeString = undefined;
+        if (isNo) {
+            bidSizeString = this.safeString(raw, 'yes_ask_size_fp');
+        }
+        else {
+            bidSizeString = this.safeString(raw, 'yes_bid_size_fp');
+        }
+        let askSizeString = undefined;
+        if (isNo) {
+            askSizeString = this.safeString(raw, 'yes_bid_size_fp');
+        }
+        else {
+            askSizeString = this.safeString(raw, 'yes_ask_size_fp');
+        }
         // kalshi occasionally reports a negative size for settling/closed markets; a size
         // can't be negative, so drop it rather than emit an invalid volume
         let bidVolume = undefined;
@@ -934,8 +958,8 @@ class kalshi extends kalshi$1["default"] {
             'outcomeId': this.safeString2(outcomeObj, 'outcomeId', 'id'),
             'label': this.safeString(outcomeObj, 'label'),
             'market': this.safeString2(outcomeObj, 'market', 'outcome'),
-            'timestamp': now,
-            'datetime': this.iso8601(now),
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
             'high': undefined,
             'low': undefined,
             'bid': bid,
@@ -1062,7 +1086,6 @@ class kalshi extends kalshi$1["default"] {
         //     }
         //
         const book = this.safeValue(response, 'orderbook_fp', response);
-        const timestamp = this.milliseconds();
         // Kalshi uses YES-side perspective: `yes` = bids, `no` = asks (inverted)
         const rawYes = this.safeList(book, 'yes_dollars', []);
         const rawNo = this.safeList(book, 'no_dollars', []);
@@ -1093,7 +1116,7 @@ class kalshi extends kalshi$1["default"] {
                 asks.push([price, this.safeNumber(rawNo[ai], 1)]);
             }
         }
-        return this.safePredictionOrderBook(this.sortedOrders(this.safeString(outcomeObj, 'outcome', outcome), timestamp, bids, asks), outcomeObj);
+        return this.safePredictionOrderBook(this.sortedOrders(this.safeString(outcomeObj, 'outcome', outcome), undefined, bids, asks), outcomeObj);
     }
     /**
      * @ignore
@@ -1108,12 +1131,12 @@ class kalshi extends kalshi$1["default"] {
      */
     sortedOrders(outcome, timestamp, bids, asks) {
         // Sort bids descending, asks ascending, match CCXT OrderBook shape
-        bids = this.sortBy(bids, 0, true);
-        asks = this.sortBy(asks, 0);
+        const bidsValue = this.sortBy(bids, 0, true);
+        const asksValue = this.sortBy(asks, 0);
         return {
             'outcome': outcome,
-            'bids': bids,
-            'asks': asks,
+            'bids': bidsValue,
+            'asks': asksValue,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'nonce': undefined,
@@ -1444,7 +1467,10 @@ class kalshi extends kalshi$1["default"] {
         const ts = this.parse8601(this.safeString(fill, 'created_time'));
         // action is the order side (buy/sell) of the held leg
         const action = this.safeStringLower(fill, 'action');
-        const side = (action === 'sell') ? 'sell' : 'buy';
+        let side = 'buy';
+        if (action === 'sell') {
+            side = 'sell';
+        }
         // price is the price of the leg held; kalshi reports dollars in V2, cents otherwise
         let price = undefined;
         if (sideLeg === 'no') {
@@ -1471,7 +1497,10 @@ class kalshi extends kalshi$1["default"] {
             cost = price * amount;
         }
         const isTaker = this.safeBool(fill, 'is_taker', true);
-        const takerOrMaker = (isTaker === true) ? 'taker' : 'maker';
+        let takerOrMaker = 'maker';
+        if (isTaker === true) {
+            takerOrMaker = 'taker';
+        }
         const feeCost = this.safeNumber(fill, 'fee_cost');
         let fee = undefined;
         if (feeCost !== undefined) {
@@ -1634,10 +1663,19 @@ class kalshi extends kalshi$1["default"] {
         const yesCount = this.safeNumber2(settlement, 'yes_count_fp', 'yes_count', 0);
         const noCount = this.safeNumber2(settlement, 'no_count_fp', 'no_count', 0);
         const heldYes = (yesCount >= noCount);
-        const heldLabel = (heldYes) ? 'YES' : 'NO';
+        let heldLabel = 'NO';
+        if (heldYes) {
+            heldLabel = 'YES';
+        }
         const tickerMissing = (ticker === undefined);
         const useHeldYesTicker = (heldYes || tickerMissing);
-        const heldTicker = (useHeldYesTicker) ? ticker : (ticker + '-NO');
+        let heldTicker = undefined;
+        if (useHeldYesTicker) {
+            heldTicker = ticker;
+        }
+        else {
+            heldTicker = (ticker + '-NO');
+        }
         const mkt = this.safeOutcome(heldTicker, market);
         // which leg won; market_result is yes or no
         const marketResult = this.safeStringUpper(settlement, 'market_result');
@@ -1650,8 +1688,14 @@ class kalshi extends kalshi$1["default"] {
                 payout = revenueCents / 100;
             }
         }
-        const costKey = (heldYes) ? 'yes_total_cost' : 'no_total_cost';
-        const costDollarsKey = (heldYes) ? 'yes_total_cost_dollars' : 'no_total_cost_dollars';
+        let costKey = 'no_total_cost';
+        if (heldYes) {
+            costKey = 'yes_total_cost';
+        }
+        let costDollarsKey = 'no_total_cost_dollars';
+        if (heldYes) {
+            costDollarsKey = 'yes_total_cost_dollars';
+        }
         let cost = this.safeNumber(settlement, costDollarsKey);
         if (cost === undefined) {
             const costCents = this.safeNumber(settlement, costKey);
@@ -1867,8 +1911,14 @@ class kalshi extends kalshi$1["default"] {
         // price in the outcome's own leg: V2 returns *_price_dollars (already dollars),
         // legacy returned yes_price/no_price in cents
         const labelIsNo = (this.safeStringUpper(mkt, 'label') === 'NO');
-        const dollarsKey = (labelIsNo) ? 'no_price_dollars' : 'yes_price_dollars';
-        const centsKey = (labelIsNo) ? 'no_price' : 'yes_price';
+        let dollarsKey = 'yes_price_dollars';
+        if (labelIsNo) {
+            dollarsKey = 'no_price_dollars';
+        }
+        let centsKey = 'yes_price';
+        if (labelIsNo) {
+            centsKey = 'no_price';
+        }
         let price = this.safeNumber(order, dollarsKey);
         if (price === undefined) {
             const priceCents = this.safeNumber(order, centsKey);
@@ -1955,7 +2005,10 @@ class kalshi extends kalshi$1["default"] {
         // kalshi V2 (/portfolio/events/orders) quotes the YES leg only: side 'bid' = buy YES,
         // 'ask' = sell YES, price in dollars. a NO order maps to the complementary YES order
         // buy NO @ q == sell YES @ 1-q - flip the book side and the price
-        let bookSide = (isBuy) ? 'bid' : 'ask';
+        let bookSide = 'ask';
+        if (isBuy) {
+            bookSide = 'bid';
+        }
         let yesPrice = price;
         if (isNo) {
             bookSide = (isBuy) ? 'ask' : 'bid';
@@ -1967,8 +2020,11 @@ class kalshi extends kalshi$1["default"] {
         // accept the unified `timeInForce` and map it onto kalshi's vocabulary; the native
         // `time_in_force` param (handled below) still overrides
         const unifiedTif = this.safeStringUpper(params, 'timeInForce');
-        params = this.omit(params, 'timeInForce');
-        let defaultTif = (isMarket) ? 'immediate_or_cancel' : 'good_till_canceled';
+        const paramsOmitted = this.omit(params, 'timeInForce');
+        let defaultTif = 'good_till_canceled';
+        if (isMarket) {
+            defaultTif = 'immediate_or_cancel';
+        }
         // kalshi has BOTH immediate_or_cancel (partial ok) and fill_or_kill (all-or-nothing);
         // map the unified tokens to the matching primitive rather than collapsing FOK into IOC
         if (unifiedTif === 'IOC') {
@@ -1980,10 +2036,8 @@ class kalshi extends kalshi$1["default"] {
         else if (unifiedTif === 'GTC') {
             defaultTif = 'good_till_canceled';
         }
-        let timeInForce = undefined;
-        [timeInForce, params] = this.handleOptionAndParams(params, 'createOrder', 'time_in_force', defaultTif);
-        let stp = undefined;
-        [stp, params] = this.handleOptionAndParams(params, 'createOrder', 'self_trade_prevention_type', 'taker_at_cross');
+        const [timeInForce, paramsTimeInForce] = this.handleOptionStringAndParams(paramsOmitted, 'createOrder', 'time_in_force', defaultTif);
+        const [stp, paramsSelfTradePreventionType] = this.handleOptionStringAndParams(paramsTimeInForce, 'createOrder', 'self_trade_prevention_type', 'taker_at_cross');
         const request = {
             'ticker': ticker,
             'side': bookSide,
@@ -1994,7 +2048,7 @@ class kalshi extends kalshi$1["default"] {
         if (yesPrice !== undefined) {
             request['price'] = this.numberToString(yesPrice);
         }
-        const response = await this.kalshiPrivatePostPortfolioEventsOrders(this.extend(request, params));
+        const response = await this.kalshiPrivatePostPortfolioEventsOrders(this.extend(request, paramsSelfTradePreventionType));
         // the V2 create response is minimal (order_id, fill_count, remaining_count), so backfill
         // the known order details and resolve the status from the remaining count
         const order = this.parsePredictionOrder(response, outcomeObj);
@@ -2142,8 +2196,8 @@ class kalshi extends kalshi$1["default"] {
             throw new errors.ExchangeError(this.id + ' fetchEvents() missing queries');
         }
         const queriesLength = queries.length;
-        params = this.omit(params, ['query', 'queries']);
-        const userLimit = this.safeInteger(params, 'limit');
+        const paramsOmitted = this.omit(params, ['query', 'queries']);
+        const userLimit = this.safeInteger(paramsOmitted, 'limit');
         // bound how many events are actually FETCHED (not just returned) so a broad scope like
         // category='Crypto' (hundreds of series) doesn't page every one of them
         let fetchCap = this.safeInteger(this.options, 'maxFetchEventsResults', 100);
@@ -2153,7 +2207,7 @@ class kalshi extends kalshi$1["default"] {
         // map the unified status onto the kalshi event status pushed server-side. 'settled'/'resolved'
         // map to kalshi's 'settled' (so resolved events ARE discoverable — previously they were
         // silently rewritten to 'open'); 'all' sends no filter
-        const requestedStatus = this.safeString(params, 'status', this.safeString(this.options, 'defaultEventStatus', 'open'));
+        const requestedStatus = this.safeString(paramsOmitted, 'status', this.safeString(this.options, 'defaultEventStatus', 'open'));
         let status = undefined;
         if ((requestedStatus === 'active') || (requestedStatus === 'open')) {
             status = 'open';
@@ -2165,11 +2219,11 @@ class kalshi extends kalshi$1["default"] {
             status = 'settled';
         }
         // anything beyond the unified keys is forwarded verbatim to the events endpoint (kalshi filters)
-        const rest = this.omit(params, ['status', 'limit', 'maxPages', 'sort', 'searchIn', 'eventId', 'slug', 'tags', 'category', 'series_ticker']);
+        const rest = this.omit(paramsOmitted, ['status', 'limit', 'maxPages', 'sort', 'searchIn', 'eventId', 'slug', 'tags', 'category', 'series_ticker']);
         if (this.markets === undefined) {
             this.markets = this.createSafeDictionary();
         }
-        const eventId = this.safeString2(params, 'eventId', 'slug');
+        const eventId = this.safeString2(paramsOmitted, 'eventId', 'slug');
         let rawEvents = [];
         if (queriesLength > 0) {
             // free-text search: ranked events from the search endpoint, top `fetchCap` fetched canonically
@@ -2182,10 +2236,10 @@ class kalshi extends kalshi$1["default"] {
         }
         else {
             // tags / category / series_ticker resolve to a set of series; fetch their events, capped
-            const seriesTickers = await this.resolveEventSeriesTickers(params);
+            const seriesTickers = await this.resolveEventSeriesTickers(paramsOmitted);
             const seriesTickersLength = seriesTickers.length;
             if (seriesTickersLength === 0) {
-                this.requireEventQuery(params);
+                this.requireEventQuery(paramsOmitted);
             }
             rawEvents = await this.fetchSeriesEvents(seriesTickers, status, fetchCap, rest);
         }
@@ -2207,7 +2261,7 @@ class kalshi extends kalshi$1["default"] {
         // scoping already happened server-side, so strip the resolved scopes before the client-side
         // pass: applyEventFetchParams' tag filter needs an event-level `tags` field kalshi events lack,
         // and its query filter would drop a "bitcoin"-searched event whose title only says "BTC"
-        const postParams = this.omit(params, ['tags', 'category', 'series_ticker']);
+        const postParams = this.omit(paramsOmitted, ['tags', 'category', 'series_ticker']);
         return this.applyEventFetchParams(result, postParams, []);
     }
     /**
@@ -2544,7 +2598,10 @@ class kalshi extends kalshi$1["default"] {
         const ticker = this.safeString(rawEvent, 'event_ticker');
         const title = this.safeString(rawEvent, 'title');
         const hasTitle = (title !== undefined) && (title !== '');
-        const eventSlug = hasTitle ? this.shortenSlug(title) : undefined;
+        let eventSlug = undefined;
+        if (hasTitle) {
+            eventSlug = this.shortenSlug(title);
+        }
         let created = this.parse8601(this.safeString(rawEvent, 'created_date_iso'));
         if (created === undefined) {
             created = earliestCreated;
@@ -2598,10 +2655,11 @@ class kalshi extends kalshi$1["default"] {
             url += '?' + querystring;
         }
         const existingHeaders = (headers !== undefined) ? headers : {};
-        headers = this.extend({
+        let headersValue = this.extend({
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         }, existingHeaders);
+        let bodyValue = body;
         if (access === 'private') {
             this.checkRequiredCredentials();
             const timestamp = this.milliseconds().toString();
@@ -2616,17 +2674,17 @@ class kalshi extends kalshi$1["default"] {
             const keyParts = this.privateKey.split('\\n');
             const cleanPrivateKey = keyParts.join('\n');
             const signature = rsa.rsa(payload, cleanPrivateKey, sha2_js.sha256, 'pss');
-            headers = this.extend(headers, {
+            headersValue = this.extend(headersValue, {
                 'KALSHI-ACCESS-KEY': this.apiKey,
                 'KALSHI-ACCESS-SIGNATURE': signature,
                 'KALSHI-ACCESS-TIMESTAMP': timestamp,
             });
             if (method !== 'GET' && (querystring !== '')) {
                 // kalshi expects a JSON body; the signature covers only timestamp+method+path
-                body = this.json(query);
+                bodyValue = this.json(query);
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': bodyValue, 'headers': headersValue };
     }
 }
 

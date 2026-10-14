@@ -4,6 +4,8 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
+import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -15,15 +17,15 @@ public class TestFetchDeposits extends BaseTest {
     public CompletableFuture<Object> testFetchDeposits(BaseExchange exchange, Object skippedProperties, Object code)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchDeposits";
-        Object transactions = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchDeposits", new Object[]{code})).join();
+        Object transactions = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchDeposits", new Object[]{Helpers.toStringArg(code), (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, transactions, code);
         Object now = exchange.milliseconds();
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(transactions)); i++)
+        for (var i = 0; i < ((List<?>)transactions).size(); i++)
         {
-            TestDepositWithdrawal.testDepositWithdrawal(exchange, skippedProperties, method, Helpers.GetValue(transactions, i), code, now);
+            TestDepositWithdrawal.testDepositWithdrawal(exchange, skippedProperties, method, (transactions == null || i < 0 || i >= ((List<?>)transactions).size() ? null : ((List<?>)transactions).get(i)), code, now);
         }
         TestSharedMethods.AssertTimestampOrder(exchange, method, code, transactions);
         return true;

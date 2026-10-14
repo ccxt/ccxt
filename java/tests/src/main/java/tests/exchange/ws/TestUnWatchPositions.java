@@ -2,10 +2,13 @@ package tests.exchange.ws;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 import tests.exchange.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -17,10 +20,10 @@ public class TestUnWatchPositions extends BaseTest {
     public CompletableFuture<Void> createOrderAfterDelay(Exchange exchange)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         (exchange.sleep(3000)).join();
-        ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT:USDT", "market", "buy", 0.001})).join();
+        ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT:USDT", "market", "buy", 0.001, (Object) null, new HashMap<String, Object>() {{}}})).join();
             return null;
         });
 
@@ -28,7 +31,7 @@ public class TestUnWatchPositions extends BaseTest {
     public CompletableFuture<Object> testUnWatchPositions(Exchange exchange, Object skippedProperties, Object symbol)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         String method = "unWatchPositions";
         exchange.setSandboxMode(true);
@@ -37,11 +40,11 @@ public class TestUnWatchPositions extends BaseTest {
         try
         {
             // First call uses snapshot
-            positionsSubscription = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchPositions", new Object[]{})).join();
+            positionsSubscription = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchPositions", new Object[]{(List<String>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
             // trigger a position update
             exchange.spawn(() -> { try { this.createOrderAfterDelay( exchange).join(); } catch(Exception _e) { throw new RuntimeException(_e); } });
             // Second call uses subscription
-            positionsSubscription = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchPositions", new Object[]{})).join();
+            positionsSubscription = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchPositions", new Object[]{(List<String>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
         } catch(Exception e)
         {
             if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
@@ -52,22 +55,22 @@ public class TestUnWatchPositions extends BaseTest {
             return false;
         }
         // Verify that we have a subscription
-        Assert(Helpers.isArray(positionsSubscription), Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " requires a valid positions subscription to test unsubscribe"));
+        Assert((positionsSubscription instanceof List), (((exchange.id + " ") + method) + " requires a valid positions subscription to test unsubscribe"));
         // Assert unWatchPositions for one symbol is not supported
         Object errorResponse = null;
         try
         {
-            errorResponse = (exchange.unWatchPositions(new ArrayList<Object>(Arrays.asList(symbol)))).join();
+            errorResponse = (exchange.unWatchPositions(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), new HashMap<String, Object>() {{}})).join();
         } catch(Exception e)
         {
             errorResponse = e;
         }
-        Assert(!Helpers.isEqual(errorResponse, null), Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " must throw an error when unwatching a specific symbol, returned "), exchange.json(errorResponse)));
+        Assert(!java.util.Objects.equals(errorResponse, null), ((((exchange.id + " ") + method) + " must throw an error when unwatching a specific symbol, returned ") + exchange.json(errorResponse)));
         // Test unwatching all positions (without specific symbols)
         Object responseAll = null;
         try
         {
-            responseAll = (exchange.unWatchPositions()).join();
+            responseAll = (exchange.unWatchPositions((List<String>) null, new HashMap<String, Object>() {{}})).join();
         } catch(Exception e)
         {
             if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
@@ -77,24 +80,24 @@ public class TestUnWatchPositions extends BaseTest {
             throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
         }
         // Verify the response for unwatching all positions
-        Assert(!Helpers.isEqual(responseAll, null), Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " must return a response when unwatching all positions, returned "), exchange.json(responseAll)));
+        Assert(!java.util.Objects.equals(responseAll, null), ((((exchange.id + " ") + method) + " must return a response when unwatching all positions, returned ") + exchange.json(responseAll)));
         // Test that we can resubscribe after unwatching (to ensure cleanup was proper)
         Object resubscribeResponse = null;
         try
         {
-            resubscribeResponse = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchPositions", new Object[]{})).join();
+            resubscribeResponse = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchPositions", new Object[]{(List<String>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
             exchange.spawn(() -> { try { this.createOrderAfterDelay( exchange).join(); } catch(Exception _e) { throw new RuntimeException(_e); } });
-            resubscribeResponse = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchPositions", new Object[]{})).join();
+            resubscribeResponse = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchPositions", new Object[]{(List<String>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
         } catch(Exception e)
         {
             if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
             {
                 throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
             }
-            throw new RuntimeException((String)Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " failed to resubscribe after unwatch, indicating potential cleanup issues")) ;
+            throw new RuntimeException((String)(((exchange.id + " ") + method) + " failed to resubscribe after unwatch, indicating potential cleanup issues")) ;
         }
         // Verify resubscription works
-        Assert(Helpers.isArray(resubscribeResponse), Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " must allow resubscription after unwatch, returned "), exchange.json(resubscribeResponse)));
+        Assert((resubscribeResponse instanceof List), ((((exchange.id + " ") + method) + " must allow resubscription after unwatch, returned ") + exchange.json(resubscribeResponse)));
         return true;
         });
 

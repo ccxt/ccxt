@@ -5,6 +5,7 @@ package io.github.ccxt.exchanges.pro;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 import java.util.ArrayList;
@@ -28,7 +29,7 @@ public class Binanceusdm extends io.github.ccxt.exchanges.Binanceusdm
         var restInstance = new io.github.ccxt.exchanges.Binanceusdm();
         Object restDescribe = restInstance.describe();
         Object parentWsDescribe = new io.github.ccxt.exchanges.pro.Binance().describeData();
-        Map<String, Object> extended = this.deepExtend(restDescribe, parentWsDescribe);
+        Map<String,Object> extended = this.deepExtend(restDescribe, parentWsDescribe);
         return this.deepExtend(extended, new HashMap<String, Object>() {{
             put( "id", "binanceusdm" );
             put( "name", "Binance USDⓈ-M" );

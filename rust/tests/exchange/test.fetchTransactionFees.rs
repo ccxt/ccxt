@@ -9,7 +9,7 @@ use crate::test_helpers::*;
 // sibling validators / method tests are re-exported from mod.rs
 use super::*;
 
-pub fn testFetchTransactionFees(mut exchange: Value, mut skippedProperties: Value) -> Value {
+pub async fn testFetchTransactionFees(mut exchange: Value, mut skippedProperties: Value) -> Value {
     return Value::Null;
 
     Value::Null

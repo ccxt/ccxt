@@ -31,7 +31,9 @@ impl GateeuCore {
     pub fn init(&mut self) {
         let described = GateeuCore::describe(self);
         self.initialize_properties(described);
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self);
+        // compatibility for sandbox/testnet options in userConfig
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -199,19 +201,19 @@ impl GateeuCore {
         // the ws describe-data must be applied on top of the rest describe,
         // otherwise the explicit-undefined watch* defaults of the rest 'has'
         // block wipe the parent's ws capability flags in the deep extend
-        let mut extended: Value = self.deep_extend(restDescribe.clone(), &[parentWsDescribe.clone()]);
-        return self.deep_extend(extended.clone(), &[Value::Map({
+        let mut extended: Value = self.deep_extend(restDescribe, &[parentWsDescribe]);
+        return self.deep_extend(extended, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("gateeu".to_string()));
-        m.insert("name".to_string(), Value::Str("Gate EU".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("EU".to_string())]));
+        m.insert("id".to_string(), Value::Str("gateeu".into()));
+        m.insert("name".to_string(), Value::Str("Gate EU".into()));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("EU".into())]));
         m.insert("certified".to_string(), Value::Bool(false));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ws".to_string(), Value::Str("wss://ws.gateeu.com/v4".to_string()));
-        m.insert("spot".to_string(), Value::Str("wss://api.gateeu.com/ws/v4/".to_string()));
+        m.insert("ws".to_string(), Value::Str("wss://ws.gateeu.com/v4".into()));
+        m.insert("spot".to_string(), Value::Str("wss://api.gateeu.com/ws/v4/".into()));
     m
 }));
     m

@@ -70,7 +70,6 @@ async function testThrottle () {
         },
     ]
 
-
     let number = 0
     for (const test of testCases) {
         test['number'] = number++
@@ -95,13 +94,14 @@ async function testThrottle () {
         console.log (`case ${test['number']} ${result ? 'suceeded' : 'failed'} in ${elapsed}ms expected ${test['expected']}ms`)
     }
 
+    // every case is wall-clock bound by its own refill rate (~31s summed), so the
+    // runners are awaited together: each leaky bucket refills from measured elapsed
+    // time, so 10 concurrent 1ms timer loops still land within `delta` of expected
+    const runnerPromises: Promise<void>[] = []
     for (const test of testCases) {
-        // awaited sequentially: firing all 10 concurrently lets their independent
-        // Throttler timer loops contend for the event loop at once, inflating the
-        // elapsed time each case measures against its `delta`-ms tolerance and
-        // making the suite flaky (observed failing consistently when run unawaited)
-        await runner (test)
+        runnerPromises.push (runner (test))
     }
+    await Promise.all (runnerPromises)
 
     await testThrottleQueueCompaction ()
     await testThrottleRollingWindowInvariant ()

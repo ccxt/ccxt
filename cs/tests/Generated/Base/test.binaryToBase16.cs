@@ -16,34 +16,34 @@ public partial class BaseTest
             // @SKIP_START_GO
             // Test 1: simple known bytes
             // 'ff' => [255]
-            object binary1 = exchange.base16ToBinary("ff");
+            byte[] binary1 = exchange.base16ToBinary("ff");
             Assert(isEqual(exchange.binaryToBase16(binary1), "ff"));
             // Test 2: all zeros
             // '0000' => [0, 0]
-            object binary2 = exchange.base16ToBinary("0000");
+            byte[] binary2 = exchange.base16ToBinary("0000");
             Assert(isEqual(exchange.binaryToBase16(binary2), "0000"));
             // Test 3: ascending bytes 01 02 03 04
-            object binary3 = exchange.base16ToBinary("01020304");
+            byte[] binary3 = exchange.base16ToBinary("01020304");
             Assert(isEqual(exchange.binaryToBase16(binary3), "01020304"));
             // Test 4: single byte zero
-            object binary4 = exchange.base16ToBinary("00");
+            byte[] binary4 = exchange.base16ToBinary("00");
             Assert(isEqual(exchange.binaryToBase16(binary4), "00"));
             // Test 5: single byte max
-            object binary5 = exchange.base16ToBinary("ff");
+            byte[] binary5 = exchange.base16ToBinary("ff");
             Assert(isEqual(exchange.binaryLength(binary5), 1));
             Assert(exchange.isBinaryMessage(binary5));
             // Test 6: 8 bytes (like a timestamp encoding)
             // 00 00 00 00 49 96 02 d2 = 1234567890
-            object binary6 = exchange.base16ToBinary("00000000499602d2");
+            byte[] binary6 = exchange.base16ToBinary("00000000499602d2");
             Assert(isEqual(exchange.binaryToBase16(binary6), "00000000499602d2"));
             Assert(isEqual(exchange.binaryLength(binary6), 8));
             // Test 7: roundtrip with deadbeef
-            object binary7 = exchange.base16ToBinary("deadbeef");
+            byte[] binary7 = exchange.base16ToBinary("deadbeef");
             Assert(isEqual(exchange.binaryToBase16(binary7), "deadbeef"));
             Assert(isEqual(exchange.binaryLength(binary7), 4));
             // Test 8: roundtrip binaryToBase16 -> base16ToBinary
             string hex8 = "cafebabe";
-            object binary8 = exchange.base16ToBinary(hex8);
+            byte[] binary8 = exchange.base16ToBinary(hex8);
             Assert(isEqual(exchange.binaryToBase16(binary8), hex8));
         }
 }

@@ -1,7 +1,7 @@
 # ccxt
 
 Typed Rust API for [CCXT](https://github.com/ccxt/ccxt) — a cryptocurrency trading library
-with support for 100+ exchanges.
+with support for 100+ exchanges and prediction markets.
 
 This crate is the **REST** surface: each exchange has a typed wrapper returning native Rust
 types (`Ticker`, `Order`, `Market`, `OrderBook`) rather than a dynamic value. It re-exports
@@ -18,7 +18,60 @@ let ticker = exchange.fetch_ticker("BTC/USDT", Params::none()).await?;
 println!("{} {:?}", ticker.symbol, ticker.last);
 ```
 
-For WebSocket (`watch*`) support see [`ccxt-pro`](https://crates.io/crates/ccxt-pro); for
-prediction markets see [`ccxt-prediction`](https://crates.io/crates/ccxt-prediction).
+## Pick your exchanges (build time and memory)
+
+Every exchange is behind a cargo feature named after its id. The default feature set
+(`all`) compiles all of them, which needs roughly 19 GB of RAM and several minutes for a
+fresh debug build. Disable the defaults and list the venues you use to compile only those:
+
+```toml
+[dependencies]
+ccxt = { version = "4", default-features = false, features = ["binance", "kraken", "okx"] }
+```
+
+Measured on the same machine, a fresh build of a crate using those three exchanges drops
+from 3m23s / 18.6 GB peak RSS to 29s / 2.5 GB (release: 7m49s / 50 GB to 3m05s / 4.9 GB). A derived venue enables
+its parent automatically (`binanceus` pulls in `binance`). `ccxt-pro` and
+`ccxt-prediction` use the same feature names, so use the same list on every ccxt crate you
+depend on. `from_id` only knows the venues that were compiled in.
+
+## WebSocket (`watch*`)
+
+Streaming lives in [`ccxt-pro`](https://crates.io/crates/ccxt-pro). Its wrappers carry the
+REST surface too, so one instance can subscribe and trade. `watch_*` resolves with the next
+update, so call it in a loop:
+
+```rust
+use ccxt::Params;
+use ccxt_pro::Binance;
+
+let mut exchange = Binance::new(None);
+exchange.load_markets(false).await;
+
+loop {
+    let book = exchange.watch_order_book("BTC/USDT", Some(10), Params::none()).await?;
+    println!("{:?} bid={:?} ask={:?}", book.symbol, book.bids.first(), book.asks.first());
+}
+```
+
+Other streams follow the same shape: `watch_ticker`, `watch_trades`, `watch_ohlcv`,
+`watch_orders`, `watch_my_trades`, `watch_balance`. Requires a Tokio runtime.
+
+## Prediction markets
+
+Prediction-market venues live in [`ccxt-prediction`](https://crates.io/crates/ccxt-prediction):
+Binance, Hyperliquid, Kalshi, Limitless, Myriad, Opinion, Polymarket and Predictfun. They
+share the unified surface, so the same `fetch_*` calls work against outcome markets:
+
+```rust
+use ccxt::Params;
+use ccxt_prediction::Polymarket;
+
+let mut exchange = Polymarket::new(None);
+exchange.load_markets(false).await;
+
+let book = exchange.fetch_order_book("TRUMP_WINS_2028:YES", Some(10), Params::none()).await?;
+println!("{:?} best bid {:?}", book.symbol, book.bids.first());
+```
 
 Documentation: <https://docs.ccxt.com> · Manual: <https://github.com/ccxt/ccxt/wiki>

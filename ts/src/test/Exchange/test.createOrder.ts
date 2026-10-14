@@ -53,7 +53,6 @@ async function testCreateOrder (exchange: any, skippedProperties: any, symbol: s
     }
     tcoDebug (exchange, symbol, '### SCENARIO 1 PASSED ###');
 
-
     // **************** [Scenario 2 - START] **************** //
     tcoDebug (exchange, symbol, '### SCENARIO 2 ###');
     // create an order which IS GUARANTEED to have a fill (full or partial)
@@ -63,7 +62,6 @@ async function testCreateOrder (exchange: any, skippedProperties: any, symbol: s
         await tcoCreateFillableOrder (exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, 'sell');
     }
     tcoDebug (exchange, symbol, '### SCENARIO 2 PASSED ###');
-
 
     // **************** [Scenario 3 - START] **************** //
     return true;
@@ -119,7 +117,6 @@ async function tcoCreateUnfillableOrder (exchange: any, market: Dict, logPrefix:
     return true;
 }
 
-
 async function tcoCreateFillableOrder (exchange: any, market: Dict, logPrefix: string, skippedProperties: any, bestBid: number, bestAsk: number, limitPriceSafetyMultiplierFromMedian: number, buyOrSellString: string, predefinedAmount: Num = undefined) {
     try {
         const isSwapFuture = (market['swap'] === true) || (market['future'] === true);
@@ -157,7 +154,6 @@ async function tcoCreateFillableOrder (exchange: any, market: Dict, logPrefix: s
     return true;
 }
 
-
 function tcoAssertFilledOrder (exchange: any, market: Dict, logPrefix: string, skippedProperties: any, createdOrder: any, fetchedOrder: any, requestedSide: string, requestedAmount: number) {
     // test filled amount
     const precisionAmount = exchange.safeString (market['precision'], 'amount');
@@ -178,10 +174,6 @@ function tcoAssertFilledOrder (exchange: any, market: Dict, logPrefix: string, s
     testSharedMethods.assertInArray (exchange, skippedProperties, 'fetchedOrder', fetchedOrder, 'side', [ undefined, requestedSide ]);
     return true;
 }
-
-
-
-
 
 // ----------------------------------------------------------------------------
 
@@ -214,7 +206,6 @@ async function tcoCancelOrder (exchange: any, symbol: Str, orderId: Str = undefi
 }
 
 // ----------------------------------------------------------------------------
-
 
 // ----------------------------------------------------------------------------
 

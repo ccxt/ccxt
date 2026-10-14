@@ -33,6 +33,8 @@ public final class Position extends TypedMap {
     public Double stopLossPrice;
     public Double takeProfitPrice;
     public Double percentage;
+    public Boolean isolated;
+    public Double exitPrice;
     public Map<String, Object> info;
 
     @SuppressWarnings("unchecked")
@@ -66,6 +68,8 @@ public final class Position extends TypedMap {
         this.stopLossPrice = TypeHelper.safeFloat(data, "stopLossPrice");
         this.takeProfitPrice = TypeHelper.safeFloat(data, "takeProfitPrice");
         this.percentage = TypeHelper.safeFloat(data, "percentage");
+        this.isolated = TypeHelper.safeBool(data, "isolated");
+        this.exitPrice = TypeHelper.safeFloat(data, "exitPrice");
         this.info = TypeHelper.getInfo(data);
     }
 }

@@ -625,7 +625,7 @@
                 "description": "default",
                 "method": "cancelOrder",
                 "input": [
-                  1320439
+                  "1320439"
                 ],
                 "httpResponse": {
                   "ok": "ok",

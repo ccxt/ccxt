@@ -272,7 +272,7 @@ class bitbank(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_markets(self, params={}) -> list[Market]:
+    def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for bitbank
 
@@ -309,16 +309,18 @@ class bitbank(Exchange, ImplicitAPI):
         #       }
         #     }
         #
-        data = self.safe_value(response, 'data')
-        pairs = self.safe_value(data, 'pairs', [])
+        data = self.safe_dict(response, 'data')
+        pairs = self.safe_list(data, 'pairs', [])
         return self.parse_markets(pairs)
 
-    def parse_market(self, entry: object) -> Market:
+    def parse_market(self, entry: dict) -> Market:
         id = self.safe_string(entry, 'name')
         baseId = self.safe_string(entry, 'base_asset')
         quoteId = self.safe_string(entry, 'quote_asset')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         return self.safe_market_structure({
             'id': id,
             'symbol': base + '/' + quote,
@@ -334,7 +336,7 @@ class bitbank(Exchange, ImplicitAPI):
             'swap': False,
             'future': False,
             'option': False,
-            'active': self.safe_value(entry, 'is_enabled'),
+            'active': self.safe_bool(entry, 'is_enabled'),
             'contract': False,
             'linear': None,
             'inverse': None,
@@ -398,7 +400,7 @@ class bitbank(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -418,7 +420,7 @@ class bitbank(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_ticker(data, market)
 
-    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -436,7 +438,7 @@ class bitbank(Exchange, ImplicitAPI):
             'pair': market['id'],
         }
         response = self.publicGetPairDepth(self.extend(request, params))
-        orderbook = self.safe_value(response, 'data', {})
+        orderbook = self.safe_dict(response, 'data', {})
         timestamp = self.safe_integer(orderbook, 'timestamp')
         return self.parse_order_book(orderbook, market['symbol'], timestamp)
 
@@ -453,7 +455,7 @@ class bitbank(Exchange, ImplicitAPI):
         #    }
         #
         timestamp = self.safe_integer(trade, 'executed_at')
-        market = self.safe_market(None, market)
+        marketResolved = self.safe_market(None, market)
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
         id = self.safe_string_2(trade, 'transaction_id', 'trade_id')
@@ -462,7 +464,7 @@ class bitbank(Exchange, ImplicitAPI):
         feeCostString = self.safe_string(trade, 'fee_amount_quote')
         if feeCostString is not None:
             fee = {
-                'currency': market['quote'],
+                'currency': marketResolved['quote'],
                 'cost': feeCostString,
             }
         orderId = self.safe_string(trade, 'order_id')
@@ -471,7 +473,7 @@ class bitbank(Exchange, ImplicitAPI):
         return self.safe_trade({
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'id': id,
             'order': orderId,
             'type': type,
@@ -482,9 +484,9 @@ class bitbank(Exchange, ImplicitAPI):
             'cost': None,
             'fee': fee,
             'info': trade,
-        }, market)
+        }, marketResolved)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -503,11 +505,11 @@ class bitbank(Exchange, ImplicitAPI):
             'pair': market['id'],
         }
         response = self.publicGetPairTransactions(self.extend(request, params))
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         trades = self.safe_list(data, 'transactions', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def fetch_trading_fees(self, params={}) -> TradingFees:
+    def fetch_trading_fees(self, params: dict = {}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
 
@@ -547,7 +549,7 @@ class bitbank(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         pairs = self.safe_list(data, 'pairs', [])
         result = {}
         for i in range(0, len(pairs)):
@@ -585,7 +587,7 @@ class bitbank(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 4),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -598,18 +600,18 @@ class bitbank(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
-        if since is None:
-            if limit is None:
-                limit = 1000  # it doesn't have any defaults, might return 200, might 2000 (i.e. https://public.bitbank.cc/btc_jpy/candlestick/4hour/2020)
-            duration = self.parse_timeframe(timeframe)
-            since = self.milliseconds() - duration * 1000 * limit
+        # it doesn't have any defaults, might return 200, might 2000 (i.e. https://public.bitbank.cc/btc_jpy/candlestick/4hour/2020)
+        windowLimit = 1000 if (limit is None) else limit
+        limitResolved = windowLimit if (since is None) else limit
+        duration = self.parse_timeframe(timeframe)
+        sinceResolved = self.milliseconds() - duration * 1000 * windowLimit if (since is None) else since
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
         request = {
             'pair': market['id'],
             'candletype': self.safe_string(self.timeframes, timeframe, timeframe),
-            'yyyymmdd': self.yyyymmdd(since, ''),
+            'yyyymmdd': self.yyyymmdd(sinceResolved, ''),
         }
         response = self.publicGetPairCandlestickCandletypeYyyymmdd(self.extend(request, params))
         #
@@ -630,11 +632,11 @@ class bitbank(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
-        candlestick = self.safe_value(data, 'candlestick', [])
-        first = self.safe_value(candlestick, 0, {})
+        data = self.safe_dict(response, 'data', {})
+        candlestick = self.safe_list(data, 'candlestick', [])
+        first = self.safe_dict(candlestick, 0, {})
         ohlcv = self.safe_list(first, 'ohlcv', [])
-        return self.parse_ohlcvs(ohlcv, market, timeframe, since, limit)
+        return self.parse_ohlcvs(ohlcv, market, timeframe, sinceResolved, limitResolved)
 
     def parse_balance(self, response: object) -> Balances:
         result = {
@@ -642,10 +644,10 @@ class bitbank(Exchange, ImplicitAPI):
             'timestamp': None,
             'datetime': None,
         }
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         assets = self.safe_list(data, 'assets', [])
         for i in range(0, len(assets)):
-            balance = assets[i]
+            balance = self.safe_dict(assets, i)
             currencyId = self.safe_string(balance, 'asset')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -656,7 +658,7 @@ class bitbank(Exchange, ImplicitAPI):
                 result[code] = account
         return self.safe_balance(result)
 
-    def fetch_balance(self, params={}) -> Balances:
+    def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -716,7 +718,7 @@ class bitbank(Exchange, ImplicitAPI):
     def parse_order(self, order: dict, market: Market = None) -> Order:
         id = self.safe_string(order, 'order_id')
         marketId = self.safe_string(order, 'pair')
-        market = self.safe_market(marketId, market)
+        marketResolved = self.safe_market(marketId, market)
         timestamp = self.safe_integer(order, 'ordered_at')
         price = self.safe_string(order, 'price')
         amount = self.safe_string(order, 'start_amount')
@@ -733,7 +735,7 @@ class bitbank(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
             'status': status,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'timeInForce': None,
             'postOnly': None,
@@ -748,9 +750,9 @@ class bitbank(Exchange, ImplicitAPI):
             'trades': None,
             'fee': None,
             'info': order,
-        }, market)
+        }, marketResolved)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -779,7 +781,7 @@ class bitbank(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data')
         return self.parse_order(data, market)
 
-    def cancel_order(self, id: str, symbol: Str = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
@@ -821,10 +823,10 @@ class bitbank(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_dict(response, 'data')
         return self.parse_order(data)
 
-    def fetch_order(self, id: str, symbol: Str = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an order made by the user
 
@@ -868,7 +870,7 @@ class bitbank(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data')
         return self.parse_order(data, market)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -891,11 +893,11 @@ class bitbank(Exchange, ImplicitAPI):
         if since is not None:
             request['since'] = self.parse_to_int(since / 1000)
         response = self.privateGetUserSpotActiveOrders(self.extend(request, params))
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         orders = self.safe_list(data, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -919,11 +921,11 @@ class bitbank(Exchange, ImplicitAPI):
         if since is not None:
             request['since'] = self.parse_to_int(since / 1000)
         response = self.privateGetUserSpotTradeHistory(self.extend(request, params))
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         trades = self.safe_list(data, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
+    def fetch_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
 
@@ -940,10 +942,10 @@ class bitbank(Exchange, ImplicitAPI):
             'asset': currency['id'],
         }
         response = self.privateGetUserWithdrawalAccount(self.extend(request, params))
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         # Not sure about this if there could be more than one account...
-        accounts = self.safe_value(data, 'accounts', [])
-        firstAccount = self.safe_value(accounts, 0, {})
+        accounts = self.safe_list(data, 'accounts', [])
+        firstAccount = self.safe_dict(accounts, 0, {})
         address = self.safe_string(firstAccount, 'address')
         return {
             'info': response,
@@ -953,7 +955,7 @@ class bitbank(Exchange, ImplicitAPI):
             'tag': None,
         }
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -962,12 +964,15 @@ class bitbank(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tag, params = self.handle_withdraw_tag_and_params(tag, params)
-        if not ('uuid' in params):
+        tagAndParams = self.handle_param_string(params, 'tag')
+        tagWithdrawTag = tagAndParams[0]
+        paramsWithdrawTag = tagAndParams[1]
+        self.check_address(address, code, tagWithdrawTag)
+        if not ('uuid' in paramsWithdrawTag):
             raise ExchangeError(self.id + ' uuid is required for withdrawal')
         if self.markets is None:
             self.load_markets()
@@ -976,7 +981,7 @@ class bitbank(Exchange, ImplicitAPI):
             'asset': currency['id'],
             'amount': amount,
         }
-        response = self.privatePostUserRequestWithdrawal(self.extend(request, params))
+        response = self.privatePostUserRequestWithdrawal(self.extend(request, paramsWithdrawTag))
         #
         #     {
         #         "success": 1,
@@ -1015,7 +1020,7 @@ class bitbank(Exchange, ImplicitAPI):
         #     }
         #
         txid = self.safe_string(transaction, 'txid')
-        currency = self.safe_currency(None, currency)
+        currencyResolved = self.safe_currency(None, currency)
         return {
             'id': txid,
             'txid': txid,
@@ -1027,7 +1032,7 @@ class bitbank(Exchange, ImplicitAPI):
             'addressTo': None,
             'amount': None,
             'type': None,
-            'currency': currency['code'],
+            'currency': currencyResolved['code'],
             'status': None,
             'updated': None,
             'tagFrom': None,
@@ -1039,12 +1044,17 @@ class bitbank(Exchange, ImplicitAPI):
             'info': transaction,
         }
 
-    def nonce(self):
+    def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: object = None):
+    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         query = self.omit(params, self.extract_params(path))
-        url = self.implode_hostname(self.urls['api'][api]) + '/'
+        apiUrl = self.safe_string(self.urls['api'], api)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = self.implode_hostname(apiUrl) + '/'
+        requestBody = None
+        requestHeaders = None
         if (api == 'public') or (api == 'markets'):
             url += self.implode_params(path, params)
             if len(query) > 0:
@@ -1059,40 +1069,40 @@ class bitbank(Exchange, ImplicitAPI):
             isTimeWindow = (authMethod == 'timeWindow')
             requestTime = str(self.milliseconds())
             timeWindow = self.safe_string(self.options, 'timeWindow', '5000')
-            nonce = str(self.nonce())
-            auth = None
+            nonce = str(self.incrementing_nonce())
+            auth = nonce
             if isTimeWindow:
                 auth = requestTime + timeWindow
-            else:
-                auth = nonce
             url += self.version + '/' + self.implode_params(path, params)
             if method == 'POST':
-                body = self.json(query)
-                auth += body
+                requestBody = self.json(query)
+                auth += requestBody
             else:
                 auth += '/' + self.version + '/' + path
                 if len(query) > 0:
                     query = self.urlencode(query)
                     url += '?' + query
                     auth += '?' + query
-            headers = {
+            requestHeaders = {
                 'Content-Type': 'application/json',
                 'ACCESS-KEY': self.apiKey,
                 'ACCESS-SIGNATURE': self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256),
             }
             if isTimeWindow:
-                headers['ACCESS-REQUEST-TIME'] = requestTime
-                headers['ACCESS-TIME-WINDOW'] = timeWindow
+                requestHeaders['ACCESS-REQUEST-TIME'] = requestTime
+                requestHeaders['ACCESS-TIME-WINDOW'] = timeWindow
             else:
-                headers['ACCESS-NONCE'] = nonce
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+                requestHeaders['ACCESS-NONCE'] = nonce
+        bodyResolved = body if (requestBody is None) else requestBody
+        headersResolved = headers if (requestHeaders is None) else requestHeaders
+        return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None
         success = self.safe_integer(response, 'success')
-        data = self.safe_value(response, 'data')
-        if (success is None or success is None or success == 0) or (data is None):
+        data = self.safe_dict(response, 'data')
+        if (success is None or success == 0) or (data is None):
             errorMessages = {
                 '10000': 'URL does not exist',
                 '10001': 'A system error occurred. Please contact support',

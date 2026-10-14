@@ -46,7 +46,7 @@ class bittrade extends \ccxt\async\bittrade {
         ));
     }
 
-    public function request_id() {
+    public function request_id(): string {
         $this->lock_id();
         $requestId = $this->sum($this->safe_integer($this->options, 'requestId', 0), 1);
         $this->options['requestId'] = $requestId;
@@ -69,7 +69,7 @@ class bittrade extends \ccxt\async\bittrade {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $market['symbol'];
         // only supports a limit of 150 at this time
         $messageHash = 'market.' . $market['id'] . '.detail';
         $api = $this->safe_string($this->options, 'api', 'api');
@@ -83,13 +83,13 @@ class bittrade extends \ccxt\async\bittrade {
         $subscription = array(
             'id' => $requestId,
             'messageHash' => $messageHash,
-            'symbol' => $symbol,
+            'symbol' => $symbolValue,
             'params' => $params,
         );
         return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash, $subscription));
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message): array {
         //
         //     {
         //         "ch": "market.btcusdt.detail",
@@ -107,7 +107,7 @@ class bittrade extends \ccxt\async\bittrade {
         //         }
         //     }
         //
-        $tick = $this->safe_value($message, 'tick', array());
+        $tick = $this->safe_dict($message, 'tick', array());
         $ch = $this->safe_string($message, 'ch');
         if ($ch === null) {
             return $message;
@@ -116,7 +116,7 @@ class bittrade extends \ccxt\async\bittrade {
         $marketId = $this->safe_string($parts, 1);
         $market = $this->safe_market($marketId);
         $ticker = $this->parse_ticker($tick, $market);
-        $timestamp = $this->safe_value($message, 'ts');
+        $timestamp = $this->safe_integer($message, 'ts');
         $ticker['timestamp'] = $timestamp;
         $ticker['datetime'] = $this->iso8601($timestamp);
         $symbol = $ticker['symbol'];
@@ -142,7 +142,7 @@ class bittrade extends \ccxt\async\bittrade {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $market['symbol'];
         // only supports a limit of 150 at this time
         $messageHash = 'market.' . $market['id'] . '.trade.detail';
         $api = $this->safe_string($this->options, 'api', 'api');
@@ -156,17 +156,18 @@ class bittrade extends \ccxt\async\bittrade {
         $subscription = array(
             'id' => $requestId,
             'messageHash' => $messageHash,
-            'symbol' => $symbol,
+            'symbol' => $symbolValue,
             'params' => $params,
         );
         $trades = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash, $subscription));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($symbol, $limit);
+            $limitResolved = $trades->getLimit($symbolValue, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    public function handle_trades(Client $client, array $message): array {
         //
         //     {
         //         "ch": "market.btcusdt.trade.detail",
@@ -187,8 +188,8 @@ class bittrade extends \ccxt\async\bittrade {
         //         }
         //     }
         //
-        $tick = $this->safe_value($message, 'tick', array());
-        $data = $this->safe_value($tick, 'data', array());
+        $tick = $this->safe_dict($message, 'tick', array());
+        $data = $this->safe_list($tick, 'data', array());
         $ch = $this->safe_string($message, 'ch');
         if ($ch === null) {
             return $message;
@@ -229,7 +230,7 @@ class bittrade extends \ccxt\async\bittrade {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $market['symbol'];
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $messageHash = 'market.' . $market['id'] . '.kline.' . $interval;
         $api = $this->safe_string($this->options, 'api', 'api');
@@ -243,18 +244,19 @@ class bittrade extends \ccxt\async\bittrade {
         $subscription = array(
             'id' => $requestId,
             'messageHash' => $messageHash,
-            'symbol' => $symbol,
+            'symbol' => $symbolValue,
             'timeframe' => $timeframe,
             'params' => $params,
         );
         $ohlcv = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash, $subscription));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit($symbol, $limit);
+            $limitResolved = $ohlcv->getLimit($symbolValue, $limit);
         }
-        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        return $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 0, true);
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         //     {
         //         "ch": "market.btcusdt.kline.1min",
@@ -281,14 +283,14 @@ class bittrade extends \ccxt\async\bittrade {
         $symbol = $market['symbol'];
         $interval = $this->safe_string($parts, 3);
         $timeframe = $this->find_timeframe($interval);
-        $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+        $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
         $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $stored = new ArrayCacheByTimestamp($limit);
             $this->ohlcvs[$symbol][$timeframe] = $stored;
         }
-        $tick = $this->safe_value($message, 'tick');
+        $tick = $this->safe_dict($message, 'tick');
         $parsed = $this->parse_ohlcv($tick, $market);
         $stored->append($parsed);
         $client->resolve($stored, $ch);
@@ -307,16 +309,16 @@ class bittrade extends \ccxt\async\bittrade {
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if (($limit !== null) && ($limit !== 150)) {
-            throw new ExchangeError($this->id . ' watchOrderBook accepts $limit = 150 only');
+            throw new ExchangeError($this->id . ' watchOrderBook accepts limit = 150 only');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $market['symbol'];
         // only supports a limit of 150 at this time
-        $limit = ($limit === null) ? 150 : $limit;
-        $messageHash = 'market.' . $market['id'] . '.mbp.' . (string) $limit;
+        $limitValue = ($limit === null) ? 150 : $limit;
+        $messageHash = 'market.' . $market['id'] . '.mbp.' . (string) $limitValue;
         $api = $this->safe_string($this->options, 'api', 'api');
         $hostname = array( 'hostname' => $this->hostname );
         $url = $this->implode_params($this->urls['api']['ws'][$api]['public'], $hostname);
@@ -328,8 +330,8 @@ class bittrade extends \ccxt\async\bittrade {
         $subscription = array(
             'id' => $requestId,
             'messageHash' => $messageHash,
-            'symbol' => $symbol,
-            'limit' => $limit,
+            'symbol' => $symbolValue,
+            'limit' => $limitValue,
             'params' => $params,
             'method' => array($this, 'handle_order_book_subscription'),
         );
@@ -337,7 +339,7 @@ class bittrade extends \ccxt\async\bittrade {
         return $orderbook->limit();
     }
 
-    public function handle_order_book_snapshot(Client $client, mixed $message, mixed $subscription) {
+    public function handle_order_book_snapshot(Client $client, array $message, array $subscription) {
         //
         //     {
         //         "id": 1583473663565,
@@ -363,7 +365,7 @@ class bittrade extends \ccxt\async\bittrade {
         $messageHash = $this->safe_string($subscription, 'messageHash');
         $timestamp = $this->safe_integer($message, 'ts');
         $orderbook = $this->orderbooks[$symbol];
-        $data = $this->safe_value($message, 'data');
+        $data = $this->safe_dict($message, 'data');
         $snapshot = $this->parse_order_book($data, $symbol);
         $snapshot['nonce'] = $this->safe_integer($data, 'seqNum');
         $snapshot['timestamp'] = $timestamp;
@@ -378,16 +380,16 @@ class bittrade extends \ccxt\async\bittrade {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function watch_order_book_snapshot(mixed $client, mixed $message, mixed $subscription) {
+    public function watch_order_book_snapshot(Client $client, array $message, array $subscription) {
         return Async\async(self::do_watch_order_book_snapshot(...))($client, $message, $subscription);
     }
 
-    private function do_watch_order_book_snapshot(mixed $client, mixed $message, mixed $subscription) {
+    private function do_watch_order_book_snapshot(Client $client, array $message, array $subscription) {
         $messageHash = $this->safe_string($subscription, 'messageHash');
         try {
             $symbol = $this->safe_string($subscription, 'symbol');
             $limit = $this->safe_integer($subscription, 'limit');
-            $params = $this->safe_value($subscription, 'params');
+            $params = $this->safe_dict($subscription, 'params');
             $api = $this->safe_string($this->options, 'api', 'api');
             $hostname = array( 'hostname' => $this->hostname );
             $url = $this->implode_params($this->urls['api']['ws'][$api]['public'], $hostname);
@@ -427,7 +429,7 @@ class bittrade extends \ccxt\async\bittrade {
         }
     }
 
-    public function handle_order_book_message(Client $client, mixed $message, mixed $orderbook) {
+    public function handle_order_book_message(Client $client, array $message, mixed $orderbook) {
         //
         //     {
         //         "ch": "market.btcusdt.mbp.150",
@@ -448,15 +450,15 @@ class bittrade extends \ccxt\async\bittrade {
         //         }
         //     }
         //
-        $tick = $this->safe_value($message, 'tick', array());
+        $tick = $this->safe_dict($message, 'tick', array());
         $seqNum = $this->safe_integer($tick, 'seqNum');
         $prevSeqNum = $this->safe_integer($tick, 'prevSeqNum');
         if (($prevSeqNum === null) || ($seqNum === null)) {
             return $orderbook;
         }
         if (($prevSeqNum <= $orderbook['nonce']) && ($seqNum > $orderbook['nonce'])) {
-            $asks = $this->safe_value($tick, 'asks', array());
-            $bids = $this->safe_value($tick, 'bids', array());
+            $asks = $this->safe_list($tick, 'asks', array());
+            $bids = $this->safe_list($tick, 'bids', array());
             $this->handle_deltas($orderbook['asks'], $asks);
             $this->handle_deltas($orderbook['bids'], $bids);
             $orderbook['nonce'] = $seqNum;
@@ -467,7 +469,7 @@ class bittrade extends \ccxt\async\bittrade {
         return $orderbook;
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         // deltas
         //
@@ -504,21 +506,23 @@ class bittrade extends \ccxt\async\bittrade {
         }
     }
 
-    public function handle_order_book_subscription(Client $client, mixed $message, mixed $subscription) {
+    public function handle_order_book_subscription(Client $client, array $message, array $subscription) {
         $symbol = $this->safe_string($subscription, 'symbol');
         if ($symbol === null) {
             return;
         }
         $limit = $this->safe_integer($subscription, 'limit');
-        if (is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) {
-            unset($this->orderbooks[$symbol]);
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
+            $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
         }
-        $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
+        $orderbook = $this->orderbooks[$symbol];
+        $orderbook['nonce'] = null;
+        $orderbook->cache = array();
         // watch the snapshot in a separate async call
         $this->spawn(array($this, 'watch_order_book_snapshot'), $client, $message, $subscription);
     }
 
-    public function handle_subscription_status(Client $client, mixed $message) {
+    public function handle_subscription_status(Client $client, array $message) {
         //
         //     {
         //         "id": 1583414227,
@@ -532,7 +536,7 @@ class bittrade extends \ccxt\async\bittrade {
             return $message;
         }
         $subscriptionsById = $this->index_by($client->subscriptions, 'id');
-        $subscription = $this->safe_value($subscriptionsById, $id);
+        $subscription = $this->safe_dict($subscriptionsById, $id);
         if ($subscription !== null) {
             $method = $this->safe_value($subscription, 'method');
             if ($method !== null) {
@@ -546,7 +550,7 @@ class bittrade extends \ccxt\async\bittrade {
         return $message;
     }
 
-    public function handle_system_status(Client $client, mixed $message) {
+    public function handle_system_status(Client $client, array $message): array {
         //
         // todo: answer the question whether handleSystemStatus should be renamed
         // and unified as handleStatus for any usage pattern that
@@ -560,7 +564,7 @@ class bittrade extends \ccxt\async\bittrade {
         return $message;
     }
 
-    public function handle_subject(Client $client, mixed $message) {
+    public function handle_subject(Client $client, array $message) {
         //
         //     {
         //         "ch": "market.btcusdt.mbp.150",
@@ -600,22 +604,22 @@ class bittrade extends \ccxt\async\bittrade {
         }
     }
 
-    public function pong(Client $client, mixed $message) {
+    public function pong(Client $client, array $message) {
         return Async\async(self::do_pong(...))($client, $message);
     }
 
-    private function do_pong(Client $client, mixed $message) {
+    private function do_pong(Client $client, array $message) {
         //
         //     { ping: 1583491673714 }
         //
         Async\await($client->send(array( 'pong' => $this->safe_integer($message, 'ping') )));
     }
 
-    public function handle_ping(Client $client, mixed $message) {
+    public function handle_ping(Client $client, array $message) {
         $this->spawn(array($this, 'pong'), $client, $message);
     }
 
-    public function handle_error_message(Client $client, mixed $message): ?bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         //
         //     {
         //         "ts": 1586323747018,
@@ -632,7 +636,7 @@ class bittrade extends \ccxt\async\bittrade {
                 return false;
             }
             $subscriptionsById = $this->index_by($client->subscriptions, 'id');
-            $subscription = $this->safe_value($subscriptionsById, $id);
+            $subscription = $this->safe_dict($subscriptionsById, $id);
             if ($subscription !== null) {
                 $errorCode = $this->safe_string($message, 'err-code');
                 try {

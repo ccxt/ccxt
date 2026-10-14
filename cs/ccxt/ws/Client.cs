@@ -6,6 +6,7 @@ using System;
 using System.Net.WebSockets;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.IO.Compression;
 using System.Net;
 
@@ -27,7 +28,10 @@ public partial class BaseExchange
         private readonly object futuresSync = new object();
         public bool verbose = false;
         public bool isConnected = false;
-        public bool startedConnecting = false;
+        public volatile bool startedConnecting = false;
+        private readonly object connectSync = new object();
+        private readonly CancellationTokenSource connectCancellation = new CancellationTokenSource();
+        private Task connectTask = null;
         private ManualResetEvent waitHandle = new ManualResetEvent(false);
 
         public TaskCompletionSource<bool> connected = null;
@@ -42,7 +46,7 @@ public partial class BaseExchange
 
         public onCloseDelegate onClose = null;
 
-        public onErrorDelegate onError = null;
+        public onErrorDelegate onErrorCallback = null;
 
         public delegate object pingDelegate(WebSocketClient client);
 
@@ -56,7 +60,9 @@ public partial class BaseExchange
 
         public Int64? connectionEstablished;
 
-        public bool error = false;
+        // mirrors js Client.error: null while live, the terminal error once
+        // retired. read and written under futuresSync.
+        public object error = null;
 
         public bool decompressBinary = true;
 
@@ -73,7 +79,7 @@ public partial class BaseExchange
             this.handleMessage = handleMessage;
             this.verbose = isVerbose;
             this.onClose = onClose;
-            this.onError = onError;
+            this.onErrorCallback = onError;
             this.keepAlive = keepA;
             this.decompressBinary = decompressBinary;
             this.webSocket.Options.KeepAliveInterval = TimeSpan.Zero; // Disable unsolicited PONG. https://learn.microsoft.com/en-us/dotnet/fundamentals/networking/websockets?#compression
@@ -165,18 +171,57 @@ public partial class BaseExchange
             }
         }
 
-        public void reset(object message2)
+        // mirrors js Client.reset: reject every pending future and clear the
+        // consumer state. settles outside the lock, Future's
+        // TaskCompletionSource runs continuations inline.
+        public void reset(object error)
         {
-            // stub implement this later
-            this.reject(error);
+            var settled = new List<Future>();
+            lock (futuresSync)
+            {
+                foreach (var messageHash in this.futures.Keys.ToArray())
+                {
+                    settled.Add(this.futures[messageHash]);
+                    this.futures.Remove(messageHash);
+                }
+                this.subscriptions.Clear();
+            }
+            foreach (var future in settled)
+            {
+                future.reject(error);
+            }
+        }
+
+        // mirrors js Client.onError: set the error marker, reset, notify the
+        // exchange. the lock elects one winner when the transport error, a
+        // late onClose and a user Close() race on separate threads.
+        public void onError(object error)
+        {
+            lock (futuresSync)
+            {
+                if (this.error != null)
+                {
+                    return;
+                }
+                this.error = error;
+            }
+            this.isConnected = false; // stops PingLoop's while() condition
+            if (this.startedConnecting)
+            {
+                var connectionError = error as Exception ?? new Exception(error?.ToString() ?? "WebSocket connection failed");
+                this.connected.TrySetException(connectionError);
+            }
+            this.reset(error);
+            this.onErrorCallback?.Invoke(this, error);
         }
 
         public void onOpen()
         {
 
-            this.connected.SetResult(true);
             this.connectionEstablished = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             this.isConnected = true;
+            // Awaiters can resume inline in SetResult: publish the ready state first.
+            this.connected.SetResult(true);
             // this.clearConnectionTimeout();
             Task.Run(async () =>
             {
@@ -186,10 +231,30 @@ public partial class BaseExchange
 
         public Task connect(int backoffDelay = 0)
         {
-            if (!this.startedConnecting)
+            lock (connectSync)
             {
-                this.startedConnecting = true;
-                Task.Run(async () => Connect());
+                if (!this.startedConnecting)
+                {
+                    this.startedConnecting = true;
+                    object priorError;
+                    lock (futuresSync)
+                    {
+                        priorError = this.error;
+                    }
+                    if (priorError != null)
+                    {
+                        var connectionError = priorError as Exception ?? new Exception(priorError.ToString());
+                        this.connected.TrySetException(connectionError);
+                    }
+                    else
+                    {
+                        // run the dial on the thread pool: called inline it would capture the
+                        // caller's SynchronizationContext (a UI thread) and marshal onOpen and
+                        // the whole receive loop onto it
+                        var cancellationToken = this.connectCancellation.Token;
+                        this.connectTask = Task.Run(() => this.Connect(backoffDelay, cancellationToken));
+                    }
+                }
             }
             return this.connected.Task;
         }
@@ -240,7 +305,7 @@ public partial class BaseExchange
                         // real kill window with the real unit instead of the millisecond keepAlive
                         // labeled as "seconds", and raise RequestTimeout instead of a bare
                         // Exception the error-class handling cannot categorize
-                        this.onError(this, new RequestTimeout("Connection to " + this.url + " timed out due to a ping-pong keepalive missing on time (no liveness within " + (convertedKeepAlive * this.maxPingPongMisses) + " ms = keepAlive " + convertedKeepAlive + " ms x " + this.maxPingPongMisses + " misses)"));
+                        this.onError(new RequestTimeout("Connection to " + this.url + " timed out due to a ping-pong keepalive missing on time (no liveness within " + (convertedKeepAlive * this.maxPingPongMisses) + " ms = keepAlive " + convertedKeepAlive + " ms x " + this.maxPingPongMisses + " misses)"));
                         // onError rejects the pending futures and the exchange drops
                         // this client from its registry, but the socket itself is
                         // still open: leaving the loop does not tear it down, and the
@@ -291,55 +356,55 @@ public partial class BaseExchange
                 {
                     Console.WriteLine($"PingLoop error: {ex.Message}");
                 }
-                this.onError(this, ex);
+                this.onError(ex);
             }
         }
 
 
         private static readonly SemaphoreSlim _connectSemaphore = new SemaphoreSlim(1, 1);
 
-        public void Connect()
+        private async Task Connect(int backoffDelay, CancellationToken cancellationToken)
         {
-            var tcs = this.connected;
-            // Run the connection logic in a background task
-
-            if (this.webSocket.State == WebSocketState.Open)
+            var acquired = false;
+            try
             {
-                return; // already connected, return. Might happen when we call connect multiple times in a row
+                if (backoffDelay > 0)
+                {
+                    await Task.Delay(backoffDelay, cancellationToken);
+                }
 
+                await _connectSemaphore.WaitAsync(cancellationToken);
+                acquired = true;
+                if (this.webSocket.State == WebSocketState.Open)
+                {
+                    return;
+                }
+
+                await webSocket.ConnectAsync(new Uri(url), cancellationToken);
+                if (this.verbose)
+                {
+                    Console.WriteLine("WebSocket connected to " + url);
+                }
+                this.onOpen();
+                // start the receive loop off this path: inline, it would handle frames that
+                // are already buffered while the process-wide _connectSemaphore is still held
+                _ = Task.Run(() => this.Receiving(webSocket));
             }
-            Task.Run(async () =>
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
-                try
-                {
-                    await _connectSemaphore.WaitAsync();
-                    if (this.webSocket.State == WebSocketState.Open)
-                    {
-                        return; // already connected, return. Might happen when we call connect multiple times in a row
-
-                    }
-                    await webSocket.ConnectAsync(new Uri(url), CancellationToken.None);
-                    if (this.verbose)
-                    {
-                        Console.WriteLine("WebSocket connected to " + url);
-                    }
-                    this.onOpen();
-                    Task.Run(async () =>
-                    {
-                        Receiving(webSocket);
-                    });
-                }
-                catch (Exception ex)
-                {
-                    tcs.SetException(ex); // Set the exception if something goes wrong
-                }
-                finally
+                this.onError(this.error ?? new ExchangeClosedByUser("Connection closed by the user"));
+            }
+            catch (Exception ex)
+            {
+                this.onError(ex);
+            }
+            finally
+            {
+                if (acquired)
                 {
                     _connectSemaphore.Release();
                 }
-            });
-
-            // return tcs.Task;
+            }
         }
 
 
@@ -553,7 +618,7 @@ public partial class BaseExchange
                     Console.WriteLine($"Receiving error: {ex.Message}");
                 }
                 this.isConnected = false;
-                this.onError(this, ex);
+                this.onError(ex);
             }
         }
 
@@ -568,24 +633,26 @@ public partial class BaseExchange
 
         public async Task Close()
         {
+            Task pendingConnect;
+            lock (connectSync)
+            {
+                this.connectCancellation.Cancel();
+                pendingConnect = this.connectTask;
+            }
+            this.onError(new ExchangeClosedByUser("Connection closed by the user"));
+            if (pendingConnect != null)
+            {
+                await pendingConnect;
+            }
             if (this.webSocket.State == WebSocketState.Open)
             {
                 try
                 {
                     await this.webSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Close", CancellationToken.None);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
-                    // Console.WriteLine(e);
-                }
-
-            }
-            foreach (var future in this.futures.Values)
-            {
-                if (!future.task.IsCompleted)
-                {
-                    future.reject(new ExchangeClosedByUser("Connection closed by the user"));
-
+                    // the transport is going away regardless
                 }
             }
         }

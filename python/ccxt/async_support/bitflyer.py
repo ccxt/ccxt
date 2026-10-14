@@ -227,7 +227,7 @@ class bitflyer(Exchange, ImplicitAPI):
             },
         })
 
-    def parse_expiry_date(self, expiry: object):
+    def parse_expiry_date(self, expiry: str) -> Int:
         day = expiry[0:2]
         monthName = expiry[2:5]
         year = expiry[5:9]
@@ -246,6 +246,8 @@ class bitflyer(Exchange, ImplicitAPI):
             'DEC': '12',
         }
         month = self.safe_string(months, monthName)
+        if month is None:
+            return None
         return self.parse8601(year + '-' + month + '-' + day + 'T00:00:00Z')
 
     def safe_market(self, marketId: Str = None, market: Market = None, delimiter: Str = None, marketType: Str = None) -> MarketInterface:
@@ -254,7 +256,7 @@ class bitflyer(Exchange, ImplicitAPI):
         # Since they're the same we just need to return one
         return super(bitflyer, self).safe_market(marketId, market, delimiter, 'spot')
 
-    async def fetch_markets(self, params={}) -> list[Market]:
+    async def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for bitflyer
 
@@ -335,10 +337,16 @@ class bitflyer(Exchange, ImplicitAPI):
                     quoteId = currencyIds[-3:]
                     splitId = id.split(currencyIds)
                     expiryDate = self.safe_string(splitId, 1)
+                    if expiryDate is None:
+                        continue
                     expiry = self.parse_expiry_date(expiryDate)
+                if expiry is None:
+                    continue
                 type = 'future'
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
             symbol = base + '/' + quote
             taker = self.fees['trading']['taker']
             maker = self.fees['trading']['maker']
@@ -406,7 +414,7 @@ class bitflyer(Exchange, ImplicitAPI):
     def parse_balance(self, response: object) -> Balances:
         result = {'info': response}
         for i in range(0, len(response)):
-            balance = response[i]
+            balance = self.safe_dict(response, i)
             currencyId = self.safe_string(balance, 'currency_code')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -416,7 +424,7 @@ class bitflyer(Exchange, ImplicitAPI):
                 result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_balance(self, params={}) -> Balances:
+    async def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -449,7 +457,7 @@ class bitflyer(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -496,7 +504,7 @@ class bitflyer(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -550,20 +558,20 @@ class bitflyer(Exchange, ImplicitAPI):
         if side is not None:
             idInner = side + '_child_order_acceptance_id'
             if idInner in trade:
-                order = trade[idInner]
+                order = self.safe_string(trade, idInner)
         if order is None:
             order = self.safe_string(trade, 'child_order_acceptance_id')
         timestamp = self.parse8601(self.safe_string(trade, 'exec_date'))
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'size')
         id = self.safe_string(trade, 'id')
-        market = self.safe_market(None, market)
+        marketResolved = self.safe_market(None, market)
         return self.safe_trade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'order': order,
             'type': None,
             'side': side,
@@ -572,9 +580,9 @@ class bitflyer(Exchange, ImplicitAPI):
             'amount': amountString,
             'cost': None,
             'fee': None,
-        }, market)
+        }, marketResolved)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -610,7 +618,7 @@ class bitflyer(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    async def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
+    async def fetch_trading_fee(self, symbol: str, params: dict = {}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
 
@@ -642,7 +650,7 @@ class bitflyer(Exchange, ImplicitAPI):
             'tierBased': None,
         }
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -673,7 +681,7 @@ class bitflyer(Exchange, ImplicitAPI):
             'info': result,
         })
 
-    async def cancel_order(self, id: str, symbol: Str = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
@@ -754,7 +762,7 @@ class bitflyer(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = 100, params={}) -> list[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = 100, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -781,7 +789,7 @@ class bitflyer(Exchange, ImplicitAPI):
             orders = self.filter_by(orders, 'symbol', symbol)
         return orders
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = 100, params={}) -> list[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = 100, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -798,7 +806,7 @@ class bitflyer(Exchange, ImplicitAPI):
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = 100, params={}) -> list[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = 100, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -815,7 +823,7 @@ class bitflyer(Exchange, ImplicitAPI):
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_order(self, id: str, symbol: Str = None, params={}) -> Order:
+    async def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an order made by the user
 
@@ -831,10 +839,11 @@ class bitflyer(Exchange, ImplicitAPI):
         orders = await self.fetch_orders(symbol)
         ordersById = self.index_by(orders, 'id')
         if id in ordersById:
-            return ordersById[id]
+            found = self.safe_dict(ordersById, id)
+            return found
         raise OrderNotFound(self.id + ' No order found with id ' + id)
 
-    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -873,7 +882,7 @@ class bitflyer(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
+    async def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
         fetch all open positions
 
@@ -911,7 +920,7 @@ class bitflyer(Exchange, ImplicitAPI):
         # todo unify parsePosition/parsePositions
         return response
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -920,8 +929,8 @@ class bitflyer(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.check_address(address)
@@ -943,7 +952,7 @@ class bitflyer(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -980,7 +989,7 @@ class bitflyer(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -1019,14 +1028,14 @@ class bitflyer(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    def parse_deposit_status(self, status: object):
+    def parse_deposit_status(self, status: Str) -> Str:
         statuses = {
             'PENDING': 'pending',
             'COMPLETED': 'ok',
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_withdrawal_status(self, status: object):
+    def parse_withdrawal_status(self, status: Str) -> Str:
         statuses = {
             'PENDING': 'pending',
             'COMPLETED': 'ok',
@@ -1112,7 +1121,7 @@ class bitflyer(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    async def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+    async def fetch_funding_rate(self, symbol: str, params: dict = {}) -> FundingRate:
         """
         fetch the current funding rate
 
@@ -1167,7 +1176,9 @@ class bitflyer(Exchange, ImplicitAPI):
             'interval': None,
         }
 
-    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        bodySigned = None
+        headersSigned = None
         request = '/' + self.version + '/'
         if api == 'private':
             request += 'me/'
@@ -1175,7 +1186,10 @@ class bitflyer(Exchange, ImplicitAPI):
         if method == 'GET':
             if len(params) > 0:
                 request += '?' + self.urlencode(params)
-        baseUrl = self.implode_hostname(self.urls['api']['rest'])
+        apiUrl = self.safe_string(self.urls['api'], 'rest')
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        baseUrl = self.implode_hostname(apiUrl)
         url = baseUrl + request
         if api == 'private':
             self.check_required_credentials()
@@ -1184,15 +1198,17 @@ class bitflyer(Exchange, ImplicitAPI):
             auth = ''.join(content)
             if len(params) > 0:
                 if method != 'GET':
-                    body = self.json(params)
-                    auth += body
-            headers = {
+                    bodySigned = self.json(params)
+                    auth += bodySigned
+            headersSigned = {
                 'ACCESS-KEY': self.apiKey,
                 'ACCESS-TIMESTAMP': nonce,
                 'ACCESS-SIGN': self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256),
                 'Content-Type': 'application/json',
             }
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        headersResolved = headers if (headersSigned is None) else headersSigned
+        bodyResolved = body if (bodySigned is None) else bodySigned
+        return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:

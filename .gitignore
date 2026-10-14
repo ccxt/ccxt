@@ -53,6 +53,8 @@ debug/
 *.rlib
 *.rmeta
 target/
+# The runner provides rust/target as a symlink; `target/` only matches directories.
+/rust/target
 go/main
 go/tests/main
 go/cli/cli
@@ -100,3 +102,8 @@ mcp/mcpb/staging/
 
 # CI-only prebuilt rust test binary (see rust.yml)
 rust/tests.bin
+
+# Local documentation (WIP / uncommitted)
+rust/BUILD_OPTIMIZATION.md
+PR_RESPONSE.md
+

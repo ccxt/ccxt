@@ -1,10 +1,7 @@
 {
 	"exchange": "kalshi",
 	"asyncOnly": true,
-	"skipKeys": [
-		"timestamp",
-		"datetime"
-	],
+	"skipKeys": [],
 	"options": {},
 	"methods": {
 		"fetchTicker": [
@@ -69,8 +66,8 @@
 					"outcomeId": "KXELONMARS-99",
 					"label": "YES",
 					"market": "ELON_MUSK_VISIT_MARS_AUG_1_2099",
-					"timestamp": 1781915898497,
-					"datetime": "2026-06-20T00:38:18.497Z",
+					"timestamp": 1775727076616,
+					"datetime": "2026-04-09T09:31:16.616Z",
 					"high": null,
 					"low": null,
 					"bid": 0.08,
@@ -255,8 +252,8 @@
 						"outcomeId": "KXELONMARS-99",
 						"label": "YES",
 						"market": "ELON_MUSK_VISIT_MARS_AUG_1_2099",
-						"timestamp": 1781915898599,
-						"datetime": "2026-06-20T00:38:18.599Z",
+						"timestamp": 1775727076616,
+						"datetime": "2026-04-09T09:31:16.616Z",
 						"high": null,
 						"low": null,
 						"bid": 0.08,
@@ -327,8 +324,8 @@
 						"outcomeId": "KXCOLONIZEMARS-50",
 						"label": "YES",
 						"market": "HUMANS_COLONIZE_MARS_2050",
-						"timestamp": 1781915898599,
-						"datetime": "2026-06-20T00:38:18.599Z",
+						"timestamp": 1775730790234,
+						"datetime": "2026-04-09T10:33:10.234Z",
 						"high": null,
 						"low": null,
 						"bid": 0.163,
@@ -626,8 +623,8 @@
 							13553
 						]
 					],
-					"timestamp": 1781915898700,
-					"datetime": "2026-06-20T00:38:18.700Z",
+					"timestamp": null,
+					"datetime": null,
 					"nonce": null,
 					"outcomeId": "KXELONMARS-99",
 					"market": "ELON_MUSK_VISIT_MARS_AUG_1_2099"

@@ -34,7 +34,7 @@ func NewThrottler(config map[string]any) *Throttler {
 	}
 	config = ExtendMap(defaultConfig, config)
 	if config["algorithm"] != "leakyBucket" {
-		config["maxWeight"] = config["windowSize"].(float64) / config["rateLimit"].(float64)
+		config["maxWeight"] = derefScalar(config["windowSize"]).(float64) / derefScalar(config["rateLimit"]).(float64)
 	}
 
 	return &Throttler{

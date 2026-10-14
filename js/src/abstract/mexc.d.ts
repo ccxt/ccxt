@@ -1,6 +1,6 @@
 import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     spotPublicGetAnnouncements(params?: {}): Promise<Dict>;
     spotPublicGetPing(params?: {}): Promise<Dict>;
     spotPublicGetTime(params?: {}): Promise<Dict>;
@@ -241,7 +241,5 @@ interface Exchange {
     brokerPrivatePostSubAccountUniversalTransfer(params?: {}): Promise<Dict>;
     brokerPrivatePostSubAccountFutures(params?: {}): Promise<Dict>;
     brokerPrivateDeleteSubAccountApiKey(params?: {}): Promise<Dict>;
-}
-declare abstract class Exchange extends _Exchange {
 }
 export default Exchange;

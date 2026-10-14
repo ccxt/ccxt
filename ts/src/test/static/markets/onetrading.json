@@ -328,5 +328,399 @@
                 ]
             }
         ]
+    },
+    "BTC/EUR:EUR": {
+        "id": "BTC_EUR_P",
+        "symbol": "BTC/EUR:EUR",
+        "base": "BTC",
+        "quote": "EUR",
+        "settle": "EUR",
+        "baseId": "BTC",
+        "quoteId": "EUR",
+        "settleId": "EUR",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": false,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0015,
+        "maker": 0.001,
+        "contractSize": 1,
+        "precision": {
+            "amount": 1e-05,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {
+                "min": 10
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "base": {
+                "code": "BTC",
+                "precision": 8
+            },
+            "quote": {
+                "code": "EUR",
+                "precision": 8
+            },
+            "amount_precision": 5,
+            "market_precision": 2,
+            "min_size": "10.0",
+            "min_price": "1000",
+            "max_price": "10000000",
+            "id": "BTC_EUR_P",
+            "price_collar_percentage": "10",
+            "type": "PERP",
+            "state": "CLOSED",
+            "funding_period": 240,
+            "market_offset": 0,
+            "funding_schedule": {
+                "type": "FIXED_INTERVAL",
+                "period_minutes": 240
+            }
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": [
+            {
+                "taker": [
+                    [
+                        0,
+                        0.0015
+                    ],
+                    [
+                        100,
+                        0.0013
+                    ],
+                    [
+                        250,
+                        0.0013
+                    ],
+                    [
+                        1000,
+                        0.001
+                    ],
+                    [
+                        5000,
+                        0.0009
+                    ],
+                    [
+                        10000,
+                        0.00075
+                    ],
+                    [
+                        20000,
+                        0.00065
+                    ]
+                ],
+                "maker": [
+                    [
+                        0,
+                        0.001
+                    ],
+                    [
+                        100,
+                        0.001
+                    ],
+                    [
+                        250,
+                        0.0009
+                    ],
+                    [
+                        1000,
+                        0.00075
+                    ],
+                    [
+                        5000,
+                        0.0006
+                    ],
+                    [
+                        10000,
+                        0.0005
+                    ],
+                    [
+                        20000,
+                        0.0005
+                    ]
+                ]
+            }
+        ]
+    },
+    "BTC/USD:USD-310420": {
+        "id": "BTC_USD_P",
+        "symbol": "BTC/USD:USD-310420",
+        "base": "BTC",
+        "quote": "USD",
+        "settle": "USD",
+        "baseId": "BTC",
+        "quoteId": "USD",
+        "settleId": "USD",
+        "type": "future",
+        "spot": false,
+        "margin": false,
+        "swap": false,
+        "future": true,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0015,
+        "maker": 0.001,
+        "contractSize": 1,
+        "expiry": 1934409600000,
+        "expiryDatetime": "2031-04-20T00:00:00.000Z",
+        "precision": {
+            "amount": 1e-05,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {
+                "min": 10
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "base": {
+                "code": "BTC",
+                "precision": 8
+            },
+            "quote": {
+                "code": "USD",
+                "precision": 8
+            },
+            "amount_precision": 5,
+            "market_precision": 2,
+            "min_size": "10.0",
+            "min_price": "1000",
+            "max_price": "10000000",
+            "id": "BTC_USD_P",
+            "price_collar_percentage": "10",
+            "type": "DATED_FUTURE",
+            "state": "ACTIVE",
+            "funding_period": 240,
+            "market_offset": 0,
+            "funding_schedule": {
+                "type": "FIXED_INTERVAL",
+                "period_minutes": 240
+            },
+            "contract_expiry_date": "2031-04-20",
+            "contract_duration": "5Y"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": [
+            {
+                "taker": [
+                    [
+                        0,
+                        0.0015
+                    ],
+                    [
+                        100,
+                        0.0013
+                    ],
+                    [
+                        250,
+                        0.0013
+                    ],
+                    [
+                        1000,
+                        0.001
+                    ],
+                    [
+                        5000,
+                        0.0009
+                    ],
+                    [
+                        10000,
+                        0.00075
+                    ],
+                    [
+                        20000,
+                        0.00065
+                    ]
+                ],
+                "maker": [
+                    [
+                        0,
+                        0.001
+                    ],
+                    [
+                        100,
+                        0.001
+                    ],
+                    [
+                        250,
+                        0.0009
+                    ],
+                    [
+                        1000,
+                        0.00075
+                    ],
+                    [
+                        5000,
+                        0.0006
+                    ],
+                    [
+                        10000,
+                        0.0005
+                    ],
+                    [
+                        20000,
+                        0.0005
+                    ]
+                ]
+            }
+        ]
+    },
+    "ONEX500/USD:USD-310420": {
+        "id": "ONEX500_USD_P",
+        "symbol": "ONEX500/USD:USD-310420",
+        "base": "ONEX500",
+        "quote": "USD",
+        "settle": "USD",
+        "baseId": "ONEX500",
+        "quoteId": "USD",
+        "settleId": "USD",
+        "type": "future",
+        "spot": false,
+        "margin": false,
+        "swap": false,
+        "future": true,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0015,
+        "maker": 0.001,
+        "contractSize": 1,
+        "expiry": 1934409600000,
+        "expiryDatetime": "2031-04-20T00:00:00.000Z",
+        "precision": {
+            "amount": 0.001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {
+                "min": 10
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "base": {
+                "code": "ONEX500",
+                "precision": 8
+            },
+            "quote": {
+                "code": "USD",
+                "precision": 8
+            },
+            "amount_precision": 3,
+            "market_precision": 2,
+            "min_size": "10.0",
+            "min_price": "10",
+            "max_price": "1000000",
+            "id": "ONEX500_USD_P",
+            "price_collar_percentage": "10",
+            "type": "EQUITY_FUTURE",
+            "state": "POST_ONLY",
+            "funding_period": null,
+            "market_offset": 11,
+            "funding_schedule": {
+                "type": "SESSION_BASED",
+                "calendar": "NASDAQ",
+                "max_periods_per_day": 2,
+                "split": "SESSION_MIDPOINT"
+            },
+            "contract_expiry_date": "2031-04-20",
+            "contract_duration": "5Y"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": [
+            {
+                "taker": [
+                    [
+                        0,
+                        0.0015
+                    ],
+                    [
+                        100,
+                        0.0013
+                    ],
+                    [
+                        250,
+                        0.0013
+                    ],
+                    [
+                        1000,
+                        0.001
+                    ],
+                    [
+                        5000,
+                        0.0009
+                    ],
+                    [
+                        10000,
+                        0.00075
+                    ],
+                    [
+                        20000,
+                        0.00065
+                    ]
+                ],
+                "maker": [
+                    [
+                        0,
+                        0.001
+                    ],
+                    [
+                        100,
+                        0.001
+                    ],
+                    [
+                        250,
+                        0.0009
+                    ],
+                    [
+                        1000,
+                        0.00075
+                    ],
+                    [
+                        5000,
+                        0.0006
+                    ],
+                    [
+                        10000,
+                        0.0005
+                    ],
+                    [
+                        20000,
+                        0.0005
+                    ]
+                ]
+            }
+        ]
     }
 }

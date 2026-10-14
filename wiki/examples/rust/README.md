@@ -34,6 +34,8 @@
 
 - [Ob Live Bench](examples/rust/ob_live_bench.md)
 
+- [Order Router](examples/rust/order_router.md)
+
 - [Orderbook Diff](examples/rust/orderbook_diff.md)
 
 - [Prediction Typed Demo](examples/rust/prediction_typed_demo.md)

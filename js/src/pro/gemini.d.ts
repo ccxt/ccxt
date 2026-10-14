@@ -1,5 +1,5 @@
 import geminiRest from '../gemini.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, OHLCV, Tickers, Market } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, OHLCV, Tickers, Dict, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class gemini extends geminiRest {
     describe(): any;
@@ -14,7 +14,7 @@ export default class gemini extends geminiRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name gemini#watchTradesForSymbols
@@ -26,11 +26,11 @@ export default class gemini extends geminiRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    parseWsTrade(trade: any, market?: Market): Trade;
-    handleTrade(client: Client, message: any): void;
-    handleTrades(client: Client, message: any): void;
-    handleTradesForMultidata(client: Client, trades: any, timestamp: Int): void;
+    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
+    parseWsTrade(trade: Dict, market?: Market): Trade;
+    handleTrade(client: Client, message: Dict): void;
+    handleTrades(client: Client, message: Dict): void;
+    handleTradesForMultidata(client: Client, trades: any[], timestamp: Int): void;
     /**
      * @method
      * @name gemini#watchOHLCV
@@ -43,8 +43,8 @@ export default class gemini extends geminiRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    handleOHLCV(client: Client, message: any): any;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
+    handleOHLCV(client: Client, message: Dict): Dict;
     /**
      * @method
      * @name gemini#watchOrderBook
@@ -55,8 +55,8 @@ export default class gemini extends geminiRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    handleOrderBook(client: Client, message: any): void;
+    watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
+    handleOrderBook(client: Client, message: Dict): void;
     /**
      * @method
      * @name gemini#watchOrderBookForSymbols
@@ -67,7 +67,7 @@ export default class gemini extends geminiRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: Dict): Promise<OrderBook>;
     /**
      * @method
      * @name gemini#watchBidsAsks
@@ -77,11 +77,11 @@ export default class gemini extends geminiRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
-    handleBidsAsksForMultidata(client: Client, rawBidAskChanges: any, timestamp: Int, nonce: Int): void;
-    helperForWatchMultipleConstruct(itemHashName: string, symbols?: Strings, params?: {}): Promise<any>;
-    handleOrderBookForMultidata(client: Client, rawOrderBookChanges: any, timestamp: Int, nonce: Int): void;
-    handleL2Updates(client: Client, message: any): void;
+    watchBidsAsks(symbols?: Strings, params?: Dict): Promise<Tickers>;
+    handleBidsAsksForMultidata(client: Client, rawBidAskChanges: any[], timestamp: Int, nonce: Int): void;
+    helperForWatchMultipleConstruct(itemHashName: string, symbols?: Strings, params?: Dict): Promise<any>;
+    handleOrderBookForMultidata(client: Client, rawOrderBookChanges: any[], timestamp: Int, nonce: Int): void;
+    handleL2Updates(client: Client, message: Dict): void;
     /**
      * @method
      * @name gemini#fetchOrders
@@ -93,14 +93,14 @@ export default class gemini extends geminiRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    handleHeartbeat(client: Client, message: any): any;
-    handleSubscription(client: Client, message: any): any;
-    handleOrder(client: Client, message: any): void;
-    parseWsOrder(order: any, market?: Market): Order;
-    parseWsOrderStatus(status: any): string;
-    parseWsOrderType(type: any): string;
-    handleError(client: Client, message: any): void;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
+    handleHeartbeat(client: Client, message: Dict): Dict;
+    handleSubscription(client: Client, message: Dict): Dict;
+    handleOrder(client: Client, message: any[]): void;
+    parseWsOrder(order: Dict, market?: Market): Order;
+    parseWsOrderStatus(status: Str): Str;
+    parseWsOrderType(type: Str): Str;
+    handleError(client: Client, message: Dict): void;
     handleMessage(client: Client, message: any): void;
-    authenticate(params?: {}): Promise<void>;
+    authenticate(params?: Dict): Promise<void>;
 }

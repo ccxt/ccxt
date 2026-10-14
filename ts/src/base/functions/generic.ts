@@ -60,7 +60,6 @@ const sort = (array: string[]| any) => {
     return newArray;
 }
 
-
 /*
     Accepts a map/array of objects and a key name to be used as an index:
     array = [

@@ -1,6 +1,6 @@
 Every endpoint in `kucoinfutures`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/kucoinfutures) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetCurrencies`); the snake_case alias (`public_get_currencies`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`PublicGetCurrencies`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetCurrencies`); Python and PHP use the snake_case form (`public_get_currencies`), and Go uses the PascalCase form (`PublicGetCurrencies`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official kucoinfutures API documentation:** [docs.kucoin.com](https://docs.kucoin.com)
 
-> 360 implicit endpoints across 9 access groups.
+> 361 implicit endpoints across 10 access groups.
 
 ## public
 
@@ -437,6 +437,14 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `utaGetMarketBorrowableCurrency` | GET | `market/borrowable-currency` | 30 |
 | `utaGetUserMyIp` | GET | `user/my-ip` | 20 |
 | `utaGetMarketFiatPrice` | GET | `market/fiat-price` | 6 |
+
+## utaV2
+
+**Base URL**: `https://api.kucoin.com`
+
+| Method | HTTP | Endpoint | Cost |
+| --- | --- | --- | --- |
+| `utaV2GetMarketFundingRate` | GET | `market/funding-rate` | 6 |
 
 ## utaPrivate
 

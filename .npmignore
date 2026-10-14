@@ -21,3 +21,4 @@ js/src/pro/test/**/*
 dist/ccxt.browser.js
 !dist/ccxt.browser.min.js
 !dist/ccxt.browser.min.js.LICENSE.txt
+dist/*.map

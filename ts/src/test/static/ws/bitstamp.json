@@ -1,0 +1,328 @@
+{
+    "exchange": "bitstamp",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "watchMyTrades": [
+            {
+                "description": "single fill of a market buy on a private my_trades channel (live capture)",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "url": "wss://ws.bitstamp.net",
+                "httpResponse": {
+                    "valid_sec": 60,
+                    "token": "testToken",
+                    "user_id": 4416057
+                },
+                "messages": [
+                    {
+                        "event": "bts:subscription_succeeded",
+                        "channel": "private-my_trades_ethusdt-4416057",
+                        "data": {}
+                    },
+                    {
+                        "data": {
+                            "id": 635698396,
+                            "amount": "0.005000",
+                            "price": "2468.04",
+                            "microtimestamp": "1789459694223000",
+                            "fee": "0.04936",
+                            "order_id": "2050558851342339",
+                            "trade_account_id": 0,
+                            "side": "buy"
+                        },
+                        "channel": "private-my_trades_ethusdt-4416057",
+                        "event": "trade",
+                        "trade_account_id": 0
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "bts:subscribe",
+                        "data": {
+                            "channel": "private-my_trades_ethusdt-4416057",
+                            "auth": "testToken"
+                        }
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "id": 635698396,
+                                "amount": "0.005000",
+                                "price": "2468.04",
+                                "microtimestamp": "1789459694223000",
+                                "fee": "0.04936",
+                                "order_id": "2050558851342339",
+                                "trade_account_id": 0,
+                                "side": "buy"
+                            },
+                            "id": "635698396",
+                            "order": "2050558851342339",
+                            "timestamp": 1789459694223,
+                            "datetime": "2026-09-15T08:08:14.223Z",
+                            "symbol": "ETH/USDT",
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": null,
+                            "price": 2468.04,
+                            "amount": 0.005,
+                            "cost": 12.3402,
+                            "fee": {
+                                "currency": "USDT",
+                                "cost": 0.04936
+                            },
+                            "fees": [
+                                {
+                                    "currency": "USDT",
+                                    "cost": 0.04936
+                                }
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ],
+        "watchOrders": [
+            {
+                "description": "market buy lifecycle: order_created then order_deleted after full fill (live capture)",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "url": "wss://ws.bitstamp.net",
+                "httpResponse": {
+                    "valid_sec": 60,
+                    "token": "testToken",
+                    "user_id": 4416057
+                },
+                "messages": [
+                    {
+                        "event": "bts:subscription_succeeded",
+                        "channel": "private-my_orders_ethusdt-4416057",
+                        "data": {}
+                    },
+                    {
+                        "data": {
+                            "id": "2050558851342339",
+                            "id_str": "2050558851342339",
+                            "order_type": 0,
+                            "order_subtype": 2,
+                            "datetime": "1789459694",
+                            "microtimestamp": "1789459694223000",
+                            "amount": 0.005,
+                            "amount_str": "0.005000",
+                            "amount_traded": "0",
+                            "amount_at_create": "0.005000",
+                            "price": 999999999,
+                            "price_str": "999999999.00",
+                            "is_liquidation": false,
+                            "trade_account_id": 0
+                        },
+                        "channel": "private-my_orders_ethusdt-4416057",
+                        "event": "order_created",
+                        "trade_account_id": 0,
+                        "event_id": "00065b81-0d69-fe98-0000-006902000020",
+                        "pre_event_id": "00065b81-0d68-6088-0000-006901000020",
+                        "order_source": "orderbook"
+                    },
+                    {
+                        "data": {
+                            "id": "2050558851342339",
+                            "id_str": "2050558851342339",
+                            "order_type": 0,
+                            "order_subtype": 2,
+                            "datetime": "1789459694",
+                            "microtimestamp": "1789459694223000",
+                            "amount": 0,
+                            "amount_str": "0",
+                            "amount_traded": "0.005000",
+                            "amount_at_create": "0.005000",
+                            "price": 2468.04,
+                            "price_str": "2468.04",
+                            "is_liquidation": false,
+                            "trade_account_id": 0
+                        },
+                        "channel": "private-my_orders_ethusdt-4416057",
+                        "event": "order_deleted",
+                        "trade_account_id": 0,
+                        "event_id": "00065b81-0d69-fe98-0001-006903000020",
+                        "pre_event_id": "00065b81-0d69-fe98-0000-006902000020",
+                        "order_source": "orderbook"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "bts:subscribe",
+                        "data": {
+                            "channel": "private-my_orders_ethusdt-4416057",
+                            "auth": "testToken"
+                        }
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "id": "2050558851342339",
+                                "id_str": "2050558851342339",
+                                "order_type": 0,
+                                "order_subtype": 2,
+                                "datetime": "1789459694",
+                                "microtimestamp": "1789459694223000",
+                                "amount": 0.005,
+                                "amount_str": "0.005000",
+                                "amount_traded": "0",
+                                "amount_at_create": "0.005000",
+                                "price": 999999999,
+                                "price_str": "999999999.00",
+                                "is_liquidation": false,
+                                "trade_account_id": 0,
+                                "event": "order_created"
+                            },
+                            "symbol": "ETH/USDT",
+                            "id": "2050558851342339",
+                            "clientOrderId": null,
+                            "timestamp": 1789459694000,
+                            "datetime": "2026-09-15T08:08:14.000Z",
+                            "lastTradeTimestamp": null,
+                            "type": "market",
+                            "timeInForce": "IOC",
+                            "postOnly": null,
+                            "side": "buy",
+                            "price": 999999999,
+                            "stopPrice": null,
+                            "triggerPrice": null,
+                            "amount": 0.005,
+                            "cost": 0,
+                            "average": null,
+                            "filled": 0,
+                            "remaining": 0.005,
+                            "status": null,
+                            "fee": null,
+                            "trades": [],
+                            "fees": [],
+                            "lastUpdateTimestamp": null,
+                            "reduceOnly": null,
+                            "takeProfitPrice": null,
+                            "stopLossPrice": null
+                        }
+                    ],
+                    [
+                        {
+                            "info": {
+                                "id": "2050558851342339",
+                                "id_str": "2050558851342339",
+                                "order_type": 0,
+                                "order_subtype": 2,
+                                "datetime": "1789459694",
+                                "microtimestamp": "1789459694223000",
+                                "amount": 0,
+                                "amount_str": "0",
+                                "amount_traded": "0.005000",
+                                "amount_at_create": "0.005000",
+                                "price": 2468.04,
+                                "price_str": "2468.04",
+                                "is_liquidation": false,
+                                "trade_account_id": 0,
+                                "event": "order_deleted"
+                            },
+                            "symbol": "ETH/USDT",
+                            "id": "2050558851342339",
+                            "clientOrderId": null,
+                            "timestamp": 1789459694000,
+                            "datetime": "2026-09-15T08:08:14.000Z",
+                            "lastTradeTimestamp": null,
+                            "type": "market",
+                            "timeInForce": "IOC",
+                            "postOnly": null,
+                            "side": "buy",
+                            "price": 2468.04,
+                            "stopPrice": null,
+                            "triggerPrice": null,
+                            "amount": 0.005,
+                            "cost": 12.3402,
+                            "average": null,
+                            "filled": 0.005,
+                            "remaining": 0,
+                            "status": "closed",
+                            "fee": null,
+                            "trades": [],
+                            "fees": [],
+                            "lastUpdateTimestamp": null,
+                            "reduceOnly": null,
+                            "takeProfitPrice": null,
+                            "stopLossPrice": null
+                        }
+                    ]
+                ]
+            }
+        ],
+        "watchFundingRate": [
+            {
+                "description": "funding rate update on a perpetual swap market (live capture)",
+                "input": [
+                    "BTC/USD:USD"
+                ],
+                "url": "wss://ws.bitstamp.net",
+                "messages": [
+                    {
+                        "event": "bts:subscription_succeeded",
+                        "channel": "funding_rate_btcusd-perp",
+                        "data": {}
+                    },
+                    {
+                        "data": {
+                            "market": "btcusd-perp",
+                            "mark_price": "77291.94844771",
+                            "index_price": "77276.264",
+                            "funding_rate": "0.00013",
+                            "timestamp": "1789455924",
+                            "next_funding_time": "1789459200"
+                        },
+                        "channel": "funding_rate_btcusd-perp",
+                        "event": "funding_rate_saved"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "bts:subscribe",
+                        "data": {
+                            "channel": "funding_rate_btcusd-perp"
+                        }
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "info": {
+                            "market": "btcusd-perp",
+                            "mark_price": "77291.94844771",
+                            "index_price": "77276.264",
+                            "funding_rate": "0.00013",
+                            "timestamp": "1789455924",
+                            "next_funding_time": "1789459200"
+                        },
+                        "symbol": "BTC/USD:USD",
+                        "markPrice": 77291.94844771,
+                        "indexPrice": 77276.264,
+                        "interestRate": null,
+                        "estimatedSettlePrice": null,
+                        "timestamp": 1789455924000,
+                        "datetime": "2026-09-15T07:05:24.000Z",
+                        "previousFundingRate": null,
+                        "nextFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "nextFundingTimestamp": null,
+                        "previousFundingDatetime": null,
+                        "nextFundingDatetime": null,
+                        "fundingRate": 0.00013,
+                        "fundingTimestamp": 1789459200000,
+                        "fundingDatetime": "2026-09-15T08:00:00.000Z",
+                        "interval": null
+                    }
+                ]
+            }
+        ]
+    }
+}

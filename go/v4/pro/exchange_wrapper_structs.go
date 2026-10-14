@@ -164,7 +164,6 @@ var WithTransferParams = ccxt.WithTransferParams
 type WithdrawOptionsStruct = ccxt.WithdrawOptionsStruct
 type WithdrawOptions = ccxt.WithdrawOptions
 
-var WithWithdrawTag = ccxt.WithWithdrawTag
 var WithWithdrawParams = ccxt.WithWithdrawParams
 
 type CreateDepositAddressOptionsStruct = ccxt.CreateDepositAddressOptionsStruct
@@ -308,7 +307,6 @@ var WithFetch2Method = ccxt.WithFetch2Method
 var WithFetch2Params = ccxt.WithFetch2Params
 var WithFetch2Headers = ccxt.WithFetch2Headers
 var WithFetch2Body = ccxt.WithFetch2Body
-var WithFetch2Config = ccxt.WithFetch2Config
 
 type FetchBorrowInterestOptionsStruct = ccxt.FetchBorrowInterestOptionsStruct
 type FetchBorrowInterestOptions = ccxt.FetchBorrowInterestOptions
@@ -722,7 +720,6 @@ var WithUnWatchOHLCVParams = ccxt.WithUnWatchOHLCVParams
 type WithdrawWsOptionsStruct = ccxt.WithdrawWsOptionsStruct
 type WithdrawWsOptions = ccxt.WithdrawWsOptions
 
-var WithWithdrawWsTag = ccxt.WithWithdrawWsTag
 var WithWithdrawWsParams = ccxt.WithWithdrawWsParams
 
 type UnWatchMyTradesOptionsStruct = ccxt.UnWatchMyTradesOptionsStruct

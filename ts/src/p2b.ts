@@ -5,7 +5,7 @@ import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/p2b.js';
 import { InsufficientFunds, AuthenticationError, BadRequest, ExchangeNotAvailable, ArgumentsRequired, ExchangeError, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, Int, Num, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, int, Market, NullableDict, Endpoint } from './base/types.js';
+import type { Balances, Dict, Int, Num, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int, Market, NullableDict, Endpoint, OrderBook } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -341,7 +341,7 @@ export default class p2b extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const response = await this.publicGetMarkets (params);
         //
         //    {
@@ -372,7 +372,7 @@ export default class p2b extends Exchange {
         //        ]
         //    }
         //
-        const markets = this.safeList (response, 'result', []);
+        const markets: Dict[] = this.safeList (response, 'result', []);
         return this.parseMarkets (markets);
     }
 
@@ -380,8 +380,11 @@ export default class p2b extends Exchange {
         const marketId = this.safeString (market, 'name');
         const baseId = this.safeString (market, 'stock');
         const quoteId = this.safeString (market, 'money');
-        const base = this.safeCurrencyCode (baseId) as string;
-        const quote = this.safeCurrencyCode (quoteId) as string;
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const limits = this.safeDict (market, 'limits');
         const maxAmount = this.safeString (limits, 'max_amount');
         const maxPrice = this.safeString (limits, 'max_price');
@@ -445,7 +448,7 @@ export default class p2b extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -475,7 +478,7 @@ export default class p2b extends Exchange {
         //        current_time: '1699252644.487566'
         //    }
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         return this.parseTickers (result, symbols);
     }
 
@@ -488,7 +491,7 @@ export default class p2b extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -517,12 +520,8 @@ export default class p2b extends Exchange {
         //        current_time: '1699252958.859391'
         //    }
         //
-        const result = this.safeValue (response, 'result', {});
-        const timestamp = this.safeIntegerProduct (response, 'cache_time', 1000);
-        return this.extend (
-            { 'timestamp': timestamp, 'datetime': this.iso8601 (timestamp) },
-            this.parseTicker (result, market)
-        );
+        const result = this.safeDict (response, 'result', {});
+        return this.parseTicker (result, market);
     }
 
     override parseTicker (ticker: any, market: Market = undefined) {
@@ -558,31 +557,32 @@ export default class p2b extends Exchange {
         //    }
         //
         const timestamp = this.safeIntegerProduct (ticker, 'at', 1000);
+        let tickerInner = ticker;
         if ('ticker' in ticker) {
-            ticker = this.safeValue (ticker, 'ticker');
+            tickerInner = this.safeDict (ticker, 'ticker');
         }
-        const last = this.safeString (ticker, 'last');
+        const last = this.safeString (tickerInner, 'last');
         return this.safeTicker ({
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeString (ticker, 'high'),
-            'low': this.safeString (ticker, 'low'),
-            'bid': this.safeString (ticker, 'bid'),
+            'high': this.safeString (tickerInner, 'high'),
+            'low': this.safeString (tickerInner, 'low'),
+            'bid': this.safeString (tickerInner, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeString (ticker, 'ask'),
+            'ask': this.safeString (tickerInner, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeString (ticker, 'open'),
+            'open': this.safeString (tickerInner, 'open'),
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': this.safeString (ticker, 'change'),
+            'percentage': this.safeString (tickerInner, 'change'),
             'average': undefined,
-            'baseVolume': this.safeString2 (ticker, 'vol', 'volume'),
-            'quoteVolume': this.safeString (ticker, 'deal'),
-            'info': ticker,
+            'baseVolume': this.safeString2 (tickerInner, 'vol', 'volume'),
+            'quoteVolume': this.safeString (tickerInner, 'deal'),
+            'info': tickerInner,
         }, market);
     }
 
@@ -599,7 +599,7 @@ export default class p2b extends Exchange {
      * @param {string} [params.interval] 0 (default), 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -636,7 +636,7 @@ export default class p2b extends Exchange {
         //        "current_time": 1698733470.469274
         //    }
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         const timestamp = this.safeIntegerProduct (response, 'current_time', 1000);
         return this.parseOrderBook (result, market['symbol'], timestamp, 'bids', 'asks', 0, 1);
     }
@@ -653,7 +653,7 @@ export default class p2b extends Exchange {
      * @param {int} params.lastId order id
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -689,11 +689,11 @@ export default class p2b extends Exchange {
         //        current_time: '1699255571.413828'
         //    }
         //
-        const result = this.safeList (response, 'result', []);
+        const result: Dict[] = this.safeList (response, 'result', []);
         return this.parseTrades (result, market, since, limit);
     }
 
-    override parseTrade (trade: Dict, market: Market = undefined) {
+    override parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades
         //
@@ -774,7 +774,7 @@ export default class p2b extends Exchange {
      * @param {int} [params.offset] default=0, with this value the last candles are returned
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -844,7 +844,7 @@ export default class p2b extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async fetchBalance (params = {}) {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -866,11 +866,11 @@ export default class p2b extends Exchange {
         //        }
         //    }
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         return this.parseBalance (result);
     }
 
-    override parseBalance (response: any) {
+    override parseBalance (response: any): Balances {
         //
         //    {
         //        "USDT": {
@@ -889,7 +889,7 @@ export default class p2b extends Exchange {
         const keys = Object.keys (response);
         for (let i = 0; i < keys.length; i++) {
             const currencyId = keys[i];
-            const balance = response[currencyId];
+            const balance = this.safeDict (response, currencyId);
             const code = this.safeCurrencyCode (currencyId);
             const used = this.safeString (balance, 'freeze');
             const available = this.safeString (balance, 'available');
@@ -915,7 +915,7 @@ export default class p2b extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -966,7 +966,7 @@ export default class p2b extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
@@ -1019,7 +1019,7 @@ export default class p2b extends Exchange {
      * @param {int} [params.offset] 0-10000, default=0
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders () requires the symbol argument');
         }
@@ -1059,7 +1059,7 @@ export default class p2b extends Exchange {
         //        ]
         //    }
         //
-        const result = this.safeList (response, 'result', []);
+        const result: Dict[] = this.safeList (response, 'result', []);
         return this.parseOrders (result, market, since, limit);
     }
 
@@ -1078,7 +1078,7 @@ export default class p2b extends Exchange {
      * @param {int} [params.offset] 0-10000, default=0
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1113,8 +1113,8 @@ export default class p2b extends Exchange {
         //        }
         //    }
         //
-        const result = this.safeValue (response, 'result', {});
-        const records = this.safeList (result, 'records', []);
+        const result = this.safeDict (response, 'result', {});
+        const records: Dict[] = this.safeList (result, 'records', []);
         return this.parseTrades (records, market, since, limit);
     }
 
@@ -1133,7 +1133,7 @@ export default class p2b extends Exchange {
      * @param {int} [params.offset] 0-10000, default=0
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
@@ -1141,7 +1141,7 @@ export default class p2b extends Exchange {
             await this.loadMarkets ();
         }
         let until = this.safeInteger (params, 'until');
-        params = this.omit (params, 'until');
+        const paramsOmitted: Dict = this.omit (params, 'until');
         if (until === undefined) {
             if (since === undefined) {
                 until = this.milliseconds ();
@@ -1149,14 +1149,12 @@ export default class p2b extends Exchange {
                 until = since + 86400000;
             }
         }
-        if (since === undefined) {
-            since = until - 86400000;
-        }
-        if ((until - since) > 86400000) {
+        const sinceResolved = (since === undefined) ? (until - 86400000) : since;
+        if ((until - sinceResolved) > 86400000) {
             throw new BadRequest (this.id + ' fetchMyTrades () the time between since and params["until"] cannot be greater than 24 hours');
         }
         const market = this.market (symbol);
-        const sinceSec = this.parseToInt (since / 1000);
+        const sinceSec = this.parseToInt (sinceResolved / 1000);
         const untilSec = this.parseToInt (until / 1000);
         const request: Dict = {
             'market': market['id'],
@@ -1166,7 +1164,7 @@ export default class p2b extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privatePostAccountMarketDealHistory (this.extend (request, params));
+        const response = await this.privatePostAccountMarketDealHistory (this.extend (request, paramsOmitted));
         //
         //    {
         //        "success": true,
@@ -1193,9 +1191,9 @@ export default class p2b extends Exchange {
         //        }
         //    }
         //
-        const result = this.safeValue (response, 'result', {});
-        const deals = this.safeList (result, 'deals', []);
-        return this.parseTrades (deals, market, since, limit);
+        const result = this.safeDict (response, 'result', {});
+        const deals: Dict[] = this.safeList (result, 'deals', []);
+        return this.parseTrades (deals, market, sinceResolved, limit);
     }
 
     /**
@@ -1213,12 +1211,12 @@ export default class p2b extends Exchange {
      * @param {int} [params.offset] 0-10000, default=0
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         let until = this.safeInteger (params, 'until');
-        params = this.omit (params, 'until');
+        const paramsOmitted: Dict = this.omit (params, 'until');
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1230,13 +1228,11 @@ export default class p2b extends Exchange {
                 until = since + 86400000;
             }
         }
-        if (since === undefined) {
-            since = until - 86400000;
-        }
-        if ((until - since) > 86400000) {
+        const sinceResolved = (since === undefined) ? (until - 86400000) : since;
+        if ((until - sinceResolved) > 86400000) {
             throw new BadRequest (this.id + ' fetchClosedOrders () the time between since and params["until"] cannot be greater than 24 hours');
         }
-        const sinceSec = this.parseToInt (since / 1000);
+        const sinceSec = this.parseToInt (sinceResolved / 1000);
         const untilSec = this.parseToInt (until / 1000);
         const request: Dict = {
             'startTime': sinceSec,
@@ -1248,7 +1244,7 @@ export default class p2b extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privatePostAccountOrderHistory (this.extend (request, params));
+        const response = await this.privatePostAccountOrderHistory (this.extend (request, paramsOmitted));
         //
         //    {
         //        "success": true,
@@ -1275,13 +1271,13 @@ export default class p2b extends Exchange {
         //        }
         //    }
         //
-        const result = this.safeValue (response, 'result');
+        const result = this.safeDict (response, 'result', {});
         let orders: Order[] = [];
         const keys = Object.keys (result);
         for (let i = 0; i < keys.length; i++) {
             const marketId = keys[i];
             const marketOrders = result[marketId];
-            const parsedOrders = this.parseOrders (marketOrders, market, since, limit);
+            const parsedOrders = this.parseOrders (marketOrders, market, sinceResolved, limit);
             orders = this.arrayConcat (orders, parsedOrders);
         }
         return orders;
@@ -1327,7 +1323,7 @@ export default class p2b extends Exchange {
         //
         const timestamp = this.safeIntegerProduct2 (order, 'timestamp', 'ctime', 1000);
         const marketId = this.safeString (order, 'market');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         return this.safeOrder ({
             'info': order,
             'id': this.safeString2 (order, 'id', 'orderId'),
@@ -1335,7 +1331,7 @@ export default class p2b extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': this.safeString (order, 'type'),
             'timeInForce': undefined,
             'postOnly': undefined,
@@ -1349,32 +1345,40 @@ export default class p2b extends Exchange {
             'remaining': this.safeString (order, 'left'),
             'status': undefined,
             'fee': {
-                'currency': market['quote'],
+                'currency': marketResolved['quote'],
                 'cost': this.safeString (order, 'dealFee'),
             },
             'trades': undefined,
-        }, market);
+        }, marketResolved);
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined) {
-        let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
-        params = this.omit (params, this.extractParams (path));
+    override sign (path: string, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        const baseApiUrl = this.safeString (this.urls['api'], api);
+        if (baseApiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        const baseUrl: string = baseApiUrl;
+        let url = baseUrl + '/' + this.implodeParams (path, params);
+        const paramsOmitted: Dict = this.omit (params, this.extractParams (path));
         if (method === 'GET') {
-            if (Object.keys (params).length > 0) {
-                url += '?' + this.urlencode (params);
+            if (Object.keys (paramsOmitted).length > 0) {
+                url += '?' + this.urlencode (paramsOmitted);
             }
         }
         if (api === 'private') {
-            params['request'] = '/api/v2/' + path;
-            params['nonce'] = this.nonce ().toString ();
-            const payload = this.stringToBase64 (this.json (params));  // Body json encoded in base64
-            headers = {
+            paramsOmitted['request'] = '/api/v2/' + path;
+            // p2b rejects a repeated nonce within 10 seconds (error 1016) — a dedup window, not a server-time check, so the counter drifting ahead of the clock under bursts is harmless
+            // the nonce deliberately stays on the second-resolution base nonce: the venue documents second-scale (int32-range) nonce values and millisecond nonces are unverified against the live API
+            paramsOmitted['nonce'] = this.incrementingNonce ().toString ();
+            const payload = this.stringToBase64 (this.json (paramsOmitted));  // Body json encoded in base64
+            const headersSigned: NullableDict = {
                 'Content-Type': 'application/json',
                 'X-TXC-APIKEY': this.apiKey,
                 'X-TXC-PAYLOAD': payload,
                 'X-TXC-SIGNATURE': this.hmac (this.encode (payload), this.encode (this.secret), sha512),
             };
-            body = this.json (params);
+            const bodyJson = this.json (paramsOmitted);
+            return { 'url': url, 'method': method, 'body': bodyJson, 'headers': headersSigned };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

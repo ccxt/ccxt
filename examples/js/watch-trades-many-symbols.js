@@ -18,7 +18,7 @@ async function watchTrades(exchange, symbol) {
 async function main() {
     const symbols = ['USDT/THB', 'BTC/THB', 'ETH/THB'];
     // eslint-disable-next-line import/no-named-as-default-member
-    const exchange = new ccxt.pro.bitmex({
+    const exchange = new ccxt.pro.binance({
         'newUpdates': true,
     });
     await exchange.loadMarkets();

@@ -19,4 +19,12 @@ let ticker = exchange.fetch_ticker("BTC/USDT", Params::none()).await?;
 Requires a Tokio runtime. For the REST-only surface see
 [`ccxt`](https://crates.io/crates/ccxt).
 
+Every venue is behind a cargo feature named after its id; the default `all` compiles every
+one. To keep build time and memory down, disable the defaults and list what you use — the
+same feature names work on every ccxt crate, so keep the lists in sync:
+
+```toml
+ccxt-pro = { version = "4", default-features = false, features = ["binance"] }
+```
+
 Documentation: <https://docs.ccxt.com> · Manual: <https://github.com/ccxt/ccxt/wiki>

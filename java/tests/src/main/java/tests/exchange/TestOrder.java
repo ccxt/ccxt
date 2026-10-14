@@ -48,7 +48,7 @@ public class TestOrder extends BaseTest {
             put( "fee", new HashMap<String, Object>() {{}} );
             put( "trades", new ArrayList<Object>(Arrays.asList()) );
         }};
-        List<Object> emptyAllowedFor = new ArrayList<Object>(Arrays.asList("clientOrderId", "stopPrice", "trades", "timestamp", "datetime", "lastTradeTimestamp", "average", "type", "timeInForce", "postOnly", "side", "price", "amount", "cost", "filled", "remaining", "status", "fee")); // there are exchanges that return only order id, so we don't need to strictly requite all props to be set.
+        List<String> emptyAllowedFor = new ArrayList<String>(Arrays.asList("clientOrderId", "stopPrice", "trades", "timestamp", "datetime", "lastTradeTimestamp", "average", "type", "timeInForce", "postOnly", "side", "price", "amount", "cost", "filled", "remaining", "status", "fee")); // there are exchanges that return only order id, so we don't need to strictly requite all props to be set.
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry, now);
         //
@@ -66,18 +66,18 @@ public class TestOrder extends BaseTest {
         TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", "0");
         TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", exchange.safeString(entry, "remaining"));
         TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", exchange.safeString(entry, "filled"));
-        if (!Helpers.isTrue((Helpers.inOp(skippedProperties, "trades"))))
+        if (!(Helpers.inOp(skippedProperties, "trades")))
         {
             Object skippedNew = exchange.deepExtend(skippedProperties, new HashMap<String, Object>() {{
                 put( "timestamp", true );
                 put( "datetime", true );
                 put( "side", true );
             }});
-            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(entry, "trades"), null)))
+            if (!java.util.Objects.equals(((Map<String, Object>)entry).get("trades"), null))
             {
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(Helpers.GetValue(entry, "trades"))); i++)
+                for (var i = 0; i < Helpers.getArrayLength(((Map<String, Object>)entry).get("trades")); i++)
                 {
-                    TestTrade.testTrade(exchange, skippedNew, method, Helpers.GetValue(Helpers.GetValue(entry, "trades"), i), symbol, now);
+                    TestTrade.testTrade(exchange, skippedNew, method, Helpers.GetValue(((Map<String, Object>)entry).get("trades"), i), symbol, now, false);
                 }
             }
         }

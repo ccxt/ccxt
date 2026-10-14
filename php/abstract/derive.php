@@ -16,56 +16,14 @@ abstract class derive extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
-    public function public_post_build_register_session_key_tx($params = array()) {
-        return $this->request('build_register_session_key_tx', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function public_post_register_session_key($params = array()) {
-        return $this->request('register_session_key', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function public_post_deregister_session_key($params = array()) {
-        return $this->request('deregister_session_key', 'public', 'POST', $params, null, null, array("cost" => 1));
+    public function public_post_decode_action($params = array()) {
+        return $this->request('decode_action', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function public_post_get_wallets_from_session_key($params = array()) {
         return $this->request('get_wallets_from_session_key', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function public_post_login($params = array()) {
-        return $this->request('login', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function public_post_statistics($params = array()) {
-        return $this->request('statistics', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function public_post_all_statistics($params = array()) {
-        return $this->request('all_statistics', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function public_post_user_statistics($params = array()) {
-        return $this->request('user_statistics', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function public_post_all_user_statistics($params = array()) {
-        return $this->request('all_user_statistics', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -82,14 +40,8 @@ abstract class derive extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
-    public function public_post_get_asset($params = array()) {
-        return $this->request('get_asset', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function public_post_get_assets($params = array()) {
-        return $this->request('get_assets', 'public', 'POST', $params, null, null, array("cost" => 1));
+    public function public_post_get_risk_universes($params = array()) {
+        return $this->request('get_risk_universes', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -106,8 +58,8 @@ abstract class derive extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
-    public function public_post_get_instruments($params = array()) {
-        return $this->request('get_instruments', 'public', 'POST', $params, null, null, array("cost" => 1));
+    public function public_post_get_all_live_instruments($params = array()) {
+        return $this->request('get_all_live_instruments', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -136,18 +88,6 @@ abstract class derive extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
-    public function public_post_get_spot_feed_history($params = array()) {
-        return $this->request('get_spot_feed_history', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function public_post_get_spot_feed_history_candles($params = array()) {
-        return $this->request('get_spot_feed_history_candles', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
     public function public_post_get_index_chart_data($params = array()) {
         return $this->request('get_index_chart_data', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -172,12 +112,6 @@ abstract class derive extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
-    public function public_post_get_option_settlement_history($params = array()) {
-        return $this->request('get_option_settlement_history', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
     public function public_post_get_liquidation_history($params = array()) {
         return $this->request('get_liquidation_history', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -190,14 +124,26 @@ abstract class derive extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
-    public function public_post_get_perp_impact_twap($params = array()) {
-        return $this->request('get_perp_impact_twap', 'public', 'POST', $params, null, null, array("cost" => 1));
+    public function public_post_get_transaction($params = array()) {
+        return $this->request('get_transaction', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
-    public function public_post_get_transaction($params = array()) {
-        return $this->request('get_transaction', 'public', 'POST', $params, null, null, array("cost" => 1));
+    public function public_post_get_onchain_action_history($params = array()) {
+        return $this->request('get_onchain_action_history', 'public', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_post_get_pending_deposits($params = array()) {
+        return $this->request('get_pending_deposits', 'public', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_post_register_deposit_address($params = array()) {
+        return $this->request('register_deposit_address', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -220,134 +166,44 @@ abstract class derive extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
-    public function public_post_validate_invite_code($params = array()) {
-        return $this->request('validate_invite_code', 'public', 'POST', $params, null, null, array("cost" => 1));
+    public function public_post_get_live_auctions($params = array()) {
+        return $this->request('get_live_auctions', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
-    public function public_post_get_points($params = array()) {
-        return $this->request('get_points', 'public', 'POST', $params, null, null, array("cost" => 1));
+    public function public_post_start_auction($params = array()) {
+        return $this->request('start_auction', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
-    public function public_post_get_all_points($params = array()) {
-        return $this->request('get_all_points', 'public', 'POST', $params, null, null, array("cost" => 1));
+    public function public_post_get_vault($params = array()) {
+        return $this->request('get_vault', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
-    public function public_post_get_points_leaderboard($params = array()) {
-        return $this->request('get_points_leaderboard', 'public', 'POST', $params, null, null, array("cost" => 1));
+    public function public_post_get_vaults($params = array()) {
+        return $this->request('get_vaults', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
-    public function public_post_get_descendant_tree($params = array()) {
-        return $this->request('get_descendant_tree', 'public', 'POST', $params, null, null, array("cost" => 1));
+    public function public_post_get_vault_action_history($params = array()) {
+        return $this->request('get_vault_action_history', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
-    public function public_post_get_tree_roots($params = array()) {
-        return $this->request('get_tree_roots', 'public', 'POST', $params, null, null, array("cost" => 1));
+    public function public_post_get_vault_performance_history($params = array()) {
+        return $this->request('get_vault_performance_history', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
-    public function public_post_get_swell_percent_points($params = array()) {
-        return $this->request('get_swell_percent_points', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function public_post_get_stdrv_snapshots($params = array()) {
-        return $this->request('get_stdrv_snapshots', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function public_post_get_vault_assets($params = array()) {
-        return $this->request('get_vault_assets', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function public_post_get_etherfi_effective_balances($params = array()) {
-        return $this->request('get_etherfi_effective_balances', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function public_post_get_kelp_effective_balances($params = array()) {
-        return $this->request('get_kelp_effective_balances', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function public_post_get_bridge_balances($params = array()) {
-        return $this->request('get_bridge_balances', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function public_post_get_ethena_participants($params = array()) {
-        return $this->request('get_ethena_participants', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function public_post_get_vault_share($params = array()) {
-        return $this->request('get_vault_share', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function public_post_get_vault_statistics($params = array()) {
-        return $this->request('get_vault_statistics', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function public_post_get_vault_balances($params = array()) {
-        return $this->request('get_vault_balances', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function public_post_get_vault_pools($params = array()) {
-        return $this->request('get_vault_pools', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function public_post_get_vault_rates($params = array()) {
-        return $this->request('get_vault_rates', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function public_post_estimate_integrator_points($params = array()) {
-        return $this->request('estimate_integrator_points', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function public_post_create_subaccount_debug($params = array()) {
-        return $this->request('create_subaccount_debug', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function public_post_create_account_with_secret($params = array()) {
-        return $this->request('create_account_with_secret', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function public_post_deposit_debug($params = array()) {
-        return $this->request('deposit_debug', 'public', 'POST', $params, null, null, array("cost" => 1));
+    public function public_post_set_socialization_feed_data($params = array()) {
+        return $this->request('set_socialization_feed_data', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -366,18 +222,6 @@ abstract class derive extends \ccxt\Exchange {
      */
     public function public_post_execute_quote_debug($params = array()) {
         return $this->request('execute_quote_debug', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function public_post_get_invite_code($params = array()) {
-        return $this->request('get_invite_code', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function public_post_register_invite($params = array()) {
-        return $this->request('register_invite', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -418,26 +262,8 @@ abstract class derive extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
-    public function public_post_get_detailed_maker_snapshot_history($params = array()) {
-        return $this->request('get_detailed_maker_snapshot_history', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function public_post_getratelimits($params = array()) {
-        return $this->request('getRateLimits', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
     public function private_post_get_account($params = array()) {
         return $this->request('get_account', 'private', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function private_post_create_subaccount($params = array()) {
-        return $this->request('create_subaccount', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -454,6 +280,12 @@ abstract class derive extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_post_delete_subaccount($params = array()) {
+        return $this->request('delete_subaccount', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_post_get_all_portfolios($params = array()) {
         return $this->request('get_all_portfolios', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -466,50 +298,38 @@ abstract class derive extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
-    public function private_post_get_notificationsv($params = array()) {
-        return $this->request('get_notificationsv', 'private', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function private_post_get_notifications($params = array()) {
-        return $this->request('get_notifications', 'private', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function private_post_update_notifications($params = array()) {
-        return $this->request('update_notifications', 'private', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function private_post_deposit($params = array()) {
-        return $this->request('deposit', 'private', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
     public function private_post_withdraw($params = array()) {
         return $this->request('withdraw', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
-    public function private_post_transfer_erc20($params = array()) {
-        return $this->request('transfer_erc20', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function private_post_transfer_spot($params = array()) {
+        return $this->request('transfer_spot', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
-    public function private_post_transfer_position($params = array()) {
-        return $this->request('transfer_position', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function private_post_transfer_spot_external($params = array()) {
+        return $this->request('transfer_spot_external', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_transfer_positions($params = array()) {
         return $this->request('transfer_positions', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_reject_deposit_request($params = array()) {
+        return $this->request('reject_deposit_request', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_update_whitelisted_recipients($params = array()) {
+        return $this->request('update_whitelisted_recipients', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -534,12 +354,6 @@ abstract class derive extends \ccxt\Exchange {
      */
     public function private_post_get_order($params = array()) {
         return $this->request('get_order', 'private', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function private_post_get_orders($params = array()) {
-        return $this->request('get_orders', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -754,12 +568,6 @@ abstract class derive extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
-    public function private_post_expired_and_cancelled_history($params = array()) {
-        return $this->request('expired_and_cancelled_history', 'private', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
     public function private_post_get_funding_history($params = array()) {
         return $this->request('get_funding_history', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -790,32 +598,20 @@ abstract class derive extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
-    public function private_post_get_liquidator_history($params = array()) {
-        return $this->request('get_liquidator_history', 'private', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
     public function private_post_session_keys($params = array()) {
         return $this->request('session_keys', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
+    public function private_post_set_session_key($params = array()) {
+        return $this->request('set_session_key', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_post_edit_session_key($params = array()) {
         return $this->request('edit_session_key', 'private', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function private_post_change_session_key_label($params = array()) {
-        return $this->request('change_session_key_label', 'private', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function private_post_register_scoped_session_key($params = array()) {
-        return $this->request('register_scoped_session_key', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -838,44 +634,92 @@ abstract class derive extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
-    public function private_post_set_cancel_on_disconnect($params = array()) {
-        return $this->request('set_cancel_on_disconnect', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function private_post_create_vault($params = array()) {
+        return $this->request('create_vault', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
-    public function private_post_get_invite_code($params = array()) {
-        return $this->request('get_invite_code', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function private_post_update_vault_info($params = array()) {
+        return $this->request('update_vault_info', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
-    public function private_post_register_invite($params = array()) {
-        return $this->request('register_invite', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function private_post_mint_vault_shares($params = array()) {
+        return $this->request('mint_vault_shares', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
-    public function private_post_get_contact_info($params = array()) {
-        return $this->request('get_contact_info', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function private_post_burn_vault_shares($params = array()) {
+        return $this->request('burn_vault_shares', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
-    public function private_post_create_contact_info($params = array()) {
-        return $this->request('create_contact_info', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function private_post_force_burn($params = array()) {
+        return $this->request('force_burn', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
-    public function private_post_update_contact_info($params = array()) {
-        return $this->request('update_contact_info', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function private_post_request_vault_deposit($params = array()) {
+        return $this->request('request_vault_deposit', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
-    public function private_post_delete_contact_info($params = array()) {
-        return $this->request('delete_contact_info', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function private_post_request_vault_withdraw($params = array()) {
+        return $this->request('request_vault_withdraw', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_cancel_all_vault_requests($params = array()) {
+        return $this->request('cancel_all_vault_requests', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_get_vault_shares($params = array()) {
+        return $this->request('get_vault_shares', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_get_curated_vaults($params = array()) {
+        return $this->request('get_curated_vaults', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_get_shareholder_vaults($params = array()) {
+        return $this->request('get_shareholder_vaults', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_get_live_mint_requests($params = array()) {
+        return $this->request('get_live_mint_requests', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_get_live_burn_requests($params = array()) {
+        return $this->request('get_live_burn_requests', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_get_live_vault_requests($params = array()) {
+        return $this->request('get_live_vault_requests', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_get_vault_request_history($params = array()) {
+        return $this->request('get_vault_request_history', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -886,56 +730,14 @@ abstract class derive extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
-    public function publicPostBuildRegisterSessionKeyTx($params = array()) {
-        return $this->request('build_register_session_key_tx', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function publicPostRegisterSessionKey($params = array()) {
-        return $this->request('register_session_key', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function publicPostDeregisterSessionKey($params = array()) {
-        return $this->request('deregister_session_key', 'public', 'POST', $params, null, null, array("cost" => 1));
+    public function publicPostDecodeAction($params = array()) {
+        return $this->request('decode_action', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function publicPostGetWalletsFromSessionKey($params = array()) {
         return $this->request('get_wallets_from_session_key', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function publicPostLogin($params = array()) {
-        return $this->request('login', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function publicPostStatistics($params = array()) {
-        return $this->request('statistics', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function publicPostAllStatistics($params = array()) {
-        return $this->request('all_statistics', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function publicPostUserStatistics($params = array()) {
-        return $this->request('user_statistics', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function publicPostAllUserStatistics($params = array()) {
-        return $this->request('all_user_statistics', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -952,14 +754,8 @@ abstract class derive extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
-    public function publicPostGetAsset($params = array()) {
-        return $this->request('get_asset', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function publicPostGetAssets($params = array()) {
-        return $this->request('get_assets', 'public', 'POST', $params, null, null, array("cost" => 1));
+    public function publicPostGetRiskUniverses($params = array()) {
+        return $this->request('get_risk_universes', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -976,8 +772,8 @@ abstract class derive extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
-    public function publicPostGetInstruments($params = array()) {
-        return $this->request('get_instruments', 'public', 'POST', $params, null, null, array("cost" => 1));
+    public function publicPostGetAllLiveInstruments($params = array()) {
+        return $this->request('get_all_live_instruments', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -1006,18 +802,6 @@ abstract class derive extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
-    public function publicPostGetSpotFeedHistory($params = array()) {
-        return $this->request('get_spot_feed_history', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function publicPostGetSpotFeedHistoryCandles($params = array()) {
-        return $this->request('get_spot_feed_history_candles', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
     public function publicPostGetIndexChartData($params = array()) {
         return $this->request('get_index_chart_data', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -1042,12 +826,6 @@ abstract class derive extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
-    public function publicPostGetOptionSettlementHistory($params = array()) {
-        return $this->request('get_option_settlement_history', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
     public function publicPostGetLiquidationHistory($params = array()) {
         return $this->request('get_liquidation_history', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -1060,14 +838,26 @@ abstract class derive extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
-    public function publicPostGetPerpImpactTwap($params = array()) {
-        return $this->request('get_perp_impact_twap', 'public', 'POST', $params, null, null, array("cost" => 1));
+    public function publicPostGetTransaction($params = array()) {
+        return $this->request('get_transaction', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
-    public function publicPostGetTransaction($params = array()) {
-        return $this->request('get_transaction', 'public', 'POST', $params, null, null, array("cost" => 1));
+    public function publicPostGetOnchainActionHistory($params = array()) {
+        return $this->request('get_onchain_action_history', 'public', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicPostGetPendingDeposits($params = array()) {
+        return $this->request('get_pending_deposits', 'public', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicPostRegisterDepositAddress($params = array()) {
+        return $this->request('register_deposit_address', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -1090,134 +880,44 @@ abstract class derive extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
-    public function publicPostValidateInviteCode($params = array()) {
-        return $this->request('validate_invite_code', 'public', 'POST', $params, null, null, array("cost" => 1));
+    public function publicPostGetLiveAuctions($params = array()) {
+        return $this->request('get_live_auctions', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
-    public function publicPostGetPoints($params = array()) {
-        return $this->request('get_points', 'public', 'POST', $params, null, null, array("cost" => 1));
+    public function publicPostStartAuction($params = array()) {
+        return $this->request('start_auction', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
-    public function publicPostGetAllPoints($params = array()) {
-        return $this->request('get_all_points', 'public', 'POST', $params, null, null, array("cost" => 1));
+    public function publicPostGetVault($params = array()) {
+        return $this->request('get_vault', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
-    public function publicPostGetPointsLeaderboard($params = array()) {
-        return $this->request('get_points_leaderboard', 'public', 'POST', $params, null, null, array("cost" => 1));
+    public function publicPostGetVaults($params = array()) {
+        return $this->request('get_vaults', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
-    public function publicPostGetDescendantTree($params = array()) {
-        return $this->request('get_descendant_tree', 'public', 'POST', $params, null, null, array("cost" => 1));
+    public function publicPostGetVaultActionHistory($params = array()) {
+        return $this->request('get_vault_action_history', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
-    public function publicPostGetTreeRoots($params = array()) {
-        return $this->request('get_tree_roots', 'public', 'POST', $params, null, null, array("cost" => 1));
+    public function publicPostGetVaultPerformanceHistory($params = array()) {
+        return $this->request('get_vault_performance_history', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
-    public function publicPostGetSwellPercentPoints($params = array()) {
-        return $this->request('get_swell_percent_points', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function publicPostGetStdrvSnapshots($params = array()) {
-        return $this->request('get_stdrv_snapshots', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function publicPostGetVaultAssets($params = array()) {
-        return $this->request('get_vault_assets', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function publicPostGetEtherfiEffectiveBalances($params = array()) {
-        return $this->request('get_etherfi_effective_balances', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function publicPostGetKelpEffectiveBalances($params = array()) {
-        return $this->request('get_kelp_effective_balances', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function publicPostGetBridgeBalances($params = array()) {
-        return $this->request('get_bridge_balances', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function publicPostGetEthenaParticipants($params = array()) {
-        return $this->request('get_ethena_participants', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function publicPostGetVaultShare($params = array()) {
-        return $this->request('get_vault_share', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function publicPostGetVaultStatistics($params = array()) {
-        return $this->request('get_vault_statistics', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function publicPostGetVaultBalances($params = array()) {
-        return $this->request('get_vault_balances', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function publicPostGetVaultPools($params = array()) {
-        return $this->request('get_vault_pools', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function publicPostGetVaultRates($params = array()) {
-        return $this->request('get_vault_rates', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function publicPostEstimateIntegratorPoints($params = array()) {
-        return $this->request('estimate_integrator_points', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function publicPostCreateSubaccountDebug($params = array()) {
-        return $this->request('create_subaccount_debug', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function publicPostCreateAccountWithSecret($params = array()) {
-        return $this->request('create_account_with_secret', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function publicPostDepositDebug($params = array()) {
-        return $this->request('deposit_debug', 'public', 'POST', $params, null, null, array("cost" => 1));
+    public function publicPostSetSocializationFeedData($params = array()) {
+        return $this->request('set_socialization_feed_data', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -1236,18 +936,6 @@ abstract class derive extends \ccxt\Exchange {
      */
     public function publicPostExecuteQuoteDebug($params = array()) {
         return $this->request('execute_quote_debug', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function publicPostGetInviteCode($params = array()) {
-        return $this->request('get_invite_code', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function publicPostRegisterInvite($params = array()) {
-        return $this->request('register_invite', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -1288,26 +976,8 @@ abstract class derive extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
-    public function publicPostGetDetailedMakerSnapshotHistory($params = array()) {
-        return $this->request('get_detailed_maker_snapshot_history', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function publicPostGetRateLimits($params = array()) {
-        return $this->request('getRateLimits', 'public', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
     public function privatePostGetAccount($params = array()) {
         return $this->request('get_account', 'private', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function privatePostCreateSubaccount($params = array()) {
-        return $this->request('create_subaccount', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -1324,6 +994,12 @@ abstract class derive extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privatePostDeleteSubaccount($params = array()) {
+        return $this->request('delete_subaccount', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatePostGetAllPortfolios($params = array()) {
         return $this->request('get_all_portfolios', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -1336,50 +1012,38 @@ abstract class derive extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
-    public function privatePostGetNotificationsv($params = array()) {
-        return $this->request('get_notificationsv', 'private', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function privatePostGetNotifications($params = array()) {
-        return $this->request('get_notifications', 'private', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function privatePostUpdateNotifications($params = array()) {
-        return $this->request('update_notifications', 'private', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function privatePostDeposit($params = array()) {
-        return $this->request('deposit', 'private', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
     public function privatePostWithdraw($params = array()) {
         return $this->request('withdraw', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
-    public function privatePostTransferErc20($params = array()) {
-        return $this->request('transfer_erc20', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function privatePostTransferSpot($params = array()) {
+        return $this->request('transfer_spot', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
-    public function privatePostTransferPosition($params = array()) {
-        return $this->request('transfer_position', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function privatePostTransferSpotExternal($params = array()) {
+        return $this->request('transfer_spot_external', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostTransferPositions($params = array()) {
         return $this->request('transfer_positions', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostRejectDepositRequest($params = array()) {
+        return $this->request('reject_deposit_request', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostUpdateWhitelistedRecipients($params = array()) {
+        return $this->request('update_whitelisted_recipients', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -1404,12 +1068,6 @@ abstract class derive extends \ccxt\Exchange {
      */
     public function privatePostGetOrder($params = array()) {
         return $this->request('get_order', 'private', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function privatePostGetOrders($params = array()) {
-        return $this->request('get_orders', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -1624,12 +1282,6 @@ abstract class derive extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
-    public function privatePostExpiredAndCancelledHistory($params = array()) {
-        return $this->request('expired_and_cancelled_history', 'private', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
     public function privatePostGetFundingHistory($params = array()) {
         return $this->request('get_funding_history', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -1660,32 +1312,20 @@ abstract class derive extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
-    public function privatePostGetLiquidatorHistory($params = array()) {
-        return $this->request('get_liquidator_history', 'private', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
     public function privatePostSessionKeys($params = array()) {
         return $this->request('session_keys', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
+    public function privatePostSetSessionKey($params = array()) {
+        return $this->request('set_session_key', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatePostEditSessionKey($params = array()) {
         return $this->request('edit_session_key', 'private', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function privatePostChangeSessionKeyLabel($params = array()) {
-        return $this->request('change_session_key_label', 'private', 'POST', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function privatePostRegisterScopedSessionKey($params = array()) {
-        return $this->request('register_scoped_session_key', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -1708,43 +1348,91 @@ abstract class derive extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
-    public function privatePostSetCancelOnDisconnect($params = array()) {
-        return $this->request('set_cancel_on_disconnect', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function privatePostCreateVault($params = array()) {
+        return $this->request('create_vault', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
-    public function privatePostGetInviteCode($params = array()) {
-        return $this->request('get_invite_code', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function privatePostUpdateVaultInfo($params = array()) {
+        return $this->request('update_vault_info', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
-    public function privatePostRegisterInvite($params = array()) {
-        return $this->request('register_invite', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function privatePostMintVaultShares($params = array()) {
+        return $this->request('mint_vault_shares', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
-    public function privatePostGetContactInfo($params = array()) {
-        return $this->request('get_contact_info', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function privatePostBurnVaultShares($params = array()) {
+        return $this->request('burn_vault_shares', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
-    public function privatePostCreateContactInfo($params = array()) {
-        return $this->request('create_contact_info', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function privatePostForceBurn($params = array()) {
+        return $this->request('force_burn', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
-    public function privatePostUpdateContactInfo($params = array()) {
-        return $this->request('update_contact_info', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function privatePostRequestVaultDeposit($params = array()) {
+        return $this->request('request_vault_deposit', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
-    public function privatePostDeleteContactInfo($params = array()) {
-        return $this->request('delete_contact_info', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function privatePostRequestVaultWithdraw($params = array()) {
+        return $this->request('request_vault_withdraw', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostCancelAllVaultRequests($params = array()) {
+        return $this->request('cancel_all_vault_requests', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostGetVaultShares($params = array()) {
+        return $this->request('get_vault_shares', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostGetCuratedVaults($params = array()) {
+        return $this->request('get_curated_vaults', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostGetShareholderVaults($params = array()) {
+        return $this->request('get_shareholder_vaults', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostGetLiveMintRequests($params = array()) {
+        return $this->request('get_live_mint_requests', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostGetLiveBurnRequests($params = array()) {
+        return $this->request('get_live_burn_requests', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostGetLiveVaultRequests($params = array()) {
+        return $this->request('get_live_vault_requests', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostGetVaultRequestHistory($params = array()) {
+        return $this->request('get_vault_request_history', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
 }

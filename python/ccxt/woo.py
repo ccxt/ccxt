@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.woo import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, ADL, Balances, Conversion, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Leverage, MarginModification, MarginLoan, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, ADL, Balances, Conversion, Currencies, Currency, CurrencyInterface, DepositAddress, FundingHistory, Int, LedgerEntry, Leverage, MarginModification, MarginLoan, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import AccountSuspended
@@ -35,7 +35,7 @@ class woo(Exchange, ImplicitAPI):
             'countries': ['KY'],  # Cayman Islands
             'rateLimit': 100,
             'version': 'v1',
-            'certified': True,
+            'certified': False,
             'pro': True,
             'hostname': 'woox.io',
             'has': {
@@ -657,7 +657,7 @@ class woo(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
         })
 
-    def fetch_status(self, params={}) -> Status:
+    def fetch_status(self, params: dict = {}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
@@ -694,7 +694,7 @@ class woo(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def fetch_time(self, params={}) -> Int:
+    def fetch_time(self, params: dict = {}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -717,7 +717,7 @@ class woo(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'timestamp')
 
-    def fetch_markets(self, params={}) -> list[Market]:
+    def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for woo
 
@@ -726,7 +726,7 @@ class woo(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        if self.options['adjustForTimeDifference'] is True:
+        if self.safe_bool(self.options, 'adjustForTimeDifference', False):
             self.load_time_difference()
         response = self.v3PublicGetInstruments(params)
         #
@@ -782,6 +782,8 @@ class woo(Exchange, ImplicitAPI):
         quoteId = self.safe_string(parts, 2)
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         settleId = None
         settle = None
         symbol = base + '/' + quote
@@ -849,7 +851,7 @@ class woo(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -931,8 +933,8 @@ class woo(Exchange, ImplicitAPI):
             else:
                 timestamp = self.safe_integer(trade, 'executedTimestamp')
         marketId = self.safe_string(trade, 'symbol')
-        market = self.safe_market(marketId, market)
-        symbol = market['symbol']
+        marketResolved = self.safe_market(marketId, market)
+        symbol = marketResolved['symbol']
         price = self.safe_string_2(trade, 'executed_price', 'executedPrice')
         amount = self.safe_string_2(trade, 'executed_quantity', 'executedQuantity')
         order_id = self.safe_string_2(trade, 'order_id', 'orderId')
@@ -961,9 +963,9 @@ class woo(Exchange, ImplicitAPI):
             'type': None,
             'fee': fee,
             'info': trade,
-        }, market)
+        }, marketResolved)
 
-    def parse_token_and_fee_temp(self, item: object, feeTokenKeys: object, feeAmountKeys: object):
+    def parse_token_and_fee_temp(self, item: dict, feeTokenKeys: list[str], feeAmountKeys: list[str]):
         feeCost = self.safe_string_n(item, feeAmountKeys)
         fee = None
         if feeCost is not None:
@@ -987,7 +989,7 @@ class woo(Exchange, ImplicitAPI):
             'tierBased': None,
         }
 
-    def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
+    def fetch_trading_fee(self, symbol: str, params: dict = {}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
 
@@ -1020,7 +1022,7 @@ class woo(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_trading_fee(data, market)
 
-    def fetch_trading_fees(self, params={}) -> TradingFees:
+    def fetch_trading_fees(self, params: dict = {}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
 
@@ -1082,7 +1084,7 @@ class woo(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_currencies(self, params={}) -> Currencies:
+    def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
         fetches all available currencies on an exchange
 
@@ -1245,7 +1247,7 @@ class woo(Exchange, ImplicitAPI):
             'info': rawCurrency,
         })
 
-    def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
+    def create_market_buy_order_with_cost(self, symbol: str, cost: float, params: dict = {}) -> Order:
         """
         create a market buy order by providing the symbol and cost
 
@@ -1263,7 +1265,7 @@ class woo(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
         return self.create_order(symbol, 'market', 'buy', cost, 1, params)
 
-    def create_market_sell_order_with_cost(self, symbol: str, cost: float, params={}):
+    def create_market_sell_order_with_cost(self, symbol: str, cost: float, params: dict = {}) -> Order:
         """
         create a market sell order by providing the symbol and cost
 
@@ -1329,7 +1331,7 @@ class woo(Exchange, ImplicitAPI):
         params['trailingTriggerPrice'] = trailingTriggerPrice
         return self.create_order(symbol, type, side, amount, price, params)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -1357,7 +1359,7 @@ class woo(Exchange, ImplicitAPI):
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         reduceOnly = self.safe_bool_2(params, 'reduceOnly', 'reduce_only')
-        params = self.omit(params, ['reduceOnly', 'reduce_only'])
+        paramsOmitted = self.omit(params, ['reduceOnly', 'reduce_only'])
         orderType = type.upper()
         if self.markets is None:
             self.load_markets()
@@ -1367,27 +1369,28 @@ class woo(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'side': orderSide,
         }
-        marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
+        marginMode, paramsMarginMode = self.handle_margin_mode_and_params('createOrder', paramsOmitted)
         if marginMode is not None:
             request['marginMode'] = self.encode_margin_mode(marginMode)
-        triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
-        stopLoss = self.safe_value(params, 'stopLoss')
-        takeProfit = self.safe_value(params, 'takeProfit')
+        triggerPrice = self.safe_string_2(paramsMarginMode, 'triggerPrice', 'stopPrice')
+        stopLoss = self.safe_value(paramsMarginMode, 'stopLoss')
+        takeProfit = self.safe_value(paramsMarginMode, 'takeProfit')
         hasStopLoss = (stopLoss is not None)
         hasTakeProfit = (takeProfit is not None)
-        algoType = self.safe_string(params, 'algoType')
-        trailingTriggerPrice = self.safe_string_2(params, 'trailingTriggerPrice', 'activatedPrice', self.number_to_string(price))
-        trailingAmount = self.safe_string_2(params, 'trailingAmount', 'callbackValue')
-        trailingPercent = self.safe_string_2(params, 'trailingPercent', 'callbackRate')
+        algoType = self.safe_string(paramsMarginMode, 'algoType')
+        trailingTriggerPrice = self.safe_string_2(paramsMarginMode, 'trailingTriggerPrice', 'activatedPrice', self.number_to_string(price))
+        trailingAmount = self.safe_string_2(paramsMarginMode, 'trailingAmount', 'callbackValue')
+        trailingPercent = self.safe_string_2(paramsMarginMode, 'trailingPercent', 'callbackRate')
         isTrailingAmountOrder = trailingAmount is not None
         isTrailingPercentOrder = trailingPercent is not None
         isTrailing = isTrailingAmountOrder or isTrailingPercentOrder
-        isConditional = isTrailing or triggerPrice is not None or hasStopLoss or hasTakeProfit or (self.safe_value(params, 'childOrders') is not None)
+        isConditional = isTrailing or triggerPrice is not None or hasStopLoss or hasTakeProfit or (self.safe_value(paramsMarginMode, 'childOrders') is not None)
         isMarket = orderType == 'MARKET'
-        timeInForce = self.safe_string_lower(params, 'timeInForce')
-        postOnly = self.is_post_only(isMarket, None, params)
-        clientOrderIdKey = 'clientAlgoOrderId' if isConditional else 'clientOrderId'
+        timeInForce = self.safe_string_lower(paramsMarginMode, 'timeInForce')
+        postOnly = self.is_post_only(isMarket, None, paramsMarginMode)
+        clientOrderIdKey = 'clientOrderId'
+        if isConditional:
+            clientOrderIdKey = 'clientAlgoOrderId'
         request['type'] = orderType  # LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
         if not isConditional:
             if postOnly:
@@ -1400,10 +1403,13 @@ class woo(Exchange, ImplicitAPI):
             request['reduceOnly'] = reduceOnly
         if not isMarket and price is not None:
             request['price'] = self.price_to_precision(symbol, price)
-        if isMarket and not isConditional:
+        isMarketNotConditional = isMarket and not isConditional
+        paramsCost = paramsMarginMode
+        if isMarketNotConditional:
+            paramsCost = self.omit(paramsMarginMode, ['cost', 'order_amount', 'orderAmount'])
+        if isMarketNotConditional:
             # for market buy it requires the amount of quote currency to spend
-            cost = self.safe_string_n(params, ['cost', 'order_amount', 'orderAmount'])
-            params = self.omit(params, ['cost', 'order_amount', 'orderAmount'])
+            cost = self.safe_string_n(paramsMarginMode, ['cost', 'order_amount', 'orderAmount'])
             isPriceProvided = price is not None
             if (market['spot'] is True) and (isPriceProvided or (cost is not None)):
                 quoteAmount = None
@@ -1419,7 +1425,7 @@ class woo(Exchange, ImplicitAPI):
                 request['quantity'] = self.amount_to_precision(symbol, amount)
         elif algoType != 'POSITIONAL_TP_SL':
             request['quantity'] = self.amount_to_precision(symbol, amount)
-        clientOrderId = self.safe_string_n(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
+        clientOrderId = self.safe_string_n(paramsCost, ['clOrdID', 'clientOrderId', 'client_order_id'])
         if clientOrderId is not None:
             request[clientOrderIdKey] = clientOrderId
         if isTrailing:
@@ -1445,7 +1451,9 @@ class woo(Exchange, ImplicitAPI):
                 'childOrders': [],
             }
             childOrders = outterOrder['childOrders']
-            closeSide = 'SELL' if (orderSide == 'BUY') else 'BUY'
+            closeSide = 'BUY'
+            if orderSide == 'BUY':
+                closeSide = 'SELL'
             if hasStopLoss:
                 stopLossPrice = self.safe_string(stopLoss, 'triggerPrice', stopLoss)
                 stopLossOrder = {
@@ -1467,10 +1475,10 @@ class woo(Exchange, ImplicitAPI):
                 }
                 childOrders.append(takeProfitOrder)
             request['childOrders'] = [outterOrder]
-        params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingPercent', 'trailingAmount', 'trailingTriggerPrice'])
+        paramsRequest = self.omit(paramsCost, ['clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingPercent', 'trailingAmount', 'trailingTriggerPrice'])
         response = None
         if isConditional:
-            response = self.v3PrivatePostTradeAlgoOrder(self.extend(request, params))
+            response = self.v3PrivatePostTradeAlgoOrder(self.extend(request, paramsRequest))
             #
             # {
             #     "success": true,
@@ -1488,7 +1496,7 @@ class woo(Exchange, ImplicitAPI):
             # }
             #
         else:
-            response = self.v3PrivatePostTradeOrder(self.extend(request, params))
+            response = self.v3PrivatePostTradeOrder(self.extend(request, paramsRequest))
             #
             #     {
             #         "success": true,
@@ -1509,14 +1517,14 @@ class woo(Exchange, ImplicitAPI):
         data['timestamp'] = self.safe_string(response, 'timestamp')
         return self.parse_order(data, market)
 
-    def encode_margin_mode(self, mode: object):
+    def encode_margin_mode(self, mode: Str) -> Str:
         modes = {
             'cross': 'CROSS',
             'isolated': 'ISOLATED',
         }
         return self.safe_string(modes, mode, mode)
 
-    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
         """
         edit a trade order
 
@@ -1572,21 +1580,21 @@ class woo(Exchange, ImplicitAPI):
                 convertedTrailingPercent = Precise.string_div(trailingPercent, '100')
                 request['callbackRate'] = convertedTrailingPercent
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
-        params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent', 'trigger', 'stop'])
-        isConditional = (isTrigger is True) or isTrailing or (triggerPrice is not None) or (self.safe_value(params, 'childOrders') is not None)
+        paramsOmitted = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent', 'trigger', 'stop'])
+        isConditional = (isTrigger is True) or isTrailing or (triggerPrice is not None) or (self.safe_value(paramsOmitted, 'childOrders') is not None)
         response = None
         if isConditional:
             if isByClientOrder:
                 request['clientAlgoOrderId'] = clientOrderIdExchangeSpecific
             else:
                 request['algoOrderId'] = id
-            response = self.v3PrivatePutTradeAlgoOrder(self.extend(request, params))
+            response = self.v3PrivatePutTradeAlgoOrder(self.extend(request, paramsOmitted))
         else:
             if isByClientOrder:
                 request['clientOrderId'] = clientOrderIdExchangeSpecific
             else:
                 request['orderId'] = id
-            response = self.v3PrivatePutTradeOrder(self.extend(request, params))
+            response = self.v3PrivatePutTradeOrder(self.extend(request, paramsOmitted))
         #
         #     {
         #         "success": true,
@@ -1604,7 +1612,7 @@ class woo(Exchange, ImplicitAPI):
             order['orderId'] = id
         return self.parse_order(order, market)
 
-    def cancel_order(self, id: str, symbol: Str = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
 
         https://developer.woox.io/api-reference/endpoint/trading/cancel_order
@@ -1618,7 +1626,7 @@ class woo(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
-        params = self.omit(params, ['trigger', 'stop'])
+        paramsOmitted = self.omit(params, ['trigger', 'stop'])
         if (isTrigger is not True) and (symbol is None):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         if self.markets is None:
@@ -1627,9 +1635,9 @@ class woo(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         request = {}
-        clientOrderIdUnified = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
-        clientOrderIdExchangeSpecific = self.safe_string(params, 'client_order_id', clientOrderIdUnified)
-        params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
+        clientOrderIdUnified = self.safe_string_2(paramsOmitted, 'clOrdID', 'clientOrderId')
+        clientOrderIdExchangeSpecific = self.safe_string(paramsOmitted, 'client_order_id', clientOrderIdUnified)
+        paramsOmitted2 = self.omit(paramsOmitted, ['clOrdID', 'clientOrderId', 'client_order_id'])
         isByClientOrder = clientOrderIdExchangeSpecific is not None
         response = None
         if isTrigger is True:
@@ -1637,14 +1645,14 @@ class woo(Exchange, ImplicitAPI):
                 request['clientAlgoOrderId'] = clientOrderIdExchangeSpecific
             else:
                 request['algoOrderId'] = id
-            response = self.v3PrivateDeleteTradeAlgoOrder(self.extend(request, params))
+            response = self.v3PrivateDeleteTradeAlgoOrder(self.extend(request, paramsOmitted2))
         else:
             request['symbol'] = self.safe_string(market, 'id')
             if isByClientOrder:
                 request['clientOrderId'] = clientOrderIdExchangeSpecific
             else:
                 request['orderId'] = id
-            response = self.v3PrivateDeleteTradeOrder(self.extend(request, params))
+            response = self.v3PrivateDeleteTradeOrder(self.extend(request, paramsOmitted2))
         #
         #     {
         #         "success": true,
@@ -1662,7 +1670,7 @@ class woo(Exchange, ImplicitAPI):
             data['orderId'] = id
         return self.parse_order(data, market)
 
-    def cancel_all_orders(self, symbol: Str = None, params={}):
+    def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
 
         https://developer.woox.io/api-reference/endpoint/trading/cancel_orders_by_symbol
@@ -1677,17 +1685,17 @@ class woo(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
-        params = self.omit(params, ['stop', 'trigger'])
+        paramsOmitted = self.omit(params, ['stop', 'trigger'])
         request = {}
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
         response = None
         if trigger is True:
-            response = self.v3PrivateDeleteTradeAlgoOrders(params)
+            response = self.v3PrivateDeleteTradeAlgoOrders(paramsOmitted)
         else:
             # cancels both regular and algo orders
-            response = self.v3PrivateDeleteTradeAllOrders(self.extend(request, params))
+            response = self.v3PrivateDeleteTradeAllOrders(self.extend(request, paramsOmitted))
         #
         #     {
         #         "success": true,
@@ -1700,7 +1708,7 @@ class woo(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return [self.safe_order({'info': data})]
 
-    def cancel_all_orders_after(self, timeout: Int, params={}):
+    def cancel_all_orders_after(self, timeout: Int, params: dict = {}):
         """
         dead man's switch, cancel all orders after the given timeout
 
@@ -1727,7 +1735,7 @@ class woo(Exchange, ImplicitAPI):
         #
         return response
 
-    def fetch_order(self, id: str, symbol: Str = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
 
         https://developer.woox.io/api-reference/endpoint/trading/get_order
@@ -1746,16 +1754,16 @@ class woo(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
-        params = self.omit(params, ['stop', 'trigger'])
+        paramsOmitted = self.omit(params, ['stop', 'trigger'])
         request = {}
-        clientOrderId = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
+        clientOrderId = self.safe_string_2(paramsOmitted, 'clOrdID', 'clientOrderId')
         response = None
         if trigger is True:
             if clientOrderId is not None:
                 request['clientAlgoOrderId'] = id
             else:
                 request['algoOrderId'] = id
-            response = self.v3PrivateGetTradeAlgoOrder(self.extend(request, params))
+            response = self.v3PrivateGetTradeAlgoOrder(self.extend(request, paramsOmitted))
             #
             #     {
             #         "success": true,
@@ -1798,7 +1806,7 @@ class woo(Exchange, ImplicitAPI):
                 request['clientOrderId'] = clientOrderId
             else:
                 request['orderId'] = id
-            response = self.v3PrivateGetTradeOrder(self.extend(request, params))
+            response = self.v3PrivateGetTradeOrder(self.extend(request, paramsOmitted))
             #
             #     {
             #         "success": true,
@@ -1832,7 +1840,7 @@ class woo(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
-    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -1851,28 +1859,27 @@ class woo(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOrders', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_incremental('fetchOrders', symbol, since, limit, params, 'page', 500)
+            return self.fetch_paginated_call_incremental('fetchOrders', symbol, since, limit, paramsPaginate, 'page', 500)
         request = {}
         market = None
-        trigger = self.safe_bool_2(params, 'stop', 'trigger')
-        params = self.omit(params, ['stop', 'trigger'])
+        trigger = self.safe_bool_2(paramsPaginate, 'stop', 'trigger')
+        paramsOmitted = self.omit(paramsPaginate, ['stop', 'trigger'])
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
         if since is not None:
             request['startTime'] = since
-        until = self.safe_integer(params, 'until')  # unified in milliseconds
-        params = self.omit(params, ['until'])
+        until = self.safe_integer(paramsOmitted, 'until')  # unified in milliseconds
+        paramsOmitted2 = self.omit(paramsOmitted, ['until'])
         if until is not None:
             request['endTime'] = until
         if limit is not None:
             request['size'] = min(limit, 500)
         response = None
         if trigger is True:
-            response = self.v3PrivateGetTradeAlgoOrders(self.extend(request, params))
+            response = self.v3PrivateGetTradeAlgoOrders(self.extend(request, paramsOmitted2))
             #
             #     {
             #         "success": true,
@@ -1920,7 +1927,7 @@ class woo(Exchange, ImplicitAPI):
             #     }
             #
         else:
-            response = self.v3PrivateGetTradeOrders(self.extend(request, params))
+            response = self.v3PrivateGetTradeOrders(self.extend(request, paramsOmitted2))
             #
             #     {
             #         "success": true,
@@ -1960,11 +1967,11 @@ class woo(Exchange, ImplicitAPI):
             #         "timestamp": 1752053061236
             #     }
             #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         orders = self.safe_list(data, 'rows', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -1987,7 +1994,7 @@ class woo(Exchange, ImplicitAPI):
         extendedParams = self.extend(params, {'status': 'INCOMPLETE'})
         return self.fetch_orders(symbol, since, limit, extendedParams)
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -2112,13 +2119,12 @@ class woo(Exchange, ImplicitAPI):
         orderId = self.safe_string_2(order, 'orderId', 'algoOrderId')
         clientOrderId = self.omit_zero(self.safe_string_2(order, 'clientOrderId', 'clientAlgoOrderId'))  # Somehow, this always returns 0 for limit order
         marketId = self.safe_string(order, 'symbol')
-        market = self.safe_market(marketId, market)
-        symbol = market['symbol']
+        marketResolved = self.safe_market(marketId, market)
+        symbol = marketResolved['symbol']
         price = self.safe_string(order, 'price')
         amount = self.safe_string(order, 'quantity')  # This is base amount
-        cost = self.safe_string(order, 'amount')  # This is quote amount
         orderType = self.safe_string_lower(order, 'type')
-        status = self.safe_value_2(order, 'status', 'algoStatus')
+        status = self.safe_string_2(order, 'status', 'algoStatus')
         side = self.safe_string_lower(order, 'side')
         filled = self.safe_string_2(order, 'executed', 'totalExecutedQuantity')
         average = self.omit_zero(self.safe_string(order, 'averageExecutedPrice'))
@@ -2158,14 +2164,15 @@ class woo(Exchange, ImplicitAPI):
             'amount': amount,
             'filled': filled,
             'remaining': None,  # computed by safeOrder from amount minus filled
-            'cost': cost,
+            # safeOrder derives the cost from filled and average; `amount` is the quote the order reserved
+            'cost': None,
             'trades': None,
             'fee': {
                 'cost': fee,
                 'currency': feeCurrency,
             },
             'info': order,
-        }, market)
+        }, marketResolved)
 
     def parse_order_status(self, status: Str):
         if status is not None:
@@ -2184,7 +2191,7 @@ class woo(Exchange, ImplicitAPI):
             return self.safe_string(statuses, status, status)
         return None
 
-    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -2248,10 +2255,10 @@ class woo(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(ticker, 'symbol')
-        market = self.safe_market(marketId, market)
+        marketResolved = self.safe_market(marketId, market)
         timestamp = self.safe_integer(ticker, 'timestamp')
         return self.safe_ticker({
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': self.safe_string(ticker, '24hHigh'),
@@ -2273,9 +2280,9 @@ class woo(Exchange, ImplicitAPI):
             'indexPrice': self.safe_string(ticker, 'indexPrice'),
             'markPrice': self.safe_string(ticker, 'markPrice'),
             'info': ticker,
-        }, market)
+        }, marketResolved)
 
-    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market, swap markets only
 
@@ -2327,7 +2334,7 @@ class woo(Exchange, ImplicitAPI):
         ticker = self.extend({'timestamp': self.safe_integer(response, 'timestamp')}, first)
         return self.parse_ticker(ticker, market)
 
-    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market, only swap markets are supported
 
@@ -2350,13 +2357,14 @@ class woo(Exchange, ImplicitAPI):
                 firstMarket = self.market(symbols[0])
                 if firstMarket['swap'] is not True:
                     raise NotSupported(self.id + ' fetchTickers() supports swap markets only')
-        symbols = self.market_symbols(symbols, 'swap', True, True)
-        if symbols is None:
-            marketType = None
-            marketType, params = self.handle_market_type_and_params('fetchTickers', None, params, 'swap')
+        symbolsNormalized = self.market_symbols(symbols, 'swap', True, True)
+        paramsRequest = params
+        if symbolsNormalized is None:
+            marketType, paramsMarketType = self.handle_market_type_and_params('fetchTickers', None, params, 'swap')
             if marketType != 'swap':
                 raise NotSupported(self.id + ' fetchTickers() supports swap markets only')
-        response = self.v3PublicGetFutures(params)
+            paramsRequest = paramsMarketType
+        response = self.v3PublicGetFutures(paramsRequest)
         #
         # same as fetchTicker, with multiple rows
         #
@@ -2373,9 +2381,9 @@ class woo(Exchange, ImplicitAPI):
                 continue  # the endpoint can return newly listed contracts before they appear in the instruments
             ticker = self.extend({'timestamp': timestamp}, row)
             result.append(self.parse_ticker(ticker))
-        return self.filter_by_array_tickers(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)
 
-    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
 
         https://developer.woox.io/api-reference/endpoint/public_data/klineHistory
@@ -2401,10 +2409,10 @@ class woo(Exchange, ImplicitAPI):
         if since is not None:
             request['after'] = since - 1  # #27793
         until = self.safe_integer(params, 'until')
-        params = self.omit(params, 'until')
+        paramsOmitted = self.omit(params, 'until')
         if until is not None:
             request['before'] = until
-        response = self.v3PublicGetKlineHistory(self.extend(request, params))
+        response = self.v3PublicGetKlineHistory(self.extend(request, paramsOmitted))
         #
         #     {
         #         "success": true,
@@ -2441,7 +2449,7 @@ class woo(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all the trades made from a single order
 
@@ -2484,7 +2492,7 @@ class woo(Exchange, ImplicitAPI):
         trades = self.safe_list(response, 'rows', [])
         return self.parse_trades(trades, market, since, limit, params)
 
-    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -2499,10 +2507,9 @@ class woo(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_incremental('fetchMyTrades', symbol, since, limit, params, 'page', 500)
+            return self.fetch_paginated_call_incremental('fetchMyTrades', symbol, since, limit, paramsPaginate, 'page', 500)
         request = {}
         market = None
         if symbol is not None:
@@ -2510,13 +2517,13 @@ class woo(Exchange, ImplicitAPI):
             request['symbol'] = market['id']
         if since is not None:
             request['startTime'] = since
-        until = self.safe_integer(params, 'until')  # unified in milliseconds
-        params = self.omit(params, ['until'])
+        until = self.safe_integer(paramsPaginate, 'until')  # unified in milliseconds
+        paramsOmitted = self.omit(paramsPaginate, ['until'])
         if until is not None:
             request['endTime'] = until
         if limit is not None:
             request['limit'] = limit
-        response = self.v3PrivateGetTradeTransactionHistory(self.extend(request, params))
+        response = self.v3PrivateGetTradeTransactionHistory(self.extend(request, paramsOmitted))
         #
         #     {
         #         "success": true,
@@ -2548,9 +2555,9 @@ class woo(Exchange, ImplicitAPI):
         #
         data = self.safe_dict(response, 'data', {})
         trades = self.safe_list(data, 'rows', [])
-        return self.parse_trades(trades, market, since, limit, params)
+        return self.parse_trades(trades, market, since, limit, paramsOmitted)
 
-    def fetch_accounts(self, params={}) -> list[Account]:
+    def fetch_accounts(self, params: dict = {}) -> list[Account]:
         """
         fetch all the accounts associated with a profile
 
@@ -2614,7 +2621,7 @@ class woo(Exchange, ImplicitAPI):
         rows = self.array_concat(mainRows, subRows)
         return self.parse_accounts(rows, params)
 
-    def parse_account(self, account: object):
+    def parse_account(self, account: dict):
         #
         #     {
         #         "applicationId": "251bf5c4-f3c8-4544-bb8b-80001007c3c0",
@@ -2654,7 +2661,7 @@ class woo(Exchange, ImplicitAPI):
             'type': self.safe_string_lower(account, 'accountType', 'subaccount'),
         }
 
-    def fetch_balance(self, params={}) -> Balances:
+    def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -2698,7 +2705,7 @@ class woo(Exchange, ImplicitAPI):
         }
         balances = self.safe_list(response, 'holding', [])
         for i in range(0, len(balances)):
-            balance = balances[i]
+            balance = self.safe_dict(balances, i)
             code = self.safe_currency_code(self.safe_string(balance, 'token'))
             account = self.account()
             account['total'] = self.safe_string(balance, 'holding')
@@ -2707,7 +2714,7 @@ class woo(Exchange, ImplicitAPI):
                 result[code] = account
         return self.safe_balance(result)
 
-    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
+    def fetch_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
 
@@ -2721,13 +2728,12 @@ class woo(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         currency = self.currency(code)
-        networkCode = None
-        networkCode, params = self.handle_network_code_and_params(params)
+        networkCode, paramsNetworkCode = self.handle_network_code_and_params(params)
         request = {
             'token': currency['id'],
-            'network': self.network_code_to_id(networkCode, currency['code']),
+            'network': self.network_code_to_id(networkCode, self.safe_string(currency, 'code')),
         }
-        response = self.v3PrivateGetAssetWalletDeposit(self.extend(request, params))
+        response = self.v3PrivateGetAssetWalletDeposit(self.extend(request, paramsNetworkCode))
         #
         #     {
         #         "success": true,
@@ -2742,17 +2748,16 @@ class woo(Exchange, ImplicitAPI):
         return self.parse_deposit_address(self.extend(data, {'network': self.safe_string(request, 'network')}), currency)
 
     def get_dedicated_network_id(self, currency: object, params: dict) -> object:
-        networkCode = None
-        networkCode, params = self.handle_network_code_and_params(params)
-        networkCode = self.network_id_to_code(networkCode, currency['code'])
+        networkCodeRaw, paramsNetworkCode = self.handle_network_code_and_params(params)
+        networkCode = self.network_id_to_code(networkCodeRaw, currency['code'])
         networkEntry = None if (networkCode is None) else self.safe_dict(currency['networks'], networkCode)
         if networkEntry is None:
             supportedNetworks = list(currency['networks'].keys())
             raise BadRequest(self.id + '  can not determine a network code, please provide unified "network" param, one from the following: ' + self.json(supportedNetworks))
         currentyNetworkId = self.safe_string(networkEntry, 'currencyNetworkId')
-        return [currentyNetworkId, params]
+        return [currentyNetworkId, paramsNetworkCode]
 
-    def parse_deposit_address(self, depositEntry: object, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositEntry: dict, currency: Currency = None) -> DepositAddress:
         address = self.safe_string(depositEntry, 'address')
         self.check_address(address)
         networkId = self.safe_string(depositEntry, 'network')
@@ -2772,19 +2777,18 @@ class woo(Exchange, ImplicitAPI):
         if code is not None:
             currency = self.currency(code)
             request['token'] = currency['id']
-        networkCode = None
-        networkCode, params = self.handle_network_code_and_params(params)
+        networkCode, paramsNetworkCode = self.handle_network_code_and_params(params)
         if networkCode is not None:
             request['network'] = self.network_code_to_id(networkCode, self.safe_string(currency, 'code'))
         if since is not None:
             request['startTime'] = since
         if limit is not None:
             request['size'] = min(limit, 1000)
-        transactionType = self.safe_string(params, 'type')
-        params = self.omit(params, 'type')
+        transactionType = self.safe_string(paramsNetworkCode, 'type')
+        paramsOmitted = self.omit(paramsNetworkCode, 'type')
         if transactionType is not None:
             request['type'] = transactionType
-        response = self.v3PrivateGetAssetWalletHistory(self.extend(request, params))
+        response = self.v3PrivateGetAssetWalletHistory(self.extend(request, paramsOmitted))
         #
         #     {
         #         "success": true,
@@ -2823,7 +2827,7 @@ class woo(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return [currency, self.safe_list(data, 'rows', [])]
 
-    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LedgerEntry]:
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
 
@@ -2865,10 +2869,12 @@ class woo(Exchange, ImplicitAPI):
         #
         networkizedCode = self.safe_string(item, 'token')
         code = self.safe_currency_code(networkizedCode, currency)
-        currency = self.safe_currency(code, currency)
+        currencyResolved = self.safe_currency(code, currency)
         amount = self.safe_number(item, 'amount')
         side = self.safe_string(item, 'tokenSide')
-        direction = 'in' if (side == 'DEPOSIT') else 'out'
+        direction = 'out'
+        if side == 'DEPOSIT':
+            direction = 'in'
         timestamp = self.safe_timestamp(item, 'createdTime')
         fee = self.parse_token_and_fee_temp(item, ['feeToken'], ['feeAmount'])
         return self.safe_ledger_entry({
@@ -2887,9 +2893,9 @@ class woo(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'type': self.parse_ledger_entry_type(self.safe_string(item, 'type')),
             'fee': fee,
-        }, currency)
+        }, currencyResolved)
 
-    def parse_ledger_entry_type(self, type: object):
+    def parse_ledger_entry_type(self, type: Str) -> Str:
         types = {
             'BALANCE': 'transaction',  # Funds moved in/out wallet
             'COLLATERAL': 'transfer',  # Funds moved between portfolios
@@ -2906,10 +2912,9 @@ class woo(Exchange, ImplicitAPI):
             currencyId = self.safe_string(parts, 1, firstPart)
             if partsLength > 2:
                 currencyId += '_' + self.safe_string(parts, 2)
-            currency = self.safe_currency(currencyId)
-        return currency
+            return self.safe_currency(currencyId)
 
-    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -2926,7 +2931,7 @@ class woo(Exchange, ImplicitAPI):
         }
         return self.fetch_deposits_withdrawals(code, since, limit, self.extend(request, params))
 
-    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -2943,7 +2948,7 @@ class woo(Exchange, ImplicitAPI):
         }
         return self.fetch_deposits_withdrawals(code, since, limit, self.extend(request, params))
 
-    def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch history of deposits and withdrawals
 
@@ -2961,7 +2966,7 @@ class woo(Exchange, ImplicitAPI):
         currencyRows = self.get_asset_history_rows(code, since, limit, self.extend(request, params))
         currency = self.safe_value(currencyRows, 0)
         rows = self.safe_list(currencyRows, 1, [])
-        return self.parse_transactions(rows, currency, since, limit, params)
+        return self.parse_transactions(rows, currency, since, limit, self.omit(params, 'tokenSide'))
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
@@ -3029,7 +3034,7 @@ class woo(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
 
@@ -3075,7 +3080,7 @@ class woo(Exchange, ImplicitAPI):
             transfer['toAccount'] = toAccount
         return transfer
 
-    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[TransferEntry]:
+    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
 
@@ -3097,10 +3102,10 @@ class woo(Exchange, ImplicitAPI):
         if since is not None:
             request['startTime'] = since
         until = self.safe_integer(params, 'until')  # unified in milliseconds
-        params = self.omit(params, ['until'])
+        paramsOmitted = self.omit(params, ['until'])
         if until is not None:
             request['endTime'] = until
-        response = self.v3PrivateGetAssetTransferHistory(self.extend(request, params))
+        response = self.v3PrivateGetAssetTransferHistory(self.extend(request, paramsOmitted))
         #
         #     {
         #         "success": true,
@@ -3134,7 +3139,7 @@ class woo(Exchange, ImplicitAPI):
         #
         data = self.safe_dict(response, 'data', {})
         rows = self.safe_list(data, 'rows', [])
-        return self.parse_transfers(rows, currency, since, limit, params)
+        return self.parse_transfers(rows, currency, since, limit, paramsOmitted)
 
     def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
@@ -3194,7 +3199,7 @@ class woo(Exchange, ImplicitAPI):
             'info': transfer,
         }
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -3203,28 +3208,28 @@ class woo(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tag, params = self.handle_withdraw_tag_and_params(tag, params)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
         if self.markets is None:
             self.load_markets()
-        self.check_address(address)
+        self.check_address(address, code, tagWithdrawTag)
         currency = self.currency(code)
         request = {
             'amount': amount,
             'address': address,
         }
-        if tag is not None:
-            request['extra'] = tag
-        network = self.safe_string(params, 'network')
+        if tagWithdrawTag is not None:
+            request['extra'] = tagWithdrawTag
+        network = self.safe_string(paramsWithdrawTag, 'network')
         if network is None:
             raise ArgumentsRequired(self.id + ' withdraw() requires a network parameter for ' + code)
-        params = self.omit(params, 'network')
+        paramsOmitted = self.omit(paramsWithdrawTag, 'network')
         request['token'] = currency['id']
-        request['network'] = self.network_code_to_id(network, currency['code'])
-        response = self.v3PrivatePostAssetWalletWithdraw(self.extend(request, params))
+        request['network'] = self.network_code_to_id(network, self.safe_string(currency, 'code'))
+        response = self.v3PrivatePostAssetWalletWithdraw(self.extend(request, paramsOmitted))
         #
         #     {
         #         "success": true,
@@ -3238,14 +3243,14 @@ class woo(Exchange, ImplicitAPI):
             'currency': code,
             'amount': amount,
             'addressTo': address,
-            'tag': tag,
+            'tag': tagWithdrawTag,
             'network': network,
             'type': 'withdrawal',
             'status': 'pending',
         })
         return self.parse_transaction(transactionData, currency)
 
-    def repay_margin(self, code: str, amount: float, symbol: Str = None, params={}) -> MarginLoan:
+    def repay_margin(self, code: str, amount: float, symbol: Str = None, params: dict = {}) -> MarginLoan:
         """
         repay borrowed margin and interest
 
@@ -3259,10 +3264,7 @@ class woo(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-            symbol = market['symbol']
+        symbolResolved = self.market(symbol)['symbol'] if (symbol is not None) else None
         currency = self.currency(code)
         request = {
             'token': currency['id'],  # interest token that you want to repay
@@ -3277,10 +3279,10 @@ class woo(Exchange, ImplicitAPI):
         transaction = self.parse_margin_loan(response, currency)
         return self.extend(transaction, {
             'amount': amount,
-            'symbol': symbol,
+            'symbol': symbolResolved,
         })
 
-    def parse_margin_loan(self, info: object, currency: Currency = None) -> MarginLoan:
+    def parse_margin_loan(self, info: dict, currency: Currency = None) -> MarginLoan:
         #
         #     {
         #         "success": true,
@@ -3296,25 +3298,29 @@ class woo(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    def nonce(self):
-        return self.milliseconds() - self.options['timeDifference']
+    def nonce(self) -> float:
+        return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)
 
-    def sign(self, path: object, section='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None):
-        version = section[0]
-        access = section[1]
+    def sign(self, path: str, section='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        requestHeaders = None
+        requestBody = None
+        version = self.safe_string(section, 0)
+        access = self.safe_string(section, 1)
         pathWithParams = self.implode_params(path, params)
-        url = self.implode_hostname(self.urls['api'][access])
+        baseApiUrl = self.safe_string(self.urls['api'], access)
+        if baseApiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = self.implode_hostname(baseApiUrl)
         url += '/' + version + '/'
-        params = self.omit(params, self.extract_params(path))
-        params = self.keysort(params)
+        paramsSorted = self.keysort(self.omit(params, self.extract_params(path)))
         if access == 'public':
-            url += access + '/' + pathWithParams
-            if len(params) > 0:
-                url += '?' + self.urlencode(params)
+            url += 'public/' + pathWithParams
+            if len(paramsSorted) > 0:
+                url += '?' + self.urlencode(paramsSorted)
         elif access == 'pub':
             url += pathWithParams
-            if len(params) > 0:
-                url += '?' + self.urlencode(params)
+            if len(paramsSorted) > 0:
+                url += '?' + self.urlencode(paramsSorted)
         else:
             self.check_required_credentials()
             if method == 'POST' and (path == 'trade/algoOrder' or path == 'trade/order'):
@@ -3324,39 +3330,41 @@ class woo(Exchange, ImplicitAPI):
                     brokerId = self.safe_string(self.options, 'brokerId', applicationId)
                     isTrigger = path.find('algo') > -1
                     if isTrigger:
-                        params['brokerId'] = brokerId
+                        paramsSorted['brokerId'] = brokerId
                     else:
-                        params['broker_id'] = brokerId
-                params = self.keysort(params)
+                        paramsSorted['broker_id'] = brokerId
+            paramsSigned = self.keysort(paramsSorted)
             auth = ''
             ts = str(self.nonce())
             url += pathWithParams
-            headers = {
+            requestHeaders = {
                 'x-api-key': self.apiKey,
                 'x-api-timestamp': ts,
             }
             if version == 'v3':
                 auth = ts + method + '/' + version + '/' + pathWithParams
                 if method == 'POST' or method == 'PUT':
-                    body = self.json(params)
-                    auth += body
-                    headers['content-type'] = 'application/json'
+                    requestBody = self.json(paramsSigned)
+                    auth += requestBody
+                    requestHeaders['content-type'] = 'application/json'
                 else:
-                    if len(params) > 0:
-                        query = self.urlencode(params)
+                    if len(paramsSigned) > 0:
+                        query = self.urlencode(paramsSigned)
                         url += '?' + query
                         auth += '?' + query
             else:
-                auth = self.urlencode(params)
+                auth = self.urlencode(paramsSigned)
                 if method == 'POST' or method == 'PUT' or method == 'DELETE':
-                    body = auth
+                    requestBody = auth
                 else:
-                    if len(params) > 0:
+                    if len(paramsSigned) > 0:
                         url += '?' + auth
                 auth += '|' + ts
-                headers['content-type'] = 'application/x-www-form-urlencoded'
-            headers['x-api-signature'] = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+                requestHeaders['content-type'] = 'application/x-www-form-urlencoded'
+            requestHeaders['x-api-signature'] = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
+        headersResult = requestHeaders if (requestHeaders is not None) else headers
+        bodyResult = requestBody if (requestBody is not None) else body
+        return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
@@ -3373,7 +3381,7 @@ class woo(Exchange, ImplicitAPI):
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
         return None
 
-    def parse_income(self, income: object, market: Market = None):
+    def parse_income(self, income: dict, market: Market = None) -> object:
         #
         #     {
         #         "id": 1286360,
@@ -3408,7 +3416,7 @@ class woo(Exchange, ImplicitAPI):
             'rate': rate,
         }
 
-    def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingHistory]:
         """
         fetch the history of funding payments paid and received on self account
 
@@ -3423,10 +3431,9 @@ class woo(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'paginate')
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingHistory', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_incremental('fetchFundingHistory', symbol, since, limit, params, 'page', 500)
+            return self.fetch_paginated_call_incremental('fetchFundingHistory', symbol, since, limit, paramsPaginate, 'page', 500)
         request = {}
         market = None
         if symbol is not None:
@@ -3434,13 +3441,13 @@ class woo(Exchange, ImplicitAPI):
             request['symbol'] = market['id']
         if since is not None:
             request['startTime'] = since
-        until = self.safe_integer(params, 'until')  # unified in milliseconds
-        params = self.omit(params, ['until'])
+        until = self.safe_integer(paramsPaginate, 'until')  # unified in milliseconds
+        paramsOmitted = self.omit(paramsPaginate, ['until'])
         if until is not None:
             request['endTime'] = until
         if limit is not None:
             request['size'] = min(limit, 500)
-        response = self.v3PrivateGetFuturesFundingFeeHistory(self.extend(request, params))
+        response = self.v3PrivateGetFuturesFundingFeeHistory(self.extend(request, paramsOmitted))
         #
         #     {
         #         "success": true,
@@ -3494,7 +3501,7 @@ class woo(Exchange, ImplicitAPI):
         #     }
         #
         symbol = self.safe_string(fundingRate, 'symbol')
-        market = self.market(symbol)
+        marketResolved = self.market(symbol)
         nextFundingTimestamp = self.safe_integer_2(fundingRate, 'nextFundingTime', 'fundingTs')
         estFundingRateTimestamp = self.safe_integer(fundingRate, 'estFundingRateTimestamp')
         lastFundingRateTimestamp = self.safe_integer(fundingRate, 'lastFundingRateTimestamp')
@@ -3504,7 +3511,7 @@ class woo(Exchange, ImplicitAPI):
             interval = intervalString + 'h'
         return {
             'info': fundingRate,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'markPrice': None,
             'indexPrice': None,
             'interestRate': self.parse_number('0'),
@@ -3523,7 +3530,7 @@ class woo(Exchange, ImplicitAPI):
             'interval': interval,
         }
 
-    def fetch_funding_interval(self, symbol: str, params={}) -> FundingRate:
+    def fetch_funding_interval(self, symbol: str, params: dict = {}) -> FundingRate:
         """
         fetch the current funding rate interval
 
@@ -3535,7 +3542,7 @@ class woo(Exchange, ImplicitAPI):
         """
         return self.fetch_funding_rate(symbol, params)
 
-    def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+    def fetch_funding_rate(self, symbol: str, params: dict = {}) -> FundingRate:
         """
         fetch the current funding rate
 
@@ -3577,7 +3584,7 @@ class woo(Exchange, ImplicitAPI):
         first = self.safe_dict(rows, 0, {})
         return self.parse_funding_rate(first, market)
 
-    def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
+    def fetch_funding_rates(self, symbols: Strings = None, params: dict = {}) -> FundingRates:
         """
         fetch the funding rate for multiple markets
 
@@ -3589,7 +3596,7 @@ class woo(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        symbols = self.market_symbols(symbols)
+        symbolsNormalized = self.market_symbols(symbols)
         response = self.v3PublicGetFundingRate(params)
         #
         #     {
@@ -3613,9 +3620,9 @@ class woo(Exchange, ImplicitAPI):
         #
         data = self.safe_dict(response, 'data', {})
         rows = self.safe_list(data, 'rows', [])
-        return self.parse_funding_rates(rows, symbols)
+        return self.parse_funding_rates(rows, symbolsNormalized)
 
-    def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingRateHistory]:
         """
         fetches historical funding rate prices
 
@@ -3631,21 +3638,20 @@ class woo(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_incremental('fetchFundingRateHistory', symbol, since, limit, params, 'page', 25)
+            return self.fetch_paginated_call_incremental('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 'page', 25)
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         market = self.market(symbol)
-        symbol = market['symbol']
+        symbolValue = market['symbol']
         request = {
             'symbol': market['id'],
         }
         if since is not None:
             request['startTime'] = since
-        request, params = self.handle_until_option('endTime', request, params)
-        response = self.v3PublicGetFundingRateHistory(self.extend(request, params))
+        requestUntil, paramsUntil = self.handle_until_option('endTime', request, paramsPaginate)
+        response = self.v3PublicGetFundingRateHistory(self.extend(requestUntil, paramsUntil))
         #
         #     {
         #         "success": true,
@@ -3683,9 +3689,9 @@ class woo(Exchange, ImplicitAPI):
                 'datetime': self.iso8601(timestamp),
             })
         sorted = self.sort_by(rates, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(sorted, symbolValue, since, limit)
 
-    def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
+    def set_position_mode(self, hedged: bool, symbol: Str = None, params: dict = {}):
         """
         set hedged to True or False for a market
 
@@ -3713,7 +3719,7 @@ class woo(Exchange, ImplicitAPI):
         #
         return response
 
-    def fetch_leverage(self, symbol: str, params={}) -> Leverage:
+    def fetch_leverage(self, symbol: str, params: dict = {}) -> Leverage:
         """
         fetch the set leverage for a market
 
@@ -3765,10 +3771,9 @@ class woo(Exchange, ImplicitAPI):
             request = {
                 'symbol': market['id'],
             }
-            marginMode = None
-            marginMode, params = self.handle_margin_mode_and_params('fetchLeverage', params, 'cross')
+            marginMode, paramsMarginMode = self.handle_margin_mode_and_params('fetchLeverage', params, 'cross')
             request['marginMode'] = self.encode_margin_mode(marginMode)
-            response = self.v3PrivateGetFuturesLeverage(self.extend(request, params))
+            response = self.v3PrivateGetFuturesLeverage(self.extend(request, paramsMarginMode))
             #
             # HEDGE_MODE
             #     {
@@ -3816,7 +3821,7 @@ class woo(Exchange, ImplicitAPI):
 
     def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
         marketId = self.safe_string(leverage, 'symbol')
-        market = self.safe_market(marketId, market)
+        marketResolved = self.safe_market(marketId, market)
         marginMode = self.safe_string_lower(leverage, 'marginMode')
         spotLeverage = self.safe_integer(leverage, 'leverage')
         if spotLeverage == 0:
@@ -3837,13 +3842,13 @@ class woo(Exchange, ImplicitAPI):
                 shortLeverage = positionLeverage
         return {
             'info': leverage,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'marginMode': marginMode,
             'longLeverage': longLeverage,
             'shortLeverage': shortLeverage,
         }
 
-    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: int, symbol: Str = None, params: dict = {}):
         """
         set the level of leverage for a market
 
@@ -3865,18 +3870,17 @@ class woo(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        if (symbol is None) or (self.safe_bool(market, 'spot') is True):
+        if (symbol is None) or (self.safe_bool(market, 'spot', False)):
             return self.v3PrivatePostSpotMarginLeverage(self.extend(request, params))
-        elif self.safe_bool(market, 'swap') is True:
+        elif self.safe_bool(market, 'swap', False):
             request['symbol'] = self.safe_string(market, 'id')
-            marginMode = None
-            marginMode, params = self.handle_margin_mode_and_params('setLeverage', params, 'cross')
+            marginMode, paramsMarginMode = self.handle_margin_mode_and_params('setLeverage', params, 'cross')
             request['marginMode'] = self.encode_margin_mode(marginMode)
-            return self.v3PrivatePutFuturesLeverage(self.extend(request, params))
+            return self.v3PrivatePutFuturesLeverage(self.extend(request, paramsMarginMode))
         else:
             raise NotSupported(self.id + ' fetchLeverage() is not supported for ' + self.safe_string(market, 'type') + ' markets')
 
-    def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
+    def add_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
         """
         add margin
 
@@ -3890,7 +3894,7 @@ class woo(Exchange, ImplicitAPI):
         """
         return self.modify_margin_helper(symbol, amount, 'ADD', params)
 
-    def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
+    def reduce_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
         """
         remove margin from a position
 
@@ -3904,7 +3908,7 @@ class woo(Exchange, ImplicitAPI):
         """
         return self.modify_margin_helper(symbol, amount, 'REDUCE', params)
 
-    def modify_margin_helper(self, symbol: str, amount: object, type: object, params={}) -> MarginModification:
+    def modify_margin_helper(self, symbol: str, amount: float, type: str, params: dict = {}) -> MarginModification:
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
@@ -3916,7 +3920,7 @@ class woo(Exchange, ImplicitAPI):
         }
         return self.v1PrivatePostClientIsolatedMargin(self.extend(request, params))
 
-    def fetch_position(self, symbol: str, params={}):
+    def fetch_position(self, symbol: str, params: dict = {}) -> Position:
         """
         fetch data on an open position
 
@@ -3969,7 +3973,7 @@ class woo(Exchange, ImplicitAPI):
         first = self.safe_dict(positions, 0, {})
         return self.parse_position(first, market)
 
-    def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
+    def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
         fetch all open positions
 
@@ -3981,12 +3985,12 @@ class woo(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        symbols = self.market_symbols(symbols)
+        symbolsNormalized = self.market_symbols(symbols)
         request = {}
-        if symbols is not None:
-            symbolsLength = len(symbols)
+        if symbolsNormalized is not None:
+            symbolsLength = len(symbolsNormalized)
             if symbolsLength == 1:
-                market = self.market(symbols[0])
+                market = self.market(symbolsNormalized[0])
                 request['symbol'] = market['id']
         response = self.v3PrivateGetFuturesPositions(self.extend(request, params))
         #
@@ -4022,9 +4026,9 @@ class woo(Exchange, ImplicitAPI):
         #
         result = self.safe_dict(response, 'data', {})
         positions = self.safe_list(result, 'positions', [])
-        return self.parse_positions(positions, symbols)
+        return self.parse_positions(positions, symbolsNormalized)
 
-    def parse_position(self, position: dict, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None) -> Position:
         #
         # v1PrivateGetPositionSymbol
         #     {
@@ -4074,14 +4078,14 @@ class woo(Exchange, ImplicitAPI):
         #     }
         #
         contract = self.safe_string(position, 'symbol')
-        market = self.safe_market(contract, market)
+        marketResolved = self.safe_market(contract, market)
         size = self.safe_string(position, 'holding')
         side = None
         if Precise.string_gt(size, '0'):
             side = 'long'
         else:
             side = 'short'
-        contractSize = self.safe_string(market, 'contractSize')
+        contractSize = self.safe_string(marketResolved, 'contractSize')
         markPrice = self.safe_string_2(position, 'markPrice', 'mark_price')
         timestampString = self.safe_string(position, 'timestamp')
         timestamp = None
@@ -4099,7 +4103,7 @@ class woo(Exchange, ImplicitAPI):
         return self.safe_position({
             'info': position,
             'id': None,
-            'symbol': self.safe_string(market, 'symbol'),
+            'symbol': self.safe_string(marketResolved, 'symbol'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastUpdateTimestamp': None,
@@ -4126,7 +4130,7 @@ class woo(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    def fetch_convert_quote(self, fromCode: str, toCode: str, amount: Num = None, params={}) -> Conversion:
+    def fetch_convert_quote(self, fromCode: str, toCode: str, amount: Num = None, params: dict = {}) -> Conversion:
         """
         fetch a quote for converting from one currency to another
 
@@ -4169,7 +4173,7 @@ class woo(Exchange, ImplicitAPI):
         toCurrency = self.currency(toCurrencyId)
         return self.parse_conversion(data, fromCurrency, toCurrency)
 
-    def create_convert_trade(self, id: str, fromCode: str, toCode: str, amount: Num = None, params={}) -> Conversion:
+    def create_convert_trade(self, id: str, fromCode: str, toCode: str, amount: Num = None, params: dict = {}) -> Conversion:
         """
         convert from one currency to another
 
@@ -4201,7 +4205,7 @@ class woo(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_conversion(data)
 
-    def fetch_convert_trade(self, id: str, code: Str = None, params={}) -> Conversion:
+    def fetch_convert_trade(self, id: str, code: Str = None, params: dict = {}) -> Conversion:
         """
         fetch the data for a conversion trade
 
@@ -4243,7 +4247,7 @@ class woo(Exchange, ImplicitAPI):
             toCurrency = self.currency(toCurrencyId)
         return self.parse_conversion(data, fromCurrency, toCurrency)
 
-    def fetch_convert_trade_history(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Conversion]:
+    def fetch_convert_trade_history(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Conversion]:
         """
         fetch the users history of conversion trades
 
@@ -4259,12 +4263,12 @@ class woo(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         request = {}
-        request, params = self.handle_until_option('endTime', request, params)
+        requestUntil, paramsUntil = self.handle_until_option('endTime', request, params)
         if since is not None:
-            request['startTime'] = since
+            requestUntil['startTime'] = since
         if limit is not None:
-            request['size'] = limit
-        response = self.v3PrivateGetConvertTrades(self.extend(request, params))
+            requestUntil['size'] = limit
+        response = self.v3PrivateGetConvertTrades(self.extend(requestUntil, paramsUntil))
         #
         #     {
         #         "success": true,
@@ -4343,7 +4347,7 @@ class woo(Exchange, ImplicitAPI):
             'fee': None,
         }
 
-    def fetch_convert_currencies(self, params={}) -> Currencies:
+    def fetch_convert_currencies(self, params: dict = {}) -> Currencies:
         """
         fetches all available currencies that can be converted
 
@@ -4405,7 +4409,7 @@ class woo(Exchange, ImplicitAPI):
                 }
         return result
 
-    def fetch_positions_adl_rank(self, symbols: Strings = None, params={}) -> list[ADL]:
+    def fetch_positions_adl_rank(self, symbols: Strings = None, params: dict = {}) -> list[ADL]:
         """
         fetches the auto deleveraging rank and risk percentage for a list of symbols
 
@@ -4417,12 +4421,12 @@ class woo(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        symbols = self.market_symbols(symbols, None, True, True, True)
+        symbolsNormalized = self.market_symbols(symbols, None, True, True, True)
         request = {}
-        if symbols is not None:
-            symbolsLength = len(symbols)
+        if symbolsNormalized is not None:
+            symbolsLength = len(symbolsNormalized)
             if symbolsLength == 1:
-                market = self.market(symbols[0])
+                market = self.market(symbolsNormalized[0])
                 request['symbol'] = market['id']
         response = self.v3PrivateGetFuturesPositions(self.extend(request, params))
         #
@@ -4458,7 +4462,7 @@ class woo(Exchange, ImplicitAPI):
         #
         result = self.safe_dict(response, 'data', {})
         positions = self.safe_list(result, 'positions', [])
-        return self.parse_adl_ranks(positions, symbols)
+        return self.parse_adl_ranks(positions, symbolsNormalized)
 
     def parse_adl_rank(self, info: dict, market: Market = None) -> ADL:
         #
@@ -4498,7 +4502,7 @@ class woo(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def default_network_code_for_currency(self, code: object):
+    def default_network_code_for_currency(self, code: str) -> Str:
         currencyItem = self.currency(code)
         networks = currencyItem['networks']
         networkKeys = list(networks.keys())
@@ -4507,7 +4511,7 @@ class woo(Exchange, ImplicitAPI):
             if network == 'ETH':
                 return network
         # if it was not returned according to above options, then return the first network of currency
-        return self.safe_value(networkKeys, 0)
+        return self.safe_string(networkKeys, 0)
 
     def set_sandbox_mode(self, enable: bool):
         super(woo, self).set_sandbox_mode(enable)

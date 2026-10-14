@@ -7,5 +7,296 @@
 // -------------------------------------------------------------------------------
 import { Exchange as _Exchange } from '../base/Exchange.js';
 class Exchange extends _Exchange {
+    v2PublicGetCurrencies(params = {}) {
+        return this.request("currencies", ["v2", "public"], 'GET', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PublicGetCurrenciesCrypto(params = {}) {
+        return this.request("currencies/crypto", ["v2", "public"], 'GET', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PublicGetTime(params = {}) {
+        return this.request("time", ["v2", "public"], 'GET', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PublicGetExchangeRates(params = {}) {
+        return this.request("exchange-rates", ["v2", "public"], 'GET', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PublicGetUsersUserId(params = {}) {
+        return this.request("users/{user_id}", ["v2", "public"], 'GET', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PublicGetPricesSymbolBuy(params = {}) {
+        return this.request("prices/{symbol}/buy", ["v2", "public"], 'GET', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PublicGetPricesSymbolSell(params = {}) {
+        return this.request("prices/{symbol}/sell", ["v2", "public"], 'GET', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PublicGetPricesSymbolSpot(params = {}) {
+        return this.request("prices/{symbol}/spot", ["v2", "public"], 'GET', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PrivateGetAccounts(params = {}) {
+        return this.request("accounts", ["v2", "private"], 'GET', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PrivateGetAccountsAccountId(params = {}) {
+        return this.request("accounts/{account_id}", ["v2", "private"], 'GET', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PrivateGetAccountsAccountIdAddresses(params = {}) {
+        return this.request("accounts/{account_id}/addresses", ["v2", "private"], 'GET', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PrivateGetAccountsAccountIdAddressesAddressId(params = {}) {
+        return this.request("accounts/{account_id}/addresses/{address_id}", ["v2", "private"], 'GET', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PrivateGetAccountsAccountIdAddressesAddressIdTransactions(params = {}) {
+        return this.request("accounts/{account_id}/addresses/{address_id}/transactions", ["v2", "private"], 'GET', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PrivateGetAccountsAccountIdTransactions(params = {}) {
+        return this.request("accounts/{account_id}/transactions", ["v2", "private"], 'GET', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PrivateGetAccountsAccountIdTransactionsTransactionId(params = {}) {
+        return this.request("accounts/{account_id}/transactions/{transaction_id}", ["v2", "private"], 'GET', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PrivateGetAccountsAccountIdBuys(params = {}) {
+        return this.request("accounts/{account_id}/buys", ["v2", "private"], 'GET', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PrivateGetAccountsAccountIdBuysBuyId(params = {}) {
+        return this.request("accounts/{account_id}/buys/{buy_id}", ["v2", "private"], 'GET', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PrivateGetAccountsAccountIdSells(params = {}) {
+        return this.request("accounts/{account_id}/sells", ["v2", "private"], 'GET', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PrivateGetAccountsAccountIdSellsSellId(params = {}) {
+        return this.request("accounts/{account_id}/sells/{sell_id}", ["v2", "private"], 'GET', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PrivateGetAccountsAccountIdDeposits(params = {}) {
+        return this.request("accounts/{account_id}/deposits", ["v2", "private"], 'GET', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PrivateGetAccountsAccountIdDepositsDepositId(params = {}) {
+        return this.request("accounts/{account_id}/deposits/{deposit_id}", ["v2", "private"], 'GET', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PrivateGetAccountsAccountIdWithdrawals(params = {}) {
+        return this.request("accounts/{account_id}/withdrawals", ["v2", "private"], 'GET', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PrivateGetAccountsAccountIdWithdrawalsWithdrawalId(params = {}) {
+        return this.request("accounts/{account_id}/withdrawals/{withdrawal_id}", ["v2", "private"], 'GET', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PrivateGetPaymentMethods(params = {}) {
+        return this.request("payment-methods", ["v2", "private"], 'GET', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PrivateGetPaymentMethodsPaymentMethodId(params = {}) {
+        return this.request("payment-methods/{payment_method_id}", ["v2", "private"], 'GET', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PrivateGetUser(params = {}) {
+        return this.request("user", ["v2", "private"], 'GET', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PrivateGetUserAuth(params = {}) {
+        return this.request("user/auth", ["v2", "private"], 'GET', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PrivateGetSubscriptionsCoinbaseOne(params = {}) {
+        return this.request("subscriptions/coinbase-one", ["v2", "private"], 'GET', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PrivatePostAccounts(params = {}) {
+        return this.request("accounts", ["v2", "private"], 'POST', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PrivatePostAccountsAccountIdPrimary(params = {}) {
+        return this.request("accounts/{account_id}/primary", ["v2", "private"], 'POST', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PrivatePostAccountsAccountIdAddresses(params = {}) {
+        return this.request("accounts/{account_id}/addresses", ["v2", "private"], 'POST', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PrivatePostAccountsAccountIdTransactions(params = {}) {
+        return this.request("accounts/{account_id}/transactions", ["v2", "private"], 'POST', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PrivatePostAccountsAccountIdTransactionsTransactionIdComplete(params = {}) {
+        return this.request("accounts/{account_id}/transactions/{transaction_id}/complete", ["v2", "private"], 'POST', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PrivatePostAccountsAccountIdTransactionsTransactionIdResend(params = {}) {
+        return this.request("accounts/{account_id}/transactions/{transaction_id}/resend", ["v2", "private"], 'POST', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PrivatePostAccountsAccountIdBuys(params = {}) {
+        return this.request("accounts/{account_id}/buys", ["v2", "private"], 'POST', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PrivatePostAccountsAccountIdBuysBuyIdCommit(params = {}) {
+        return this.request("accounts/{account_id}/buys/{buy_id}/commit", ["v2", "private"], 'POST', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PrivatePostAccountsAccountIdSells(params = {}) {
+        return this.request("accounts/{account_id}/sells", ["v2", "private"], 'POST', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PrivatePostAccountsAccountIdSellsSellIdCommit(params = {}) {
+        return this.request("accounts/{account_id}/sells/{sell_id}/commit", ["v2", "private"], 'POST', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PrivatePostAccountsAccountIdDeposits(params = {}) {
+        return this.request("accounts/{account_id}/deposits", ["v2", "private"], 'POST', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PrivatePostAccountsAccountIdDepositsDepositIdCommit(params = {}) {
+        return this.request("accounts/{account_id}/deposits/{deposit_id}/commit", ["v2", "private"], 'POST', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PrivatePostAccountsAccountIdWithdrawals(params = {}) {
+        return this.request("accounts/{account_id}/withdrawals", ["v2", "private"], 'POST', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PrivatePostAccountsAccountIdWithdrawalsWithdrawalIdCommit(params = {}) {
+        return this.request("accounts/{account_id}/withdrawals/{withdrawal_id}/commit", ["v2", "private"], 'POST', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PrivatePutAccountsAccountId(params = {}) {
+        return this.request("accounts/{account_id}", ["v2", "private"], 'PUT', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PrivatePutUser(params = {}) {
+        return this.request("user", ["v2", "private"], 'PUT', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PrivateDeleteAccountsId(params = {}) {
+        return this.request("accounts/{id}", ["v2", "private"], 'DELETE', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v2PrivateDeleteAccountsAccountIdTransactionsTransactionId(params = {}) {
+        return this.request("accounts/{account_id}/transactions/{transaction_id}", ["v2", "private"], 'DELETE', params, undefined, undefined, { "cost": 10.6 });
+    }
+    v3PublicGetBrokerageTime(params = {}) {
+        return this.request("brokerage/time", ["v3", "public"], 'GET', params, undefined, undefined, { "cost": 3 });
+    }
+    v3PublicGetBrokerageMarketProductBook(params = {}) {
+        return this.request("brokerage/market/product_book", ["v3", "public"], 'GET', params, undefined, undefined, { "cost": 3 });
+    }
+    v3PublicGetBrokerageMarketProducts(params = {}) {
+        return this.request("brokerage/market/products", ["v3", "public"], 'GET', params, undefined, undefined, { "cost": 3 });
+    }
+    v3PublicGetBrokerageMarketProductsProductId(params = {}) {
+        return this.request("brokerage/market/products/{product_id}", ["v3", "public"], 'GET', params, undefined, undefined, { "cost": 3 });
+    }
+    v3PublicGetBrokerageMarketProductsProductIdCandles(params = {}) {
+        return this.request("brokerage/market/products/{product_id}/candles", ["v3", "public"], 'GET', params, undefined, undefined, { "cost": 3 });
+    }
+    v3PublicGetBrokerageMarketProductsProductIdTicker(params = {}) {
+        return this.request("brokerage/market/products/{product_id}/ticker", ["v3", "public"], 'GET', params, undefined, undefined, { "cost": 3 });
+    }
+    v3PrivateGetBrokerageAccounts(params = {}) {
+        return this.request("brokerage/accounts", ["v3", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v3PrivateGetBrokerageAccountsAccountUuid(params = {}) {
+        return this.request("brokerage/accounts/{account_uuid}", ["v3", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v3PrivateGetBrokerageOrdersHistoricalBatch(params = {}) {
+        return this.request("brokerage/orders/historical/batch", ["v3", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v3PrivateGetBrokerageOrdersHistoricalFills(params = {}) {
+        return this.request("brokerage/orders/historical/fills", ["v3", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v3PrivateGetBrokerageOrdersHistoricalOrderId(params = {}) {
+        return this.request("brokerage/orders/historical/{order_id}", ["v3", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v3PrivateGetBrokerageProducts(params = {}) {
+        return this.request("brokerage/products", ["v3", "private"], 'GET', params, undefined, undefined, { "cost": 3 });
+    }
+    v3PrivateGetBrokerageProductsProductId(params = {}) {
+        return this.request("brokerage/products/{product_id}", ["v3", "private"], 'GET', params, undefined, undefined, { "cost": 3 });
+    }
+    v3PrivateGetBrokerageProductsProductIdCandles(params = {}) {
+        return this.request("brokerage/products/{product_id}/candles", ["v3", "private"], 'GET', params, undefined, undefined, { "cost": 3 });
+    }
+    v3PrivateGetBrokerageProductsProductIdTicker(params = {}) {
+        return this.request("brokerage/products/{product_id}/ticker", ["v3", "private"], 'GET', params, undefined, undefined, { "cost": 3 });
+    }
+    v3PrivateGetBrokerageBestBidAsk(params = {}) {
+        return this.request("brokerage/best_bid_ask", ["v3", "private"], 'GET', params, undefined, undefined, { "cost": 3 });
+    }
+    v3PrivateGetBrokerageProductBook(params = {}) {
+        return this.request("brokerage/product_book", ["v3", "private"], 'GET', params, undefined, undefined, { "cost": 3 });
+    }
+    v3PrivateGetBrokerageTransactionSummary(params = {}) {
+        return this.request("brokerage/transaction_summary", ["v3", "private"], 'GET', params, undefined, undefined, { "cost": 3 });
+    }
+    v3PrivateGetBrokeragePortfolios(params = {}) {
+        return this.request("brokerage/portfolios", ["v3", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v3PrivateGetBrokeragePortfoliosPortfolioUuid(params = {}) {
+        return this.request("brokerage/portfolios/{portfolio_uuid}", ["v3", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v3PrivateGetBrokerageConvertTradeTradeId(params = {}) {
+        return this.request("brokerage/convert/trade/{trade_id}", ["v3", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v3PrivateGetBrokerageCfmBalanceSummary(params = {}) {
+        return this.request("brokerage/cfm/balance_summary", ["v3", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v3PrivateGetBrokerageCfmPositions(params = {}) {
+        return this.request("brokerage/cfm/positions", ["v3", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v3PrivateGetBrokerageCfmPositionsProductId(params = {}) {
+        return this.request("brokerage/cfm/positions/{product_id}", ["v3", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v3PrivateGetBrokerageCfmSweeps(params = {}) {
+        return this.request("brokerage/cfm/sweeps", ["v3", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v3PrivateGetBrokerageCfmIntradayCurrentMarginWindow(params = {}) {
+        return this.request("brokerage/cfm/intraday/current_margin_window", ["v3", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v3PrivateGetBrokerageCfmIntradayMarginSetting(params = {}) {
+        return this.request("brokerage/cfm/intraday/margin_setting", ["v3", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v3PrivateGetBrokerageIntxBalancesPortfolioUuid(params = {}) {
+        return this.request("brokerage/intx/balances/{portfolio_uuid}", ["v3", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v3PrivateGetBrokerageIntxPortfolioPortfolioUuid(params = {}) {
+        return this.request("brokerage/intx/portfolio/{portfolio_uuid}", ["v3", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v3PrivateGetBrokerageIntxPositionsPortfolioUuid(params = {}) {
+        return this.request("brokerage/intx/positions/{portfolio_uuid}", ["v3", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol(params = {}) {
+        return this.request("brokerage/intx/positions/{portfolio_uuid}/{symbol}", ["v3", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v3PrivateGetBrokeragePaymentMethods(params = {}) {
+        return this.request("brokerage/payment_methods", ["v3", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v3PrivateGetBrokeragePaymentMethodsPaymentMethodId(params = {}) {
+        return this.request("brokerage/payment_methods/{payment_method_id}", ["v3", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v3PrivateGetBrokerageKeyPermissions(params = {}) {
+        return this.request("brokerage/key_permissions", ["v3", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    v3PrivatePostBrokerageOrders(params = {}) {
+        return this.request("brokerage/orders", ["v3", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    v3PrivatePostBrokerageOrdersBatchCancel(params = {}) {
+        return this.request("brokerage/orders/batch_cancel", ["v3", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    v3PrivatePostBrokerageOrdersEdit(params = {}) {
+        return this.request("brokerage/orders/edit", ["v3", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    v3PrivatePostBrokerageOrdersEditPreview(params = {}) {
+        return this.request("brokerage/orders/edit_preview", ["v3", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    v3PrivatePostBrokerageOrdersPreview(params = {}) {
+        return this.request("brokerage/orders/preview", ["v3", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    v3PrivatePostBrokeragePortfolios(params = {}) {
+        return this.request("brokerage/portfolios", ["v3", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    v3PrivatePostBrokeragePortfoliosMoveFunds(params = {}) {
+        return this.request("brokerage/portfolios/move_funds", ["v3", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    v3PrivatePostBrokerageConvertQuote(params = {}) {
+        return this.request("brokerage/convert/quote", ["v3", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    v3PrivatePostBrokerageConvertTradeTradeId(params = {}) {
+        return this.request("brokerage/convert/trade/{trade_id}", ["v3", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    v3PrivatePostBrokerageCfmSweepsSchedule(params = {}) {
+        return this.request("brokerage/cfm/sweeps/schedule", ["v3", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    v3PrivatePostBrokerageCfmIntradayMarginSetting(params = {}) {
+        return this.request("brokerage/cfm/intraday/margin_setting", ["v3", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    v3PrivatePostBrokerageIntxAllocate(params = {}) {
+        return this.request("brokerage/intx/allocate", ["v3", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    v3PrivatePostBrokerageIntxMultiAssetCollateral(params = {}) {
+        return this.request("brokerage/intx/multi_asset_collateral", ["v3", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    v3PrivatePostBrokerageOrdersClosePosition(params = {}) {
+        return this.request("brokerage/orders/close_position", ["v3", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    v3PrivatePutBrokeragePortfoliosPortfolioUuid(params = {}) {
+        return this.request("brokerage/portfolios/{portfolio_uuid}", ["v3", "private"], 'PUT', params, undefined, undefined, { "cost": 1 });
+    }
+    v3PrivateDeleteBrokeragePortfoliosPortfolioUuid(params = {}) {
+        return this.request("brokerage/portfolios/{portfolio_uuid}", ["v3", "private"], 'DELETE', params, undefined, undefined, { "cost": 1 });
+    }
+    v3PrivateDeleteBrokerageCfmSweeps(params = {}) {
+        return this.request("brokerage/cfm/sweeps", ["v3", "private"], 'DELETE', params, undefined, undefined, { "cost": 1 });
+    }
 }
 export default Exchange;

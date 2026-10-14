@@ -5,7 +5,7 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 import testSharedMethods from './test.sharedMethods.js';
-function testTrade(exchange, skippedProperties, method, entry, symbol, now) {
+function testTrade(exchange, skippedProperties, method, entry, symbol, now, isPublicTrade) {
     // prediction-market structures are keyed by an outcome handle, not a `symbol`, and the
     // PredictionTrade type carries a single `fee` but omits the `fees` list entirely
     if (exchange.safeBool(exchange.has, 'prediction', false)) {
@@ -37,7 +37,14 @@ function testTrade(exchange, skippedProperties, method, entry, symbol, now) {
     testSharedMethods.assertSymbol(exchange, skippedProperties, method, entry, 'symbol', symbol);
     //
     testSharedMethods.assertInArray(exchange, skippedProperties, method, entry, 'side', ['buy', 'sell']);
-    testSharedMethods.assertInArray(exchange, skippedProperties, method, entry, 'takerOrMaker', ['taker', 'maker']);
+    if (isPublicTrade) {
+        // for public trades (fetchTrades & watchTrades), it must be either 'taker' or undefined
+        testSharedMethods.assertInArray(exchange, skippedProperties, method, entry, 'takerOrMaker', ['taker', undefined]);
+    }
+    else {
+        // for private trades (fetchMyTrades & watchMyTrades), it can be any
+        testSharedMethods.assertInArray(exchange, skippedProperties, method, entry, 'takerOrMaker', ['taker', 'maker', undefined]);
+    }
     testSharedMethods.assertFeeStructure(exchange, skippedProperties, method, entry, 'fee');
     if (!('fees' in skippedProperties)) {
         // todo: remove undefined check and probably non-empty array check later

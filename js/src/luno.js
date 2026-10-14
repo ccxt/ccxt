@@ -486,7 +486,7 @@ export default class luno extends Exchange {
         const code = this.safeCurrencyCode(id);
         const networks = {};
         for (let i = 0; i < rawCurrency.length; i++) {
-            const networkEntry = rawCurrency[i];
+            const networkEntry = this.safeDict(rawCurrency, i);
             const networkId = this.safeString(networkEntry, 'name');
             const networkCode = this.networkIdToCode(networkId, code);
             if (networkCode !== undefined) {
@@ -574,6 +574,9 @@ export default class luno extends Exchange {
             const quoteId = this.safeString(market, 'counter_currency');
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const status = this.safeString(market, 'trading_status');
             // Luno's published schedule is categorical, not a single pair. Entry-tier
             // rates below are read from Luno's own Help Centre fee article for the ZAR
@@ -691,7 +694,7 @@ export default class luno extends Exchange {
             'datetime': undefined,
         };
         for (let i = 0; i < wallets.length; i++) {
-            const wallet = wallets[i];
+            const wallet = this.safeDict(wallets, i);
             const currencyId = this.safeString(wallet, 'asset');
             const code = this.safeCurrencyCode(currencyId);
             const reserved = this.safeString(wallet, 'reserved');
@@ -803,7 +806,7 @@ export default class luno extends Exchange {
             side = 'buy';
         }
         const marketId = this.safeString(order, 'pair');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         const price = this.safeString(order, 'limit_price');
         const amount = this.safeString(order, 'limit_volume');
         const quoteFee = this.safeNumber(order, 'fee_counter');
@@ -814,13 +817,13 @@ export default class luno extends Exchange {
         if (quoteFee !== undefined) {
             fee = {
                 'cost': quoteFee,
-                'currency': market['quote'],
+                'currency': marketResolved['quote'],
             };
         }
         else if (baseFee !== undefined) {
             fee = {
                 'cost': baseFee,
-                'currency': market['base'],
+                'currency': marketResolved['base'],
             };
         }
         const id = this.safeString(order, 'order_id');
@@ -831,7 +834,7 @@ export default class luno extends Exchange {
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
             'status': status,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': undefined,
             'timeInForce': undefined,
             'postOnly': undefined,
@@ -846,7 +849,7 @@ export default class luno extends Exchange {
             'fee': fee,
             'info': order,
             'average': undefined,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -977,7 +980,7 @@ export default class luno extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        const symbolsNormalized = this.marketSymbols(symbols);
         const response = await this.publicGetTickers(params);
         const rawTickers = this.safeList(response, 'tickers', []);
         const tickers = this.indexBy(rawTickers, 'pair');
@@ -990,7 +993,7 @@ export default class luno extends Exchange {
             const ticker = tickers[id];
             result[symbol] = this.parseTicker(ticker, market);
         }
-        return this.filterByArrayTickers(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbolsNormalized);
     }
     /**
      * @method
@@ -1066,10 +1069,10 @@ export default class luno extends Exchange {
             else if ((type === 'BID') || (type === 'BUY')) {
                 side = 'buy';
             }
-            if ((side === 'sell') && (trade['is_buy'] === true)) {
+            if ((side === 'sell') && (this.safeBool(trade, 'is_buy', false))) {
                 takerOrMaker = 'maker';
             }
-            else if ((side === 'buy') && (trade['is_buy'] !== true)) {
+            else if ((side === 'buy') && (!this.safeBool(trade, 'is_buy', false))) {
                 takerOrMaker = 'maker';
             }
             else {
@@ -1077,7 +1080,7 @@ export default class luno extends Exchange {
             }
         }
         else {
-            side = (trade['is_buy'] === true) ? 'buy' : 'sell';
+            side = (this.safeBool(trade, 'is_buy', false)) ? 'buy' : 'sell';
         }
         const feeBaseString = this.safeString(trade, 'fee_base');
         const feeCounterString = this.safeString(trade, 'fee_counter');
@@ -1331,9 +1334,7 @@ export default class luno extends Exchange {
             'pair': market['id'],
         };
         let response = undefined;
-        if (side === undefined) {
-            throw new ArgumentsRequired(this.id + ' createOrder() requires a side argument');
-        }
+        this.checkRequiredArgument('createOrder', side, 'side');
         if (type === 'market') {
             request['type'] = side.toUpperCase();
             // todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
@@ -1388,18 +1389,14 @@ export default class luno extends Exchange {
     }
     async fetchLedgerByEntries(code = undefined, entry = undefined, limit = undefined, params = {}) {
         // by default without entry number or limit number, return most recent entry
-        if (entry === undefined) {
-            entry = -1;
-        }
-        if (limit === undefined) {
-            limit = 1;
-        }
+        const entryValue = (entry === undefined) ? -1 : entry;
+        const limitValue = (limit === undefined) ? 1 : limit;
         const since = undefined;
         const request = {
-            'min_row': entry,
-            'max_row': this.sum(entry, limit),
+            'min_row': entryValue,
+            'max_row': this.sum(entryValue, limitValue),
         };
-        return await this.fetchLedger(code, since, limit, this.extend(request, params));
+        return await this.fetchLedger(code, since, limitValue, this.extend(request, params));
     }
     /**
      * @method
@@ -1427,11 +1424,11 @@ export default class luno extends Exchange {
             }
             currency = this.currency(code);
             const accountsByCurrencyCode = this.indexBy(this.accounts, 'currency');
-            const account = this.safeValue(accountsByCurrencyCode, code);
+            const account = this.safeDict(accountsByCurrencyCode, code);
             if (account === undefined) {
                 throw new ExchangeError(this.id + ' fetchLedger() could not find account id for ' + code);
             }
-            id = account['id'];
+            id = this.safeString(account, 'id');
         }
         if (min_row === undefined && max_row === undefined) {
             max_row = 0; // Default to most recent transactions
@@ -1457,7 +1454,7 @@ export default class luno extends Exchange {
             'max_row': max_row,
         };
         const response = await this.privateGetAccountsIdTransactions(this.extend(params, request));
-        const entries = this.safeValue(response, 'transactions', []);
+        const entries = this.safeList(response, 'transactions', []);
         return this.parseLedger(entries, currency, since, limit);
     }
     parseLedgerComment(comment) {
@@ -1498,7 +1495,7 @@ export default class luno extends Exchange {
         const timestamp = this.safeInteger(entry, 'timestamp');
         const currencyId = this.safeString(entry, 'currency');
         const code = this.safeCurrencyCode(currencyId, currency);
-        currency = this.safeCurrency(currencyId, currency);
+        const currencyResolved = this.safeCurrency(currencyId, currency);
         const available_delta = this.safeString(entry, 'available_delta');
         const balance_delta = this.safeString(entry, 'balance_delta');
         const after = this.safeString(entry, 'balance');
@@ -1545,7 +1542,7 @@ export default class luno extends Exchange {
             'after': this.parseToNumeric(after),
             'status': status,
             'fee': undefined,
-        }, currency);
+        }, currencyResolved);
     }
     /**
      * @method
@@ -1696,19 +1693,25 @@ export default class luno extends Exchange {
         return this.assignDefaultDepositWithdrawFees(result, currency);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams(path, params);
+        const apiUrl = this.safeString(this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + '/' + this.version + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
+        let requestHeaders = undefined;
         if (Object.keys(query).length > 0) {
             url += '?' + this.urlencode(query);
         }
         if ((api === 'private') || (api === 'exchangePrivate')) {
             this.checkRequiredCredentials();
             const auth = this.stringToBase64(this.apiKey + ':' + this.secret);
-            headers = {
+            requestHeaders = {
                 'Authorization': 'Basic ' + auth,
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const headersResolved = (requestHeaders === undefined) ? headers : requestHeaders;
+        return { 'url': url, 'method': method, 'body': body, 'headers': headersResolved };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

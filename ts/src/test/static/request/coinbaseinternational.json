@@ -239,7 +239,6 @@
           "USDC",
           5,
           "0xcdcE79F820BE9d6C5033db5c31d1AE3A8c2399bB",
-          null,
           {
             "network": "ARBITRUM"
           }
@@ -248,6 +247,18 @@
       }
     ],
     "fetchOHLCV": [
+            {
+                "disabled": true,
+                "reason": "without since it uses dynamic ts value, which can't be fixtured",
+                "description": "without since",
+                "method": "fetchOHLCV",
+                "url": "https://api.international.coinbase.com/api/v1/instruments/BTC-PERP/candles?granularity=ONE_MINUTE&start=2026-09-22T17%3A39%3A23.381Z",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "1m"
+                ],
+                "output": null
+            },
       {
         "description": "fetchOHLCV",
         "method": "fetchOHLCV",

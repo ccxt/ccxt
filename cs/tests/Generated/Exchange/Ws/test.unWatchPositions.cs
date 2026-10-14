@@ -47,7 +47,7 @@ public partial class testMainClass : BaseTest
         {
             errorResponse = e;
         }
-        assert(!isEqual(errorResponse, null), add(add(add(add(exchange.id, " "), method), " must throw an error when unwatching a specific symbol, returned "), exchange.json(errorResponse)));
+        assert((errorResponse != null), add(add(add(add(exchange.id, " "), method), " must throw an error when unwatching a specific symbol, returned "), exchange.json(errorResponse)));
         // Test unwatching all positions (without specific symbols)
         object responseAll = null;
         try
@@ -62,7 +62,7 @@ public partial class testMainClass : BaseTest
             throw e;
         }
         // Verify the response for unwatching all positions
-        assert(!isEqual(responseAll, null), add(add(add(add(exchange.id, " "), method), " must return a response when unwatching all positions, returned "), exchange.json(responseAll)));
+        assert((responseAll != null), add(add(add(add(exchange.id, " "), method), " must return a response when unwatching all positions, returned "), exchange.json(responseAll)));
         // Test that we can resubscribe after unwatching (to ensure cleanup was proper)
         object resubscribeResponse = null;
         try
@@ -76,7 +76,7 @@ public partial class testMainClass : BaseTest
             {
                 throw e;
             }
-            throw new Exception ((string)add(add(add(exchange.id, " "), method), " failed to resubscribe after unwatch, indicating potential cleanup issues")) ;
+            throw new Exception (add(add(add(exchange.id, " "), method), " failed to resubscribe after unwatch, indicating potential cleanup issues")) ;
         }
         // Verify resubscription works
         assert(((resubscribeResponse is IList<object>) || (resubscribeResponse.GetType().IsGenericType && resubscribeResponse.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(add(exchange.id, " "), method), " must allow resubscription after unwatch, returned "), exchange.json(resubscribeResponse)));

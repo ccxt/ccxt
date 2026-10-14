@@ -1,0 +1,2807 @@
+// NO_AUTO_TRANSPILE
+//  ---------------------------------------------------------------------------
+//  OrderRouter — offline tests.
+//
+//  Run:  npx tsx --test ts/src/test/base/test.orderRouter.ts
+//
+//  Two halves, and both matter:
+//
+//  1. The FIXTURE half drives the four pure methods from
+//     ts/src/test/base/fixtures/orderRouter.json. Python, PHP, C# and Go read
+//     the same file and assert the same expectations, so a port that drifts
+//     fails in its own language and nowhere else — which is what makes drift
+//     impossible to hide.
+//
+//  2. The INVARIANT half asserts the safety properties directly, in literal
+//     numbers written by hand. The fixture's expectations were produced by this
+//     implementation, so on their own they would only prove the six languages
+//     agree — not that they agree on the right answer. These are the tests that
+//     would fail if the implementation itself were wrong.
+//
+//  Nothing here touches the network and nothing here places an order.
+//  ---------------------------------------------------------------------------
+
+import assert from 'assert';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { test } from 'node:test';
+import OrderRouter from '../../base/OrderRouter.js';
+import { BadRequest, ExchangeError, NotSupported, ArgumentsRequired, RequestTimeout, OperationFailed, BadResponse } from '../../base/errors.js';
+import type { Dict } from '../../base/types.js';
+
+const here = path.dirname (fileURLToPath (import.meta.url));
+//  The fixture lives in the TypeScript tree and is read from there by all six
+//  suites, so it is resolved from the repository root rather than from this
+//  module: `here` is ts/src/test/base under tsx and js/src/test/base when this
+//  file runs as compiled output, and only one of those has a fixtures/ beside it.
+const repoRoot = path.resolve (here, '..', '..', '..', '..');
+const fixturePath = path.join (repoRoot, 'ts', 'src', 'test', 'base', 'fixtures', 'orderRouter.json');
+const fixture = JSON.parse (fs.readFileSync (fixturePath, 'utf8'));
+
+const router = new OrderRouter ({ 'apiKey': 'test-key' });
+
+//  ---------------------------------------------------------------------------
+//  comparison helpers — the algorithm every port's test must use
+//  ---------------------------------------------------------------------------
+
+const TOLERANCE = 1e-9;
+
+function numbersMatch (a: number, b: number): boolean {
+    if (a === b) {
+        return true;
+    }
+    if (!isFinite (a) || !isFinite (b)) {
+        //  an infinity only ever matches itself. Without this the relative
+        //  comparison below reads Infinity <= Infinity as a match and an
+        //  infinite value passes against ANY expectation — which is exactly how
+        //  a number grammar that overflows would slip past the numberCases table
+        return false;
+    }
+    let scale = 1;
+    if (Math.abs (a) > scale) {
+        scale = Math.abs (a);
+    }
+    if (Math.abs (b) > scale) {
+        scale = Math.abs (b);
+    }
+    return Math.abs (a - b) <= TOLERANCE * scale;
+}
+
+function assertMatches (actual: any, expected: any, where: string) {
+    if (Array.isArray (expected)) {
+        assert.ok (Array.isArray (actual), where + ': expected an array, got ' + typeof actual);
+        assert.strictEqual (actual.length, expected.length, where + ': array length');
+        for (let i = 0; i < expected.length; i++) {
+            assertMatches (actual[i], expected[i], where + '[' + i.toString () + ']');
+        }
+        return;
+    }
+    if (expected !== null && typeof expected === 'object') {
+        assert.ok (actual !== null && typeof actual === 'object' && !Array.isArray (actual), where + ': expected an object');
+        const expectedKeys = Object.keys (expected).sort ();
+        const actualKeys = Object.keys (actual).sort ();
+        //  both directions: a missing field and an invented field are both drift
+        assert.deepStrictEqual (actualKeys, expectedKeys, where + ': key set');
+        for (let i = 0; i < expectedKeys.length; i++) {
+            const key = expectedKeys[i];
+            assertMatches (actual[key], expected[key], where + '.' + key);
+        }
+        return;
+    }
+    if (typeof expected === 'number') {
+        assert.ok (typeof actual === 'number' && numbersMatch (actual, expected), where + ': expected ' + expected.toString () + ', got ' + String (actual));
+        return;
+    }
+    assert.strictEqual (actual, expected, where);
+}
+
+//  ---------------------------------------------------------------------------
+//  1. the shared fixture — the cross-language contract
+//  ---------------------------------------------------------------------------
+
+test ('fixture: buildExecutionPlan', () => {
+    const cases = fixture['planCases'];
+    assert.ok (cases.length > 0, 'the fixture has plan cases');
+    for (let i = 0; i < cases.length; i++) {
+        const testCase = cases[i];
+        const route = fixture['routes'][testCase['route']];
+        const plan = router.buildExecutionPlan (route, testCase['options']);
+        assertMatches (plan, testCase['expected'], 'planCase ' + testCase['id']);
+    }
+});
+
+test ('fixture: buildExecutionPlan is deterministic and does not mutate its input', () => {
+    const cases = fixture['planCases'];
+    for (let i = 0; i < cases.length; i++) {
+        const testCase = cases[i];
+        const route = fixture['routes'][testCase['route']];
+        const before = JSON.stringify (route);
+        const first = router.buildExecutionPlan (route, testCase['options']);
+        const second = router.buildExecutionPlan (route, testCase['options']);
+        assertMatches (second, first, 'planCase ' + testCase['id'] + ' repeated');
+        assert.strictEqual (JSON.stringify (route), before, 'planCase ' + testCase['id'] + ': the route was mutated');
+    }
+});
+
+test ('fixture: checkExecutionPlanSafety', () => {
+    const cases = fixture['safetyCases'];
+    assert.ok (cases.length > 0, 'the fixture has safety cases');
+    for (let i = 0; i < cases.length; i++) {
+        const testCase = cases[i];
+        const route = fixture['routes'][testCase['route']];
+        const markets = fixture['marketSets'][testCase['markets']];
+        const plan = router.buildExecutionPlan (route, testCase['planOptions']);
+        const violations = router.checkExecutionPlanSafety (plan, markets, testCase['options']);
+        assertMatches (violations, testCase['expected'], 'safetyCase ' + testCase['id']);
+    }
+});
+
+test ('fixture: reconcileExecutionStep', () => {
+    const cases = fixture['reconcileCases'];
+    assert.ok (cases.length > 0, 'the fixture has reconcile cases');
+    for (let i = 0; i < cases.length; i++) {
+        const testCase = cases[i];
+        //  a case names either a route to plan from, or a plan written out in
+        //  full — the latter is how a plan with field types no builder produces
+        //  (an int hopIndex on one step and a float on the next) gets covered
+        const plan = (testCase['plan'] !== undefined) ? fixture['plans'][testCase['plan']] : router.buildExecutionPlan (fixture['routes'][testCase['route']], testCase['planOptions']);
+        const verdict = router.reconcileExecutionStep (plan, testCase['stepIndex'], testCase['realisedOut']);
+        assertMatches (verdict, testCase['expected'], 'reconcileCase ' + testCase['id']);
+    }
+});
+
+test ('fixture: a sequence of reconciliations on one hop', () => {
+    //  reconcileExecutionStep is pure and cannot remember across calls, so a hop's cumulative
+    //  shortfall lives on the steps themselves — written by applyResize. That interaction is only
+    //  visible across a SEQUENCE of calls, which reconcileCases (one call each) cannot express,
+    //  and it is exactly where the six ports could silently disagree.
+    const cases = fixture['reconcileSequenceCases'];
+    assert.ok (cases.length > 0, 'the fixture has reconcile sequence cases');
+    for (let i = 0; i < cases.length; i++) {
+        const testCase = cases[i];
+        const steps = JSON.parse (JSON.stringify (testCase['steps']));
+        const calls = testCase['calls'];
+        for (let c = 0; c < calls.length; c++) {
+            //  the plan is rebuilt from the working steps on every call, exactly as execute()
+            //  does — PHP copies arrays on assignment, so a plan built once outside this loop
+            //  would mean six ports running six different tests
+            const plan = { 'steps': steps, 'reconcileToleranceRatio': testCase['reconcileToleranceRatio'] };
+            const reconciliation = router.reconcileExecutionStep (plan, calls[c]['stepIndex'], calls[c]['realisedOut']);
+            assert.ok (numbersMatch (reconciliation['scale'], testCase['expectedScales'][c]), 'reconcileSequenceCase ' + testCase['id'] + ' call ' + c.toString () + ': scale ' + String (reconciliation['scale']));
+            router.applyResize (steps, reconciliation);
+        }
+        for (let s = 0; s < steps.length; s++) {
+            assert.ok (numbersMatch (steps[s]['amount'], testCase['expectedAmounts'][s]), 'reconcileSequenceCase ' + testCase['id'] + ' step ' + s.toString () + ': amount ' + String (steps[s]['amount']) + ', expected ' + String (testCase['expectedAmounts'][s]));
+        }
+    }
+});
+
+test ('fixture: numberAt reads one number grammar in all six languages', () => {
+    //  Every port hand-implements JavaScript's parseFloat prefix grammar rather
+    //  than calling its own parser, because every language's own parser
+    //  disagrees with the other four somewhere. These cases are the contract:
+    //  a cap read as 1234.5 in one language and 1 in another is a cap that
+    //  silently disappears, and this table is what stops that shipping green.
+    const cases = fixture['numberCases'];
+    assert.ok (cases.length > 0, 'the fixture has number cases');
+    for (let i = 0; i < cases.length; i++) {
+        const testCase = cases[i];
+        const actual = router.numberAt (testCase['container'], testCase['key'], testCase['default']);
+        assert.ok (typeof actual === 'number', 'numberCase ' + testCase['id'] + ': not a number');
+        assert.ok (numbersMatch (actual, testCase['expected']), 'numberCase ' + testCase['id'] + ': expected ' + String (testCase['expected']) + ', got ' + String (actual));
+    }
+});
+
+test ('fixture: formatNumber spells one number one way in all six languages', () => {
+    //  formatNumber builds the balances query string. A balance spelled differently per language
+    //  is a DIFFERENT QUESTION asked of the router, so the tie cases here are load-bearing: every
+    //  port's native fixed-point formatter but JavaScript's rounds half to EVEN, and this table is
+    //  what stops five of the six quietly answering ...312 where the reference answers ...313.
+    const cases = fixture['formatNumberCases'];
+    assert.ok (cases.length > 0, 'the fixture has formatNumber cases');
+    for (let i = 0; i < cases.length; i++) {
+        const testCase = cases[i];
+        assert.strictEqual (router.formatNumber (testCase['value']), testCase['expected'], 'formatNumberCase ' + testCase['id']);
+    }
+});
+
+test ('fixture: buildUnwindPlan', () => {
+    const cases = fixture['unwindCases'];
+    assert.ok (cases.length > 0, 'the fixture has unwind cases');
+    for (let i = 0; i < cases.length; i++) {
+        const testCase = cases[i];
+        const report = fixture['reports'][testCase['report']];
+        const unwind = router.buildUnwindPlan (report);
+        assertMatches (unwind, testCase['expected'], 'unwindCase ' + testCase['id']);
+    }
+});
+
+//  ---------------------------------------------------------------------------
+//  2. invariants, asserted directly rather than through the fixture
+//  ---------------------------------------------------------------------------
+
+//  every route the invariant tests build gets its own requestId: execute() derives the
+//  re-execution guard key from it, and refuses a live plan that carries none. A counter,
+//  not a random value — the ids stay reproducible.
+let testRequestIdCounter = 0;
+
+function nextTestRequestId (): string {
+    testRequestIdCounter = testRequestIdCounter + 1;
+    return 'test-req-' + testRequestIdCounter.toString ();
+}
+
+function oneLegRoute (side: string, base: string, quote: string, amount: number, price: number): any {
+    return {
+        'requestId': nextTestRequestId (),
+        'from': (side === 'buy') ? quote : base,
+        'to': (side === 'buy') ? base : quote,
+        'strategy': 'best_single',
+        'exactSide': 'in',
+        'amountIn': (side === 'buy') ? amount * price : amount,
+        'amountOut': (side === 'buy') ? amount : amount * price,
+        'fullyFillable': true,
+        'fillRatio': 1,
+        'unroutableReason': null,
+        'hops': [
+            {
+                'pair': base + '/' + quote,
+                'side': side,
+                'base': base,
+                'quote': quote,
+                'amountIn': (side === 'buy') ? amount * price : amount,
+                'amountOut': (side === 'buy') ? amount : amount * price,
+                'legs': [ { 'exchangeId': 'stub', 'amount': amount, 'averagePrice': price, 'takerFeeRate': 0, 'feeCost': 0, 'effectivePrice': price } ],
+                'fullyFillable': true,
+            },
+        ],
+    };
+}
+
+const permissiveStubMarkets: any = {
+    'stub': {
+        'BTC/USDT': {
+            'symbol': 'BTC/USDT',
+            'base': 'BTC',
+            'quote': 'USDT',
+            'precision': { 'amount': 0, 'price': 0 },
+            'limits': { 'amount': { 'min': 0, 'max': 0 }, 'price': { 'min': 0, 'max': 0 }, 'cost': { 'min': 0, 'max': 0 } },
+        },
+    },
+};
+
+test ('constructor: the service is public, and maxNotionalUsd is an opt-in guardrail at any size', () => {
+    //  The router service dropped API keys in favour of per-IP rate limiting, so a bare
+    //  constructor is the documented way to build one and must not throw.
+    const keyless = new OrderRouter ({});
+    assert.strictEqual (keyless.apiKey, '', 'no key is the normal case now');
+    //  A key supplied anyway is still CARRIED, not rejected. The keyless server ignores the
+    //  header; a server still expecting one gets it. That is what lets this client ship
+    //  before the deploy lands instead of after it.
+    const keyed = new OrderRouter ({ 'apiKey': 'still-works' });
+    assert.strictEqual (keyed.apiKey, 'still-works', 'a supplied key is kept and sent');
+    //  No ceiling. A caller trading thousands is using this correctly, and the class
+    //  does not get to decide otherwise — the old hard 25 USD limit came from this
+    //  repository's own live-test safety rule, which is not a rule about anyone's money.
+    const large = new OrderRouter ({ 'apiKey': 'k', 'maxNotionalUsd': 250000 });
+    assert.strictEqual (large.maxNotionalUsd, 250000, 'honoured exactly, not clamped');
+    const small = new OrderRouter ({ 'apiKey': 'k', 'maxNotionalUsd': 0.05 });
+    assert.strictEqual (small.maxNotionalUsd, 0.05, 'cents are a legitimate trade size');
+    //  The default is NO cap.
+    const standard = new OrderRouter ({ 'apiKey': 'k' });
+    assert.strictEqual (standard.maxNotionalUsd, OrderRouter.NO_CAP);
+    assert.strictEqual (OrderRouter.NO_CAP, 0);
+    //  0 is the explicit spelling of "no cap"; negative is a typo, and silently
+    //  ignoring it would leave the caller believing a guardrail is in place.
+    assert.strictEqual (new OrderRouter ({ 'apiKey': 'k', 'maxNotionalUsd': 0 }).maxNotionalUsd, 0);
+    assert.throws (() => new OrderRouter ({ 'apiKey': 'k', 'maxNotionalUsd': -1 }), BadRequest);
+});
+
+//  A market that actually declares limits, unlike permissiveStubMarkets. A hand-built plan has
+//  to clear these the same way a routed one does.
+const boundedStubMarkets: any = {
+    'stub': {
+        'BTC/USDT': {
+            'symbol': 'BTC/USDT',
+            'base': 'BTC',
+            'quote': 'USDT',
+            'precision': { 'amount': 0, 'price': 0 },
+            'limits': {
+                'amount': { 'min': 0.0001, 'max': 0 },
+                'price': { 'min': 1, 'max': 1000000 },
+                'cost': { 'min': 10, 'max': 0 },
+            },
+        },
+    },
+};
+
+test ('a hand-built plan carrying only the required fields is executable', () => {
+    //  The manual documents limitPrice and notionalQuote as OPTIONAL, and its own worked example
+    //  omits both. Read as 0 they broke the "execute your own plans" path three ways at once: a
+    //  blocking cost_below_minimum (0 < any minimum cost), a blocking price_out_of_range (0 <
+    //  minPrice), and — before any strategy branch, so on every strategy — a rounded_to_zero when
+    //  placeStep snapped a price of 0. The documented example could not place a single order.
+    const plan = {
+        'requestId': 'hand-built-0001',
+        'calculatedAt': 1700000000000,
+        'steps': [
+            { 'exchangeId': 'stub', 'symbol': 'BTC/USDT', 'side': 'buy', 'amount': 1,
+              'base': 'BTC', 'quote': 'USDT', 'hopIndex': 0, 'expectedPrice': 100 },
+        ],
+    };
+    const violations = router.checkExecutionPlanSafety (plan, boundedStubMarkets, { 'usdRates': { 'USDT': 1 } });
+    const blocking = [];
+    for (let i = 0; i < violations.length; i++) {
+        if (violations[i]['blocking']) {
+            blocking.push (violations[i]['code']);
+        }
+    }
+    assert.deepStrictEqual (blocking, [], 'the manual\'s own minimal plan must not be refused: ' + blocking.join (', '));
+});
+
+test ('the derived limit price and notional follow amount and expectedPrice', () => {
+    const step = { 'amount': 2, 'expectedPrice': 100 };
+    assert.strictEqual (router.stepLimitPrice (step), 100, 'no limitPrice falls back to expectedPrice');
+    assert.strictEqual (router.stepNotionalQuote (step), 200, 'no notionalQuote is amount * expectedPrice');
+    //  An explicit value always wins, including one tighter than the expected price.
+    const explicit = { 'amount': 2, 'expectedPrice': 100, 'limitPrice': 99, 'notionalQuote': 1 };
+    assert.strictEqual (router.stepLimitPrice (explicit), 99);
+    assert.strictEqual (router.stepNotionalQuote (explicit), 1);
+});
+
+test ('the limit price sits on the side that costs you, and only there', () => {
+    const buy = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 1, 100), { 'slippageBps': 100 });
+    assert.strictEqual (buy['steps'][0]['limitPrice'], 101, 'a buy pays up to 1% more');
+    const sell = router.buildExecutionPlan (oneLegRoute ('sell', 'BTC', 'USDT', 1, 100), { 'slippageBps': 100 });
+    assert.strictEqual (sell['steps'][0]['limitPrice'], 99, 'a sell accepts down to 1% less');
+    const none = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 1, 100), { 'slippageBps': 0 });
+    assert.strictEqual (none['steps'][0]['limitPrice'], 100, 'zero slippage means the expected price');
+});
+
+test ('a cap that IS set binds exactly, at whatever size, and includes the slippage', () => {
+    const capped = { 'usdRates': { 'USDT': 1 }, 'maxNotionalUsd': 25 };
+    const under = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.24, 100), { 'slippageBps': 0 });
+    assert.deepStrictEqual (router.checkExecutionPlanSafety (under, permissiveStubMarkets, capped), [], '24 USD passes a 25 USD cap');
+    const at = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.25, 100), { 'slippageBps': 0 });
+    assert.deepStrictEqual (router.checkExecutionPlanSafety (at, permissiveStubMarkets, capped), [], 'exactly at the cap passes');
+    const over = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.2501, 100), { 'slippageBps': 0 });
+    const overViolations = router.checkExecutionPlanSafety (over, permissiveStubMarkets, capped);
+    assert.strictEqual (overViolations.length, 1);
+    assert.strictEqual (overViolations[0]['code'], 'notional_exceeds_cap');
+    assert.strictEqual (overViolations[0]['blocking'], true);
+    //  the slippage is inside the measurement, not outside it
+    const slipped = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.249, 100), { 'slippageBps': 100 });
+    const slippedViolations = router.checkExecutionPlanSafety (slipped, permissiveStubMarkets, capped);
+    assert.strictEqual (slippedViolations.length, 1, '24.90 USD at 1% slippage is 25.15 USD of risk');
+    assert.strictEqual (slippedViolations[0]['code'], 'notional_exceeds_cap');
+    //  A LARGE cap is honoured just as exactly. This is the case the old hard ceiling
+    //  made unreachable: 2,000 USD of BTC under a 5,000 USD guardrail is a normal trade.
+    const large = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 20, 100), { 'slippageBps': 0 });
+    assert.deepStrictEqual (router.checkExecutionPlanSafety (large, permissiveStubMarkets, { 'usdRates': { 'USDT': 1 }, 'maxNotionalUsd': 5000 }), [], '2,000 USD under a 5,000 USD cap');
+    const overLarge = router.checkExecutionPlanSafety (large, permissiveStubMarkets, { 'usdRates': { 'USDT': 1 }, 'maxNotionalUsd': 1000 });
+    assert.strictEqual (overLarge[0]['code'], 'notional_exceeds_cap', 'and the same 2,000 USD trips a 1,000 USD cap');
+});
+
+test ('with no cap set, no notional check runs at all', () => {
+    //  The default. This class does not decide how much of your money you may trade —
+    //  the guardrail is opt-in, so a plan of any size passes untouched, and a caller who
+    //  never asked for a cap is not made to supply usdRates for it.
+    const large = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 1000, 100), { 'slippageBps': 0 });
+    assert.deepStrictEqual (router.checkExecutionPlanSafety (large, permissiveStubMarkets, { 'usdRates': { 'USDT': 1 } }), [], '100,000 USD passes when no cap is set');
+    assert.deepStrictEqual (router.checkExecutionPlanSafety (large, permissiveStubMarkets, {}), [], 'and needs no usdRates at all');
+});
+
+test ('a step that cannot be valued in USD BLOCKS when a cap is in force — it is never skipped', () => {
+    const plan = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.0001, 100), { 'slippageBps': 0 });
+    //  0.01 USDT of notional: trivially under the cap, and still refused, because the
+    //  point is that the cap the caller ASKED FOR could not be evaluated. With no cap
+    //  set there is nothing to enforce and this same plan passes — see the test above.
+    const violations = router.checkExecutionPlanSafety (plan, permissiveStubMarkets, { 'usdRates': {}, 'maxNotionalUsd': 25 });
+    assert.strictEqual (violations.length, 1);
+    assert.strictEqual (violations[0]['code'], 'notional_unvaluable');
+    assert.strictEqual (violations[0]['blocking'], true, 'an unvaluable step must block, or the cap is decorative');
+    //  unrelated rates do not help
+    const stillBlocked = router.checkExecutionPlanSafety (plan, permissiveStubMarkets, { 'usdRates': { 'ETH': 3000, 'DOGE': 0.09 }, 'maxNotionalUsd': 25 });
+    assert.strictEqual (stillBlocked[0]['code'], 'notional_unvaluable');
+    //  either side of the market resolves it
+    assert.deepStrictEqual (router.checkExecutionPlanSafety (plan, permissiveStubMarkets, { 'usdRates': { 'USDT': 1 }, 'maxNotionalUsd': 25 }), []);
+    assert.deepStrictEqual (router.checkExecutionPlanSafety (plan, permissiveStubMarkets, { 'usdRates': { 'BTC': 100 }, 'maxNotionalUsd': 25 }), []);
+});
+
+test ('USDT is not assumed to be one dollar; USD is', () => {
+    const usdtPlan = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.1, 100), { 'slippageBps': 0 });
+    const usdtViolations = router.checkExecutionPlanSafety (usdtPlan, permissiveStubMarkets, { 'usdRates': { 'USD': 1 }, 'maxNotionalUsd': 25 });
+    assert.strictEqual (usdtViolations.length, 1);
+    assert.strictEqual (usdtViolations[0]['code'], 'notional_unvaluable', 'a stablecoin peg is an observation, not a definition');
+    //  a depegged rate is respected: 10 USDT at 0.40 is 4 USD
+    const depegged = router.checkExecutionPlanSafety (usdtPlan, permissiveStubMarkets, { 'usdRates': { 'USDT': 0.4 }, 'maxNotionalUsd': 25 });
+    assert.deepStrictEqual (depegged, []);
+});
+
+test ('an empty plan is not a safe plan', () => {
+    const plan = router.buildExecutionPlan (fixture['routes']['unroutable'], {});
+    assert.strictEqual (plan['steps'].length, 0);
+    const violations = router.checkExecutionPlanSafety (plan, permissiveStubMarkets, { 'usdRates': { 'USDT': 1 } });
+    assert.strictEqual (violations.length, 1);
+    assert.strictEqual (violations[0]['code'], 'empty_plan');
+    assert.strictEqual (violations[0]['blocking'], true, 'zero violations on zero steps would read as approval');
+});
+
+test ('reconcileExecutionStep never scales a downstream order UP', () => {
+    const route = fixture['routes']['multiHop'];
+    const plan = router.buildExecutionPlan (route, {});
+    const overfilled = router.reconcileExecutionStep (plan, 0, 1000000);
+    assert.strictEqual (overfilled['scale'], 1, 'an overfill must not grow an order the safety check never saw');
+    assert.strictEqual (overfilled['verdict'], 'proceed');
+    const downstream = overfilled['resizedSteps'][0];
+    assert.strictEqual (downstream['amount'], downstream['previousAmount']);
+});
+
+test ('reconcileExecutionStep halts on a total miss and on an over-tolerance shortfall', () => {
+    const plan = router.buildExecutionPlan (fixture['routes']['multiHop'], {});
+    assert.strictEqual (router.reconcileExecutionStep (plan, 0, 0)['verdict'], 'halt');
+    assert.strictEqual (router.reconcileExecutionStep (plan, 0, 0)['reason'], 'nothing_filled');
+    //  expectedOut of step 0 is 500 * 0.089 = 44.5 GROSS, less the 0.025176757619121304
+    //  USDT fee the router itself predicted = 44.47482324238088. 2% of that is
+    //  0.8894964648476176.
+    const expectedOut = 44.47482324238088;
+    assert.strictEqual (router.reconcileExecutionStep (plan, 0, expectedOut - 0.88)['verdict'], 'proceed');
+    assert.strictEqual (router.reconcileExecutionStep (plan, 0, expectedOut - 0.9)['verdict'], 'halt');
+    assert.strictEqual (router.reconcileExecutionStep (plan, 0, expectedOut - 0.9)['reason'], 'shortfall_exceeds_tolerance');
+    assert.throws (() => router.reconcileExecutionStep (plan, 7, 1), BadRequest);
+});
+
+test ('a fee the router already subtracted is not subtracted a second time', () => {
+    //  THE REGRESSION THIS EXISTS FOR. execute() reports realisedOut NET of a fee charged
+    //  in the asset the step produced, because that is what the wallet receives. The
+    //  router had already done the same: in this fixture hop 0 sells 500 DOGE at 0.089
+    //  for 44.5 gross, reports amountOut 44.47482324238088 after a 0.025176757619121304
+    //  USDT fee, and hop 1's amountIn is that net figure to the last digit — hop 1's leg
+    //  amount was sized from it.
+    //
+    //  Measuring the expectation GROSS against a NET realised amount therefore reported a
+    //  shortfall on a perfect fill and shrank hop 1 by the fee all over again, stranding
+    //  it in the bridge asset. This asserts the arithmetic closes: a fill of exactly what
+    //  the router promised is a fill of exactly what the router promised.
+    const route = fixture['routes']['multiHop'];
+    const hopZero = route['hops'][0];
+    const hopOne = route['hops'][1];
+    const plan = router.buildExecutionPlan (route, {});
+    //  the premise, asserted rather than assumed: the router's own numbers really are net
+    assert.strictEqual (hopZero['amountOut'], 500 * 0.089 - hopZero['feeCost']);
+    assert.strictEqual (hopOne['amountIn'], hopZero['amountOut'], 'hop 1 was sized from the NET proceeds of hop 0');
+    //  and the plan measures the expectation the same way the router did
+    assert.strictEqual (plan['steps'][0]['expectedFeeCost'], hopZero['legs'][0]['feeCost']);
+    const verdict = router.reconcileExecutionStep (plan, 0, hopZero['amountOut']);
+    assert.strictEqual (verdict['expectedOut'], hopZero['amountOut'], 'expected equals what the router said the hop produces');
+    assert.strictEqual (verdict['shortfall'], 0, 'a perfect fill is not a shortfall');
+    assert.strictEqual (verdict['scale'], 1, 'and does not resize anything');
+    assert.strictEqual (verdict['verdict'], 'proceed');
+    for (let i = 0; i < verdict['resizedSteps'].length; i++) {
+        assert.strictEqual (verdict['resizedSteps'][i]['amount'], verdict['resizedSteps'][i]['previousAmount'], 'hop 1 keeps the size the router gave it');
+    }
+    //  notionalQuote is what the order is worth to the VENUE and stays gross — the fee is
+    //  charged on top of it, not deducted from what is sent
+    assert.strictEqual (plan['steps'][0]['notionalQuote'], 44.5);
+    //  a BUY produces base, and the predicted fee is quote-denominated, so it never
+    //  reduces what a buy hands to the next hop
+    assert.strictEqual (router.stepExpectedOut (plan['steps'][1]), hopOne['amountOut']);
+    //  a hand-built plan carries no expectedFeeCost, and behaves exactly as before
+    const handBuilt = { 'side': 'sell', 'amount': 10, 'expectedPrice': 2 };
+    assert.strictEqual (router.stepExpectedOut (handBuilt), 20);
+});
+
+test ('buildUnwindPlan is never automatic and never nets across venues', () => {
+    const unwind = router.buildUnwindPlan (fixture['reports']['haltedCrossVenue']);
+    assert.strictEqual (unwind['requiresConfirmation'], true);
+    assert.strictEqual (unwind['automatic'], false);
+    assert.strictEqual (unwind['residualCount'], 2, 'the mexc USDT and the binance SOL are separate positions');
+    //  the USDT sold on mexc and the USDT spent on binance are NOT the same
+    //  money, because this class never moves funds between venues
+    const venues = [ unwind['steps'][0]['exchangeId'], unwind['steps'][1]['exchangeId'] ];
+    assert.deepStrictEqual (venues, [ 'binance', 'mexc' ], 'unwound in reverse execution order');
+    assert.strictEqual (unwind['steps'][1]['side'], 'buy', 'leftover quote is spent buying the asset back');
+    assert.strictEqual (unwind['steps'][1]['reachesFrom'], true);
+    assert.strictEqual (unwind['steps'][0]['side'], 'sell', 'leftover base is sold back');
+    assert.strictEqual (unwind['steps'][0]['reachesFrom'], false, 'selling SOL for USDT is not yet DOGE');
+});
+
+test ('a buy-side unwind order never spends more quote than the residual actually holds', () => {
+    //  The residual IS the budget. Sizing the buy at the expected price and then
+    //  pricing it slippage above that orders more quote than the venue is holding:
+    //  44.5 USDT at 0.089 is 500 DOGE, but 500 DOGE at the 0.0892225 limit costs
+    //  44.61125 — the venue rejects it for insufficient funds, or partially fills
+    //  and leaves the rest of the stranded money stranded on a halted route.
+    const unwind = router.buildUnwindPlan (fixture['reports']['haltedCrossVenue']);
+    const buy = unwind['steps'][1];
+    assert.strictEqual (buy['side'], 'buy');
+    const residual = 44.5;
+    const spend = buy['amount'] * buy['limitPrice'];
+    assert.ok (spend <= residual + 1e-9, 'buy spends ' + String (spend) + ' of a ' + String (residual) + ' residual');
+    //  and it does not leave the residual pointlessly unspent either
+    assert.ok (spend >= residual - 1e-9, 'buy spends ' + String (spend) + ', short of the ' + String (residual) + ' residual');
+    //  the notional the safety cap sees must be that same real spend
+    assert.ok (numbersMatch (buy['notionalQuote'], spend), 'notionalQuote is priced at the limit the order is placed at');
+    //  the sell side is sized on the residual itself — there is no budget to run out of
+    const sell = unwind['steps'][0];
+    assert.strictEqual (sell['side'], 'sell');
+    assert.strictEqual (sell['amount'], 0.2, 'the whole 0.2 SOL residual is sold');
+    assert.ok (numbersMatch (sell['notionalQuote'], 0.2 * sell['limitPrice']));
+});
+
+//  ---------------------------------------------------------------------------
+//  3. execute — stub venues only, and not one real order anywhere
+//  ---------------------------------------------------------------------------
+
+class StubVenue {
+    id: string;
+    markets: any;
+    features: any;
+    calls: string[];
+    fillRatio: number;
+    failCreate: boolean;
+    //  a queue of orders fetchOrder hands back, one per poll; empty means the
+    //  created order comes back closed on the first read
+    fetchOrderResults: any[];
+    fetchOrderThrows: boolean;
+    cancelThrows: boolean;
+    createdStatus: string;
+    //  createOrder throws a NETWORK error: the order may or may not have reached the venue
+    timeoutCreate: boolean;
+    //  createOrder throws exactly this error, so a test can name the ccxt class a real
+    //  venue would raise (binance maps -1006 "Execution status unknown" to OperationFailed)
+    createErrorToThrow: any;
+    //  answers createOrder WITHOUT filled/average/cost, as several real venues do
+    omitFillFields: boolean;
+    //  {cost, currency} attached to the created order, as real venues do
+    feeToCharge: any;
+    //  [{cost, currency}] attached as per-trade fees, as venues that report a fill
+    //  as a list of trades do
+    tradeFeesToCharge: any[];
+    //  concurrency witness: how many createOrder calls were in flight at their peak
+    inFlight: number;
+    peakInFlight: number;
+    //  every params dictionary createOrder was called with, in call order
+    paramsSeen: any[];
+    //  refuse this many createOrder calls, then behave: a venue that rejects and then relents
+    failCreateTimes: number;
+
+    constructor (id: string, fillRatio: number = 1, failCreate: boolean = false) {
+        this.id = id;
+        this.fillRatio = fillRatio;
+        this.failCreate = failCreate;
+        this.calls = [];
+        this.failCreateTimes = 0;
+        this.markets = permissiveStubMarkets['stub'];
+        this.features = { 'spot': { 'createOrder': { 'timeInForce': [ 'GTC', 'IOC' ] } } };
+        this.fetchOrderResults = [];
+        this.fetchOrderThrows = false;
+        this.cancelThrows = false;
+        this.createdStatus = '';
+        this.timeoutCreate = false;
+        this.createErrorToThrow = undefined;
+        this.omitFillFields = false;
+        this.feeToCharge = undefined;
+        this.tradeFeesToCharge = [];
+        this.inFlight = 0;
+        this.peakInFlight = 0;
+        this.paramsSeen = [];
+    }
+
+    async fetchOrder (id: string, symbol: string) {
+        this.calls.push ('fetchOrder:' + id);
+        if (this.fetchOrderThrows) {
+            throw new ExchangeError ('stub cannot read the order back');
+        }
+        if (this.fetchOrderResults.length > 0) {
+            return this.fetchOrderResults.shift ();
+        }
+        return { 'id': id, 'status': 'closed', 'filled': 0, 'average': 0, 'cost': 0 };
+    }
+
+    async cancelOrder (id: string, symbol: string) {
+        this.calls.push ('cancelOrder:' + id);
+        if (this.cancelThrows) {
+            throw new ExchangeError ('stub refuses to cancel');
+        }
+        return { 'id': id, 'status': 'canceled' };
+    }
+
+    async loadMarkets () {
+        this.calls.push ('loadMarkets');
+        return this.markets;
+    }
+
+    amountToPrecision (symbol: string, amount: number): string {
+        return amount.toString ();
+    }
+
+    priceToPrecision (symbol: string, price: number): string {
+        return price.toString ();
+    }
+
+    async fetchBalance () {
+        this.calls.push ('fetchBalance');
+        return { 'free': { 'USDT': 1000, 'BTC': 1, 'ZERO': 0 }, 'total': { 'USDT': 1000, 'BTC': 1 } };
+    }
+
+    async createOrder (symbol: string, type: string, side: string, amount: number, price: any = undefined, params: any = {}) {
+        this.calls.push ('createOrder:' + type + ':' + side + ':' + amount.toString ());
+        this.paramsSeen.push (params);
+        this.inFlight = this.inFlight + 1;
+        if (this.inFlight > this.peakInFlight) {
+            this.peakInFlight = this.inFlight;
+        }
+        //  yield, so a caller that really does run legs concurrently overlaps here
+        await new Promise ((resolve) => setTimeout (resolve, 1));
+        this.inFlight = this.inFlight - 1;
+        if (this.timeoutCreate) {
+            throw new RequestTimeout ('stub timed out');
+        }
+        if (this.createErrorToThrow !== undefined) {
+            throw this.createErrorToThrow;
+        }
+        if (this.failCreateTimes > 0) {
+            this.failCreateTimes = this.failCreateTimes - 1;
+            throw new ExchangeError ('stub refuses, for now');
+        }
+        if (this.failCreate) {
+            throw new ExchangeError ('stub refuses');
+        }
+        const filled = amount * this.fillRatio;
+        const average = (price === undefined) ? 100 : price;
+        const status = (this.createdStatus === '') ? 'closed' : this.createdStatus;
+        if (this.omitFillFields) {
+            return { 'id': 'stub-order', 'status': status };
+        }
+        const body: any = { 'id': 'stub-order', 'status': status, 'filled': filled, 'average': average, 'cost': filled * average };
+        if (params['clientOrderId'] !== undefined) {
+            //  a real venue echoes the client order id it was given
+            body['clientOrderId'] = params['clientOrderId'];
+        }
+        if (this.feeToCharge !== undefined) {
+            body['fee'] = this.feeToCharge;
+        }
+        if (this.tradeFeesToCharge.length > 0) {
+            const trades = [];
+            for (let i = 0; i < this.tradeFeesToCharge.length; i++) {
+                trades.push ({ 'fee': this.tradeFeesToCharge[i] });
+            }
+            body['trades'] = trades;
+        }
+        return body;
+    }
+}
+
+function twoHopRoute (): any {
+    return {
+        'requestId': nextTestRequestId (),
+        'from': 'USDT',
+        'to': 'SOL',
+        'strategy': 'best_single',
+        'exactSide': 'in',
+        'amountIn': 20,
+        'amountOut': 0.2,
+        'fullyFillable': true,
+        'fillRatio': 1,
+        'unroutableReason': null,
+        'hops': [
+            { 'pair': 'BTC/USDT', 'side': 'buy', 'base': 'BTC', 'quote': 'USDT', 'amountIn': 20, 'amountOut': 0.2, 'legs': [ { 'exchangeId': 'stub', 'amount': 0.2, 'averagePrice': 100, 'effectivePrice': 100 } ] },
+            { 'pair': 'BTC/USDT', 'side': 'sell', 'base': 'BTC', 'quote': 'USDT', 'amountIn': 0.2, 'amountOut': 20, 'legs': [ { 'exchangeId': 'stub', 'amount': 0.2, 'averagePrice': 100, 'effectivePrice': 100 } ] },
+        ],
+    };
+}
+
+test ('balances accept the shape a caller actually writes, and refuse what cannot be rendered', () => {
+    //  `{ mexc: { USDT: 100 } }` is the obvious thing to write — it is what a ccxt balance
+    //  looks like — and it used to stringify to the literal "[object Object]" and travel to
+    //  the server, which rejected it with a message naming neither the shape sent nor the
+    //  shape wanted. Silently sending a value you cannot render is the failure this class
+    //  refuses everywhere else.
+    const nested = router.routeQuery ('USDT', 'BTC', { 'balances': { 'mexc': { 'USDT': 100, 'BTC': 0.5 } } });
+    assert.ok (nested.indexOf ('object%20Object') < 0, 'never ships [object Object]: ' + nested);
+    assert.ok (nested.indexOf (encodeURIComponent ('mexc.BTC:0.5')) >= 0, nested);
+    assert.ok (nested.indexOf (encodeURIComponent ('mexc.USDT:100')) >= 0, nested);
+    //  a flat wallet, with no venue, is the single-venue spelling the router also accepts
+    const flat = router.routeQuery ('USDT', 'BTC', { 'balances': { 'USDT': 100 } });
+    //  asserted EXACTLY, not by substring: `USDT:100` is also a substring of the malformed
+    //  `.USDT:100` a port produced by hard-coding the separator, so a contains-check passes
+    //  on the broken spelling. An unqualified holding carries no leading dot.
+    assert.strictEqual (router.joinBalances ([ { 'asset': 'USDT', 'amount': 100 } ]), 'USDT:100');
+    assert.strictEqual (router.joinBalances ([ { 'exchangeId': 'mexc', 'asset': 'USDT', 'amount': 100 } ]), 'mexc.USDT:100');
+    assert.ok (flat.indexOf (encodeURIComponent ('.USDT:100')) < 0, 'no leading dot on an unqualified holding: ' + flat);
+    assert.ok (flat.indexOf (encodeURIComponent ('USDT:100')) >= 0, flat);
+    //  the rendered string still passes through untouched
+    const already = router.routeQuery ('USDT', 'BTC', { 'balances': 'mexc.USDT:100' });
+    assert.ok (already.indexOf (encodeURIComponent ('mexc.USDT:100')) >= 0, already);
+    //  the POST body renders balances FIRST, before the number/boolean shortcut every other
+    //  param takes: a numeric balances is not a wallet, and letting it through as a JSON
+    //  number sent it to the server to be refused there — the round trip this exists to stop
+    assert.throws (() => {
+        router.routeBody ('USDT', 'BTC', { 'balances': 12345 as any });
+    }, /ASSET:amount/);
+    const body = router.routeBody ('USDT', 'BTC', { 'balances': { 'mexc': { 'USDT': 100 } }, 'amountIn': 20 });
+    assert.strictEqual (body['balances'], 'mexc.USDT:100', 'rendered in the body too, not only the query');
+    assert.strictEqual (body['amountIn'], 20, 'and numbers still travel as numbers');
+    //  and a value that is neither is refused HERE, naming both shapes, rather than at the far end
+    assert.throws (() => {
+        router.routeQuery ('USDT', 'BTC', { 'balances': 12345 as any });
+    }, (e: any) => {
+        assert.strictEqual (e.constructor.name, 'BadRequest');
+        assert.ok (e.message.indexOf ('ASSET:amount') >= 0, e.message);
+        return true;
+    });
+});
+
+test ('a route param that cannot be rendered is refused rather than stringified', () => {
+    //  the same hole, one level up: every route param went through toString(), so ANY object
+    //  became "[object Object]" on the wire. Only balances has a meaningful object form.
+    assert.throws (() => {
+        router.routeQuery ('USDT', 'BTC', { 'bridges': { 'nope': true } as any });
+    }, /BadRequest|cannot be rendered/);
+    //  arrays and scalars are unaffected
+    const ok = router.routeQuery ('USDT', 'BTC', { 'bridges': [ 'USDT', 'BTC' ], 'maxVenues': 3, 'certified': true });
+    assert.ok (ok.indexOf (encodeURIComponent ('USDT,BTC')) >= 0, ok);
+    assert.ok (ok.indexOf ('maxVenues=3') >= 0, ok);
+    assert.ok (ok.indexOf ('certified=true') >= 0, ok);
+});
+
+test ('execute takes options as its second argument, with no placeholder for venues', async () => {
+    //  venues default to the router's, so the three-arg form made the common call pass a
+    //  placeholder — `undefined as any` in TypeScript, which is a signature telling you it is
+    //  wrong. Both forms work: a second argument holding exchange instances is venues,
+    //  anything else is options.
+    const venue = new StubVenue ('stub');
+    const held = new OrderRouter ({ 'venues': { 'stub': venue } });
+    const route = oneLegRoute ('buy', 'BTC', 'USDT', 0.2, 100);
+    const short = await held.execute (route, { 'usdRates': { 'USDT': 1 }, 'idempotencyKey': 'two-arg' });
+    assert.strictEqual (short['steps'][0]['status'], 'filled');
+    assert.strictEqual (short['dryRun'], false);
+    //  and the explicit three-arg form still routes to the venues given
+    const other = new StubVenue ('stub');
+    const long = await held.execute (route, { 'stub': other }, { 'usdRates': { 'USDT': 1 }, 'idempotencyKey': 'three-arg' });
+    assert.strictEqual (long['steps'][0]['status'], 'filled');
+    assert.ok (other.calls.length > 0, 'the venues argument won');
+});
+
+test ('marketsOf builds the dict checkExecutionPlanSafety wants, so callers stop hand-rolling it', async () => {
+    //  execute assembles this itself; anyone calling the safety check directly was looping
+    //  venues, awaiting loadMarkets and keying by id — the exact boilerplate the example used
+    //  to carry.
+    const venue = new StubVenue ('stub');
+    const markets = await router.marketsOf ({ 'stub': venue });
+    assert.ok ('stub' in markets, 'keyed by exchange id');
+    assert.ok ('BTC/USDT' in markets['stub'], 'and holds that venue markets');
+    //  a venue whose markets are already loaded is not reloaded
+    assert.strictEqual (venue.calls.indexOf ('loadMarkets'), -1, 'loaded markets are reused');
+    //  one whose markets are empty IS loaded
+    const cold = new StubVenue ('stub');
+    cold.markets = {};
+    await router.marketsOf ({ 'stub': cold });
+    assert.ok (cold.calls.indexOf ('loadMarkets') >= 0, 'empty markets are loaded');
+    const plan = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.2, 100), {});
+    const violations = router.checkExecutionPlanSafety (plan, markets, {});
+    assert.ok (Array.isArray (violations), 'and feeds straight into the safety check');
+});
+
+test ('plan-shaping options passed with an already-built plan are refused, not ignored', async () => {
+    //  slippageBps and reconcileToleranceRatio shape a plan. Passing them WITH a plan cannot
+    //  do anything — the limit prices are already baked in — and silently ignoring them means
+    //  trading at a different limit than the caller asked for.
+    const plan = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.2, 100), {});
+    await assert.rejects (async () => {
+        await router.execute (plan, { 'stub': new StubVenue ('stub') }, { 'slippageBps': 1000, 'usdRates': { 'USDT': 1 } });
+    }, (e: any) => {
+        assert.strictEqual (e.constructor.name, 'BadRequest');
+        assert.ok (e.message.indexOf ('slippageBps') >= 0, e.message);
+        return true;
+    });
+    //  with a ROUTE they are exactly how you shape the plan, so they are accepted
+    const route = oneLegRoute ('buy', 'BTC', 'USDT', 0.2, 100);
+    const shaped = await router.execute (route, { 'stub': new StubVenue ('stub') }, { 'slippageBps': 1000, 'usdRates': { 'USDT': 1 }, 'idempotencyKey': 'shaping-ok' });
+    assert.strictEqual (shaped['slippageBps'], 1000);
+});
+
+test ('a cap with no way to value the trade says which half is missing', async () => {
+    //  maxNotionalUsd and usdRates are one guardrail in two parts. It fails CLOSED, which is
+    //  right, but the refusal used to describe the symptom rather than the cause.
+    const plan = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.2, 100), {});
+    await assert.rejects (async () => {
+        await router.execute (plan, { 'stub': new StubVenue ('stub') }, { 'maxNotionalUsd': 25 });
+    }, (e: any) => {
+        assert.ok (e.message.indexOf ('usdRates') >= 0, 'it names the missing half: ' + e.message);
+        return true;
+    });
+});
+
+test ('venues alone filter but never read a wallet: balance tracking is a mode you ask for', async () => {
+    //  TWO decisions, and they were riding on one config key. Handing the router your venues
+    //  says where you can trade — a filter that costs nothing and cannot go stale. It does NOT
+    //  say "read my wallets", which costs an authenticated call per venue and goes stale the
+    //  moment anything moves. Implicit balances also meant one bad key killed a whole quote.
+    const venue = new StubVenue ('stub');
+    const filtering = new OrderRouter ({ 'venues': { 'stub': venue } });
+    const stub = stubRouteFetch ();
+    let sent = '';
+    try {
+        await filtering.fetchRoute ('USDT', 'BTC', { 'amountIn': 20 });
+        sent = stub.lastUrl ();
+    } finally {
+        stub.restore ();
+    }
+    assert.ok (sent.indexOf ('exchanges=stub') >= 0, 'the filter is always applied: ' + sent);
+    assert.ok (sent.indexOf ('balances') < 0, 'and no holdings were sent: ' + sent);
+    assert.deepStrictEqual (venue.calls, [], 'not one wallet was read');
+    //  loadBalances is inert in this mode: the router does not manage balances at all
+    const loaded = await filtering.loadBalances ();
+    assert.strictEqual (loaded, '', 'loadBalances is a no-op when the router is not tracking');
+    assert.deepStrictEqual (venue.calls, [], 'still no wallet read');
+});
+
+test ('the balances behind a route are read once and cached, so a quote is one call', async () => {
+    //  fetchRoute is ONE HTTP request. Reading every venue's wallet on every quote turned it
+    //  into one request plus a wallet read per venue, which is the wrong shape for something
+    //  called in a loop. Balances are loaded once and cached, exactly as loadMarkets caches.
+    const venue = new StubVenue ('stub');
+    const held = new OrderRouter ({ 'venues': { 'stub': venue }, 'trackBalances': true });
+    const stub = stubRouteFetch ();
+    try {
+        await held.fetchRoute ('USDT', 'BTC', { 'amountIn': 20 });
+        await held.fetchRoute ('USDT', 'BTC', { 'amountIn': 30 });
+        await held.fetchRoute ('USDT', 'BTC', { 'amountIn': 40 });
+    } finally {
+        stub.restore ();
+    }
+    const reads = venue.calls.filter ((call: string) => call === 'fetchBalance');
+    assert.strictEqual (reads.length, 1, 'three quotes, one wallet read: ' + JSON.stringify (venue.calls));
+    assert.strictEqual (stub.count (), 3, 'and still one HTTP request per quote');
+});
+
+test ('loadBalances refreshes on demand, and a live execute invalidates the cache', async () => {
+    //  Balances are not markets: placing an order is exactly what makes them wrong. A run that
+    //  reaches a venue therefore drops the cache, so the next quote cannot be funded against
+    //  holdings that predate the trade. A rehearsal touches nothing and keeps it.
+    const venue = new StubVenue ('stub');
+    const held = new OrderRouter ({ 'venues': { 'stub': venue }, 'trackBalances': true });
+    const stub = stubRouteFetch ();
+    let route: Dict = {};
+    try {
+        route = await held.fetchRoute ('USDT', 'BTC', { 'amountIn': 20 });
+    } finally {
+        stub.restore ();
+    }
+    const countReads = () => venue.calls.filter ((call: string) => call === 'fetchBalance').length;
+    assert.strictEqual (countReads (), 1);
+    //  an explicit reload always re-reads
+    await held.loadBalances (true);
+    assert.strictEqual (countReads (), 2, 'reload re-reads');
+    //  a rehearsal keeps the cache
+    await held.execute (route, undefined as any, { 'dryRun': true, 'usdRates': { 'USDT': 1 } });
+    const afterRehearsal = stubRouteFetch ();
+    try {
+        await held.fetchRoute ('USDT', 'BTC', { 'amountIn': 20 });
+    } finally {
+        afterRehearsal.restore ();
+    }
+    assert.strictEqual (countReads (), 2, 'a rehearsal places nothing, so the cache still holds');
+    //  a live run drops it
+    await held.execute (route, undefined as any, { 'usdRates': { 'USDT': 1 }, 'idempotencyKey': 'invalidates' });
+    const afterLive = stubRouteFetch ();
+    try {
+        await held.fetchRoute ('USDT', 'BTC', { 'amountIn': 20 });
+    } finally {
+        afterLive.restore ();
+    }
+    assert.strictEqual (countReads (), 3, 'a live run makes the cached balances wrong, so they are re-read');
+});
+
+test ('venues given to the constructor filter the route and fund it, and execute defaults to them', async () => {
+    //  The three things venues were being passed by hand for, answered once. A route may not
+    //  name a venue you hold no keys for; it should be funded from what you actually hold; and
+    //  the orders go to those same instances. A call-site argument still wins over all three.
+    const venue = new StubVenue ('stub');
+    const held = new OrderRouter ({ 'venues': { 'stub': venue }, 'trackBalances': true });
+    const sent: Dict[] = [];
+    const realFetch = globalThis.fetch;
+    (globalThis as any).fetch = async (url: any, init: any) => {
+        sent.push ({ 'url': url.toString (), 'body': (init && init.body) ? init.body.toString () : '' });
+        return { 'ok': true, 'status': 200, 'headers': { 'get': () => null }, 'text': async () => {
+            //  the router echoes the holdings it applied; the client REFUSES a route that
+            //  does not, because a silently unfunded route is the failure this whole path
+            //  exists to prevent
+            const answer = oneLegRoute ('buy', 'BTC', 'USDT', 0.2, 100);
+            answer['balancesApplied'] = 'stub.BTC:1,stub.USDT:1000';
+            return JSON.stringify (answer);
+        } } as any;
+    };
+    let route: Dict = {};
+    try {
+        route = await held.fetchRoute ('USDT', 'BTC', { 'amountIn': 20 });
+    } finally {
+        globalThis.fetch = realFetch;
+    }
+    const wire = sent[0]['url'] + sent[0]['body'];
+    assert.ok (wire.indexOf ('stub') >= 0, 'the venue filter and the holdings reached the router: ' + wire);
+    assert.ok (venue.calls.indexOf ('fetchBalance') >= 0, 'the wallet was actually read');
+    //  and execute needs no venues argument, because the router already has them
+    const report = await held.execute (route, undefined as any, { 'usdRates': { 'USDT': 1 }, 'idempotencyKey': 'held-venues' });
+    assert.strictEqual (report['dryRun'], false);
+    assert.strictEqual (report['steps'][0]['status'], 'filled');
+});
+
+test ('execute places orders: calling it is the instruction, not a flag beside it', async () => {
+    //  `execute` is an imperative verb and ccxt's own createOrder needs no permission flag
+    //  beside it. A method that silently does nothing is the same failure this class guards
+    //  against everywhere else — a caller who believes they traded and did not. So placing
+    //  is the default, and a rehearsal is the thing you ask for.
+    const plan = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.2, 100), {});
+    const venue = new StubVenue ('stub');
+    const report = await router.execute (plan, { 'stub': venue }, {
+        'usdRates': { 'USDT': 1 },
+        'idempotencyKey': 'default-is-live',
+    });
+    assert.strictEqual (report['dryRun'], false, 'execute places by default');
+    assert.strictEqual (report['strategy'], 'sequential', 'sequential is the default strategy');
+    assert.strictEqual (report['ordersPlaced'], 1);
+    assert.strictEqual (report['steps'][0]['status'], 'filled');
+    assert.ok (venue.calls.length > 0, 'the venue was actually called');
+});
+
+test ('a rehearsal is asked for once, by dryRun, and places nothing', async () => {
+    //  ONE knob. `dryRun` says whether; `strategy` says how, and the two are independent —
+    //  rehearsing a limit_protected run has to be sayable, and it was not while dry_run was
+    //  itself a strategy. Only an exact true rehearses: a config that stringifies its booleans
+    //  must not silently stop trading.
+    const plan = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.2, 100), {});
+    const rehearsed = new StubVenue ('stub');
+    const report = await router.execute (plan, { 'stub': rehearsed }, {
+        'strategy': 'limit_protected',
+        'dryRun': true,
+        'usdRates': { 'USDT': 1 },
+    });
+    assert.strictEqual (report['dryRun'], true);
+    assert.strictEqual (report['strategy'], 'limit_protected', 'the strategy survives the rehearsal: how is not what');
+    assert.strictEqual (report['ordersPlaced'], 0);
+    assert.strictEqual (report['wouldPlaceOrders'], 1);
+    assert.strictEqual (report['steps'][0]['status'], 'planned');
+    assert.deepStrictEqual (rehearsed.calls, [], 'not one call reached the venue — not even a read');
+    const loose = new StubVenue ('stub');
+    const ran = await router.execute (plan, { 'stub': loose }, {
+        'dryRun': 'true' as any,
+        'usdRates': { 'USDT': 1 },
+        'idempotencyKey': 'loose-dryrun',
+    });
+    assert.strictEqual (ran['dryRun'], false, 'dryRun must be exactly true to rehearse');
+    assert.ok (loose.calls.length > 0);
+});
+
+test ('dry_run is no longer a strategy: how and whether are separate fields', async () => {
+    //  it was a member of the strategy enum, which made the two questions share one field
+    //  and forced a requestedStrategy on every report to recover what had been overwritten
+    const plan = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.2, 100), {});
+    await assert.rejects (async () => {
+        await router.execute (plan, { 'stub': new StubVenue ('stub') }, { 'strategy': 'dry_run', 'usdRates': { 'USDT': 1 } });
+    }, /unknown execution strategy/);
+});
+
+test ('execute takes a route directly, so the simple path is fetchRoute then execute', async () => {
+    //  buildExecutionPlan is PURE and derives entirely from the route, so making the caller
+    //  run it was ceremony: two calls that can only ever be made in one order, with nothing
+    //  useful to do in between unless you want to inspect the plan. You still can — the
+    //  method stays public and a plan is still accepted — but you no longer MUST.
+    const route = oneLegRoute ('buy', 'BTC', 'USDT', 0.2, 100);
+    const viaRoute = new StubVenue ('stub');
+    const fromRoute = await router.execute (route, { 'stub': viaRoute }, { 'strategy': 'sequential', 'usdRates': { 'USDT': 1 }, 'idempotencyKey': 'via-route' });
+    //  and the result is the SAME as routing it by hand through buildExecutionPlan
+    const viaPlan = new StubVenue ('stub');
+    const plan = router.buildExecutionPlan (route, {});
+    const fromPlan = await router.execute (plan, { 'stub': viaPlan }, { 'strategy': 'sequential', 'usdRates': { 'USDT': 1 }, 'idempotencyKey': 'via-plan' });
+    assert.strictEqual (fromRoute['steps'].length, fromPlan['steps'].length);
+    assert.strictEqual (fromRoute['steps'][0]['status'], fromPlan['steps'][0]['status']);
+    assert.strictEqual (fromRoute['steps'][0]['status'], 'filled');
+    assert.deepStrictEqual (viaRoute.calls, viaPlan.calls, 'the same orders reach the venue either way');
+    //  plan-shaping options still land when the plan is built inside execute, or the
+    //  short path would silently trade at a different limit price than the long one
+    const tight = new StubVenue ('stub');
+    await router.execute (route, { 'stub': tight }, { 'strategy': 'sequential', 'usdRates': { 'USDT': 1 }, 'slippageBps': 1000, 'idempotencyKey': 'shaped' });
+    const shaped = router.buildExecutionPlan (route, { 'slippageBps': 1000 });
+    const expectedPrice = shaped['steps'][0]['limitPrice'];
+    assert.ok (tight.calls[0].indexOf ('createOrder') === 0, tight.calls[0]);
+    assert.ok (expectedPrice > 100, 'a buy limit sits above the expected price');
+});
+
+test ('execute refuses to go live without a way to value the trade in USD — when a cap is set', async () => {
+    const plan = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.2, 100), {});
+    const venue = new StubVenue ('stub');
+    await assert.rejects (async () => {
+        await router.execute (plan, { 'stub': venue }, { 'strategy': 'sequential', 'maxNotionalUsd': 25 });
+    }, ExchangeError);
+    assert.ok (venue.calls.indexOf ('createOrder:limit:buy:0.2') < 0, 'no order was placed');
+    //  and with NO cap asked for, usdRates is not required: there is no cap to evaluate,
+    //  so demanding the inputs for one would be asking for something nobody wanted.
+    const uncapped = new StubVenue ('stub');
+    const report = await router.execute (plan, { 'stub': uncapped }, { 'strategy': 'sequential' });
+    assert.strictEqual (report['steps'][0]['status'], 'filled');
+});
+
+test ('execute refuses to go live above a cap the caller set', async () => {
+    //  500 USD against a 25 USD guardrail. The refusal happens BEFORE any order goes
+    //  out, which is the property worth asserting — a cap checked after the fact is
+    //  an incident report, not a guardrail.
+    const plan = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 5, 100), {});
+    const venue = new StubVenue ('stub');
+    await assert.rejects (async () => {
+        await router.execute (plan, { 'stub': venue }, { 'strategy': 'sequential', 'usdRates': { 'USDT': 1 }, 'maxNotionalUsd': 25 });
+    }, ExchangeError);
+    for (let i = 0; i < venue.calls.length; i++) {
+        assert.ok (venue.calls[i].indexOf ('createOrder') < 0, 'no order was placed');
+    }
+    //  the same 500 USD trade with no cap set goes through: that is the point of the
+    //  guardrail being opt-in
+    const uncapped = new StubVenue ('stub');
+    const report = await router.execute (plan, { 'stub': uncapped }, { 'strategy': 'sequential', 'usdRates': { 'USDT': 1 } });
+    assert.strictEqual (report['steps'][0]['status'], 'filled', '500 USD is a normal trade when nobody asked for a cap');
+});
+
+test ('sequential places IOC limit orders in plan order', async () => {
+    const plan = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.2, 100), { 'slippageBps': 100 });
+    const venue = new StubVenue ('stub');
+    const report = await router.execute (plan, { 'stub': venue }, { 'strategy': 'sequential', 'usdRates': { 'USDT': 1 } });
+    assert.strictEqual (report['dryRun'], false);
+    assert.strictEqual (report['ordersPlaced'], 1);
+    assert.strictEqual (report['steps'][0]['status'], 'filled');
+    assert.strictEqual (report['steps'][0]['outAsset'], 'BTC');
+    assert.strictEqual (report['steps'][0]['outAmount'], 0.2);
+    assert.strictEqual (report['steps'][0]['inAsset'], 'USDT');
+    assert.deepStrictEqual (venue.calls, [ 'createOrder:limit:buy:0.2' ]);
+    assert.strictEqual (report['halted'], false);
+});
+
+test ('sequential obeys the halt verdict and never starts the next hop', async () => {
+    const plan = router.buildExecutionPlan (twoHopRoute (), {});
+    //  hop 0 fills half: a 50% shortfall against a 2% tolerance
+    const venue = new StubVenue ('stub', 0.5);
+    const report = await router.execute (plan, { 'stub': venue }, { 'strategy': 'sequential', 'usdRates': { 'USDT': 1 } });
+    assert.strictEqual (report['halted'], true);
+    assert.strictEqual (report['haltReason'], 'shortfall_exceeds_tolerance');
+    assert.strictEqual (report['haltStepIndex'], 0);
+    assert.strictEqual (report['ordersPlaced'], 1, 'the second hop was never attempted');
+    assert.strictEqual (report['steps'][1]['status'], 'skipped');
+    assert.strictEqual (venue.calls.length, 1);
+    //  and the halted report is exactly what buildUnwindPlan is for
+    const unwind = router.buildUnwindPlan (report);
+    assert.strictEqual (unwind['residualCount'], 1);
+    assert.strictEqual (unwind['steps'][0]['side'], 'sell', 'the BTC bought on hop 0 goes back to USDT');
+    assert.strictEqual (unwind['steps'][0]['reachesFrom'], true);
+});
+
+test ('a market order needs BOTH a venue that cannot do IOC and an explicit opt-in', async () => {
+    const plan = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.2, 100), {});
+    //  a venue that advertises GTC only
+    const noIoc = new StubVenue ('stub');
+    noIoc.features = { 'spot': { 'createOrder': { 'timeInForce': [ 'GTC' ] } } };
+    const refused = await router.execute (plan, { 'stub': noIoc }, { 'strategy': 'sequential', 'usdRates': { 'USDT': 1 } });
+    assert.strictEqual (refused['steps'][0]['status'], 'failed');
+    assert.strictEqual (refused['steps'][0]['errorCode'], 'NotSupported');
+    assert.deepStrictEqual (noIoc.calls, [], 'defaulting to a market order is the decision the caller did not delegate');
+    const allowed = new StubVenue ('stub');
+    allowed.features = { 'spot': { 'createOrder': { 'timeInForce': [ 'GTC' ] } } };
+    //  same plan again, on purpose: this test is about the market-order opt-in, not about
+    //  idempotency, so the re-execution guard is explicitly waived
+    const placed = await router.execute (plan, { 'stub': allowed }, { 'strategy': 'sequential', 'usdRates': { 'USDT': 1 }, 'allowMarketOrders': true, 'allowReexecution': true });
+    assert.strictEqual (placed['steps'][0]['status'], 'filled');
+    assert.deepStrictEqual (allowed.calls, [ 'createOrder:market:buy:0.2' ]);
+    //  ...but not under a cap. assertUnderCap values the order at the plan's LIMIT price and the
+    //  market call sends no price at all, so passing the check and then removing the price it was
+    //  computed from is a cap that silently disappears. The two options are refused together.
+    const capped = new StubVenue ('stub');
+    capped.features = { 'spot': { 'createOrder': { 'timeInForce': [ 'GTC' ] } } };
+    const underCap = await router.execute (plan, { 'stub': capped }, {
+        'strategy': 'sequential', 'usdRates': { 'USDT': 1 },
+        'allowMarketOrders': true, 'maxNotionalUsd': 1000, 'allowReexecution': true,
+    });
+    assert.strictEqual (underCap['steps'][0]['status'], 'failed');
+    assert.strictEqual (underCap['steps'][0]['errorCode'], 'NotSupported');
+    assert.deepStrictEqual (capped.calls, [], 'refused BEFORE dispatch: a cap checked against a price that is then discarded is worse than no cap');
+    //  and the refusal is about the CAP, not about market orders as such — with no cap set, the
+    //  same call goes through, which is the case asserted a few lines above.
+    //  a venue that says nothing about timeInForce is assumed to do IOC: a
+    //  rejected IOC is loud and cheap, an unintended market order is not
+    const unknown = new StubVenue ('stub');
+    unknown.features = {};
+    const assumed = await router.execute (plan, { 'stub': unknown }, { 'strategy': 'sequential', 'usdRates': { 'USDT': 1 }, 'allowReexecution': true });
+    assert.strictEqual (assumed['steps'][0]['status'], 'filled');
+    assert.deepStrictEqual (unknown.calls, [ 'createOrder:limit:buy:0.2' ]);
+});
+
+test ('parallel_within_hop contains a failing leg instead of abandoning its siblings', async () => {
+    const route = oneLegRoute ('buy', 'BTC', 'USDT', 0.1, 100);
+    route['hops'][0]['legs'] = [
+        { 'exchangeId': 'good', 'amount': 0.1, 'averagePrice': 100, 'effectivePrice': 100 },
+        { 'exchangeId': 'bad', 'amount': 0.1, 'averagePrice': 100, 'effectivePrice': 100 },
+        { 'exchangeId': 'good2', 'amount': 0.1, 'averagePrice': 100, 'effectivePrice': 100 },
+    ];
+    const plan = router.buildExecutionPlan (route, {});
+    const good = new StubVenue ('good');
+    const bad = new StubVenue ('bad', 1, true);
+    const good2 = new StubVenue ('good2');
+    const report = await router.execute (plan, { 'good': good, 'bad': bad, 'good2': good2 }, { 'strategy': 'parallel_within_hop', 'usdRates': { 'USDT': 1 } });
+    assert.strictEqual (report['steps'][0]['status'], 'filled');
+    assert.strictEqual (report['steps'][1]['status'], 'failed');
+    assert.strictEqual (report['steps'][2]['status'], 'filled', 'the sibling behind the failure still ran');
+    assert.strictEqual (report['errors'].length, 1);
+    assert.strictEqual (report['errors'][0]['exchangeId'], 'bad');
+    assert.strictEqual (report['halted'], true, 'a failed leg still halts the route after the hop settles');
+    assert.strictEqual (report['haltReason'], 'order_failed');
+});
+
+test ('best_effort refuses multi-hop and demands both of its acknowledgements', async () => {
+    const multiHop = router.buildExecutionPlan (twoHopRoute (), {});
+    const venue = new StubVenue ('stub');
+    await assert.rejects (async () => {
+        await router.execute (multiHop, { 'stub': venue }, { 'strategy': 'best_effort', 'usdRates': { 'USDT': 1 }, 'acknowledgeDispersion': true, 'maxOrders': 5 });
+    }, NotSupported);
+    const singleHop = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.2, 100), {});
+    await assert.rejects (async () => {
+        await router.execute (singleHop, { 'stub': venue }, { 'strategy': 'best_effort', 'usdRates': { 'USDT': 1 }, 'maxOrders': 5 });
+    }, BadRequest);
+    await assert.rejects (async () => {
+        await router.execute (singleHop, { 'stub': venue }, { 'strategy': 'best_effort', 'usdRates': { 'USDT': 1 }, 'acknowledgeDispersion': true });
+    }, BadRequest);
+    assert.deepStrictEqual (venue.calls, []);
+});
+
+test ('best_effort stops at maxOrders and never halts', async () => {
+    const route = oneLegRoute ('buy', 'BTC', 'USDT', 0.1, 100);
+    route['hops'][0]['legs'] = [
+        { 'exchangeId': 'a', 'amount': 0.1, 'averagePrice': 100, 'effectivePrice': 100 },
+        { 'exchangeId': 'b', 'amount': 0.1, 'averagePrice': 100, 'effectivePrice': 100 },
+        { 'exchangeId': 'c', 'amount': 0.1, 'averagePrice': 100, 'effectivePrice': 100 },
+    ];
+    const plan = router.buildExecutionPlan (route, {});
+    const venues = { 'a': new StubVenue ('a'), 'b': new StubVenue ('b', 0.01), 'c': new StubVenue ('c') };
+    const report = await router.execute (plan, venues, { 'strategy': 'best_effort', 'usdRates': { 'USDT': 1 }, 'acknowledgeDispersion': true, 'maxOrders': 2 });
+    assert.strictEqual (report['ordersPlaced'], 2);
+    assert.strictEqual (report['steps'][2]['status'], 'skipped');
+    assert.strictEqual (report['steps'][2]['errorCode'], 'max_orders_reached');
+    assert.strictEqual (report['halted'], false, 'a 1% fill on leg b does not stop best_effort — that is the whole strategy');
+    assert.deepStrictEqual (venues['c'].calls, []);
+});
+
+test ('a per-call cap overrides the client-level one, in both directions', () => {
+    //  The cap is a guardrail the CALLER sets, so the per-call value wins — there is no
+    //  ceiling re-imposed behind their back. Both directions are asserted because the
+    //  old implementation clamped one way only, and a guardrail that silently refuses to
+    //  loosen is as surprising as one that silently refuses to tighten.
+    const client: any = new OrderRouter ({ 'apiKey': 'k', 'maxNotionalUsd': 100 });
+    //  0.005 BTC at 100000 USDT is 500 USD
+    const plan = client.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.005, 100000), { 'slippageBps': 0 });
+    const underClientCap = client.checkExecutionPlanSafety (plan, permissiveStubMarkets, { 'usdRates': { 'USDT': 1 } });
+    assert.strictEqual (underClientCap[0]['code'], 'notional_exceeds_cap', '500 USD trips the client cap of 100');
+    assert.strictEqual (underClientCap[0]['limit'], 100);
+    //  raised for this call
+    assert.deepStrictEqual (client.checkExecutionPlanSafety (plan, permissiveStubMarkets, { 'usdRates': { 'USDT': 1 }, 'maxNotionalUsd': 1000 }), [], 'a per-call cap of 1000 lets it through');
+    //  lowered for this call
+    const tightened = client.checkExecutionPlanSafety (plan, permissiveStubMarkets, { 'usdRates': { 'USDT': 1 }, 'maxNotionalUsd': 10 });
+    assert.strictEqual (tightened[0]['limit'], 10);
+    //  and the last check before an order goes out honours the same value
+    assert.throws (() => client.assertUnderCap (plan['steps'][0], 0.005, 100000, { 'USDT': 1 }, { 'maxNotionalUsd': 100 }), ExchangeError);
+    client.assertUnderCap (plan['steps'][0], 0.005, 100000, { 'USDT': 1 }, { 'maxNotionalUsd': 1000 });
+});
+
+test ('best_effort derives the hop count from the steps, not from a key the plan may not carry', async () => {
+    //  a plan that travelled through JSON, was rebuilt from persisted steps, or
+    //  is the tail of a halted route can be missing hopCount entirely
+    const complete = router.buildExecutionPlan (twoHopRoute (), {});
+    const withoutHopCount: any = {};
+    const keys = Object.keys (complete);
+    for (let i = 0; i < keys.length; i++) {
+        if (keys[i] !== 'hopCount') {
+            withoutHopCount[keys[i]] = complete[keys[i]];
+        }
+    }
+    assert.strictEqual (withoutHopCount['hopCount'], undefined, 'the plan really has no hopCount');
+    assert.strictEqual (withoutHopCount['steps'].length, 2);
+    const venue = new StubVenue ('stub', 0.1);
+    await assert.rejects (async () => {
+        await router.execute (withoutHopCount, { 'stub': venue }, { 'strategy': 'best_effort', 'usdRates': { 'USDT': 1 }, 'acknowledgeDispersion': true, 'maxOrders': 5 });
+    }, NotSupported, 'best_effort across a bridge is refused however the plan reached us');
+    assert.deepStrictEqual (venue.calls, [], 'not one order was placed');
+});
+
+test ('venueSupportsIoc reads the dictionary of booleans every real exchange declares', async () => {
+    const noIoc = new StubVenue ('stub');
+    //  the shape ccxt actually uses: features.spot.createOrder.timeInForce is a
+    //  dictionary, never a list. bit2c, bitbank, bithumb and coinone all say
+    //  IOC: false, and reading this as a list answered "yes" for every one.
+    noIoc.features = { 'spot': { 'createOrder': { 'timeInForce': { 'IOC': false, 'FOK': false, 'PO': false, 'GTD': false, 'GTC': true } } } };
+    assert.strictEqual (router.venueSupportsIoc (noIoc), false);
+    const withIoc = new StubVenue ('stub');
+    withIoc.features = { 'spot': { 'createOrder': { 'timeInForce': { 'IOC': true, 'FOK': true, 'PO': true, 'GTD': false, 'GTC': true } } } };
+    assert.strictEqual (router.venueSupportsIoc (withIoc), true);
+    //  a dictionary that enumerates its values and omits IOC has said no
+    const silentAboutIoc = new StubVenue ('stub');
+    silentAboutIoc.features = { 'spot': { 'createOrder': { 'timeInForce': { 'GTC': true } } } };
+    assert.strictEqual (router.venueSupportsIoc (silentAboutIoc), false);
+    //  and a venue that says nothing at all is still assumed to do IOC
+    const silent = new StubVenue ('stub');
+    silent.features = {};
+    assert.strictEqual (router.venueSupportsIoc (silent), true);
+    //  end to end: the documented market-order fallback is reachable again
+    const plan = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.2, 100), {});
+    const refused = await router.execute (plan, { 'stub': noIoc }, { 'strategy': 'sequential', 'usdRates': { 'USDT': 1 } });
+    assert.strictEqual (refused['steps'][0]['errorCode'], 'NotSupported');
+    assert.deepStrictEqual (noIoc.calls, [], 'an IOC was never sent to a venue that cannot do one');
+    const allowed = new StubVenue ('stub');
+    allowed.features = noIoc.features;
+    const placed = await router.execute (plan, { 'stub': allowed }, { 'strategy': 'sequential', 'usdRates': { 'USDT': 1 }, 'allowMarketOrders': true, 'allowReexecution': true });
+    assert.strictEqual (placed['steps'][0]['status'], 'filled');
+    assert.deepStrictEqual (allowed.calls, [ 'createOrder:market:buy:0.2' ]);
+});
+
+test ('limit_protected keeps the fill from an order the venue canceled on the last poll', async () => {
+    const plan = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.0002, 100000), { 'slippageBps': 0 });
+    const venue = new StubVenue ('stub');
+    venue.createdStatus = 'open';
+    //  the venue ends the order itself between the last two polls — an expiry, a
+    //  self-trade prevention, a post-only rejection of the remainder — and it
+    //  carries a real partial fill
+    venue.fetchOrderResults = [
+        { 'id': 'stub-order', 'status': 'open', 'filled': 0, 'average': 0, 'cost': 0 },
+        { 'id': 'stub-order', 'status': 'canceled', 'filled': 0.0001, 'average': 100000, 'cost': 10 },
+    ];
+    venue.cancelThrows = true;
+    const report = await router.execute (plan, { 'stub': venue }, { 'strategy': 'limit_protected', 'usdRates': { 'USDT': 1 }, 'orderTimeoutMs': 2, 'pollIntervalMs': 1 });
+    assert.ok (venue.calls.indexOf ('cancelOrder:stub-order') < 0, 'an order the venue already closed is not cancelled again');
+    assert.strictEqual (report['steps'][0]['status'], 'partial');
+    assert.strictEqual (report['steps'][0]['filledAmount'], 0.0001);
+    assert.strictEqual (report['steps'][0]['outAmount'], 0.0001);
+    assert.strictEqual (report['steps'][0]['orderId'], 'stub-order');
+    assert.deepStrictEqual (report['openOrders'], [], 'nothing is open: the venue closed it');
+    //  and the 0.0001 BTC that was actually bought reaches the unwind plan
+    const unwind = router.buildUnwindPlan (report);
+    assert.strictEqual (unwind['residualCount'], 1, 'a real position must never be invisible to the unwind path');
+    assert.strictEqual (unwind['steps'][0]['amount'], 0.0001);
+});
+
+test ('limit_protected refuses a non-positive pollIntervalMs before placing anything', async () => {
+    //  The poll loop advances its clock by pollIntervalMs, so 0 never reaches the timeout: it
+    //  spins on fetchOrder forever with a real order resting on a real venue, and the timeout
+    //  that exists to cancel that order never arrives. Refused BEFORE createOrder — refusing
+    //  afterwards would leave the very order the loop could not clean up.
+    const plan = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.0002, 100000), { 'slippageBps': 0 });
+    for (let i = 0; i < 2; i++) {
+        const interval = (i === 0) ? 0 : -1;
+        const venue = new StubVenue ('stub');
+        venue.createdStatus = 'open';
+        let threw = false;
+        try {
+            await router.execute (plan, { 'stub': venue }, { 'strategy': 'limit_protected', 'usdRates': { 'USDT': 1 }, 'orderTimeoutMs': 4, 'pollIntervalMs': interval });
+        } catch (e) {
+            threw = true;
+        }
+        assert.strictEqual (threw, true, 'pollIntervalMs ' + interval.toString () + ' must be refused');
+        assert.deepStrictEqual (venue.calls, [], 'and nothing may reach the venue');
+    }
+    //  the ordinary interval still works, and the default still applies when none is given
+    const ok = new StubVenue ('stub');
+    ok.createdStatus = 'open';
+    ok.fetchOrderResults = [ { 'id': 'stub-order', 'status': 'closed', 'filled': 0.0002, 'average': 100000, 'cost': 20 } ];
+    const report = await router.execute (plan, { 'stub': ok }, { 'strategy': 'limit_protected', 'usdRates': { 'USDT': 1 }, 'orderTimeoutMs': 4, 'pollIntervalMs': 1 });
+    assert.strictEqual (report['steps'][0]['status'], 'filled');
+});
+
+test ('a failure after createOrder still reports the order id and an open order', async () => {
+    const plan = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.0002, 100000), { 'slippageBps': 0 });
+    const venue = new StubVenue ('stub');
+    venue.createdStatus = 'open';
+    //  createOrder succeeded; the first poll never comes back
+    venue.fetchOrderThrows = true;
+    const report = await router.execute (plan, { 'stub': venue }, { 'strategy': 'limit_protected', 'usdRates': { 'USDT': 1 }, 'orderTimeoutMs': 4, 'pollIntervalMs': 1 });
+    //  NOT 'failed'. A step whose id is known had createOrder RETURN, so an order exists; calling
+    //  that "failed" reads as "nothing happened" while openOrders, three lines down, says the
+    //  opposite. One report must not carry both readings, and the halt logic keys off this status.
+    assert.strictEqual (report['steps'][0]['status'], 'outcome_unknown');
+    assert.strictEqual (report['haltReason'], 'outcome_unknown', 'and the halt names the ambiguity rather than claiming an outright failure');
+    assert.strictEqual (report['steps'][0]['orderId'], 'stub-order', 'the id is captured the instant createOrder returns, not after the read');
+    assert.strictEqual (report['openOrders'].length, 1, 'a live order the caller cannot see is the worst outcome there is');
+    assert.strictEqual (report['openOrders'][0]['orderId'], 'stub-order');
+    assert.strictEqual (report['openOrders'][0]['exchangeId'], 'stub');
+    assert.strictEqual (report['openOrders'][0]['reason'], 'outcome_unknown');
+    //  the same holds for an immediate order, which has no poll loop at all
+    const other = new StubVenue ('stub');
+    other.createdStatus = 'open';
+    const overCap = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.0002, 100000), { 'slippageBps': 0 });
+    const okReport = await router.execute (overCap, { 'stub': other }, { 'strategy': 'sequential', 'usdRates': { 'USDT': 1 } });
+    assert.strictEqual (okReport['steps'][0]['orderId'], 'stub-order');
+    //  and an "immediate" order the venue reports as STILL OPEN is a resting
+    //  order — which is what a venue that silently drops timeInForce leaves you.
+    //  It is cancelled and re-read, so nothing is left resting to report.
+    assert.ok (other.calls.indexOf ('cancelOrder:stub-order') !== -1, 'a resting order is cancelled, not merely noted');
+    assert.strictEqual (okReport['openOrders'].length, 0, 'the cancel and the re-read settled it');
+});
+
+test ('a resting order on an immediate path is cancelled, and a cancel that fails halts the route', async () => {
+    //  A venue that silently drops timeInForce turns an immediate-or-cancel
+    //  order into a plain resting limit order. Recording it and continuing means
+    //  the next hop is sized on a fill that is still growing behind it, and the
+    //  leftover order stays live on a real venue after the route has returned
+    //  and nobody is watching it.
+    const strategies = [ 'sequential', 'parallel_within_hop', 'best_effort' ];
+    for (let i = 0; i < strategies.length; i++) {
+        const strategy = strategies[i];
+        const options: any = { 'strategy': strategy, 'usdRates': { 'USDT': 1 } };
+        if (strategy === 'best_effort') {
+            options['acknowledgeDispersion'] = true;
+            options['maxOrders'] = 4;
+        }
+        //  1. the cancel works: the order is gone, the re-read is what gets reported
+        const venue = new StubVenue ('stub');
+        venue.createdStatus = 'open';
+        venue.fetchOrderResults = [ { 'id': 'stub-order', 'status': 'canceled', 'filled': 0.0001, 'average': 100000, 'cost': 10 } ];
+        const plan = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.0002, 100000), { 'slippageBps': 0 });
+        const report = await router.execute (plan, { 'stub': venue }, options);
+        assert.ok (venue.calls.indexOf ('cancelOrder:stub-order') !== -1, strategy + ': the resting order is cancelled');
+        assert.strictEqual (report['openOrders'].length, 0, strategy + ': nothing is left resting');
+        //  the re-read is authoritative — the cancel and a fill crossed
+        assert.strictEqual (report['steps'][0]['filledAmount'], 0.0001, strategy + ': the fill observed AFTER the cancel is the one reported');
+        assert.strictEqual (report['steps'][0]['status'], 'partial', strategy + ': a real partial fill, not an unknown');
+
+        //  2. the cancel fails: the order can still fill in full after this returns,
+        //     so nothing downstream may be sized on what was observed
+        const stubborn = new StubVenue ('stub');
+        stubborn.createdStatus = 'open';
+        stubborn.cancelThrows = true;
+        const plan2 = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.0002, 100000), { 'slippageBps': 0 });
+        const failed = await router.execute (plan2, { 'stub': stubborn }, options);
+        assert.strictEqual (failed['steps'][0]['status'], 'outcome_unknown', strategy + ': an uncancellable resting order is never a settled step');
+        assert.strictEqual (failed['openOrders'].length, 1, strategy + ': the operator is told what is still live');
+        assert.strictEqual (failed['openOrders'][0]['orderId'], 'stub-order');
+        assert.strictEqual (failed['openOrders'][0]['reason'], 'cancel_failed');
+
+        //  3. the cancel is accepted and the venue still calls it open: same rule
+        const ghost = new StubVenue ('stub');
+        ghost.createdStatus = 'open';
+        ghost.fetchOrderResults = [ { 'id': 'stub-order', 'status': 'open', 'filled': 0, 'average': 0, 'cost': 0 } ];
+        const plan3 = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.0002, 100000), { 'slippageBps': 0 });
+        const stillOpen = await router.execute (plan3, { 'stub': ghost }, options);
+        assert.strictEqual (stillOpen['steps'][0]['status'], 'outcome_unknown', strategy + ': a cancel the venue ignored leaves the outcome unknown');
+        assert.strictEqual (stillOpen['openOrders'].length, 1);
+        assert.strictEqual (stillOpen['openOrders'][0]['reason'], 'still_open');
+    }
+});
+
+test ('a plan carries its age, and a stale one is refused only when asked', async () => {
+    //  A plan is a snapshot of a book. `calculatedAt` was carried on every plan and read by
+    //  nothing, so execute() would happily trade an hour-old plan at hour-old prices — and the
+    //  notional cap, computed from those same prices, was just as stale.
+    const route = oneLegRoute ('buy', 'BTC', 'USDT', 0.2, 100);
+    route['calculatedAt'] = 1000000;
+    const plan = router.buildExecutionPlan (route, {});
+    //  pin the clock: the plan is exactly 60s old
+    const pinned = new OrderRouter ({ 'apiKey': 'k' });
+    (pinned as any).nowMs = () => 1060000;
+    //  this test deliberately runs the same plan several times to isolate the age check,
+    //  which is exactly what allowReexecution is for
+    const opts = { 'strategy': 'sequential', 'usdRates': { 'USDT': 1 }, 'allowReexecution': true };
+
+    //  Always reported, even with nothing enforced. The default must not be a refusal — this
+    //  class does not decide how stale a plan the caller may trade on.
+    const venue = new StubVenue ('stub');
+    const report = await pinned.execute (plan, { 'stub': venue }, opts);
+    assert.strictEqual (report['planAgeMs'], 60000, 'the age is on the report whether or not it is checked');
+    assert.strictEqual (report['steps'][0]['status'], 'filled', 'and nothing is refused by default');
+
+    //  Enforced exactly, at whatever value is asked for.
+    const strict = new StubVenue ('stub');
+    await assert.rejects (
+        async () => await pinned.execute (plan, { 'stub': strict }, { ...opts, 'maxPlanAgeMs': 30000 }),
+        /older than maxPlanAgeMs/,
+    );
+    assert.deepStrictEqual (strict.calls, [], 'refused before anything reached the venue');
+    //  ...and a limit the plan is inside of lets it through.
+    const ok = new StubVenue ('stub');
+    const passed = await pinned.execute (plan, { 'stub': ok }, { ...opts, 'maxPlanAgeMs': 120000 });
+    assert.strictEqual (passed['steps'][0]['status'], 'filled');
+
+    //  An age that cannot be determined BLOCKS under an active limit: a freshness check that
+    //  silently passes when the timestamp is missing is not a freshness check.
+    const undated = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.2, 100), {});
+    const undatedReport = await pinned.execute (undated, { 'stub': new StubVenue ('stub') }, opts);
+    assert.strictEqual (undatedReport['planAgeMs'], -1, 'unknown is -1, never 0: 0 would read as fresh');
+    await assert.rejects (
+        async () => await pinned.execute (undated, { 'stub': new StubVenue ('stub') }, { ...opts, 'maxPlanAgeMs': 30000 }),
+        /carries no calculatedAt/,
+    );
+});
+
+test ('an unknown strategy is refused even in dry run', async () => {
+    const plan = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.2, 100), {});
+    await assert.rejects (async () => {
+        await router.execute (plan, {}, { 'strategy': 'yolo' });
+    }, BadRequest);
+});
+
+test ('atomic_ish demands the whole route pre-funded', async () => {
+    const plan = router.buildExecutionPlan (twoHopRoute (), {});
+    const poor = new StubVenue ('stub');
+    //  hop 0 needs 20 USDT and hop 1 needs 0.2 BTC, both already sitting there
+    const rich = await router.execute (plan, { 'stub': poor }, { 'strategy': 'atomic_ish', 'usdRates': { 'USDT': 1 } });
+    assert.strictEqual (rich['ordersPlaced'], 2, 'a pre-funded route runs end to end');
+    const broke = new StubVenue ('stub');
+    broke.fetchBalance = (async () => ({ 'free': { 'USDT': 1, 'BTC': 0 } })) as any;
+    await assert.rejects (async () => {
+        await router.execute (plan, { 'stub': broke }, { 'strategy': 'atomic_ish', 'usdRates': { 'USDT': 1 } });
+    }, ExchangeError);
+});
+
+//  ---------------------------------------------------------------------------
+//  4. fetchRoute request shaping and fetchRouteWithBalances, with the HTTP
+//     layer stubbed out — no network
+//  ---------------------------------------------------------------------------
+
+class RecordingRouter extends OrderRouter {
+    lastUrl: string;
+    lastMethod: string;
+    lastBody: any;
+    body: any;
+
+    constructor (config: any, body: any) {
+        super (config);
+        this.body = body;
+        this.lastUrl = '';
+        this.lastMethod = '';
+        this.lastBody = {};
+    }
+
+    override async request (url: string, method: string = 'GET', requestBody: any = {}): Promise<any> {
+        this.lastUrl = url;
+        this.lastMethod = method;
+        this.lastBody = requestBody;
+        return this.body;
+    }
+}
+
+test ('fetchRoute refuses neither-or-both amounts before touching the network', async () => {
+    const recorder = new RecordingRouter ({ 'apiKey': 'k' }, {});
+    await assert.rejects (async () => {
+        await recorder.fetchRoute ('USDT', 'BTC', {});
+    }, BadRequest);
+    await assert.rejects (async () => {
+        await recorder.fetchRoute ('USDT', 'BTC', { 'amountIn': 1, 'amountOut': 1 });
+    }, BadRequest);
+    assert.strictEqual (recorder.lastUrl, '', 'neither reached the wire');
+});
+
+test ('fetchRoute builds a deterministic query', async () => {
+    const recorder = new RecordingRouter ({ 'apiKey': 'k', 'baseUrl': 'https://example.test/api/' }, { 'hops': [] });
+    await recorder.fetchRoute ('usdt', 'btc', { 'amountIn': 0.001, 'strategy': 'split_capped', 'maxVenues': 3, 'exchanges': [ 'binance', 'kraken' ], 'certified': true });
+    assert.strictEqual (recorder.lastUrl, 'https://example.test/api/route?from=USDT&to=BTC&amountIn=0.001&strategy=split_capped&maxVenues=3&exchanges=binance%2Ckraken&certified=true');
+    assert.strictEqual (recorder.lastMethod, 'GET', 'a request carrying no holdings stays a cacheable, linkable GET');
+});
+
+test ('a route carrying balances is POSTed, and the holdings never appear in the url', async () => {
+    //  The service scrubs balances from its own logs, but the URL leaves the process: a
+    //  reverse proxy, an ALB and a CDN all log the full request line, as do browser history
+    //  and client-side tracing. This is the assertion that keeps the wallet out of them.
+    const recorder = new RecordingRouter ({ 'apiKey': 'k', 'baseUrl': 'https://example.test/api' }, { 'hops': [], 'balancesApplied': 'binance.BTC:1,binance.USDT:1000' });
+    await recorder.fetchRoute ('usdt', 'btc', { 'amountIn': 10, 'balances': 'binance.USDT:1000,binance.BTC:1', 'certified': true, 'maxVenues': 2 });
+    assert.strictEqual (recorder.lastMethod, 'POST');
+    assert.strictEqual (recorder.lastUrl, 'https://example.test/api/route', 'no query string at all');
+    assert.strictEqual (recorder.lastUrl.indexOf ('balances'), -1, 'the holdings are not in the url');
+    assert.strictEqual (recorder.lastUrl.indexOf ('1000'), -1, 'nor is any amount from them');
+    //  the body carries every field the query string would have, by the same names
+    assert.strictEqual (recorder.lastBody['from'], 'USDT');
+    assert.strictEqual (recorder.lastBody['to'], 'BTC');
+    assert.strictEqual (recorder.lastBody['balances'], 'binance.USDT:1000,binance.BTC:1');
+    //  numbers and booleans travel as themselves: the body is JSON, and the service's own
+    //  schema types amountIn as a number
+    assert.strictEqual (recorder.lastBody['amountIn'], 10);
+    assert.strictEqual (recorder.lastBody['certified'], true);
+    assert.strictEqual (recorder.lastBody['maxVenues'], 2);
+});
+
+test ('an empty-string balances value is still holdings, and still goes by POST', async () => {
+    //  '' is what a caller gets from a venue with nothing in it. It is not "no balances
+    //  parameter" — the router reads it, and a check that treated it as absent would put
+    //  the NEXT non-empty value on the same code path back into the url.
+    //  balanceEntryCount 0 is how a CURRENT server answers "you hold nothing": the echo
+    //  itself is empty, and only the presence of this field says the server understood.
+    const recorder = new RecordingRouter ({ 'apiKey': 'k', 'baseUrl': 'https://example.test/api' }, { 'hops': [], 'balanceEntryCount': 0 });
+    await recorder.fetchRoute ('usdt', 'btc', { 'amountIn': 10, 'balances': '' });
+    assert.strictEqual (recorder.lastMethod, 'POST');
+    assert.strictEqual (recorder.lastBody['balances'], '');
+});
+
+test ('a router that ignored the balances is caught, including when the wallet is empty', async () => {
+    //  /route declares its query without a JSON schema, so a server that predates the
+    //  balances feature answers byte-identically to one that never received any. Executing
+    //  a plan computed against a portfolio the server never saw is the case worth failing
+    //  on — and it is the EMPTY wallet that used to slip through, because the old check
+    //  skipped itself whenever the balances string was ''.
+    const legacyNonEmpty = new RecordingRouter ({ 'apiKey': 'k' }, { 'hops': [] });
+    await assert.rejects (async () => {
+        await legacyNonEmpty.fetchRoute ('USDT', 'BTC', { 'amountIn': 10, 'balances': 'binance.USDT:1000' });
+    }, ExchangeError, 'a non-empty wallet the server ignored');
+    const legacyEmpty = new RecordingRouter ({ 'apiKey': 'k' }, { 'hops': [] });
+    await assert.rejects (async () => {
+        await legacyEmpty.fetchRoute ('USDT', 'BTC', { 'amountIn': 10, 'balances': '' });
+    }, ExchangeError, 'an EMPTY wallet the server ignored — the case that used to be skipped');
+    //  a current server answering the empty wallet honestly is NOT an error
+    const current = new RecordingRouter ({ 'apiKey': 'k' }, { 'hops': [], 'balanceEntryCount': 0 });
+    const route = await current.fetchRoute ('USDT', 'BTC', { 'amountIn': 10, 'balances': '' });
+    assert.strictEqual (route['clientRequestedTo'], 'BTC');
+    //  and a caller can still opt out with their eyes open
+    const opted = new RecordingRouter ({ 'apiKey': 'k' }, { 'hops': [] });
+    await opted.fetchRoute ('USDT', 'BTC', { 'amountIn': 10, 'balances': '', 'requireBalancesApplied': false });
+    //  a route with NO balances is never subject to the check
+    const noBalances = new RecordingRouter ({ 'apiKey': 'k' }, { 'hops': [] });
+    await noBalances.fetchRoute ('USDT', 'BTC', { 'amountIn': 10 });
+    assert.strictEqual (noBalances.lastMethod, 'GET');
+});
+
+test ('a caller-chosen audit id travels as x-request-id', async () => {
+    //  the service mints one when absent; supplying one is what lets a caller join their own
+    //  log to the router's decision log for a request that never returned a body
+    const stub = stubFetch (200, JSON.stringify ({ 'hops': [] }), {});
+    try {
+        const router = new OrderRouter ({ 'apiKey': 'k', 'baseUrl': 'https://example.test/api' });
+        await router.fetchRoute ('USDT', 'BTC', { 'amountIn': 10, 'requestId': 'caller-chosen-id' });
+        assert.strictEqual (stub.calls[0]['options']['headers']['x-request-id'], 'caller-chosen-id');
+        //  and it is NOT a route query parameter
+        assert.strictEqual (stub.calls[0]['url'].indexOf ('requestId'), -1);
+    } finally {
+        stub.restore ();
+    }
+    //  the service caps it at 200 characters, so a longer one is dropped rather than sent
+    //  and rejected
+    const tooLong = stubFetch (200, JSON.stringify ({ 'hops': [] }), {});
+    try {
+        const router = new OrderRouter ({ 'apiKey': 'k', 'baseUrl': 'https://example.test/api' });
+        let id = '';
+        for (let i = 0; i < 201; i++) { id = id + 'x'; }
+        await router.fetchRoute ('USDT', 'BTC', { 'amountIn': 10, 'requestId': id });
+        assert.strictEqual (tooLong.calls[0]['options']['headers']['x-request-id'], undefined);
+    } finally {
+        tooLong.restore ();
+    }
+});
+
+test ('fetchRouteWithBalances skips zeros, sorts largest first and reports what it dropped', async () => {
+    const recorder = new RecordingRouter ({ 'apiKey': 'k' }, { 'hops': [], 'balancesApplied': 'stub.BTC:1,stub.USDT:1000' });
+    const route = await recorder.fetchRouteWithBalances ('USDT', 'BTC', { 'stub': new StubVenue ('stub') }, { 'amountIn': 10 });
+    assert.strictEqual (route['balancesUsed'], 'stub.USDT:1000,stub.BTC:1', 'largest first, and the ZERO holding is gone');
+    assert.deepStrictEqual (route['balancesDropped'], []);
+    //  the holdings reach the service in the BODY — never in the url. See the dedicated
+    //  test above for why that distinction is the whole point.
+    assert.strictEqual (recorder.lastMethod, 'POST');
+    assert.strictEqual (recorder.lastBody['balances'], 'stub.USDT:1000,stub.BTC:1');
+    assert.strictEqual (recorder.lastUrl.indexOf ('balances'), -1);
+});
+
+test ('fetchRouteWithBalances refuses a route computed against balances the router ignored', async () => {
+    const silent = new RecordingRouter ({ 'apiKey': 'k' }, { 'hops': [] });
+    await assert.rejects (async () => {
+        await silent.fetchRouteWithBalances ('USDT', 'BTC', { 'stub': new StubVenue ('stub') }, { 'amountIn': 10 });
+    }, ExchangeError);
+    //  and the caller can opt out with their eyes open
+    const opted = new RecordingRouter ({ 'apiKey': 'k' }, { 'hops': [] });
+    const route = await opted.fetchRouteWithBalances ('USDT', 'BTC', { 'stub': new StubVenue ('stub') }, { 'amountIn': 10, 'requireBalancesApplied': false });
+    assert.strictEqual (route['balancesUsed'], 'stub.USDT:1000,stub.BTC:1');
+});
+
+test ('fetchRouteWithBalances trims to the router 64-entry cap, dropping the smallest', async () => {
+    const recorder = new RecordingRouter ({ 'apiKey': 'k' }, { 'hops': [], 'balancesApplied': 'x' });
+    const many = new StubVenue ('stub');
+    const free: any = {};
+    for (let i = 0; i < 70; i++) {
+        free['C' + i.toString ()] = i + 1;
+    }
+    many.fetchBalance = (async () => ({ 'free': free })) as any;
+    const route = await recorder.fetchRouteWithBalances ('USDT', 'BTC', { 'stub': many }, { 'amountIn': 10 });
+    assert.strictEqual (route['balancesDropped'].length, 6);
+    assert.strictEqual (route['balancesUsed'].split (',').length, 64);
+    for (let i = 0; i < route['balancesDropped'].length; i++) {
+        assert.strictEqual (route['balancesDropped'][i]['reason'], 'entry_cap');
+        assert.ok (route['balancesDropped'][i]['amount'] <= 6, 'the six smallest holdings are the ones that went');
+    }
+});
+
+//  ---------------------------------------------------------------------------
+//  The HTTP layer. request() maps the service's status codes onto CCXT
+//  exceptions, and until these tests existed not one of those mappings was
+//  covered: a 503 from a router still filling its cache was indistinguishable
+//  from a permanent server fault. globalThis.fetch is swapped for the duration
+//  of each test and always restored, so nothing here touches the network.
+//  ---------------------------------------------------------------------------
+
+function stubRouteFetch () {
+    const realFetch = globalThis.fetch;
+    let count = 0;
+    let lastUrl = '';
+    (globalThis as any).fetch = async (url: any) => {
+        count = count + 1;
+        lastUrl = (url === undefined) ? '' : url.toString ();
+        const answer = oneLegRoute ('buy', 'BTC', 'USDT', 0.2, 100);
+        answer['balancesApplied'] = 'stub.BTC:1,stub.USDT:1000';
+        return { 'ok': true, 'status': 200, 'headers': { 'get': () => null }, 'text': async () => JSON.stringify (answer) } as any;
+    };
+    return { 'restore': () => { globalThis.fetch = realFetch; }, 'count': () => count, 'lastUrl': () => lastUrl };
+}
+
+function stubFetch (status: number, bodyText: string, headers: any = {}) {
+    const realFetch = globalThis.fetch;
+    const calls: any[] = [];
+    (globalThis as any).fetch = async (url: any, options: any) => {
+        calls.push ({ 'url': url, 'options': options });
+        return {
+            'status': status,
+            'headers': { 'get': (name: string) => {
+                const value = headers[name];
+                return (value === undefined) ? null : value;
+            } },
+            'text': async () => bodyText,
+        };
+    };
+    return { calls, 'restore': () => { (globalThis as any).fetch = realFetch; } };
+}
+
+const COLD = JSON.stringify ({
+    'error': 'cache is cold', 'reason': 'cache_cold',
+    'bookCount': 12, 'freshCount': 0, 'staleCount': 12, 'minFreshBooksForReady': 1,
+});
+
+test ('a cold cache is ExchangeNotAvailable, carrying the counts and the retry interval', async () => {
+    const stub = stubFetch (503, COLD, { 'retry-after': '5' });
+    try {
+        const router = new OrderRouter ({ 'apiKey': 'k' });
+        await assert.rejects (async () => {
+            await router.fetchRoute ('USDT', 'BTC', { 'amountIn': 10 });
+        }, (e: any) => {
+            //  NOT a generic ExchangeError: the whole point is that a caller can tell
+            //  "come back in five seconds" from "this router is broken"
+            assert.strictEqual (e.constructor.name, 'ExchangeNotAvailable');
+            assert.ok (e.message.indexOf ('0 of 12 books fresh') >= 0, e.message);
+            assert.ok (e.message.indexOf ('retry after 5s') >= 0, e.message);
+            return true;
+        });
+    } finally {
+        stub.restore ();
+    }
+});
+
+test ('a cold cache never borrows the rate-limit window as its retry interval', async () => {
+    //  The live deployment sends x-ratelimit-reset on EVERY response, this one included.
+    //  It answers a different question — when the rate-limit window rolls over, not when
+    //  this refusal clears — so a cold cache that repopulates in seconds must not tell a
+    //  caller to wait out a full minute. No retry-after means no interval claimed.
+    const stub = stubFetch (503, COLD, { 'x-ratelimit-reset': '59' });
+    try {
+        const router = new OrderRouter ({ 'apiKey': 'k' });
+        await assert.rejects (async () => {
+            await router.fetchRoute ('USDT', 'BTC', { 'amountIn': 10 });
+        }, (e: any) => {
+            assert.strictEqual (e.constructor.name, 'ExchangeNotAvailable');
+            assert.ok (e.message.indexOf ('0 of 12 books fresh') >= 0, e.message);
+            assert.strictEqual (e.message.indexOf ('retry after'), -1, e.message);
+            return true;
+        });
+    } finally {
+        stub.restore ();
+    }
+});
+
+test ('the stream handshake maps 403 the same way the REST path does', async () => {
+    //  A failed upgrade reaches the client only as transport text — "Unexpected server
+    //  response: 403" — so the status has to be recovered from the string. Both paths face
+    //  the same ipv4-only refusal and must name it identically; a socket that reports an
+    //  authentication failure where the REST call reports an address problem is worse than
+    //  either alone, because the two disagree about a service that has no credentials.
+    const router = new OrderRouter ({});
+    const forbidden = router.streamHandshakeError ('Unexpected server response: 403');
+    assert.strictEqual (forbidden.constructor.name, 'PermissionDenied');
+    assert.ok (forbidden.message.indexOf ('IPv4') >= 0, forbidden.message);
+    //  401 stays an authentication failure: it is the status a deployment fronting the
+    //  router with its own auth would send, and the only one a credential can fix
+    const unauthorized = router.streamHandshakeError ('Unexpected server response: 401');
+    assert.strictEqual (unauthorized.constructor.name, 'AuthenticationError');
+    const throttled = router.streamHandshakeError ('Unexpected server response: 429');
+    assert.strictEqual (throttled.constructor.name, 'RateLimitExceeded');
+});
+
+test ('a 403 is the ipv4-only refusal, not an authentication failure', async () => {
+    //  The service has no API key at all: it rate-limits by client IP instead. Its only 403
+    //  is components/responses/Ipv4Only — the resolved client address is not a dotted quad,
+    //  so the request is refused BEFORE rate limiting. Reporting that as AuthenticationError
+    //  sends an IPv6 caller hunting for a credential that does not exist for any user of this
+    //  service, and the fix they actually need — reach it over IPv4 — is never mentioned.
+    const stub = stubFetch (403, JSON.stringify ({ 'error': 'ipv4_only' }), {});
+    try {
+        const router = new OrderRouter ({});
+        await assert.rejects (async () => {
+            await router.fetchRoute ('USDT', 'BTC', { 'amountIn': 10 });
+        }, (e: any) => {
+            assert.strictEqual (e.constructor.name, 'PermissionDenied');
+            assert.ok (e.message.indexOf ('IPv4') >= 0, e.message);
+            return true;
+        });
+    } finally {
+        stub.restore ();
+    }
+});
+
+test ('a 429 names how long to wait, falling back to the window rollover', async () => {
+    const stub = stubFetch (429, JSON.stringify ({ 'error': 'rate limit exceeded' }), { 'retry-after': '30' });
+    try {
+        const router = new OrderRouter ({ 'apiKey': 'k' });
+        await assert.rejects (async () => {
+            await router.fetchRoute ('USDT', 'BTC', { 'amountIn': 10 });
+        }, (e: any) => {
+            assert.strictEqual (e.constructor.name, 'RateLimitExceeded');
+            assert.ok (e.message.indexOf ('retry after 30s') >= 0, e.message);
+            return true;
+        });
+    } finally {
+        stub.restore ();
+    }
+    //  here the two questions DO coincide: the window rolling over is exactly when the
+    //  refusal clears, so it stands in when the service sent no retry-after
+    const fallback = stubFetch (429, JSON.stringify ({ 'error': 'rate limit exceeded' }), { 'x-ratelimit-reset': '59' });
+    try {
+        const router = new OrderRouter ({ 'apiKey': 'k' });
+        await assert.rejects (async () => {
+            await router.fetchRoute ('USDT', 'BTC', { 'amountIn': 10 });
+        }, (e: any) => {
+            assert.ok (e.message.indexOf ('retry after 59s') >= 0, e.message);
+            return true;
+        });
+    } finally {
+        fallback.restore ();
+    }
+});
+
+test ('a not_ready readiness probe is an ANSWER, not an exception', async () => {
+    //  /ready replies 503 with the same body it returns on 200. Throwing would destroy
+    //  the counts the caller asked the question to get.
+    const body = JSON.stringify ({ 'status': 'not_ready', 'bookCount': 12, 'freshCount': 0, 'staleCount': 12, 'minFreshBooksForReady': 1 });
+    const stub = stubFetch (503, body, {});
+    try {
+        const router = new OrderRouter ({ 'apiKey': 'k' });
+        const readiness = await router.fetchReadiness ();
+        assert.strictEqual (readiness['status'], 'not_ready');
+        assert.strictEqual (readiness['freshCount'], 0);
+        assert.strictEqual (stub.calls[0]['url'], OrderRouter.DEFAULT_BASE_URL + '/ready');
+    } finally {
+        stub.restore ();
+    }
+});
+
+test ('the read-only endpoints each hit their own path and unwrap their own envelope', async () => {
+    const router = new OrderRouter ({ 'apiKey': 'k', 'baseUrl': 'https://example.test/api' });
+    let stub = stubFetch (200, JSON.stringify ({ 'status': 'ok', 'uptimeSec': 12.5 }), {});
+    try {
+        const health = await router.fetchHealth ();
+        assert.strictEqual (health['status'], 'ok');
+        assert.strictEqual (stub.calls[0]['url'], 'https://example.test/api/health');
+    } finally {
+        stub.restore ();
+    }
+    stub = stubFetch (200, JSON.stringify ({ 'version': '2.0.0', 'commit': 'abc' }), {});
+    try {
+        const version = await router.fetchVersion ();
+        assert.strictEqual (version['commit'], 'abc');
+        assert.strictEqual (stub.calls[0]['url'], 'https://example.test/api/version');
+    } finally {
+        stub.restore ();
+    }
+    stub = stubFetch (200, JSON.stringify ({ 'symbols': [ 'BTC/USDT', 'ETH/USDT' ] }), {});
+    try {
+        const symbols = await router.fetchSymbols ();
+        assert.deepStrictEqual (symbols, [ 'BTC/USDT', 'ETH/USDT' ], 'the envelope is unwrapped');
+        assert.strictEqual (stub.calls[0]['url'], 'https://example.test/api/symbols');
+    } finally {
+        stub.restore ();
+    }
+    stub = stubFetch (200, JSON.stringify ({ 'exchanges': [ { 'exchangeId': 'binance', 'connected': true } ] }), {});
+    try {
+        const venues = await router.fetchExchangesStatus ();
+        assert.strictEqual (venues.length, 1);
+        assert.strictEqual (venues[0]['exchangeId'], 'binance');
+        assert.strictEqual (stub.calls[0]['url'], 'https://example.test/api/exchanges/status');
+    } finally {
+        stub.restore ();
+    }
+});
+
+test ('a cached book encodes the symbol as ONE path segment', async () => {
+    //  BTC/USDT unencoded reads as two segments and reaches a route that does not exist
+    const stub = stubFetch (200, JSON.stringify ({ 'bids': [], 'asks': [] }), {});
+    try {
+        const router = new OrderRouter ({ 'apiKey': 'k', 'baseUrl': 'https://example.test/api' });
+        await router.fetchCachedOrderBook ('binance', 'BTC/USDT');
+        assert.strictEqual (stub.calls[0]['url'], 'https://example.test/api/orderbook/binance/BTC%2FUSDT');
+    } finally {
+        stub.restore ();
+    }
+    const router = new OrderRouter ({ 'apiKey': 'k' });
+    await assert.rejects (async () => {
+        await router.fetchCachedOrderBook ('binance', '');
+    }, ArgumentsRequired);
+});
+
+test ('a keyless client sends no x-api-key header at all, rather than an empty one', async () => {
+    //  An empty x-api-key is NOT the same as no x-api-key. A server that still authenticates
+    //  reads "" as a malformed credential rather than an anonymous caller, so the header has
+    //  to be absent, not blank. REST and the websocket upgrade both.
+    const stub = stubFetch (200, JSON.stringify ({ 'hops': [] }), {});
+    try {
+        const router = new OrderRouter ({ 'baseUrl': 'https://example.test/api' });
+        await router.fetchRoute ('USDT', 'BTC', { 'amountIn': 10 });
+        const headers = stub.calls[0]['options']['headers'];
+        assert.strictEqual ('x-api-key' in headers, false, 'the header is omitted entirely');
+        assert.strictEqual (headers['Accept'], 'application/json', 'the rest of the headers are untouched');
+    } finally {
+        stub.restore ();
+    }
+});
+
+test ('a POST carries a JSON body and the key, a GET carries no body at all', async () => {
+    const stub = stubFetch (200, JSON.stringify ({ 'hops': [] }), {});
+    try {
+        const router = new OrderRouter ({ 'apiKey': 'secret-key', 'baseUrl': 'https://example.test/api' });
+        await router.fetchRoute ('USDT', 'BTC', { 'amountIn': 10, 'balances': 'binance.USDT:1000', 'requireBalancesApplied': false });
+        const options = stub.calls[0]['options'];
+        assert.strictEqual (options['method'], 'POST');
+        assert.strictEqual (options['headers']['Content-Type'], 'application/json');
+        assert.strictEqual (options['headers']['x-api-key'], 'secret-key');
+        const sent = JSON.parse (options['body']);
+        assert.strictEqual (sent['balances'], 'binance.USDT:1000');
+        assert.strictEqual (stub.calls[0]['url'].indexOf ('balances'), -1, 'and never in the url');
+    } finally {
+        stub.restore ();
+    }
+    const getStub = stubFetch (200, JSON.stringify ({ 'hops': [] }), {});
+    try {
+        const router = new OrderRouter ({ 'apiKey': 'secret-key', 'baseUrl': 'https://example.test/api' });
+        await router.fetchRoute ('USDT', 'BTC', { 'amountIn': 10 });
+        const options = getStub.calls[0]['options'];
+        assert.strictEqual (options['method'], 'GET');
+        assert.strictEqual (options['body'], undefined);
+    } finally {
+        getStub.restore ();
+    }
+});
+
+//  ---------------------------------------------------------------------------
+//  watchRoute. The websocket implementation is injected on the instance — which
+//  is the reason loadWebSocket caches it there — so every frame, close code and
+//  refusal below is driven by hand and nothing opens a socket.
+//  ---------------------------------------------------------------------------
+
+class FakeSocket {
+    url: string;
+    options: any;
+    closedWith: any[];
+    onopen: any;
+    onmessage: any;
+    onerror: any;
+    onclose: any;
+
+    constructor (url: string, options: any) {
+        this.url = url;
+        this.options = options;
+        this.closedWith = [];
+        FakeSocket.last = this;
+    }
+
+    static last: FakeSocket;
+
+    close (code: any = undefined) {
+        this.closedWith.push (code);
+    }
+
+    //  the driver: hand a frame to the client as the service would
+    deliver (payload: any) {
+        this.onmessage ({ 'data': JSON.stringify (payload) });
+    }
+
+    shut (code: number) {
+        this.onclose ({ 'code': code });
+    }
+}
+
+//  watchRoute awaits loadWebSocket before it constructs anything, so the fake is not there
+//  synchronously. One turn of the event loop is enough and says why.
+async function socketOpened (): Promise<FakeSocket> {
+    await new Promise ((resolve) => setTimeout (resolve, 0));
+    return FakeSocket.last;
+}
+
+function streamingRouter (config: any = {}) {
+    const merged: any = { 'apiKey': 'k', 'baseUrl': 'https://example.test/api' };
+    const keys = Object.keys (config);
+    for (let i = 0; i < keys.length; i++) {
+        merged[keys[i]] = config[keys[i]];
+    }
+    const streamer = new OrderRouter (merged);
+    streamer.webSocketImpl = FakeSocket;
+    return streamer;
+}
+
+test ('streamUrl upgrades the scheme and carries the route grammar unchanged', () => {
+    const streamer = streamingRouter ();
+    const url = streamer.streamUrl ('usdt', 'btc', { 'amountIn': 0.001, 'strategy': 'split_capped', 'maxVenues': 3, 'exchanges': [ 'binance', 'kraken' ], 'certified': true });
+    assert.strictEqual (url, 'wss://example.test/api/stream/route?from=USDT&to=BTC&amountIn=0.001&strategy=split_capped&maxVenues=3&exchanges=binance%2Ckraken&certified=true');
+    //  a plain-http base becomes ws://, not wss://
+    const insecure = streamingRouter ({ 'baseUrl': 'http://localhost:8080' });
+    assert.strictEqual (insecure.streamUrl ('USDT', 'BTC', { 'amountIn': 1 }).indexOf ('ws://localhost:8080/stream/route?'), 0);
+    //  includeQuotes is NOT defaulted: the endpoint's own default is false, and sending
+    //  nothing is how the caller gets it
+    assert.strictEqual (url.indexOf ('includeQuotes'), -1);
+});
+
+test ('the stream refuses what the endpoint refuses, before opening a socket', () => {
+    const streamer = streamingRouter ();
+    //  a socket outlives the holdings it was opened with, so the service refuses both
+    assert.throws (() => streamer.streamUrl ('USDT', 'BTC', { 'amountIn': 1, 'balances': 'binance.USDT:1000' }), BadRequest);
+    assert.throws (() => streamer.streamUrl ('USDT', 'BTC', { 'amountIn': 1, 'balanceMode': 'require' }), BadRequest);
+    //  the same exclusivity fetchRoute enforces — one parser server-side, one rule here
+    assert.throws (() => streamer.streamUrl ('USDT', 'BTC', {}), BadRequest);
+    assert.throws (() => streamer.streamUrl ('USDT', 'BTC', { 'amountIn': 1, 'amountOut': 1 }), BadRequest);
+    assert.throws (() => streamer.streamUrl ('', 'BTC', { 'amountIn': 1 }), ArgumentsRequired);
+});
+
+test ('every pushed frame is stamped and handed to the hook, and stop closes cleanly', async () => {
+    const streamer = streamingRouter ();
+    const seen: any[] = [];
+    const watching = streamer.watchRoute ('usdt', 'btc', { 'amountIn': 10, 'requireFullFill': true }, (route: any) => {
+        seen.push (route);
+        return (seen.length === 2) ? 'stop' : 'continue';
+    });
+    const socket = await socketOpened ();
+    //  the key travels as a header, which is why watchRoute needs the ws package
+    assert.strictEqual (socket.options['headers']['x-api-key'], 'k');
+    socket.onopen ();
+    socket.deliver ({ 'hops': [], 'fillRatio': 1 });
+    socket.deliver ({ 'hops': [], 'fillRatio': 0.5 });
+    const last = await watching;
+    assert.strictEqual (seen.length, 2, 'the hook stopped the stream and was not called again');
+    //  every frame carries the client-side stamps, because every frame is a route
+    //  buildExecutionPlan may be handed
+    assert.strictEqual (seen[0]['clientRequestedFrom'], 'USDT');
+    assert.strictEqual (seen[0]['clientRequestedTo'], 'BTC');
+    assert.strictEqual (seen[0]['clientRequestedRequireFullFill'], true);
+    assert.strictEqual (last['fillRatio'], 0.5, 'the last route seen is returned');
+    assert.deepStrictEqual (socket.closedWith, [ 1000 ], 'a caller-requested stop is a clean close');
+});
+
+test ('a 1008 close is the same refusal a 400 is over REST', async () => {
+    const streamer = streamingRouter ();
+    const watching = streamer.watchRoute ('USDT', 'BTC', { 'amountOut': 1 }, () => 'continue');
+    const socket = await socketOpened ();
+    socket.onopen ();
+    //  the service sends ONE frame carrying the reason, then closes with the code
+    socket.deliver ({ 'error': 'exact_out_multi_hop_unsupported' });
+    socket.shut (1008);
+    await assert.rejects (async () => { await watching; }, (e: any) => {
+        assert.strictEqual (e.constructor.name, 'BadRequest');
+        assert.ok (e.message.indexOf ('exact_out_multi_hop_unsupported') >= 0, e.message);
+        return true;
+    });
+});
+
+test ('a 1013 close is a cold cache, and says so the same way a 503 does', async () => {
+    const streamer = streamingRouter ();
+    const watching = streamer.watchRoute ('USDT', 'BTC', { 'amountIn': 10 }, () => 'continue');
+    const socket = await socketOpened ();
+    socket.onopen ();
+    socket.deliver ({ 'error': 'cache is cold', 'reason': 'cache_cold', 'bookCount': 12, 'freshCount': 0, 'minFreshBooksForReady': 1 });
+    socket.shut (1013);
+    await assert.rejects (async () => { await watching; }, (e: any) => {
+        //  a RETRY, in the same class the REST path uses — not a bare ExchangeError
+        assert.strictEqual (e.constructor.name, 'ExchangeNotAvailable');
+        assert.ok (e.message.indexOf ('0 of 12 books fresh') >= 0, e.message);
+        return true;
+    });
+});
+
+test ('an ordinary close ends the watch, an unexpected one raises', async () => {
+    const streamer = streamingRouter ();
+    const watching = streamer.watchRoute ('USDT', 'BTC', { 'amountIn': 10 }, () => 'continue');
+    let socket = await socketOpened ();
+    socket.onopen ();
+    socket.deliver ({ 'hops': [], 'fillRatio': 1 });
+    socket.shut (1000);
+    const last = await watching;
+    assert.strictEqual (last['fillRatio'], 1, 'the last route survives a clean close');
+    const abrupt = streamingRouter ();
+    const failing = abrupt.watchRoute ('USDT', 'BTC', { 'amountIn': 10 }, () => 'continue');
+    socket = await socketOpened ();
+    socket.onopen ();
+    socket.shut (1011);
+    await assert.rejects (async () => { await failing; }, (e: any) => {
+        assert.strictEqual (e.constructor.name, 'ExchangeNotAvailable');
+        assert.ok (e.message.indexOf ('1011') >= 0, e.message);
+        return true;
+    });
+});
+
+test ('a hook that throws stops the stream instead of being swallowed', async () => {
+    //  the opposite of execute's onStep, and deliberately: that hook is protected because
+    //  losing the report would destroy the only account of orders already live. Nothing has
+    //  been placed here, so swallowing a caller's bug would only hide it.
+    const streamer = streamingRouter ();
+    const watching = streamer.watchRoute ('USDT', 'BTC', { 'amountIn': 10 }, () => {
+        throw new Error ('the caller has a bug');
+    });
+    const socket = await socketOpened ();
+    socket.onopen ();
+    socket.deliver ({ 'hops': [] });
+    await assert.rejects (async () => { await watching; }, /the caller has a bug/);
+    assert.strictEqual (socket.closedWith.length, 1, 'and the socket is not left open');
+});
+
+test ('watchRoute refuses to open a socket with nowhere to put the frames', async () => {
+    const streamer = streamingRouter ();
+    await assert.rejects (async () => {
+        await streamer.watchRoute ('USDT', 'BTC', { 'amountIn': 10 });
+    }, ArgumentsRequired);
+});
+
+test ('formatNumber never emits exponent notation', () => {
+    assert.strictEqual (router.formatNumber (0.0000001), '0.0000001');
+    assert.throws (() => router.formatNumber (1e21), BadRequest, 'refused rather than rendered as 1e+21 in one language and not the others');
+    assert.strictEqual (router.formatNumber (0), '0');
+    assert.strictEqual (router.formatNumber (1000000), '1000000');
+    assert.strictEqual (router.formatNumber (0.5), '0.5');
+    assert.strictEqual (router.formatNumber (1e-15), '0');
+});
+
+test ('a createOrder that times out is outcome-unknown, not a plain failure', async () => {
+    //  The venue's answer never arrived, so the order may be live. Reporting 'failed' asserts
+    //  nothing happened — the one reading that is certainly wrong — and the id is blank precisely
+    //  because the call that would have returned it is the call that died, so an id-keyed
+    //  openOrders entry cannot carry the warning either.
+    const plan = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.1, 100), {});
+    const venue = new StubVenue ('stub');
+    venue.timeoutCreate = true;
+    const report = await router.execute (plan, { 'stub': venue }, { 'strategy': 'sequential', 'usdRates': { 'USDT': 1 } });
+    assert.strictEqual (report['steps'][0]['status'], 'outcome_unknown');
+    assert.strictEqual (report['steps'][0]['errorCode'], 'RequestTimeout');
+    assert.strictEqual (report['openOrders'].length, 1, 'an operator must be told an order may be live');
+    assert.strictEqual (report['openOrders'][0]['reason'], 'placement_unconfirmed');
+    assert.strictEqual (report['openOrders'][0]['orderId'], '');
+    assert.strictEqual (report['openOrders'][0]['exchangeId'], 'stub');
+    assert.strictEqual (report['halted'], true);
+});
+
+test ('a definite rejection stays a plain failure and reports no open order', async () => {
+    //  The counterpart: the venue ANSWERED, so no order exists. Flagging every rejection as
+    //  possibly-live would bury the ones that genuinely are.
+    const plan = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.1, 100), {});
+    const venue = new StubVenue ('stub', 1, true);
+    const report = await router.execute (plan, { 'stub': venue }, { 'strategy': 'sequential', 'usdRates': { 'USDT': 1 } });
+    assert.strictEqual (report['steps'][0]['status'], 'failed');
+    assert.strictEqual (report['openOrders'].length, 0);
+});
+
+test ('a failure BEFORE dispatch records no open order', async () => {
+    //  A size that rounds to zero never reaches the venue, so there is nothing to reconcile and a
+    //  warning here would be a false alarm.
+    const plan = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.1, 100), {});
+    const venue = new StubVenue ('stub');
+    venue.amountToPrecision = () => '0';
+    const report = await router.execute (plan, { 'stub': venue }, { 'strategy': 'sequential', 'usdRates': { 'USDT': 1 } });
+    assert.strictEqual (report['steps'][0]['errorCode'], 'rounded_to_zero');
+    assert.strictEqual (report['openOrders'].length, 0);
+    assert.deepStrictEqual (venue.calls, [], 'nothing was dispatched');
+});
+
+test ('a venue that omits filled is re-read, not guessed at', async () => {
+    //  "the venue said zero" and "the venue said nothing" used to produce the same 0, which
+    //  reconciliation read as nothing_filled — halting the route while a real position existed.
+    const plan = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.1, 100), {});
+    const venue = new StubVenue ('stub');
+    venue.omitFillFields = true;
+    //  the re-read DOES know the fill
+    venue.fetchOrderResults = [ { 'id': 'stub-order', 'status': 'closed', 'filled': 0.1, 'average': 100, 'cost': 10 } ];
+    const report = await router.execute (plan, { 'stub': venue }, { 'strategy': 'sequential', 'usdRates': { 'USDT': 1 } });
+    assert.ok (venue.calls.indexOf ('fetchOrder:stub-order') !== -1, 'the immediate path must confirm the fill');
+    assert.strictEqual (report['steps'][0]['status'], 'filled');
+    assert.strictEqual (report['steps'][0]['filledAmount'], 0.1);
+    assert.strictEqual (report['steps'][0]['filledKnown'], true);
+});
+
+test ('a fill that stays unknown after the re-read halts instead of reconciling on a guess', async () => {
+    //  Halting on an unknown quantity is recoverable: an operator reads the order back and
+    //  resumes. Sizing the next hop from an invented number is not.
+    const plan = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.1, 100), {});
+    const venue = new StubVenue ('stub');
+    venue.omitFillFields = true;
+    venue.fetchOrderResults = [ { 'id': 'stub-order', 'status': 'closed' } ];
+    const report = await router.execute (plan, { 'stub': venue }, { 'strategy': 'sequential', 'usdRates': { 'USDT': 1 } });
+    assert.strictEqual (report['steps'][0]['status'], 'outcome_unknown');
+    assert.strictEqual (report['steps'][0]['filledKnown'], false);
+    assert.strictEqual (report['halted'], true);
+    assert.strictEqual (report['haltReason'], 'outcome_unknown', 'never nothing_filled: that is the one thing we do not know');
+    assert.strictEqual (report['openOrders'][0]['reason'], 'fill_unconfirmed');
+});
+
+test ('a spend the venue DID report survives an unknown fill, and reaches the unwind plan', async () => {
+    //  This return used to come before the asset/amount assignment, so the step was recorded with
+    //  inAsset '' and inAmount 0 — and inAmount is what buildUnwindPlan SUBTRACTS. A buy whose
+    //  venue reported a `cost` but no `filled` spent that quote for certain; dropping it left the
+    //  unwind plan believing the money was still sitting on the venue, and planning to route home
+    //  funds that were already gone. TypeScript was the only one of the six that did this.
+    const plan = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.1, 100), {});
+    const venue = new StubVenue ('stub');
+    venue.omitFillFields = true;
+    //  the re-read still has no `filled`, but the venue is certain about what it charged
+    venue.fetchOrderResults = [ { 'id': 'stub-order', 'status': 'closed', 'cost': 10.5, 'average': 105 } ];
+    const report = await router.execute (plan, { 'stub': venue }, { 'strategy': 'sequential', 'usdRates': { 'USDT': 1 } });
+    const step = report['steps'][0];
+    assert.strictEqual (step['status'], 'outcome_unknown', 'the fill is still unknown');
+    assert.strictEqual (step['filledKnown'], false);
+    //  The facts the venue gave are kept.
+    assert.strictEqual (step['inAsset'], 'USDT', 'the asset actually spent is named');
+    assert.strictEqual (step['inAmount'], 10.5, 'and the amount the venue reported spending');
+    assert.strictEqual (step['costKnown'], true, 'because the venue really did report it');
+    //  The fill is not invented: outAmount stays 0 rather than being guessed at.
+    assert.strictEqual (step['outAsset'], 'BTC');
+    assert.strictEqual (step['outAmount'], 0, 'an unknown fill is never turned into a number');
+    //  Nothing downstream is sized from any of it — the halt, not the missing fields, is what
+    //  protects the next hop.
+    assert.strictEqual (report['halted'], true);
+    assert.strictEqual (report['haltReason'], 'outcome_unknown');
+});
+
+test ('a venue that reports a genuine zero fill is still nothing_filled', async () => {
+    //  The counterpart: zero IS an answer, and must not be relabelled as unknown.
+    const plan = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.1, 100), {});
+    const venue = new StubVenue ('stub', 0);
+    const report = await router.execute (plan, { 'stub': venue }, { 'strategy': 'sequential', 'usdRates': { 'USDT': 1 } });
+    assert.strictEqual (report['steps'][0]['filledKnown'], true);
+    assert.strictEqual (report['steps'][0]['status'], 'unfilled');
+    assert.strictEqual (report['haltReason'], 'nothing_filled');
+});
+
+test ('two legs of one hop combine their shortfalls instead of compounding them', async () => {
+    //  Each leg used to compute a scale from the hop total and multiply the downstream amounts by
+    //  it, so the second leg scaled an already-scaled number. Measured before the fix: 80% and 60%
+    //  fills sized the next hop at 144 when only 140 had arrived — 0.9 x 0.8 = 0.72 of the hop
+    //  rather than the true 0.70. Over-sizing the next hop is not a rounding nuisance: it is a
+    //  guaranteed insufficient-funds halt on exactly the bridged routes this class exists for.
+    const steps = [
+        { 'stepIndex': 0, 'hopIndex': 0, 'legIndex': 0, 'amount': 1, 'expectedPrice': 100, 'side': 'sell', 'base': 'BTC', 'quote': 'USDT' },
+        { 'stepIndex': 1, 'hopIndex': 0, 'legIndex': 1, 'amount': 1, 'expectedPrice': 100, 'side': 'sell', 'base': 'BTC', 'quote': 'USDT' },
+        { 'stepIndex': 2, 'hopIndex': 1, 'legIndex': 0, 'amount': 200, 'expectedPrice': 1, 'side': 'buy', 'base': 'ETH', 'quote': 'USDT' },
+    ];
+    //  tolerance 1 so the shortfalls resize rather than halt
+    const plan = { 'steps': steps, 'reconcileToleranceRatio': 1 };
+    const expectedPerLeg = router.stepExpectedOut (steps[0]);
+    const first = router.reconcileExecutionStep (plan, 0, expectedPerLeg * 0.8);
+    router.applyResize (steps, first);
+    const second = router.reconcileExecutionStep (plan, 1, expectedPerLeg * 0.6);
+    router.applyResize (steps, second);
+    const realised = expectedPerLeg * 0.8 + expectedPerLeg * 0.6;
+    const truth = 200 * (realised / (expectedPerLeg * 2));
+    assert.ok (Math.abs (steps[2]['amount'] - truth) < 1e-9, 'next hop sized to ' + steps[2]['amount'].toString () + ', should be ' + truth.toString ());
+});
+
+test ('a limit buy reserves more than the plan says it costs, by exactly the slippage', async () => {
+    //  CHARACTERISATION of a funding gap that is arithmetic, not chance.
+    //
+    //  A buy's limit sits ABOVE the expected price — that is the point of slippage — but the
+    //  amount is not reduced and notionalQuote is still priced at expectedPrice. An exchange
+    //  that reserves against the LIMIT price therefore holds amount x limitPrice, which is
+    //  notionalQuote x (1 + slippage). At the 25 bps default, a route sized to spend exactly
+    //  the 100 USDT you hold submits an order reserving 100.25, and the venue rejects it for
+    //  insufficient funds even though the market never moved.
+    //
+    //  The notional CAP is not affected: checkExecutionPlanSafety already prices the cap at
+    //  the worst of expected and limit. What is unguarded is FUNDING — the caller's balance
+    //  on hop 0, and the previous hop's output on every hop after it.
+    const plan = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 1, 100), {});
+    const step = plan['steps'][0];
+    const declared = step['notionalQuote'];
+    const reserved = step['amount'] * step['limitPrice'];
+    assert.ok (Math.abs (declared - 100) < 1e-9, 'the plan declares the expected cost: ' + declared.toString ());
+    assert.ok (Math.abs (reserved - 100.25) < 1e-9,
+        'a venue reserving at the limit price holds 100.25 for a 100 order; got ' + reserved.toString ());
+    assert.ok (reserved > declared, 'the gap is the slippage, and nothing in the plan funds it');
+    //  and it scales with the setting, so a wider slippage widens the shortfall
+    const wider = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 1, 100), { 'slippageBps': 100 });
+    const widerStep = wider['steps'][0];
+    assert.ok (Math.abs (widerStep['amount'] * widerStep['limitPrice'] - 101) < 1e-9,
+        '100 bps reserves 101 against a declared 100');
+    //  the SELL side is safe: its limit sits below, so it can only ever receive less, never
+    //  need more funding than the asset it is already holding to sell
+    const sellPlan = router.buildExecutionPlan (oneLegRoute ('sell', 'BTC', 'USDT', 1, 100), {});
+    const sellStep = sellPlan['steps'][0];
+    assert.ok (sellStep['limitPrice'] < sellStep['expectedPrice'], 'a sell limit sits below expected');
+});
+
+test ('a split hop pools its venues: reconciliation scales on the HOP total, not per wallet', async () => {
+    //  CHARACTERISATION, and a hazard worth naming rather than discovering in production.
+    //
+    //  Reconciliation computes one scale from the hop TOTAL and applies it to every downstream
+    //  step. Venue A filling 98 and venue B filling 100 averages to 99, so a downstream order on
+    //  A is sized at 99 against the 98 that actually landed there. Exchanges do not share a
+    //  wallet, so on a real venue that is an insufficient-funds rejection — and a 1% hop-wide
+    //  miss clears the 2% default tolerance, so nothing halts first.
+    //
+    //  This is NOT fixable in reconciliation alone, and the fixture proves why: the router's own
+    //  splitMultiHop route sells DOGE across mexc AND gate, then buys SOL on mexc with the whole
+    //  44.43 USDT — of which only ~26.7 was ever produced on mexc. The PLAN already assumes the
+    //  bridge asset is fungible across venues. Scaling per-venue here would contradict how the
+    //  plan was sized and would resize that fixture's order against a fraction of its funding.
+    //
+    //  So the pooled scale is internally consistent, and the exposure is real. Closing it means
+    //  either a per-venue funding check at plan time (checkExecutionPlanSafety), or routes whose
+    //  hops are funded per venue — a design decision, not a patch. Until then, callers who hold
+    //  balances per venue should use fetchRouteWithBalances with balanceMode 'require'.
+    const steps = [
+        { 'stepIndex': 0, 'hopIndex': 0, 'legIndex': 0, 'exchangeId': 'venueA', 'amount': 1, 'expectedPrice': 100, 'side': 'sell', 'base': 'BTC', 'quote': 'USDT' },
+        { 'stepIndex': 1, 'hopIndex': 0, 'legIndex': 1, 'exchangeId': 'venueB', 'amount': 1, 'expectedPrice': 100, 'side': 'sell', 'base': 'BTC', 'quote': 'USDT' },
+        { 'stepIndex': 2, 'hopIndex': 1, 'legIndex': 0, 'exchangeId': 'venueA', 'amount': 100, 'expectedPrice': 1, 'side': 'buy', 'base': 'ETH', 'quote': 'USDT' },
+    ];
+    //  the DEFAULT tolerance, because the point is that nothing stops this in normal use
+    const plan = { 'steps': steps };
+    const first = router.reconcileExecutionStep (plan, 0, 98);
+    router.applyResize (steps, first);
+    const second = router.reconcileExecutionStep (plan, 1, 100);
+    router.applyResize (steps, second);
+    assert.ok (Math.abs (steps[2]['amount'] - 99) < 1e-9,
+        'today the downstream order is sized at the hop mean of 99, not venueA\'s own 98; '
+        + 'if this number changes, the pooling assumption changed with it — got '
+        + steps[2]['amount'].toString ());
+    //  and nothing halts: venueA's 2% miss sits exactly ON the default tolerance, so the route
+    //  proceeds and the insufficient-funds rejection arrives later, with capital already converted
+    assert.strictEqual (first['verdict'], 'proceed', 'the route is waved onward');
+    assert.strictEqual (second['verdict'], 'proceed');
+});
+
+test ('a single-leg hop reconciles exactly as it did before', async () => {
+    //  The combined-scale change must be arithmetically inert when there is nothing to combine,
+    //  which is every case the shared fixture covers.
+    const steps = [
+        { 'stepIndex': 0, 'hopIndex': 0, 'legIndex': 0, 'amount': 1, 'expectedPrice': 100, 'side': 'sell', 'base': 'BTC', 'quote': 'USDT' },
+        { 'stepIndex': 1, 'hopIndex': 1, 'legIndex': 0, 'amount': 100, 'expectedPrice': 1, 'side': 'buy', 'base': 'ETH', 'quote': 'USDT' },
+    ];
+    const plan = { 'steps': steps, 'reconcileToleranceRatio': 1 };
+    const reconciliation = router.reconcileExecutionStep (plan, 0, router.stepExpectedOut (steps[0]) * 0.5);
+    assert.strictEqual (reconciliation['scale'], 0.5);
+    router.applyResize (steps, reconciliation);
+    assert.strictEqual (steps[1]['amount'], 50);
+});
+
+test ('a route that does not run from the requested asset to the requested asset is refused', async () => {
+    //  buildExecutionPlan used to copy from, to, pair and side straight out of the server's JSON,
+    //  and the safety checks only tested internal consistency against whatever market that named.
+    //  So a compromised — or simply buggy — router response could steer real orders into any real
+    //  market and every check would pass it, under the 25 USD cap. The client now checks the
+    //  answer against its OWN record of the question.
+    const route = oneLegRoute ('buy', 'BTC', 'USDT', 0.1, 100);
+    route['clientRequestedFrom'] = 'USDT';
+    route['clientRequestedTo'] = 'ETH';   //  the caller wanted ETH; the route delivers BTC
+    assert.throws (() => router.buildExecutionPlan (route, {}), /produces BTC, not the requested ETH/);
+});
+
+test ('a route that spends an asset the caller never offered is refused', async () => {
+    const route = oneLegRoute ('buy', 'BTC', 'USDT', 0.1, 100);
+    route['clientRequestedFrom'] = 'EUR';
+    route['clientRequestedTo'] = 'BTC';
+    assert.throws (() => router.buildExecutionPlan (route, {}), /spends USDT, not the requested EUR/);
+});
+
+test ('a bridged route whose hops do not connect is refused', async () => {
+    //  Internal coherence, checked with or without a client stamp: hop 2 must spend exactly what
+    //  hop 1 produced, or the plan strands the proceeds of one order and funds the next from a
+    //  wallet nobody checked.
+    const route = twoHopRoute ();
+    route['hops'][1]['base'] = 'DOGE';
+    route['hops'][1]['quote'] = 'EUR';
+    assert.throws (() => router.buildExecutionPlan (route, {}), /spends DOGE but the previous hop produced BTC/);
+});
+
+test ('a well-formed route still plans normally', async () => {
+    const route = oneLegRoute ('buy', 'BTC', 'USDT', 0.1, 100);
+    route['clientRequestedFrom'] = 'USDT';
+    route['clientRequestedTo'] = 'BTC';
+    const plan = router.buildExecutionPlan (route, {});
+    assert.strictEqual (plan['steps'].length, 1);
+});
+
+test ('fixture: a fee in the acquired asset resizes what the next hop is sized on', async () => {
+    //  Fee netting is the one placeStep behaviour that CHANGES the size of the next order, and
+    //  until this section existed it was asserted in TypeScript and nowhere else — a port that
+    //  silently stopped netting would have shipped green in its own language.
+    const cases = fixture['feeNettingCases'];
+    assert.ok (cases.length > 0, 'the fixture has fee netting cases');
+    for (let i = 0; i < cases.length; i++) {
+        const testCase = cases[i];
+        const plan = router.buildExecutionPlan (oneLegRoute (testCase['side'], testCase['base'], testCase['quote'], testCase['amount'], testCase['price']), testCase['planOptions']);
+        const venue = new StubVenue ('stub');
+        if (Object.keys (testCase['fee']).length > 0) {
+            venue.feeToCharge = testCase['fee'];
+        }
+        venue.tradeFeesToCharge = testCase['tradeFees'];
+        const report = await router.execute (plan, { 'stub': venue }, { 'strategy': 'sequential', 'usdRates': { 'USDT': 1 } });
+        const step = report['steps'][0];
+        const expected = testCase['expected'];
+        const where = 'feeNettingCase ' + testCase['id'];
+        assert.ok (numbersMatch (step['filledAmount'], expected['filledAmount']), where + ': filledAmount ' + String (step['filledAmount']));
+        assert.ok (numbersMatch (router.numberAt (step, 'grossOutAmount', 0), expected['grossOutAmount']), where + ': grossOutAmount ' + String (step['grossOutAmount']));
+        assert.ok (numbersMatch (step['outAmount'], expected['outAmount']), where + ': outAmount ' + String (step['outAmount']));
+        assert.ok (numbersMatch (step['feeCost'], expected['feeCost']), where + ': feeCost ' + String (step['feeCost']));
+    }
+});
+
+test ('the fee fix reaches the LIVE path, not just a direct reconcile call', async () => {
+    //  THE GUARD AGAINST A SILENT NO-OP. execute() does not reconcile against the plan's
+    //  steps — it reconciles against cloneSteps(plan), which rebuilds each step from a
+    //  whitelist. expectedFeeCost therefore has to be carried through that clone or the
+    //  netting above is correct in reconcileExecutionStep and INERT in every real run, which
+    //  is exactly the shape of bug that ships unnoticed.
+    //
+    //  A sell of 100 BTC at 100 is 10000 gross; the router predicts a 5 USDT fee, so it
+    //  promises 9995. The venue fills completely and charges exactly that, in USDT — the
+    //  asset the step produced. Nothing went wrong, and nothing should be reported wrong.
+    const route = oneLegRoute ('sell', 'BTC', 'USDT', 100, 100);
+    route['hops'][0]['legs'][0]['feeCost'] = 5;
+    route['hops'][0]['amountOut'] = 9995;
+    //  slippageBps 0 so the limit price equals the expected price: the stub fills AT the
+    //  limit, and any slippage would put a second, unrelated shortfall in the same number
+    const plan = router.buildExecutionPlan (route, { 'slippageBps': 0 });
+    assert.strictEqual (plan['steps'][0]['expectedFeeCost'], 5);
+    //  the clone execute actually runs on
+    const cloned = router.cloneSteps (plan);
+    assert.strictEqual (cloned[0]['expectedFeeCost'], 5, 'the clone carries the predicted fee');
+    const venue = new StubVenue ('stub');
+    venue.feeToCharge = { 'cost': 5, 'currency': 'USDT' };
+    const events: any[] = [];
+    const report = await router.execute (plan, { 'stub': venue }, {
+        'strategy': 'sequential',
+        'usdRates': { 'USDT': 1 },
+        'onStep': (event: any) => { events.push (event); return 'continue'; },
+    });
+    const step = report['steps'][0];
+    assert.strictEqual (step['outAmount'], 9995, 'the wallet received the net amount');
+    assert.strictEqual (step['grossOutAmount'], 10000, 'and the gross is still reported');
+    const reconciliation = events[0]['reconciliation'];
+    assert.strictEqual (reconciliation['expectedOut'], 9995, 'the expectation is the router\'s own net promise');
+    assert.strictEqual (reconciliation['shortfall'], 0, 'a complete fill charged exactly the predicted fee is not a shortfall');
+    assert.strictEqual (reconciliation['scale'], 1);
+    assert.strictEqual (report['halted'], false);
+});
+
+test ('a fee charged in the acquired asset is netted out of what the next hop is sized on', async () => {
+    //  filled and cost are GROSS of fees — the manual says so — so a venue taking its cut in the
+    //  asset this hop produced credits less than `filled`. Carrying the gross figure forward sizes
+    //  the next hop for money that never arrived.
+    const plan = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.1, 100), {});
+    const venue = new StubVenue ('stub');
+    venue.feeToCharge = { 'cost': 0.001, 'currency': 'BTC' };   //  fee in the ACQUIRED asset
+    const report = await router.execute (plan, { 'stub': venue }, { 'strategy': 'sequential', 'usdRates': { 'USDT': 1 } });
+    const step = report['steps'][0];
+    assert.strictEqual (step['filledAmount'], 0.1, 'the fill itself is still reported gross');
+    assert.strictEqual (step['grossOutAmount'], 0.1);
+    assert.ok (Math.abs (step['outAmount'] - 0.099) < 1e-12, 'carried forward net of the fee');
+    assert.strictEqual (step['feeCost'], 0.001);
+});
+
+test ('a fee charged in the asset spent does not reduce what is carried forward', async () => {
+    //  The counterpart: a USDT fee on a USDT->BTC buy comes out of the money already spent, not
+    //  out of the BTC received. Netting it here would under-size the next hop.
+    const plan = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.1, 100), {});
+    const venue = new StubVenue ('stub');
+    venue.feeToCharge = { 'cost': 0.01, 'currency': 'USDT' };
+    const report = await router.execute (plan, { 'stub': venue }, { 'strategy': 'sequential', 'usdRates': { 'USDT': 1 } });
+    assert.strictEqual (report['steps'][0]['outAmount'], 0.1);
+    assert.strictEqual (report['steps'][0]['feeCost'], 0);
+});
+
+test ('parallel_within_hop never has two orders in flight on one venue', async () => {
+    //  The contract is an ORDERING guarantee — concurrent across venues, serialised within a
+    //  venue — not a performance promise, which is what lets six very different runtimes honour
+    //  the same words. Python previously fanned out one thread per LEG against caller-supplied
+    //  sync exchange instances, so two legs on one venue mutated its throttle and nonce state
+    //  with no lock; this asserts the property that made that a bug.
+    const route = oneLegRoute ('buy', 'BTC', 'USDT', 0.1, 100);
+    route['hops'][0]['legs'] = [
+        { 'exchangeId': 'same', 'amount': 0.1, 'averagePrice': 100, 'effectivePrice': 100 },
+        { 'exchangeId': 'same', 'amount': 0.1, 'averagePrice': 100, 'effectivePrice': 100 },
+        { 'exchangeId': 'other', 'amount': 0.1, 'averagePrice': 100, 'effectivePrice': 100 },
+    ];
+    const plan = router.buildExecutionPlan (route, {});
+    const same = new StubVenue ('same');
+    const other = new StubVenue ('other');
+    await router.execute (plan, { 'same': same, 'other': other }, { 'strategy': 'parallel_within_hop', 'usdRates': { 'USDT': 1 } });
+    assert.strictEqual (same.peakInFlight, 1, 'two legs on ONE venue must never overlap');
+    const ordersOnSame = same.calls.filter ((c: string) => c.indexOf ('createOrder') === 0).length;
+    const ordersOnOther = other.calls.filter ((c: string) => c.indexOf ('createOrder') === 0).length;
+    assert.strictEqual (ordersOnSame, 2, 'both legs on that venue still ran, one after the other');
+    assert.strictEqual (ordersOnOther, 1);
+});
+
+test ('parallel_within_hop still runs different venues at the same time', async () => {
+    //  The other half: serialising within a venue must not collapse into serialising everything,
+    //  or the strategy is just `sequential` under a different name.
+    const route = oneLegRoute ('buy', 'BTC', 'USDT', 0.1, 100);
+    route['hops'][0]['legs'] = [
+        { 'exchangeId': 'a', 'amount': 0.1, 'averagePrice': 100, 'effectivePrice': 100 },
+        { 'exchangeId': 'b', 'amount': 0.1, 'averagePrice': 100, 'effectivePrice': 100 },
+    ];
+    const plan = router.buildExecutionPlan (route, {});
+    const a = new StubVenue ('a');
+    const b = new StubVenue ('b');
+    //  one shared counter across both venues shows the two overlapped
+    let live = 0;
+    let peak = 0;
+    for (const venue of [ a, b ]) {
+        const inner = venue.createOrder.bind (venue);
+        venue.createOrder = async (...args: any[]) => {
+            live = live + 1;
+            if (live > peak) {
+                peak = live;
+            }
+            const out = await (inner as any) (...args);
+            live = live - 1;
+            return out;
+        };
+    }
+    await router.execute (plan, { 'a': a, 'b': b }, { 'strategy': 'parallel_within_hop', 'usdRates': { 'USDT': 1 } });
+    assert.strictEqual (peak, 2, 'different venues must still overlap');
+});
+
+//  ---------------------------------------------------------------------------
+//  idempotency (audit finding 35): execute() used to build fresh state on every
+//  call and consult nothing, so running the same plan twice placed every order
+//  twice — including the ones that had already filled.
+//  ---------------------------------------------------------------------------
+
+test ('a live plan with no requestId is refused: without an identity there is no idempotency', async () => {
+    const route = oneLegRoute ('buy', 'BTC', 'USDT', 0.2, 100);
+    route['requestId'] = '';
+    const plan = router.buildExecutionPlan (route, {});
+    const venue = new StubVenue ('stub');
+    await assert.rejects (
+        async () => await router.execute (plan, { 'stub': venue }, { 'strategy': 'sequential', 'usdRates': { 'USDT': 1 } }),
+        /carries no requestId/,
+    );
+    assert.deepStrictEqual (venue.calls, [], 'refused before a single call reached the venue');
+    //  ...and a HAND-ASSEMBLED plan is a supported input: execute() takes any dictionary of
+    //  the plan shape, and such a plan never went through a routing request, so requestId is
+    //  the one identity it cannot have. options.idempotencyKey is how it supplies one.
+    const supplied = new StubVenue ('stub');
+    const keyed = await router.execute (plan, { 'stub': supplied }, { 'strategy': 'sequential', 'usdRates': { 'USDT': 1 }, 'idempotencyKey': 'hand-built-1' });
+    assert.strictEqual (keyed['planId'], 'hand-built-1');
+    assert.strictEqual (keyed['steps'][0]['status'], 'filled');
+    assert.strictEqual ('clientOrderId' in supplied.paramsSeen[0], false, 'and no client order id is injected');
+    //  and the guard keys off it, exactly as it does off a requestId
+    await assert.rejects (
+        async () => await router.execute (plan, { 'stub': new StubVenue ('stub') }, { 'strategy': 'sequential', 'usdRates': { 'USDT': 1 }, 'idempotencyKey': 'hand-built-1' }),
+        /already executed/,
+    );
+    //  an explicit key OVERRIDES a plan's requestId: passing one is a deliberate statement
+    //  about what this execution is, and the caller is closer to that than the plan is
+    const routed = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.2, 100), {});
+    const overridden = new StubVenue ('stub');
+    const report = await router.execute (routed, { 'stub': overridden }, { 'strategy': 'sequential', 'usdRates': { 'USDT': 1 }, 'idempotencyKey': 'override-1' });
+    assert.strictEqual (report['planId'], 'override-1');
+    assert.strictEqual ('clientOrderId' in overridden.paramsSeen[0], false, 'and no client order id is injected');
+    //  a rehearsal needs no identity: it places nothing
+    const dry = await router.execute (plan, { 'stub': venue }, { 'strategy': 'sequential', 'dryRun': true, 'usdRates': { 'USDT': 1 } });
+    assert.strictEqual (dry['dryRun'], true);
+});
+
+test ('execute never sets a clientOrderId: the venue keeps its own, and a caller-supplied one travels untouched', async () => {
+    const route = twoHopRoute ();
+    route['requestId'] = 'fixed-req';
+    const plan = router.buildExecutionPlan (route, {});
+    //  by default nothing is injected: each exchange's createOrder sends whatever
+    //  identifier it generates on its own
+    const bare = new StubVenue ('stub');
+    const report = await router.execute (plan, { 'stub': bare }, { 'strategy': 'sequential', 'usdRates': { 'USDT': 1 } });
+    assert.strictEqual (report['planId'], 'fixed-req');
+    assert.strictEqual (bare.paramsSeen.length, 2);
+    assert.strictEqual ('clientOrderId' in bare.paramsSeen[0], false, 'no client order id is forced onto the order');
+    assert.strictEqual ('clientOrderId' in bare.paramsSeen[1], false);
+    assert.strictEqual (report['steps'][0]['clientOrderId'], '', 'and the report carries what the venue reported, which is nothing');
+    //  a caller-supplied clientOrderId is forwarded as-is, alongside the caller's other params
+    const second = new OrderRouter ({ 'apiKey': 'k' });
+    const venue = new StubVenue ('stub');
+    const supplied = await second.execute (router.buildExecutionPlan (route, {}), { 'stub': venue }, {
+        'strategy': 'sequential', 'usdRates': { 'USDT': 1 },
+        'orderParams': { 'clientOrderId': 'caller-supplied', 'reduceOnly': true },
+    });
+    assert.strictEqual (venue.paramsSeen[0]['clientOrderId'], 'caller-supplied');
+    assert.strictEqual (venue.paramsSeen[1]['clientOrderId'], 'caller-supplied', 'orderParams apply to every step alike');
+    assert.strictEqual (venue.paramsSeen[0]['reduceOnly'], true, 'the caller\'s other params still travel');
+    assert.strictEqual (supplied['steps'][0]['clientOrderId'], 'caller-supplied', 'and the report says what the venue recorded');
+});
+
+test ('the same plan is refused on a second live execution, and only an explicit opt-in overrides it', async () => {
+    const plan = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.2, 100), {});
+    const opts = { 'strategy': 'sequential', 'usdRates': { 'USDT': 1 } };
+    const first = new StubVenue ('stub');
+    const report = await router.execute (plan, { 'stub': first }, opts);
+    assert.strictEqual (report['steps'][0]['status'], 'filled');
+    const again = new StubVenue ('stub');
+    await assert.rejects (
+        async () => await router.execute (plan, { 'stub': again }, opts),
+        BadRequest,
+    );
+    assert.deepStrictEqual (again.calls, [], 'not one order was re-placed');
+    //  a plan rebuilt from the same route is the same plan: the identity travels with it
+    const rebuilt = router.buildExecutionPlan ({ ...oneLegRoute ('buy', 'BTC', 'USDT', 0.2, 100), 'requestId': plan['requestId'] }, {});
+    const third = new StubVenue ('stub');
+    await assert.rejects (
+        async () => await router.execute (rebuilt, { 'stub': third }, opts),
+        /already executed/,
+    );
+    assert.deepStrictEqual (third.calls, []);
+    //  ...and the legitimate retry path is explicit
+    const allowed = new StubVenue ('stub');
+    const retry = await router.execute (plan, { 'stub': allowed }, { ...opts, 'allowReexecution': true });
+    assert.strictEqual (retry['steps'][0]['status'], 'filled');
+    assert.strictEqual (allowed.calls.length > 0, true);
+});
+
+test ('a dry run never consumes a plan, and a halted live run always does', async () => {
+    const plan = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.2, 100), {});
+    const rehearsal = new StubVenue ('stub');
+    await router.execute (plan, { 'stub': rehearsal }, { 'strategy': 'sequential', 'dryRun': true, 'usdRates': { 'USDT': 1 } });
+    const real = new StubVenue ('stub');
+    const report = await router.execute (plan, { 'stub': real }, { 'strategy': 'sequential', 'usdRates': { 'USDT': 1 } });
+    assert.strictEqual (report['steps'][0]['status'], 'filled', 'the rehearsal did not burn the plan');
+    //  a run that FAILED still placed orders — or may have — so the retry is refused just
+    //  the same. The ledger records the attempt, not the outcome.
+    const failedPlan = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.2, 100), {});
+    const broken = new StubVenue ('stub');
+    broken.failCreate = true;
+    const failedReport = await router.execute (failedPlan, { 'stub': broken }, { 'strategy': 'sequential', 'usdRates': { 'USDT': 1 } });
+    assert.strictEqual (failedReport['halted'], true);
+    const retry = new StubVenue ('stub');
+    await assert.rejects (
+        async () => await router.execute (failedPlan, { 'stub': retry }, { 'strategy': 'sequential', 'usdRates': { 'USDT': 1 } }),
+        /already executed/,
+    );
+    assert.deepStrictEqual (retry.calls, []);
+});
+
+test ('the re-execution ledger is bounded, evicts oldest-first, and says so by re-allowing an evicted plan', async () => {
+    const bounded = new OrderRouter ({ 'apiKey': 'k' });
+    const cap = OrderRouter.MAX_EXECUTED_PLAN_IDS;
+    for (let i = 0; i < cap; i++) {
+        bounded.recordExecutedPlan ('plan-' + i);
+    }
+    assert.strictEqual (bounded.executedPlanIds.length, cap, 'the ledger fills to exactly the cap');
+    assert.strictEqual (bounded.hasExecutedPlan ('plan-0'), true, 'and nothing is evicted before it is full');
+    //  the cap holds no matter how far past it the process runs
+    for (let i = cap; i < cap + 100; i++) {
+        bounded.recordExecutedPlan ('plan-' + i);
+    }
+    assert.strictEqual (bounded.executedPlanIds.length, cap, 'the ledger never grows past the cap');
+    //  FIFO: the OLDEST 100 are the ones that went
+    for (let i = 0; i < 100; i++) {
+        assert.strictEqual (bounded.hasExecutedPlan ('plan-' + i), false, 'the oldest entries are evicted first');
+    }
+    assert.strictEqual (bounded.hasExecutedPlan ('plan-100'), true, 'and nothing newer than the evicted window went with them');
+    assert.strictEqual (bounded.hasExecutedPlan ('plan-' + (cap + 99)), true, 'the newest entry is present');
+    assert.strictEqual (bounded.executedPlanIds[0], 'plan-100', 'the list is still in insertion order');
+    //  re-recording an id already held must not shuffle the eviction order, or a plan
+    //  re-executed in a loop could keep itself alive forever while newer ids fall out
+    bounded.recordExecutedPlan ('plan-100');
+    assert.strictEqual (bounded.executedPlanIds.length, cap, 'a duplicate record adds nothing');
+    assert.strictEqual (bounded.executedPlanIds[0], 'plan-100', 'and does not move the entry in the queue');
+    //  AND THE TRADEOFF, STATED AS A TEST: an evicted plan is no longer refused. This is
+    //  the documented weakening at the cap, not an accident — if this assertion ever has
+    //  to change, the comment on MAX_EXECUTED_PLAN_IDS has to change with it.
+    const opts = { 'strategy': 'sequential', 'usdRates': { 'USDT': 1 } };
+    const plan = bounded.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.2, 100), {});
+    const first = new StubVenue ('stub');
+    await bounded.execute (plan, { 'stub': first }, opts);
+    const refused = new StubVenue ('stub');
+    await assert.rejects (
+        async () => await bounded.execute (plan, { 'stub': refused }, opts),
+        /already executed/,
+    );
+    assert.deepStrictEqual (refused.calls, [], 'while remembered, the duplicate is refused');
+    for (let i = 0; i < cap; i++) {
+        bounded.recordExecutedPlan ('flush-' + i);
+    }
+    assert.strictEqual (bounded.hasExecutedPlan (plan['requestId']), false, 'the plan has aged out of the ledger');
+    const reexecuted = new StubVenue ('stub');
+    const report = await bounded.execute (plan, { 'stub': reexecuted }, opts);
+    assert.strictEqual (report['steps'][0]['status'], 'filled', 'and an aged-out plan re-executes without the opt-in');
+    assert.strictEqual (reexecuted.calls.length > 0, true, 'which means real orders — the bound costs a guarantee');
+});
+
+test ('onStep sees every step and can stop the route', async () => {
+    //  The one thing a caller cannot do from outside execute(): look at what just happened and
+    //  decide not to continue. Before this hook the method was opaque from call to return.
+    const plan = router.buildExecutionPlan (twoHopRoute (), {});
+    const venue = new StubVenue ('stub');
+    const seen: any[] = [];
+    const report = await router.execute (plan, { 'stub': venue }, {
+        'strategy': 'sequential', 'usdRates': { 'USDT': 1 },
+        'onStep': (event: any) => {
+            seen.push (event);
+            return (event['stepIndex'] === 0) ? 'halt' : '';
+        },
+    });
+    assert.strictEqual (seen.length, 1, 'the hook is not called for steps that never ran');
+    assert.strictEqual (seen[0]['stepIndex'], 0);
+    assert.strictEqual (seen[0]['status'], 'filled');
+    assert.strictEqual (seen[0]['stepsRemaining'], plan['steps'].length - 1);
+    assert.ok (seen[0]['reconciliation'] !== undefined, 'the verdict it is judging is in the event');
+    assert.strictEqual (report['halted'], true);
+    assert.strictEqual (report['haltReason'], 'halted_by_on_step');
+    assert.strictEqual (report['haltStepIndex'], 0);
+    assert.strictEqual (report['steps'][1]['status'], 'skipped');
+    assert.strictEqual (report['ordersPlaced'], 1, 'the step after the halt was never placed');
+    assert.strictEqual (venue.calls.length, 1);
+});
+
+test ('an onStep that throws is recorded, and does not take the run down with it', async () => {
+    //  The report is the ONLY account of orders that are already live. An exception raised by
+    //  observability code must never destroy it — trigger.dev logs and ignores hook errors for
+    //  the same reason.
+    const plan = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.2, 100), {});
+    const venue = new StubVenue ('stub');
+    const report = await router.execute (plan, { 'stub': venue }, {
+        'strategy': 'sequential', 'usdRates': { 'USDT': 1 },
+        'onStep': () => { throw new Error ('hook is broken'); },
+    });
+    assert.strictEqual (report['halted'], false, 'the route finished');
+    assert.strictEqual (report['steps'][0]['status'], 'filled');
+    const codes = report['errors'].map ((e: any) => e['code']);
+    assert.ok (codes.some ((c: string) => c.indexOf ('on_step_hook_failed') === 0),
+        'the broken hook is reported rather than swallowed, got ' + JSON.stringify (codes));
+});
+
+test ('onStep can only narrow: it cannot resume a route the reconciliation already halted', async () => {
+    //  The halt is a money decision made in one pure place precisely so it cannot be omitted.
+    //  A hook that could wave it through would be a way to omit it.
+    const plan = router.buildExecutionPlan (twoHopRoute (), {});
+    const starved = new StubVenue ('stub', 0.1);
+    const report = await router.execute (plan, { 'stub': starved }, {
+        'strategy': 'sequential', 'usdRates': { 'USDT': 1 },
+        'onStep': () => 'continue',
+    });
+    assert.strictEqual (report['halted'], true);
+    assert.strictEqual (report['haltReason'], 'shortfall_exceeds_tolerance',
+        'the reconciliation reason survives, it is not replaced by the hook');
+    assert.strictEqual (report['ordersPlaced'], 1, 'the hook did not wave the route onward');
+    assert.strictEqual (report['steps'][1]['status'], 'skipped');
+});
+
+test ('retryFailedSteps re-places a rejected step as a fresh order, and never retries an unknown outcome', async () => {
+    //  A rejected order was not placed, so re-placing it cannot double-fill. No client order id
+    //  is injected on either attempt, so the venue's own identifier generation applies to the
+    //  retry exactly as it did to the first try.
+    const plan = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.2, 100), {});
+    const relents = new StubVenue ('stub');
+    relents.failCreateTimes = 1;
+    const report = await router.execute (plan, { 'stub': relents }, {
+        'strategy': 'sequential', 'usdRates': { 'USDT': 1 },
+        'retryFailedSteps': 2, 'retryDelayMs': 0,
+    });
+    assert.strictEqual (report['steps'][0]['status'], 'filled', 'the retry succeeded');
+    assert.strictEqual (report['steps'][0]['attempt'], 1, 'the report says which attempt won');
+    assert.strictEqual (relents.paramsSeen.length, 2, 'two placements went out');
+    assert.strictEqual ('clientOrderId' in relents.paramsSeen[0], false, 'no client order id is injected on the first try');
+    assert.strictEqual ('clientOrderId' in relents.paramsSeen[1], false, 'nor on the retry');
+
+    //  the outcome the policy must NEVER touch
+    const unknown = new StubVenue ('stub');
+    unknown.timeoutCreate = true;
+    const plan2 = router.buildExecutionPlan ({ ...oneLegRoute ('buy', 'BTC', 'USDT', 0.2, 100), 'requestId': 'unknown-1' }, {});
+    const second = await router.execute (plan2, { 'stub': unknown }, {
+        'strategy': 'sequential', 'usdRates': { 'USDT': 1 },
+        'retryFailedSteps': 5, 'retryDelayMs': 0,
+    });
+    assert.strictEqual (second['steps'][0]['status'], 'outcome_unknown');
+    assert.strictEqual (unknown.calls.length, 1,
+        'an order whose outcome is unknown may already be live; it is never re-placed');
+});
+
+test ('an ambiguous venue error is never retried, whatever its ccxt class', async () => {
+    //  The retry gate asks isOutcomeUnknownError, which matched four class names by
+    //  string. ccxt's ambiguity is not four names, it is a SUBTREE: everything under
+    //  OperationFailed failed without the venue answering. binance maps -1006 —
+    //  literally "An unexpected response was received from the message bus. Execution
+    //  status unknown." — to OperationFailed, and another of its endpoints maps the
+    //  same code to BadResponse. Both mean the order may already be live, so retrying
+    //  either is the double-fill this class exists to prevent.
+    const ambiguous = [
+        new OperationFailed ('binance -1006: execution status unknown'),
+        new BadResponse ('binance -1006: unexpected response from the message bus'),
+        new BadResponse ('null response'),
+    ];
+    for (let i = 0; i < ambiguous.length; i++) {
+        const err = ambiguous[i];
+        const name = err.constructor.name;
+        const venue = new StubVenue ('stub');
+        venue.createErrorToThrow = err;
+        const plan = router.buildExecutionPlan ({ ...oneLegRoute ('buy', 'BTC', 'USDT', 0.2, 100), 'requestId': 'ambiguous-' + i.toString () }, {});
+        const report = await router.execute (plan, { 'stub': venue }, {
+            'strategy': 'sequential', 'usdRates': { 'USDT': 1 },
+            'retryFailedSteps': 5, 'retryDelayMs': 0,
+        });
+        assert.strictEqual (venue.calls.length, 1,
+            name + ' may already be a live position: it must be placed exactly once, never retried');
+        assert.strictEqual (report['steps'][0]['status'], 'outcome_unknown',
+            name + ' leaves the outcome unknown, not definitively failed');
+        assert.strictEqual (report['haltReason'], 'outcome_unknown',
+            name + ' halts the route naming the ambiguity');
+        assert.ok (report['openOrders'].length >= 1,
+            name + ' must leave an openOrders entry for an operator to reconcile');
+    }
+});
+
+test ('options.live is refused, not ignored: the old knob cannot silently place orders', async () => {
+    //  `live` used to gate execution and is gone. A call still carrying it was written against
+    //  the old contract, and the dangerous reading is the silent one: `live: false` meant
+    //  "place nothing" and now means nothing at all, so the orders would go out while the
+    //  caller believed they had opted out. Both spellings are refused, before any venue call.
+    const plan = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.2, 100), {});
+    const venue = new StubVenue ('stub');
+    await assert.rejects (async () => {
+        await router.execute (plan, { 'stub': venue }, { 'live': false, 'usdRates': { 'USDT': 1 } });
+    }, BadRequest, 'live: false is refused rather than trading behind the caller');
+    await assert.rejects (async () => {
+        await router.execute (plan, { 'stub': venue }, { 'live': true, 'usdRates': { 'USDT': 1 } });
+    }, BadRequest, 'and so is live: true — the option is gone, not redundant');
+    assert.deepStrictEqual (venue.calls, [], 'refused before a single call reached the venue');
+});
+
+test ('a quote in flight during a run cannot restore the pre-trade balances', async () => {
+    //  Dropping the cache before dispatch is not enough on its own. A quote issued while the
+    //  orders are in flight reads wallets that have not settled, and would install that
+    //  pre-trade snapshot as the cache the NEXT quote trusts. Execute therefore invalidates on
+    //  the way out as well, and a wallet read that straddles an invalidation returns its answer
+    //  without caching it.
+    const venue = new StubVenue ('stub');
+    const held = new OrderRouter ({ 'venues': { 'stub': venue }, 'trackBalances': true });
+    const stub = stubRouteFetch ();
+    let route: Dict = {};
+    try {
+        route = await held.fetchRoute ('USDT', 'BTC', { 'amountIn': 20 });
+    } finally {
+        stub.restore ();
+    }
+    const countReads = () => venue.calls.filter ((call: string) => call === 'fetchBalance').length;
+    assert.strictEqual (countReads (), 1, 'the quote primed the cache');
+    //  a read that began before the run and lands after it must not become the cache
+    const straddling = held.loadBalances (true);
+    held.invalidateBalances ();
+    await straddling;
+    assert.strictEqual (held.balancesLoaded, false, 'the in-flight read did not resurrect a snapshot the invalidation retired');
+    //  and a run that throws mid-flight still leaves the cache dropped
+    await held.loadBalances (true);
+    assert.strictEqual (held.balancesLoaded, true);
+    const broken = new StubVenue ('stub');
+    broken.failCreate = true;
+    await held.execute (route, { 'stub': broken }, { 'usdRates': { 'USDT': 1 }, 'idempotencyKey': 'straddle-failed' });
+    assert.strictEqual (held.balancesLoaded, false, 'a halted run moved money too, so the cache goes with it');
+});
+
+test ('watchRoute applies the same venue filter fetchRoute does', async () => {
+    //  A router built with venues can only execute on those. A stream that quoted the rest
+    //  would hand back routes its own executor must refuse, which is exactly the mismatch the
+    //  constructor filter exists to remove — and it must not appear the moment a caller
+    //  switches from polling to watching.
+    const venue = new StubVenue ('stub');
+    const held = new OrderRouter ({ 'venues': { 'stub': venue, 'other': new StubVenue ('other') } });
+    const url = held.streamUrl ('USDT', 'BTC', { 'amountIn': 1 });
+    assert.ok (url.indexOf ('exchanges=' + encodeURIComponent ('other,stub')) >= 0, 'the held venues are the default filter: ' + url);
+    //  sorted, so the same router always produces the same url — and the caller still wins
+    const explicit = held.streamUrl ('USDT', 'BTC', { 'amountIn': 1, 'exchanges': [ 'kraken' ] });
+    assert.ok (explicit.indexOf ('kraken') >= 0, explicit);
+    assert.ok (explicit.indexOf ('stub') < 0, 'an explicit exchanges parameter overrides the held venues: ' + explicit);
+    //  and a router holding nothing adds nothing
+    const bare = new OrderRouter ({});
+    assert.ok (bare.streamUrl ('USDT', 'BTC', { 'amountIn': 1 }).indexOf ('exchanges=') < 0);
+});

@@ -6,6 +6,7 @@ import io.github.ccxt.api.MyokxApi;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import io.github.ccxt.BaseExchange;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;

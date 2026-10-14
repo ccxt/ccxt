@@ -69,6 +69,7 @@ declare class testMainClass {
     isEmptyOutputValue(exchange: Exchange, value: any): boolean;
     isVacantValue(exchange: Exchange, value: any): boolean;
     countSignificantKeys(exchange: Exchange, target: any, otherKeys: string[]): number;
+    effectiveSkipKeys(exchange: Exchange, exchangeData: object, entry: object): any[];
     assertNewAndStoredOutputInner(exchange: Exchange, skipKeys: string[], newOutput: any, storedOutput: any, strictTypeCheck?: boolean, assertingKey?: Str): boolean;
     assertNewAndStoredOutput(exchange: Exchange, skipKeys: string[], newOutput: any, storedOutput: any, strictTypeCheck?: boolean, assertingKey?: Str): boolean;
     varToString(obj?: any): string;
@@ -77,6 +78,7 @@ declare class testMainClass {
     sanitizeDataInput(input: any): List | undefined;
     testRequestStatically(exchange: any, method: string, data: Dict, type: Str, skipKeys: string[]): Promise<boolean>;
     testResponseStatically(exchange: any, method: string, skipKeys: string[], data: Dict): Promise<boolean>;
+    wsRequestWasSent(exchange: any, url: string, id: string): boolean;
     injectWsMessages(exchange: any, url: string, messages: List, sequential?: boolean): Promise<boolean>;
     watchAndAssertSequence(exchange: any, url: string, method: string, input: any, skipKeys: string[], expectedResults: List): Promise<boolean>;
     assertWsSentMessages(exchange: any, url: string, data: Dict): void;
@@ -96,13 +98,14 @@ declare class testMainClass {
     testOkx(): Promise<boolean>;
     testCryptocom(): Promise<boolean>;
     testBybit(): Promise<boolean>;
+    testBithumb(): Promise<boolean>;
+    testExtended(): Promise<boolean>;
     testKucoin(): Promise<boolean>;
     testKucoinfutures(): Promise<boolean>;
     testBitget(): Promise<boolean>;
     testMexc(): Promise<boolean>;
     testHtx(): Promise<boolean>;
     testWoo(): Promise<boolean>;
-    testCoinex(): Promise<boolean>;
     testBingx(): Promise<boolean>;
     testPhemex(): Promise<boolean>;
     testBlofin(): Promise<boolean>;

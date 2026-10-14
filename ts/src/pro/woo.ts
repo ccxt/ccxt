@@ -6,6 +6,7 @@ import { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache, ArrayCacheBy
 import { Precise } from '../base/Precise.js';
 import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Dict, Fee, List, Bool, FundingRate, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 // ----------------------------------------------------------------------------
 
@@ -71,7 +72,7 @@ export default class woo extends wooRest {
         });
     }
 
-    requestId (url: any) {
+    requestId (url: string): number {
         const options = this.safeValue (this.options, 'requestId', {});
         const previousValue = this.safeInteger (options, url, 0);
         const newValue = this.sum (previousValue, 1);
@@ -128,11 +129,12 @@ export default class woo extends wooRest {
             'unsubMessageHashes': unsubMessageHashes,
         };
         const symbolsAndTimeframes = this.safeList (params, 'symbolsAndTimeframes');
+        let paramsOmitted: Dict = params;
         if (symbolsAndTimeframes !== undefined) {
             subscription['symbolsAndTimeframes'] = symbolsAndTimeframes;
-            params = this.omit (params, 'symbolsAndTimeframes');
+            paramsOmitted = this.omit (paramsOmitted, 'symbolsAndTimeframes');
         }
-        return await this.watchMultiple (url, unsubMessageHashes, this.extend (message, params), unsubMessageHashes, subscription);
+        return await this.watchMultiple (url, unsubMessageHashes, this.extend (message, paramsOmitted), unsubMessageHashes, subscription);
     }
 
     /**
@@ -148,19 +150,20 @@ export default class woo extends wooRest {
      * @param {int} [params.depth] the depth of the incremental 'orderbookupdate' stream, one of 50, 200 or 500, default is derived from limit, or 50
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
         const defaultMethod = (market['spot'] === true) ? 'orderbook10' : 'orderbookupdate';
         let method: Str = undefined;
-        [ method, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'method', defaultMethod);
+        let paramsOmitted: Dict = params;
+        [ method, paramsOmitted ] = this.handleOptionAndParams (paramsOmitted, 'watchOrderBook', 'method', defaultMethod);
         let topic: Str = undefined;
         let depth: Str = undefined;
         if (method === 'orderbookupdate') {
-            depth = this.safeString (params, 'depth');
-            params = this.omit (params, 'depth');
+            depth = this.safeString (paramsOmitted, 'depth');
+            paramsOmitted = this.omit (paramsOmitted, 'depth');
             if (depth === undefined) {
                 if ((limit === undefined) || (limit <= 50)) {
                     depth = '50';
@@ -188,12 +191,12 @@ export default class woo extends wooRest {
             'depth': depth,
             'symbol': market['symbol'],
             'limit': limit,
-            'params': params,
+            'params': paramsOmitted,
         };
         if (method === 'orderbookupdate') {
             subscription['method'] = this.handleOrderBookSubscription;
         }
-        const orderbook = await this.watch (url, topic, this.extend (request, params), topic, subscription);
+        const orderbook = await this.watch (url, topic, this.extend (request, paramsOmitted), topic, subscription);
         return orderbook.limit ();
     }
 
@@ -208,18 +211,19 @@ export default class woo extends wooRest {
      * @param {int} [params.depth] the depth used when subscribing, one of 50, 200 or 500, when omitted the depth of the active subscription is used
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+    override async unWatchOrderBook (symbol: string, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
         const defaultMethod = (market['spot'] === true) ? 'orderbook10' : 'orderbookupdate';
         let method: Str = undefined;
-        [ method, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'method', defaultMethod);
+        let paramsOmitted: Dict = params;
+        [ method, paramsOmitted ] = this.handleOptionAndParams (paramsOmitted, 'watchOrderBook', 'method', defaultMethod);
         let subHash: Str = undefined;
         if (method === 'orderbookupdate') {
-            const depth = this.safeString (params, 'depth');
-            params = this.omit (params, 'depth');
+            const depth = this.safeString (paramsOmitted, 'depth');
+            paramsOmitted = this.omit (paramsOmitted, 'depth');
             if (depth !== undefined) {
                 subHash = 'orderbookupdate@' + market['id'] + '@' + depth;
             } else {
@@ -247,10 +251,10 @@ export default class woo extends wooRest {
         } else {
             subHash = 'orderbook10@' + market['id'];
         }
-        return await this.unwatchPublic ([ subHash ], 'orderbook', [ market['symbol'] ], params);
+        return await this.unwatchPublic ([ subHash ], 'orderbook', [ market['symbol'] ], paramsOmitted);
     }
 
-    handleOrderBook (client: Client, message: any) {
+    handleOrderBook (client: Client, message: Dict) {
         //
         // orderbookupdate
         //
@@ -338,21 +342,24 @@ export default class woo extends wooRest {
         }
     }
 
-    handleOrderBookSubscription (client: Client, message: any, subscription: any) {
+    handleOrderBookSubscription (client: Client, message: Dict, subscription: Dict) {
         const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
         const limit = this.safeInteger (subscription, 'limit', defaultLimit);
         const symbol = this.safeString (subscription, 'symbol'); // watchOrderBook
         if (symbol === undefined) {
             return;
         }
-        if (symbol in this.orderbooks) {
-            delete this.orderbooks[symbol];
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook ({}, limit);
         }
-        this.orderbooks[symbol] = this.orderBook ({}, limit);
+        const orderbook = this.orderbooks[symbol];
+        // handleOrderBook queues deltas while the nonce is undefined, until the REST snapshot lands
+        orderbook['nonce'] = undefined;
+        orderbook.cache = [];
         this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
     }
 
-    async fetchOrderBookSnapshot (client: Client, message: any, subscription: any) {
+    async fetchOrderBookSnapshot (client: Client, message: Dict, subscription: Dict) {
         const symbol = this.safeString (subscription, 'symbol');
         // the v3 subscribe confirmation does not carry the topic, take it from the subscription
         const messageHash = this.safeString (subscription, 'topic');
@@ -395,7 +402,7 @@ export default class woo extends wooRest {
         }
     }
 
-    handleOrderBookMessage (client: Client, message: any, orderbook: any) {
+    handleOrderBookMessage (client: Client, message: Dict, orderbook: WsOrderBook) {
         const data = this.safeDict (message, 'data');
         this.handleDeltas (orderbook['asks'], this.safeList (data, 'asks', []));
         this.handleDeltas (orderbook['bids'], this.safeList (data, 'bids', []));
@@ -427,12 +434,11 @@ export default class woo extends wooRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
         const topic = 'ticker@' + market['id'];
         return await this.watchPublic (topic, topic, params);
     }
@@ -446,7 +452,7 @@ export default class woo extends wooRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async unWatchTicker (symbol: string, params = {}): Promise<any> {
+    override async unWatchTicker (symbol: string, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -455,7 +461,7 @@ export default class woo extends wooRest {
         return await this.unwatchPublic ([ subHash ], 'ticker', [ market['symbol'] ], params);
     }
 
-    parseWsTicker (ticker: Dict, market: Market = undefined) {
+    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "s": "SPOT_WOO_USDT",
@@ -497,7 +503,7 @@ export default class woo extends wooRest {
         }, market);
     }
 
-    handleTicker (client: Client, message: any) {
+    handleTicker (client: Client, message: Dict): Dict {
         //
         //     {
         //         "topic": "ticker@SPOT_WOO_USDT",
@@ -535,21 +541,21 @@ export default class woo extends wooRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
-        if (symbols === undefined) {
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
+        if (symbolsNormalized === undefined) {
             throw new ArgumentsRequired (this.id + ' watchTickers() requires a symbols argument, the woox v3 websocket api does not support watching all tickers at once');
         }
-        const symbolsLength = symbols.length;
+        const symbolsLength = symbolsNormalized.length;
         if (symbolsLength > 20) {
             throw new ArgumentsRequired (this.id + ' watchTickers() supports a maximum of 20 symbols per call');
         }
         const topics = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const market = this.market (symbols[i]);
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const market = this.market (symbolsNormalized[i]);
             topics.push ('ticker@' + market['id']);
         }
         const ticker = await this.watchPublicMultiple (topics, topics, params);
@@ -558,7 +564,7 @@ export default class woo extends wooRest {
             result[ticker['symbol']] = ticker;
             return result;
         }
-        return this.filterByArray (this.tickers, 'symbol', symbols);
+        return this.filterByArray (this.tickers, 'symbol', symbolsNormalized);
     }
 
     /**
@@ -570,20 +576,20 @@ export default class woo extends wooRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
+    override async unWatchTickers (symbols: Strings = undefined, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
-        if (symbols === undefined) {
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
+        if (symbolsNormalized === undefined) {
             throw new ArgumentsRequired (this.id + ' unWatchTickers() requires a symbols argument');
         }
         const topics = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const market = this.market (symbols[i]);
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const market = this.market (symbolsNormalized[i]);
             topics.push ('ticker@' + market['id']);
         }
-        return await this.unwatchPublic (topics, 'ticker', symbols, params);
+        return await this.unwatchPublic (topics, 'ticker', symbolsNormalized, params);
     }
 
     /**
@@ -595,21 +601,21 @@ export default class woo extends wooRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchBidsAsks (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
-        if (symbols === undefined) {
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
+        if (symbolsNormalized === undefined) {
             throw new ArgumentsRequired (this.id + ' watchBidsAsks() requires a symbols argument, the woox v3 websocket api does not support watching all bids and asks at once');
         }
-        const symbolsLength = symbols.length;
+        const symbolsLength = symbolsNormalized.length;
         if (symbolsLength > 20) {
             throw new ArgumentsRequired (this.id + ' watchBidsAsks() supports a maximum of 20 symbols per call');
         }
         const topics = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const market = this.market (symbols[i]);
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const market = this.market (symbolsNormalized[i]);
             topics.push ('bbo@' + market['id']);
         }
         const ticker = await this.watchPublicMultiple (topics, topics, params);
@@ -618,7 +624,7 @@ export default class woo extends wooRest {
             result[ticker['symbol']] = ticker;
             return result;
         }
-        return this.filterByArray (this.bidsasks, 'symbol', symbols);
+        return this.filterByArray (this.bidsasks, 'symbol', symbolsNormalized);
     }
 
     /**
@@ -630,23 +636,23 @@ export default class woo extends wooRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async unWatchBidsAsks (symbols: Strings = undefined, params = {}): Promise<any> {
+    override async unWatchBidsAsks (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
-        if (symbols === undefined) {
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
+        if (symbolsNormalized === undefined) {
             throw new ArgumentsRequired (this.id + ' unWatchBidsAsks() requires a symbols argument');
         }
         const topics = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const market = this.market (symbols[i]);
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const market = this.market (symbolsNormalized[i]);
             topics.push ('bbo@' + market['id']);
         }
-        return await this.unwatchPublic (topics, 'bidsasks', symbols, params);
+        return await this.unwatchPublic (topics, 'bidsasks', symbolsNormalized, params);
     }
 
-    handleBidAsk (client: Client, message: any) {
+    handleBidAsk (client: Client, message: Dict) {
         //
         //     {
         //         "topic": "bbo@SPOT_BTC_USDT",
@@ -673,10 +679,10 @@ export default class woo extends wooRest {
         client.resolve (parsedTicker, topic);
     }
 
-    parseWsBidAsk (ticker: any, market: Market = undefined) {
+    parseWsBidAsk (ticker: Dict, market: Market = undefined): Ticker {
         const marketId = this.safeString (ticker, 's');
-        market = this.safeMarket (marketId, market);
-        const symbol = this.safeString (market, 'symbol');
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = this.safeString (marketResolved, 'symbol');
         const timestamp = this.safeInteger (ticker, 'ts');
         return this.safeTicker ({
             'symbol': symbol,
@@ -687,7 +693,7 @@ export default class woo extends wooRest {
             'bid': this.safeString (ticker, 'bp'),
             'bidVolume': this.safeString (ticker, 'bq'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -702,7 +708,7 @@ export default class woo extends wooRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -713,10 +719,11 @@ export default class woo extends wooRest {
         const market = this.market (symbol);
         const topic = 'kline@' + market['id'] + '@' + timeframe;
         const ohlcv = await this.watchPublic (topic, topic, params);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = ohlcv.getLimit (market['symbol'], limit);
+            limitResolved = ohlcv.getLimit (market['symbol'], limitResolved);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
     /**
@@ -739,7 +746,7 @@ export default class woo extends wooRest {
         return await this.unwatchPublic ([ subHash ], 'ohlcv', [ market['symbol'] ], params);
     }
 
-    handleOHLCV (client: Client, message: any) {
+    handleOHLCV (client: Client, message: Dict) {
         //
         //     {
         //         "topic": "kline@SPOT_BTC_USDT@1m",
@@ -801,18 +808,19 @@ export default class woo extends wooRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolResolved: string = market['symbol'];
         const topic = 'trade@' + market['id'];
         const trades = await this.watchPublic (topic, topic, params);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit (market['symbol'], limit);
+            limitResolved = trades.getLimit (market['symbol'], limitResolved);
         }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
     }
 
     /**
@@ -824,7 +832,7 @@ export default class woo extends wooRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async unWatchTrades (symbol: string, params = {}): Promise<any> {
+    override async unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -833,7 +841,7 @@ export default class woo extends wooRest {
         return await this.unwatchPublic ([ subHash ], 'trades', [ market['symbol'] ], params);
     }
 
-    handleTrade (client: Client, message: any) {
+    handleTrade (client: Client, message: Dict) {
         //
         //     {
         //         "topic": "trade@SPOT_ADA_USDT",
@@ -866,7 +874,7 @@ export default class woo extends wooRest {
         client.resolve (tradesArray, topic);
     }
 
-    override parseWsTrade (trade: any, market: Market = undefined) {
+    override parseWsTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // public trade
         //
@@ -911,8 +919,8 @@ export default class woo extends wooRest {
         //     }
         //
         const marketId = this.safeString (trade, 's');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         const price = this.safeString2 (trade, 'epx', 'px');
         const amount = this.safeString2 (trade, 'esx', 'sx');
         const cost = Precise.stringMul (price, amount);
@@ -946,10 +954,10 @@ export default class woo extends wooRest {
             'type': type,
             'fee': fee,
             'info': trade,
-        }, market);
+        }, marketResolved);
     }
 
-    async authenticate (params = {}) {
+    async authenticate (params: Dict = {}) {
         this.checkRequiredCredentials ();
         const now = this.milliseconds ();
         const expires = this.safeInteger (this.options, 'listenKeyExpires', 0);
@@ -1030,24 +1038,26 @@ export default class woo extends wooRest {
      * @param {bool} [params.trigger] true if trigger order
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
         const topic = (trigger) ? 'algoexecutionreport' : 'executionreport';
-        params = this.omit (params, [ 'stop', 'trigger' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger' ]);
         let messageHash = topic;
-        if (symbol !== undefined) {
-            const market = this.market (symbol);
-            symbol = market['symbol'];
-            messageHash += ':' + symbol;
+        let symbolResolved: Str = symbol;
+        if (symbolResolved !== undefined) {
+            const market = this.market (symbolResolved);
+            symbolResolved = market['symbol'];
+            messageHash += ':' + symbolResolved;
         }
-        const orders = await this.watchPrivate (messageHash, topic, params);
+        const orders = await this.watchPrivate (messageHash, topic, paramsOmitted);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
+            limitResolved = orders.getLimit (symbolResolved, limitResolved);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
     /**
@@ -1063,27 +1073,29 @@ export default class woo extends wooRest {
      * @param {bool} [params.trigger] true if trigger order
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
         const topic = (trigger) ? 'algoexecutionreport' : 'executionreport';
-        params = this.omit (params, [ 'stop', 'trigger' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger' ]);
         let messageHash = 'myTrades';
-        if (symbol !== undefined) {
-            const market = this.market (symbol);
-            symbol = market['symbol'];
-            messageHash += ':' + symbol;
+        let symbolResolved: Str = symbol;
+        if (symbolResolved !== undefined) {
+            const market = this.market (symbolResolved);
+            symbolResolved = market['symbol'];
+            messageHash += ':' + symbolResolved;
         }
-        const trades = await this.watchPrivate (messageHash, topic, params);
+        const trades = await this.watchPrivate (messageHash, topic, paramsOmitted);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limitResolved = trades.getLimit (symbolResolved, limitResolved);
         }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
     }
 
-    override parseWsOrder (order: any, market: Market = undefined) {
+    override parseWsOrder (order: Dict, market: Market = undefined): Order {
         //
         // executionreport
         //
@@ -1159,8 +1171,8 @@ export default class woo extends wooRest {
         //
         const orderId = this.safeString2 (order, 'oid', 'aid');
         const marketId = this.safeString (order, 's');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         const timestamp = this.safeInteger (order, 'ts');
         const fee = {
             'cost': this.safeString (order, 'tf'),
@@ -1208,10 +1220,10 @@ export default class woo extends wooRest {
             'status': status,
             'fee': fee,
             'trades': undefined,
-        }, market);
+        }, marketResolved);
     }
 
-    handleOrderUpdate (client: Client, message: any) {
+    handleOrderUpdate (client: Client, message: Dict) {
         //
         //     {
         //         "topic": "executionreport",
@@ -1267,7 +1279,7 @@ export default class woo extends wooRest {
         }
     }
 
-    handleOrder (client: Client, message: any, topic: any) {
+    handleOrder (client: Client, message: Dict, topic: Str) {
         const parsed = this.parseWsOrder (message);
         const symbol = this.safeString (parsed, 'symbol');
         const orderId = this.safeString (parsed, 'id');
@@ -1299,7 +1311,7 @@ export default class woo extends wooRest {
         }
     }
 
-    handleMyTrade (client: Client, message: any) {
+    handleMyTrade (client: Client, message: Dict) {
         //
         //     {
         //         "mt": 0,
@@ -1350,15 +1362,15 @@ export default class woo extends wooRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const messageHashes: string[] = [];
-        symbols = this.marketSymbols (symbols);
-        if ((symbols !== undefined) && !this.isEmpty (symbols)) {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
+        if ((symbolsNormalized !== undefined) && !this.isEmpty (symbolsNormalized)) {
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const symbol = symbolsNormalized[i];
                 messageHashes.push ('positions::' + symbol);
             }
         } else {
@@ -1367,19 +1379,19 @@ export default class woo extends wooRest {
         const listenKey = await this.authenticate ();
         const url = this.urls['api']['ws']['private'] + '?key=' + listenKey;
         const client = this.client (url);
-        this.setPositionsCache (client, symbols);
+        this.setPositionsCache (client, symbolsNormalized);
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
         if ((fetchPositionsSnapshot === true) && (awaitPositionsSnapshot === true) && (this.positions === undefined)) {
             const snapshot = await client.future ('fetchPositionsSnapshot');
-            return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
+            return this.filterBySymbolsSinceLimit (snapshot, symbolsNormalized, since, limit, true);
         }
         const topics = [ 'position' ];
         const newPositions = await this.watchPrivateMultiple (messageHashes, topics, params);
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit (this.positions, symbolsNormalized, since, limit, true);
     }
 
     setPositionsCache (client: Client, symbols: Strings = undefined) {
@@ -1395,7 +1407,7 @@ export default class woo extends wooRest {
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: any) {
+    async loadPositionsSnapshot (client: Client, messageHash: string) {
         const positions = await this.fetchPositions ();
         this.positions = new ArrayCacheBySymbolBySide ();
         const cache = this.positions;
@@ -1441,7 +1453,7 @@ export default class woo extends wooRest {
         //     }
         //
         const marketId = this.safeString (position, 's');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         let size = this.safeString (position, 'h');
         let side: Str = undefined;
         if (Precise.stringGt (size, '0')) {
@@ -1460,7 +1472,7 @@ export default class woo extends wooRest {
         return this.safePosition ({
             'info': position,
             'id': undefined,
-            'symbol': this.safeString (market, 'symbol'),
+            'symbol': this.safeString (marketResolved, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastUpdateTimestamp': undefined,
@@ -1473,7 +1485,7 @@ export default class woo extends wooRest {
             'leverage': this.safeNumber (position, 'lv'),
             'unrealizedPnl': this.parseNumber (unrealisedPnl),
             'contracts': this.parseNumber (size),
-            'contractSize': this.safeNumber (market, 'contractSize'),
+            'contractSize': this.safeNumber (marketResolved, 'contractSize'),
             'marginRatio': undefined,
             'liquidationPrice': undefined,
             'markPrice': this.parseNumber (markPrice),
@@ -1488,7 +1500,7 @@ export default class woo extends wooRest {
         });
     }
 
-    handlePositions (client: any, message: any) {
+    handlePositions (client: Client, message: Dict) {
         //
         //     {
         //         "topic": "position",
@@ -1541,7 +1553,7 @@ export default class woo extends wooRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1549,7 +1561,7 @@ export default class woo extends wooRest {
         return await this.watchPrivate (topic, topic, params);
     }
 
-    handleBalance (client: any, message: any) {
+    handleBalance (client: Client, message: Dict) {
         //
         //     {
         //         "topic": "balance",
@@ -1612,12 +1624,11 @@ export default class woo extends wooRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    override async watchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+    override async watchFundingRate (symbol: string, params: Dict = {}): Promise<FundingRate> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
         const topic = 'estfundingrate@' + market['id'];
         return await this.watchPublic (topic, topic, params);
     }
@@ -1632,12 +1643,12 @@ export default class woo extends wooRest {
         //     }
         //
         const marketId = this.safeString (fundingRate, 's');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const nextFundingTimestamp = this.safeInteger (fundingRate, 'ft');
         const timestamp = this.safeInteger (fundingRate, 'ts');
         return {
             'info': fundingRate,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'markPrice': undefined,
             'indexPrice': undefined,
             'interestRate': this.parseNumber ('0'),
@@ -1657,7 +1668,7 @@ export default class woo extends wooRest {
         } as FundingRate;
     }
 
-    handleFundingRate (client: Client, message: any) {
+    handleFundingRate (client: Client, message: Dict) {
         //
         //     {
         //         "topic": "estfundingrate@PERP_BTC_USDT",
@@ -1680,7 +1691,7 @@ export default class woo extends wooRest {
         client.resolve (fundingRate, messageHash);
     }
 
-    handleErrorMessage (client: Client, message: any): Bool {
+    handleErrorMessage (client: Client, message: Dict): Bool {
         //
         //     {
         //         "id": "1",
@@ -1716,7 +1727,7 @@ export default class woo extends wooRest {
         }
     }
 
-    handleUnSubscription (client: Client, message: any) {
+    handleUnSubscription (client: Client, message: Dict) {
         //
         //     {
         //         "id": "2",
@@ -1745,7 +1756,7 @@ export default class woo extends wooRest {
         }
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: Dict) {
         if (this.handleErrorMessage (client, message) === true) {
             return;
         }
@@ -1785,22 +1796,22 @@ export default class woo extends wooRest {
         }
     }
 
-    override ping (client: Client) {
+    override ping (client: Client): Dict {
         return { 'cmd': 'PING', 'ts': this.milliseconds () };
     }
 
-    async pong (client: Client, message: any) {
+    async pong (client: Client, message: Dict) {
         //
         //     { "cmd": "PING", "ts": 1750641291182 }
         //
         await client.send ({ 'cmd': 'PONG', 'ts': this.milliseconds () });
     }
 
-    handlePing (client: Client, message: any) {
+    handlePing (client: Client, message: Dict) {
         this.spawn (this.pong, client, message);
     }
 
-    handlePong (client: Client, message: any) {
+    handlePong (client: Client, message: Dict): Dict {
         //
         //     { "cmd": "PONG", "success": true, "time": 1750641291322 }
         //
@@ -1808,7 +1819,7 @@ export default class woo extends wooRest {
         return message;
     }
 
-    handleSubscribe (client: Client, message: any) {
+    handleSubscribe (client: Client, message: Dict): Dict {
         //
         //     {
         //         "id": "666888",

@@ -4,6 +4,8 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
+import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -15,14 +17,14 @@ public class TestFetchFundingRateHistory extends BaseTest {
     public CompletableFuture<Object> testFetchFundingRateHistory(BaseExchange exchange, Object skippedProperties, Object symbol)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchFundingRateHistory";
-        Object fundingRatesHistory = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchFundingRateHistory", new Object[]{symbol})).join();
+        Object fundingRatesHistory = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchFundingRateHistory", new Object[]{Helpers.toStringArg(symbol), (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, fundingRatesHistory, symbol);
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(fundingRatesHistory)); i++)
+        for (var i = 0; i < ((List<?>)fundingRatesHistory).size(); i++)
         {
-            TestFundingRateHistory.testFundingRateHistory(exchange, skippedProperties, method, Helpers.GetValue(fundingRatesHistory, i), symbol);
+            TestFundingRateHistory.testFundingRateHistory(exchange, skippedProperties, method, (fundingRatesHistory == null || i < 0 || i >= ((List<?>)fundingRatesHistory).size() ? null : ((List<?>)fundingRatesHistory).get(i)), symbol);
         }
         TestSharedMethods.AssertTimestampOrder(exchange, method, symbol, fundingRatesHistory);
         return true;

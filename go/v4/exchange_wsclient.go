@@ -165,7 +165,12 @@ func (this *WSClient) handleMessages() {
 		// raced Send's writes had it ever run, gorilla's default ping handler
 		// already answers with a concurrency safe WriteControl pong
 		switch messageType {
-		case websocket.TextMessage, websocket.BinaryMessage:
+		case websocket.TextMessage:
+			// the frame type travels with the payload, a text frame as a string and
+			// a binary frame as []byte, so OnMessage never has to guess it from the
+			// bytes, which a binary payload (protobuf, SBE) can pass for utf-8 text
+			this.OnMessage(string(data))
+		case websocket.BinaryMessage:
 			this.OnMessage(data)
 		}
 	}
@@ -210,8 +215,8 @@ func (this *WSClient) ResetConnection(err any) {
 }
 
 func (this *WSClient) SetPingInterval() {
-	if this.KeepAlive.(int64) > 0 {
-		ticker := time.NewTicker(time.Duration(this.KeepAlive.(int64)) * time.Millisecond)
+	if derefScalar(this.KeepAlive).(int64) > 0 {
+		ticker := time.NewTicker(time.Duration(derefScalar(this.KeepAlive).(int64)) * time.Millisecond)
 		this.PingInterval = ticker
 		go func() {
 			defer ticker.Stop() // Ensure ticker is stopped when goroutine exits
@@ -238,22 +243,22 @@ func (this *WSClient) ClearPingInterval() {
 
 func (this *WSClient) OnPingInterval() {
 	this.PingMu.Lock()
-	if this.KeepAlive.(int64) > 0 {
-		if this.IsConnected.(bool) == true {
+	if derefScalar(this.KeepAlive).(int64) > 0 {
+		if derefScalar(this.IsConnected).(bool) == true {
 			now := time.Now().UnixNano() / int64(time.Millisecond)
 			lastPong := this.GetLastPong()
 			if lastPong == nil {
 				lastPong = now
 				this.SetLastPong(lastPong)
 			}
-			lastPongVal := lastPong.(int64)
+			lastPongVal := derefScalar(lastPong).(int64)
 			maxPingPongMisses := float64(2.0)
 			if this.MaxPingPongMisses != nil {
 				if misses, ok := this.MaxPingPongMisses.(float64); ok {
 					maxPingPongMisses = misses
 				}
 			}
-			if (lastPongVal + this.KeepAlive.(int64)*int64(maxPingPongMisses)) < now {
+			if (lastPongVal + derefScalar(this.KeepAlive).(int64)*int64(maxPingPongMisses)) < now {
 				err := RequestTimeout("Connection to " + this.Url + " timed out due to a ping-pong keepalive missing on time")
 				this.OnError(err)
 			} else {
@@ -268,11 +273,7 @@ func (this *WSClient) OnPingInterval() {
 				}
 				if message != nil {
 					go func() {
-						future := this.SendAsync(message)
-						if err := <-future; err != nil {
-							if b, ok := err.(bool); ok && b {
-								return // not an error?
-							}
+						if err := (<-this.SendAsync(message)).Err; err != nil {
 							this.OnError(err)
 						}
 					}()
@@ -330,7 +331,7 @@ func (this *WSClient) Resolve(data any, subHash any) any {
 	return this.Client.Resolve(data, subHash)
 }
 
-func (this *WSClient) Future(messageHash any) <-chan any {
+func (this *WSClient) Future(messageHash any) <-chan AsyncResult[any] {
 	return this.Client.Future(messageHash)
 }
 
@@ -338,7 +339,7 @@ func (this *WSClient) Reject(err any, messageHash ...any) {
 	this.Client.Reject(err, messageHash...)
 }
 
-func (this *WSClient) SendAsync(message any) <-chan any {
+func (this *WSClient) SendAsync(message any) <-chan AsyncResult[any] {
 	return this.Client.SendAsync(message)
 }
 

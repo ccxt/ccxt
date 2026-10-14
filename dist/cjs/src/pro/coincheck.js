@@ -91,7 +91,7 @@ class coincheck extends coincheck$1["default"] {
         //     ]
         //
         const symbol = this.symbol(this.safeString(message, 0));
-        const data = this.safeValue(message, 1, {});
+        const data = this.safeDict(message, 1, {});
         const timestamp = this.safeTimestamp(data, 'last_update_at');
         const snapshot = this.parseOrderBook(data, symbol, timestamp);
         let orderbook = this.safeValue(this.orderbooks, symbol);
@@ -122,7 +122,7 @@ class coincheck extends coincheck$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = market['symbol'];
         const messageHash = 'trade:' + market['symbol'];
         const url = this.urls['api']['ws'];
         const request = {
@@ -131,10 +131,11 @@ class coincheck extends coincheck$1["default"] {
         };
         const message = this.extend(request, params);
         const trades = await this.watch(url, messageHash, message, messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+            limitResolved = trades.getLimit(symbolValue, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
     }
     handleTrades(client, message) {
         //
@@ -151,7 +152,7 @@ class coincheck extends coincheck$1["default"] {
         //         ]
         //     ]
         //
-        const first = this.safeValue(message, 0, []);
+        const first = this.safeList(message, 0, []);
         const symbol = this.symbol(this.safeString(first, 2));
         let stored = this.safeValue(this.trades, symbol);
         if (stored === undefined) {

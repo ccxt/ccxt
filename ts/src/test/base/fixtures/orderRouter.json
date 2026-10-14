@@ -1,0 +1,2917 @@
+{
+    "version": 1,
+    "about": "Shared cross-language fixture for OrderRouter. The TypeScript, Python, PHP, C# and Go test suites all read THIS file and assert the same expectations, so an implementation that drifts in one language fails there and only there.",
+    "comparison": "Numbers are IEEE-754 doubles: compare them with a relative tolerance of 1e-9, never as text. Strings, booleans and array lengths compare exactly. Every field listed under expected must be present in the produced structure.",
+    "routes": {
+        "malformed": {
+            "requestId": "fixture-malformed",
+            "calculatedAt": 1787600312294,
+            "calculatedAtIso": "2026-08-24T19:38:32.294Z",
+            "from": "USDT",
+            "to": "BTC",
+            "amountIn": 20,
+            "amountOut": 0.00025328571098309674,
+            "requestedAmount": 20,
+            "exactSide": "in",
+            "strategy": "best_single",
+            "includeFees": true,
+            "exchangesFilter": null,
+            "certifiedOnly": false,
+            "staleBookMs": 5000,
+            "stalenessPenaltyBps": 1,
+            "hopPenaltyBps": 5,
+            "requireFullFill": false,
+            "hops": [
+                {
+                    "pair": "BTC/USDT",
+                    "side": "BUY",
+                    "base": "BTC",
+                    "quote": "USDT",
+                    "amountIn": 20,
+                    "amountOut": 0.00025328571098309674,
+                    "legs": [
+                        {
+                            "exchangeId": "mexc",
+                            "amount": 0.00025328571098309674,
+                            "averagePrice": 78921.58,
+                            "takerFeeRate": 0.0005,
+                            "feeCost": 0.010291497790653636,
+                            "effectivePrice": 78961.04079
+                        }
+                    ],
+                    "feeCost": 0.010291497790653636,
+                    "feeCurrency": "USDT",
+                    "fullyFillable": true,
+                    "referencePrice": 78962.21197150249,
+                    "impactBps": 0,
+                    "venueCount": 42,
+                    "freshVenueCount": 35
+                }
+            ],
+            "effectiveRate": 0.000012664285549154837,
+            "referenceRate": 0.000012664285549154837,
+            "impactBps": 0,
+            "fullyFillable": true,
+            "fillRatio": 1,
+            "unfilledAmount": 0,
+            "unroutableReason": null,
+            "unroutableHopIndex": null,
+            "warnings": [],
+            "savingVsBestSingleBps": 0
+        },
+        "directBuy": {
+            "requestId": "35afc296-855d-4180-a5d0-8460b8b1145e",
+            "calculatedAt": 1787600312294,
+            "calculatedAtIso": "2026-08-24T19:38:32.294Z",
+            "from": "USDT",
+            "to": "BTC",
+            "amountIn": 20,
+            "amountOut": 0.00025328571098309674,
+            "requestedAmount": 20,
+            "exactSide": "in",
+            "strategy": "best_single",
+            "includeFees": true,
+            "exchangesFilter": null,
+            "certifiedOnly": false,
+            "staleBookMs": 5000,
+            "stalenessPenaltyBps": 1,
+            "hopPenaltyBps": 5,
+            "requireFullFill": false,
+            "hops": [
+                {
+                    "pair": "BTC/USDT",
+                    "side": "buy",
+                    "base": "BTC",
+                    "quote": "USDT",
+                    "amountIn": 20,
+                    "amountOut": 0.00025328571098309674,
+                    "legs": [
+                        {
+                            "exchangeId": "mexc",
+                            "amount": 0.00025328571098309674,
+                            "averagePrice": 78921.58,
+                            "takerFeeRate": 0.0005,
+                            "feeCost": 0.010291497790653636,
+                            "effectivePrice": 78961.04079
+                        }
+                    ],
+                    "feeCost": 0.010291497790653636,
+                    "feeCurrency": "USDT",
+                    "fullyFillable": true,
+                    "referencePrice": 78962.21197150249,
+                    "impactBps": 0,
+                    "venueCount": 42,
+                    "freshVenueCount": 35
+                }
+            ],
+            "effectiveRate": 0.000012664285549154837,
+            "referenceRate": 0.000012664285549154837,
+            "impactBps": 0,
+            "fullyFillable": true,
+            "fillRatio": 1,
+            "unfilledAmount": 0,
+            "unroutableReason": null,
+            "unroutableHopIndex": null,
+            "warnings": [],
+            "savingVsBestSingleBps": 0
+        },
+        "largeBuy": {
+            "requestId": "2ec8c5ee-6f28-47ca-8f0e-c9d5207d298a",
+            "calculatedAt": 1787599458358,
+            "calculatedAtIso": "2026-08-24T19:24:18.358Z",
+            "from": "USDT",
+            "to": "BTC",
+            "amountIn": 1000,
+            "amountOut": 0.012704247515294372,
+            "requestedAmount": 1000,
+            "exactSide": "in",
+            "strategy": "split_optimal",
+            "includeFees": true,
+            "exchangesFilter": null,
+            "certifiedOnly": false,
+            "staleBookMs": 5000,
+            "stalenessPenaltyBps": 1,
+            "hopPenaltyBps": 5,
+            "requireFullFill": false,
+            "hops": [
+                {
+                    "pair": "BTC/USDT",
+                    "side": "buy",
+                    "base": "BTC",
+                    "quote": "USDT",
+                    "amountIn": 1000,
+                    "amountOut": 0.012704247515294372,
+                    "legs": [
+                        {
+                            "exchangeId": "aster",
+                            "amount": 0.012704247515294372,
+                            "averagePrice": 78684.27,
+                            "takerFeeRate": 0.00035,
+                            "feeCost": 0.37555835974853835,
+                            "effectivePrice": 78711.8094945
+                        }
+                    ],
+                    "feeCost": 0.37555835974853835,
+                    "feeCurrency": "USDT",
+                    "fullyFillable": true,
+                    "referencePrice": 78713.8316374993,
+                    "impactBps": 0,
+                    "venueCount": 42,
+                    "freshVenueCount": 34
+                }
+            ],
+            "effectiveRate": 0.000012704247515294372,
+            "referenceRate": 0.000012704247515294372,
+            "impactBps": 0,
+            "fullyFillable": true,
+            "fillRatio": 1,
+            "unfilledAmount": 0,
+            "unroutableReason": null,
+            "unroutableHopIndex": null,
+            "warnings": [],
+            "savingVsBestSingleBps": null,
+            "pathsConsidered": [
+                {
+                    "pairs": [
+                        "BTC/USDT"
+                    ],
+                    "bridge": null,
+                    "amountOut": 0.012704247515294372,
+                    "fullyFillable": true,
+                    "score": 0.012704247515294372,
+                    "chosen": true
+                },
+                {
+                    "pairs": [
+                        "USDC/USDT",
+                        "BTC/USDC"
+                    ],
+                    "bridge": "USDC",
+                    "amountOut": 0.012702677780188824,
+                    "fullyFillable": true,
+                    "score": 0.012696326441298731,
+                    "chosen": false
+                }
+            ]
+        },
+        "sell": {
+            "requestId": "3c6c5255-e146-4415-a3d2-4b50fa34c52c",
+            "calculatedAt": 1787600312874,
+            "calculatedAtIso": "2026-08-24T19:38:32.874Z",
+            "from": "BTC",
+            "to": "USDT",
+            "amountIn": 0.0002,
+            "amountOut": 15.787832824371844,
+            "requestedAmount": 0.0002,
+            "exactSide": "in",
+            "strategy": "best_single",
+            "includeFees": true,
+            "exchangesFilter": null,
+            "certifiedOnly": false,
+            "staleBookMs": 5000,
+            "stalenessPenaltyBps": 1,
+            "hopPenaltyBps": 5,
+            "requireFullFill": false,
+            "hops": [
+                {
+                    "pair": "BTC/USDT",
+                    "side": "sell",
+                    "base": "BTC",
+                    "quote": "USDT",
+                    "amountIn": 0.0002,
+                    "amountOut": 15.787832824371844,
+                    "legs": [
+                        {
+                            "exchangeId": "hashkey",
+                            "amount": 0.0002,
+                            "averagePrice": 79036.65,
+                            "takerFeeRate": 0.0012,
+                            "feeCost": 0.019497175628156782,
+                            "effectivePrice": 78941.80601999999
+                        }
+                    ],
+                    "feeCost": 0.019497175628156782,
+                    "feeCurrency": "USDT",
+                    "fullyFillable": true,
+                    "referencePrice": 78939.16412185921,
+                    "impactBps": 0,
+                    "venueCount": 42,
+                    "freshVenueCount": 33
+                }
+            ],
+            "effectiveRate": 78939.16412185921,
+            "referenceRate": 78939.16412185921,
+            "impactBps": 0,
+            "fullyFillable": true,
+            "fillRatio": 1,
+            "unfilledAmount": 0,
+            "unroutableReason": null,
+            "unroutableHopIndex": null,
+            "warnings": [],
+            "savingVsBestSingleBps": 0
+        },
+        "multiHop": {
+            "requestId": "8798ce68-4a1c-443b-8725-37f507df8580",
+            "calculatedAt": 1787599496809,
+            "calculatedAtIso": "2026-08-24T19:24:56.809Z",
+            "from": "DOGE",
+            "to": "SOL",
+            "amountIn": 500,
+            "amountOut": 0.4649253971374043,
+            "requestedAmount": 500,
+            "exactSide": "in",
+            "strategy": "split_capped",
+            "includeFees": true,
+            "exchangesFilter": null,
+            "certifiedOnly": false,
+            "staleBookMs": 5000,
+            "stalenessPenaltyBps": 1,
+            "hopPenaltyBps": 5,
+            "requireFullFill": false,
+            "hops": [
+                {
+                    "pair": "DOGE/USDT",
+                    "side": "sell",
+                    "base": "DOGE",
+                    "quote": "USDT",
+                    "amountIn": 500,
+                    "amountOut": 44.47482324238088,
+                    "legs": [
+                        {
+                            "exchangeId": "mexc",
+                            "amount": 500,
+                            "averagePrice": 0.089,
+                            "takerFeeRate": 0.0005,
+                            "feeCost": 0.025176757619121304,
+                            "effectivePrice": 0.0889555
+                        }
+                    ],
+                    "feeCost": 0.025176757619121304,
+                    "feeCurrency": "USDT",
+                    "fullyFillable": true,
+                    "referencePrice": 0.08894964648476175,
+                    "impactBps": 0,
+                    "venueCount": 32,
+                    "freshVenueCount": 28
+                },
+                {
+                    "pair": "SOL/USDT",
+                    "side": "buy",
+                    "base": "SOL",
+                    "quote": "USDT",
+                    "amountIn": 44.47482324238088,
+                    "amountOut": 0.4649253971374043,
+                    "legs": [
+                        {
+                            "exchangeId": "mexc",
+                            "amount": 0.4649253971374043,
+                            "averagePrice": 95.61,
+                            "takerFeeRate": 0.0005,
+                            "feeCost": 0.02330602207365473,
+                            "effectivePrice": 95.657805
+                        }
+                    ],
+                    "feeCost": 0.02330602207365473,
+                    "feeCurrency": "USDT",
+                    "fullyFillable": true,
+                    "referencePrice": 95.6601285200102,
+                    "impactBps": 0,
+                    "venueCount": 36,
+                    "freshVenueCount": 32
+                }
+            ],
+            "effectiveRate": 0.0009298507942748085,
+            "referenceRate": 0.0009298507942748085,
+            "impactBps": 0,
+            "fullyFillable": true,
+            "fillRatio": 1,
+            "unfilledAmount": 0,
+            "unroutableReason": null,
+            "unroutableHopIndex": null,
+            "warnings": [
+                "multi_hop: routed via DOGE/USDT -> SOL/USDT. Hops are solved sequentially, not jointly, so this is a good route rather than a provably optimal one. Each hop carries its own execution risk and fees (see feeCurrency per hop)."
+            ],
+            "savingVsBestSingleBps": null
+        },
+        "splitMultiHop": {
+            "requestId": "fixture-split-multi-hop",
+            "calculatedAt": 1787599496809,
+            "calculatedAtIso": "2026-08-24T19:24:56.809Z",
+            "from": "DOGE",
+            "to": "SOL",
+            "amountIn": 500,
+            "amountOut": 0.46,
+            "requestedAmount": 500,
+            "exactSide": "in",
+            "strategy": "split_capped",
+            "includeFees": true,
+            "exchangesFilter": null,
+            "certifiedOnly": false,
+            "staleBookMs": 5000,
+            "stalenessPenaltyBps": 1,
+            "hopPenaltyBps": 5,
+            "requireFullFill": false,
+            "hops": [
+                {
+                    "pair": "DOGE/USDT",
+                    "side": "sell",
+                    "base": "DOGE",
+                    "quote": "USDT",
+                    "amountIn": 500,
+                    "amountOut": 44.43777,
+                    "legs": [
+                        {
+                            "exchangeId": "mexc",
+                            "amount": 300,
+                            "averagePrice": 0.089,
+                            "takerFeeRate": 0.0005,
+                            "feeCost": 0.0133,
+                            "effectivePrice": 0.0889555
+                        },
+                        {
+                            "exchangeId": "gate",
+                            "amount": 200,
+                            "averagePrice": 0.0888,
+                            "takerFeeRate": 0.0005,
+                            "feeCost": 0.00888,
+                            "effectivePrice": 0.0887556
+                        }
+                    ],
+                    "feeCost": 0.025176757619121304,
+                    "feeCurrency": "USDT",
+                    "fullyFillable": true,
+                    "referencePrice": 0.08894964648476175,
+                    "impactBps": 0,
+                    "venueCount": 32,
+                    "freshVenueCount": 28
+                },
+                {
+                    "pair": "SOL/USDT",
+                    "side": "buy",
+                    "base": "SOL",
+                    "quote": "USDT",
+                    "amountIn": 44.43777,
+                    "amountOut": 0.46,
+                    "legs": [
+                        {
+                            "exchangeId": "mexc",
+                            "amount": 0.46,
+                            "averagePrice": 95.61,
+                            "takerFeeRate": 0.0005,
+                            "feeCost": 0.022,
+                            "effectivePrice": 95.657805
+                        }
+                    ],
+                    "feeCost": 0.02330602207365473,
+                    "feeCurrency": "USDT",
+                    "fullyFillable": true,
+                    "referencePrice": 95.6601285200102,
+                    "impactBps": 0,
+                    "venueCount": 36,
+                    "freshVenueCount": 32
+                }
+            ],
+            "effectiveRate": 0.0009298507942748085,
+            "referenceRate": 0.0009298507942748085,
+            "impactBps": 0,
+            "fullyFillable": true,
+            "fillRatio": 1,
+            "unfilledAmount": 0,
+            "unroutableReason": null,
+            "unroutableHopIndex": null,
+            "warnings": [
+                "multi_hop: routed via DOGE/USDT -> SOL/USDT. Hops are solved sequentially, not jointly, so this is a good route rather than a provably optimal one. Each hop carries its own execution risk and fees (see feeCurrency per hop)."
+            ],
+            "savingVsBestSingleBps": null
+        },
+        "partial": {
+            "requestId": "fixture-partial",
+            "calculatedAt": 1787600312294,
+            "calculatedAtIso": "2026-08-24T19:38:32.294Z",
+            "from": "USDT",
+            "to": "BTC",
+            "amountIn": 20,
+            "amountOut": 0.00025328571098309674,
+            "requestedAmount": 20,
+            "exactSide": "in",
+            "strategy": "best_single",
+            "includeFees": true,
+            "exchangesFilter": null,
+            "certifiedOnly": false,
+            "staleBookMs": 5000,
+            "stalenessPenaltyBps": 1,
+            "hopPenaltyBps": 5,
+            "requireFullFill": false,
+            "hops": [
+                {
+                    "pair": "BTC/USDT",
+                    "side": "buy",
+                    "base": "BTC",
+                    "quote": "USDT",
+                    "amountIn": 20,
+                    "amountOut": 0.00025328571098309674,
+                    "legs": [
+                        {
+                            "exchangeId": "mexc",
+                            "amount": 0.00025328571098309674,
+                            "averagePrice": 78921.58,
+                            "takerFeeRate": 0.0005,
+                            "feeCost": 0.010291497790653636,
+                            "effectivePrice": 78961.04079
+                        }
+                    ],
+                    "feeCost": 0.010291497790653636,
+                    "feeCurrency": "USDT",
+                    "fullyFillable": false,
+                    "referencePrice": 78962.21197150249,
+                    "impactBps": 0,
+                    "venueCount": 42,
+                    "freshVenueCount": 35
+                }
+            ],
+            "effectiveRate": 0.000012664285549154837,
+            "referenceRate": 0.000012664285549154837,
+            "impactBps": 0,
+            "fullyFillable": false,
+            "fillRatio": 0.5,
+            "unfilledAmount": 0,
+            "unroutableReason": null,
+            "unroutableHopIndex": null,
+            "warnings": [
+                "partial_fill"
+            ],
+            "savingVsBestSingleBps": 0
+        },
+        "unroutable": {
+            "requestId": "58229c75-c1ef-4e64-83f0-c54a2d27e731",
+            "calculatedAt": 1787600430401,
+            "calculatedAtIso": "2026-08-24T19:40:30.401Z",
+            "from": "LTC",
+            "to": "LINK",
+            "amountIn": 0,
+            "amountOut": 0,
+            "requestedAmount": 100,
+            "exactSide": "in",
+            "strategy": "best_single",
+            "includeFees": true,
+            "exchangesFilter": null,
+            "certifiedOnly": false,
+            "staleBookMs": 5000,
+            "stalenessPenaltyBps": 1,
+            "hopPenaltyBps": 5,
+            "requireFullFill": false,
+            "hops": [],
+            "effectiveRate": null,
+            "referenceRate": null,
+            "impactBps": null,
+            "fullyFillable": false,
+            "fillRatio": 0,
+            "unfilledAmount": 100,
+            "unroutableReason": "no_market",
+            "unroutableHopIndex": null,
+            "warnings": [],
+            "savingVsBestSingleBps": null
+        }
+    },
+    "marketSets": {
+        "permissive": {
+            "mexc": {
+                "BTC/USDT": {
+                    "symbol": "BTC/USDT",
+                    "base": "BTC",
+                    "quote": "USDT",
+                    "precision": {
+                        "amount": 0,
+                        "price": 0
+                    },
+                    "limits": {
+                        "amount": {
+                            "min": 0.000001,
+                            "max": 0
+                        },
+                        "price": {
+                            "min": 0,
+                            "max": 0
+                        },
+                        "cost": {
+                            "min": 1,
+                            "max": 0
+                        }
+                    }
+                },
+                "DOGE/USDT": {
+                    "symbol": "DOGE/USDT",
+                    "base": "DOGE",
+                    "quote": "USDT",
+                    "precision": {
+                        "amount": 0,
+                        "price": 0
+                    },
+                    "limits": {
+                        "amount": {
+                            "min": 1,
+                            "max": 0
+                        },
+                        "price": {
+                            "min": 0,
+                            "max": 0
+                        },
+                        "cost": {
+                            "min": 1,
+                            "max": 0
+                        }
+                    }
+                },
+                "SOL/USDT": {
+                    "symbol": "SOL/USDT",
+                    "base": "SOL",
+                    "quote": "USDT",
+                    "precision": {
+                        "amount": 0,
+                        "price": 0
+                    },
+                    "limits": {
+                        "amount": {
+                            "min": 0.001,
+                            "max": 0
+                        },
+                        "price": {
+                            "min": 0,
+                            "max": 0
+                        },
+                        "cost": {
+                            "min": 1,
+                            "max": 0
+                        }
+                    }
+                }
+            },
+            "gate": {
+                "DOGE/USDT": {
+                    "symbol": "DOGE/USDT",
+                    "base": "DOGE",
+                    "quote": "USDT",
+                    "precision": {
+                        "amount": 0,
+                        "price": 0
+                    },
+                    "limits": {
+                        "amount": {
+                            "min": 1,
+                            "max": 0
+                        },
+                        "price": {
+                            "min": 0,
+                            "max": 0
+                        },
+                        "cost": {
+                            "min": 1,
+                            "max": 0
+                        }
+                    }
+                }
+            },
+            "hashkey": {
+                "BTC/USDT": {
+                    "symbol": "BTC/USDT",
+                    "base": "BTC",
+                    "quote": "USDT",
+                    "precision": {
+                        "amount": 0,
+                        "price": 0
+                    },
+                    "limits": {
+                        "amount": {
+                            "min": 0.000001,
+                            "max": 0
+                        },
+                        "price": {
+                            "min": 0,
+                            "max": 0
+                        },
+                        "cost": {
+                            "min": 1,
+                            "max": 0
+                        }
+                    }
+                }
+            },
+            "aster": {
+                "BTC/USDT": {
+                    "symbol": "BTC/USDT",
+                    "base": "BTC",
+                    "quote": "USDT",
+                    "precision": {
+                        "amount": 0,
+                        "price": 0
+                    },
+                    "limits": {
+                        "amount": {
+                            "min": 0.000001,
+                            "max": 0
+                        },
+                        "price": {
+                            "min": 0,
+                            "max": 0
+                        },
+                        "cost": {
+                            "min": 1,
+                            "max": 0
+                        }
+                    }
+                }
+            }
+        },
+        "mismatched": {
+            "mexc": {
+                "BTC/USDT": {
+                    "symbol": "BTC/USDT",
+                    "base": "ETH",
+                    "quote": "USDT",
+                    "precision": {
+                        "amount": 0,
+                        "price": 0
+                    },
+                    "limits": {
+                        "amount": {
+                            "min": 0,
+                            "max": 0
+                        },
+                        "price": {
+                            "min": 0,
+                            "max": 0
+                        },
+                        "cost": {
+                            "min": 0,
+                            "max": 0
+                        }
+                    }
+                }
+            }
+        },
+        "strict": {
+            "mexc": {
+                "BTC/USDT": {
+                    "symbol": "BTC/USDT",
+                    "base": "BTC",
+                    "quote": "USDT",
+                    "precision": {
+                        "amount": 0.00001,
+                        "price": 0.01
+                    },
+                    "limits": {
+                        "amount": {
+                            "min": 1,
+                            "max": 0
+                        },
+                        "price": {
+                            "min": 0,
+                            "max": 0
+                        },
+                        "cost": {
+                            "min": 100,
+                            "max": 0
+                        }
+                    }
+                }
+            }
+        },
+        "onlyFirstHop": {
+            "mexc": {
+                "DOGE/USDT": {
+                    "symbol": "DOGE/USDT",
+                    "base": "DOGE",
+                    "quote": "USDT",
+                    "precision": {
+                        "amount": 0,
+                        "price": 0
+                    },
+                    "limits": {
+                        "amount": {
+                            "min": 1,
+                            "max": 0
+                        },
+                        "price": {
+                            "min": 0,
+                            "max": 0
+                        },
+                        "cost": {
+                            "min": 1,
+                            "max": 0
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "reports": {
+        "haltedSameVenue": {
+            "strategy": "sequential",
+            "requestedStrategy": "sequential",
+            "dryRun": false,
+            "live": true,
+            "from": "DOGE",
+            "to": "SOL",
+            "slippageBps": 25,
+            "halted": true,
+            "haltReason": "order_failed",
+            "haltStepIndex": 1,
+            "steps": [
+                {
+                    "stepIndex": 0,
+                    "hopIndex": 0,
+                    "legIndex": 0,
+                    "exchangeId": "mexc",
+                    "symbol": "DOGE/USDT",
+                    "side": "sell",
+                    "status": "filled",
+                    "requestedAmount": 500,
+                    "filledAmount": 500,
+                    "averagePrice": 0.089,
+                    "expectedPrice": 0.089,
+                    "cost": 44.5,
+                    "inAsset": "DOGE",
+                    "inAmount": 500,
+                    "outAsset": "USDT",
+                    "outAmount": 44.5,
+                    "orderId": "fixture-0",
+                    "errorCode": ""
+                },
+                {
+                    "stepIndex": 1,
+                    "hopIndex": 1,
+                    "legIndex": 0,
+                    "exchangeId": "mexc",
+                    "symbol": "SOL/USDT",
+                    "side": "buy",
+                    "status": "failed",
+                    "requestedAmount": 0,
+                    "filledAmount": 0,
+                    "averagePrice": 0,
+                    "expectedPrice": 0,
+                    "cost": 0,
+                    "inAsset": "",
+                    "inAmount": 0,
+                    "outAsset": "",
+                    "outAmount": 0,
+                    "orderId": "fixture-1",
+                    "errorCode": ""
+                }
+            ]
+        },
+        "haltedCrossVenue": {
+            "strategy": "sequential",
+            "requestedStrategy": "sequential",
+            "dryRun": false,
+            "live": true,
+            "from": "DOGE",
+            "to": "SOL",
+            "slippageBps": 25,
+            "halted": true,
+            "haltReason": "shortfall_exceeds_tolerance",
+            "haltStepIndex": 1,
+            "steps": [
+                {
+                    "stepIndex": 0,
+                    "hopIndex": 0,
+                    "legIndex": 0,
+                    "exchangeId": "mexc",
+                    "symbol": "DOGE/USDT",
+                    "side": "sell",
+                    "status": "filled",
+                    "requestedAmount": 500,
+                    "filledAmount": 500,
+                    "averagePrice": 0.089,
+                    "expectedPrice": 0.089,
+                    "cost": 44.5,
+                    "inAsset": "DOGE",
+                    "inAmount": 500,
+                    "outAsset": "USDT",
+                    "outAmount": 44.5,
+                    "orderId": "fixture-0",
+                    "errorCode": ""
+                },
+                {
+                    "stepIndex": 1,
+                    "hopIndex": 1,
+                    "legIndex": 0,
+                    "exchangeId": "binance",
+                    "symbol": "SOL/USDT",
+                    "side": "buy",
+                    "status": "partial",
+                    "requestedAmount": 0.2,
+                    "filledAmount": 0.2,
+                    "averagePrice": 95.61,
+                    "expectedPrice": 95.61,
+                    "cost": 19.122,
+                    "inAsset": "USDT",
+                    "inAmount": 19.122,
+                    "outAsset": "SOL",
+                    "outAmount": 0.2,
+                    "orderId": "fixture-1",
+                    "errorCode": ""
+                }
+            ]
+        },
+        "dryRun": {
+            "strategy": "dry_run",
+            "requestedStrategy": "sequential",
+            "dryRun": true,
+            "live": false,
+            "from": "DOGE",
+            "to": "SOL",
+            "slippageBps": 25,
+            "halted": false,
+            "haltReason": "",
+            "haltStepIndex": -1,
+            "steps": [
+                {
+                    "stepIndex": 0,
+                    "hopIndex": 0,
+                    "legIndex": 0,
+                    "exchangeId": "mexc",
+                    "symbol": "DOGE/USDT",
+                    "side": "sell",
+                    "status": "planned",
+                    "requestedAmount": 500,
+                    "filledAmount": 0,
+                    "averagePrice": 0,
+                    "expectedPrice": 0.089,
+                    "cost": 0,
+                    "inAsset": "",
+                    "inAmount": 0,
+                    "outAsset": "",
+                    "outAmount": 0,
+                    "orderId": "",
+                    "errorCode": ""
+                }
+            ]
+        },
+        "priceless": {
+            "strategy": "sequential",
+            "requestedStrategy": "sequential",
+            "dryRun": false,
+            "live": true,
+            "from": "DOGE",
+            "to": "SOL",
+            "slippageBps": 25,
+            "halted": true,
+            "haltReason": "order_failed",
+            "haltStepIndex": 1,
+            "steps": [
+                {
+                    "stepIndex": 0,
+                    "hopIndex": 0,
+                    "legIndex": 0,
+                    "exchangeId": "mexc",
+                    "symbol": "DOGE/USDT",
+                    "side": "sell",
+                    "status": "filled",
+                    "requestedAmount": 500,
+                    "filledAmount": 500,
+                    "averagePrice": 0,
+                    "expectedPrice": 0,
+                    "cost": 44.5,
+                    "inAsset": "DOGE",
+                    "inAmount": 500,
+                    "outAsset": "USDT",
+                    "outAmount": 44.5,
+                    "orderId": "x",
+                    "errorCode": ""
+                }
+            ]
+        },
+        "haltedWithATextualAmount": {
+            "strategy": "sequential",
+            "requestedStrategy": "sequential",
+            "dryRun": false,
+            "live": true,
+            "from": "DOGE",
+            "to": "SOL",
+            "slippageBps": 25,
+            "halted": true,
+            "haltReason": "order_failed",
+            "haltStepIndex": 1,
+            "steps": [
+                {
+                    "stepIndex": 0,
+                    "hopIndex": 0,
+                    "legIndex": 0,
+                    "exchangeId": "mexc",
+                    "symbol": "DOGE/USDT",
+                    "side": "sell",
+                    "status": "filled",
+                    "requestedAmount": 500,
+                    "filledAmount": 500,
+                    "averagePrice": 0.089,
+                    "expectedPrice": 0.089,
+                    "cost": 44.5,
+                    "inAsset": "DOGE",
+                    "inAmount": 500,
+                    "outAsset": "USDT",
+                    "outAmount": "44.5 USDT",
+                    "orderId": "fixture-0",
+                    "errorCode": ""
+                },
+                {
+                    "stepIndex": 1,
+                    "hopIndex": 1,
+                    "legIndex": 0,
+                    "exchangeId": "mexc",
+                    "symbol": "SOL/USDT",
+                    "side": "buy",
+                    "status": "failed",
+                    "requestedAmount": 0,
+                    "filledAmount": 0,
+                    "averagePrice": 0,
+                    "expectedPrice": 0,
+                    "cost": 0,
+                    "inAsset": "",
+                    "inAmount": 0,
+                    "outAsset": "",
+                    "outAmount": 0,
+                    "orderId": "fixture-1",
+                    "errorCode": ""
+                }
+            ]
+        }
+    },
+    "planCases": [
+        {
+            "id": "direct_buy_default_slippage",
+            "route": "directBuy",
+            "options": {},
+            "expected": {
+                "requestId": "35afc296-855d-4180-a5d0-8460b8b1145e",
+                "calculatedAt": 1787600312294,
+                "from": "USDT",
+                "to": "BTC",
+                "routingStrategy": "best_single",
+                "exactSide": "in",
+                "amountIn": 20,
+                "amountOut": 0.00025328571098309674,
+                "fullyFillable": true,
+                "fillRatio": 1,
+                "unroutableReason": "",
+                "unroutableHopIndex": -1,
+                "requireFullFill": false,
+                "hopCount": 1,
+                "stepCount": 1,
+                "slippageBps": 25,
+                "reconcileToleranceRatio": 0.02,
+                "steps": [
+                    {
+                        "stepIndex": 0,
+                        "hopIndex": 0,
+                        "legIndex": 0,
+                        "exchangeId": "mexc",
+                        "symbol": "BTC/USDT",
+                        "side": "buy",
+                        "base": "BTC",
+                        "quote": "USDT",
+                        "amount": 0.00025328571098309674,
+                        "expectedPrice": 78921.58,
+                        "effectivePrice": 78961.04079,
+                        "limitPrice": 79118.88395,
+                        "notionalQuote": 19.989708502209346,
+                        "expectedFeeCost": 0.010291497790653636,
+                        "balanceLimited": false
+                    }
+                ]
+            }
+        },
+        {
+            "id": "sell_side_limit_sits_below",
+            "route": "sell",
+            "options": {
+                "slippageBps": 50
+            },
+            "expected": {
+                "requestId": "3c6c5255-e146-4415-a3d2-4b50fa34c52c",
+                "calculatedAt": 1787600312874,
+                "from": "BTC",
+                "to": "USDT",
+                "routingStrategy": "best_single",
+                "exactSide": "in",
+                "amountIn": 0.0002,
+                "amountOut": 15.787832824371844,
+                "fullyFillable": true,
+                "fillRatio": 1,
+                "unroutableReason": "",
+                "unroutableHopIndex": -1,
+                "requireFullFill": false,
+                "hopCount": 1,
+                "stepCount": 1,
+                "slippageBps": 50,
+                "reconcileToleranceRatio": 0.02,
+                "steps": [
+                    {
+                        "stepIndex": 0,
+                        "hopIndex": 0,
+                        "legIndex": 0,
+                        "exchangeId": "hashkey",
+                        "symbol": "BTC/USDT",
+                        "side": "sell",
+                        "base": "BTC",
+                        "quote": "USDT",
+                        "amount": 0.0002,
+                        "expectedPrice": 79036.65,
+                        "effectivePrice": 78941.80601999999,
+                        "limitPrice": 78641.46674999999,
+                        "notionalQuote": 15.80733,
+                        "expectedFeeCost": 0.019497175628156782,
+                        "balanceLimited": false
+                    }
+                ]
+            }
+        },
+        {
+            "id": "multi_hop_two_steps",
+            "route": "multiHop",
+            "options": {},
+            "expected": {
+                "requestId": "8798ce68-4a1c-443b-8725-37f507df8580",
+                "calculatedAt": 1787599496809,
+                "from": "DOGE",
+                "to": "SOL",
+                "routingStrategy": "split_capped",
+                "exactSide": "in",
+                "amountIn": 500,
+                "amountOut": 0.4649253971374043,
+                "fullyFillable": true,
+                "fillRatio": 1,
+                "unroutableReason": "",
+                "unroutableHopIndex": -1,
+                "requireFullFill": false,
+                "hopCount": 2,
+                "stepCount": 2,
+                "slippageBps": 25,
+                "reconcileToleranceRatio": 0.02,
+                "steps": [
+                    {
+                        "stepIndex": 0,
+                        "hopIndex": 0,
+                        "legIndex": 0,
+                        "exchangeId": "mexc",
+                        "symbol": "DOGE/USDT",
+                        "side": "sell",
+                        "base": "DOGE",
+                        "quote": "USDT",
+                        "amount": 500,
+                        "expectedPrice": 0.089,
+                        "effectivePrice": 0.0889555,
+                        "limitPrice": 0.0887775,
+                        "notionalQuote": 44.5,
+                        "expectedFeeCost": 0.025176757619121304,
+                        "balanceLimited": false
+                    },
+                    {
+                        "stepIndex": 1,
+                        "hopIndex": 1,
+                        "legIndex": 0,
+                        "exchangeId": "mexc",
+                        "symbol": "SOL/USDT",
+                        "side": "buy",
+                        "base": "SOL",
+                        "quote": "USDT",
+                        "amount": 0.4649253971374043,
+                        "expectedPrice": 95.61,
+                        "effectivePrice": 95.657805,
+                        "limitPrice": 95.849025,
+                        "notionalQuote": 44.451517220307224,
+                        "expectedFeeCost": 0.02330602207365473,
+                        "balanceLimited": false
+                    }
+                ]
+            }
+        },
+        {
+            "id": "split_hop_zero_slippage",
+            "route": "splitMultiHop",
+            "options": {
+                "slippageBps": 0
+            },
+            "expected": {
+                "requestId": "fixture-split-multi-hop",
+                "calculatedAt": 1787599496809,
+                "from": "DOGE",
+                "to": "SOL",
+                "routingStrategy": "split_capped",
+                "exactSide": "in",
+                "amountIn": 500,
+                "amountOut": 0.46,
+                "fullyFillable": true,
+                "fillRatio": 1,
+                "unroutableReason": "",
+                "unroutableHopIndex": -1,
+                "requireFullFill": false,
+                "hopCount": 2,
+                "stepCount": 3,
+                "slippageBps": 0,
+                "reconcileToleranceRatio": 0.02,
+                "steps": [
+                    {
+                        "stepIndex": 0,
+                        "hopIndex": 0,
+                        "legIndex": 0,
+                        "exchangeId": "mexc",
+                        "symbol": "DOGE/USDT",
+                        "side": "sell",
+                        "base": "DOGE",
+                        "quote": "USDT",
+                        "amount": 300,
+                        "expectedPrice": 0.089,
+                        "effectivePrice": 0.0889555,
+                        "limitPrice": 0.089,
+                        "notionalQuote": 26.7,
+                        "expectedFeeCost": 0.0133,
+                        "balanceLimited": false
+                    },
+                    {
+                        "stepIndex": 1,
+                        "hopIndex": 0,
+                        "legIndex": 1,
+                        "exchangeId": "gate",
+                        "symbol": "DOGE/USDT",
+                        "side": "sell",
+                        "base": "DOGE",
+                        "quote": "USDT",
+                        "amount": 200,
+                        "expectedPrice": 0.0888,
+                        "effectivePrice": 0.0887556,
+                        "limitPrice": 0.0888,
+                        "notionalQuote": 17.76,
+                        "expectedFeeCost": 0.00888,
+                        "balanceLimited": false
+                    },
+                    {
+                        "stepIndex": 2,
+                        "hopIndex": 1,
+                        "legIndex": 0,
+                        "exchangeId": "mexc",
+                        "symbol": "SOL/USDT",
+                        "side": "buy",
+                        "base": "SOL",
+                        "quote": "USDT",
+                        "amount": 0.46,
+                        "expectedPrice": 95.61,
+                        "effectivePrice": 95.657805,
+                        "limitPrice": 95.61,
+                        "notionalQuote": 43.9806,
+                        "expectedFeeCost": 0.022,
+                        "balanceLimited": false
+                    }
+                ]
+            }
+        },
+        {
+            "id": "unroutable_has_no_steps",
+            "route": "unroutable",
+            "options": {},
+            "expected": {
+                "requestId": "58229c75-c1ef-4e64-83f0-c54a2d27e731",
+                "calculatedAt": 1787600430401,
+                "from": "LTC",
+                "to": "LINK",
+                "routingStrategy": "best_single",
+                "exactSide": "in",
+                "amountIn": 0,
+                "amountOut": 0,
+                "fullyFillable": false,
+                "fillRatio": 0,
+                "unroutableReason": "no_market",
+                "unroutableHopIndex": -1,
+                "requireFullFill": false,
+                "hopCount": 0,
+                "stepCount": 0,
+                "slippageBps": 25,
+                "reconcileToleranceRatio": 0.02,
+                "steps": []
+            }
+        },
+        {
+            "id": "malformed_side_still_flattens",
+            "route": "malformed",
+            "options": {},
+            "expected": {
+                "requestId": "fixture-malformed",
+                "calculatedAt": 1787600312294,
+                "from": "USDT",
+                "to": "BTC",
+                "routingStrategy": "best_single",
+                "exactSide": "in",
+                "amountIn": 20,
+                "amountOut": 0.00025328571098309674,
+                "fullyFillable": true,
+                "fillRatio": 1,
+                "unroutableReason": "",
+                "unroutableHopIndex": -1,
+                "requireFullFill": false,
+                "hopCount": 1,
+                "stepCount": 1,
+                "slippageBps": 25,
+                "reconcileToleranceRatio": 0.02,
+                "steps": [
+                    {
+                        "stepIndex": 0,
+                        "hopIndex": 0,
+                        "legIndex": 0,
+                        "exchangeId": "mexc",
+                        "symbol": "BTC/USDT",
+                        "side": "BUY",
+                        "base": "BTC",
+                        "quote": "USDT",
+                        "amount": 0.00025328571098309674,
+                        "expectedPrice": 78921.58,
+                        "effectivePrice": 78961.04079,
+                        "limitPrice": 78724.27605,
+                        "notionalQuote": 19.989708502209346,
+                        "expectedFeeCost": 0.010291497790653636,
+                        "balanceLimited": false
+                    }
+                ]
+            }
+        }
+    ],
+    "safetyCases": [
+        {
+            "id": "under_cap_passes",
+            "route": "directBuy",
+            "planOptions": {},
+            "markets": "permissive",
+            "options": {
+                "usdRates": {
+                    "USDT": 1
+                }
+            },
+            "expected": []
+        },
+        {
+            "id": "over_cap_blocks",
+            "route": "largeBuy",
+            "planOptions": {},
+            "markets": "permissive",
+            "options": {
+                "maxNotionalUsd": 25,
+                "usdRates": {
+                    "USDT": 1
+                }
+            },
+            "expected": [
+                {
+                    "stepIndex": 0,
+                    "exchangeId": "aster",
+                    "symbol": "BTC/USDT",
+                    "code": "notional_exceeds_cap",
+                    "blocking": true,
+                    "actual": 1002.1235027443521,
+                    "limit": 25,
+                    "message": "the notional exceeds the per-trade USD cap"
+                }
+            ]
+        },
+        {
+            "id": "missing_rate_blocks_never_skips",
+            "route": "directBuy",
+            "planOptions": {},
+            "markets": "permissive",
+            "options": {
+                "maxNotionalUsd": 25,
+                "usdRates": {
+                    "USD": 1,
+                    "ETH": 3000
+                }
+            },
+            "expected": [
+                {
+                    "stepIndex": 0,
+                    "exchangeId": "mexc",
+                    "symbol": "BTC/USDT",
+                    "code": "notional_unvaluable",
+                    "blocking": true,
+                    "actual": 20.03968277346487,
+                    "limit": 25,
+                    "message": "the step cannot be valued in USD, so the notional cap cannot be enforced"
+                }
+            ]
+        },
+        {
+            "id": "base_rate_values_the_step",
+            "route": "directBuy",
+            "planOptions": {},
+            "markets": "permissive",
+            "options": {
+                "usdRates": {
+                    "BTC": 78921.58
+                }
+            },
+            "expected": []
+        },
+        {
+            "id": "unknown_symbol_blocks",
+            "route": "multiHop",
+            "planOptions": {},
+            "markets": "onlyFirstHop",
+            "options": {
+                "maxNotionalUsd": 25,
+                "usdRates": {
+                    "USDT": 1
+                }
+            },
+            "expected": [
+                {
+                    "stepIndex": 0,
+                    "exchangeId": "mexc",
+                    "symbol": "DOGE/USDT",
+                    "code": "notional_exceeds_cap",
+                    "blocking": true,
+                    "actual": 44.5,
+                    "limit": 25,
+                    "message": "the notional exceeds the per-trade USD cap"
+                },
+                {
+                    "stepIndex": 1,
+                    "exchangeId": "mexc",
+                    "symbol": "SOL/USDT",
+                    "code": "unknown_symbol",
+                    "blocking": true,
+                    "actual": 0,
+                    "limit": 0,
+                    "message": "the symbol is not listed on that venue"
+                }
+            ]
+        },
+        {
+            "id": "strict_market_rules",
+            "route": "directBuy",
+            "planOptions": {},
+            "markets": "strict",
+            "options": {
+                "usdRates": {
+                    "USDT": 1
+                }
+            },
+            "expected": [
+                {
+                    "stepIndex": 0,
+                    "exchangeId": "mexc",
+                    "symbol": "BTC/USDT",
+                    "code": "amount_below_minimum",
+                    "blocking": true,
+                    "actual": 0.00025328571098309674,
+                    "limit": 1,
+                    "message": "the amount is below the market minimum"
+                },
+                {
+                    "stepIndex": 0,
+                    "exchangeId": "mexc",
+                    "symbol": "BTC/USDT",
+                    "code": "cost_below_minimum",
+                    "blocking": true,
+                    "actual": 19.989708502209346,
+                    "limit": 100,
+                    "message": "the notional is below the market minimum cost"
+                },
+                {
+                    "stepIndex": 0,
+                    "exchangeId": "mexc",
+                    "symbol": "BTC/USDT",
+                    "code": "amount_precision",
+                    "blocking": false,
+                    "actual": 0.00025328571098309674,
+                    "limit": 0.00001,
+                    "message": "the amount does not sit on the market amount precision"
+                },
+                {
+                    "stepIndex": 0,
+                    "exchangeId": "mexc",
+                    "symbol": "BTC/USDT",
+                    "code": "price_precision",
+                    "blocking": false,
+                    "actual": 79118.88395,
+                    "limit": 0.01,
+                    "message": "the limit price does not sit on the market price precision"
+                }
+            ]
+        },
+        {
+            "id": "empty_plan_is_not_safe",
+            "route": "unroutable",
+            "planOptions": {},
+            "markets": "permissive",
+            "options": {
+                "usdRates": {
+                    "USDT": 1
+                }
+            },
+            "expected": [
+                {
+                    "stepIndex": -1,
+                    "exchangeId": "",
+                    "symbol": "",
+                    "code": "empty_plan",
+                    "blocking": true,
+                    "actual": 0,
+                    "limit": 0,
+                    "message": "the plan contains no steps"
+                }
+            ]
+        },
+        {
+            "id": "partial_fill_is_advisory",
+            "route": "partial",
+            "planOptions": {},
+            "markets": "permissive",
+            "options": {
+                "usdRates": {
+                    "USDT": 1
+                }
+            },
+            "expected": [
+                {
+                    "stepIndex": -1,
+                    "exchangeId": "",
+                    "symbol": "",
+                    "code": "partial_fill",
+                    "blocking": false,
+                    "actual": 0.5,
+                    "limit": 1,
+                    "message": "the route does not fill completely at the requested size"
+                }
+            ]
+        },
+        {
+            "id": "lowered_cap_is_honoured",
+            "route": "directBuy",
+            "planOptions": {},
+            "markets": "permissive",
+            "options": {
+                "usdRates": {
+                    "USDT": 1
+                },
+                "maxNotionalUsd": 5
+            },
+            "expected": [
+                {
+                    "stepIndex": 0,
+                    "exchangeId": "mexc",
+                    "symbol": "BTC/USDT",
+                    "code": "notional_exceeds_cap",
+                    "blocking": true,
+                    "actual": 20.03968277346487,
+                    "limit": 5,
+                    "message": "the notional exceeds the per-trade USD cap"
+                }
+            ]
+        },
+        {
+            "id": "a_raised_cap_is_honoured_exactly",
+            "route": "largeBuy",
+            "planOptions": {},
+            "markets": "permissive",
+            "options": {
+                "usdRates": {
+                    "USDT": 1
+                },
+                "maxNotionalUsd": 100000
+            },
+            "expected": []
+        },
+        {
+            "id": "a_different_pair_under_the_same_symbol_blocks",
+            "route": "directBuy",
+            "planOptions": {},
+            "markets": "mismatched",
+            "options": {
+                "usdRates": {
+                    "USDT": 1
+                }
+            },
+            "expected": [
+                {
+                    "stepIndex": 0,
+                    "exchangeId": "mexc",
+                    "symbol": "BTC/USDT",
+                    "code": "market_mismatch",
+                    "blocking": true,
+                    "actual": 0,
+                    "limit": 0,
+                    "message": "the venue market trades a different pair than the route hop says it does"
+                }
+            ]
+        },
+        {
+            "id": "an_unrecognised_side_blocks",
+            "route": "malformed",
+            "planOptions": {},
+            "markets": "permissive",
+            "options": {
+                "usdRates": {
+                    "USDT": 1
+                }
+            },
+            "expected": [
+                {
+                    "stepIndex": 0,
+                    "exchangeId": "mexc",
+                    "symbol": "BTC/USDT",
+                    "code": "invalid_step",
+                    "blocking": true,
+                    "actual": 0.00025328571098309674,
+                    "limit": 0,
+                    "message": "the step has a non-positive amount or price, or a side that is neither buy nor sell"
+                }
+            ]
+        },
+        {
+            "id": "a_locale_formatted_cap_still_binds",
+            "route": "directBuy",
+            "planOptions": {},
+            "markets": "permissive",
+            "options": {
+                "usdRates": {
+                    "USDT": 1
+                },
+                "maxNotionalUsd": "1,234.5"
+            },
+            "expected": [
+                {
+                    "stepIndex": 0,
+                    "exchangeId": "mexc",
+                    "symbol": "BTC/USDT",
+                    "code": "notional_exceeds_cap",
+                    "blocking": true,
+                    "actual": 20.03968277346487,
+                    "limit": 1,
+                    "message": "the notional exceeds the per-trade USD cap"
+                }
+            ]
+        },
+        {
+            "id": "an_overflowing_usd_rate_blocks_rather_than_valuing",
+            "route": "directBuy",
+            "planOptions": {},
+            "markets": "permissive",
+            "options": {
+                "maxNotionalUsd": 25,
+                "usdRates": {
+                    "USDT": "1e400"
+                }
+            },
+            "expected": [
+                {
+                    "stepIndex": 0,
+                    "exchangeId": "mexc",
+                    "symbol": "BTC/USDT",
+                    "code": "notional_unvaluable",
+                    "blocking": true,
+                    "actual": 20.03968277346487,
+                    "limit": 25,
+                    "message": "the step cannot be valued in USD, so the notional cap cannot be enforced"
+                }
+            ]
+        },
+        {
+            "id": "a_usd_rate_written_with_a_unit_is_read_as_its_prefix",
+            "route": "directBuy",
+            "planOptions": {},
+            "markets": "permissive",
+            "options": {
+                "usdRates": {
+                    "USDT": "1.00 USD"
+                }
+            },
+            "expected": []
+        },
+        {
+            "id": "no_cap_by_default_means_no_notional_check",
+            "about": "The default is NO CAP. This class does not decide how much of your money you may trade: the same plan that trips a 25 USD cap passes untouched when no cap is set. maxNotionalUsd is an opt-in guardrail, not a ceiling.",
+            "route": "largeBuy",
+            "planOptions": {},
+            "markets": "permissive",
+            "options": {
+                "usdRates": {
+                    "USDT": 1
+                }
+            },
+            "expected": []
+        },
+        {
+            "id": "an_unvaluable_step_passes_when_no_cap_is_set",
+            "about": "The counterpart to missing_rate_blocks_never_skips. A step that cannot be valued in USD BLOCKS when a cap is in force, because a cap that silently disappears is not a cap. With no cap there is nothing to enforce, so the caller is not made to supply usdRates for a check they never asked for.",
+            "route": "directBuy",
+            "planOptions": {},
+            "markets": "permissive",
+            "options": {
+                "usdRates": {}
+            },
+            "expected": []
+        }
+    ],
+    "reconcileCases": [
+        {
+            "id": "full_fill_proceeds",
+            "route": "multiHop",
+            "planOptions": {},
+            "stepIndex": 0,
+            "realisedOut": 44.47482324238088,
+            "expected": {
+                "stepIndex": 0,
+                "hopIndex": 0,
+                "expectedOut": 44.47482324238088,
+                "realisedOut": 44.47482324238088,
+                "shortfall": 0,
+                "shortfallRatio": 0,
+                "scale": 1,
+                "verdict": "proceed",
+                "reason": "within_tolerance",
+                "resizedSteps": [
+                    {
+                        "stepIndex": 1,
+                        "previousAmount": 0.4649253971374043,
+                        "amount": 0.4649253971374043,
+                        "notionalQuote": 44.451517220307224
+                    }
+                ]
+            }
+        },
+        {
+            "id": "small_shortfall_proceeds_and_resizes",
+            "route": "multiHop",
+            "planOptions": {},
+            "stepIndex": 0,
+            "realisedOut": 44,
+            "expected": {
+                "stepIndex": 0,
+                "hopIndex": 0,
+                "expectedOut": 44.47482324238088,
+                "realisedOut": 44,
+                "shortfall": 0.4748232423808787,
+                "shortfallRatio": 0.010676225508377308,
+                "scale": 0.9893237744916227,
+                "verdict": "proceed",
+                "reason": "within_tolerance",
+                "resizedSteps": [
+                    {
+                        "stepIndex": 1,
+                        "previousAmount": 0.4649253971374043,
+                        "amount": 0.45996174875299345,
+                        "notionalQuote": 43.976942798273704
+                    }
+                ]
+            }
+        },
+        {
+            "id": "large_shortfall_halts",
+            "route": "multiHop",
+            "planOptions": {},
+            "stepIndex": 0,
+            "realisedOut": 40,
+            "expected": {
+                "stepIndex": 0,
+                "hopIndex": 0,
+                "expectedOut": 44.47482324238088,
+                "realisedOut": 40,
+                "shortfall": 4.474823242380879,
+                "shortfallRatio": 0.10061475046216119,
+                "scale": 0.8993852495378388,
+                "verdict": "halt",
+                "reason": "shortfall_exceeds_tolerance",
+                "resizedSteps": [
+                    {
+                        "stepIndex": 1,
+                        "previousAmount": 0.4649253971374043,
+                        "amount": 0.41814704432090316,
+                        "notionalQuote": 39.97903890752155
+                    }
+                ]
+            }
+        },
+        {
+            "id": "nothing_filled_halts",
+            "route": "multiHop",
+            "planOptions": {},
+            "stepIndex": 0,
+            "realisedOut": 0,
+            "expected": {
+                "stepIndex": 0,
+                "hopIndex": 0,
+                "expectedOut": 44.47482324238088,
+                "realisedOut": 0,
+                "shortfall": 44.47482324238088,
+                "shortfallRatio": 1,
+                "scale": 0,
+                "verdict": "halt",
+                "reason": "nothing_filled",
+                "resizedSteps": [
+                    {
+                        "stepIndex": 1,
+                        "previousAmount": 0.4649253971374043,
+                        "amount": 0,
+                        "notionalQuote": 0
+                    }
+                ]
+            }
+        },
+        {
+            "id": "overfill_never_scales_up",
+            "route": "multiHop",
+            "planOptions": {},
+            "stepIndex": 0,
+            "realisedOut": 50,
+            "expected": {
+                "stepIndex": 0,
+                "hopIndex": 0,
+                "expectedOut": 44.47482324238088,
+                "realisedOut": 50,
+                "shortfall": 0,
+                "shortfallRatio": 0,
+                "scale": 1,
+                "verdict": "proceed",
+                "reason": "within_tolerance",
+                "resizedSteps": [
+                    {
+                        "stepIndex": 1,
+                        "previousAmount": 0.4649253971374043,
+                        "amount": 0.4649253971374043,
+                        "notionalQuote": 44.451517220307224
+                    }
+                ]
+            }
+        },
+        {
+            "id": "shortfall_is_measured_against_the_whole_hop",
+            "route": "splitMultiHop",
+            "planOptions": {},
+            "stepIndex": 0,
+            "realisedOut": 26.5,
+            "expected": {
+                "stepIndex": 0,
+                "hopIndex": 0,
+                "expectedOut": 26.6867,
+                "realisedOut": 26.5,
+                "shortfall": 0.1866999999999983,
+                "shortfallRatio": 0.006995994259312629,
+                "scale": 0.995798623784875,
+                "verdict": "proceed",
+                "reason": "within_tolerance",
+                "resizedSteps": [
+                    {
+                        "stepIndex": 2,
+                        "previousAmount": 0.46,
+                        "amount": 0.45806736694104255,
+                        "notionalQuote": 43.795820953233076
+                    }
+                ]
+            }
+        },
+        {
+            "id": "last_hop_has_nothing_downstream",
+            "route": "multiHop",
+            "planOptions": {},
+            "stepIndex": 1,
+            "realisedOut": 0.4649253971374043,
+            "expected": {
+                "stepIndex": 1,
+                "hopIndex": 1,
+                "expectedOut": 0.4649253971374043,
+                "realisedOut": 0.4649253971374043,
+                "shortfall": 0,
+                "shortfallRatio": 0,
+                "scale": 1,
+                "verdict": "proceed",
+                "reason": "within_tolerance",
+                "resizedSteps": []
+            }
+        },
+        {
+            "id": "tighter_tolerance_halts_the_same_fill",
+            "route": "multiHop",
+            "planOptions": {
+                "reconcileToleranceRatio": 0.001
+            },
+            "stepIndex": 0,
+            "realisedOut": 44,
+            "expected": {
+                "stepIndex": 0,
+                "hopIndex": 0,
+                "expectedOut": 44.47482324238088,
+                "realisedOut": 44,
+                "shortfall": 0.4748232423808787,
+                "shortfallRatio": 0.010676225508377308,
+                "scale": 0.9893237744916227,
+                "verdict": "halt",
+                "reason": "shortfall_exceeds_tolerance",
+                "resizedSteps": [
+                    {
+                        "stepIndex": 1,
+                        "previousAmount": 0.4649253971374043,
+                        "amount": 0.45996174875299345,
+                        "notionalQuote": 43.976942798273704
+                    }
+                ]
+            }
+        },
+        {
+            "id": "a_hex_looking_tolerance_reads_as_zero_and_halts",
+            "route": "multiHop",
+            "planOptions": {
+                "reconcileToleranceRatio": "0x10"
+            },
+            "stepIndex": 0,
+            "realisedOut": 44,
+            "expected": {
+                "stepIndex": 0,
+                "hopIndex": 0,
+                "expectedOut": 44.47482324238088,
+                "realisedOut": 44,
+                "shortfall": 0.4748232423808787,
+                "shortfallRatio": 0.010676225508377308,
+                "scale": 0.9893237744916227,
+                "verdict": "halt",
+                "reason": "shortfall_exceeds_tolerance",
+                "resizedSteps": [
+                    {
+                        "stepIndex": 1,
+                        "previousAmount": 0.4649253971374043,
+                        "amount": 0.45996174875299345,
+                        "notionalQuote": 43.976942798273704
+                    }
+                ]
+            }
+        },
+        {
+            "id": "an_overflowing_tolerance_falls_back_to_the_default_and_proceeds",
+            "route": "multiHop",
+            "planOptions": {
+                "reconcileToleranceRatio": "1e400"
+            },
+            "stepIndex": 0,
+            "realisedOut": 44,
+            "expected": {
+                "stepIndex": 0,
+                "hopIndex": 0,
+                "expectedOut": 44.47482324238088,
+                "realisedOut": 44,
+                "shortfall": 0.4748232423808787,
+                "shortfallRatio": 0.010676225508377308,
+                "scale": 0.9893237744916227,
+                "verdict": "proceed",
+                "reason": "within_tolerance",
+                "resizedSteps": [
+                    {
+                        "stepIndex": 1,
+                        "previousAmount": 0.4649253971374043,
+                        "amount": 0.45996174875299345,
+                        "notionalQuote": 43.976942798273704
+                    }
+                ]
+            }
+        },
+        {
+            "id": "an_overflowing_tolerance_falls_back_to_the_default_and_halts",
+            "route": "multiHop",
+            "planOptions": {
+                "reconcileToleranceRatio": "1e400"
+            },
+            "stepIndex": 0,
+            "realisedOut": 40,
+            "expected": {
+                "stepIndex": 0,
+                "hopIndex": 0,
+                "expectedOut": 44.47482324238088,
+                "realisedOut": 40,
+                "shortfall": 4.474823242380879,
+                "shortfallRatio": 0.10061475046216119,
+                "scale": 0.8993852495378388,
+                "verdict": "halt",
+                "reason": "shortfall_exceeds_tolerance",
+                "resizedSteps": [
+                    {
+                        "stepIndex": 1,
+                        "previousAmount": 0.4649253971374043,
+                        "amount": 0.41814704432090316,
+                        "notionalQuote": 39.97903890752155
+                    }
+                ]
+            }
+        },
+        {
+            "id": "a_mixed_int_and_float_hop_index_is_one_hop",
+            "plan": "mixedHopIndexTypes",
+            "stepIndex": 0,
+            "realisedOut": 26.5,
+            "expected": {
+                "stepIndex": 0,
+                "hopIndex": 0,
+                "expectedOut": 26.7,
+                "realisedOut": 26.5,
+                "shortfall": 0.1999999999999993,
+                "shortfallRatio": 0.007490636704119823,
+                "scale": 0.9955015744489429,
+                "verdict": "proceed",
+                "reason": "within_tolerance",
+                "resizedSteps": [
+                    {
+                        "stepIndex": 2,
+                        "previousAmount": 0.46,
+                        "amount": 0.45793072424651377,
+                        "notionalQuote": 43.78275654520918
+                    }
+                ]
+            }
+        }
+    ],
+    "reconcileSequenceCases": [
+        {
+            "id": "two_legs_of_one_hop_combine_their_shortfalls",
+            "about": "Each leg used to compute a scale from the hop total and multiply the downstream amounts by it, so the second leg scaled an already-scaled number: 0.9 x 0.8 = 0.72 of the hop instead of the true 0.70, sizing the next hop at 144 when only 140 had arrived. Over-sizing the next hop is not a rounding nuisance — it is a guaranteed insufficient-funds halt on exactly the bridged routes this class exists for. reconcileExecutionStep is pure and cannot remember across calls, so the hop's cumulative shortfall lives on the steps themselves, written by applyResize; that is why this case can only be expressed as a SEQUENCE. The tolerance is 1 so the shortfalls resize rather than halt.",
+            "reconcileToleranceRatio": 1,
+            "steps": [
+                {
+                    "stepIndex": 0,
+                    "hopIndex": 0,
+                    "legIndex": 0,
+                    "amount": 1,
+                    "expectedPrice": 100,
+                    "side": "sell",
+                    "base": "BTC",
+                    "quote": "USDT"
+                },
+                {
+                    "stepIndex": 1,
+                    "hopIndex": 0,
+                    "legIndex": 1,
+                    "amount": 1,
+                    "expectedPrice": 100,
+                    "side": "sell",
+                    "base": "BTC",
+                    "quote": "USDT"
+                },
+                {
+                    "stepIndex": 2,
+                    "hopIndex": 1,
+                    "legIndex": 0,
+                    "amount": 200,
+                    "expectedPrice": 1,
+                    "side": "buy",
+                    "base": "ETH",
+                    "quote": "USDT"
+                }
+            ],
+            "calls": [
+                {
+                    "stepIndex": 0,
+                    "realisedOut": 80
+                },
+                {
+                    "stepIndex": 1,
+                    "realisedOut": 60
+                }
+            ],
+            "expectedScales": [
+                0.9,
+                0.7777777777777778
+            ],
+            "expectedAmounts": [
+                1,
+                1,
+                140
+            ]
+        },
+        {
+            "id": "a_single_leg_hop_reconciles_exactly_as_before",
+            "about": "The combined-scale change must be arithmetically inert when there is nothing to combine, which is every case the rest of this fixture covers: with one leg per hop priorShortfall is 0 and scaleBefore is 1.",
+            "reconcileToleranceRatio": 1,
+            "steps": [
+                {
+                    "stepIndex": 0,
+                    "hopIndex": 0,
+                    "legIndex": 0,
+                    "amount": 1,
+                    "expectedPrice": 100,
+                    "side": "sell",
+                    "base": "BTC",
+                    "quote": "USDT"
+                },
+                {
+                    "stepIndex": 1,
+                    "hopIndex": 1,
+                    "legIndex": 0,
+                    "amount": 100,
+                    "expectedPrice": 1,
+                    "side": "buy",
+                    "base": "ETH",
+                    "quote": "USDT"
+                }
+            ],
+            "calls": [
+                {
+                    "stepIndex": 0,
+                    "realisedOut": 50
+                }
+            ],
+            "expectedScales": [
+                0.5
+            ],
+            "expectedAmounts": [
+                1,
+                50
+            ]
+        }
+    ],
+    "unwindCases": [
+        {
+            "id": "stranded_bridge_asset_goes_home",
+            "report": "haltedSameVenue",
+            "expected": {
+                "from": "DOGE",
+                "to": "SOL",
+                "halted": true,
+                "haltReason": "order_failed",
+                "residualCount": 1,
+                "requiresConfirmation": true,
+                "automatic": false,
+                "steps": [
+                    {
+                        "stepIndex": 0,
+                        "exchangeId": "mexc",
+                        "symbol": "DOGE/USDT",
+                        "side": "buy",
+                        "base": "DOGE",
+                        "quote": "USDT",
+                        "asset": "USDT",
+                        "counterAsset": "DOGE",
+                        "amount": 498.75311720698255,
+                        "expectedPrice": 0.089,
+                        "limitPrice": 0.0892225,
+                        "notionalQuote": 44.5,
+                        "reachesFrom": true,
+                        "isDestination": false
+                    }
+                ],
+                "unresolved": []
+            }
+        },
+        {
+            "id": "residuals_do_not_net_across_venues",
+            "report": "haltedCrossVenue",
+            "expected": {
+                "from": "DOGE",
+                "to": "SOL",
+                "halted": true,
+                "haltReason": "shortfall_exceeds_tolerance",
+                "residualCount": 2,
+                "requiresConfirmation": true,
+                "automatic": false,
+                "steps": [
+                    {
+                        "stepIndex": 0,
+                        "exchangeId": "binance",
+                        "symbol": "SOL/USDT",
+                        "side": "sell",
+                        "base": "SOL",
+                        "quote": "USDT",
+                        "asset": "SOL",
+                        "counterAsset": "USDT",
+                        "amount": 0.2,
+                        "expectedPrice": 95.61,
+                        "limitPrice": 95.370975,
+                        "notionalQuote": 19.074195,
+                        "reachesFrom": false,
+                        "isDestination": true
+                    },
+                    {
+                        "stepIndex": 1,
+                        "exchangeId": "mexc",
+                        "symbol": "DOGE/USDT",
+                        "side": "buy",
+                        "base": "DOGE",
+                        "quote": "USDT",
+                        "asset": "USDT",
+                        "counterAsset": "DOGE",
+                        "amount": 498.75311720698255,
+                        "expectedPrice": 0.089,
+                        "limitPrice": 0.0892225,
+                        "notionalQuote": 44.5,
+                        "reachesFrom": true,
+                        "isDestination": false
+                    }
+                ],
+                "unresolved": []
+            }
+        },
+        {
+            "id": "a_dry_run_leaves_nothing_to_unwind",
+            "report": "dryRun",
+            "expected": {
+                "from": "DOGE",
+                "to": "SOL",
+                "halted": false,
+                "haltReason": "",
+                "residualCount": 0,
+                "requiresConfirmation": true,
+                "automatic": false,
+                "steps": [],
+                "unresolved": []
+            }
+        },
+        {
+            "id": "a_residual_without_a_price_is_unresolved",
+            "report": "priceless",
+            "expected": {
+                "from": "DOGE",
+                "to": "SOL",
+                "halted": true,
+                "haltReason": "order_failed",
+                "residualCount": 1,
+                "requiresConfirmation": true,
+                "automatic": false,
+                "steps": [],
+                "unresolved": [
+                    {
+                        "exchangeId": "mexc",
+                        "asset": "USDT",
+                        "amount": 44.5,
+                        "reason": "no_price"
+                    }
+                ]
+            }
+        },
+        {
+            "id": "a_residual_written_as_text_is_still_a_residual",
+            "report": "haltedWithATextualAmount",
+            "expected": {
+                "from": "DOGE",
+                "to": "SOL",
+                "halted": true,
+                "haltReason": "order_failed",
+                "residualCount": 1,
+                "requiresConfirmation": true,
+                "automatic": false,
+                "steps": [
+                    {
+                        "stepIndex": 0,
+                        "exchangeId": "mexc",
+                        "symbol": "DOGE/USDT",
+                        "side": "buy",
+                        "base": "DOGE",
+                        "quote": "USDT",
+                        "asset": "USDT",
+                        "counterAsset": "DOGE",
+                        "amount": 498.75311720698255,
+                        "expectedPrice": 0.089,
+                        "limitPrice": 0.0892225,
+                        "notionalQuote": 44.5,
+                        "reachesFrom": true,
+                        "isDestination": false
+                    }
+                ],
+                "unresolved": []
+            }
+        }
+    ],
+    "numberCases": [
+        {
+            "id": "a_plain_integer_string",
+            "container": {
+                "value": "12"
+            },
+            "key": "value",
+            "default": -999,
+            "expected": 12
+        },
+        {
+            "id": "a_plain_float_string",
+            "container": {
+                "value": "-0.25"
+            },
+            "key": "value",
+            "default": -999,
+            "expected": -0.25
+        },
+        {
+            "id": "a_thousands_separator_stops_the_scan",
+            "container": {
+                "value": "1,234.5"
+            },
+            "key": "value",
+            "default": -999,
+            "expected": 1
+        },
+        {
+            "id": "a_space_separator_stops_the_scan",
+            "container": {
+                "value": "1 000"
+            },
+            "key": "value",
+            "default": -999,
+            "expected": 1
+        },
+        {
+            "id": "an_underscore_separator_stops_the_scan",
+            "container": {
+                "value": "1_000"
+            },
+            "key": "value",
+            "default": -999,
+            "expected": 1
+        },
+        {
+            "id": "a_hex_literal_reads_as_its_leading_zero",
+            "container": {
+                "value": "0x10"
+            },
+            "key": "value",
+            "default": -999,
+            "expected": 0
+        },
+        {
+            "id": "a_trailing_unit_is_ignored",
+            "container": {
+                "value": "25 USD"
+            },
+            "key": "value",
+            "default": -999,
+            "expected": 25
+        },
+        {
+            "id": "a_trailing_percent_is_ignored",
+            "container": {
+                "value": "25%"
+            },
+            "key": "value",
+            "default": -999,
+            "expected": 25
+        },
+        {
+            "id": "leading_ascii_space_is_skipped",
+            "container": {
+                "value": "  12abc"
+            },
+            "key": "value",
+            "default": -999,
+            "expected": 12
+        },
+        {
+            "id": "every_ascii_space_is_skipped",
+            "container": {
+                "value": " \t\n\r\f\u000b12"
+            },
+            "key": "value",
+            "default": -999,
+            "expected": 12
+        },
+        {
+            "id": "a_non_breaking_space_is_not_a_space",
+            "container": {
+                "value": " 12"
+            },
+            "key": "value",
+            "default": -999,
+            "expected": -999
+        },
+        {
+            "id": "arabic_indic_digits_are_not_digits",
+            "container": {
+                "value": "١٢"
+            },
+            "key": "value",
+            "default": -999,
+            "expected": -999
+        },
+        {
+            "id": "an_overflowing_exponent_is_not_a_number",
+            "container": {
+                "value": "1e400"
+            },
+            "key": "value",
+            "default": -999,
+            "expected": -999
+        },
+        {
+            "id": "an_overflowing_exponent_2e308_is_not_a_number",
+            "container": {
+                "value": "2e308"
+            },
+            "key": "value",
+            "default": -999,
+            "expected": -999
+        },
+        {
+            "id": "an_overflowing_exponent_1e999_is_not_a_number",
+            "container": {
+                "value": "1e999"
+            },
+            "key": "value",
+            "default": -999,
+            "expected": -999
+        },
+        {
+            "id": "an_underflowing_exponent_is_a_real_zero",
+            "container": {
+                "value": "1e-400"
+            },
+            "key": "value",
+            "default": -999,
+            "expected": 0
+        },
+        {
+            "id": "the_infinity_literal_is_not_a_number",
+            "container": {
+                "value": "Infinity"
+            },
+            "key": "value",
+            "default": -999,
+            "expected": -999
+        },
+        {
+            "id": "lowercase_inf_is_not_a_number",
+            "container": {
+                "value": "inf"
+            },
+            "key": "value",
+            "default": -999,
+            "expected": -999
+        },
+        {
+            "id": "lowercase_infinity_is_not_a_number",
+            "container": {
+                "value": "infinity"
+            },
+            "key": "value",
+            "default": -999,
+            "expected": -999
+        },
+        {
+            "id": "nan_is_not_a_number",
+            "container": {
+                "value": "NaN"
+            },
+            "key": "value",
+            "default": -999,
+            "expected": -999
+        },
+        {
+            "id": "lowercase_nan_is_not_a_number",
+            "container": {
+                "value": "nan"
+            },
+            "key": "value",
+            "default": -999,
+            "expected": -999
+        },
+        {
+            "id": "the_empty_string_is_not_a_number",
+            "container": {
+                "value": ""
+            },
+            "key": "value",
+            "default": -999,
+            "expected": -999
+        },
+        {
+            "id": "a_lone_sign_is_not_a_number",
+            "container": {
+                "value": "-"
+            },
+            "key": "value",
+            "default": -999,
+            "expected": -999
+        },
+        {
+            "id": "a_lone_dot_is_not_a_number",
+            "container": {
+                "value": "."
+            },
+            "key": "value",
+            "default": -999,
+            "expected": -999
+        },
+        {
+            "id": "a_bare_exponent_is_not_a_number",
+            "container": {
+                "value": "e5"
+            },
+            "key": "value",
+            "default": -999,
+            "expected": -999
+        },
+        {
+            "id": "a_doubled_sign_is_not_a_number",
+            "container": {
+                "value": "--1"
+            },
+            "key": "value",
+            "default": -999,
+            "expected": -999
+        },
+        {
+            "id": "a_leading_dot_is_a_number",
+            "container": {
+                "value": ".5"
+            },
+            "key": "value",
+            "default": -999,
+            "expected": 0.5
+        },
+        {
+            "id": "a_signed_leading_dot_is_a_number",
+            "container": {
+                "value": "+.5"
+            },
+            "key": "value",
+            "default": -999,
+            "expected": 0.5
+        },
+        {
+            "id": "a_trailing_dot_is_a_number",
+            "container": {
+                "value": "5."
+            },
+            "key": "value",
+            "default": -999,
+            "expected": 5
+        },
+        {
+            "id": "an_exponent_is_honoured",
+            "container": {
+                "value": "1e5"
+            },
+            "key": "value",
+            "default": -999,
+            "expected": 100000
+        },
+        {
+            "id": "a_capital_exponent_is_honoured",
+            "container": {
+                "value": "1E3"
+            },
+            "key": "value",
+            "default": -999,
+            "expected": 1000
+        },
+        {
+            "id": "a_signed_exponent_is_honoured",
+            "container": {
+                "value": "1e+5"
+            },
+            "key": "value",
+            "default": -999,
+            "expected": 100000
+        },
+        {
+            "id": "a_negative_exponent_is_honoured",
+            "container": {
+                "value": "1e-3"
+            },
+            "key": "value",
+            "default": -999,
+            "expected": 0.001
+        },
+        {
+            "id": "a_dangling_exponent_is_dropped",
+            "container": {
+                "value": "1e"
+            },
+            "key": "value",
+            "default": -999,
+            "expected": 1
+        },
+        {
+            "id": "a_dangling_exponent_after_two_digits_is_dropped",
+            "container": {
+                "value": "12e"
+            },
+            "key": "value",
+            "default": -999,
+            "expected": 12
+        },
+        {
+            "id": "a_second_dot_stops_the_scan",
+            "container": {
+                "value": "1.2.3"
+            },
+            "key": "value",
+            "default": -999,
+            "expected": 1.2
+        },
+        {
+            "id": "a_second_exponent_stops_the_scan",
+            "container": {
+                "value": "1e5e5"
+            },
+            "key": "value",
+            "default": -999,
+            "expected": 100000
+        },
+        {
+            "id": "a_real_number_passes_through",
+            "container": {
+                "value": 12
+            },
+            "key": "value",
+            "default": -999,
+            "expected": 12
+        },
+        {
+            "id": "a_real_float_passes_through",
+            "container": {
+                "value": 0.5
+            },
+            "key": "value",
+            "default": -999,
+            "expected": 0.5
+        },
+        {
+            "id": "a_boolean_is_not_a_number",
+            "container": {
+                "value": true
+            },
+            "key": "value",
+            "default": -999,
+            "expected": -999
+        },
+        {
+            "id": "a_null_is_absent",
+            "container": {
+                "value": null
+            },
+            "key": "value",
+            "default": -999,
+            "expected": -999
+        },
+        {
+            "id": "a_list_is_not_a_number",
+            "container": {
+                "value": [
+                    1
+                ]
+            },
+            "key": "value",
+            "default": -999,
+            "expected": -999
+        },
+        {
+            "id": "a_dictionary_is_not_a_number",
+            "container": {
+                "value": {
+                    "a": 1
+                }
+            },
+            "key": "value",
+            "default": -999,
+            "expected": -999
+        },
+        {
+            "id": "a_missing_key_is_the_default",
+            "container": {},
+            "key": "value",
+            "default": -999,
+            "expected": -999
+        },
+        {
+            "id": "the_default_is_returned_verbatim",
+            "container": {
+                "value": "nonsense"
+            },
+            "key": "value",
+            "default": 0.02,
+            "expected": 0.02
+        }
+    ],
+    "plans": {
+        "mixedHopIndexTypes": {
+            "about": "A plan whose hopIndex is written 0 on one step and 0.0 on the next. THE 0.0 MUST STAY 0.0: it is the whole point of the case. Both are the same number, but json_decode gives PHP an int for one and a float for the other, and PHP's === compares type as well as value — so a hop total built with === silently drops the second leg and resizes every downstream order wrong. Do not regenerate this section by round-tripping the file through a JSON serializer that renders 0.0 as 0.",
+            "from": "DOGE",
+            "to": "SOL",
+            "slippageBps": 25,
+            "reconcileToleranceRatio": 0.02,
+            "hopCount": 2,
+            "stepCount": 3,
+            "fullyFillable": true,
+            "fillRatio": 1,
+            "unroutableReason": "",
+            "steps": [
+                {
+                    "stepIndex": 0,
+                    "hopIndex": 0,
+                    "legIndex": 0,
+                    "exchangeId": "mexc",
+                    "symbol": "DOGE/USDT",
+                    "side": "sell",
+                    "base": "DOGE",
+                    "quote": "USDT",
+                    "amount": 300,
+                    "expectedPrice": 0.089,
+                    "effectivePrice": 0.089,
+                    "limitPrice": 0.0888,
+                    "notionalQuote": 26.7
+                },
+                {
+                    "stepIndex": 1,
+                    "hopIndex": 0.0,
+                    "legIndex": 1,
+                    "exchangeId": "gate",
+                    "symbol": "DOGE/USDT",
+                    "side": "sell",
+                    "base": "DOGE",
+                    "quote": "USDT",
+                    "amount": 200,
+                    "expectedPrice": 0.0888,
+                    "effectivePrice": 0.0888,
+                    "limitPrice": 0.0886,
+                    "notionalQuote": 17.76
+                },
+                {
+                    "stepIndex": 2,
+                    "hopIndex": 1,
+                    "legIndex": 0,
+                    "exchangeId": "binance",
+                    "symbol": "SOL/USDT",
+                    "side": "buy",
+                    "base": "SOL",
+                    "quote": "USDT",
+                    "amount": 0.46,
+                    "expectedPrice": 95.61,
+                    "effectivePrice": 95.61,
+                    "limitPrice": 95.85,
+                    "notionalQuote": 43.98
+                }
+            ]
+        }
+    },
+    "formatNumberAbout": "formatNumber must be byte-identical in all six ports: it builds the balances query string, and a balance spelled differently per language is a different question asked of the router. The reference is TypeScript's toFixed, which is ECMA-262's — the sign is stripped BEFORE the digits are chosen, so a TIE rounds AWAY FROM ZERO on the magnitude. Python's '%.12f', PHP's '%.12F', Rust's '{:.12}' and C#'s ToString(\"F12\") all round half to EVEN and disagreed on exactly those values, which is what the 2^-13 pair below pins.",
+    "formatNumberCases": [
+        {
+            "id": "a_tie_rounds_away_from_zero",
+            "value": 0.0001220703125,
+            "expected": "0.000122070313"
+        },
+        {
+            "id": "a_negative_tie_rounds_away_from_zero_too",
+            "value": -0.0001220703125,
+            "expected": "-0.000122070313"
+        },
+        {
+            "id": "a_tie_above_one_rounds_away_from_zero",
+            "value": 8.0001220703125,
+            "expected": "8.000122070313"
+        },
+        {
+            "id": "a_negative_tie_above_one_rounds_away_from_zero",
+            "value": -8.0001220703125,
+            "expected": "-8.000122070313"
+        },
+        {
+            "id": "rounding_up_carries_through_every_nine",
+            "value": 9.9999999999999,
+            "expected": "10"
+        },
+        {
+            "id": "no_exponent_for_a_small_number",
+            "value": 1e-7,
+            "expected": "0.0000001"
+        },
+        {
+            "id": "below_the_twelfth_decimal_is_zero",
+            "value": 1e-15,
+            "expected": "0"
+        },
+        {
+            "id": "zero_is_zero",
+            "value": 0,
+            "expected": "0"
+        },
+        {
+            "id": "a_negative_that_trims_to_minus_zero_is_zero",
+            "value": -1e-15,
+            "expected": "0"
+        },
+        {
+            "id": "an_integer_keeps_no_decimal_point",
+            "value": 1000000,
+            "expected": "1000000"
+        },
+        {
+            "id": "a_half_is_a_half",
+            "value": 0.5,
+            "expected": "0.5"
+        },
+        {
+            "id": "a_large_integer_is_still_exact",
+            "value": 100000000000000000,
+            "expected": "100000000000000000"
+        }
+    ],
+    "feeNettingAbout": "Fee netting is the one placeStep behaviour that resizes the NEXT hop's order, and it was asserted only in TypeScript. Each case drives execute() against the port's own stub venue: the stub returns a filled order carrying `fee` and/or per-trade `trades[].fee` as named here, and the step the report comes back with must carry these four numbers. `grossOutAmount` is 0 when the port never set it — which is the correct answer whenever the fee was charged in some other currency.",
+    "feeNettingCases": [
+        {
+            "id": "a_fee_in_the_acquired_asset_is_netted_out",
+            "side": "buy",
+            "base": "BTC",
+            "quote": "USDT",
+            "amount": 0.1,
+            "price": 100,
+            "planOptions": {
+                "slippageBps": 0
+            },
+            "fee": {
+                "cost": 0.001,
+                "currency": "BTC"
+            },
+            "tradeFees": [],
+            "expected": {
+                "filledAmount": 0.1,
+                "grossOutAmount": 0.1,
+                "outAmount": 0.099,
+                "feeCost": 0.001
+            }
+        },
+        {
+            "id": "a_fee_in_the_asset_spent_is_left_alone",
+            "side": "buy",
+            "base": "BTC",
+            "quote": "USDT",
+            "amount": 0.1,
+            "price": 100,
+            "planOptions": {
+                "slippageBps": 0
+            },
+            "fee": {
+                "cost": 0.01,
+                "currency": "USDT"
+            },
+            "tradeFees": [],
+            "expected": {
+                "filledAmount": 0.1,
+                "grossOutAmount": 0,
+                "outAmount": 0.1,
+                "feeCost": 0
+            }
+        },
+        {
+            "id": "a_sell_nets_a_quote_fee_out_of_the_quote_received",
+            "side": "sell",
+            "base": "BTC",
+            "quote": "USDT",
+            "amount": 0.1,
+            "price": 100,
+            "planOptions": {
+                "slippageBps": 0
+            },
+            "fee": {
+                "cost": 0.02,
+                "currency": "USDT"
+            },
+            "tradeFees": [],
+            "expected": {
+                "filledAmount": 0.1,
+                "grossOutAmount": 10,
+                "outAmount": 9.98,
+                "feeCost": 0.02
+            }
+        },
+        {
+            "id": "a_fee_larger_than_the_fill_clamps_the_carry_to_zero",
+            "side": "buy",
+            "base": "BTC",
+            "quote": "USDT",
+            "amount": 0.1,
+            "price": 100,
+            "planOptions": {
+                "slippageBps": 0
+            },
+            "fee": {
+                "cost": 0.5,
+                "currency": "BTC"
+            },
+            "tradeFees": [],
+            "expected": {
+                "filledAmount": 0.1,
+                "grossOutAmount": 0.1,
+                "outAmount": 0,
+                "feeCost": 0.5
+            }
+        },
+        {
+            "id": "per_trade_fees_are_summed_when_the_order_carries_no_top_level_fee",
+            "side": "buy",
+            "base": "BTC",
+            "quote": "USDT",
+            "amount": 0.1,
+            "price": 100,
+            "planOptions": {
+                "slippageBps": 0
+            },
+            "fee": {},
+            "tradeFees": [
+                {
+                    "cost": 0.0004,
+                    "currency": "BTC"
+                },
+                {
+                    "cost": 0.0006,
+                    "currency": "BTC"
+                }
+            ],
+            "expected": {
+                "filledAmount": 0.1,
+                "grossOutAmount": 0.1,
+                "outAmount": 0.099,
+                "feeCost": 0.001
+            }
+        },
+        {
+            "id": "per_trade_fees_in_another_currency_are_left_alone",
+            "side": "buy",
+            "base": "BTC",
+            "quote": "USDT",
+            "amount": 0.1,
+            "price": 100,
+            "planOptions": {
+                "slippageBps": 0
+            },
+            "fee": {},
+            "tradeFees": [
+                {
+                    "cost": 0.01,
+                    "currency": "USDT"
+                }
+            ],
+            "expected": {
+                "filledAmount": 0.1,
+                "grossOutAmount": 0,
+                "outAmount": 0.1,
+                "feeCost": 0
+            }
+        },
+        {
+            "id": "a_top_level_fee_wins_over_per_trade_fees_rather_than_double_counting",
+            "side": "buy",
+            "base": "BTC",
+            "quote": "USDT",
+            "amount": 0.1,
+            "price": 100,
+            "planOptions": {
+                "slippageBps": 0
+            },
+            "fee": {
+                "cost": 0.001,
+                "currency": "BTC"
+            },
+            "tradeFees": [
+                {
+                    "cost": 0.001,
+                    "currency": "BTC"
+                }
+            ],
+            "expected": {
+                "filledAmount": 0.1,
+                "grossOutAmount": 0.1,
+                "outAmount": 0.099,
+                "feeCost": 0.001
+            }
+        }
+    ]
+}

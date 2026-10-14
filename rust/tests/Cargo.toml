@@ -27,6 +27,10 @@ exchange-tests = []
 # here alongside the typed `ccxt::Binance`. The WS venues live in `ccxt-pro`.
 ccxt = { path = "../ccxt" }
 ccxt-pro = { path = "../ccxt-pro" }
+# `generated_cores.rs` registers the prediction Cores too (`ccxt::prediction::*`);
+# those are behind `ccxt-base/prediction-<id>` features, which only this crate's
+# `all` default enables when ccxt_tests is built on its own (`-p ccxt_tests`).
+ccxt-prediction = { path = "../ccxt-prediction" }
 serde_json = { version = "1", features = ["preserve_order", "float_roundtrip"] }
 tokio = { version = "1", features = ["full"] }
 futures = "0.3"

@@ -16,11 +16,35 @@ namespace Tests;
 // this client (hand-written, not transpiled) as carrying the same gap.
 //
 // a local HttpListener websocket server stands in for the venue so the test is
-// offline and deterministic; keepAlive is small so the loop ticks within the
-// test, and lastPong is pinned in the past so the first tick trips the timeout.
+// offline; keepAlive is small so the loop ticks within the test. Setup is
+// protected from that deadline; after readiness and future registration,
+// lastPong is pinned in the past so the next tick trips the timeout.
 
 public partial class BaseTest
 {
+    async public Task testWsClientConnectPublishesReadyState()
+    {
+        var client = new BaseExchange.WebSocketClient("ws://localhost:1234", null, (c, m) => { });
+        client.keepAlive = null;
+        // connect() returns this task. Capture state in an inline continuation:
+        // inspecting it only after onOpen returns would miss premature publication.
+        var observed = client.connected.Task.ContinueWith(
+            _ => (client.isConnected, client.connectionEstablished),
+            CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+        try
+        {
+            client.onOpen();
+            var (connected, established) = await observed;
+            Assert(connected, "connect completion must publish isConnected before running continuations");
+            Assert(established != null, "connect completion must publish connectionEstablished before running continuations");
+        }
+        finally
+        {
+            client.isConnected = false;
+            client.webSocket.Dispose();
+        }
+    }
+
     // one-connection websocket server: accepts the upgrade, then sits in a
     // receive loop so it observes the client's close handshake (if any)
     private sealed class KeepAliveProbeServer : IDisposable
@@ -122,26 +146,39 @@ public partial class BaseTest
     async public Task testWsClientKeepAliveTimeoutClosesTheSocket()
     {
         using var server = new KeepAliveProbeServer();
-        var errors = new List<object>();
+        var errors = new System.Collections.Concurrent.ConcurrentQueue<object>();
         var closes = 0;
         var handled = 0;
+        var setupTicks = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var ticks = 0;
         // the error delegate mirrors what the exchange bridge does on onError
         // (Exchange.WsBridge.CleanupClients -> rejectFutures): reject every
         // pending future with the error
-        var client = new BaseExchange.WebSocketClient(server.url, null, (c, m) => { Interlocked.Increment(ref handled); }, null, (c, e) => { Interlocked.Increment(ref closes); }, (c, e) => { lock (errors) { errors.Add(e); } c.reject(e); }, false, 50);
-        await client.connect();
+        var client = new BaseExchange.WebSocketClient(server.url, null, (c, m) => { Interlocked.Increment(ref handled); }, (c) =>
+        {
+            if (Interlocked.Increment(ref ticks) >= 5) setupTicks.TrySetResult(true);
+            return null;
+        }, (c, e) => { Interlocked.Increment(ref closes); }, (c, e) => { errors.Enqueue(e); c.reject(e); }, false, 50);
+        var timeoutMisses = client.maxPingPongMisses;
+        // Do not arm the short deadline until both ends and the pending future
+        // are ready. Let setup span five real ticks (longer than the normal
+        // three-miss window), so scheduler delays cannot kill the precondition.
+        client.maxPingPongMisses = int.MaxValue;
+        var pending = client.future("probe");
+        await client.connect().WaitAsync(TimeSpan.FromSeconds(3));
         await WaitUntil(() => server.serverSide != null && server.serverSide.State == WebSocketState.Open, 3000, "the server to accept the socket");
+        await setupTicks.Task.WaitAsync(TimeSpan.FromSeconds(3));
         Assert(client.webSocket.State == WebSocketState.Open, "precondition: the client socket must be open");
         Assert(client.isConnected, "precondition: the client must report connected");
         // pin liveness in the past so the next keepalive tick trips the timeout
-        client.lastPong = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - 50 * client.maxPingPongMisses - 1000;
-        var pending = client.future("probe");
+        client.lastPong = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - 50 * timeoutMisses - 1000;
+        client.maxPingPongMisses = timeoutMisses;
         await WaitUntil(() => errors.Count > 0, 3000, "the keepalive timeout to fire");
-        object first;
-        lock (errors) { first = errors[0]; }
+        Assert(errors.TryPeek(out var first), "the keepalive timeout must report an error");
         Assert(first is RequestTimeout, "the keepalive death must be a RequestTimeout, got " + (first?.GetType()?.Name ?? "null"));
         await WaitUntil(() => pending.task.IsCompleted, 1000, "the pending future to settle");
         Assert(pending.task.IsFaulted, "the pending future must be rejected by the timeout");
+        Assert(pending.task.Exception?.InnerException is RequestTimeout, "the pending future must retain the RequestTimeout cause");
         // the socket must not stay open after the timeout
         await WaitUntil(() => client.webSocket.State != WebSocketState.Open, 3000, "the client socket to leave the OPEN state (still " + client.webSocket.State + ")");
         await WaitUntil(() => server.sawClose, 3000, "the server to receive the client's close frame");
@@ -162,7 +199,7 @@ public partial class BaseTest
         using var server = new KeepAliveProbeServer();
         object? captured = null;
         var client = new BaseExchange.WebSocketClient(server.url, null, (c, m) => { }, null, (c, e) => { }, (c, e) => { captured = e; }, false, 50);
-        await client.connect();
+        await client.connect().WaitAsync(TimeSpan.FromSeconds(3));
         await WaitUntil(() => server.serverSide != null && server.serverSide.State == WebSocketState.Open, 3000, "the server to accept the socket");
         server.streamAfterTimeout = true; // frames every 10 ms, well inside the 100 ms kill window (keepAlive 50 x 2 misses)
         client.maxPingPongMisses = 2;
@@ -175,6 +212,7 @@ public partial class BaseTest
 
     async public Task testWsClientKeepAliveTimeout()
     {
+        await testWsClientConnectPublishesReadyState();
         await testWsClientKeepAliveTimeoutClosesTheSocket();
         await testWsClientKeepAliveHealthyPeerKeepsTheSocket();
     }

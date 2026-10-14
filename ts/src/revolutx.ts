@@ -3,7 +3,7 @@
 import { ed25519 } from '@noble/curves/ed25519.js';
 import Exchange from './abstract/revolutx.js';
 import { BadRequest, InvalidOrder, InvalidNonce, OrderNotFound, ExchangeError, ArgumentsRequired, PermissionDenied, InsufficientFunds, RateLimitExceeded } from './base/errors.js';
-import type { Balances, Currencies, Currency, Dict, Int, int, List, Market, MarketInterface, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Endpoint, Fee, Int, int, List, Market, MarketInterface, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 import { Precise } from './base/Precise.js';
 import { eddsa } from './base/functions/crypto.js';
 import { TICK_SIZE } from './base/functions/number.js';
@@ -75,33 +75,33 @@ export default class revolutx extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        '2.0/public/order-book/{symbol}': 1,
-                        '1.0/public/tickers': 1,
-                        '1.0/public/candles/{symbol}': 1,
-                        '1.0/public/trades/all': 1,
-                        '1.0/public/configuration/currencies': 1,
-                        '1.0/public/configuration/pairs': 1,
+                        '2.0/public/order-book/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        '1.0/public/tickers': { 'cost': 1 } as Endpoint<Dict>,
+                        '1.0/public/candles/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        '1.0/public/trades/all': { 'cost': 1 } as Endpoint<Dict>,
+                        '1.0/public/configuration/currencies': { 'cost': 1 } as Endpoint<Dict>,
+                        '1.0/public/configuration/pairs': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'private': {
                     'get': {
                         '1.0/balances': 1,
-                        '1.0/orders/active': 1,
-                        '1.0/orders/historical': 1,
-                        '1.0/orders/{venue_order_id}': 1,
+                        '1.0/orders/active': { 'cost': 1 } as Endpoint<Dict>,
+                        '1.0/orders/historical': { 'cost': 1 } as Endpoint<Dict>,
+                        '1.0/orders/{venue_order_id}': { 'cost': 1 } as Endpoint<Dict>,
                         '1.0/orders/fills/{venue_order_id}': 1,
-                        '1.0/trades/private/{symbol}': 1,
+                        '1.0/trades/private/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
                         '1.0/transactions': 1,
                     },
                     'post': {
-                        '1.0/orders': 1,
+                        '1.0/orders': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'put': {
-                        '1.0/orders/{venue_order_id}': 1,
+                        '1.0/orders/{venue_order_id}': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'delete': {
                         '1.0/orders': 1,
-                        '1.0/orders/{venue_order_id}': 1,
+                        '1.0/orders/{venue_order_id}': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -212,12 +212,19 @@ export default class revolutx extends Exchange {
         });
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        let requestHeaders: NullableDict = undefined;
+        let requestBody: Str = undefined;
         const implodedPath = this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         const queryKeys = Object.keys (query);
         const queryLength = queryKeys.length;
-        let url = this.urls['api'][api] + '/' + implodedPath;
+        const baseApiUrl = this.safeString (this.urls['api'], api);
+        if (baseApiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        const baseUrl: string = baseApiUrl;
+        let url = baseUrl + '/' + implodedPath;
         let queryString = '';
         if (api === 'private') {
             this.checkRequiredCredentials ();
@@ -233,22 +240,20 @@ export default class revolutx extends Exchange {
                     url += '?' + queryString;
                 }
             } else {
-                body = this.json (query);
+                requestBody = this.json (query);
             }
             const requestPath = '/api/' + implodedPath;
-            let bodyString = '';
-            if (body !== undefined) {
-                bodyString = body;
-            }
+            const bodyValue = (requestBody !== undefined) ? requestBody : body;
+            const bodyString = (bodyValue !== undefined) ? bodyValue : '';
             const message = timestamp + method.toUpperCase () + requestPath + queryString + bodyString;
             const signature = eddsa (this.encode (message), this.privateKey, ed25519);
-            headers = {
+            requestHeaders = {
                 'X-Revx-API-Key': this.apiKey,
                 'X-Revx-Timestamp': timestamp,
                 'X-Revx-Signature': signature,
             };
             if (method === 'POST' || method === 'PUT') {
-                headers['Content-Type'] = 'application/json';
+                requestHeaders['Content-Type'] = 'application/json';
             }
         } else {
             if (method === 'GET') {
@@ -257,11 +262,13 @@ export default class revolutx extends Exchange {
                     url += '?' + queryString;
                 }
             } else {
-                body = this.json (query);
-                headers = { 'Content-Type': 'application/json' };
+                requestBody = this.json (query);
+                requestHeaders = { 'Content-Type': 'application/json' };
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const headersResult = (requestHeaders !== undefined) ? requestHeaders : headers;
+        const bodyResult = (requestBody !== undefined) ? requestBody : body;
+        return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 
     /**
@@ -352,7 +359,7 @@ export default class revolutx extends Exchange {
      * @param {string} [params.region] the region to filter markets by (e.g. EEA, UK)
      * @returns {object[]} an array of [market structures]{@link https://docs.ccxt.com/?id=market-structure}
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const request: Dict = {};
         const region = this.safeString2 (params, 'region', 'region', this.options['region']);
         if (region !== undefined) {
@@ -377,6 +384,9 @@ export default class revolutx extends Exchange {
             const market = this.safeDict (markets, key, {});
             const base = this.safeString (market, 'base');
             const quote = this.safeString (market, 'quote');
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const marketId = base + '-' + quote;
             const marketData = this.extend (market, { 'id': marketId });
             result.push (this.parseMarket (marketData));
@@ -440,7 +450,7 @@ export default class revolutx extends Exchange {
      * @param {string} [params.region] the region to filter currencies by
      * @returns {object} a dictionary of [currency structures]{@link https://docs.ccxt.com/?id=currency-structure}
      */
-    override async fetchCurrencies (params = {}): Promise<Currencies> {
+    override async fetchCurrencies (params: Dict = {}): Promise<Currencies> {
         const request: Dict = {};
         const region = this.safeString2 (params, 'region', 'region', this.options['region']);
         if (region !== undefined) {
@@ -490,11 +500,11 @@ export default class revolutx extends Exchange {
         const priceChange = this.safeString (ticker, 'price_change_24h');
         const baseVolume = this.safeString (ticker, 'volume_24h');
         const timestamp = this.safeInteger (ticker, 'timestamp');
-        let open = undefined;
+        let open: Str = undefined;
         if (last !== undefined && priceChange !== undefined) {
             open = Precise.stringSub (last, priceChange);
         }
-        let percentage = undefined;
+        let percentage: Num = undefined;
         if (open !== undefined && priceChange !== undefined) {
             const percentageString = Precise.stringDiv (priceChange, open, 8);
             percentage = this.parseNumber (Precise.stringMul (percentageString, '100'));
@@ -533,7 +543,7 @@ export default class revolutx extends Exchange {
      * @param {string} [params.region] the region to fetch tickers for (e.g. EEA, UK)
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -562,7 +572,7 @@ export default class revolutx extends Exchange {
         //         "metadata": { "timestamp": 1785313433816 }
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const metadata = this.safeDict (response, 'metadata', {});
         const timestamp = this.safeInteger (metadata, 'timestamp');
         const result: Dict = {};
@@ -599,7 +609,7 @@ export default class revolutx extends Exchange {
      * @param {string} [params.region] the region to fetch the ticker for
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -622,7 +632,7 @@ export default class revolutx extends Exchange {
      * @param {string} [params.region] the region to fetch the order book for
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -686,7 +696,7 @@ export default class revolutx extends Exchange {
      * @param {string} [params.region] the region to fetch candles for
      * @returns {int[][]} a list of [OHLCV structures]{@link https://docs.ccxt.com/?id=ohlcv-structure}
      */
-    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -739,7 +749,7 @@ export default class revolutx extends Exchange {
         const amount = this.safeNumber (trade, 'quantity');
         const side = this.safeStringLower (trade, 'side');
         const timestamp = this.safeInteger (trade, 'timestamp');
-        let cost = undefined;
+        let cost: Num = undefined;
         if (price !== undefined && amount !== undefined) {
             cost = price * amount;
         }
@@ -768,13 +778,13 @@ export default class revolutx extends Exchange {
      * @see https://developer.revolut.com/docs/api/revolut-x-crypto-exchange#tag-public-market-data
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
-     * @param {int} [limit] the maximum number of trades to return (1-1900, default 1900)
+     * @param {int} [limit] the maximum number of trades to return (1-100)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest trade to fetch
      * @param {string} [params.cursor] pagination cursor from the previous response
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -796,7 +806,7 @@ export default class revolutx extends Exchange {
             request['end_date'] = this.milliseconds ();
         }
         if (limit !== undefined) {
-            request['limit'] = Math.min (limit, 1900);
+            request['limit'] = Math.min (limit, 100);
         }
         const cursor = this.safeString (params, 'cursor');
         if (cursor !== undefined) {
@@ -812,7 +822,7 @@ export default class revolutx extends Exchange {
         //         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const result: Trade[] = [];
         for (let i = 0; i < data.length; i++) {
             const trade = this.safeDict (data, i, {});
@@ -829,7 +839,7 @@ export default class revolutx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -915,26 +925,26 @@ export default class revolutx extends Exchange {
         const timeInForce = this.safeStringUpper (order, 'time_in_force');
         const createdDate = this.safeInteger (order, 'created_date');
         const updatedDate = this.safeInteger (order, 'updated_date');
-        let fee = undefined;
+        let fee: Fee = undefined;
         if (totalFee !== undefined) {
             fee = {
                 'cost': this.parseNumber (totalFee),
                 'currency': feeCurrency,
             };
         }
-        let amountValue = undefined;
+        let amountValue: Str = undefined;
         if (quantity !== undefined) {
             amountValue = quantity;
         } else if (amount !== undefined) {
             amountValue = amount;
         }
-        let filledValue = undefined;
+        let filledValue: Str = undefined;
         if (filledQuantity !== undefined) {
             filledValue = filledQuantity;
         } else if (filledAmount !== undefined) {
             filledValue = filledAmount;
         }
-        let remainingValue = undefined;
+        let remainingValue: Str = undefined;
         if (leavesQuantity !== undefined) {
             remainingValue = leavesQuantity;
         }
@@ -976,7 +986,7 @@ export default class revolutx extends Exchange {
      * @param {string[]} [params.executionInstructions] limit order instructions, e.g. ['post_only'] or ['allow_taker']
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1056,7 +1066,7 @@ export default class revolutx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1080,7 +1090,7 @@ export default class revolutx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an empty [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
+    override async cancelAllOrders (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1098,7 +1108,7 @@ export default class revolutx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1142,7 +1152,7 @@ export default class revolutx extends Exchange {
      * @param {string} [params.side] filter by side, 'buy' or 'sell'
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1177,7 +1187,7 @@ export default class revolutx extends Exchange {
         //         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const result: Order[] = [];
         for (let i = 0; i < data.length; i++) {
             const order = this.safeDict (data, i, {});
@@ -1201,7 +1211,7 @@ export default class revolutx extends Exchange {
      * @param {string[]} [params.orderTypes] filter by order types, e.g. ['limit', 'market']
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1240,7 +1250,7 @@ export default class revolutx extends Exchange {
             request['order_types'] = orderTypes.join (',');
         }
         const response = await this.privateGet10OrdersHistorical (this.extend (request, this.omit (params, [ 'until', 'cursor', 'orderStates', 'order_states', 'orderTypes', 'order_types' ])));
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const result: Order[] = [];
         for (let i = 0; i < data.length; i++) {
             const order = this.safeDict (data, i, {});
@@ -1260,7 +1270,7 @@ export default class revolutx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         const orderStates = this.safeList2 (params, 'orderStates', 'order_states', [ 'filled', 'cancelled', 'rejected', 'replaced' ]);
         const requestParams = this.extend (this.omit (params, [ 'orderStates', 'order_states' ]), {
             'order_states': orderStates,
@@ -1286,7 +1296,7 @@ export default class revolutx extends Exchange {
         const timestamp = this.safeInteger2 (trade, 'tdt', 'pdt');
         const isMaker = this.safeBool (trade, 'im', false);
         const takerOrMaker = (isMaker) ? 'maker' : 'taker';
-        let cost = undefined;
+        let cost: Num = undefined;
         if (price !== undefined && amount !== undefined) {
             cost = price * amount;
         }
@@ -1322,7 +1332,7 @@ export default class revolutx extends Exchange {
      * @param {string} [params.cursor] pagination cursor from the previous response
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1365,7 +1375,7 @@ export default class revolutx extends Exchange {
         //         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const result: Trade[] = [];
         for (let i = 0; i < data.length; i++) {
             const trade = this.safeDict (data, i, {});
@@ -1392,7 +1402,7 @@ export default class revolutx extends Exchange {
      * @param {string[]} [params.executionInstructions] e.g. ['post_only']
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
+    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
         // note: the exchange assigns a new venue_order_id on replace — the returned order carries the new id
         if (this.markets === undefined) {
             await this.loadMarkets ();

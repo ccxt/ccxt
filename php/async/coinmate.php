@@ -404,6 +404,9 @@ class coinmate extends Exchange {
             $quoteId = $this->safe_string($market, 'secondCurrency');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $symbol = $base . '/' . $quote;
             $result[] = array(
                 'id' => $id,
@@ -465,7 +468,7 @@ class coinmate extends Exchange {
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
-            $balance = $this->safe_value($balances, $currencyId);
+            $balance = $this->safe_dict($balances, $currencyId);
             $account = $this->account();
             $account['free'] = $this->safe_string($balance, 'available');
             $account['used'] = $this->safe_string($balance, 'reserved');
@@ -584,7 +587,7 @@ class coinmate extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $response = Async\await($this->publicGetTickerAll($params));
         //
         //     {
@@ -613,7 +616,7 @@ class coinmate extends Exchange {
             $ticker = $this->parse_ticker($this->safe_value($data, $keys[$i]), $market);
             $result[$market['symbol']] = $ticker;
         }
-        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
+        return $this->filter_by_array_tickers($result, 'symbol', $symbolsNormalized);
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -778,11 +781,11 @@ class coinmate extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal
          *
@@ -796,17 +799,17 @@ class coinmate extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=$transaction-structure $transaction structure~
          */
-        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->check_address($address);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
+        $this->check_address($address, $code, $tagWithdrawTag);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
         $currency = $this->currency($code);
-        $withdrawOptions = $this->safe_value($this->options, 'withdraw', array());
+        $withdrawOptions = $this->safe_dict($this->options, 'withdraw', array());
         $methods = $this->safe_dict($withdrawOptions, 'methods', array());
         $method = $this->safe_string($methods, $code);
         if ($method === null) {
@@ -817,10 +820,10 @@ class coinmate extends Exchange {
             'amount' => $this->currency_to_precision($code, $amount),
             'address' => $address,
         );
-        if ($tag !== null) {
-            $request['destinationTag'] = $tag;
+        if ($tagWithdrawTag !== null) {
+            $request['destinationTag'] = $tagWithdrawTag;
         }
-        $requestParams = $this->extend($request, $params);
+        $requestParams = $this->extend($request, $paramsWithdrawTag);
         $response = null;
         if ($method === 'privatePostBitcoinWithdrawal') {
             $response = Async\await($this->privatePostBitcoinWithdrawal($requestParams));
@@ -852,21 +855,21 @@ class coinmate extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_dict($response, 'data', array());
         $transaction = $this->parse_transaction($data, $currency);
         $fillResponseFromRequest = $this->safe_bool($withdrawOptions, 'fillResponseFromRequest', true);
         if ($fillResponseFromRequest === true) {
             $transaction['amount'] = $amount;
             $transaction['currency'] = $code;
             $transaction['address'] = $address;
-            $transaction['tag'] = $tag;
+            $transaction['tag'] = $tagWithdrawTag;
             $transaction['type'] = 'withdrawal';
             $transaction['status'] = 'pending';
         }
         return $transaction;
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -885,11 +888,9 @@ class coinmate extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        if ($limit === null) {
-            $limit = 1000;
-        }
+        $limitResolved = ($limit === null) ? 1000 : $limit;
         $request = array(
-            'limit' => $limit,
+            'limit' => $limitResolved,
         );
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -900,7 +901,7 @@ class coinmate extends Exchange {
         }
         $response = Async\await($this->privatePostTradeHistory($this->extend($request, $params)));
         $data = $this->safe_list($response, 'data', array());
-        return $this->parse_trades($data, null, $since, $limit);
+        return $this->parse_trades($data, null, $since, $limitResolved);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -932,7 +933,7 @@ class coinmate extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($trade, 'currencyPair');
-        $market = $this->safe_market($marketId, $market, '_');
+        $marketResolved = $this->safe_market($marketId, $market, '_');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
         $side = $this->safe_string_lower_2($trade, 'type', 'tradeType');
@@ -945,7 +946,7 @@ class coinmate extends Exchange {
         if ($feeCostString !== null) {
             $fee = array(
                 'cost' => $feeCostString,
-                'currency' => $market['quote'],
+                'currency' => $marketResolved['quote'],
             );
         }
         $takerOrMaker = $this->safe_string($trade, 'feeType');
@@ -955,7 +956,7 @@ class coinmate extends Exchange {
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'type' => $type,
             'side' => $side,
             'order' => $orderId,
@@ -964,7 +965,7 @@ class coinmate extends Exchange {
             'amount' => $amountString,
             'cost' => null,
             'fee' => $fee,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1041,7 +1042,7 @@ class coinmate extends Exchange {
         //         "data": { maker: '0.3', taker: "0.35", timestamp: "1646253217815" }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         $makerString = $this->safe_string($data, 'maker');
         $takerString = $this->safe_string($data, 'taker');
         $maker = $this->parse_number(Precise::string_div($makerString, '100'));
@@ -1095,7 +1096,7 @@ class coinmate extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1218,7 +1219,7 @@ class coinmate extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -1270,7 +1271,7 @@ class coinmate extends Exchange {
         } elseif ($method === 'privatePostSellLimit') {
             $response = Async\await($this->privatePostSellLimit($requestParams));
         } else {
-            throw new InvalidOrder($this->id . ' createOrder() does not support order $type ' . $type);
+            throw new InvalidOrder($this->id . ' createOrder() does not support order type ' . $type);
         }
         $id = $this->safe_string($response, 'data');
         return $this->safe_order(array(
@@ -1279,7 +1280,7 @@ class coinmate extends Exchange {
         ), $market);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
     }
 
@@ -1310,7 +1311,7 @@ class coinmate extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -1342,32 +1343,41 @@ class coinmate extends Exchange {
         return $this->parse_order($data);
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds();
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
-        $url = ($this->urls['api'])['rest'] . '/' . $path;
+    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $bodySigned = null;
+        $headersSigned = null;
+        $apiUrl = $this->safe_string($this->urls['api'], 'rest');
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . '/' . $path;
         if ($api === 'public') {
             if (count($params) > 0) {
                 $url .= '?' . $this->urlencode($params);
             }
         } else {
             $this->check_required_credentials();
-            $nonce = (string) $this->nonce();
+            // coinmate requires each nonce to be greater than the previous one for the key
+            $nonce = (string) $this->incrementing_nonce();
             $auth = $nonce . $this->uid . $this->apiKey;
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
-            $body = $this->urlencode($this->extend(array(
+            $bodySigned = $this->urlencode($this->extend(array(
                 'clientId' => $this->uid,
                 'nonce' => $nonce,
                 'publicKey' => $this->apiKey,
                 'signature' => strtoupper($signature),
             ), $params));
-            $headers = array(
+            $headersSigned = array(
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        $headersResolved = ($headersSigned === null) ? $headers : $headersSigned;
+        $bodyResolved = ($bodySigned === null) ? $body : $bodySigned;
+        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

@@ -3597,6 +3597,17 @@ public class KucoinApi extends Exchange
     }
 
     /**
+     * Calls the utaV2GetMarketFundingRate endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  utaV2GetMarketFundingRate (Object... optionalArgs)
+    {
+        return this.callAsync ("utaV2GetMarketFundingRate", optionalArgs);
+    }
+
+    /**
      * Calls the utaPrivateGetMarketOrderbook endpoint.
      *
      * @param optionalArgs the request parameters

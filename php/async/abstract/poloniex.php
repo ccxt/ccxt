@@ -332,7 +332,7 @@ abstract class poloniex extends \ccxt\async\Exchange {
         return $this->request('orders', 'private', 'POST', $params, null, null, array("cost" => 4));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function private_post_orders_batch($params = array()) {
         return $this->request('orders/batch', 'private', 'POST', $params, null, null, array("cost" => 20));
@@ -962,7 +962,7 @@ abstract class poloniex extends \ccxt\async\Exchange {
         return $this->request('orders', 'private', 'POST', $params, null, null, array("cost" => 4));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function privatePostOrdersBatch($params = array()) {
         return $this->request('orders/batch', 'private', 'POST', $params, null, null, array("cost" => 20));
