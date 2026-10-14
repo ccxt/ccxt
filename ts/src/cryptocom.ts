@@ -2160,7 +2160,10 @@ export default class cryptocom extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     override async fetchDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
-        const network = this.safeStringUpper (params, 'network');
+        let network = this.safeStringUpper (params, 'network');
+        if (network !== undefined) {
+            network = this.unifiedNetworkCode (network);
+        }
         const paramsOmitted: Dict = this.omit (params, [ 'network' ]);
         const depositAddressesRaw = await this.fetchDepositAddressesByNetwork (code, paramsOmitted);
         const depositAddresses: Dict = depositAddressesRaw;

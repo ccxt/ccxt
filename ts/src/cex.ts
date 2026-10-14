@@ -276,7 +276,7 @@ export default class cex extends Exchange {
                     'THETA': 'theta',
                     'XTZ': 'tezos',
                     'TIA': 'celestia',
-                    'CRONOS': 'cronos', // CRC20
+                    'CRC20': 'cronos',
                     'MATIC': 'polygon',
                     'TON': 'ton',
                     'TRC20': 'tron',
