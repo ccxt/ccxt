@@ -400,10 +400,10 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
                 'networks': {
                     'BTC': 'bitcoin',
                     // LIGHTNING unsupported
-                    'ETH': 'ethereum',
-                    // TRON unsupported
+                    'ERC20': 'ethereum',
+                    // TRC20 unsupported
                     'SOL': 'solana',
-                    // BSC unsupported
+                    // BEP20 unsupported
                     'ARBITRUM': 'arbitrum',
                     'AVAXC': 'avacchain',
                     'MATIC': 'polygon',
@@ -411,7 +411,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
                     'SUI': 'sui',
                     'OP': 'optimism',
                     'NEAR': 'near',
-                    // CRONOS unsupported
+                    // CRC20 unsupported
                     // GNO unsupported
                     'APT': 'aptos',
                     // SCROLL unsupported

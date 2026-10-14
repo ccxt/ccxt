@@ -1994,7 +1994,6 @@ class alpaca extends alpaca$1["default"] {
             txid = this.safeString(transaction, 'tx_hash');
             datetime = this.safeString(transaction, 'created_at');
             timestamp = this.parse8601(datetime);
-            network = this.safeString(transaction, 'chain');
             address = this.safeString(transaction, 'to_address');
             addressTo = this.safeString(transaction, 'to_address');
             addressFrom = this.safeString(transaction, 'from_address');
@@ -2002,6 +2001,7 @@ class alpaca extends alpaca$1["default"] {
             amount = this.safeNumber(transaction, 'amount');
             const currencyId = this.safeString(transaction, 'asset');
             code = this.safeCurrencyCode(currencyId, currency);
+            network = this.networkIdToCode(this.safeString(transaction, 'chain'), code);
             status = this.parseTransactionStatus(this.safeString(transaction, 'status'));
             const fees = this.safeString(transaction, 'fees');
             const networkFee = this.safeString(transaction, 'network_fee');

@@ -2897,7 +2897,7 @@ export default class bitrue extends Exchange {
             currencyId = this.safeString(parts, 0);
             const networkId = this.safeString(parts, 1);
             if (networkId !== undefined) {
-                network = networkId.toUpperCase();
+                network = this.networkIdToCode(networkId.toUpperCase());
             }
         }
         const code = this.safeCurrencyCode(currencyId, currency);

@@ -222,7 +222,7 @@ export default class indodax extends Exchange {
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'networks': {
                     'XLM': 'Stellar Token',
-                    'BSC': 'bep20',
+                    'BEP20': 'bep20',
                     'TRC20': 'trc20',
                     'MATIC': 'polygon',
                     // 'BEP2': 'bep2',

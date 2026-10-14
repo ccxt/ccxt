@@ -2049,7 +2049,7 @@ export default class extended extends Exchange {
             };
         }
         const transactionType = this.parseTransactionType(this.safeString(transaction, 'type'));
-        const network = this.safeString(transaction, 'chain');
+        const network = this.networkIdToCode(this.safeString(transaction, 'chain'));
         return {
             'info': transaction,
             'id': this.safeString(transaction, 'id'),

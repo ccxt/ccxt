@@ -882,7 +882,7 @@ class htx extends htx$1["default"] {
                     'LTC': 'LTC',
                     'XRP': 'XRP',
                     'XLM': 'XLM',
-                    'CRONOS': 'CRO',
+                    'CRC20': 'CRO',
                     'CRO': 'CRO',
                     'GLMR': 'GLMR',
                     'POLYGON': 'MATIC',
@@ -6611,7 +6611,7 @@ class htx extends htx$1["default"] {
         const currency = this.currency(code);
         const [networkCode, paramsOmited] = this.handleNetworkCodeAndParams(params);
         const indexedAddresses = await this.fetchDepositAddressesByNetwork(code, paramsOmited);
-        const selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks(currency['code'], networkCode, indexedAddresses);
+        const selectedNetworkCode = this.selectNetworkKeyFromNetworks(currency['code'], networkCode, indexedAddresses, true);
         return this.safeValue(indexedAddresses, selectedNetworkCode);
     }
     async fetchWithdrawAddresses(code, note = undefined, networkCode = undefined, params = {}) {

@@ -1134,9 +1134,7 @@ export default class kucoin extends Exchange {
                     'BTC': 'btc',
                     'BRC20': 'btc',
                     'BTCNATIVESEGWIT': 'bech32',
-                    'ETH': 'eth',
                     'ERC20': 'eth',
-                    'TRX': 'trx',
                     'TRC20': 'trx',
                     'HECO': 'heco',
                     'HRC20': 'heco',
@@ -3708,7 +3706,7 @@ export default class kucoin extends Exchange {
         return {
             'info': response,
             'currency': currencyId,
-            'network': this.safeString(data, 'chain'),
+            'network': this.networkIdToCode(this.safeString(data, 'chain'), code),
             'address': address,
             'tag': this.safeString(data, 'memo'),
         };

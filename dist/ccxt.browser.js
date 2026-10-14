@@ -164723,7 +164723,6 @@ class alpaca extends _abstract_alpaca_js__rspack_import_0/* ["default"] */.A {
             txid = this.safeString(transaction, 'tx_hash');
             datetime = this.safeString(transaction, 'created_at');
             timestamp = this.parse8601(datetime);
-            network = this.safeString(transaction, 'chain');
             address = this.safeString(transaction, 'to_address');
             addressTo = this.safeString(transaction, 'to_address');
             addressFrom = this.safeString(transaction, 'from_address');
@@ -164731,6 +164730,7 @@ class alpaca extends _abstract_alpaca_js__rspack_import_0/* ["default"] */.A {
             amount = this.safeNumber(transaction, 'amount');
             const currencyId = this.safeString(transaction, 'asset');
             code = this.safeCurrencyCode(currencyId, currency);
+            network = this.networkIdToCode(this.safeString(transaction, 'chain'), code);
             status = this.parseTransactionStatus(this.safeString(transaction, 'status'));
             const fees = this.safeString(transaction, 'fees');
             const networkFee = this.safeString(transaction, 'network_fee');
@@ -171660,6 +171660,9 @@ class aster extends _abstract_aster_js__rspack_import_0/* ["default"] */.A {
         // TODO: check how ARBI signature would work
         const networks = this.safeDict(this.options, 'networks', {});
         let network = this.safeStringUpper(paramsWithdrawTag, 'network');
+        if (network !== undefined) {
+            network = this.safeString(this.networkAliases, network, network); // accepts aliases like ETH for ERC20
+        }
         network = this.safeString(networks, network, network);
         if (chainId === undefined && network !== undefined) {
             const chainIds = this.safeDict(this.options, 'networksToChainId', {});
@@ -172618,7 +172621,7 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
                     'BERA': 'Berachain',
                     'BTC': 'Bitcoin',
                     'BCH': 'BitcoinCash',
-                    'BSC': 'Bsc',
+                    'BEP20': 'Bsc',
                     'ADA': 'Cardano',
                     'DOGE': 'Dogecoin',
                     'ECLIPSE': 'Eclipse',
@@ -172643,7 +172646,7 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
                     'berachain': 'BERA',
                     'bitcoin': 'BTC',
                     'bitcoincash': 'BCH',
-                    'bsc': 'BSC',
+                    'bsc': 'BEP20',
                     'cardano': 'ADA',
                     'dogecoin': 'DOGE',
                     'eclipse': 'ECLIPSE',
@@ -177820,8 +177823,9 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         return timestamp;
     }
     afterConstruct(userConfig = {}) {
-        // networks
-        this.createNetworksByIdObject();
+        // networksById: inverse of options.networks, explicit options.networksById entries win
+        const networkIdsToCodesGenerated = this.invertFlatStringDictionary(this.safeValue(this.options, 'networks', {}));
+        this.options['networksById'] = this.extend(networkIdsToCodesGenerated, this.safeValue(this.options, 'networksById', {}));
         this.featuresGenerator();
         // init predefined markets if any
         if (this.markets !== undefined) {
@@ -178062,40 +178066,8 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         }
         return symbol + ' : ' + 'orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options["watchOrderBook"]["checksum"] = false';
     }
-    createNetworksByIdObject() {
-        // automatically generate network-id-to-code mappings
-        const networkIdsToCodesGenerated = this.invertFlatStringDictionary(this.safeValue(this.options, 'networks', {})); // invert defined networks dictionary
-        this.options['networksById'] = this.extend(networkIdsToCodesGenerated, this.safeValue(this.options, 'networksById', {})); // support manually overriden "networksById" dictionary too
-    }
     getDefaultOptions() {
         return {
-            'defaultNetworkCodeReplacements': {
-                'ETH': {
-                    'primary': 'ETH',
-                    'secondary': 'ERC20',
-                    'default': 'secondary'
-                },
-                'CRO': {
-                    'primary': 'CRONOS',
-                    'secondary': 'CRC20',
-                    'default': 'secondary'
-                },
-                'TRX': {
-                    'primary': 'TRX',
-                    'secondary': 'TRC20',
-                    'default': 'secondary'
-                },
-                'BTC': {
-                    'primary': 'BTC',
-                    'secondary': 'BRC20',
-                    'default': 'primary'
-                }
-            },
-            'backwardSupportedNetworkCodes': {
-                'ARB': 'ARBITRUM',
-                'ARBONE': 'ARBITRUM',
-                'ARBNOVA': 'ARBITRUM_NOVA'
-            },
             // native-chain withdrawals of these currencies may need a destination tag / memo
             'withdrawTagRequiredCurrencies': [
                 'XRP',
@@ -179590,82 +179562,32 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
             }
         };
     }
-    prioritizedNetworkAliases(networkCode = undefined, currencyCode = undefined, allowDefault = false) {
-        /**
-         * @method
-         * @name Exchange#prioritizedNetworkAliases
-         * @description returns the chain pair [preferred, alternative] for the given networkCode & currency, e.g:
-         *   ---------------------------------
-         *   | input          | output       |
-         *   --------------------------------|
-         *   | ETH & USDC     | ERC20, ETH   |
-         *   | ERC20 & USDC   | ERC20, ETH   |
-         *   | ETH & ETH      | ETH, ERC20   |
-         *   | ERC20 & ETH    | ETH, ERC20   |
-         *   | ERC20          | ERC20, ETH   |
-         *   | ETH            | ERC20, ETH   |
-         *   ---------------------------------
-         * @param {string} networkCode unified network-code
-         * @param {string} currencyCode unified currency-code
-         * @param {boolean} allowDefault when currencyCode is undefined, order by replacement's "default" instead of by user input
-         * @returns {string[]} [preferredChain, alternativeChain]
-         */ if (networkCode === undefined) {
-            return undefined;
-        }
-        const replacements = this.safeDict(this.options, 'defaultNetworkCodeReplacements', {});
-        const keys = Object.keys(replacements);
-        for(let i = 0; i < keys.length; i++){
-            const baseCoin = keys[i];
-            const entry = replacements[baseCoin];
-            const primary = entry['primary'];
-            const secondary = entry['secondary'];
-            if (networkCode !== primary && networkCode !== secondary) {
-                continue;
-            }
-            // pick which form goes first in the returned pair
-            let preferPrimary = false;
-            if (currencyCode === baseCoin) {
-                preferPrimary = true; // mainnet currency uses primary chain
-            } else if (currencyCode !== undefined) {
-                preferPrimary = false; // any other (token) currency uses secondary chain
-            } else if (allowDefault) {
-                preferPrimary = entry['default'] === 'primary';
-            } else {
-                preferPrimary = networkCode === primary; // keep user input first
-            }
-            return preferPrimary ? [
-                primary,
-                secondary
-            ] : [
-                secondary,
-                primary
-            ];
-        }
-        return [
-            networkCode,
-            networkCode
-        ];
-    }
     networkCodeToId(networkCode, currencyCode = undefined) {
         /**
          * @ignore
          * @method
          * @name exchange#networkCodeToId
-         * @description tries to convert the provided networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
+         * @description tries to convert the provided networkCode (a unified network code or one of its aliases) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
          * @param {string} networkCode unified network code
          * @param {string} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {string|undefined} exchange-specific network id
          */ if (networkCode === undefined) {
             return undefined;
         }
+        const unifiedCode = this.safeString(this.networkAliases, networkCode, networkCode);
         const networkIdsByCodes = this.safeDict(this.options, 'networks', {});
-        // try the preferred form first, fall back to its alternative (e.g. when only 'ETH' or only 'ERC20' is defined)
-        const chainPair = this.prioritizedNetworkAliases(networkCode, currencyCode, false);
-        const preferredChain = chainPair === undefined ? networkCode : chainPair[0];
-        const alternativeChain = chainPair === undefined ? networkCode : chainPair[1];
-        const networkId = this.safeString2(networkIdsByCodes, preferredChain, alternativeChain);
+        const networkId = this.safeString(networkIdsByCodes, unifiedCode);
         if (networkId !== undefined) {
             return networkId;
+        }
+        // options.networks may still be keyed by an alias of the unified code
+        const aliases = this.networkAliases;
+        const aliasKeys = Object.keys(aliases);
+        for(let i = 0; i < aliasKeys.length; i++){
+            const alias = aliasKeys[i];
+            if (aliases[alias] === unifiedCode && alias in networkIdsByCodes) {
+                return networkIdsByCodes[alias];
+            }
         }
         // fall back to scanning loaded currencies
         let currenciesToCheck = [];
@@ -179678,14 +179600,9 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         }
         for(let i = 0; i < currenciesToCheck.length; i++){
             const networks = this.safeDict(currenciesToCheck[i], 'networks', {});
-            if (networkCode in networks) {
-                return this.safeString(networks[networkCode], 'id');
+            if (unifiedCode in networks) {
+                return this.safeString(networks[unifiedCode], 'id');
             }
-        }
-        // before returning the original input, try to match if it's backward-maintained networkCode
-        const oldCodes = this.safeDict(this.options, 'backwardSupportedNetworkCodes', {});
-        if (networkCode in oldCodes) {
-            return this.networkCodeToId(oldCodes[networkCode], currencyCode);
         }
         return networkCode;
     }
@@ -179702,22 +179619,9 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
             return undefined;
         }
         const networkCodesByIds = this.safeDict(this.options, 'networksById', {});
-        const networkCode = this.safeString(networkCodesByIds, networkId, networkId);
-        const chainPair = this.prioritizedNetworkAliases(networkCode, currencyCode, true);
-        if (chainPair === undefined) {
-            return networkCode;
-        }
-        const preferredChain = chainPair[0];
-        const alternativeChain = chainPair[1];
-        // when the exchange explicitly defines both forms in options.networks (e.g. BTC + BRC20),
-        // it disambiguates them — trust the direct id→code inversion instead of guessing
-        if (currencyCode === undefined) {
-            const networkIdsByCodes = this.safeDict(this.options, 'networks', {});
-            if (preferredChain in networkIdsByCodes && alternativeChain in networkIdsByCodes) {
-                return networkCode;
-            }
-        }
-        return preferredChain;
+        const mappedCode = this.safeString(networkCodesByIds, networkId);
+        const networkCode = mappedCode === undefined ? networkId : mappedCode;
+        return this.safeString(this.networkAliases, networkCode, networkCode);
     }
     handleNetworkCodeAndParams(params) {
         const networkCodeInParams = this.safeString2(params, 'networkCode', 'network');
@@ -179730,27 +179634,6 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
             networkCodeInParams,
             paramsOmitted
         ];
-    }
-    defaultNetworkCode(currencyCode) {
-        let defaultNetworkCode = undefined;
-        const defaultNetworks = this.safeDict(this.options, 'defaultNetworks', {});
-        if (currencyCode in defaultNetworks) {
-            // if currency had set its network in "defaultNetworks", use it
-            defaultNetworkCode = defaultNetworks[currencyCode];
-        } else {
-            // otherwise, try to use the global-scope 'defaultNetwork' value (even if that network is not supported by currency, it doesn't make any problem, this will be just used "at first" if currency supports this network at all)
-            const defaultNetwork = this.safeString(this.options, 'defaultNetwork');
-            if (defaultNetwork !== undefined) {
-                defaultNetworkCode = defaultNetwork;
-            }
-        }
-        return defaultNetworkCode;
-    }
-    selectNetworkCodeFromUnifiedNetworks(currencyCode, networkCode, indexedNetworkEntries) {
-        return this.selectNetworkKeyFromNetworks(currencyCode, networkCode, indexedNetworkEntries, true);
-    }
-    selectNetworkIdFromRawNetworks(currencyCode, networkCode, indexedNetworkEntries) {
-        return this.selectNetworkKeyFromNetworks(currencyCode, networkCode, indexedNetworkEntries, false);
     }
     selectNetworkKeyFromNetworks(currencyCode, networkCode, indexedNetworkEntries, isIndexedByUnifiedNetworkCode = false) {
         // this method is used against raw & unparse network entries, which are just indexed by network id
@@ -179777,7 +179660,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
                 throw new _errors_js__rspack_import_2.NotSupported(this.id + ' - no networks were returned for ' + currencyCode);
             } else {
                 // if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
-                const defaultNetworkCode = this.defaultNetworkCode(currencyCode);
+                const defaultNetworkCode = this.safeString(this.safeDict(this.options, 'defaultNetworks', {}), currencyCode, this.safeString(this.options, 'defaultNetwork'));
                 const defaultNetworkId = isIndexedByUnifiedNetworkCode ? defaultNetworkCode : this.networkCodeToId(defaultNetworkCode, currencyCode);
                 if (defaultNetworkId === undefined) {
                     throw new _errors_js__rspack_import_2.ExchangeError(this.id + ' selectNetworkKeyFromNetworks() missing defaultNetworkId');
@@ -180096,25 +179979,6 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         return [
             value,
             paramsOmitted
-        ];
-    }
-    /**
-     * @param {object} params - extra parameters
-     * @param {object} request - existing dictionary of request
-     * @param {string} exchangeSpecificKey - the key for chain id to be set in request
-     * @param {object} currencyCode - (optional) existing dictionary of request
-     * @param {boolean} isRequired - (optional) whether that param is required to be present
-     * @returns {object[]} - returns [request, params] where request is the modified request object and params is the modified params object
-     */ handleRequestNetwork(params, request, exchangeSpecificKey, currencyCode = undefined, isRequired = false) {
-        const [networkCode, paramsNetworkCode] = this.handleNetworkCodeAndParams(params);
-        if (networkCode !== undefined) {
-            request[exchangeSpecificKey] = this.networkCodeToId(networkCode, currencyCode);
-        } else if (isRequired) {
-            throw new _errors_js__rspack_import_2.ArgumentsRequired(this.id + ' - "network" param is required for this request');
-        }
-        return [
-            request,
-            paramsNetworkCode
         ];
     }
     resolvePath(path, params) {
@@ -182987,6 +182851,17 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         _define_property(this, "httpAgent", undefined);
         _define_property(this, "httpsAgent", undefined);
         _define_property(this, "minFundingAddressLength", 1); // used in checkAddress
+        // alias -> unified network code; aliases are accepted as input but never returned
+        _define_property(this, "networkAliases", {
+            'ETH': 'ERC20',
+            'TRX': 'TRC20',
+            'BSC': 'BEP20',
+            'BSC20': 'BEP20',
+            'CRONOS': 'CRC20',
+            'ARB': 'ARBITRUM',
+            'ARBONE': 'ARBITRUM',
+            'ARBNOVA': 'ARBITRUM_NOVA'
+        });
         _define_property(this, "substituteCommonCurrencyCodes", true); // reserved
         _define_property(this, "quoteJsonNumbers", true); // quote json numbers as precise strings when a response carries precision-risky (16+ digit or exponent) numbers
         // eslint-disable-next-line no-unused-vars
@@ -195743,7 +195618,7 @@ class bigone extends _abstract_bigone_js__rspack_import_0/* ["default"] */.A {
                     'DOGE': 'Dogecoin',
                     'XEC': 'ECash',
                     'EOS': 'EOS',
-                    'ETH': 'Ethereum',
+                    'ERC20': 'Ethereum',
                     'ETC': 'EthereumClassic',
                     'ETHW': 'EthereumPow',
                     'FTM': 'Fantom',
@@ -197507,7 +197382,7 @@ class bigone extends _abstract_bigone_js__rspack_import_0/* ["default"] */.A {
             throw new _base_errors_js__rspack_import_2.ExchangeError(this.id + ' fetchDepositAddress() returned empty address response');
         }
         const chainsIndexedById = this.indexBy(data, 'chain');
-        const selectedNetworkId = this.selectNetworkIdFromRawNetworks(code, networkCode, chainsIndexedById);
+        const selectedNetworkId = this.selectNetworkKeyFromNetworks(code, networkCode, chainsIndexedById, false);
         const addressObject = this.safeDict(chainsIndexedById, selectedNetworkId, {});
         const address = this.safeString(addressObject, 'value');
         const tag = this.safeString(addressObject, 'memo');
@@ -201357,11 +201232,8 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
                     'BTCSEGWIT': 'SEGWITBTC',
                     'BTCLIGHTNING': 'LIGHTNING',
                     'ERC20': 'ETH',
-                    'ETH': 'ETH',
                     'TRC20': 'TRX',
-                    'TRX': 'TRX',
                     'BEP2': 'BNB',
-                    'BSC': 'BSC',
                     'BEP20': 'BSC',
                     'CHZ2': 'CHZ2',
                     'XRP': 'XRP',
@@ -210578,7 +210450,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             for(let j = 0; j < networkList.length; j++){
                 const networkEntry = this.safeDict(networkList, j);
                 const networkId = this.safeString(networkEntry, 'network');
-                const networkCode = this.safeCurrencyCode(networkId);
+                const networkCode = this.networkIdToCode(networkId, code);
                 const fee = this.safeNumber(networkEntry, 'withdrawFee');
                 if (code !== undefined && networkCode !== undefined) {
                     withdrawFees[code][networkCode] = fee;
@@ -217545,7 +217417,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
                 'recvWindow': 5 * 1000,
                 'broker': 'CCXT',
                 'defaultNetworks': {
-                    'ETH': 'ETH',
+                    'ETH': 'ERC20',
                     'USDT': 'ERC20',
                     'USDC': 'ERC20',
                     'BTC': 'BTC',
@@ -222449,14 +222321,11 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             const isPrefixed = address.startsWith('0x') || address.startsWith('0X');
             const evmNetworks = [
                 'BEP20',
-                'BSC',
                 'ERC20',
-                'ETH',
                 'HECO',
                 'MATIC',
                 'POLYGON',
                 'ARBITRUM',
-                'ARB',
                 'OPTIMISM',
                 'AVAXC',
                 'BASE',
@@ -229401,7 +229270,7 @@ class bitfinex extends _abstract_bitfinex_js__rspack_import_0/* ["default"] */.A
                 networks[network] = {
                     'info': networkId,
                     'id': networkId.toLowerCase(),
-                    'network': networkId,
+                    'network': network,
                     'active': undefined,
                     'deposit': this.safeInteger(dwStatuses, 1) === 1,
                     'withdraw': this.safeInteger(dwStatuses, 2) === 1,
@@ -230934,7 +230803,8 @@ class bitfinex extends _abstract_bitfinex_js__rspack_import_0/* ["default"] */.A
         }
         const currency = this.currency(code);
         // if not provided explicitly we will try to match using the currency name
-        const network = this.safeString(params, 'network', code);
+        const networkParam = this.safeString(params, 'network', code);
+        const network = this.safeString(this.networkAliases, networkParam, networkParam);
         const currencyNetworks = this.safeDict(currency, 'networks', {});
         const currencyNetwork = this.safeDict(currencyNetworks, network);
         const networkId = this.safeString(currencyNetwork, 'id');
@@ -231332,7 +231202,8 @@ class bitfinex extends _abstract_bitfinex_js__rspack_import_0/* ["default"] */.A
         }
         const currency = this.currency(code);
         // if not provided explicitly we will try to match using the currency name
-        const network = this.safeString(paramsWithdrawTag, 'network', code);
+        const networkParam = this.safeString(paramsWithdrawTag, 'network', code);
+        const network = this.safeString(this.networkAliases, networkParam, networkParam);
         const paramsOmitted = this.omit(paramsWithdrawTag, 'network');
         const currencyNetworks = this.safeDict(currency, 'networks', {});
         const currencyNetwork = this.safeDict(currencyNetworks, network);
@@ -250568,7 +250439,7 @@ class bithumb extends _abstract_bithumb_js__rspack_import_0/* ["default"] */.A {
                 }
                 request['address'] = address;
                 request['currency'] = currency['id'];
-                request['net_type'] = network;
+                request['net_type'] = this.networkCodeToId(network, code);
                 request['amount'] = this.numberToString(amount);
                 if (destinationRequest !== undefined) {
                     request['secondary_address'] = destinationRequest;
@@ -250599,7 +250470,7 @@ class bithumb extends _abstract_bithumb_js__rspack_import_0/* ["default"] */.A {
             request['currency'] = currency['id'];
             request['units'] = amount;
             if (network !== undefined) {
-                request['net_type'] = network;
+                request['net_type'] = this.networkCodeToId(network, code);
             }
             if (destinationRequest !== undefined) {
                 request['destination'] = destinationRequest;
@@ -250662,7 +250533,7 @@ class bithumb extends _abstract_bithumb_js__rspack_import_0/* ["default"] */.A {
             'txid': this.safeString(transaction, 'txid'),
             'timestamp': timestamp,
             'datetime': datetime,
-            'network': this.safeString(transaction, 'net_type'),
+            'network': this.networkIdToCode(this.safeString(transaction, 'net_type'), currencyResolved['code']),
             'addressFrom': undefined,
             'address': undefined,
             'addressTo': undefined,
@@ -250983,7 +250854,7 @@ class bithumb extends _abstract_bithumb_js__rspack_import_0/* ["default"] */.A {
         if (network === undefined) {
             throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' ' + code + ' createDepositAddress() requires a network parameter');
         }
-        request['net_type'] = network;
+        request['net_type'] = this.networkCodeToId(network, code);
         const response = await this.privatePostV1DepositsGenerateCoinAddress(this.extend(request, paramsOmitted));
         //
         //     {
@@ -251022,7 +250893,7 @@ class bithumb extends _abstract_bithumb_js__rspack_import_0/* ["default"] */.A {
         if (network === undefined) {
             throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' ' + code + ' fetchDepositAddress() requires a network parameter');
         }
-        request['net_type'] = network;
+        request['net_type'] = this.networkCodeToId(network, code);
         const response = await this.privateGetV1DepositsCoinAddress(this.extend(request, paramsOmitted));
         //
         //     {
@@ -251085,7 +250956,7 @@ class bithumb extends _abstract_bithumb_js__rspack_import_0/* ["default"] */.A {
         return {
             'info': response,
             'currency': code,
-            'network': this.safeString(response, 'net_type'),
+            'network': this.networkIdToCode(this.safeString(response, 'net_type'), code),
             'address': address,
             'tag': this.safeString(response, 'secondary_address')
         };
@@ -251602,11 +251473,8 @@ class bitopro extends _abstract_bitopro_js__rspack_import_0/* ["default"] */.A {
             'options': {
                 'networks': {
                     'ERC20': 'ERC20',
-                    'ETH': 'ERC20',
-                    'TRX': 'TRX',
                     'TRC20': 'TRX',
-                    'BEP20': 'BSC',
-                    'BSC': 'BSC'
+                    'BEP20': 'BSC'
                 },
                 'fetchCurrencies': {
                     'fiatCurrencies': [
@@ -253139,7 +253007,7 @@ class bitopro extends _abstract_bitopro_js__rspack_import_0/* ["default"] */.A {
         if (hasNetwork) {
             const networks = this.safeDict(this.options, 'networks', {});
             const requestedNetwork = this.safeStringUpper(paramsWithdrawTag, 'network');
-            const networkId = requestedNetwork === undefined ? undefined : this.safeString(networks, requestedNetwork);
+            const networkId = requestedNetwork === undefined ? undefined : this.safeString(networks, this.safeString(this.networkAliases, requestedNetwork, requestedNetwork));
             if (networkId === undefined) {
                 throw new _base_errors_js__rspack_import_2.ExchangeError(this.id + ' invalid network ' + requestedNetwork);
             }
@@ -256395,7 +256263,7 @@ class bitrue extends _abstract_bitrue_js__rspack_import_0/* ["default"] */.A {
             currencyId = this.safeString(parts, 0);
             const networkId = this.safeString(parts, 1);
             if (networkId !== undefined) {
-                network = networkId.toUpperCase();
+                network = this.networkIdToCode(networkId.toUpperCase());
             }
         }
         const code = this.safeCurrencyCode(currencyId, currency);
@@ -262767,10 +262635,10 @@ class bitteam extends _abstract_bitteam_js__rspack_import_0/* ["default"] */.A {
                     'ethereum': 'ERC20',
                     'Tron': 'TRC20',
                     'tron': 'TRC20',
-                    'Binance': 'BSC',
-                    'binance': 'BSC',
-                    'Binance Smart Chain': 'BSC',
-                    'bscscan': 'BSC',
+                    'Binance': 'BEP20',
+                    'binance': 'BEP20',
+                    'Binance Smart Chain': 'BEP20',
+                    'bscscan': 'BEP20',
                     'Bitcoin': 'BTC',
                     'bitcoin': 'BTC',
                     'Litecoin': 'LTC',
@@ -265604,8 +265472,8 @@ class bittrade extends _abstract_bittrade_js__rspack_import_0/* ["default"] */.A
             'options': {
                 'defaultNetwork': 'ERC20',
                 'networks': {
-                    'ETH': 'erc20',
-                    'TRX': 'trc20',
+                    'ERC20': 'erc20',
+                    'TRC20': 'trc20',
                     'HRC20': 'hrc20',
                     'HECO': 'hrc20',
                     'HT': 'hrc20',
@@ -267184,7 +267052,7 @@ class bittrade extends _abstract_bittrade_js__rspack_import_0/* ["default"] */.A
             'txid': this.safeString(transaction, 'tx-hash'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'network': this.safeStringUpper(transaction, 'chain'),
+            'network': this.networkIdToCode(this.safeStringUpper(transaction, 'chain'), code),
             'address': this.safeString(transaction, 'address'),
             'addressTo': undefined,
             'addressFrom': undefined,
@@ -267254,7 +267122,10 @@ class bittrade extends _abstract_bittrade_js__rspack_import_0/* ["default"] */.A
             request['addr-tag'] = tagWithdrawTag; // only for XRP?
         }
         const networks = this.safeDict(this.options, 'networks', {});
-        let network = this.safeStringUpper(paramsWithdrawTag, 'network'); // this line allows the user to specify either ERC20 or ETH
+        let network = this.safeStringUpper(paramsWithdrawTag, 'network');
+        if (network !== undefined) {
+            network = this.safeString(this.networkAliases, network, network); // accepts aliases like ETH for ERC20
+        }
         network = this.safeStringLower(networks, network, network); // handle ETH>ERC20 alias
         if (network !== undefined) {
             // possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
@@ -273830,7 +273701,8 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
     }
     networkCodeToChainId(networkCode, currency = undefined) {
         const aliases = this.safeDict(this.options, 'networkCodeAliases', {});
-        const unifiedCode = this.safeString(aliases, networkCode, networkCode);
+        const aliasedCode = this.safeString(aliases, networkCode, networkCode);
+        const unifiedCode = this.safeString(this.networkAliases, aliasedCode, aliasedCode);
         // prefer the exact chain id from the currencies registry when it is
         // loaded, since some ids are currency-specific (USDT on Optimism)
         if (currency !== undefined) {
@@ -285460,7 +285332,7 @@ class bullish extends _abstract_bullish_js__rspack_import_0/* ["default"] */.A {
             // some currencies have multiple networks
             if (network === undefined) {
                 // use default network if not specified and multiple are available
-                network = this.defaultNetworkCode(code);
+                network = this.safeString(this.safeDict(this.options, 'defaultNetworks', {}), code, this.safeString(this.options, 'defaultNetwork'));
             }
             if (network !== undefined) {
                 // find the entry that matches the network or return first entry if not found and user did not specify a network
@@ -288278,11 +288150,8 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
                 'networks': {
                     'BTC': 'BTC',
                     'BRC20': 'BTC',
-                    'ETH': 'ETH',
                     'ERC20': 'ETH',
-                    'TRX': 'TRX',
                     'TRC20': 'TRX',
-                    'BSC': 'BSC',
                     'BEP20': 'BSC',
                     'SOL': 'SOL',
                     'ACA': 'ACA',
@@ -288347,6 +288216,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
                     'MOVE': 'MOVE'
                 },
                 'networksById': {
+                    'BTC': 'BTC',
                     'ETH': 'ERC20',
                     'TRX': 'TRC20',
                     'BSC': 'BEP20',
@@ -293109,7 +292979,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         const currency = this.currency(code);
         const [networkCode, paramsOmited] = this.handleNetworkCodeAndParams(params);
         const indexedAddresses = await this.fetchDepositAddressesByNetwork(code, paramsOmited);
-        const selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks(currency['code'], networkCode, indexedAddresses);
+        const selectedNetworkCode = this.selectNetworkKeyFromNetworks(currency['code'], networkCode, indexedAddresses, true);
         return this.safeValue(indexedAddresses, selectedNetworkCode);
     }
     /**
@@ -300679,7 +300549,7 @@ class cex extends _abstract_cex_js__rspack_import_0/* ["default"] */.A {
                 'networks': {
                     'BTC': 'bitcoin',
                     'ERC20': 'ERC20',
-                    'BSC20': 'binancesmartchain',
+                    'BEP20': 'binancesmartchain',
                     'DOGE': 'dogecoin',
                     'ALGO': 'algorand',
                     'XLM': 'stellar',
@@ -300691,7 +300561,7 @@ class cex extends _abstract_cex_js__rspack_import_0/* ["default"] */.A {
                     'THETA': 'theta',
                     'XTZ': 'tezos',
                     'TIA': 'celestia',
-                    'CRONOS': 'cronos',
+                    'CRC20': 'cronos',
                     'MATIC': 'polygon',
                     'TON': 'ton',
                     'TRC20': 'tron',
@@ -308666,10 +308536,10 @@ class coinbaseexchange extends _abstract_coinbaseexchange_js__rspack_import_0/* 
                 'networks': {
                     'BTC': 'bitcoin',
                     // LIGHTNING unsupported
-                    'ETH': 'ethereum',
-                    // TRON unsupported
+                    'ERC20': 'ethereum',
+                    // TRC20 unsupported
                     'SOL': 'solana',
-                    // BSC unsupported
+                    // BEP20 unsupported
                     'ARBITRUM': 'arbitrum',
                     'AVAXC': 'avacchain',
                     'MATIC': 'polygon',
@@ -308677,7 +308547,7 @@ class coinbaseexchange extends _abstract_coinbaseexchange_js__rspack_import_0/* 
                     'SUI': 'sui',
                     'OP': 'optimism',
                     'NEAR': 'near',
-                    // CRONOS unsupported
+                    // CRC20 unsupported
                     // GNO unsupported
                     'APT': 'aptos',
                     // SCROLL unsupported
@@ -310928,7 +310798,7 @@ class coinbaseinternational extends _abstract_coinbaseinternational_js__rspack_i
                     'method': 'v1PrivatePostTransfersWithdraw'
                 },
                 'networksById': {
-                    'ethereum': 'ETH',
+                    'ethereum': 'ERC20',
                     'arbitrum': 'ARBITRUM',
                     'avacchain': 'AVAX',
                     'optimism': 'OPTIMISM',
@@ -315137,7 +315007,7 @@ class coinmate extends _abstract_coinmate_js__rspack_import_0/* ["default"] */.A
             'txid': this.safeString(transaction, 'txid'),
             'type': this.safeStringLower(transaction, 'transferType'),
             'currency': code,
-            'network': this.safeString(transaction, 'walletType'),
+            'network': this.networkIdToCode(this.safeString(transaction, 'walletType'), code),
             'amount': this.safeNumber(transaction, 'amount'),
             'status': this.parseTransactionStatus(this.safeString(transaction, 'transferStatus')),
             'timestamp': timestamp,
@@ -319597,15 +319467,15 @@ class coinsph extends _abstract_coinsph_js__rspack_import_0/* ["default"] */.A {
                 'cost': feeCost
             };
         }
-        const network = this.safeString(transaction, 'network');
-        const internal = network === 'Internal';
+        const networkId = this.safeString(transaction, 'network');
+        const internal = networkId === 'Internal';
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'network': network,
+            'network': this.networkIdToCode(networkId, code),
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
@@ -323382,14 +323252,17 @@ class cryptocom extends _abstract_cryptocom_js__rspack_import_0/* ["default"] */
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */ async fetchDepositAddress(code, params = {}) {
-        const network = this.safeStringUpper(params, 'network');
+        const networkParam = this.safeStringUpper(params, 'network');
         const paramsOmitted = this.omit(params, [
             'network'
         ]);
         const depositAddressesRaw = await this.fetchDepositAddressesByNetwork(code, paramsOmitted);
         const depositAddresses = depositAddressesRaw;
-        if (network in depositAddresses) {
-            return depositAddresses[network];
+        if (networkParam !== undefined) {
+            const network = this.safeString(this.networkAliases, networkParam, networkParam);
+            if (network in depositAddresses) {
+                return depositAddresses[network];
+            }
         }
         const keys = Object.keys(depositAddresses);
         return depositAddresses[keys[0]];
@@ -326660,7 +326533,7 @@ class deepcoin extends _abstract_deepcoin_js__rspack_import_0/* ["default"] */.A
                     'ERC20': 'ERC20',
                     'TRC20': 'TRC20',
                     'ARBITRUM': 'ARBITRUM',
-                    'BSC': 'BSC(BEP20)',
+                    'BEP20': 'BSC(BEP20)',
                     'SOL': 'SOL',
                     'BTC': 'Bitcoin',
                     'ADA': 'Cardano'
@@ -327551,6 +327424,9 @@ class deepcoin extends _abstract_deepcoin_js__rspack_import_0/* ["default"] */.A
         const defaultNetwork = this.safeString(defaultNetworks, code);
         if (network === undefined || network === '') {
             network = defaultNetwork;
+        }
+        if (network !== undefined) {
+            network = this.safeString(this.networkAliases, network, network);
         }
         const paramsOmitted = network !== undefined ? this.omit(params, 'network') : params;
         const addressess = await this.fetchDepositAddresses([
@@ -343376,16 +343252,13 @@ class digifinex extends _abstract_digifinex_js__rspack_import_0/* ["default"] */
                     'AVALANCEC': 'AVAX-CCHAIN',
                     'AVALANCEX': 'AVAX-XCHAIN',
                     'BEP20': 'BEP20',
-                    'BSC': 'BEP20',
                     'CARDANO': 'Cardano',
                     'CELO': 'Celo',
                     'CHILIZ': 'Chiliz',
                     'COSMOS': 'COSMOS',
                     'CRC20': 'Crypto.com',
-                    'CRONOS': 'Crypto.com',
                     'DOGECOIN': 'DogeChain',
                     'ERC20': 'ERC20',
-                    'ETH': 'ERC20',
                     'ETHW': 'ETHW',
                     'IOTA': 'MIOTA',
                     'KLAYTN': 'KLAY',
@@ -343402,7 +343275,6 @@ class digifinex extends _abstract_digifinex_js__rspack_import_0/* ["default"] */
                     'TERRA': 'Terra',
                     'TON': 'Ton',
                     'TRC20': 'TRC20',
-                    'TRX': 'TRC20',
                     'VECHAIN': 'Vechain'
                 },
                 'networksById': {
@@ -343413,7 +343285,7 @@ class digifinex extends _abstract_digifinex_js__rspack_import_0/* ["default"] */
                     'ERC20': 'ERC20',
                     'ETH': 'ERC20',
                     'Polygon': 'POLYGON',
-                    'Crypto.com': 'CRONOS'
+                    'Crypto.com': 'CRC20'
                 }
             },
             'commonCurrencies': {
@@ -346095,7 +345967,7 @@ class digifinex extends _abstract_digifinex_js__rspack_import_0/* ["default"] */
                 'cost': feeCost
             };
         }
-        const network = this.safeString(transaction, 'chain');
+        const network = this.networkIdToCode(this.safeString(transaction, 'chain'), code);
         return {
             'info': transaction,
             'id': id,
@@ -352549,7 +352421,7 @@ class extended extends _abstract_extended_js__rspack_import_0/* ["default"] */.A
             };
         }
         const transactionType = this.parseTransactionType(this.safeString(transaction, 'type'));
-        const network = this.safeString(transaction, 'chain');
+        const network = this.networkIdToCode(this.safeString(transaction, 'chain'));
         return {
             'info': transaction,
             'id': this.safeString(transaction, 'id'),
@@ -354429,7 +354301,7 @@ class foxbit extends _abstract_foxbit_js__rspack_import_0/* ["default"] */.A {
                     'cardano': 'ADA',
                     'cosmos': 'ATOM',
                     'dogecoin': 'DOGE',
-                    'erc20': 'ETH',
+                    'erc20': 'ERC20',
                     'hedera': 'HBAR',
                     'litecoin': 'LTC',
                     'near': 'NEAR',
@@ -354453,7 +354325,7 @@ class foxbit extends _abstract_foxbit_js__rspack_import_0/* ["default"] */.A {
                     'ADA': 'cardano',
                     'ATOM': 'cosmos',
                     'DOGE': 'dogecoin',
-                    'ETH': 'erc20',
+                    'ERC20': 'erc20',
                     'HBAR': 'hedera',
                     'LTC': 'litecoin',
                     'NEAR': 'near',
@@ -356115,7 +355987,7 @@ class foxbit extends _abstract_foxbit_js__rspack_import_0/* ["default"] */.A {
             'txid': this.safeString(cryptoDetails, 'transaction_id'),
             'timestamp': timestamp,
             'datetime': datetime,
-            'network': this.safeString(transaction, 'network_code'),
+            'network': this.networkIdToCode(this.safeString(transaction, 'network_code'), currencyCode),
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
@@ -357902,13 +357774,10 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
                 'networks': {
                     'BTC': 'BTC',
                     'BRC20': 'BTCBRC',
-                    'ETH': 'ETH',
                     'ERC20': 'ETH',
-                    'TRX': 'TRX',
                     'TRC20': 'TRX',
                     'HECO': 'HT',
                     'HRC20': 'HT',
-                    'BSC': 'BSC',
                     'BEP20': 'BSC',
                     'SOL': 'SOL',
                     'MATIC': 'MATIC',
@@ -357920,7 +357789,7 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
                     'ARBITRUM_NOVA': 'ARBNOVA',
                     'BASE': 'BASEEVM',
                     'SUI': 'SUI',
-                    'CRONOS': 'CRO',
+                    'CRC20': 'CRO',
                     'CRO': 'CRO',
                     'APT': 'APT',
                     'SCROLL': 'SCROLLETH',
@@ -359766,7 +359635,7 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
         const [networkCode, paramsNetworkCode] = this.handleNetworkCodeAndParams(params);
         const chainsIndexedByIdRaw = await this.fetchDepositAddressesByNetwork(code, paramsNetworkCode);
         const chainsIndexedById = chainsIndexedByIdRaw;
-        const selectedNetworkIdOrCode = this.selectNetworkCodeFromUnifiedNetworks(code, networkCode, chainsIndexedById);
+        const selectedNetworkIdOrCode = this.selectNetworkKeyFromNetworks(code, networkCode, chainsIndexedById, true);
         return chainsIndexedById[selectedNetworkIdOrCode];
     }
     parseDepositAddress(depositAddress, currency = undefined) {
@@ -368923,12 +368792,11 @@ class grvt extends _abstract_grvt_js__rspack_import_0/* ["default"] */.A {
                     'ARBITRUM': '42161',
                     'AVAXC': '43114',
                     'BASE': '8453',
-                    'BSC': '56',
-                    'ETH': '1',
+                    'BEP20': '56',
                     'ERC20': '1',
                     'OP': '10',
                     'SOL': '900',
-                    'TRX': '728126428',
+                    'TRC20': '728126428',
                     'ZKSYNCERA': '324',
                     'KAIA': '8217'
                 },
@@ -372860,7 +372728,7 @@ class hashkey extends _abstract_hashkey_js__rspack_import_0/* ["default"] */.A {
                     'TRC20': 'TRC20',
                     'Tron': 'TRC20',
                     'TON': 'TON',
-                    'BSC(BEP20)': 'BSC',
+                    'BSC(BEP20)': 'BEP20',
                     'Klaytn': 'KLAYTN'
                 },
                 'defaultNetwork': 'ERC20'
@@ -373676,7 +373544,7 @@ class hashkey extends _abstract_hashkey_js__rspack_import_0/* ["default"] */.A {
         for(let j = 0; j < networks.length; j++){
             const network = networks[j];
             const networkId = this.safeString(network, 'chainType');
-            const networkCode = this.networkCodeToId(networkId, code);
+            const networkCode = this.networkIdToCode(networkId, code);
             if (networkCode !== undefined) {
                 parsedNetworks[networkCode] = {
                     'id': networkId,
@@ -374372,7 +374240,7 @@ class hashkey extends _abstract_hashkey_js__rspack_import_0/* ["default"] */.A {
      * @see https://hashkeyglobal-apidoc.readme.io/reference/get-deposit-address
      * @param {string} code unified currency code (default is 'USDT')
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.network] network for fetch deposit address (default is 'ETH')
+     * @param {string} [params.network] network for fetch deposit address (default is 'ERC20')
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */ async fetchDepositAddress(code, params = {}) {
         if (this.markets === undefined) {
@@ -374383,7 +374251,7 @@ class hashkey extends _abstract_hashkey_js__rspack_import_0/* ["default"] */.A {
             'coin': currency['id']
         };
         const [networkCodeInParams, paramsNetworkCode] = this.handleNetworkCodeAndParams(params);
-        const networkCode = networkCodeInParams === undefined ? this.defaultNetworkCode(code) : networkCodeInParams;
+        const networkCode = networkCodeInParams === undefined ? this.safeString(this.safeDict(this.options, 'defaultNetworks', {}), code, this.safeString(this.options, 'defaultNetwork')) : networkCodeInParams;
         request['chainType'] = this.networkCodeToId(networkCode, code);
         const response = await this.privateGetApiV1AccountDepositAddress(this.extend(request, paramsNetworkCode));
         //
@@ -380263,14 +380131,14 @@ class hitbtc extends _abstract_hitbtc_js__rspack_import_0/* ["default"] */.A {
             'options': {
                 'defaultNetwork': 'ERC20',
                 'defaultNetworks': {
-                    'ETH': 'ETH',
+                    'ETH': 'ERC20',
                     'USDT': 'TRC20'
                 },
                 'networks': {
                     // mainnet network ids are in lowercase for BTC & ETH
                     'BTC': 'btc',
                     'OMNI': 'BTC',
-                    'ETH': 'eth',
+                    // native ETH mainnet id is 'eth', ERC20 tokens use 'ETH'
                     'ERC20': 'ETH',
                     'ETC': 'ETC',
                     'BEP20': 'BSC',
@@ -380762,7 +380630,8 @@ class hitbtc extends _abstract_hitbtc_js__rspack_import_0/* ["default"] */.A {
             const rawNetwork = rawNetworks[j];
             const networkId = this.safeString2(rawNetwork, 'protocol', 'network');
             let networkCode = this.networkIdToCode(networkId, code);
-            networkCode = networkCode !== undefined ? networkCode.toUpperCase() : code; // as hitbtc is white label, ensure we safeguard from possible bugs
+            const networkCodeUpper = networkCode !== undefined ? networkCode.toUpperCase() : undefined;
+            networkCode = networkCodeUpper !== undefined ? this.safeString(this.networkAliases, networkCodeUpper, networkCodeUpper) : code; // as hitbtc is white label, ensure we safeguard from possible bugs
             if (networkCode !== undefined) {
                 networks[networkCode] = {
                     'info': rawNetwork,
@@ -380818,7 +380687,8 @@ class hitbtc extends _abstract_hitbtc_js__rspack_import_0/* ["default"] */.A {
         const request = {
             'currency': currency['id']
         };
-        const network = this.safeStringUpper(params, 'network');
+        const networkInput = this.safeStringUpper(params, 'network');
+        const network = networkInput !== undefined ? this.safeString(this.networkAliases, networkInput, networkInput) : undefined;
         if (network !== undefined && code === 'USDT') {
             const networks = this.safeDict(this.options, 'networks');
             const parsedNetwork = this.safeString(networks, network);
@@ -380859,7 +380729,8 @@ class hitbtc extends _abstract_hitbtc_js__rspack_import_0/* ["default"] */.A {
         const request = {
             'currency': currency['id']
         };
-        const network = this.safeStringUpper(params, 'network');
+        const networkInput = this.safeStringUpper(params, 'network');
+        const network = networkInput !== undefined ? this.safeString(this.networkAliases, networkInput, networkInput) : undefined;
         if (network !== undefined && code === 'USDT') {
             const networks = this.safeDict(this.options, 'networks');
             const parsedNetwork = this.safeString(networks, network);
@@ -382539,10 +382410,12 @@ class hitbtc extends _abstract_hitbtc_js__rspack_import_0/* ["default"] */.A {
             throw new _base_errors_js__rspack_import_2.ExchangeError(this.id + ' convertCurrencyNetwork() only supports USDT currently');
         }
         const networks = this.safeDict(this.options, 'networks', {});
-        const fromNetworkValue = fromNetwork.toUpperCase();
-        const toNetworkValue = toNetwork.toUpperCase();
-        const fromNetworkValue2 = this.safeString(networks, fromNetworkValue); // handle ETH>ERC20 alias
-        const toNetworkValue2 = this.safeString(networks, toNetworkValue); // handle ETH>ERC20 alias
+        const fromNetworkUpper = fromNetwork.toUpperCase();
+        const toNetworkUpper = toNetwork.toUpperCase();
+        const fromNetworkValue = this.safeString(this.networkAliases, fromNetworkUpper, fromNetworkUpper);
+        const toNetworkValue = this.safeString(this.networkAliases, toNetworkUpper, toNetworkUpper);
+        const fromNetworkValue2 = this.safeString(networks, fromNetworkValue); // unified code to exchange id
+        const toNetworkValue2 = this.safeString(networks, toNetworkValue); // unified code to exchange id
         if (fromNetworkValue2 === toNetworkValue2) {
             throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' convertCurrencyNetwork() fromNetwork cannot be the same as toNetwork');
         }
@@ -382588,7 +382461,8 @@ class hitbtc extends _abstract_hitbtc_js__rspack_import_0/* ["default"] */.A {
             request['payment_id'] = tagWithdrawTag;
         }
         const networks = this.safeDict(this.options, 'networks', {});
-        const network = this.safeStringUpper(paramsWithdrawTag, 'network');
+        const networkInput = this.safeStringUpper(paramsWithdrawTag, 'network');
+        const network = networkInput !== undefined ? this.safeString(this.networkAliases, networkInput, networkInput) : undefined;
         if (network !== undefined && code === 'USDT') {
             const parsedNetwork = this.safeString(networks, network);
             if (parsedNetwork !== undefined) {
@@ -383473,7 +383347,8 @@ class hitbtc extends _abstract_hitbtc_js__rspack_import_0/* ["default"] */.A {
             const networkId = this.safeString(networkEntry, 'network');
             const code = this.safeString(currency, 'code');
             let networkCode = this.networkIdToCode(networkId, code);
-            networkCode = networkCode !== undefined ? networkCode.toUpperCase() : undefined;
+            const networkCodeUpper = networkCode !== undefined ? networkCode.toUpperCase() : undefined;
+            networkCode = networkCodeUpper !== undefined ? this.safeString(this.networkAliases, networkCodeUpper, networkCodeUpper) : undefined;
             const withdrawFee = this.safeNumber(networkEntry, 'payout_fee');
             const isDefault = this.safeBool(networkEntry, 'default');
             const withdrawResult = {
@@ -383992,9 +383867,7 @@ class hollaex extends _abstract_hollaex_js__rspack_import_0/* ["default"] */.A {
                 'api-expires': this.parseToInt(this.timeout / 1000),
                 'networks': {
                     'BTC': 'btc',
-                    'ETH': 'eth',
                     'ERC20': 'eth',
-                    'TRX': 'trx',
                     'TRC20': 'trx',
                     'XRP': 'xrp',
                     'XLM': 'xlm',
@@ -385209,11 +385082,11 @@ class hollaex extends _abstract_hollaex_js__rspack_import_0/* ["default"] */.A {
         this.checkAddress(address);
         const currencyId = this.safeString(depositAddress, 'currency');
         const currencyResolved = this.safeCurrency(currencyId, currency);
-        const network = this.safeString(depositAddress, 'network');
+        const networkId = this.safeString(depositAddress, 'network');
         return {
             'info': depositAddress,
             'currency': currencyResolved['code'],
-            'network': network,
+            'network': this.networkIdToCode(networkId, currencyResolved['code']),
             'address': address,
             'tag': tag
         };
@@ -385283,7 +385156,7 @@ class hollaex extends _abstract_hollaex_js__rspack_import_0/* ["default"] */.A {
         if (network === undefined) {
             addresses = wallet;
         } else {
-            addresses = this.filterBy(wallet, 'network', network);
+            addresses = this.filterBy(wallet, 'network', this.networkCodeToId(network));
         }
         return this.parseDepositAddresses(addresses, codes, false);
     }
@@ -387624,7 +387497,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
                     'LTC': 'LTC',
                     'XRP': 'XRP',
                     'XLM': 'XLM',
-                    'CRONOS': 'CRO',
+                    'CRC20': 'CRO',
                     'CRO': 'CRO',
                     'GLMR': 'GLMR',
                     'POLYGON': 'MATIC',
@@ -393171,7 +393044,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
         const currency = this.currency(code);
         const [networkCode, paramsOmited] = this.handleNetworkCodeAndParams(params);
         const indexedAddresses = await this.fetchDepositAddressesByNetwork(code, paramsOmited);
-        const selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks(currency['code'], networkCode, indexedAddresses);
+        const selectedNetworkCode = this.selectNetworkKeyFromNetworks(currency['code'], networkCode, indexedAddresses, true);
         return this.safeValue(indexedAddresses, selectedNetworkCode);
     }
     async fetchWithdrawAddresses(code, note = undefined, networkCode = undefined, params = {}) {
@@ -402466,7 +402339,7 @@ class independentreserve extends _abstract_independentreserve_js__rspack_import_
                 },
                 'networks': {
                     'BTC': 'Bitcoin',
-                    'ETH': 'Ethereum',
+                    'ERC20': 'Ethereum',
                     'BCH': 'BitcoinCash',
                     'LTC': 'Litecoin',
                     'XRP': 'XrpLedger',
@@ -402478,7 +402351,7 @@ class independentreserve extends _abstract_independentreserve_js__rspack_import_
                     'DOT': 'Polkadot',
                     'ADA': 'Cardano',
                     'SOL': 'Solana',
-                    'TRX': 'Tron'
+                    'TRC20': 'Tron'
                 }
             }
         });
@@ -403630,7 +403503,7 @@ class indodax extends _abstract_indodax_js__rspack_import_0/* ["default"] */.A {
                 'adjustForTimeDifference': false,
                 'networks': {
                     'XLM': 'Stellar Token',
-                    'BSC': 'bep20',
+                    'BEP20': 'bep20',
                     'TRC20': 'trc20',
                     'MATIC': 'polygon'
                 }
@@ -405429,10 +405302,7 @@ class kraken extends _abstract_kraken_js__rspack_import_0/* ["default"] */.A {
                     'JPY',
                     'GBP'
                 ],
-                'networks': {
-                    'ETH': 'ERC20',
-                    'TRX': 'TRC20'
-                },
+                'networks': {},
                 'depositMethods': {
                     '1INCH': '1inch' + ' ' + '(1INCH)',
                     'AAVE': 'Aave',
@@ -408501,8 +408371,9 @@ class kraken extends _abstract_kraken_js__rspack_import_0/* ["default"] */.A {
         }
         const currency = this.currency(code);
         let network = this.safeStringUpper(params, 'network');
-        const networks = this.safeDict(this.options, 'networks', {});
-        network = this.safeString(networks, network, network); // support ETH > ERC20 aliases
+        if (network !== undefined) {
+            network = this.safeString(this.networkAliases, network, network);
+        }
         const paramsOmitted = this.omit(params, 'network');
         let codeResolved = code;
         if (code === 'USDT' && network === 'TRC20') {
@@ -415072,9 +414943,7 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
                     'BTC': 'btc',
                     'BRC20': 'btc',
                     'BTCNATIVESEGWIT': 'bech32',
-                    'ETH': 'eth',
                     'ERC20': 'eth',
-                    'TRX': 'trx',
                     'TRC20': 'trx',
                     'HECO': 'heco',
                     'HRC20': 'heco',
@@ -417565,7 +417434,7 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
         return {
             'info': response,
             'currency': currencyId,
-            'network': this.safeString(data, 'chain'),
+            'network': this.networkIdToCode(this.safeString(data, 'chain'), code),
             'address': address,
             'tag': this.safeString(data, 'memo')
         };
@@ -428386,13 +428255,10 @@ class lbank extends _abstract_lbank_js__rspack_import_0/* ["default"] */.A {
                 },
                 'networks': {
                     'ERC20': 'erc20',
-                    'ETH': 'erc20',
                     'TRC20': 'trc20',
-                    'TRX': 'trc20',
                     'OMNI': 'omni',
                     'ASA': 'asa',
                     'BEP20': 'bep20(bsc)',
-                    'BSC': 'bep20(bsc)',
                     'HT': 'heco',
                     'BNB': 'bep2',
                     'BTC': 'btc',
@@ -430357,9 +430223,9 @@ class lbank extends _abstract_lbank_js__rspack_import_0/* ["default"] */.A {
         const defaultNetworks = this.safeDict(this.options, 'defaultNetworks');
         const defaultNetwork = this.safeStringUpper(defaultNetworks, currencyCode);
         const networks = this.safeDict(this.options, 'networks', {});
-        let network = this.safeStringUpper(params, 'network', defaultNetwork); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString(networks, network, network); // handle ERC20>ETH alias
-        return network;
+        const networkParam = this.safeStringUpper(params, 'network', defaultNetwork); // accepts unified codes and aliases
+        const networkCode = networkParam !== undefined ? this.safeString(this.networkAliases, networkParam, networkParam) : undefined;
+        return this.safeString(networks, networkCode, networkCode);
     }
     /**
      * @method
@@ -430435,6 +430301,9 @@ class lbank extends _abstract_lbank_js__rspack_import_0/* ["default"] */.A {
         };
         const networks = this.safeDict(this.options, 'networks');
         let network = this.safeStringUpper(params, 'network');
+        if (network !== undefined) {
+            network = this.safeString(this.networkAliases, network, network);
+        }
         network = this.safeString(networks, network, network);
         const paramsOmitted = network !== undefined ? this.omit(params, 'network') : params;
         if (network !== undefined) {
@@ -430495,7 +430364,10 @@ class lbank extends _abstract_lbank_js__rspack_import_0/* ["default"] */.A {
         if (tagWithdrawTag !== undefined) {
             request['memo'] = tagWithdrawTag;
         }
-        const network = this.safeStringUpper2(paramsOmitted, 'network', 'networkName');
+        let network = this.safeStringUpper2(paramsOmitted, 'network', 'networkName');
+        if (network !== undefined) {
+            network = this.safeString(this.networkAliases, network, network);
+        }
         const paramsOmitted2 = this.omit(paramsOmitted, [
             'network',
             'networkName'
@@ -438928,9 +438800,9 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
                     }
                 },
                 'defaultType': 'spot',
-                'defaultNetwork': 'ETH',
+                'defaultNetwork': 'ERC20',
                 'defaultNetworks': {
-                    'ETH': 'ETH',
+                    'ETH': 'ERC20',
                     'USDT': 'ERC20',
                     'USDC': 'ERC20',
                     'BTC': 'BTC',
@@ -438985,9 +438857,9 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
                     'RSK': 'RBTC'
                 },
                 'networksById': {
-                    'BNB Smart Chain(BEP20-RACAV1)': 'BSC',
-                    'BNB Smart Chain(BEP20-RACAV2)': 'BSC',
-                    'BNB Smart Chain(BEP20)': 'BSC',
+                    'BNB Smart Chain(BEP20-RACAV1)': 'BEP20',
+                    'BNB Smart Chain(BEP20-RACAV2)': 'BEP20',
+                    'BNB Smart Chain(BEP20)': 'BEP20',
                     'Ethereum(ERC20)': 'ERC20'
                 },
                 'recvWindow': 5 * 1000,
@@ -458128,15 +458000,11 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
                 'networks': {
                     'BTC': 'Bitcoin',
                     'BTCLIGHTNING': 'Lightning',
-                    'BSC': 'BSC',
                     'BEP20': 'BSC',
                     'BRC20': 'BRC20',
-                    'ETH': 'ERC20',
                     'ERC20': 'ERC20',
-                    'TRX': 'TRC20',
                     'TRC20': 'TRC20',
                     'CRC20': 'Crypto',
-                    'CRONOS': 'Crypto',
                     'ACA': 'Acala',
                     'ALGO': 'Algorand',
                     'APT': 'Aptos',
@@ -462563,7 +462431,9 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         let network = this.safeString(paramsWithdrawTag, 'network'); // this line allows the user to specify either ERC20 or ETH
         if (network !== undefined) {
             const networks = this.safeDict(this.options, 'networks', {});
-            network = this.safeString(networks, network.toUpperCase(), network); // handle ETH>ERC20 alias
+            const networkUpper = network.toUpperCase();
+            const networkKey = this.safeString(this.networkAliases, networkUpper, networkUpper);
+            network = this.safeString(networks, networkKey, network); // resolve aliases to the unified key
             request['chain'] = currency['id'] + '-' + network;
         }
         const omitKeys = [
@@ -479470,8 +479340,8 @@ class phemex extends _abstract_phemex_js__rspack_import_0/* ["default"] */.A {
                     'BEP20': 'BNB'
                 },
                 'defaultNetworks': {
-                    'USDT': 'ETH',
-                    'MKR': 'ETH'
+                    'USDT': 'ERC20',
+                    'MKR': 'ERC20'
                 },
                 'defaultSubType': 'linear',
                 'accountsByType': {
@@ -482429,7 +482299,9 @@ class phemex extends _abstract_phemex_js__rspack_import_0/* ["default"] */.A {
         const networks = this.safeDict(this.options, 'networks', {});
         let network = this.safeStringUpper2(params, 'network', 'chainName', defaultNetwork);
         const paramsOmitted = this.omit(params, 'network');
-        network = this.safeString(networks, network, network);
+        if (network !== undefined) {
+            network = this.safeString(networks, this.safeString(this.networkAliases, network, network), network);
+        }
         if (network === undefined) {
             throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' fetchDepositAddress() requires a network parameter');
         } else {
@@ -485216,8 +485088,7 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
                     'BEP20': 'BSC',
                     'ERC20': 'ETH',
                     // v2 withdraw accepts only the blockchain id: 'TRX' passes validation, 'TRON' is rejected with 830111 (live-verified)
-                    'TRC20': 'TRX',
-                    'TRX': 'TRX'
+                    'TRC20': 'TRX'
                 },
                 'networksById': {
                     'TRX': 'TRC20',
@@ -487855,7 +487726,7 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
         if (networkEntry !== undefined) {
             exchangeNetworkId = networkEntry['id'];
         } else {
-            exchangeNetworkId = networkCode;
+            exchangeNetworkId = this.networkCodeToId(networkCode, code);
         }
         const request = {
             'currency': exchangeNetworkId
@@ -615378,7 +615249,7 @@ class tokocrypto extends _abstract_tokocrypto_js__rspack_import_0/* ["default"] 
                 'reverseNetworks': {
                     'tronscan.org': 'TRC20',
                     'etherscan.io': 'ERC20',
-                    'bscscan.com': 'BSC',
+                    'bscscan.com': 'BEP20',
                     'explorer.binance.org': 'BEP2',
                     'bithomp.com': 'XRP',
                     'bloks.io': 'EOS',
@@ -617439,7 +617310,7 @@ class tokocrypto extends _abstract_tokocrypto_js__rspack_import_0/* ["default"] 
         return {
             'info': response,
             'currency': code,
-            'network': this.safeString(data, 'network'),
+            'network': this.networkIdToCode(this.safeString(data, 'network'), code),
             'address': address,
             'tag': tag
         };
@@ -617681,7 +617552,7 @@ class tokocrypto extends _abstract_tokocrypto_js__rspack_import_0/* ["default"] 
             'txid': txid,
             'type': type,
             'currency': code,
-            'network': this.safeString(transaction, 'network'),
+            'network': this.networkIdToCode(this.safeString(transaction, 'network'), code),
             'amount': this.safeNumber(transaction, 'amount'),
             'status': this.parseTransactionStatusByType(this.safeString(transaction, 'status'), type),
             'timestamp': timestamp,
@@ -618580,7 +618451,6 @@ class toobit extends _abstract_toobit_js__rspack_import_0/* ["default"] */.A {
                 'networks': {
                     'BTC': 'BTC',
                     'ERC20': 'ETH',
-                    'ETH': 'ETH',
                     'BEP20': 'BSC',
                     'TRC20': 'TRX',
                     'SOL': 'SOL',
@@ -624950,9 +624820,7 @@ class weex extends _abstract_weex_js__rspack_import_0/* ["default"] */.A {
                 },
                 'networks': {
                     'BEP20': 'BEP20(BSC)',
-                    'BSC': 'BEP20(BSC)',
                     'ERC20': 'ERC20',
-                    'ETH': 'ERC20',
                     'POLYGON': 'POLYGON(MATIC)',
                     'MATIC': 'POLYGON(MATIC)',
                     'ARBITRUM': 'ARBITRUM(ARB)',
@@ -632239,7 +632107,7 @@ class whitebit extends _abstract_whitebit_js__rspack_import_0/* ["default"] */.A
             'txid': this.safeString(transaction, 'transactionId'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'network': this.safeString(transaction, 'network'),
+            'network': this.networkIdToCode(this.safeString(transaction, 'network'), this.safeCurrencyCode(currencyId, currencyResolved)),
             'addressFrom': method === '1' ? address : undefined,
             'address': address,
             'addressTo': method === '2' ? address : undefined,
@@ -634011,7 +633879,6 @@ class woo extends _abstract_woo_js__rspack_import_0/* ["default"] */.A {
                 'sandboxMode': false,
                 'createMarketBuyOrderRequiresPrice': true,
                 'networks': {
-                    'TRX': 'TRX',
                     'TRC20': 'TRX',
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
@@ -637133,7 +637000,7 @@ class woo extends _abstract_woo_js__rspack_import_0/* ["default"] */.A {
             'amount': amount,
             'addressTo': address,
             'tag': tagWithdrawTag,
-            'network': network,
+            'network': this.safeString(this.networkAliases, network, network),
             'type': 'withdrawal',
             'status': 'pending'
         });
@@ -638447,7 +638314,7 @@ class woo extends _abstract_woo_js__rspack_import_0/* ["default"] */.A {
         const networkKeys = Object.keys(networks);
         for(let i = 0; i < networkKeys.length; i++){
             const network = networkKeys[i];
-            if (network === 'ETH') {
+            if (network === 'ERC20') {
                 return network;
             }
         }
@@ -643553,10 +643420,8 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
                 'networks': {
                     'ERC20': 'Ethereum',
                     'TRC20': 'Tron',
-                    'TRX': 'Tron',
                     'BEP20': 'BNB Smart Chain',
                     'BEP2': 'BNB-BEP2',
-                    'ETH': 'Ethereum',
                     'AVAX': 'AVAX C-Chain',
                     'GAL': 'GAL(FT)',
                     'ALEO': 'ALEO(IOU)',

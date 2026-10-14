@@ -719,7 +719,7 @@ export default class coinmate extends Exchange {
             'txid': this.safeString(transaction, 'txid'),
             'type': this.safeStringLower(transaction, 'transferType'),
             'currency': code,
-            'network': this.safeString(transaction, 'walletType'),
+            'network': this.networkIdToCode(this.safeString(transaction, 'walletType'), code),
             'amount': this.safeNumber(transaction, 'amount'),
             'status': this.parseTransactionStatus(this.safeString(transaction, 'transferStatus')),
             'timestamp': timestamp,

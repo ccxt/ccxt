@@ -485,14 +485,14 @@ class hitbtc extends hitbtc$1["default"] {
             'options': {
                 'defaultNetwork': 'ERC20',
                 'defaultNetworks': {
-                    'ETH': 'ETH',
+                    'ETH': 'ERC20',
                     'USDT': 'TRC20',
                 },
                 'networks': {
                     // mainnet network ids are in lowercase for BTC & ETH
                     'BTC': 'btc',
                     'OMNI': 'BTC',
-                    'ETH': 'eth',
+                    // native ETH mainnet id is 'eth', ERC20 tokens use 'ETH'
                     'ERC20': 'ETH',
                     'ETC': 'ETC',
                     'BEP20': 'BSC',
@@ -988,7 +988,8 @@ class hitbtc extends hitbtc$1["default"] {
             const rawNetwork = rawNetworks[j];
             const networkId = this.safeString2(rawNetwork, 'protocol', 'network');
             let networkCode = this.networkIdToCode(networkId, code);
-            networkCode = (networkCode !== undefined) ? networkCode.toUpperCase() : code; // as hitbtc is white label, ensure we safeguard from possible bugs
+            const networkCodeUpper = (networkCode !== undefined) ? networkCode.toUpperCase() : undefined;
+            networkCode = (networkCodeUpper !== undefined) ? this.safeString(this.networkAliases, networkCodeUpper, networkCodeUpper) : code; // as hitbtc is white label, ensure we safeguard from possible bugs
             if (networkCode !== undefined) {
                 networks[networkCode] = {
                     'info': rawNetwork,
@@ -1045,7 +1046,8 @@ class hitbtc extends hitbtc$1["default"] {
         const request = {
             'currency': currency['id'],
         };
-        const network = this.safeStringUpper(params, 'network');
+        const networkInput = this.safeStringUpper(params, 'network');
+        const network = (networkInput !== undefined) ? this.safeString(this.networkAliases, networkInput, networkInput) : undefined;
         if ((network !== undefined) && (code === 'USDT')) {
             const networks = this.safeDict(this.options, 'networks');
             const parsedNetwork = this.safeString(networks, network);
@@ -1087,7 +1089,8 @@ class hitbtc extends hitbtc$1["default"] {
         const request = {
             'currency': currency['id'],
         };
-        const network = this.safeStringUpper(params, 'network');
+        const networkInput = this.safeStringUpper(params, 'network');
+        const network = (networkInput !== undefined) ? this.safeString(this.networkAliases, networkInput, networkInput) : undefined;
         if ((network !== undefined) && (code === 'USDT')) {
             const networks = this.safeDict(this.options, 'networks');
             const parsedNetwork = this.safeString(networks, network);
@@ -2806,10 +2809,12 @@ class hitbtc extends hitbtc$1["default"] {
             throw new errors.ExchangeError(this.id + ' convertCurrencyNetwork() only supports USDT currently');
         }
         const networks = this.safeDict(this.options, 'networks', {});
-        const fromNetworkValue = fromNetwork.toUpperCase();
-        const toNetworkValue = toNetwork.toUpperCase();
-        const fromNetworkValue2 = this.safeString(networks, fromNetworkValue); // handle ETH>ERC20 alias
-        const toNetworkValue2 = this.safeString(networks, toNetworkValue); // handle ETH>ERC20 alias
+        const fromNetworkUpper = fromNetwork.toUpperCase();
+        const toNetworkUpper = toNetwork.toUpperCase();
+        const fromNetworkValue = this.safeString(this.networkAliases, fromNetworkUpper, fromNetworkUpper);
+        const toNetworkValue = this.safeString(this.networkAliases, toNetworkUpper, toNetworkUpper);
+        const fromNetworkValue2 = this.safeString(networks, fromNetworkValue); // unified code to exchange id
+        const toNetworkValue2 = this.safeString(networks, toNetworkValue); // unified code to exchange id
         if (fromNetworkValue2 === toNetworkValue2) {
             throw new errors.BadRequest(this.id + ' convertCurrencyNetwork() fromNetwork cannot be the same as toNetwork');
         }
@@ -2856,7 +2861,8 @@ class hitbtc extends hitbtc$1["default"] {
             request['payment_id'] = tagWithdrawTag;
         }
         const networks = this.safeDict(this.options, 'networks', {});
-        const network = this.safeStringUpper(paramsWithdrawTag, 'network');
+        const networkInput = this.safeStringUpper(paramsWithdrawTag, 'network');
+        const network = (networkInput !== undefined) ? this.safeString(this.networkAliases, networkInput, networkInput) : undefined;
         if ((network !== undefined) && (code === 'USDT')) {
             const parsedNetwork = this.safeString(networks, network);
             if (parsedNetwork !== undefined) {
@@ -3766,7 +3772,8 @@ class hitbtc extends hitbtc$1["default"] {
             const networkId = this.safeString(networkEntry, 'network');
             const code = this.safeString(currency, 'code');
             let networkCode = this.networkIdToCode(networkId, code);
-            networkCode = (networkCode !== undefined) ? networkCode.toUpperCase() : undefined;
+            const networkCodeUpper = (networkCode !== undefined) ? networkCode.toUpperCase() : undefined;
+            networkCode = (networkCodeUpper !== undefined) ? this.safeString(this.networkAliases, networkCodeUpper, networkCodeUpper) : undefined;
             const withdrawFee = this.safeNumber(networkEntry, 'payout_fee');
             const isDefault = this.safeBool(networkEntry, 'default');
             const withdrawResult = {

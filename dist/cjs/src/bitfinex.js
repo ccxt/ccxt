@@ -928,7 +928,7 @@ class bitfinex extends bitfinex$1["default"] {
                 networks[network] = {
                     'info': networkId,
                     'id': networkId.toLowerCase(),
-                    'network': networkId,
+                    'network': network,
                     'active': undefined,
                     'deposit': this.safeInteger(dwStatuses, 1) === 1,
                     'withdraw': this.safeInteger(dwStatuses, 2) === 1,
@@ -2441,7 +2441,8 @@ class bitfinex extends bitfinex$1["default"] {
         }
         const currency = this.currency(code);
         // if not provided explicitly we will try to match using the currency name
-        const network = this.safeString(params, 'network', code);
+        const networkParam = this.safeString(params, 'network', code);
+        const network = this.safeString(this.networkAliases, networkParam, networkParam);
         const currencyNetworks = this.safeDict(currency, 'networks', {});
         const currencyNetwork = this.safeDict(currencyNetworks, network);
         const networkId = this.safeString(currencyNetwork, 'id');
@@ -2847,7 +2848,8 @@ class bitfinex extends bitfinex$1["default"] {
         }
         const currency = this.currency(code);
         // if not provided explicitly we will try to match using the currency name
-        const network = this.safeString(paramsWithdrawTag, 'network', code);
+        const networkParam = this.safeString(paramsWithdrawTag, 'network', code);
+        const network = this.safeString(this.networkAliases, networkParam, networkParam);
         const paramsOmitted = this.omit(paramsWithdrawTag, 'network');
         const currencyNetworks = this.safeDict(currency, 'networks', {});
         const currencyNetwork = this.safeDict(currencyNetworks, network);

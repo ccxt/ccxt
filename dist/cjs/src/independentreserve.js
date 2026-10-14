@@ -303,7 +303,7 @@ class independentreserve extends independentreserve$1["default"] {
                 },
                 'networks': {
                     'BTC': 'Bitcoin',
-                    'ETH': 'Ethereum',
+                    'ERC20': 'Ethereum',
                     'BCH': 'BitcoinCash',
                     'LTC': 'Litecoin',
                     'XRP': 'XrpLedger',
@@ -315,7 +315,7 @@ class independentreserve extends independentreserve$1["default"] {
                     'DOT': 'Polkadot',
                     'ADA': 'Cardano',
                     'SOL': 'Solana',
-                    'TRX': 'Tron',
+                    'TRC20': 'Tron',
                 },
             },
         });

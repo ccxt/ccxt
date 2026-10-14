@@ -326,7 +326,7 @@ class deepcoin extends deepcoin$1["default"] {
                     'ERC20': 'ERC20',
                     'TRC20': 'TRC20',
                     'ARBITRUM': 'ARBITRUM',
-                    'BSC': 'BSC(BEP20)',
+                    'BEP20': 'BSC(BEP20)',
                     'SOL': 'SOL',
                     'BTC': 'Bitcoin',
                     'ADA': 'Cardano',
@@ -1212,6 +1212,9 @@ class deepcoin extends deepcoin$1["default"] {
         const defaultNetwork = this.safeString(defaultNetworks, code);
         if ((network === undefined) || (network === '')) {
             network = defaultNetwork;
+        }
+        if (network !== undefined) {
+            network = this.safeString(this.networkAliases, network, network);
         }
         const paramsOmitted = (network !== undefined) ? this.omit(params, 'network') : params;
         const addressess = await this.fetchDepositAddresses([code], paramsOmitted);

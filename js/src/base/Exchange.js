@@ -137,6 +137,17 @@ export class BaseExchange {
         this.httpAgent = undefined;
         this.httpsAgent = undefined;
         this.minFundingAddressLength = 1; // used in checkAddress
+        // alias -> unified network code; aliases are accepted as input but never returned
+        this.networkAliases = {
+            'ETH': 'ERC20',
+            'TRX': 'TRC20',
+            'BSC': 'BEP20',
+            'BSC20': 'BEP20',
+            'CRONOS': 'CRC20',
+            'ARB': 'ARBITRUM',
+            'ARBONE': 'ARBITRUM',
+            'ARBNOVA': 'ARBITRUM_NOVA',
+        };
         this.substituteCommonCurrencyCodes = true; // reserved
         this.quoteJsonNumbers = true; // quote json numbers as precise strings when a response carries precision-risky (16+ digit or exponent) numbers
         // eslint-disable-next-line no-unused-vars
@@ -3446,8 +3457,9 @@ export class BaseExchange {
         return timestamp;
     }
     afterConstruct(userConfig = {}) {
-        // networks
-        this.createNetworksByIdObject();
+        // networksById: inverse of options.networks, explicit options.networksById entries win
+        const networkIdsToCodesGenerated = this.invertFlatStringDictionary(this.safeValue(this.options, 'networks', {}));
+        this.options['networksById'] = this.extend(networkIdsToCodesGenerated, this.safeValue(this.options, 'networksById', {}));
         this.featuresGenerator();
         // init predefined markets if any
         if (this.markets !== undefined) {
@@ -3680,24 +3692,8 @@ export class BaseExchange {
         }
         return symbol + ' : ' + 'orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options["watchOrderBook"]["checksum"] = false';
     }
-    createNetworksByIdObject() {
-        // automatically generate network-id-to-code mappings
-        const networkIdsToCodesGenerated = this.invertFlatStringDictionary(this.safeValue(this.options, 'networks', {})); // invert defined networks dictionary
-        this.options['networksById'] = this.extend(networkIdsToCodesGenerated, this.safeValue(this.options, 'networksById', {})); // support manually overriden "networksById" dictionary too
-    }
     getDefaultOptions() {
         return {
-            'defaultNetworkCodeReplacements': {
-                'ETH': { 'primary': 'ETH', 'secondary': 'ERC20', 'default': 'secondary' },
-                'CRO': { 'primary': 'CRONOS', 'secondary': 'CRC20', 'default': 'secondary' },
-                'TRX': { 'primary': 'TRX', 'secondary': 'TRC20', 'default': 'secondary' },
-                'BTC': { 'primary': 'BTC', 'secondary': 'BRC20', 'default': 'primary' },
-            },
-            'backwardSupportedNetworkCodes': {
-                'ARB': 'ARBITRUM',
-                'ARBONE': 'ARBITRUM',
-                'ARBNOVA': 'ARBITRUM_NOVA',
-            },
             // native-chain withdrawals of these currencies may need a destination tag / memo
             'withdrawTagRequiredCurrencies': ['XRP', 'XLM', 'EOS', 'ATOM', 'HBAR', 'TON', 'KAVA', 'STX', 'XEM', 'IOST', 'OSMO', 'WAXP'],
         };
@@ -5197,63 +5193,12 @@ export class BaseExchange {
             },
         };
     }
-    prioritizedNetworkAliases(networkCode = undefined, currencyCode = undefined, allowDefault = false) {
-        /**
-         * @method
-         * @name Exchange#prioritizedNetworkAliases
-         * @description returns the chain pair [preferred, alternative] for the given networkCode & currency, e.g:
-         *   ---------------------------------
-         *   | input          | output       |
-         *   --------------------------------|
-         *   | ETH & USDC     | ERC20, ETH   |
-         *   | ERC20 & USDC   | ERC20, ETH   |
-         *   | ETH & ETH      | ETH, ERC20   |
-         *   | ERC20 & ETH    | ETH, ERC20   |
-         *   | ERC20          | ERC20, ETH   |
-         *   | ETH            | ERC20, ETH   |
-         *   ---------------------------------
-         * @param {string} networkCode unified network-code
-         * @param {string} currencyCode unified currency-code
-         * @param {boolean} allowDefault when currencyCode is undefined, order by replacement's "default" instead of by user input
-         * @returns {string[]} [preferredChain, alternativeChain]
-         */
-        if (networkCode === undefined) {
-            return undefined;
-        }
-        const replacements = this.safeDict(this.options, 'defaultNetworkCodeReplacements', {});
-        const keys = Object.keys(replacements);
-        for (let i = 0; i < keys.length; i++) {
-            const baseCoin = keys[i];
-            const entry = replacements[baseCoin];
-            const primary = entry['primary'];
-            const secondary = entry['secondary'];
-            if (networkCode !== primary && networkCode !== secondary) {
-                continue;
-            }
-            // pick which form goes first in the returned pair
-            let preferPrimary = false;
-            if (currencyCode === baseCoin) {
-                preferPrimary = true; // mainnet currency uses primary chain
-            }
-            else if (currencyCode !== undefined) {
-                preferPrimary = false; // any other (token) currency uses secondary chain
-            }
-            else if (allowDefault) {
-                preferPrimary = (entry['default'] === 'primary');
-            }
-            else {
-                preferPrimary = (networkCode === primary); // keep user input first
-            }
-            return (preferPrimary) ? [primary, secondary] : [secondary, primary];
-        }
-        return [networkCode, networkCode];
-    }
     networkCodeToId(networkCode, currencyCode = undefined) {
         /**
          * @ignore
          * @method
          * @name exchange#networkCodeToId
-         * @description tries to convert the provided networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
+         * @description tries to convert the provided networkCode (a unified network code or one of its aliases) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
          * @param {string} networkCode unified network code
          * @param {string} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {string|undefined} exchange-specific network id
@@ -5261,14 +5206,20 @@ export class BaseExchange {
         if (networkCode === undefined) {
             return undefined;
         }
+        const unifiedCode = this.safeString(this.networkAliases, networkCode, networkCode);
         const networkIdsByCodes = this.safeDict(this.options, 'networks', {});
-        // try the preferred form first, fall back to its alternative (e.g. when only 'ETH' or only 'ERC20' is defined)
-        const chainPair = this.prioritizedNetworkAliases(networkCode, currencyCode, false);
-        const preferredChain = (chainPair === undefined) ? networkCode : chainPair[0];
-        const alternativeChain = (chainPair === undefined) ? networkCode : chainPair[1];
-        const networkId = this.safeString2(networkIdsByCodes, preferredChain, alternativeChain);
+        const networkId = this.safeString(networkIdsByCodes, unifiedCode);
         if (networkId !== undefined) {
             return networkId;
+        }
+        // options.networks may still be keyed by an alias of the unified code
+        const aliases = this.networkAliases;
+        const aliasKeys = Object.keys(aliases);
+        for (let i = 0; i < aliasKeys.length; i++) {
+            const alias = aliasKeys[i];
+            if ((aliases[alias] === unifiedCode) && (alias in networkIdsByCodes)) {
+                return networkIdsByCodes[alias];
+            }
         }
         // fall back to scanning loaded currencies
         let currenciesToCheck = [];
@@ -5280,14 +5231,9 @@ export class BaseExchange {
         }
         for (let i = 0; i < currenciesToCheck.length; i++) {
             const networks = this.safeDict(currenciesToCheck[i], 'networks', {});
-            if (networkCode in networks) {
-                return this.safeString(networks[networkCode], 'id');
+            if (unifiedCode in networks) {
+                return this.safeString(networks[unifiedCode], 'id');
             }
-        }
-        // before returning the original input, try to match if it's backward-maintained networkCode
-        const oldCodes = this.safeDict(this.options, 'backwardSupportedNetworkCodes', {});
-        if (networkCode in oldCodes) {
-            return this.networkCodeToId(oldCodes[networkCode], currencyCode);
         }
         return networkCode;
     }
@@ -5305,50 +5251,15 @@ export class BaseExchange {
             return undefined;
         }
         const networkCodesByIds = this.safeDict(this.options, 'networksById', {});
-        const networkCode = this.safeString(networkCodesByIds, networkId, networkId);
-        const chainPair = this.prioritizedNetworkAliases(networkCode, currencyCode, true);
-        if (chainPair === undefined) {
-            return networkCode;
-        }
-        const preferredChain = chainPair[0];
-        const alternativeChain = chainPair[1];
-        // when the exchange explicitly defines both forms in options.networks (e.g. BTC + BRC20),
-        // it disambiguates them — trust the direct id→code inversion instead of guessing
-        if (currencyCode === undefined) {
-            const networkIdsByCodes = this.safeDict(this.options, 'networks', {});
-            if ((preferredChain in networkIdsByCodes) && (alternativeChain in networkIdsByCodes)) {
-                return networkCode;
-            }
-        }
-        return preferredChain;
+        const mappedCode = this.safeString(networkCodesByIds, networkId);
+        const networkCode = (mappedCode === undefined) ? networkId : mappedCode;
+        return this.safeString(this.networkAliases, networkCode, networkCode);
     }
     handleNetworkCodeAndParams(params) {
         const networkCodeInParams = this.safeString2(params, 'networkCode', 'network');
         const paramsOmitted = (networkCodeInParams !== undefined) ? this.omit(params, ['networkCode', 'network']) : params;
         // if it was not defined by user, we should not set it from 'defaultNetworks', because handleNetworkCodeAndParams is for only request-side and thus we do not fill it with anything. We can only use 'defaultNetworks' after parsing response-side
         return [networkCodeInParams, paramsOmitted];
-    }
-    defaultNetworkCode(currencyCode) {
-        let defaultNetworkCode = undefined;
-        const defaultNetworks = this.safeDict(this.options, 'defaultNetworks', {});
-        if (currencyCode in defaultNetworks) {
-            // if currency had set its network in "defaultNetworks", use it
-            defaultNetworkCode = defaultNetworks[currencyCode];
-        }
-        else {
-            // otherwise, try to use the global-scope 'defaultNetwork' value (even if that network is not supported by currency, it doesn't make any problem, this will be just used "at first" if currency supports this network at all)
-            const defaultNetwork = this.safeString(this.options, 'defaultNetwork');
-            if (defaultNetwork !== undefined) {
-                defaultNetworkCode = defaultNetwork;
-            }
-        }
-        return defaultNetworkCode;
-    }
-    selectNetworkCodeFromUnifiedNetworks(currencyCode, networkCode, indexedNetworkEntries) {
-        return this.selectNetworkKeyFromNetworks(currencyCode, networkCode, indexedNetworkEntries, true);
-    }
-    selectNetworkIdFromRawNetworks(currencyCode, networkCode, indexedNetworkEntries) {
-        return this.selectNetworkKeyFromNetworks(currencyCode, networkCode, indexedNetworkEntries, false);
     }
     selectNetworkKeyFromNetworks(currencyCode, networkCode, indexedNetworkEntries, isIndexedByUnifiedNetworkCode = false) {
         // this method is used against raw & unparse network entries, which are just indexed by network id
@@ -5379,7 +5290,7 @@ export class BaseExchange {
             }
             else {
                 // if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
-                const defaultNetworkCode = this.defaultNetworkCode(currencyCode);
+                const defaultNetworkCode = this.safeString(this.safeDict(this.options, 'defaultNetworks', {}), currencyCode, this.safeString(this.options, 'defaultNetwork'));
                 const defaultNetworkId = isIndexedByUnifiedNetworkCode ? defaultNetworkCode : this.networkCodeToId(defaultNetworkCode, currencyCode);
                 if (defaultNetworkId === undefined) {
                     throw new ExchangeError(this.id + ' selectNetworkKeyFromNetworks() missing defaultNetworkId');
@@ -5678,24 +5589,6 @@ export class BaseExchange {
         const value = this.safeBool2(params, paramName1, paramName2, defaultValue);
         const paramsOmitted = (value !== undefined) ? this.omit(params, [paramName1, paramName2]) : params;
         return [value, paramsOmitted];
-    }
-    /**
-     * @param {object} params - extra parameters
-     * @param {object} request - existing dictionary of request
-     * @param {string} exchangeSpecificKey - the key for chain id to be set in request
-     * @param {object} currencyCode - (optional) existing dictionary of request
-     * @param {boolean} isRequired - (optional) whether that param is required to be present
-     * @returns {object[]} - returns [request, params] where request is the modified request object and params is the modified params object
-     */
-    handleRequestNetwork(params, request, exchangeSpecificKey, currencyCode = undefined, isRequired = false) {
-        const [networkCode, paramsNetworkCode] = this.handleNetworkCodeAndParams(params);
-        if (networkCode !== undefined) {
-            request[exchangeSpecificKey] = this.networkCodeToId(networkCode, currencyCode);
-        }
-        else if (isRequired) {
-            throw new ArgumentsRequired(this.id + ' - "network" param is required for this request');
-        }
-        return [request, paramsNetworkCode];
     }
     resolvePath(path, params) {
         return [

@@ -2144,15 +2144,15 @@ class coinsph extends coinsph$1["default"] {
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
-        const network = this.safeString(transaction, 'network');
-        const internal = network === 'Internal';
+        const networkId = this.safeString(transaction, 'network');
+        const internal = networkId === 'Internal';
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'network': network,
+            'network': this.networkIdToCode(networkId, code),
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
