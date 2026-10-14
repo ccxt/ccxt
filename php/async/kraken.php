@@ -279,10 +279,7 @@ class kraken extends Exchange {
                 'delistedMarketsById' => array(),
                 // cannot withdraw/deposit these
                 'inactiveCurrencies' => array( 'CAD', 'USD', 'JPY', 'GBP' ),
-                'networks' => array(
-                    'ETH' => 'ERC20',
-                    'TRX' => 'TRC20',
-                ),
+                'networks' => array(),
                 'depositMethods' => array(
                     '1INCH' => '1inch' . ' ' . '(1INCH)',
                     'AAVE' => 'Aave',
@@ -3498,8 +3495,9 @@ class kraken extends Exchange {
         }
         $currency = $this->currency($code);
         $network = $this->safe_string_upper($params, 'network');
-        $networks = $this->safe_dict($this->options, 'networks', array());
-        $network = $this->safe_string($networks, $network, $network); // support ETH > ERC20 aliases
+        if ($network !== null) {
+            $network = $this->safe_string($this->networkAliases, $network, $network);
+        }
         $paramsOmitted = $this->omit($params, 'network');
         $codeResolved = $code;
         if (($code === 'USDT') && ($network === 'TRC20')) {

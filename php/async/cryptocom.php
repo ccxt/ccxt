@@ -2255,12 +2255,15 @@ class cryptocom extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
-        $network = $this->safe_string_upper($params, 'network');
+        $networkParam = $this->safe_string_upper($params, 'network');
         $paramsOmitted = $this->omit($params, array( 'network' ));
         $depositAddressesRaw = Async\await($this->fetch_deposit_addresses_by_network($code, $paramsOmitted));
         $depositAddresses = $depositAddressesRaw;
-        if (is_array($depositAddresses) && array_key_exists($network ?? '', $depositAddresses)) {
-            return $depositAddresses[$network];
+        if ($networkParam !== null) {
+            $network = $this->safe_string($this->networkAliases, $networkParam, $networkParam);
+            if (is_array($depositAddresses) && array_key_exists($network ?? '', $depositAddresses)) {
+                return $depositAddresses[$network];
+            }
         }
         $keys = is_array($depositAddresses) ? array_keys($depositAddresses) : array();
         return $depositAddresses[$keys[0]];

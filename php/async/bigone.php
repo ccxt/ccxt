@@ -252,7 +252,7 @@ class bigone extends Exchange {
                     'DOGE' => 'Dogecoin',
                     'XEC' => 'ECash',
                     'EOS' => 'EOS',
-                    'ETH' => 'Ethereum',
+                    'ERC20' => 'Ethereum',
                     'ETC' => 'EthereumClassic',
                     'ETHW' => 'EthereumPow',
                     'FTM' => 'Fantom',
@@ -2138,7 +2138,7 @@ class bigone extends Exchange {
             throw new ExchangeError($this->id . ' fetchDepositAddress() returned empty address response');
         }
         $chainsIndexedById = $this->index_by($data, 'chain');
-        $selectedNetworkId = $this->select_network_id_from_raw_networks($code, $networkCode, $chainsIndexedById);
+        $selectedNetworkId = $this->select_network_key_from_networks($code, $networkCode, $chainsIndexedById, false);
         $addressObject = $this->safe_dict($chainsIndexedById, $selectedNetworkId, array());
         $address = $this->safe_string($addressObject, 'value');
         $tag = $this->safe_string($addressObject, 'memo');

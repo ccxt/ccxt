@@ -517,9 +517,7 @@ class weex extends Exchange {
                 ),
                 'networks' => array(
                     'BEP20' => 'BEP20(BSC)',
-                    'BSC' => 'BEP20(BSC)',
                     'ERC20' => 'ERC20',
-                    'ETH' => 'ERC20',
                     'POLYGON' => 'POLYGON(MATIC)',
                     'MATIC' => 'POLYGON(MATIC)',
                     'ARBITRUM' => 'ARBITRUM(ARB)',
