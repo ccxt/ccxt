@@ -3823,7 +3823,7 @@ export default class krakenfutures extends Exchange {
         throw new ExchangeError (feedback); // unknown message
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
         const apiVersions = this.safeDict (this.options['versions'], apiName, {});
         const methodVersions = this.safeDict (apiVersions, method, {});
@@ -3852,7 +3852,7 @@ export default class krakenfutures extends Exchange {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
         const url = apiUrl + query;
-        const requestBody = (path === 'batchorder') ? postData : body;
+        const requestBody = (path === 'batchorder') ? postData : undefined;
         let privateHeaders = undefined;
         if (apiName === 'private' || access === 'private') {
             this.checkRequiredCredentials ();
@@ -3871,7 +3871,7 @@ export default class krakenfutures extends Exchange {
                 'Authent': signature,
             };
         }
-        const requestHeaders = (privateHeaders !== undefined) ? privateHeaders : headers;
+        const requestHeaders = privateHeaders;
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 }

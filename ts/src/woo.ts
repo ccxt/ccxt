@@ -3493,7 +3493,7 @@ export default class woo extends Exchange {
         return this.milliseconds () - this.safeInteger (this.options, 'timeDifference', 0);
     }
 
-    override sign (path: string, section: string[] = [ 'public' ], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, section: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
         let requestHeaders: NullableDict = undefined;
         let requestBody: Str = undefined;
         const version = this.safeString (section, 0);
@@ -3566,8 +3566,8 @@ export default class woo extends Exchange {
             }
             requestHeaders['x-api-signature'] = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
         }
-        const headersResult = (requestHeaders !== undefined) ? requestHeaders : headers;
-        const bodyResult = (requestBody !== undefined) ? requestBody : body;
+        const headersResult = requestHeaders;
+        const bodyResult = requestBody;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 

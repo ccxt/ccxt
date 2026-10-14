@@ -2107,7 +2107,7 @@ export default class bittrade extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
         let requestHeaders: NullableDict = undefined;
         let requestBody: Str = undefined;
@@ -2164,8 +2164,8 @@ export default class bittrade extends Exchange {
         url = this.implodeParams (baseApiUrl, {
             'hostname': this.hostname,
         }) + url;
-        const headersResult = (requestHeaders !== undefined) ? requestHeaders : headers;
-        const bodyResult = (requestBody !== undefined) ? requestBody : body;
+        const headersResult = requestHeaders;
+        const bodyResult = requestBody;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 

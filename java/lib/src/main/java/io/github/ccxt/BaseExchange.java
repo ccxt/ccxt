@@ -2561,13 +2561,11 @@ public class BaseExchange {
             Object costObj = endpointInfo.get("cost");
             Object cost = (costObj != null) ? costObj : 1;
 
-            Map<String, Object> emptyMap = new HashMap<>();
             Map<String, Object> costMap  = new HashMap<>();
             costMap.put("cost", cost);
 
-            // body = null here, same as in your C# comment
             // try {
-            return (CompletableFuture<T>) this.fetch2(path, api, method, parameters, emptyMap, null, costMap);
+            return (CompletableFuture<T>) this.fetch2(path, api, method, parameters, costMap);
                 // return CompletableFuture.completedFuture(res);
             // } catch (Exception e) {
             //     // throw e;

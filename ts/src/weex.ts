@@ -4362,7 +4362,7 @@ export default class weex extends Exchange {
         this.options['sandboxMode'] = enable;
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
         let endpoint = this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
@@ -4374,7 +4374,7 @@ export default class weex extends Exchange {
         }
         const isPrivate = (apiName === 'private') || (apiName === 'contractPrivate');
         const hasJsonBody = isPrivate && ((method === 'POST') || isBatch);
-        let requestBody: Str = body;
+        let requestBody: Str = undefined;
         if (hasJsonBody) {
             requestBody = this.json (query);
         }

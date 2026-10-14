@@ -13302,7 +13302,7 @@ export default class binance extends Exchange {
         return scheme + '//' + domain + '/';
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
         const urls = this.urls;
         if (!(apiName in urls['api'])) {
@@ -13418,8 +13418,8 @@ export default class binance extends Exchange {
                 url += '?' + this.urlencode (params);
             }
         }
-        const headersResolved: NullableDict = (signedHeaders !== undefined) ? signedHeaders : headers;
-        const bodyResolved: Str = (signedBody !== undefined) ? signedBody : body;
+        const headersResolved: NullableDict = signedHeaders;
+        const bodyResolved: Str = signedBody;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
@@ -13556,8 +13556,8 @@ export default class binance extends Exchange {
         return this.safeValue (config, 'cost', 1);
     }
 
-    override async request (path: string, api: string[] = [ 'public' ], method: any = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined, config: Dict = {}) {
-        const response = await this.fetch2 (path, api, method, params, headers, body, config);
+    override async request (path: string, api: string[] = [ 'public' ], method: any = 'GET', params: Dict = {}, config: Dict = {}) {
+        const response = await this.fetch2 (path, api, method, params, config);
         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
         if (api[0] === 'private') {
             this.options['hasAlreadyAuthenticatedSuccessfully'] = true;

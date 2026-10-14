@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/deepcoin.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Bool, Currency, DepositAddress, Dict, Fee, FeeString, FundingRate, FundingRateHistory, FundingRates, int, Int, LedgerEntry, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, SubType, Ticker, Tickers, Trade, Transaction, TransferEntry, Endpoint } from './base/types.js';
+import type { Balances, Bool, Currency, DepositAddress, Dict, Fee, FeeString, FundingRate, FundingRateHistory, FundingRates, int, Int, LedgerEntry, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, SubType, Ticker, Tickers, Trade, Transaction, TransferEntry, Endpoint } from './base/types.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported, NullResponse } from './base/errors.js';
 
 // ---------------------------------------------------------------------------
@@ -3086,7 +3086,7 @@ export default class deepcoin extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
         let requestPath: string = path;
         if (method === 'GET') {
@@ -3111,7 +3111,7 @@ export default class deepcoin extends Exchange {
                 'DC-ACCESS-PASSPHRASE': this.password,
                 'appid': '200103',
             };
-            const requestBody = (method !== 'GET') ? this.json (params) : body;
+            const requestBody = (method !== 'GET') ? this.json (params) : undefined;
             if (method !== 'GET') {
                 privateHeaders['Content-Type'] = 'application/json';
                 payload += requestBody;
@@ -3120,7 +3120,7 @@ export default class deepcoin extends Exchange {
             privateHeaders['DC-ACCESS-SIGN'] = signature;
             return { 'url': url, 'method': method, 'body': requestBody, 'headers': privateHeaders };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

@@ -1814,7 +1814,7 @@ export default class hibachi extends Exchange {
         });
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method: any = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: any = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
         const endpoint = '/' + this.implodeParams (path, params);
         const apiUrl = this.safeString (this.urls['api'], apiName);
@@ -1834,7 +1834,7 @@ export default class hibachi extends Exchange {
         if (hasJsonBody) {
             headersValue['Content-Type'] = 'application/json';
         }
-        let bodyResult = body;
+        let bodyResult = undefined;
         if (hasJsonBody) {
             bodyResult = this.json (params);
         }

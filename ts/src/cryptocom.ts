@@ -3620,9 +3620,9 @@ export default class cryptocom extends Exchange {
         };
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        let requestHeaders: NullableDict = headers;
-        let requestBody: Str = body;
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+        let requestHeaders: NullableDict = undefined;
+        let requestBody: Str = undefined;
         const type = this.safeString (api, 0);
         const access = this.safeString (api, 1);
         const apiUrl = this.safeString (this.urls['api'], type);

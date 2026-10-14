@@ -3864,7 +3864,7 @@ export default class poloniex extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
         const isArray = Array.isArray (params);
         let url: string = this.urls['api']['spot'];
@@ -3912,8 +3912,8 @@ export default class poloniex extends Exchange {
                 'signature': signature,
             };
         }
-        const bodyResolved: Str = (bodyJson === undefined) ? body : bodyJson;
-        const headersResolved: NullableDict = (signedHeaders === undefined) ? headers : signedHeaders;
+        const bodyResolved: Str = bodyJson;
+        const headersResolved: NullableDict = signedHeaders;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 

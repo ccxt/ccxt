@@ -3263,7 +3263,7 @@ export default class toobit extends Exchange {
         });
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
         const baseApiUrl = this.safeString (this.urls['api'], apiName);
         if (baseApiUrl === undefined) {
@@ -3302,7 +3302,7 @@ export default class toobit extends Exchange {
             } else {
                 queryString = this.urlencode (queryExtended);
             }
-            let payloadBody = body;
+            let payloadBody = undefined;
             if (isPost || isDelete) {
                 payloadBody = privateBody;
             }
@@ -3323,13 +3323,13 @@ export default class toobit extends Exchange {
                 'X-BB-API-PLATFORM': this.safeString (this.options, 'brokerId', '177321641268789'),
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
-            let requestBody = body;
+            let requestBody = undefined;
             if (isPost || isDelete) {
                 requestBody = privateBody;
             }
             return { 'url': url, 'method': method, 'body': requestBody, 'headers': privateHeaders };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

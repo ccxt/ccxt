@@ -3767,7 +3767,7 @@ export default class btse extends Exchange {
         return undefined;
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params = {}) {
         const apiName = api[0];
         let requestBody: Str = undefined;
         let requestHeaders = undefined;
@@ -3819,8 +3819,8 @@ export default class btse extends Exchange {
                 'BROKER-ID': 'ccxt',
             };
         }
-        const bodyResolved = (requestBody === undefined) ? body : requestBody;
-        const headersResolved = (requestHeaders === undefined) ? headers : requestHeaders;
+        const bodyResolved = requestBody;
+        const headersResolved = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 

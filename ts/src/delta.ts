@@ -4177,7 +4177,7 @@ export default class delta extends Exchange {
         } as ADL;
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, headers: NullableDict = {}, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
         const requestPath = '/' + this.version + '/' + this.implodeParams (path, params);
         const apiUrl = this.safeString (this.urls['api'], apiName);
@@ -4214,8 +4214,8 @@ export default class delta extends Exchange {
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
             requestHeaders['signature'] = signature;
         }
-        const bodyResult = (requestBody === undefined) ? body : requestBody;
-        const headersResult = (requestHeaders === undefined) ? headers : requestHeaders;
+        const bodyResult = requestBody;
+        const headersResult = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 

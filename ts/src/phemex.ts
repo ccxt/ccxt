@@ -4745,7 +4745,7 @@ export default class phemex extends Exchange {
         return tiers as LeverageTier[];
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
         const query = this.omit (params, this.extractParams (path));
         const requestPath = '/' + this.implodeParams (path, params);
@@ -4791,11 +4791,11 @@ export default class phemex extends Exchange {
         }
         url = this.implodeHostname (baseApiUrl) + url;
         const isPrivatePost = (apiName === 'private') && (method === 'POST');
-        let bodyResolved: Str = body;
+        let bodyResolved: Str = undefined;
         if (isPrivatePost) {
             bodyResolved = requestBody;
         }
-        const requestHeaders: NullableDict = (apiName === 'private') ? privateHeaders : headers;
+        const requestHeaders: NullableDict = (apiName === 'private') ? privateHeaders : undefined;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': requestHeaders };
     }
 

@@ -1706,7 +1706,7 @@ export default class luno extends Exchange {
         return this.assignDefaultDepositWithdrawFees (result, currency) as DepositWithdrawFee;
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
         const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
@@ -1725,8 +1725,8 @@ export default class luno extends Exchange {
                 'Authorization': 'Basic ' + auth,
             };
         }
-        const headersResolved = (requestHeaders === undefined) ? headers : requestHeaders;
-        return { 'url': url, 'method': method, 'body': body, 'headers': headersResolved };
+        const headersResolved = requestHeaders;
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': headersResolved };
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

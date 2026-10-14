@@ -3,7 +3,7 @@ import Exchange from './abstract/blockchaincom.js';
 import { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Int, List, Market, Num, NullableDict, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, Fee, FeeString, Bool, Endpoint } from './base/types.js';
+import type { Balances, Currency, Dict, Int, List, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, Fee, FeeString, Bool, Endpoint } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1273,7 +1273,7 @@ export default class blockchaincom extends Exchange {
         return this.parseOrder (response);
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
         const requestPath = '/' + this.implodeParams (path, params);
         const apiName = api[0];
         const apiUrl = this.safeString (this.urls['api'], apiName);
@@ -1286,12 +1286,12 @@ export default class blockchaincom extends Exchange {
         const privateHeaders: Dict = {
             'X-API-Token': this.secret,
         };
-        let requestHeaders = headers;
+        let requestHeaders = undefined;
         if (isPrivate) {
             requestHeaders = privateHeaders;
         }
         const isPrivatePost = isPrivate && (method !== 'GET');
-        let requestBody: Str = body;
+        let requestBody: Str = undefined;
         if (isPrivatePost) {
             requestBody = this.json (query);
         }

@@ -2970,7 +2970,7 @@ export default class bydfi extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
         const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
@@ -3012,8 +3012,8 @@ export default class bydfi extends Exchange {
             }
         }
         url += endpoint;
-        const bodyResolved = (requestBody === undefined) ? body : requestBody;
-        const headersResolved = (requestHeaders === undefined) ? headers : requestHeaders;
+        const bodyResolved = requestBody;
+        const headersResolved = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 

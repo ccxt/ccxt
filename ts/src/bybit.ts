@@ -10029,7 +10029,7 @@ export default class bybit extends Exchange {
         return this.safeString (marginModes, marginMode, marginMode);
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
         let requestBody: Str = undefined;
         let requestHeaders: NullableDict = undefined;
@@ -10131,12 +10131,12 @@ export default class bybit extends Exchange {
         }
         if (method === 'POST') {
             const brokerId = this.safeString (this.options, 'brokerId', 'CCXT');
-            const headersBase = (requestHeaders === undefined) ? headers : requestHeaders;
+            const headersBase = requestHeaders;
             requestHeaders = (headersBase === undefined) ? {} : headersBase;
             requestHeaders['Referer'] = brokerId;
         }
-        const bodyResolved = (requestBody === undefined) ? body : requestBody;
-        const headersResolved = (requestHeaders === undefined) ? headers : requestHeaders;
+        const bodyResolved = requestBody;
+        const headersResolved = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 

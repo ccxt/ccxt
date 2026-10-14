@@ -12098,7 +12098,7 @@ export default class bitget extends Exchange {
         return this.milliseconds () - timeDifference;
     }
 
-    override sign (path: string, api: string[] = [], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [], method = 'GET', params: Dict = {}): Dict {
         const signed = api[0] === 'private';
         const endpoint = api[1];
         const pathPart = '/api';
@@ -12155,7 +12155,7 @@ export default class bitget extends Exchange {
                 requestHeaders['Content-Type'] = 'application/json';
             }
         }
-        let headersResult: NullableDict = (requestHeaders === undefined) ? headers : requestHeaders;
+        let headersResult: NullableDict = requestHeaders;
         const sandboxMode = this.safeBool2 (this.options, 'sandboxMode', 'sandbox', false);
         if ((sandboxMode === true) && (path !== 'v2/public/time') && (path !== 'v3/market/current-fund-rate')) {
             // https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336
@@ -12167,7 +12167,7 @@ export default class bitget extends Exchange {
                 headersResult['PAPTRADING'] = '1';
             }
         }
-        const bodyResult = (requestBody === undefined) ? body : requestBody;
+        const bodyResult = requestBody;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 }

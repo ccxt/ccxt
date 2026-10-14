@@ -2186,10 +2186,10 @@ export default class coinbaseexchange extends Exchange {
         } as DepositAddress;
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
-        let requestHeaders: NullableDict = headers;
-        let requestBody: Str = body;
+        let requestHeaders: NullableDict = undefined;
+        let requestBody: Str = undefined;
         let request = '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (method === 'GET') {
@@ -2245,8 +2245,8 @@ export default class coinbaseexchange extends Exchange {
         return undefined;
     }
 
-    override async request (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined, config: Dict = {}) {
-        const response = await this.fetch2 (path, api, method, params, headers, body, config);
+    override async request (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, config: Dict = {}) {
+        const response = await this.fetch2 (path, api, method, params, config);
         if (typeof response !== 'string') {
             if ('message' in response) {
                 throw new ExchangeError (this.id + ' ' + this.json (response));

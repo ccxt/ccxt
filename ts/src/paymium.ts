@@ -6,7 +6,7 @@ import Exchange from './abstract/paymium.js';
 import { ExchangeError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { TransferEntry, Balances, Currency, Int, Market, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Num, Dict, Strings, int, DepositAddress, NullableDict, Endpoint, List, Order } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Num, Dict, Strings, int, DepositAddress, Endpoint, List, Order } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -636,7 +636,7 @@ export default class paymium extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
         const baseApiUrl = this.safeString (this.urls['api'], 'rest');
         if (baseApiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
@@ -658,7 +658,7 @@ export default class paymium extends Exchange {
                 'Api-Nonce': nonce,
             };
             const hasQuery = Object.keys (query).length > 0;
-            let signedBody: Str = body;
+            let signedBody: Str = undefined;
             if (method === 'POST' && hasQuery) {
                 signedBody = this.json (query);
             }
@@ -677,7 +677,7 @@ export default class paymium extends Exchange {
             signedHeaders['Api-Signature'] = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
             return { 'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

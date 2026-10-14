@@ -6,7 +6,7 @@ import Exchange from './abstract/cryptomus.js';
 import { ArgumentsRequired, ExchangeError, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type{ Balances, Currencies, Dict, int, Int, Market, Num, Order, OrderBook, OrderType, OrderSide, Str, Strings, Ticker, Tickers, Trade, TradingFees, CurrencyInterface, Fee, List, NullableDict, Endpoint } from './base/types.js';
+import type{ Balances, Currencies, Dict, int, Int, Market, Num, Order, OrderBook, OrderType, OrderSide, Str, Strings, Ticker, Tickers, Trade, TradingFees, CurrencyInterface, Fee, List, Endpoint } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1182,7 +1182,7 @@ export default class cryptomus extends Exchange {
         };
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
         const endpoint = this.implodeParams (path, params);
         const paramsOmitted: Dict = this.omit (params, this.extractParams (path));
         const apiName = api[0];
@@ -1210,7 +1210,7 @@ export default class cryptomus extends Exchange {
             const stringToSign = jsonParamsBase64 + this.secret;
             const signature = this.hash (this.encode (stringToSign), md5);
             privateHeaders['sign'] = signature;
-            const privateBody: Str = (method !== 'GET') ? jsonParams : body;
+            const privateBody: Str = (method !== 'GET') ? jsonParams : undefined;
             return { 'url': url, 'method': method, 'body': privateBody, 'headers': privateHeaders };
         } else {
             const query = this.urlencode (paramsOmitted);
@@ -1218,7 +1218,7 @@ export default class cryptomus extends Exchange {
                 url += '?' + query;
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

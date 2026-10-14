@@ -9,7 +9,7 @@ import { AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, Inva
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { ecdsa, eddsa } from './base/functions/crypto.js';
-import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Fee, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, List, Market, NullableDict, FeeString, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Trade, TradingFees, Transaction, int, Status, Endpoint } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Fee, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, List, Market, FeeString, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Trade, TradingFees, Transaction, int, Status, Endpoint } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -3074,7 +3074,7 @@ export default class modetrade extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: string, section: string[] = [ 'public' ], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, section: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
         const version = section[0];
         const access = section[1];
         const pathWithParams = this.implodeParams (path, params);
@@ -3135,7 +3135,7 @@ export default class modetrade extends Exchange {
                     auth += '?' + this.rawencode (paramsSigned);
                 }
                 signedHeaders['content-type'] = 'application/x-www-form-urlencoded';
-                signedBody = (method === 'DELETE') ? '' : body;
+                signedBody = (method === 'DELETE') ? '' : undefined;
             }
             let secret = this.secret;
             if (secret.indexOf ('ed25519:') >= 0) {
@@ -3146,7 +3146,7 @@ export default class modetrade extends Exchange {
             signedHeaders['orderly-signature'] = this.urlencodeBase64 (this.base64ToBinary (signature));
             return { 'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

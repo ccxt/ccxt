@@ -1930,7 +1930,7 @@ export default class zebpay extends Exchange {
         };
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
         let bodySigned: Str = undefined;
         let headersSigned: NullableDict = undefined;
         const paramsOmitted: Dict = this.omit (params, 'defaultType');
@@ -1989,8 +1989,8 @@ export default class zebpay extends Exchange {
             };
             headersSigned['Content-Type'] = 'application/json';
         }
-        const headersResolved: NullableDict = (headersSigned === undefined) ? headers : headersSigned;
-        const bodyResolved: Str = (bodySigned === undefined) ? body : bodySigned;
+        const headersResolved: NullableDict = headersSigned;
+        const bodyResolved: Str = bodySigned;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 

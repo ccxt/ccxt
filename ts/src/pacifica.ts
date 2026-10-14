@@ -3690,8 +3690,8 @@ export default class pacifica extends Exchange {
         return undefined;
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        let requestBody: Str = body;
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+        let requestBody: Str = undefined;
         const isTestnet = this.isSandboxModeEnabled;
         let urlKey: Str = 'api';
         if (isTestnet) {
