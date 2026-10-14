@@ -6986,7 +6986,7 @@ func (this *Kucoin) cancelUtaOrderBody(ch chan EndpointResult[map[string]any], i
 		request["clientOid"] = clientOrderId
 	} else {
 		if IsEqual(id, nil) {
-			panic(ArgumentsRequired(this.Id + " fetchOrder() requires an id argument or clientOrderId parameter"))
+			panic(ArgumentsRequired(this.Id + " cancelOrder() requires an id argument or clientOrderId parameter"))
 		}
 		request["orderId"] = id
 	}

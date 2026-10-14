@@ -2731,6 +2731,7 @@ func (this *testMainClass) injectWsMessagesBody(ch chan ccxt.AsyncResult[any], e
 	// something — a fixed head-start sleep is not enough on slow ci
 	// runners and the frame's resolution would be dropped
 	// a reply frame must not arrive before its request was sent, or it is dropped
+	// a frame given as { "binary": "<base16>" } is replayed as a binary frame (e.g. SBE)
 	// threaded runtimes resolve futures on another thread — wait for
 	// the consumed frame to settle so the pending check above does not
 	// observe a stale future and burn the next frame early; frames
@@ -2752,7 +2753,12 @@ func (this *testMainClass) injectWsMessagesBody(ch chan ccxt.AsyncResult[any], e
 			<-exchange.Sleep(50)
 			waitedSent = Add(waitedSent, 50)
 		}
-		InjectWsMessage(exchange, url, GetValue(messages, i))
+		var frame any = GetValue(messages, i)
+		var binaryFrame any = ccxt.DerefScalar(exchange.SafeString(frame, "binary"))
+		if !IsEqual(binaryFrame, nil) {
+			frame = exchange.Base16ToBinary(binaryFrame)
+		}
+		InjectWsMessage(exchange, url, frame)
 		var settled any = 0
 		for EvalTruthy(WsClientHasPendingFutures(exchange, url)) && (IsLessThan(settled, 500)) {
 

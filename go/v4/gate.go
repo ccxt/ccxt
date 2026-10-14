@@ -10256,8 +10256,8 @@ func (this *Gate) addMarginBody(ch chan AsyncResult[map[string]any], symbol stri
 
 /**
  * @method
- * @name gate#fetchOpenInterest
- * @description Retrieves the open interest of a currency
+ * @name gate#fetchOpenInterestHistory
+ * @description Retrieves the open interest history of a currency
  * @see https://www.gate.com/docs/developers/apiv4/en/#futures-statistics
  * @param {string} symbol Unified CCXT market symbol
  * @param {string} timeframe "5m", "15m", "30m", "1h", "4h", "1d"
@@ -10307,7 +10307,7 @@ func (this *Gate) fetchOpenInterestHistoryBody(ch chan AsyncResult[any], symbol 
 	}
 	var market map[string]any = this.Market(symbol)
 	if market["swap"] != true {
-		panic(BadRequest(this.Id + " fetchOpenInterest() supports swap markets only"))
+		panic(BadRequest(this.Id + " fetchOpenInterestHistory() supports swap markets only"))
 	}
 	var request map[string]any = map[string]any{
 		"contract": market["id"],
@@ -13300,6 +13300,20 @@ func (this *Gate) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]
 	var res []BorrowInterest = NewBorrowInterestArray(r.Value)
 	return res, nil
 }
+
+/**
+ * @method
+ * @name gate#fetchOpenInterestHistory
+ * @description Retrieves the open interest history of a currency
+ * @see https://www.gate.com/docs/developers/apiv4/en/#futures-statistics
+ * @param {string} symbol Unified CCXT market symbol
+ * @param {string} timeframe "5m", "15m", "30m", "1h", "4h", "1d"
+ * @param {int} [since] the time(ms) of the earliest record to retrieve as a unix timestamp
+ * @param {int} [limit] default 30
+ * @param {object} [params] exchange specific parameters
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+ */
 func (this *Gate) FetchOpenInterestHistory(symbol string, options ...FetchOpenInterestHistoryOptions) ([]OpenInterest, error) {
 
 	opts := FetchOpenInterestHistoryOptionsStruct{}
