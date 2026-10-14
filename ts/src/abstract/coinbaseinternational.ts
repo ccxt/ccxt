@@ -10,235 +10,235 @@ import { Exchange as _Exchange } from '../base/Exchange.js';
 
 abstract class Exchange extends _Exchange {
     v1PublicGetAssets (params = {}): Promise<List> {
-        return this.request ('assets', [ 'v1', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('assets', [ 'v1', 'public' ], 'GET', params, { 'cost': 1 });
     }
 
     v1PublicGetAssetsAssets (params = {}): Promise<Dict> {
-        return this.request ('assets/{assets}', [ 'v1', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('assets/{assets}', [ 'v1', 'public' ], 'GET', params, { 'cost': 1 });
     }
 
     v1PublicGetAssetsAssetNetworks (params = {}): Promise<List> {
-        return this.request ('assets/{asset}/networks', [ 'v1', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('assets/{asset}/networks', [ 'v1', 'public' ], 'GET', params, { 'cost': 1 });
     }
 
     v1PublicGetInstruments (params = {}): Promise<List> {
-        return this.request ('instruments', [ 'v1', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('instruments', [ 'v1', 'public' ], 'GET', params, { 'cost': 1 });
     }
 
     v1PublicGetInstrumentsInstrument (params = {}): Promise<Dict> {
-        return this.request ('instruments/{instrument}', [ 'v1', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('instruments/{instrument}', [ 'v1', 'public' ], 'GET', params, { 'cost': 1 });
     }
 
     v1PublicGetInstrumentsInstrumentQuote (params = {}): Promise<Dict> {
-        return this.request ('instruments/{instrument}/quote', [ 'v1', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('instruments/{instrument}/quote', [ 'v1', 'public' ], 'GET', params, { 'cost': 1 });
     }
 
     v1PublicGetInstrumentsInstrumentFunding (params = {}): Promise<Dict> {
-        return this.request ('instruments/{instrument}/funding', [ 'v1', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('instruments/{instrument}/funding', [ 'v1', 'public' ], 'GET', params, { 'cost': 1 });
     }
 
     v1PublicGetInstrumentsInstrumentCandles (params = {}): Promise<Dict> {
-        return this.request ('instruments/{instrument}/candles', [ 'v1', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('instruments/{instrument}/candles', [ 'v1', 'public' ], 'GET', params, { 'cost': 1 });
     }
 
     v1PublicGetInstrumentsVolumesDaily (params = {}): Promise<Dict> {
-        return this.request ('instruments/volumes/daily', [ 'v1', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('instruments/volumes/daily', [ 'v1', 'public' ], 'GET', params, { 'cost': 1 });
     }
 
     v1PublicGetPositionOffsets (params = {}): Promise<Dict> {
-        return this.request ('position-offsets', [ 'v1', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('position-offsets', [ 'v1', 'public' ], 'GET', params, { 'cost': 1 });
     }
 
     v1PublicGetFeeRateTiers (params = {}): Promise<List> {
-        return this.request ('fee-rate-tiers', [ 'v1', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('fee-rate-tiers', [ 'v1', 'public' ], 'GET', params, { 'cost': 1 });
     }
 
     v1PrivateGetAddressBook (params = {}): Promise<List> {
-        return this.request ('address-book', [ 'v1', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('address-book', [ 'v1', 'private' ], 'GET', params, { 'cost': 1 });
     }
 
     v1PrivateGetOrders (params = {}): Promise<Dict> {
-        return this.request ('orders', [ 'v1', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('orders', [ 'v1', 'private' ], 'GET', params, { 'cost': 1 });
     }
 
     v1PrivateGetOrdersId (params = {}): Promise<Dict> {
-        return this.request ('orders/{id}', [ 'v1', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('orders/{id}', [ 'v1', 'private' ], 'GET', params, { 'cost': 1 });
     }
 
     v1PrivateGetIndexIndexComposition (params = {}): Promise<Dict> {
-        return this.request ('index/{index}/composition', [ 'v1', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('index/{index}/composition', [ 'v1', 'private' ], 'GET', params, { 'cost': 1 });
     }
 
     v1PrivateGetIndexIndexCompositionHistory (params = {}): Promise<Dict> {
-        return this.request ('index/{index}/composition-history', [ 'v1', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('index/{index}/composition-history', [ 'v1', 'private' ], 'GET', params, { 'cost': 1 });
     }
 
     v1PrivateGetIndexIndexPrice (params = {}): Promise<Dict> {
-        return this.request ('index/{index}/price', [ 'v1', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('index/{index}/price', [ 'v1', 'private' ], 'GET', params, { 'cost': 1 });
     }
 
     v1PrivateGetIndexIndexCandles (params = {}): Promise<Dict> {
-        return this.request ('index/{index}/candles', [ 'v1', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('index/{index}/candles', [ 'v1', 'private' ], 'GET', params, { 'cost': 1 });
     }
 
     v1PrivateGetPortfolios (params = {}): Promise<List> {
-        return this.request ('portfolios', [ 'v1', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('portfolios', [ 'v1', 'private' ], 'GET', params, { 'cost': 1 });
     }
 
     v1PrivateGetPortfoliosPortfolio (params = {}): Promise<Dict> {
-        return this.request ('portfolios/{portfolio}', [ 'v1', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('portfolios/{portfolio}', [ 'v1', 'private' ], 'GET', params, { 'cost': 1 });
     }
 
     v1PrivateGetPortfoliosPortfolioDetail (params = {}): Promise<Dict> {
-        return this.request ('portfolios/{portfolio}/detail', [ 'v1', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('portfolios/{portfolio}/detail', [ 'v1', 'private' ], 'GET', params, { 'cost': 1 });
     }
 
     v1PrivateGetPortfoliosPortfolioSummary (params = {}): Promise<Dict> {
-        return this.request ('portfolios/{portfolio}/summary', [ 'v1', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('portfolios/{portfolio}/summary', [ 'v1', 'private' ], 'GET', params, { 'cost': 1 });
     }
 
     v1PrivateGetPortfoliosPortfolioBalances (params = {}): Promise<List> {
-        return this.request ('portfolios/{portfolio}/balances', [ 'v1', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('portfolios/{portfolio}/balances', [ 'v1', 'private' ], 'GET', params, { 'cost': 1 });
     }
 
     v1PrivateGetPortfoliosPortfolioBalancesAsset (params = {}): Promise<Dict> {
-        return this.request ('portfolios/{portfolio}/balances/{asset}', [ 'v1', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('portfolios/{portfolio}/balances/{asset}', [ 'v1', 'private' ], 'GET', params, { 'cost': 1 });
     }
 
     v1PrivateGetPortfoliosPortfolioPositions (params = {}): Promise<List> {
-        return this.request ('portfolios/{portfolio}/positions', [ 'v1', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('portfolios/{portfolio}/positions', [ 'v1', 'private' ], 'GET', params, { 'cost': 1 });
     }
 
     v1PrivateGetPortfoliosPortfolioPositionsInstrument (params = {}): Promise<Dict> {
-        return this.request ('portfolios/{portfolio}/positions/{instrument}', [ 'v1', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('portfolios/{portfolio}/positions/{instrument}', [ 'v1', 'private' ], 'GET', params, { 'cost': 1 });
     }
 
     v1PrivateGetPortfoliosPortfolioPositionLimits (params = {}): Promise<Dict> {
-        return this.request ('portfolios/{portfolio}/position-limits', [ 'v1', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('portfolios/{portfolio}/position-limits', [ 'v1', 'private' ], 'GET', params, { 'cost': 1 });
     }
 
     v1PrivateGetPortfoliosPortfolioPositionLimitsPositions (params = {}): Promise<List> {
-        return this.request ('portfolios/{portfolio}/position-limits/positions', [ 'v1', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('portfolios/{portfolio}/position-limits/positions', [ 'v1', 'private' ], 'GET', params, { 'cost': 1 });
     }
 
     v1PrivateGetPortfoliosPortfolioPositionLimitsPositionsInstrument (params = {}): Promise<Dict> {
-        return this.request ('portfolios/{portfolio}/position-limits/positions/{instrument}', [ 'v1', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('portfolios/{portfolio}/position-limits/positions/{instrument}', [ 'v1', 'private' ], 'GET', params, { 'cost': 1 });
     }
 
     v1PrivateGetPortfoliosFills (params = {}): Promise<Dict> {
-        return this.request ('portfolios/fills', [ 'v1', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('portfolios/fills', [ 'v1', 'private' ], 'GET', params, { 'cost': 1 });
     }
 
     v1PrivateGetPortfoliosPortfolioFills (params = {}): Promise<Dict> {
-        return this.request ('portfolios/{portfolio}/fills', [ 'v1', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('portfolios/{portfolio}/fills', [ 'v1', 'private' ], 'GET', params, { 'cost': 1 });
     }
 
     v1PrivateGetPortfoliosFeeRates (params = {}): Promise<List> {
-        return this.request ('portfolios/fee-rates', [ 'v1', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('portfolios/fee-rates', [ 'v1', 'private' ], 'GET', params, { 'cost': 1 });
     }
 
     v1PrivateGetPortfoliosPortfolioLoans (params = {}): Promise<List> {
-        return this.request ('portfolios/{portfolio}/loans', [ 'v1', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('portfolios/{portfolio}/loans', [ 'v1', 'private' ], 'GET', params, { 'cost': 1 });
     }
 
     v1PrivateGetPortfoliosPortfolioLoansAsset (params = {}): Promise<Dict> {
-        return this.request ('portfolios/{portfolio}/loans/{asset}', [ 'v1', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('portfolios/{portfolio}/loans/{asset}', [ 'v1', 'private' ], 'GET', params, { 'cost': 1 });
     }
 
     v1PrivateGetPortfoliosPortfolioLoansAssetAvailability (params = {}): Promise<Dict> {
-        return this.request ('portfolios/{portfolio}/loans/{asset}/availability', [ 'v1', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('portfolios/{portfolio}/loans/{asset}/availability', [ 'v1', 'private' ], 'GET', params, { 'cost': 1 });
     }
 
     v1PrivateGetPortfoliosPortfolioMarginCallStatus (params = {}): Promise<Dict> {
-        return this.request ('portfolios/{portfolio}/margin-call-status', [ 'v1', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('portfolios/{portfolio}/margin-call-status', [ 'v1', 'private' ], 'GET', params, { 'cost': 1 });
     }
 
     v1PrivateGetTransfers (params = {}): Promise<Dict> {
-        return this.request ('transfers', [ 'v1', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('transfers', [ 'v1', 'private' ], 'GET', params, { 'cost': 1 });
     }
 
     v1PrivateGetTransfersTransferUuid (params = {}): Promise<Dict> {
-        return this.request ('transfers/{transfer_uuid}', [ 'v1', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('transfers/{transfer_uuid}', [ 'v1', 'private' ], 'GET', params, { 'cost': 1 });
     }
 
     v1PrivateGetTransfersWithdrawPortfolioAssetCounterpartyWithdrawalLimit (params = {}): Promise<Dict> {
-        return this.request ('transfers/withdraw/{portfolio}/{asset}/counterparty-withdrawal-limit', [ 'v1', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('transfers/withdraw/{portfolio}/{asset}/counterparty-withdrawal-limit', [ 'v1', 'private' ], 'GET', params, { 'cost': 1 });
     }
 
     v1PrivatePostOrders (params = {}): Promise<Dict> {
-        return this.request ('orders', [ 'v1', 'private' ], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('orders', [ 'v1', 'private' ], 'POST', params, { 'cost': 1 });
     }
 
     v1PrivatePostPortfolios (params = {}): Promise<Dict> {
-        return this.request ('portfolios', [ 'v1', 'private' ], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('portfolios', [ 'v1', 'private' ], 'POST', params, { 'cost': 1 });
     }
 
     v1PrivatePostPortfoliosMargin (params = {}): Promise<Dict> {
-        return this.request ('portfolios/margin', [ 'v1', 'private' ], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('portfolios/margin', [ 'v1', 'private' ], 'POST', params, { 'cost': 1 });
     }
 
     v1PrivatePostPortfoliosPortfolioCrossCollateralEnabled (params = {}): Promise<Dict> {
-        return this.request ('portfolios/{portfolio}/cross-collateral-enabled', [ 'v1', 'private' ], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('portfolios/{portfolio}/cross-collateral-enabled', [ 'v1', 'private' ], 'POST', params, { 'cost': 1 });
     }
 
     v1PrivatePostPortfoliosPortfolioAutoMarginEnabled (params = {}): Promise<Dict> {
-        return this.request ('portfolios/{portfolio}/auto-margin-enabled', [ 'v1', 'private' ], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('portfolios/{portfolio}/auto-margin-enabled', [ 'v1', 'private' ], 'POST', params, { 'cost': 1 });
     }
 
     v1PrivatePostPortfoliosPortfolioLoansAsset (params = {}): Promise<Dict> {
-        return this.request ('portfolios/{portfolio}/loans/{asset}', [ 'v1', 'private' ], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('portfolios/{portfolio}/loans/{asset}', [ 'v1', 'private' ], 'POST', params, { 'cost': 1 });
     }
 
     v1PrivatePostPortfoliosPortfolioLoansAssetPreview (params = {}): Promise<Dict> {
-        return this.request ('portfolios/{portfolio}/loans/{asset}/preview', [ 'v1', 'private' ], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('portfolios/{portfolio}/loans/{asset}/preview', [ 'v1', 'private' ], 'POST', params, { 'cost': 1 });
     }
 
     v1PrivatePostPortfoliosTransfer (params = {}): Promise<Dict> {
-        return this.request ('portfolios/transfer', [ 'v1', 'private' ], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('portfolios/transfer', [ 'v1', 'private' ], 'POST', params, { 'cost': 1 });
     }
 
     v1PrivatePostPortfoliosTransferPosition (params = {}): Promise<Dict> {
-        return this.request ('portfolios/transfer-position', [ 'v1', 'private' ], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('portfolios/transfer-position', [ 'v1', 'private' ], 'POST', params, { 'cost': 1 });
     }
 
     v1PrivatePostTransfersWithdraw (params = {}): Promise<Dict> {
-        return this.request ('transfers/withdraw', [ 'v1', 'private' ], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('transfers/withdraw', [ 'v1', 'private' ], 'POST', params, { 'cost': 1 });
     }
 
     v1PrivatePostTransfersAddress (params = {}): Promise<Dict> {
-        return this.request ('transfers/address', [ 'v1', 'private' ], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('transfers/address', [ 'v1', 'private' ], 'POST', params, { 'cost': 1 });
     }
 
     v1PrivatePostTransfersCreateCounterpartyId (params = {}): Promise<Dict> {
-        return this.request ('transfers/create-counterparty-id', [ 'v1', 'private' ], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('transfers/create-counterparty-id', [ 'v1', 'private' ], 'POST', params, { 'cost': 1 });
     }
 
     v1PrivatePostTransfersValidateCounterpartyId (params = {}): Promise<Dict> {
-        return this.request ('transfers/validate-counterparty-id', [ 'v1', 'private' ], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('transfers/validate-counterparty-id', [ 'v1', 'private' ], 'POST', params, { 'cost': 1 });
     }
 
     v1PrivatePostTransfersWithdrawCounterparty (params = {}): Promise<Dict> {
-        return this.request ('transfers/withdraw/counterparty', [ 'v1', 'private' ], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('transfers/withdraw/counterparty', [ 'v1', 'private' ], 'POST', params, { 'cost': 1 });
     }
 
     v1PrivatePutOrdersId (params = {}): Promise<Dict> {
-        return this.request ('orders/{id}', [ 'v1', 'private' ], 'PUT', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('orders/{id}', [ 'v1', 'private' ], 'PUT', params, { 'cost': 1 });
     }
 
     v1PrivatePutPortfoliosPortfolio (params = {}): Promise<Dict> {
-        return this.request ('portfolios/{portfolio}', [ 'v1', 'private' ], 'PUT', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('portfolios/{portfolio}', [ 'v1', 'private' ], 'PUT', params, { 'cost': 1 });
     }
 
     v1PrivateDeleteOrders (params = {}): Promise<List> {
-        return this.request ('orders', [ 'v1', 'private' ], 'DELETE', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('orders', [ 'v1', 'private' ], 'DELETE', params, { 'cost': 1 });
     }
 
     v1PrivateDeleteOrdersId (params = {}): Promise<Dict> {
-        return this.request ('orders/{id}', [ 'v1', 'private' ], 'DELETE', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('orders/{id}', [ 'v1', 'private' ], 'DELETE', params, { 'cost': 1 });
     }
 
     v1PrivatePatchPortfoliosPortfolio (params = {}): Promise<Dict> {
-        return this.request ('portfolios/{portfolio}', [ 'v1', 'private' ], 'PATCH', params, undefined, undefined, { 'cost': 1 });
+        return this.request ('portfolios/{portfolio}', [ 'v1', 'private' ], 'PATCH', params, { 'cost': 1 });
     }
 }
 
