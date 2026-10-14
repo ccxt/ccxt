@@ -1987,7 +1987,7 @@ export default class blofin extends Exchange {
 
     networkCodeToChainId (networkCode: string, currency: Currency = undefined): Str {
         const aliases = this.safeDict (this.options, 'networkCodeAliases', {});
-        const unifiedCode = this.safeString (aliases, networkCode, networkCode);
+        const unifiedCode = this.unifiedNetworkCode (this.safeString (aliases, networkCode, networkCode));
         // prefer the exact chain id from the currencies registry when it is
         // loaded, since some ids are currency-specific (USDT on Optimism)
         if (currency !== undefined) {

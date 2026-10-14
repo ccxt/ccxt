@@ -2723,7 +2723,7 @@ export default class bithumb extends Exchange {
                 }
                 request['address'] = address;
                 request['currency'] = currency['id'];
-                request['net_type'] = network;
+                request['net_type'] = this.networkCodeToId (network, code);
                 request['amount'] = this.numberToString (amount);
                 if (destinationRequest !== undefined) {
                     request['secondary_address'] = destinationRequest;
@@ -2754,7 +2754,7 @@ export default class bithumb extends Exchange {
             request['currency'] = currency['id'];
             request['units'] = amount;
             if (network !== undefined) {
-                request['net_type'] = network;
+                request['net_type'] = this.networkCodeToId (network, code);
             }
             if (destinationRequest !== undefined) {
                 request['destination'] = destinationRequest;
@@ -2818,7 +2818,7 @@ export default class bithumb extends Exchange {
             'txid': this.safeString (transaction, 'txid'),
             'timestamp': timestamp,
             'datetime': datetime,
-            'network': this.safeString (transaction, 'net_type'),
+            'network': this.networkIdToCode (this.safeString (transaction, 'net_type'), currencyResolved['code']),
             'addressFrom': undefined,
             'address': undefined,
             'addressTo': undefined,
@@ -3152,7 +3152,7 @@ export default class bithumb extends Exchange {
         if (network === undefined) {
             throw new ArgumentsRequired (this.id + ' ' + code + ' createDepositAddress() requires a network parameter');
         }
-        request['net_type'] = network;
+        request['net_type'] = this.networkCodeToId (network, code);
         const response = await this.privatePostV1DepositsGenerateCoinAddress (this.extend (request, paramsOmitted));
         //
         //     {
@@ -3193,7 +3193,7 @@ export default class bithumb extends Exchange {
         if (network === undefined) {
             throw new ArgumentsRequired (this.id + ' ' + code + ' fetchDepositAddress() requires a network parameter');
         }
-        request['net_type'] = network;
+        request['net_type'] = this.networkCodeToId (network, code);
         const response = await this.privateGetV1DepositsCoinAddress (this.extend (request, paramsOmitted));
         //
         //     {
@@ -3259,7 +3259,7 @@ export default class bithumb extends Exchange {
         return {
             'info': response,
             'currency': code,
-            'network': this.safeString (response, 'net_type'),
+            'network': this.networkIdToCode (this.safeString (response, 'net_type'), code),
             'address': address,
             'tag': this.safeString (response, 'secondary_address'),
         } as DepositAddress;

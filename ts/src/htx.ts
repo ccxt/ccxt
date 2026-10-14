@@ -882,7 +882,7 @@ export default class htx extends Exchange {
                     'LTC': 'LTC',
                     'XRP': 'XRP',
                     'XLM': 'XLM',
-                    'CRONOS': 'CRO',
+                    'CRC20': 'CRO',
                     'CRO': 'CRO',
                     'GLMR': 'GLMR',
                     'POLYGON': 'MATIC',
