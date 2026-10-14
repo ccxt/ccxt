@@ -661,14 +661,14 @@ export class BaseExchange {
                 this[property] = value;
             }
         }
-        // generate old metainfo interface
+        this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
+        this.afterConstruct (userConfig);
+        // generate old metainfo interface (after afterConstruct, so hasAutocorrect values are included)
         const hasKeys = Object.keys (this.has);
         for (let i = 0; i < hasKeys.length; i++) {
             const k = hasKeys[i];
             this['has' + this.capitalize (k)] = (this.has[k] !== undefined) && (this.has[k] !== false); // converts 'emulated' to true
         }
-        this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
-        this.afterConstruct (userConfig);
         // exchange specific libs
         this.loadExchangeSpecificFiles ();
     }
@@ -2810,7 +2810,7 @@ export class BaseExchange {
                 'borrowMargin': undefined,
                 'cancelAllOrders': undefined,
                 'cancelAllOrdersWs': undefined,
-                'cancelOrder': true,
+                'cancelOrder': undefined,
                 'cancelOrderWithClientOrderId': undefined,
                 'cancelOrderWs': undefined,
                 'cancelOrders': undefined,
@@ -2821,7 +2821,7 @@ export class BaseExchange {
                 'createDepositAddress': undefined,
                 'createLimitBuyOrder': undefined,
                 'createLimitBuyOrderWs': undefined,
-                'createLimitOrder': true,
+                'createLimitOrder': undefined,
                 'createLimitOrderWs': undefined,
                 'createLimitSellOrder': undefined,
                 'createLimitSellOrderWs': undefined,
@@ -2829,15 +2829,15 @@ export class BaseExchange {
                 'createMarketBuyOrderWs': undefined,
                 'createMarketBuyOrderWithCost': undefined,
                 'createMarketBuyOrderWithCostWs': undefined,
-                'createMarketOrder': true,
-                'createMarketOrderWs': true,
+                'createMarketOrder': undefined,
+                'createMarketOrderWs': undefined,
                 'createMarketOrderWithCost': undefined,
                 'createMarketOrderWithCostWs': undefined,
                 'createMarketSellOrder': undefined,
                 'createMarketSellOrderWs': undefined,
                 'createMarketSellOrderWithCost': undefined,
                 'createMarketSellOrderWithCostWs': undefined,
-                'createOrder': true,
+                'createOrder': undefined,
                 'createOrderWs': undefined,
                 'createOrders': undefined,
                 'createOrderWithTakeProfitAndStopLoss': undefined,
@@ -2869,7 +2869,7 @@ export class BaseExchange {
                 'editOrderWs': undefined,
                 'fetchAccounts': undefined,
                 'fetchADLRank': undefined,
-                'fetchBalance': true,
+                'fetchBalance': undefined,
                 'fetchBalanceWs': undefined,
                 'fetchBidsAsks': undefined,
                 'fetchBorrowInterest': undefined,
@@ -2912,7 +2912,7 @@ export class BaseExchange {
                 'fetchIsolatedBorrowRates': undefined,
                 'fetchMarginAdjustmentHistory': undefined,
                 'fetchIsolatedPositions': undefined,
-                'fetchL2OrderBook': true,
+                'fetchL2OrderBook': undefined,
                 'fetchL3OrderBook': undefined,
                 'fetchLastPrices': undefined,
                 'fetchLedger': undefined,
@@ -2926,7 +2926,7 @@ export class BaseExchange {
                 'fetchMarginMode': undefined,
                 'fetchMarginModes': undefined,
                 'fetchMarketLeverageTiers': undefined,
-                'fetchMarkets': true,
+                'fetchMarkets': 'emulated',
                 'fetchMarketsWs': undefined,
                 'fetchMarkOHLCV': undefined,
                 'fetchMyLiquidations': undefined,
@@ -2945,7 +2945,7 @@ export class BaseExchange {
                 'fetchOptionChain': undefined,
                 'fetchOrder': undefined,
                 'fetchOrderWithClientOrderId': undefined,
-                'fetchOrderBook': true,
+                'fetchOrderBook': undefined,
                 'fetchOrderBooks': undefined,
                 'fetchOrderBookWs': undefined,
                 'fetchOrders': undefined,
@@ -2968,13 +2968,13 @@ export class BaseExchange {
                 'fetchPremiumIndexOHLCV': undefined,
                 'fetchSettlementHistory': undefined,
                 'fetchStatus': undefined,
-                'fetchTicker': true,
+                'fetchTicker': 'emulated',
                 'fetchTickerWs': undefined,
                 'fetchTickers': undefined,
                 'fetchMarkPrices': undefined,
                 'fetchTickersWs': undefined,
                 'fetchTime': undefined,
-                'fetchTrades': true,
+                'fetchTrades': undefined,
                 'fetchTradesWs': undefined,
                 'fetchTradingFee': undefined,
                 'fetchTradingFees': undefined,
@@ -4083,6 +4083,7 @@ export class BaseExchange {
         // networks
         this.createNetworksByIdObject ();
         this.featuresGenerator ();
+        this.hasAutocorrect ();
         // init predefined markets if any
         if (this.markets !== undefined) {
             this.setMarkets (this.markets);
@@ -4097,6 +4098,24 @@ export class BaseExchange {
         // compatibility for sandbox/testnet options in userConfig
         if ((this.safeBool (userConfig, 'sandbox', false)) || (this.safeBool (userConfig, 'testnet', false))) {
             this.setSandboxMode (true);
+        }
+    }
+
+    hasAutocorrect () {
+        if (this.has['fetchOrderBook'] !== undefined && this.has['fetchL2OrderBook'] === undefined) {
+            this.has['fetchL2OrderBook'] = this.has['fetchOrderBook'];
+        }
+        if (this.has['createLimitOrder'] === undefined && this.has['createOrder'] !== undefined) {
+            this.has['createLimitOrder'] = this.has['createOrder'];
+        }
+        if (this.has['createMarketOrder'] === undefined && this.has['createOrder'] !== undefined) {
+            this.has['createMarketOrder'] = this.has['createOrder'];
+        }
+        if (this.has['createOrderWs'] !== undefined && this.has['createLimitOrderWs'] === undefined) {
+            this.has['createLimitOrderWs'] = this.has['createOrderWs'];
+        }
+        if (this.has['createOrderWs'] !== undefined && this.has['createMarketOrderWs'] === undefined) {
+            this.has['createMarketOrderWs'] = this.has['createOrderWs'];
         }
     }
 
