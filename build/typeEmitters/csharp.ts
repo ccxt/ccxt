@@ -225,7 +225,7 @@ export function resolveTsType (ir: TypesIR, tsType: string, context?: { owner: s
         if (text.indexOf ('|') >= 0) {
             // a union of string literals with Str/string behaves as a string
             const members = text.split ('|').map ((p) => p.trim ());
-            const stringy = members.every ((m) => m.startsWith ("'") || m === 'string' || m === 'Str');
+            const stringy = members.every ((m) => m.startsWith ("'") || m === 'string' || m === 'Str' || m === '(string & {})');
             if (stringy) {
                 return { 't': 'str' };
             }
