@@ -10,82 +10,108 @@ import { Exchange as _Exchange } from '../base/Exchange.js';
 
 abstract class Exchange extends _Exchange {
     v3PublicGetCurrencies (params = {}): Promise<Dict> {
-        return this.request ("currencies", [ "v3", "public" ], 'GET', params, undefined, undefined, {"cost":5});
+        return this.request ('currencies', [ 'v3', 'public' ], 'GET', params, undefined, undefined, { 'cost': 5 });
     }
+
     v3PublicGetMarkets (params = {}): Promise<Dict> {
-        return this.request ("markets", [ "v3", "public" ], 'GET', params, undefined, undefined, {"cost":5});
+        return this.request ('markets', [ 'v3', 'public' ], 'GET', params, undefined, undefined, { 'cost': 5 });
     }
+
     v3PublicGetMarketsTicker24hr (params = {}): Promise<Dict> {
-        return this.request ("markets/ticker/24hr", [ "v3", "public" ], 'GET', params, undefined, undefined, {"cost":60});
+        return this.request ('markets/ticker/24hr', [ 'v3', 'public' ], 'GET', params, undefined, undefined, { 'cost': 60 });
     }
+
     v3PublicGetMarketsMarketOrderbook (params = {}): Promise<Dict> {
-        return this.request ("markets/{market}/orderbook", [ "v3", "public" ], 'GET', params, undefined, undefined, {"cost":6});
+        return this.request ('markets/{market}/orderbook', [ 'v3', 'public' ], 'GET', params, undefined, undefined, { 'cost': 6 });
     }
+
     v3PublicGetMarketsMarketCandlesticks (params = {}): Promise<List> {
-        return this.request ("markets/{market}/candlesticks", [ "v3", "public" ], 'GET', params, undefined, undefined, {"cost":12});
+        return this.request ('markets/{market}/candlesticks', [ 'v3', 'public' ], 'GET', params, undefined, undefined, { 'cost': 12 });
     }
+
     v3PublicGetMarketsMarketTradesHistory (params = {}): Promise<Dict> {
-        return this.request ("markets/{market}/trades/history", [ "v3", "public" ], 'GET', params, undefined, undefined, {"cost":12});
+        return this.request ('markets/{market}/trades/history', [ 'v3', 'public' ], 'GET', params, undefined, undefined, { 'cost': 12 });
     }
+
     v3PublicGetMarketsMarketTicker24hr (params = {}): Promise<Dict> {
-        return this.request ("markets/{market}/ticker/24hr", [ "v3", "public" ], 'GET', params, undefined, undefined, {"cost":15});
+        return this.request ('markets/{market}/ticker/24hr', [ 'v3', 'public' ], 'GET', params, undefined, undefined, { 'cost': 15 });
     }
+
     v3PublicGetMarketsSparklineWindow (params = {}): Promise<Dict> {
-        return this.request ("markets/sparkline/{window}", [ "v3", "public" ], 'GET', params, undefined, undefined, {"cost":20});
+        return this.request ('markets/sparkline/{window}', [ 'v3', 'public' ], 'GET', params, undefined, undefined, { 'cost': 20 });
     }
+
     v3PublicGetTravelRuleOperationReasons (params = {}): Promise<Dict> {
-        return this.request ("travel_rule/operation_reasons", [ "v3", "public" ], 'GET', params, undefined, undefined, {"cost":30});
+        return this.request ('travel_rule/operation_reasons', [ 'v3', 'public' ], 'GET', params, undefined, undefined, { 'cost': 30 });
     }
+
     v3PrivateGetAccounts (params = {}): Promise<Dict> {
-        return this.request ("accounts", [ "v3", "private" ], 'GET', params, undefined, undefined, {"cost":2});
+        return this.request ('accounts', [ 'v3', 'private' ], 'GET', params, undefined, undefined, { 'cost': 2 });
     }
+
     v3PrivateGetAccountsSymbolTransactions (params = {}): Promise<Dict> {
-        return this.request ("accounts/{symbol}/transactions", [ "v3", "private" ], 'GET', params, undefined, undefined, {"cost":60});
+        return this.request ('accounts/{symbol}/transactions', [ 'v3', 'private' ], 'GET', params, undefined, undefined, { 'cost': 60 });
     }
+
     v3PrivateGetOrders (params = {}): Promise<Dict> {
-        return this.request ("orders", [ "v3", "private" ], 'GET', params, undefined, undefined, {"cost":2});
+        return this.request ('orders', [ 'v3', 'private' ], 'GET', params, undefined, undefined, { 'cost': 2 });
     }
+
     v3PrivateGetOrdersByOrderIdId (params = {}): Promise<Dict> {
-        return this.request ("orders/by-order-id/{id}", [ "v3", "private" ], 'GET', params, undefined, undefined, {"cost":2});
+        return this.request ('orders/by-order-id/{id}', [ 'v3', 'private' ], 'GET', params, undefined, undefined, { 'cost': 2 });
     }
+
     v3PrivateGetTrades (params = {}): Promise<Dict> {
-        return this.request ("trades", [ "v3", "private" ], 'GET', params, undefined, undefined, {"cost":6});
+        return this.request ('trades', [ 'v3', 'private' ], 'GET', params, undefined, undefined, { 'cost': 6 });
     }
+
     v3PrivateGetDepositsAddress (params = {}): Promise<Dict> {
-        return this.request ("deposits/address", [ "v3", "private" ], 'GET', params, undefined, undefined, {"cost":10});
+        return this.request ('deposits/address', [ 'v3', 'private' ], 'GET', params, undefined, undefined, { 'cost': 10 });
     }
+
     v3PrivateGetDeposits (params = {}): Promise<Dict> {
-        return this.request ("deposits", [ "v3", "private" ], 'GET', params, undefined, undefined, {"cost":10});
+        return this.request ('deposits', [ 'v3', 'private' ], 'GET', params, undefined, undefined, { 'cost': 10 });
     }
+
     v3PrivateGetWithdrawals (params = {}): Promise<Dict> {
-        return this.request ("withdrawals", [ "v3", "private" ], 'GET', params, undefined, undefined, {"cost":10});
+        return this.request ('withdrawals', [ 'v3', 'private' ], 'GET', params, undefined, undefined, { 'cost': 10 });
     }
+
     v3PrivateGetMeFeesTrading (params = {}): Promise<Dict> {
-        return this.request ("me/fees/trading", [ "v3", "private" ], 'GET', params, undefined, undefined, {"cost":60});
+        return this.request ('me/fees/trading', [ 'v3', 'private' ], 'GET', params, undefined, undefined, { 'cost': 60 });
     }
+
     v3PrivateGetPrimeDeskExecutionsQuoteId (params = {}): Promise<Dict> {
-        return this.request ("prime_desk/executions/{quote_id}", [ "v3", "private" ], 'GET', params, undefined, undefined, {"cost":10});
+        return this.request ('prime_desk/executions/{quote_id}', [ 'v3', 'private' ], 'GET', params, undefined, undefined, { 'cost': 10 });
     }
+
     v3PrivatePostOrders (params = {}): Promise<Dict> {
-        return this.request ("orders", [ "v3", "private" ], 'POST', params, undefined, undefined, {"cost":2});
+        return this.request ('orders', [ 'v3', 'private' ], 'POST', params, undefined, undefined, { 'cost': 2 });
     }
+
     v3PrivatePostOrdersBatch (params = {}): Promise<Dict> {
-        return this.request ("orders/batch", [ "v3", "private" ], 'POST', params, undefined, undefined, {"cost":7.5});
+        return this.request ('orders/batch', [ 'v3', 'private' ], 'POST', params, undefined, undefined, { 'cost': 7.5 });
     }
+
     v3PrivatePostOrdersCancelReplace (params = {}): Promise<Dict> {
-        return this.request ("orders/cancel-replace", [ "v3", "private" ], 'POST', params, undefined, undefined, {"cost":3});
+        return this.request ('orders/cancel-replace', [ 'v3', 'private' ], 'POST', params, undefined, undefined, { 'cost': 3 });
     }
+
     v3PrivatePostWithdrawals (params = {}): Promise<Dict> {
-        return this.request ("withdrawals", [ "v3", "private" ], 'POST', params, undefined, undefined, {"cost":10});
+        return this.request ('withdrawals', [ 'v3', 'private' ], 'POST', params, undefined, undefined, { 'cost': 10 });
     }
+
     v3PrivatePostDepositsDepositSnTravelRule (params = {}): Promise<Dict> {
-        return this.request ("deposits/{deposit_sn}/travel_rule", [ "v3", "private" ], 'POST', params, undefined, undefined, {"cost":30});
+        return this.request ('deposits/{deposit_sn}/travel_rule', [ 'v3', 'private' ], 'POST', params, undefined, undefined, { 'cost': 30 });
     }
+
     v3PrivatePutOrdersCancel (params = {}): Promise<Dict> {
-        return this.request ("orders/cancel", [ "v3", "private" ], 'PUT', params, undefined, undefined, {"cost":2});
+        return this.request ('orders/cancel', [ 'v3', 'private' ], 'PUT', params, undefined, undefined, { 'cost': 2 });
     }
+
     statusPublicGetStatus (params = {}): Promise<Dict> {
-        return this.request ("status", [ "status", "public" ], 'GET', params, undefined, undefined, {"cost":30});
+        return this.request ('status', [ 'status', 'public' ], 'GET', params, undefined, undefined, { 'cost': 30 });
     }
 }
-export default Exchange
+
+export default Exchange;

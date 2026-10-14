@@ -10,82 +10,108 @@ import { Exchange as _Exchange } from '../base/Exchange.js';
 
 abstract class Exchange extends _Exchange {
     historyGetApiTwHistoryPairNameResolution (params = {}): Promise<Dict> {
-        return this.request ("api/tw/history/{pairName}/{resolution}", [ "history" ], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('api/tw/history/{pairName}/{resolution}', [ 'history' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     publicGetTradeApiAsset (params = {}): Promise<Dict> {
-        return this.request ("trade/api/asset", [ "public" ], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('trade/api/asset', [ 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     publicGetTradeApiCurrencies (params = {}): Promise<Dict> {
-        return this.request ("trade/api/currencies", [ "public" ], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('trade/api/currencies', [ 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     publicGetTradeApiOrderbooksSymbol (params = {}): Promise<Dict> {
-        return this.request ("trade/api/orderbooks/{symbol}", [ "public" ], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('trade/api/orderbooks/{symbol}', [ 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     publicGetTradeApiOrders (params = {}): Promise<Dict> {
-        return this.request ("trade/api/orders", [ "public" ], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('trade/api/orders', [ 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     publicGetTradeApiPairName (params = {}): Promise<Dict> {
-        return this.request ("trade/api/pair/{name}", [ "public" ], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('trade/api/pair/{name}', [ 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     publicGetTradeApiPairs (params = {}): Promise<Dict> {
-        return this.request ("trade/api/pairs", [ "public" ], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('trade/api/pairs', [ 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     publicGetTradeApiPairsPrecisions (params = {}): Promise<Dict> {
-        return this.request ("trade/api/pairs/precisions", [ "public" ], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('trade/api/pairs/precisions', [ 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     publicGetTradeApiRates (params = {}): Promise<Dict> {
-        return this.request ("trade/api/rates", [ "public" ], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('trade/api/rates', [ 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     publicGetTradeApiStats (params = {}): Promise<Dict> {
-        return this.request ("trade/api/stats", [ "public" ], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('trade/api/stats', [ 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     publicGetTradeApiTradeId (params = {}): Promise<Dict> {
-        return this.request ("trade/api/trade/{id}", [ "public" ], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('trade/api/trade/{id}', [ 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     publicGetTradeApiTrades (params = {}): Promise<Dict> {
-        return this.request ("trade/api/trades", [ "public" ], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('trade/api/trades', [ 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     publicGetTradeApiCcxtPairs (params = {}): Promise<Dict> {
-        return this.request ("trade/api/ccxt/pairs", [ "public" ], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('trade/api/ccxt/pairs', [ 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     publicGetTradeApiCmcAssets (params = {}): Promise<Dict> {
-        return this.request ("trade/api/cmc/assets", [ "public" ], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('trade/api/cmc/assets', [ 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     publicGetTradeApiCmcOrderbookPair (params = {}): Promise<Dict> {
-        return this.request ("trade/api/cmc/orderbook/{pair}", [ "public" ], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('trade/api/cmc/orderbook/{pair}', [ 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     publicGetTradeApiCmcSummary (params = {}): Promise<List> {
-        return this.request ("trade/api/cmc/summary", [ "public" ], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('trade/api/cmc/summary', [ 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     publicGetTradeApiCmcTicker (params = {}): Promise<Dict> {
-        return this.request ("trade/api/cmc/ticker", [ "public" ], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('trade/api/cmc/ticker', [ 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     publicGetTradeApiCmcTradesPair (params = {}): Promise<List> {
-        return this.request ("trade/api/cmc/trades/{pair}", [ "public" ], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('trade/api/cmc/trades/{pair}', [ 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     privateGetTradeApiCcxtBalance (params = {}): Promise<Dict> {
-        return this.request ("trade/api/ccxt/balance", [ "private" ], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('trade/api/ccxt/balance', [ 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     privateGetTradeApiCcxtOrderId (params = {}): Promise<Dict> {
-        return this.request ("trade/api/ccxt/order/{id}", [ "private" ], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('trade/api/ccxt/order/{id}', [ 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     privateGetTradeApiCcxtOrdersOfUser (params = {}): Promise<Dict> {
-        return this.request ("trade/api/ccxt/ordersOfUser", [ "private" ], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('trade/api/ccxt/ordersOfUser', [ 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     privateGetTradeApiCcxtTradesOfUser (params = {}): Promise<Dict> {
-        return this.request ("trade/api/ccxt/tradesOfUser", [ "private" ], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('trade/api/ccxt/tradesOfUser', [ 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     privateGetTradeApiTransactionsOfUser (params = {}): Promise<Dict> {
-        return this.request ("trade/api/transactionsOfUser", [ "private" ], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('trade/api/transactionsOfUser', [ 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     privatePostTradeApiCcxtCancelAllOrder (params = {}): Promise<Dict> {
-        return this.request ("trade/api/ccxt/cancel-all-order", [ "private" ], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('trade/api/ccxt/cancel-all-order', [ 'private' ], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
+
     privatePostTradeApiCcxtCancelorder (params = {}): Promise<Dict> {
-        return this.request ("trade/api/ccxt/cancelorder", [ "private" ], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('trade/api/ccxt/cancelorder', [ 'private' ], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
+
     privatePostTradeApiCcxtOrdercreate (params = {}): Promise<Dict> {
-        return this.request ("trade/api/ccxt/ordercreate", [ "private" ], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('trade/api/ccxt/ordercreate', [ 'private' ], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
 }
-export default Exchange
+
+export default Exchange;

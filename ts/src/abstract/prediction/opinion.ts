@@ -10,64 +10,84 @@ import { default as _Exchange } from '../../base/PredictionExchange.js';
 
 abstract class Exchange extends _Exchange {
     opinionPublicGetMarket (params = {}): Promise<Dict> {
-        return this.request ("market", [ "opinion", "public" ], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('market', [ 'opinion', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     opinionPublicGetMarketMarketId (params = {}): Promise<Dict> {
-        return this.request ("market/{marketId}", [ "opinion", "public" ], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('market/{marketId}', [ 'opinion', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     opinionPublicGetMarketCategoricalMarketId (params = {}): Promise<Dict> {
-        return this.request ("market/categorical/{marketId}", [ "opinion", "public" ], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('market/categorical/{marketId}', [ 'opinion', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     opinionPublicGetMarketSlugSlug (params = {}): Promise<Dict> {
-        return this.request ("market/slug/{slug}", [ "opinion", "public" ], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('market/slug/{slug}', [ 'opinion', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     opinionPublicGetLabel (params = {}): Promise<Dict | List> {
-        return this.request ("label", [ "opinion", "public" ], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('label', [ 'opinion', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     opinionPublicGetTokenLatestPrice (params = {}): Promise<Dict> {
-        return this.request ("token/latest-price", [ "opinion", "public" ], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('token/latest-price', [ 'opinion', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     opinionPublicGetTokenOrderbook (params = {}): Promise<Dict> {
-        return this.request ("token/orderbook", [ "opinion", "public" ], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('token/orderbook', [ 'opinion', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     opinionPublicGetTokenPriceHistory (params = {}): Promise<Dict> {
-        return this.request ("token/price-history", [ "opinion", "public" ], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('token/price-history', [ 'opinion', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     opinionPublicGetQuoteToken (params = {}): Promise<Dict> {
-        return this.request ("quoteToken", [ "opinion", "public" ], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('quoteToken', [ 'opinion', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     opinionPrivateGetOrder (params = {}): Promise<Dict> {
-        return this.request ("order", [ "opinion", "private" ], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('order', [ 'opinion', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     opinionPrivateGetOrderOrderId (params = {}): Promise<Dict> {
-        return this.request ("order/{orderId}", [ "opinion", "private" ], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('order/{orderId}', [ 'opinion', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     opinionPrivateGetPositionsUserWalletAddress (params = {}): Promise<Dict> {
-        return this.request ("positions/user/{walletAddress}", [ "opinion", "private" ], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('positions/user/{walletAddress}', [ 'opinion', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     opinionPrivateGetTradeUserWalletAddress (params = {}): Promise<Dict> {
-        return this.request ("trade/user/{walletAddress}", [ "opinion", "private" ], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('trade/user/{walletAddress}', [ 'opinion', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     opinionPrivateGetAuthApiKey (params = {}): Promise<Dict> {
-        return this.request ("auth/api-key", [ "opinion", "private" ], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('auth/api-key', [ 'opinion', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     opinionPrivateGetUserAuth (params = {}): Promise<Dict> {
-        return this.request ("user/auth", [ "opinion", "private" ], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('user/auth', [ 'opinion', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     opinionPrivateGetUserBalance (params = {}): Promise<Dict> {
-        return this.request ("user/balance", [ "opinion", "private" ], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('user/balance', [ 'opinion', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     opinionPrivatePostAuthApiKey (params = {}): Promise<Dict> {
-        return this.request ("auth/api-key", [ "opinion", "private" ], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('auth/api-key', [ 'opinion', 'private' ], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
+
     opinionPrivatePostOrder (params = {}): Promise<Dict> {
-        return this.request ("order", [ "opinion", "private" ], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('order', [ 'opinion', 'private' ], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
+
     opinionPrivatePostOrderCancel (params = {}): Promise<Dict> {
-        return this.request ("order/cancel", [ "opinion", "private" ], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('order/cancel', [ 'opinion', 'private' ], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
+
     opinionPrivateDeleteAuthApiKey (params = {}): Promise<Dict> {
-        return this.request ("auth/api-key", [ "opinion", "private" ], 'DELETE', params, undefined, undefined, {"cost":1});
+        return this.request ('auth/api-key', [ 'opinion', 'private' ], 'DELETE', params, undefined, undefined, { 'cost': 1 });
     }
 }
-export default Exchange
+
+export default Exchange;

@@ -283,12 +283,12 @@ export default [
         },
     },
     {
-        // Generated implicit-API files: only enforce the array spacing the generator emits.
+        // Generated implicit-API files: the generator emits the exchange style, so hold it to it.
         files: ['ts/src/abstract/**/*.ts'],
         languageOptions: sharedLanguageOptions,
-        rules: {
-            'array-bracket-spacing': ['error', 'always'],
-        },
+        plugins: sharedPlugins,
+        settings: sharedSettings,
+        rules: mainRulesWithoutJsdoc,
     },
     {
         files: ['ts/src/test/**/*.ts'],

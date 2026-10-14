@@ -25,15 +25,23 @@ const ROOT = path.join (path.dirname (fileURLToPath (import.meta.url)), '..');
 
 type ReturnTypes = { [method: string]: string };
 
-// TS literal with array-bracket-spacing 'always' (matches eslint.config.mjs).
+// TS literal in the eslint.config.mjs main style: single quotes, spaced brackets and braces.
+const tsString = (s: string): string => (s.includes ("'") ? JSON.stringify (s) : "'" + JSON.stringify (s).slice (1, -1).replace (/\\"/g, '"') + "'");
+const isFilledObject = (v: any): boolean => (v !== null && typeof v === 'object' && !Array.isArray (v) && Object.keys (v).length > 0);
 const tsLiteral = (value: any): string => {
     if (Array.isArray (value)) {
         return value.length ? '[ ' + value.map (tsLiteral).join (', ') + ' ]' : '[]';
     }
     if (value !== null && typeof value === 'object') {
-        return '{' + Object.entries (value).map (([ k, v ]) => JSON.stringify (k) + ':' + tsLiteral (v)).join (',') + '}';
+        const entries = Object.entries (value);
+        if (!entries.length) {
+            return '{}';
+        }
+        // object-curly-spacing objectsInObjects:false — no space before '}' when the last value is an object
+        const close = isFilledObject (entries[entries.length - 1][1]) ? '}' : ' }';
+        return '{ ' + entries.map (([ k, v ]) => tsString (k) + ': ' + tsLiteral (v)).join (', ') + close;
     }
-    return JSON.stringify (value);
+    return (typeof value === 'string') ? tsString (value) : JSON.stringify (value);
 };
 
 const capitalize = (s: string): string => {
@@ -779,8 +787,9 @@ function createImplicitMethodsTs(){
         const camelCaseMethods = storedCamelCaseMethods[exchange];
 
         const inherited = typescriptInheritedNames (exchange);
-        const typeScriptMethods = camelCaseMethods.map ((method, i) => typescriptMethod (exchange, method, storedContext[exchange][i], inherited));
-        typeScriptMethods.push ('}')
+        // lines-between-class-members: one blank line between generated methods
+        const typeScriptMethods = [ camelCaseMethods.map ((method, i) => typescriptMethod (exchange, method, storedContext[exchange][i], inherited)).join ('\n\n') ];
+        typeScriptMethods.push ('}', '')
         const footer = storedTypeScriptMethods[exchange].pop ()
         storedTypeScriptMethods[exchange] = storedTypeScriptMethods[exchange].concat (typeScriptMethods).concat ([ footer ])
         finalizeTypescriptImport (exchange)
@@ -810,7 +819,7 @@ function typescriptInheritedNames (exchange: string): Set<string> {
 // one implicit endpoint as a real method of the abstract class
 function typescriptMethod (exchange: string, method: string, context: Dict, inherited: Set<string>): string {
     const returnType = typescriptReturnType (exchange, method);
-    const call = `return this.request (${JSON.stringify (context.endpoint.trim ())}, ${context.tsPath}, '${context.method}', params, undefined, undefined, ${context.tsConfig});`;
+    const call = `return this.request (${tsString (context.endpoint.trim ())}, ${context.tsPath}, '${context.method}', params, undefined, undefined, ${context.tsConfig});`;
     const name = typescriptMethodName (context);
     return [
         `${IDEN}${inherited.has (name) ? 'override ' : ''}${name} (params = {}): Promise<${returnType}> {`,
@@ -1178,7 +1187,7 @@ function createTypescriptHeader(instance: Exchange, parent: string){
         importParent = `import _${parent} from '${basePath}${parent}.js';`
     }
     const typescriptHeader = `abstract class ${parent} extends _${parent} {`
-    const typescriptFooter = `export default ${parent}` // hotswap later
+    const typescriptFooter = `export default ${parent};` // hotswap later
     storedTypeScriptMethods[exchange] = [ getPreamble (), importType, importParent, '', typescriptHeader, typescriptFooter ];
 }
 
