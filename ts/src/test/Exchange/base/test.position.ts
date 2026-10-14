@@ -1,4 +1,6 @@
-import { Exchange, Str } from "../../../../ccxt.js";
+import assert from 'assert';
+import { Exchange, Market, Str } from "../../../../ccxt.js";
+import Precise from '../../../base/Precise.js';
 import testSharedMethods from './test.sharedMethods.js';
 
 function testPosition (exchange: Exchange, skippedProperties: object, method: string, entry: object, symbol: Str, now: number) {
@@ -52,6 +54,64 @@ function testPosition (exchange: Exchange, skippedProperties: object, method: st
     testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'markPrice', '0');
     testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'collateral', '0');
     // testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'percentage', '0'); // percentage might be < 0
+    const marginMode = exchange.safeString (entry, 'marginMode');
+    if (marginMode === 'isolated') {
+        const logText = testSharedMethods.logTemplate (exchange, method, entry);
+        const side = exchange.safeString (entry, 'side');
+        const entryPriceString = exchange.safeString (entry, 'entryPrice');
+        const liquidationPriceString = exchange.safeString (entry, 'liquidationPrice');
+        const contractsString = exchange.safeString (entry, 'contracts');
+        const contractSizeString = exchange.safeString (entry, 'contractSize');
+        const maintenanceMarginString = exchange.safeString (entry, 'maintenanceMargin');
+        const collateralString = exchange.safeString (entry, 'collateral');
+        const initialMarginString = exchange.safeString (entry, 'initialMargin');
+        const unrealizedPnlString = exchange.safeString (entry, 'unrealizedPnl');
+        if ((entryPriceString !== undefined) && (liquidationPriceString !== undefined) && Precise.stringGt (entryPriceString, '0') && Precise.stringGt (liquidationPriceString, '0')) {
+            if (side === 'long') {
+                testSharedMethods.assertLess (exchange, skippedProperties, method, entry, 'liquidationPrice', entryPriceString);
+            } else if (side === 'short') {
+                testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'liquidationPrice', entryPriceString);
+            }
+        }
+        let entryMarginString: Str = undefined;
+        if (collateralString !== undefined) {
+            if ((unrealizedPnlString !== undefined) && !Precise.stringEq (collateralString, initialMarginString)) {
+                entryMarginString = Precise.stringSub (collateralString, unrealizedPnlString);
+            } else {
+                entryMarginString = collateralString;
+            }
+        } else if (initialMarginString !== undefined) {
+            entryMarginString = initialMarginString;
+        }
+        const hasEntryMargin = (entryMarginString !== undefined) && Precise.stringGt (entryMarginString, '0');
+        const hasEntryPrice = (entryPriceString !== undefined) && Precise.stringGt (entryPriceString, '0');
+        const hasLiqPrice = (liquidationPriceString !== undefined) && Precise.stringGt (liquidationPriceString, '0');
+        const hasContracts = (contractsString !== undefined) && Precise.stringGt (contractsString, '0');
+        const hasContractSize = (contractSizeString !== undefined) && Precise.stringGt (contractSizeString, '0');
+        const hasMm = (maintenanceMarginString !== undefined) && Precise.stringGt (maintenanceMarginString, '0');
+        if (hasEntryMargin && hasEntryPrice && hasLiqPrice && hasContracts && hasContractSize && hasMm) {
+            const symbolForMarket = (symbol !== undefined) ? symbol : exchange.safeString (entry, 'symbol');
+            let market: Market = undefined;
+            if ((symbolForMarket !== undefined) && (exchange.markets !== undefined) && (symbolForMarket in exchange.markets)) {
+                market = exchange.market (symbolForMarket);
+            }
+            const isInverse = (market !== undefined) && exchange.safeBool (market, 'inverse', false);
+            let priceDiff: Str = undefined;
+            if (isInverse) {
+                const invEntry = Precise.stringDiv ('1', entryPriceString);
+                const invLiq = Precise.stringDiv ('1', liquidationPriceString);
+                priceDiff = Precise.stringAbs (Precise.stringSub (invEntry, invLiq));
+            } else {
+                priceDiff = Precise.stringAbs (Precise.stringSub (entryPriceString, liquidationPriceString));
+            }
+            const lossFromEntry = Precise.stringMul (priceDiff, Precise.stringMul (contractsString, contractSizeString));
+            const calculatedMm = Precise.stringSub (entryMarginString, lossFromEntry);
+            assert (Precise.stringGt (calculatedMm, '0'), 'isolated position remaining collateral at liquidationPrice (' + calculatedMm + ') should be greater than 0' + logText);
+            const mmDiff = Precise.stringAbs (Precise.stringSub (calculatedMm, maintenanceMarginString));
+            const maxTolerance = Precise.stringMul (entryMarginString, '0.05');
+            assert (Precise.stringLe (mmDiff, maxTolerance), 'isolated position maintenanceMargin (' + maintenanceMarginString + ') does not match remaining collateral at liquidationPrice (' + calculatedMm + ')' + logText);
+        }
+    }
 }
 
 export default testPosition;

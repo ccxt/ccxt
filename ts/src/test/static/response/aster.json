@@ -3733,7 +3733,7 @@
                         "timestamp": 1625474304765,
                         "initialMargin": null,
                         "initialMarginPercentage": 0.1,
-                        "maintenanceMargin": null,
+                        "maintenanceMargin": 543.00726908,
                         "maintenanceMarginPercentage": null,
                         "marginRatio": 0,
                         "datetime": "2021-07-05T08:38:24.765Z",

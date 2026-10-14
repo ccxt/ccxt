@@ -1687,7 +1687,7 @@
                         "lastUpdateTimestamp": 1705052585000,
                         "initialMargin": null,
                         "initialMarginPercentage": null,
-                        "maintenanceMargin": null,
+                        "maintenanceMargin": 0.06457625,
                         "maintenanceMarginPercentage": null,
                         "entryPrice": 74.35,
                         "notional": 7.443,

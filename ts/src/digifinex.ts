@@ -4048,7 +4048,7 @@ export default class digifinex extends Exchange {
         if (marginMode !== undefined) {
             marginMode = (marginMode === 'crossed') ? 'cross' : 'isolated';
         } else {
-            marginMode = 'crossed';
+            marginMode = 'cross';
         }
         const timestamp = this.safeInteger (position, 'timestamp');
         let side = this.safeString (position, 'side');
@@ -4057,6 +4057,7 @@ export default class digifinex extends Exchange {
         } else if (side === 'go_short') {
             side = 'short';
         }
+        const positionMargin = this.safeNumber (position, 'margin');
         return this.safePosition ({
             'info': position,
             'id': undefined,
@@ -4066,17 +4067,17 @@ export default class digifinex extends Exchange {
             'liquidationPrice': this.safeNumber (position, 'liquidation_price'),
             'entryPrice': this.safeNumber2 (position, 'avg_cost', 'entry_price'),
             'unrealizedPnl': this.safeNumber (position, 'unrealized_pnl'),
-            'contracts': this.safeNumber (position, 'avail_position'),
+            'contracts': this.safeNumber2 (position, 'position', 'avail_position'),
             'contractSize': this.safeNumber (marketResolved, 'contractSize'),
-            'markPrice': this.safeNumber (position, 'last'),
+            'markPrice': this.safeNumber2 (position, 'mark_price', 'last'),
             'side': side,
             'hedged': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'maintenanceMargin': this.safeNumber (position, 'margin'),
+            'maintenanceMargin': this.safeNumber (position, 'maintain_margin'),
             'maintenanceMarginPercentage': this.safeNumber (position, 'maint_margin_ratio'),
-            'collateral': undefined,
-            'initialMargin': undefined,
+            'collateral': (marginMode === 'isolated') ? this.safeNumber2 (position, 'posi_balance', 'margin') : undefined,
+            'initialMargin': positionMargin,
             'initialMarginPercentage': undefined,
             'leverage': this.safeNumber2 (position, 'leverage', 'leverage_ratio'),
             'marginRatio': this.safeNumber (position, 'margin_ratio'),

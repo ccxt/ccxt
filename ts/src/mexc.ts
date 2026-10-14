@@ -5470,7 +5470,7 @@ export default class mexc extends Exchange {
         const initialMargin = this.safeString (position, 'im');
         const rawSide = this.safeString (position, 'positionType');
         const side = (rawSide === '1') ? 'long' : 'short';
-        const openType = this.safeString (position, 'margin_mode');
+        const openType = this.safeString2 (position, 'openType', 'margin_mode');
         const marginType = (openType === '1') ? 'isolated' : 'cross';
         const leverage = this.safeNumber (position, 'leverage');
         const liquidationPrice = this.safeNumber (position, 'liquidatePrice');
@@ -5480,9 +5480,9 @@ export default class mexc extends Exchange {
             'id': undefined,
             'symbol': symbol,
             'contracts': this.parseNumber (contracts),
-            'contractSize': undefined,
+            'contractSize': this.safeNumber (marketResolved, 'contractSize'),
             'entryPrice': entryPrice,
-            'collateral': undefined,
+            'collateral': (marginType === 'isolated') ? this.parseNumber (initialMargin) : undefined,
             'side': side,
             'unrealizedPnl': undefined,
             'leverage': this.parseNumber (leverage),
