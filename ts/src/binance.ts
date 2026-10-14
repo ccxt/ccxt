@@ -1419,7 +1419,6 @@ export default class binance extends Exchange {
                     'funding': 'FUNDING',
                     'margin': 'MARGIN',
                     'cross': 'MARGIN',
-                    'future': 'UMFUTURE', // backwards compatibility
                     'linear': 'UMFUTURE',
                     'swap': 'UMFUTURE',
                     'inverse': 'CMFUTURE',
@@ -2906,10 +2905,11 @@ export default class binance extends Exchange {
         if (this.markets === undefined) {
             throw new ExchangeError (this.id + ' markets not loaded');
         }
-        // defaultType 'future' resolves spot-style symbols to the derivative market of defaultSubType
+        // defaultType 'swap' resolves spot-style symbols to the perpetual of defaultSubType
         let defaultType = this.safeString (this.options, 'defaultType');
         const defaultSubType = this.safeString (this.options, 'defaultSubType');
-        const isLegacy = defaultType === 'future';
+        const isLegacy = defaultType === 'swap';
+        const isDerivative = isLegacy || (defaultType === 'future');
         const isLegacyInverse = isLegacy && (defaultSubType === 'inverse');
         const isLegacyLinear = isLegacy && !isLegacyInverse;
         if (typeof symbol === 'string') {
@@ -2929,10 +2929,8 @@ export default class binance extends Exchange {
             } else if ((this.markets_by_id !== undefined) && (symbol in this.markets_by_id)) {
                 const markets = this.markets_by_id[symbol];
                 // begin diff
-                if (isLegacyLinear) {
-                    defaultType = 'linear';
-                } else if (isLegacyInverse) {
-                    defaultType = 'inverse';
+                if (isDerivative) {
+                    defaultType = (defaultSubType === 'inverse') ? 'inverse' : 'linear';
                 } else if (defaultType === undefined) {
                     defaultType = defaultSubType;
                 }
@@ -2945,7 +2943,7 @@ export default class binance extends Exchange {
                 }
                 return markets[0];
             } else if ((symbol.indexOf ('/') > -1) && (symbol.indexOf (':') < 0)) {
-                if ((defaultType !== undefined) && (defaultType !== 'spot')) {
+                if (isLegacy) {
                     // support legacy symbols
                     const [ base, quote ] = symbol.split ('/');
                     let settle: Str = quote;
@@ -10271,8 +10269,8 @@ export default class binance extends Exchange {
         if (internal !== true) {
             const defaultType = this.safeString2 (this.options, 'fetchTransfers', 'defaultType', 'spot');
             const fromAccount = this.safeString (paramsOmitted, 'fromAccount', defaultType);
-            let defaultTo: Str = 'future';
-            if (fromAccount === 'future') {
+            let defaultTo: Str = 'swap';
+            if ((fromAccount === 'swap') || (fromAccount === 'linear')) {
                 defaultTo = 'spot';
             }
             const toAccount = this.safeString (paramsOmitted, 'toAccount', defaultTo);
@@ -11148,7 +11146,7 @@ export default class binance extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate) as FundingRateHistory[];
         }
-        const defaultType = this.safeString2 (this.options, 'fetchFundingRateHistory', 'defaultType', 'future');
+        const defaultType = this.safeString2 (this.options, 'fetchFundingRateHistory', 'defaultType', 'swap');
         const type = this.safeString (paramsPaginate, 'type', defaultType);
         let market: Market = undefined;
         if (symbol !== undefined) {
@@ -11221,7 +11219,7 @@ export default class binance extends Exchange {
             await this.loadMarkets ();
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
-        const defaultType = this.safeString2 (this.options, 'fetchFundingRates', 'defaultType', 'future');
+        const defaultType = this.safeString2 (this.options, 'fetchFundingRates', 'defaultType', 'swap');
         const type = this.safeString (params, 'type', defaultType);
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchFundingRates', undefined, params, 'linear');
         const query = this.omit (paramsSubType, 'type');
@@ -11833,7 +11831,7 @@ export default class binance extends Exchange {
         // it contains useful stuff like the maintenance margin and initial margin for positions
         const leverageBrackets = this.safeDict (this.options, 'leverageBrackets');
         if ((leverageBrackets === undefined) || (reload)) {
-            const defaultType = this.safeString (this.options, 'defaultType', 'future');
+            const defaultType = this.safeString (this.options, 'defaultType', 'swap');
             const type = this.safeString (params, 'type', defaultType);
             const query = this.omit (params, 'type');
             let subType: SubType = undefined;
@@ -12238,7 +12236,7 @@ export default class binance extends Exchange {
             await this.loadMarkets ();
         }
         await this.loadLeverageBrackets (false, params);
-        const defaultType = this.safeString (this.options, 'defaultType', 'future');
+        const defaultType = this.safeString (this.options, 'defaultType', 'swap');
         const type = this.safeString (params, 'type', defaultType);
         const paramsOmitted: Dict = this.omit (params, 'type');
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchAccountPositions', undefined, paramsOmitted, 'linear');
@@ -12364,7 +12362,7 @@ export default class binance extends Exchange {
         }
         await this.loadLeverageBrackets (false, params);
         const request: Dict = {};
-        let defaultType = 'future';
+        let defaultType = 'swap';
         defaultType = this.safeString (this.options, 'defaultType', defaultType);
         const type = this.safeString (params, 'type', defaultType);
         let subType: SubType = undefined;
@@ -12561,7 +12559,7 @@ export default class binance extends Exchange {
         if (limit !== undefined) {
             requestUntil['limit'] = limit;
         }
-        const defaultType = this.safeString2 (this.options, 'fetchFundingHistory', 'defaultType', 'future');
+        const defaultType = this.safeString2 (this.options, 'fetchFundingHistory', 'defaultType', 'swap');
         const type = this.safeString (paramsUntil, 'type', defaultType);
         const paramsOmitted: Dict = this.omit (paramsUntil, 'type');
         let response: NullableDict = undefined;
@@ -13566,9 +13564,9 @@ export default class binance extends Exchange {
 
     async modifyMarginHelper (symbol: string, amount: any, addOrReduce: any, params: Dict = {}): Promise<MarginModification> {
         // used to modify isolated positions
-        let defaultType = this.safeString (this.options, 'defaultType', 'future');
+        let defaultType = this.safeString (this.options, 'defaultType', 'swap');
         if (defaultType === 'spot') {
-            defaultType = 'future';
+            defaultType = 'swap';
         }
         const type = this.safeString (params, 'type', defaultType);
         if ((type === 'margin') || (type === 'spot')) {
