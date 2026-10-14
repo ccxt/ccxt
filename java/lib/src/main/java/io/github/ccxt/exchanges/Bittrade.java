@@ -621,7 +621,7 @@ public class Bittrade extends BittradeApi
                     put( "ALGO", "algo" );
                 }} );
                 put( "fetchOrdersByStates", new HashMap<String, Object>() {{
-                    put( "method", "private_get_order_orders" );
+                    put( "method", "privateGetOrderOrders" );
                 }} );
                 put( "fetchOpenOrders", new HashMap<String, Object>() {{
                     put( "method", "fetch_open_orders_v1" );
@@ -1664,7 +1664,7 @@ public class Bittrade extends BittradeApi
                 market = this.market(symbol);
                 request.put("symbol", market.get("id"));
             }
-            Object method = this.handleOption("fetchOrdersByStates", "method", "private_get_order_orders");
+            Object method = this.handleOption("fetchOrdersByStates", "method", "privateGetOrderOrders");
             Map<String, Object> response = null;
             if ((java.util.Objects.equals(method, "private_get_order_history")) || (java.util.Objects.equals(method, "privateGetOrderHistory")))
             {

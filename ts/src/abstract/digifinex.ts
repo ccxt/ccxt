@@ -8,96 +8,270 @@
 import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    publicSpotGetMarketSymbols (params?: {}): Promise<Dict>;
-    publicSpotGetKline (params?: {}): Promise<Dict>;
-    publicSpotGetMarginCurrencies (params?: {}): Promise<Dict>;
-    publicSpotGetMarginSymbols (params?: {}): Promise<Dict>;
-    publicSpotGetMarkets (params?: {}): Promise<Dict>;
-    publicSpotGetOrderBook (params?: {}): Promise<Dict>;
-    publicSpotGetPing (params?: {}): Promise<Dict>;
-    publicSpotGetSpotSymbols (params?: {}): Promise<Dict>;
-    publicSpotGetTime (params?: {}): Promise<Dict>;
-    publicSpotGetTrades (params?: {}): Promise<Dict>;
-    publicSpotGetTradesSymbols (params?: {}): Promise<Dict>;
-    publicSpotGetTicker (params?: {}): Promise<Dict>;
-    publicSpotGetCurrencies (params?: {}): Promise<Dict>;
-    publicSwapGetPublicApiWeight (params?: {}): Promise<Dict>;
-    publicSwapGetPublicCandles (params?: {}): Promise<Dict>;
-    publicSwapGetPublicCandlesHistory (params?: {}): Promise<Dict>;
-    publicSwapGetPublicDepth (params?: {}): Promise<Dict>;
-    publicSwapGetPublicFundingRate (params?: {}): Promise<Dict>;
-    publicSwapGetPublicFundingRateHistory (params?: {}): Promise<Dict>;
-    publicSwapGetPublicInstrument (params?: {}): Promise<Dict>;
-    publicSwapGetPublicInstruments (params?: {}): Promise<Dict>;
-    publicSwapGetPublicTicker (params?: {}): Promise<Dict>;
-    publicSwapGetPublicTickers (params?: {}): Promise<Dict>;
-    publicSwapGetPublicTime (params?: {}): Promise<Dict>;
-    publicSwapGetPublicTrades (params?: {}): Promise<Dict>;
-    privateSpotGetMarketFinancelog (params?: {}): Promise<Dict>;
-    privateSpotGetMarketMytrades (params?: {}): Promise<Dict>;
-    privateSpotGetMarketOrder (params?: {}): Promise<Dict>;
-    privateSpotGetMarketOrderDetail (params?: {}): Promise<Dict>;
-    privateSpotGetMarketOrderCurrent (params?: {}): Promise<Dict>;
-    privateSpotGetMarketOrderHistory (params?: {}): Promise<Dict>;
-    privateSpotGetMarginAssets (params?: {}): Promise<Dict>;
-    privateSpotGetMarginFinancelog (params?: {}): Promise<Dict>;
-    privateSpotGetMarginMytrades (params?: {}): Promise<Dict>;
-    privateSpotGetMarginOrder (params?: {}): Promise<Dict>;
-    privateSpotGetMarginOrderCurrent (params?: {}): Promise<Dict>;
-    privateSpotGetMarginOrderHistory (params?: {}): Promise<Dict>;
-    privateSpotGetMarginPositions (params?: {}): Promise<Dict>;
-    privateSpotGetOtcFinancelog (params?: {}): Promise<Dict>;
-    privateSpotGetSpotAssets (params?: {}): Promise<Dict>;
-    privateSpotGetSpotFinancelog (params?: {}): Promise<Dict>;
-    privateSpotGetSpotMytrades (params?: {}): Promise<Dict>;
-    privateSpotGetSpotOrder (params?: {}): Promise<Dict>;
-    privateSpotGetSpotOrderCurrent (params?: {}): Promise<Dict>;
-    privateSpotGetSpotOrderHistory (params?: {}): Promise<Dict>;
-    privateSpotGetDepositAddress (params?: {}): Promise<Dict>;
-    privateSpotGetDepositHistory (params?: {}): Promise<Dict>;
-    privateSpotGetWithdrawHistory (params?: {}): Promise<Dict>;
-    privateSpotPostMarketOrderCancel (params?: {}): Promise<Dict>;
-    privateSpotPostMarketOrderNew (params?: {}): Promise<Dict>;
-    privateSpotPostMarketOrderBatchNew (params?: {}): Promise<Dict>;
-    privateSpotPostMarginOrderCancel (params?: {}): Promise<Dict>;
-    privateSpotPostMarginOrderNew (params?: {}): Promise<Dict>;
-    privateSpotPostMarginPositionClose (params?: {}): Promise<Dict>;
-    privateSpotPostSpotOrderCancel (params?: {}): Promise<Dict>;
-    privateSpotPostSpotOrderNew (params?: {}): Promise<Dict>;
-    privateSpotPostTransfer (params?: {}): Promise<Dict>;
-    privateSpotPostWithdrawNew (params?: {}): Promise<Dict>;
-    privateSpotPostWithdrawCancel (params?: {}): Promise<Dict>;
-    privateSwapGetAccountBalance (params?: {}): Promise<Dict>;
-    privateSwapGetAccountPositions (params?: {}): Promise<Dict>;
-    privateSwapGetAccountFinanceRecord (params?: {}): Promise<Dict>;
-    privateSwapGetAccountTradingFeeRate (params?: {}): Promise<Dict>;
-    privateSwapGetAccountTransferRecord (params?: {}): Promise<Dict>;
-    privateSwapGetAccountFundingFee (params?: {}): Promise<Dict>;
-    privateSwapGetTradeHistoryOrders (params?: {}): Promise<Dict>;
-    privateSwapGetTradeHistoryTrades (params?: {}): Promise<Dict>;
-    privateSwapGetTradeOpenOrders (params?: {}): Promise<Dict>;
-    privateSwapGetTradeOrderInfo (params?: {}): Promise<Dict>;
-    privateSwapPostAccountTransfer (params?: {}): Promise<Dict>;
-    privateSwapPostAccountLeverage (params?: {}): Promise<Dict>;
-    privateSwapPostAccountPositionMode (params?: {}): Promise<Dict>;
-    privateSwapPostAccountPositionMargin (params?: {}): Promise<Dict>;
-    privateSwapPostTradeBatchCancelOrder (params?: {}): Promise<Dict>;
-    privateSwapPostTradeBatchOrder (params?: {}): Promise<Dict>;
-    privateSwapPostTradeCancelOrder (params?: {}): Promise<Dict>;
-    privateSwapPostTradeOrderPlace (params?: {}): Promise<Dict>;
-    privateSwapPostFollowSponsorOrder (params?: {}): Promise<Dict>;
-    privateSwapPostFollowCloseOrder (params?: {}): Promise<Dict>;
-    privateSwapPostFollowCancelOrder (params?: {}): Promise<Dict>;
-    privateSwapPostFollowUserCenterCurrent (params?: {}): Promise<Dict>;
-    privateSwapPostFollowUserCenterHistory (params?: {}): Promise<Dict>;
-    privateSwapPostFollowExpertCurrentOpenOrder (params?: {}): Promise<Dict>;
-    privateSwapPostFollowAddAlgo (params?: {}): Promise<Dict>;
-    privateSwapPostFollowCancelAlgo (params?: {}): Promise<Dict>;
-    privateSwapPostFollowAccountAvailable (params?: {}): Promise<Dict>;
-    privateSwapPostFollowPlanTask (params?: {}): Promise<Dict>;
-    privateSwapPostFollowInstrumentList (params?: {}): Promise<Dict>;
+abstract class Exchange extends _Exchange {
+    publicSpotGetMarketSymbols (params = {}): Promise<Dict> {
+        return this.request ("{market}/symbols", ["public","spot"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicSpotGetKline (params = {}): Promise<Dict> {
+        return this.request ("kline", ["public","spot"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicSpotGetMarginCurrencies (params = {}): Promise<Dict> {
+        return this.request ("margin/currencies", ["public","spot"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicSpotGetMarginSymbols (params = {}): Promise<Dict> {
+        return this.request ("margin/symbols", ["public","spot"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicSpotGetMarkets (params = {}): Promise<Dict> {
+        return this.request ("markets", ["public","spot"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicSpotGetOrderBook (params = {}): Promise<Dict> {
+        return this.request ("order_book", ["public","spot"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicSpotGetPing (params = {}): Promise<Dict> {
+        return this.request ("ping", ["public","spot"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicSpotGetSpotSymbols (params = {}): Promise<Dict> {
+        return this.request ("spot/symbols", ["public","spot"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicSpotGetTime (params = {}): Promise<Dict> {
+        return this.request ("time", ["public","spot"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicSpotGetTrades (params = {}): Promise<Dict> {
+        return this.request ("trades", ["public","spot"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicSpotGetTradesSymbols (params = {}): Promise<Dict> {
+        return this.request ("trades/symbols", ["public","spot"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicSpotGetTicker (params = {}): Promise<Dict> {
+        return this.request ("ticker", ["public","spot"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicSpotGetCurrencies (params = {}): Promise<Dict> {
+        return this.request ("currencies", ["public","spot"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicSwapGetPublicApiWeight (params = {}): Promise<Dict> {
+        return this.request ("public/api_weight", ["public","swap"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicSwapGetPublicCandles (params = {}): Promise<Dict> {
+        return this.request ("public/candles", ["public","swap"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicSwapGetPublicCandlesHistory (params = {}): Promise<Dict> {
+        return this.request ("public/candles_history", ["public","swap"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicSwapGetPublicDepth (params = {}): Promise<Dict> {
+        return this.request ("public/depth", ["public","swap"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicSwapGetPublicFundingRate (params = {}): Promise<Dict> {
+        return this.request ("public/funding_rate", ["public","swap"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicSwapGetPublicFundingRateHistory (params = {}): Promise<Dict> {
+        return this.request ("public/funding_rate_history", ["public","swap"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicSwapGetPublicInstrument (params = {}): Promise<Dict> {
+        return this.request ("public/instrument", ["public","swap"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicSwapGetPublicInstruments (params = {}): Promise<Dict> {
+        return this.request ("public/instruments", ["public","swap"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicSwapGetPublicTicker (params = {}): Promise<Dict> {
+        return this.request ("public/ticker", ["public","swap"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicSwapGetPublicTickers (params = {}): Promise<Dict> {
+        return this.request ("public/tickers", ["public","swap"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicSwapGetPublicTime (params = {}): Promise<Dict> {
+        return this.request ("public/time", ["public","swap"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicSwapGetPublicTrades (params = {}): Promise<Dict> {
+        return this.request ("public/trades", ["public","swap"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateSpotGetMarketFinancelog (params = {}): Promise<Dict> {
+        return this.request ("{market}/financelog", ["private","spot"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateSpotGetMarketMytrades (params = {}): Promise<Dict> {
+        return this.request ("{market}/mytrades", ["private","spot"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateSpotGetMarketOrder (params = {}): Promise<Dict> {
+        return this.request ("{market}/order", ["private","spot"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateSpotGetMarketOrderDetail (params = {}): Promise<Dict> {
+        return this.request ("{market}/order/detail", ["private","spot"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateSpotGetMarketOrderCurrent (params = {}): Promise<Dict> {
+        return this.request ("{market}/order/current", ["private","spot"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateSpotGetMarketOrderHistory (params = {}): Promise<Dict> {
+        return this.request ("{market}/order/history", ["private","spot"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateSpotGetMarginAssets (params = {}): Promise<Dict> {
+        return this.request ("margin/assets", ["private","spot"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateSpotGetMarginFinancelog (params = {}): Promise<Dict> {
+        return this.request ("margin/financelog", ["private","spot"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateSpotGetMarginMytrades (params = {}): Promise<Dict> {
+        return this.request ("margin/mytrades", ["private","spot"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateSpotGetMarginOrder (params = {}): Promise<Dict> {
+        return this.request ("margin/order", ["private","spot"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateSpotGetMarginOrderCurrent (params = {}): Promise<Dict> {
+        return this.request ("margin/order/current", ["private","spot"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateSpotGetMarginOrderHistory (params = {}): Promise<Dict> {
+        return this.request ("margin/order/history", ["private","spot"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateSpotGetMarginPositions (params = {}): Promise<Dict> {
+        return this.request ("margin/positions", ["private","spot"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateSpotGetOtcFinancelog (params = {}): Promise<Dict> {
+        return this.request ("otc/financelog", ["private","spot"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateSpotGetSpotAssets (params = {}): Promise<Dict> {
+        return this.request ("spot/assets", ["private","spot"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateSpotGetSpotFinancelog (params = {}): Promise<Dict> {
+        return this.request ("spot/financelog", ["private","spot"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateSpotGetSpotMytrades (params = {}): Promise<Dict> {
+        return this.request ("spot/mytrades", ["private","spot"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateSpotGetSpotOrder (params = {}): Promise<Dict> {
+        return this.request ("spot/order", ["private","spot"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateSpotGetSpotOrderCurrent (params = {}): Promise<Dict> {
+        return this.request ("spot/order/current", ["private","spot"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateSpotGetSpotOrderHistory (params = {}): Promise<Dict> {
+        return this.request ("spot/order/history", ["private","spot"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateSpotGetDepositAddress (params = {}): Promise<Dict> {
+        return this.request ("deposit/address", ["private","spot"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateSpotGetDepositHistory (params = {}): Promise<Dict> {
+        return this.request ("deposit/history", ["private","spot"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateSpotGetWithdrawHistory (params = {}): Promise<Dict> {
+        return this.request ("withdraw/history", ["private","spot"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateSpotPostMarketOrderCancel (params = {}): Promise<Dict> {
+        return this.request ("{market}/order/cancel", ["private","spot"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privateSpotPostMarketOrderNew (params = {}): Promise<Dict> {
+        return this.request ("{market}/order/new", ["private","spot"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privateSpotPostMarketOrderBatchNew (params = {}): Promise<Dict> {
+        return this.request ("{market}/order/batch_new", ["private","spot"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privateSpotPostMarginOrderCancel (params = {}): Promise<Dict> {
+        return this.request ("margin/order/cancel", ["private","spot"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privateSpotPostMarginOrderNew (params = {}): Promise<Dict> {
+        return this.request ("margin/order/new", ["private","spot"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privateSpotPostMarginPositionClose (params = {}): Promise<Dict> {
+        return this.request ("margin/position/close", ["private","spot"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privateSpotPostSpotOrderCancel (params = {}): Promise<Dict> {
+        return this.request ("spot/order/cancel", ["private","spot"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privateSpotPostSpotOrderNew (params = {}): Promise<Dict> {
+        return this.request ("spot/order/new", ["private","spot"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privateSpotPostTransfer (params = {}): Promise<Dict> {
+        return this.request ("transfer", ["private","spot"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privateSpotPostWithdrawNew (params = {}): Promise<Dict> {
+        return this.request ("withdraw/new", ["private","spot"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privateSpotPostWithdrawCancel (params = {}): Promise<Dict> {
+        return this.request ("withdraw/cancel", ["private","spot"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privateSwapGetAccountBalance (params = {}): Promise<Dict> {
+        return this.request ("account/balance", ["private","swap"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateSwapGetAccountPositions (params = {}): Promise<Dict> {
+        return this.request ("account/positions", ["private","swap"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateSwapGetAccountFinanceRecord (params = {}): Promise<Dict> {
+        return this.request ("account/finance_record", ["private","swap"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateSwapGetAccountTradingFeeRate (params = {}): Promise<Dict> {
+        return this.request ("account/trading_fee_rate", ["private","swap"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateSwapGetAccountTransferRecord (params = {}): Promise<Dict> {
+        return this.request ("account/transfer_record", ["private","swap"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateSwapGetAccountFundingFee (params = {}): Promise<Dict> {
+        return this.request ("account/funding_fee", ["private","swap"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateSwapGetTradeHistoryOrders (params = {}): Promise<Dict> {
+        return this.request ("trade/history_orders", ["private","swap"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateSwapGetTradeHistoryTrades (params = {}): Promise<Dict> {
+        return this.request ("trade/history_trades", ["private","swap"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateSwapGetTradeOpenOrders (params = {}): Promise<Dict> {
+        return this.request ("trade/open_orders", ["private","swap"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateSwapGetTradeOrderInfo (params = {}): Promise<Dict> {
+        return this.request ("trade/order_info", ["private","swap"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateSwapPostAccountTransfer (params = {}): Promise<Dict> {
+        return this.request ("account/transfer", ["private","swap"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privateSwapPostAccountLeverage (params = {}): Promise<Dict> {
+        return this.request ("account/leverage", ["private","swap"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privateSwapPostAccountPositionMode (params = {}): Promise<Dict> {
+        return this.request ("account/position_mode", ["private","swap"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privateSwapPostAccountPositionMargin (params = {}): Promise<Dict> {
+        return this.request ("account/position_margin", ["private","swap"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privateSwapPostTradeBatchCancelOrder (params = {}): Promise<Dict> {
+        return this.request ("trade/batch_cancel_order", ["private","swap"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privateSwapPostTradeBatchOrder (params = {}): Promise<Dict> {
+        return this.request ("trade/batch_order", ["private","swap"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privateSwapPostTradeCancelOrder (params = {}): Promise<Dict> {
+        return this.request ("trade/cancel_order", ["private","swap"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privateSwapPostTradeOrderPlace (params = {}): Promise<Dict> {
+        return this.request ("trade/order_place", ["private","swap"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privateSwapPostFollowSponsorOrder (params = {}): Promise<Dict> {
+        return this.request ("follow/sponsor_order", ["private","swap"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privateSwapPostFollowCloseOrder (params = {}): Promise<Dict> {
+        return this.request ("follow/close_order", ["private","swap"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privateSwapPostFollowCancelOrder (params = {}): Promise<Dict> {
+        return this.request ("follow/cancel_order", ["private","swap"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privateSwapPostFollowUserCenterCurrent (params = {}): Promise<Dict> {
+        return this.request ("follow/user_center_current", ["private","swap"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privateSwapPostFollowUserCenterHistory (params = {}): Promise<Dict> {
+        return this.request ("follow/user_center_history", ["private","swap"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privateSwapPostFollowExpertCurrentOpenOrder (params = {}): Promise<Dict> {
+        return this.request ("follow/expert_current_open_order", ["private","swap"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privateSwapPostFollowAddAlgo (params = {}): Promise<Dict> {
+        return this.request ("follow/add_algo", ["private","swap"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privateSwapPostFollowCancelAlgo (params = {}): Promise<Dict> {
+        return this.request ("follow/cancel_algo", ["private","swap"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privateSwapPostFollowAccountAvailable (params = {}): Promise<Dict> {
+        return this.request ("follow/account_available", ["private","swap"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privateSwapPostFollowPlanTask (params = {}): Promise<Dict> {
+        return this.request ("follow/plan_task", ["private","swap"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privateSwapPostFollowInstrumentList (params = {}): Promise<Dict> {
+        return this.request ("follow/instrument_list", ["private","swap"], 'POST', params, undefined, undefined, {"cost":1});
+    }
 }
-abstract class Exchange extends _Exchange {}
-
 export default Exchange

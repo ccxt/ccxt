@@ -591,7 +591,7 @@ public partial class bittrade : Exchange
                     { "ALGO", "algo" },
                 } },
                 { "fetchOrdersByStates", new Dictionary<string, object>() {
-                    { "method", "private_get_order_orders" },
+                    { "method", "privateGetOrderOrders" },
                 } },
                 { "fetchOpenOrders", new Dictionary<string, object>() {
                     { "method", "fetch_open_orders_v1" },
@@ -1583,7 +1583,7 @@ public partial class bittrade : Exchange
             market = this.market(symbol);
             request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        string method = ((string)this.handleOption("fetchOrdersByStates", "method", "private_get_order_orders"));
+        string method = ((string)this.handleOption("fetchOrdersByStates", "method", "privateGetOrderOrders"));
         Dictionary<string, object> response = null;
         if ((method == "private_get_order_history") || (method == "privateGetOrderHistory"))
         {

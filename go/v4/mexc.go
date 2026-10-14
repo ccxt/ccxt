@@ -2996,7 +2996,7 @@ func (this *Mexc) createMarketSellOrderWithCostBody(ch chan AsyncResult[any], sy
 	}
 	var market map[string]any = this.Market(symbol)
 	if market["spot"] != true {
-		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot orders only"))
+		panic(NotSupported(this.Id + " createMarketSellOrderWithCost() supports spot orders only"))
 	}
 	var req map[string]any = map[string]any{
 		"cost": cost,

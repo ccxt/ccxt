@@ -78,12 +78,13 @@ export class FakeExchange {
     canceled: any[] = [];
     withdrawals: any[] = [];
     implicitCalls: any[] = [];
+    api: Record<string, any> = { 'public': { 'get': { 'time': 1 } }, 'private': { 'post': { 'order/cancel': 1 } } };
     log = (..._args: any[]) => {};
 
     constructor (config: Record<string, any> = {}) {
         this.config = config;
         this.options = { ...(config['options'] ?? {}) };
-        // implicit endpoints as own properties, like ccxt's defineRestApi
+        // implicit endpoints, like ccxt's generated abstract methods
         (this as any)['publicGetTime'] = async (params: any = {}) => {
             this.implicitCalls.push ([ 'publicGetTime', params ]);
             return { 'serverTime': 1234567890 };

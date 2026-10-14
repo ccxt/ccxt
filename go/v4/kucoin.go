@@ -1513,7 +1513,7 @@ func (this *Kucoin) Describe() any {
 			"uta":                     nil,
 			"version":                 "v1",
 			"symbolSeparator":         "-",
-			"fetchMyTradesMethod":     "private_get_fills",
+			"fetchMyTradesMethod":     "privateGetFills",
 			"timeDifference":          0,
 			"adjustForTimeDifference": false,
 			"fetchCurrencies": map[string]any{
@@ -6986,7 +6986,7 @@ func (this *Kucoin) cancelUtaOrderBody(ch chan EndpointResult[map[string]any], i
 		request["clientOid"] = clientOrderId
 	} else {
 		if IsEqual(id, nil) {
-			panic(ArgumentsRequired(this.Id + " fetchOrder() requires an id argument or clientOrderId parameter"))
+			panic(ArgumentsRequired(this.Id + " cancelOrder() requires an id argument or clientOrderId parameter"))
 		}
 		request["orderId"] = id
 	}
@@ -9418,7 +9418,7 @@ func (this *Kucoin) fetchMySpotTradesBody(ch chan AsyncResult[[]any], optionalAr
 			}
 			response = r3.Value
 		}
-	} else if method != nil && *method == "private_get_fills" {
+	} else if (method != nil && *method == "privateGetFills") || (method != nil && *method == "private_get_fills") {
 		// does not return trades earlier than 2019-02-18T00:00:00Z
 		if since != nil {
 			// only returns trades up to one week after the since param
@@ -9430,7 +9430,7 @@ func (this *Kucoin) fetchMySpotTradesBody(ch chan AsyncResult[[]any], optionalAr
 			panic(r4.Err)
 		}
 		response = MapTyped(r4.Raw)
-	} else if method != nil && *method == "private_get_limit_fills" {
+	} else if (method != nil && *method == "privateGetLimitFills") || (method != nil && *method == "private_get_limit_fills") {
 		// does not return trades earlier than 2019-02-18T00:00:00Z
 		// takes no params
 		// only returns first 1000 trades (not only "in the last 24 hours" as stated in the docs)

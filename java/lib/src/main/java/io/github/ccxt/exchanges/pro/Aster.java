@@ -1685,10 +1685,10 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             {
                 if (java.util.Objects.equals(type, "spot"))
                 {
-                    (this.sapiPrivatePutV3ListenKey()).join(); // extend the expiry
+                    (this.sapiPrivatePutV3ListenKey(new HashMap<String, Object>() {{}})).join(); // extend the expiry
                 } else
                 {
-                    (this.fapiPrivatePutV3ListenKey()).join(); // extend the expiry
+                    (this.fapiPrivatePutV3ListenKey(new HashMap<String, Object>() {{}})).join(); // extend the expiry
                 }
             } catch(Exception error)
             {

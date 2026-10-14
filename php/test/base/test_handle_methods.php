@@ -13,7 +13,7 @@ function helper_test_handle_market_type_and_params() {
     $exchange = new \ccxt\async\Exchange(array(
         'id' => 'sampleexchange',
         'options' => array(
-            'defaultType' => 'valueFromOptions',
+            'defaultType' => 'option',
             'fetchX' => array(
                 'defaultType' => 'valueFromMethodOptions',
             ),
@@ -52,7 +52,7 @@ function helper_test_handle_market_type_and_params() {
     // case #5, should prevail: options
     //
     [$market_type_5, $params5] = $exchange->handle_market_type_and_params('fetchY', null, array(), null);
-    assert($market_type_5 === 'valueFromOptions');
+    assert($market_type_5 === 'option');
     //
     // case #6, should prevail: spot (because hardcoded in base)
     //

@@ -1319,7 +1319,7 @@ func (this *Polymarket) fetchOutcomeBody(ch chan ccxt.AsyncResult[any], outcomeS
 		}
 		response := r.Raw
 		var rawMarkets any = func() any {
-			if response != nil {
+			if !ccxt.IsEqual(response, nil) {
 				return response
 			}
 			return []any{}
@@ -1425,7 +1425,7 @@ func (this *Polymarket) fetchOutcomesBody(ch chan ccxt.AsyncResult[any], outcome
 			}
 			response := r.Raw
 			var rawMarkets any = func() any {
-				if response != nil {
+				if !ccxt.IsEqual(response, nil) {
 					return response
 				}
 				return []any{}
@@ -3775,7 +3775,7 @@ func (this *Polymarket) fetchEventsBody(ch chan ccxt.AsyncResult[any], optionalA
 				}
 				detailedEvent = r4.Raw
 			}
-			if detailedEvent != nil {
+			if !ccxt.IsEqual(detailedEvent, nil) {
 				eventForParsing = this.SafeValue(detailedEvent, "event", detailedEvent)
 				ccxtMarkets = this.ParseEventToMarkets(eventForParsing)
 			}

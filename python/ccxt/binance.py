@@ -1401,7 +1401,7 @@ class binance(Exchange, ImplicitAPI):
                     'warnOnSTPForInverse': True,
                     'quoteOrderQty': True,  # whether market orders support amounts in quote currency
                 },
-                'defaultType': 'spot',  # 'spot', 'future', 'margin', 'delivery', 'option'
+                'defaultType': 'spot',  # 'spot', 'margin', 'swap', 'future', 'option'
                 'defaultSubType': None,  # 'linear', 'inverse'
                 'hasAlreadyAuthenticatedSuccessfully': False,
                 'fetchOpenOrders': {
@@ -1430,7 +1430,6 @@ class binance(Exchange, ImplicitAPI):
                     'spot': 'x-TKT5PX2F',
                     'margin': 'x-TKT5PX2F',
                     'future': 'x-cvBPrNm9',
-                    'delivery': 'x-xcKtGhcu',
                     'swap': 'x-cvBPrNm9',
                     'option': 'x-xcKtGhcu',
                     'inverse': 'x-xcKtGhcu',
@@ -1442,7 +1441,6 @@ class binance(Exchange, ImplicitAPI):
                     'margin': 'MARGIN',
                     'cross': 'MARGIN',
                     'future': 'UMFUTURE',  # backwards compatibility
-                    'delivery': 'CMFUTURE',  # backwards compatibility
                     'linear': 'UMFUTURE',
                     'swap': 'UMFUTURE',
                     'inverse': 'CMFUTURE',
@@ -2842,10 +2840,7 @@ class binance(Exchange, ImplicitAPI):
         })
 
     def is_inverse(self, type: str, subType: Str = None) -> bool:
-        if subType is None:
-            return(type == 'delivery')
-        else:
-            return subType == 'inverse'
+        return subType == 'inverse'
 
     def is_linear(self, type: str, subType: Str = None) -> bool:
         if subType is None:
@@ -2923,12 +2918,12 @@ class binance(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' market() requires a symbol argument')
         if self.markets is None:
             raise ExchangeError(self.id + ' markets not loaded')
-        # defaultType has legacy support on binance
+        # defaultType 'future' resolves spot-style symbols to the derivative market of defaultSubType
         defaultType = self.safe_string(self.options, 'defaultType')
         defaultSubType = self.safe_string(self.options, 'defaultSubType')
-        isLegacyLinear = defaultType == 'future'
-        isLegacyInverse = defaultType == 'delivery'
-        isLegacy = isLegacyLinear or isLegacyInverse
+        isLegacy = defaultType == 'future'
+        isLegacyInverse = isLegacy and (defaultSubType == 'inverse')
+        isLegacyLinear = isLegacy and not isLegacyInverse
         if isinstance(symbol, str):
             if (self.markets is not None) and (symbol in self.markets):
                 market = self.markets[symbol]
@@ -4047,7 +4042,7 @@ class binance(Exchange, ImplicitAPI):
         https://developers.binance.com/docs/derivatives/portfolio-margin/account/Account-Balance                            # portfolio margin
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.type]: 'future', 'delivery', 'savings', 'funding', or 'spot' or 'papi'
+        :param str [params.type]: 'spot', 'margin', 'swap', 'future', 'option', 'savings', 'funding' or 'papi', use params.subType 'inverse' for COIN-M
         :param str [params.marginMode]: 'cross' or 'isolated', for margin trading, uses self.options.defaultMarginMode if not passed, defaults to None/None/None
         :param str[]|None [params.symbols]: unified market symbols, only used in isolated margin mode
         :param boolean [params.portfolioMargin]: set to True if you would like to fetch the balance for a portfolio margin account
@@ -6890,9 +6885,7 @@ class binance(Exchange, ImplicitAPI):
             defaultType = self.safe_string(self.options, 'defaultType', 'spot')
             defaultSubType = self.safe_string(self.options, 'defaultSubType')
             idMarketType = defaultType
-            if defaultType == 'delivery':
-                idMarketType = 'inverse'
-            elif (defaultSubType == 'inverse') and ((defaultType == 'swap') or (defaultType == 'future')):
+            if (defaultSubType == 'inverse') and ((defaultType == 'swap') or (defaultType == 'future')):
                 idMarketType = 'inverse'
         defaultId = 'x-xcKtGhcu'  # inverse, option
         if (idMarketType == 'spot') or (idMarketType == 'margin'):
@@ -12687,7 +12680,7 @@ class binance(Exchange, ImplicitAPI):
             defaultType = 'future'
         type = self.safe_string(params, 'type', defaultType)
         if (type == 'margin') or (type == 'spot'):
-            raise NotSupported(self.id + ' add / reduce margin only supported with type future or delivery')
+            raise NotSupported(self.id + ' add / reduce margin only supported with linear or inverse swap/future markets')
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
@@ -13388,12 +13381,14 @@ class binance(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['limit'] = limit
-        symbolKey = 'pair'
         if market['linear'] is True:
-            symbolKey = 'symbol'
-        request[symbolKey] = market['id']
-        if market['inverse'] is True:
-            request['contractType'] = self.safe_string(paramsPaginate, 'contractType', 'CURRENT_QUARTER')
+            request['symbol'] = market['id']
+        elif market['inverse'] is True:
+            # dapi expects the underlying pair (BTCUSD) and a contract type, not the market id (BTCUSD_PERP)
+            request['pair'] = self.safe_string(market['info'], 'pair')
+            request['contractType'] = 'PERPETUAL' if (market['swap'] is True) else self.safe_string(market['info'], 'contractType')
+        else:
+            raise NotSupported(self.id + ' fetchOpenInterestHistory() supports linear and inverse contracts only')
         if since is not None:
             request['startTime'] = since
         until = self.safe_integer(paramsPaginate, 'until')  # unified in milliseconds
@@ -13418,6 +13413,19 @@ class binance(Exchange, ImplicitAPI):
         #          "sumOpenInterest":"75375.61700000",
         #          "sumOpenInterestValue":"3248828883.71251440",
         #          "timestamp":1642179900000
+        #      },
+        #      ...
+        #  ]
+        #
+        # inverse
+        #
+        #  [
+        #      {
+        #          "contractType":"PERPETUAL",
+        #          "sumOpenInterest":"13069401.00000000",
+        #          "sumOpenInterestValue":"15796.96988405",
+        #          "pair":"BTCUSD",
+        #          "timestamp":1791835200000
         #      },
         #      ...
         #  ]

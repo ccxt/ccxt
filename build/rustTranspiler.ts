@@ -60,7 +60,7 @@ function toSnakeCase(s: string): string {
 
 // ── output paths ─────────────────────────────────────────────────────────────
 const RUST_BASE              = './rust/ccxt-base/src';
-const RUST_CORE              = './rust/ccxt-core/src';
+const RUST_CORE              = './rust/ccxt-common/src';
 const BASE_METHODS_FILE      = `${RUST_CORE}/exchange_generated.rs`;
 const PREDICTION_BASE_FILE   = `${RUST_CORE}/prediction_exchange_generated.rs`;
 const ERRORS_FILE            = `${RUST_CORE}/exchange_errors.rs`;
@@ -2849,8 +2849,8 @@ export class RustTranspilerBuilder {
         const abstractPath = `./ts/src/abstract/${className}.ts`;
         if (!fs.existsSync(abstractPath)) return content;
         const abstractSrc = fs.readFileSync(abstractPath, 'utf8');
-        // Interface method decls look like:
-        //   traderPrivateGetV2Clock (params?: {}): Promise<implicitReturnType>;
+        // Generated method heads look like:
+        //   traderPrivateGetV2Clock (params = {}): Promise<Dict> {
         // The name class must allow `_`: versioned endpoints carry an
         // underscore in the identifier (coinone's `v2_1PrivatePostOrderLimit`).
         // Without it the capture stops at `v2`, the full snake name never
@@ -2858,7 +2858,7 @@ export class RustTranspilerBuilder {
         // bare arg never gets folded into the `&[Value]` slice the generated
         // `<id>_api.rs` method expects (E0308: expected `&[Value]`, found `Value`).
         const names = new Set<string>();
-        const re = /^\s*([a-zA-Z][a-zA-Z0-9_]*)\s*\([^)]*\):\s*Promise/gm;
+        const re = /^\s*([a-zA-Z][a-zA-Z0-9_]*)\s*\([^)]*\):\s*Promise<[^>]*>\s*\{/gm;
         let m: RegExpExecArray | null;
         while ((m = re.exec(abstractSrc)) !== null) {
             names.add(toSnakeCase(m[1]));
@@ -7075,10 +7075,10 @@ export class RustTranspilerBuilder {
         if (this._discoveredVariadicsCache) return this._discoveredVariadicsCache;
         const out: Record<string, number> = {};
         const baseFiles = [
-            './rust/ccxt-core/src/exchange_generated.rs',
-            './rust/ccxt-core/src/exchange_stubs.rs',
+            './rust/ccxt-common/src/exchange_generated.rs',
+            './rust/ccxt-common/src/exchange_stubs.rs',
             // ExchangeRuntime dispatchers + super_* shims (review #1).
-            './rust/ccxt-core/src/exchange.rs',
+            './rust/ccxt-common/src/exchange.rs',
         ];
         for (const f of baseFiles) {
             const m = this.extractVariadicsFromFile(f);
@@ -7104,7 +7104,7 @@ export class RustTranspilerBuilder {
         const id = exchangeId.toLowerCase();
         if (!this._predictionVariadicsCache) {
             this._predictionVariadicsCache = this.extractVariadicsFromFile(
-                './rust/ccxt-core/src/prediction_exchange_generated.rs',
+                './rust/ccxt-common/src/prediction_exchange_generated.rs',
             );
         }
         return {
@@ -8489,7 +8489,7 @@ ${arms.join('\n')}
             const predAsync: string[] = isPrediction
                 ? Object.keys({
                     ...this.extractAsyncFnNames(`./rust/ccxt-base/src/prediction/${className}_api.rs`),
-                    ...this.extractAsyncFnNames('./rust/ccxt-core/src/prediction_exchange_generated.rs'),
+                    ...this.extractAsyncFnNames('./rust/ccxt-common/src/prediction_exchange_generated.rs'),
                   })
                 : [];
             let currentSet = new Set([...asyncSnake, ...this.asyncBaseMethods(), ...predAsync, 'call_method', 'call_dynamic', 'call_dynamic_checked', 'fetch', 'load_markets', 'throttle']);
@@ -8841,7 +8841,9 @@ impl ${coreName} {
     pub fn init(&mut self) {
         let described = ${coreName}::describe(self);
         self.exchange.initialize_properties(described);
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self);
+        // compatibility for sandbox/testnet options in userConfig
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move

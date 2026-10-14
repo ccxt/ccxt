@@ -3531,7 +3531,7 @@ class pacifica extends Exchange {
         $marketId = $this->safe_string($income, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
         $symbol = $marketResolved['symbol'];
-        $amount = $this->safe_string($income, 'amount');
+        $amount = $this->safe_string($income, 'payout');
         $code = $this->safe_currency_code('USDC');
         $rate = $this->safe_number($income, 'rate');
         return array(

@@ -148,8 +148,8 @@ pub trait TypedExchangeExt: TypedExchange {
         }
     }
     /// Typed `withdraw`.
-    fn withdraw<'a>(&'a mut self, code: &str, amount: f64, address: &str, tag: Option<&str>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<Transaction>> + Send + 'a {
-        let __args: Vec<Value> = vec![Value::from(code), Value::Float(amount), Value::from(address), tag.map(Value::from).unwrap_or(Value::Null), params.into().into_value()];
+    fn withdraw<'a>(&'a mut self, code: &str, amount: f64, address: &str, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<Transaction>> + Send + 'a {
+        let __args: Vec<Value> = vec![Value::from(code), Value::Float(amount), Value::from(address), params.into().into_value()];
         async move {
             let v = self.call_raw("withdraw", __args).await?;
             Ok(Transaction::from_value(v))

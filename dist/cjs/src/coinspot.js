@@ -237,7 +237,7 @@ class coinspot extends coinspot$1["default"] {
                 'DRK': 'DASH',
             },
             'options': {
-                'fetchBalance': 'private_post_my_balances',
+                'fetchBalance': 'privatePostMyBalances',
             },
             'features': {
                 'spot': {
@@ -335,7 +335,7 @@ class coinspot extends coinspot$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const method = this.safeString(this.options, 'fetchBalance', 'private_post_my_balances');
+        const method = this.safeString(this.options, 'fetchBalance', 'privatePostMyBalances');
         let response = undefined;
         if ((method === 'private_post_ro_my_balances') || (method === 'privatePostRoMyBalances')) {
             response = await this.privatePostRoMyBalances(params);

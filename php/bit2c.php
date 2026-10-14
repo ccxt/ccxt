@@ -205,7 +205,7 @@ class bit2c extends Exchange {
             ),
             'options' => array(
                 'fetchTrades' => array(
-                    'method' => 'public_get_exchanges_pair_trades',
+                    'method' => 'publicGetExchangesPairTrades',
                 ),
             ),
             'features' => array(
@@ -478,7 +478,7 @@ class bit2c extends Exchange {
         }
         $market = $this->market($symbol);
         $optionValue = $this->safe_string($this->options, 'fetchTradesMethod'); // kept here for backward compatibility #29154
-        $method = $this->handle_option('fetchTrades', 'method', $optionValue); // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
+        $method = $this->handle_option('fetchTrades', 'method', $optionValue); // publicGetExchangesPairTrades or publicGetExchangesPairLasttrades
         $request = array(
             'pair' => $market['id'],
         );
@@ -489,7 +489,7 @@ class bit2c extends Exchange {
             $request['limit'] = $limit; // max 100000
         }
         $responseList = array();
-        if ($method === 'public_get_exchanges_pair_trades') {
+        if (($method === 'publicGetExchangesPairTrades') || ($method === 'public_get_exchanges_pair_trades')) {
             $response = $this->publicGetExchangesPairTrades($this->extend($request, $params));
             //
             //     [

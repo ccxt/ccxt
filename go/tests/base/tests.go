@@ -2710,6 +2710,15 @@ func (this *testMainClass) testResponseStaticallyBody(ch chan ccxt.AsyncResult[a
 	ch <- ccxt.AsyncResult[any]{Value: true}
 	return nil
 }
+func (this *testMainClass) WsRequestWasSent(exchange ccxt.ICoreExchange, url any, id any) any {
+	var sentMessages any = GetWsSentMessages(exchange, url)
+	for i := 0; i < GetArrayLength(sentMessages); i++ {
+		if IsEqual(exchange.SafeString(GetValue(sentMessages, i), "id"), id) {
+			return true
+		}
+	}
+	return false
+}
 func (this *testMainClass) InjectWsMessagesAsync(exchange ccxt.ICoreExchange, url any, messages any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.injectWsMessagesBody(ch, exchange, url, messages, optionalArgs...)
@@ -2721,6 +2730,8 @@ func (this *testMainClass) injectWsMessagesBody(ch chan ccxt.AsyncResult[any], e
 	// before every frame, wait until the watch flow is actually awaiting
 	// something — a fixed head-start sleep is not enough on slow ci
 	// runners and the frame's resolution would be dropped
+	// a reply frame must not arrive before its request was sent, or it is dropped
+	// a frame given as { "binary": "<base16>" } is replayed as a binary frame (e.g. SBE)
 	// threaded runtimes resolve futures on another thread — wait for
 	// the consumed frame to settle so the pending check above does not
 	// observe a stale future and burn the next frame early; frames
@@ -2735,7 +2746,19 @@ func (this *testMainClass) injectWsMessagesBody(ch chan ccxt.AsyncResult[any], e
 			<-exchange.Sleep(50)
 			waited = Add(waited, 50)
 		}
-		InjectWsMessage(exchange, url, GetValue(messages, i))
+		var frameId any = ccxt.DerefScalar(exchange.SafeString(GetValue(messages, i), "id"))
+		var waitedSent any = 0
+		for (!IsEqual(frameId, nil)) && !EvalTruthy(this.WsRequestWasSent(exchange, url, frameId)) && (IsLessThan(waitedSent, 5000)) {
+
+			<-exchange.Sleep(50)
+			waitedSent = Add(waitedSent, 50)
+		}
+		var frame any = GetValue(messages, i)
+		var binaryFrame any = ccxt.DerefScalar(exchange.SafeString(frame, "binary"))
+		if !IsEqual(binaryFrame, nil) {
+			frame = exchange.Base16ToBinary(binaryFrame)
+		}
+		InjectWsMessage(exchange, url, frame)
 		var settled any = 0
 		for EvalTruthy(WsClientHasPendingFutures(exchange, url)) && (IsLessThan(settled, 500)) {
 

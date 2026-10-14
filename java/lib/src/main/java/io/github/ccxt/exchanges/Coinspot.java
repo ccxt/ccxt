@@ -553,7 +553,7 @@ public class Coinspot extends CoinspotApi
                 put( "DRK", "DASH" );
             }} );
             put( "options", new HashMap<String, Object>() {{
-                put( "fetchBalance", "private_post_my_balances" );
+                put( "fetchBalance", "privatePostMyBalances" );
             }} );
             put( "features", new HashMap<String, Object>() {{
                 put( "spot", new HashMap<String, Object>() {{
@@ -667,7 +667,7 @@ public class Coinspot extends CoinspotApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            String method = this.safeString(this.options, "fetchBalance", "private_post_my_balances");
+            String method = this.safeString(this.options, "fetchBalance", "privatePostMyBalances");
             Map<String, Object> response = null;
             if ((java.util.Objects.equals(method, "private_post_ro_my_balances")) || (java.util.Objects.equals(method, "privatePostRoMyBalances")))
             {

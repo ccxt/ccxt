@@ -438,9 +438,20 @@ pub fn rejectPendingWsFutures(_exchange: Value, url: Value) -> Value {
 pub fn preloadWsMessages(_exchange: Value, url: Value, messages: Value) -> Value {
     let u = ws_url(&url);
     if let Value::Arr(a) = &messages {
-        for m in a.iter() { ccxt::pro::ws_client::mock_inject(&u, m.clone()); }
+        for m in a.iter() { ccxt::pro::ws_client::mock_inject(&u, binary_frame(m)); }
     }
     Value::Null
+}
+
+/// A fixture frame given as `{ "binary": "<base16>" }` is a binary frame (e.g.
+/// SBE): preload its bytes, as `injectWsMessages` does in the other languages.
+fn binary_frame(m: &Value) -> Value {
+    if let Value::Dict(d) = m {
+        if let Some(Value::Str(h)) = d.get("binary") {
+            return with_base(|e| e.base16_to_binary(Value::Str(h.clone()), &[]));
+        }
+    }
+    m.clone()
 }
 
 /// Whether the mock inbound queue still has frames to drain — the
@@ -527,6 +538,7 @@ pub trait ExchangeOps {
     fn group_by(&self, arr: Value, key: Value, optional_args: &[Value]) -> Value;
     fn filter_by(&self, arr: Value, key: Value, value: Value, optional_args: &[Value]) -> Value;
     fn number_to_string(&self, n: Value) -> Value;
+    fn base16_to_binary(&self, s: Value, optional_args: &[Value]) -> Value;
     fn precision_from_string(&self, s: Value) -> Value;
     fn parse_precision(&self, optional_args: &[Value]) -> Value;
     fn sort_by(&self, arr: Value, key: Value, optional_args: &[Value]) -> Value;
@@ -577,6 +589,7 @@ impl ExchangeOps for Value {
     fn group_by(&self, arr: Value, key: Value, o: &[Value]) -> Value { with_base(|e| e.group_by(arr, key, o)) }
     fn filter_by(&self, arr: Value, key: Value, value: Value, o: &[Value]) -> Value { with_base(|e| e.filter_by(arr, key, value, o)) }
     fn number_to_string(&self, n: Value) -> Value { with_base(|e| e.number_to_string(n)) }
+    fn base16_to_binary(&self, s: Value, o: &[Value]) -> Value { with_base(|e| e.base16_to_binary(s, o)) }
     fn precision_from_string(&self, s: Value) -> Value { with_base(|e| e.precision_from_string(s)) }
     fn parse_precision(&self, o: &[Value]) -> Value { with_base(|e| e.parse_precision(o)) }
     fn sort_by(&self, arr: Value, key: Value, o: &[Value]) -> Value { with_base(|e| e.sort_by(arr, key, o)) }

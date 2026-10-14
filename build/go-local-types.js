@@ -3037,6 +3037,7 @@ function ccxtGoCounterCallType (goTranspiler, initializer, printedValue) {
 const CCXT_GO_ANNOTATED_RETURN_NATIVE = {
     'Str': [ '*string', 'string' ],
     'Dict': [ 'map[string]any' ],
+    'ExchangeOptions': [ 'map[string]any' ],
     // `Market` is MarketInterface | undefined: the dict or nil, like a Dict return
     'Market': [ 'map[string]any' ],
     'List': [ '[]any' ],
@@ -3110,7 +3111,7 @@ function ccxtGoAnnotatedReturnTypes (goTranspiler, node) {
     const alias = type?.getAliasSymbol ()?.escapedName;
     const annotation = (node.type !== undefined) ? node.type.getText () : undefined;
     const key = (typeof alias === 'string') ? alias : annotation;
-    if ((key === 'Str') || (key === 'Dict') || (key === 'Market') || (key === 'List') || (key === 'Bool')) {
+    if ((key === 'Str') || (key === 'Dict') || (key === 'ExchangeOptions') || (key === 'Market') || (key === 'List') || (key === 'Bool')) {
         return CCXT_GO_ANNOTATED_RETURN_NATIVE[key];
     }
     const general = ccxtGoGeneralAnnotatedReturnTypes (node, type, key);

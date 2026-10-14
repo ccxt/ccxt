@@ -2983,7 +2983,7 @@ func (this *Weex) createSpotOrderBody(ch chan EndpointResult[map[string]any], sy
 	//         "transactTime": 1775608924724
 	//     }
 	//
-	if response == nil {
+	if IsEqual(response, nil) {
 		panic(NullResponse(this.Id + " parseOrder() returned empty response"))
 	}
 

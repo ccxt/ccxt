@@ -62,7 +62,7 @@ use function abs, array_change_key_case, array_filter, array_is_list, array_key_
     stripos, strlen, strpos, strtolower, strtotime, strtoupper, strtr, strval, substr, sys_get_temp_dir,
     time, trim, unpack, urldecode, urlencode, usleep, usort, var_export;
 
-$version = '4.5.85';
+$version = '4.5.87';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -81,10 +81,10 @@ const PAD_WITH_ZERO = 6;
 
 class BaseExchange {
 
-    const VERSION = '4.5.85';
+    const VERSION = '4.5.87';
 
     // this is updated by build/vss.js
-    public static $ccxt_version = '4.5.85';
+    public static $ccxt_version = '4.5.87';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -1334,11 +1334,7 @@ class BaseExchange {
             }
         }
 
-        $this->after_construct();
-
-        if ($this->safe_bool($options, 'sandbox') || $this->safe_bool($options, 'testnet')) {
-            $this->set_sandbox_mode(true);
-        }
+        $this->after_construct($options);
     }
 
     public function init_throttler() {
@@ -4384,7 +4380,7 @@ class BaseExchange {
         return $timestamp;
     }
 
-    public function after_construct() {
+    public function after_construct(array $userConfig = array()) {
         // networks
         $this->create_networks_by_id_object();
         $this->features_generator();
@@ -4398,6 +4394,10 @@ class BaseExchange {
         $isSandbox = $this->safe_bool_2($this->options, 'sandbox', 'testnet', false);
         if ($isSandbox === true) {
             $this->set_sandbox_mode($isSandbox);
+        }
+        // compatibility for sandbox/testnet options in userConfig
+        if (($this->safe_bool($userConfig, 'sandbox', false)) || ($this->safe_bool($userConfig, 'testnet', false))) {
+            $this->set_sandbox_mode(true);
         }
     }
 

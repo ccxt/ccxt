@@ -8,145 +8,417 @@
 import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    basePublicGetV1PublicGetAnnouncements (params?: {}): Promise<Dict>;
-    v1PublicGetPublicAuth (params?: {}): Promise<Dict>;
-    v1PublicGetPublicGetInstruments (params?: {}): Promise<Dict>;
-    v1PublicGetPublicGetBook (params?: {}): Promise<Dict>;
-    v1PublicGetPublicGetCandlestick (params?: {}): Promise<Dict>;
-    v1PublicGetPublicGetTrades (params?: {}): Promise<Dict>;
-    v1PublicGetPublicGetTickers (params?: {}): Promise<Dict>;
-    v1PublicGetPublicGetValuations (params?: {}): Promise<Dict>;
-    v1PublicGetPublicGetExpiredSettlementPrice (params?: {}): Promise<Dict>;
-    v1PublicGetPublicGetInsurance (params?: {}): Promise<Dict>;
-    v1PublicGetPublicGetAnnouncements (params?: {}): Promise<Dict>;
-    v1PublicGetPublicGetRiskParameters (params?: {}): Promise<Dict>;
-    v1PublicPostPublicStakingGetConversionRate (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateSetCancelOnDisconnect (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateGetCancelOnDisconnect (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateUserBalance (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateUserBalanceHistory (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateGetPositions (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateCreateOrder (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateAmendOrder (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateCreateOrderList (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateCancelOrder (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateCancelOrderList (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateCancelAllOrders (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateClosePosition (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateGetOrderHistory (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateGetOpenOrders (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateGetOrderDetail (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateGetTrades (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateChangeAccountLeverage (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateGetTransactions (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateCreateSubaccountTransfer (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateGetSubaccountBalances (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateGetOrderList (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateCreateWithdrawal (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateGetCurrencyNetworks (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateGetDepositAddress (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateGetAccounts (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateGetWithdrawalHistory (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateGetDepositHistory (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateGetFeeRate (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateGetInstrumentFeeRate (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateGetFeeCreditBalances (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateFiatFiatDepositInfo (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateFiatFiatDepositHistory (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateFiatFiatWithdrawHistory (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateFiatFiatCreateWithdraw (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateFiatFiatTransactionQuota (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateFiatFiatTransactionLimit (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateFiatFiatGetBankAccounts (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateStakingStake (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateStakingUnstake (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateStakingGetStakingPosition (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateStakingGetStakingInstruments (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateStakingGetOpenStake (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateStakingGetStakeHistory (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateStakingGetRewardHistory (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateStakingConvert (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateStakingGetOpenConvert (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateStakingGetConvertHistory (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateCreateIsolatedMarginTransfer (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateChangeIsolatedMarginLeverage (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateBotCreateTradingBot (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateBotUpdateTradingBot (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateBotTerminateTradingBot (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateBotPauseTradingBot (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateBotResumeTradingBot (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateBotGetTradingBots (params?: {}): Promise<Dict>;
-    v1PrivatePostPrivateBotGetTradingBotExecutions (params?: {}): Promise<Dict>;
-    v2PublicGetPublicAuth (params?: {}): Promise<Dict>;
-    v2PublicGetPublicGetInstruments (params?: {}): Promise<Dict>;
-    v2PublicGetPublicGetBook (params?: {}): Promise<Dict>;
-    v2PublicGetPublicGetCandlestick (params?: {}): Promise<Dict>;
-    v2PublicGetPublicGetTicker (params?: {}): Promise<Dict>;
-    v2PublicGetPublicGetTrades (params?: {}): Promise<Dict>;
-    v2PublicGetPublicMarginGetTransferCurrencies (params?: {}): Promise<Dict>;
-    v2PublicGetPublicMarginGetLoadCurrenices (params?: {}): Promise<Dict>;
-    v2PublicGetPublicRespondHeartbeat (params?: {}): Promise<Dict>;
-    v2PrivatePostPrivateSetCancelOnDisconnect (params?: {}): Promise<Dict>;
-    v2PrivatePostPrivateGetCancelOnDisconnect (params?: {}): Promise<Dict>;
-    v2PrivatePostPrivateCreateWithdrawal (params?: {}): Promise<Dict>;
-    v2PrivatePostPrivateGetWithdrawalHistory (params?: {}): Promise<Dict>;
-    v2PrivatePostPrivateGetCurrencyNetworks (params?: {}): Promise<Dict>;
-    v2PrivatePostPrivateGetDepositHistory (params?: {}): Promise<Dict>;
-    v2PrivatePostPrivateGetDepositAddress (params?: {}): Promise<Dict>;
-    v2PrivatePostPrivateExportCreateExportRequest (params?: {}): Promise<Dict>;
-    v2PrivatePostPrivateExportGetExportRequests (params?: {}): Promise<Dict>;
-    v2PrivatePostPrivateExportDownloadExportOutput (params?: {}): Promise<Dict>;
-    v2PrivatePostPrivateGetAccountSummary (params?: {}): Promise<Dict>;
-    v2PrivatePostPrivateCreateOrder (params?: {}): Promise<Dict>;
-    v2PrivatePostPrivateCancelOrder (params?: {}): Promise<Dict>;
-    v2PrivatePostPrivateCancelAllOrders (params?: {}): Promise<Dict>;
-    v2PrivatePostPrivateCreateOrderList (params?: {}): Promise<Dict>;
-    v2PrivatePostPrivateGetOrderHistory (params?: {}): Promise<Dict>;
-    v2PrivatePostPrivateGetOpenOrders (params?: {}): Promise<Dict>;
-    v2PrivatePostPrivateGetOrderDetail (params?: {}): Promise<Dict>;
-    v2PrivatePostPrivateGetTrades (params?: {}): Promise<Dict>;
-    v2PrivatePostPrivateGetAccounts (params?: {}): Promise<Dict>;
-    v2PrivatePostPrivateGetSubaccountBalances (params?: {}): Promise<Dict>;
-    v2PrivatePostPrivateCreateSubaccountTransfer (params?: {}): Promise<Dict>;
-    v2PrivatePostPrivateOtcGetOtcUser (params?: {}): Promise<Dict>;
-    v2PrivatePostPrivateOtcGetInstruments (params?: {}): Promise<Dict>;
-    v2PrivatePostPrivateOtcRequestQuote (params?: {}): Promise<Dict>;
-    v2PrivatePostPrivateOtcAcceptQuote (params?: {}): Promise<Dict>;
-    v2PrivatePostPrivateOtcGetQuoteHistory (params?: {}): Promise<Dict>;
-    v2PrivatePostPrivateOtcGetTradeHistory (params?: {}): Promise<Dict>;
-    v2PrivatePostPrivateOtcCreateOrder (params?: {}): Promise<Dict>;
-    derivativesPublicGetPublicAuth (params?: {}): Promise<Dict>;
-    derivativesPublicGetPublicGetInstruments (params?: {}): Promise<Dict>;
-    derivativesPublicGetPublicGetBook (params?: {}): Promise<Dict>;
-    derivativesPublicGetPublicGetCandlestick (params?: {}): Promise<Dict>;
-    derivativesPublicGetPublicGetTrades (params?: {}): Promise<Dict>;
-    derivativesPublicGetPublicGetTickers (params?: {}): Promise<Dict>;
-    derivativesPublicGetPublicGetValuations (params?: {}): Promise<Dict>;
-    derivativesPublicGetPublicGetExpiredSettlementPrice (params?: {}): Promise<Dict>;
-    derivativesPublicGetPublicGetInsurance (params?: {}): Promise<Dict>;
-    derivativesPrivatePostPrivateSetCancelOnDisconnect (params?: {}): Promise<Dict>;
-    derivativesPrivatePostPrivateGetCancelOnDisconnect (params?: {}): Promise<Dict>;
-    derivativesPrivatePostPrivateUserBalance (params?: {}): Promise<Dict>;
-    derivativesPrivatePostPrivateUserBalanceHistory (params?: {}): Promise<Dict>;
-    derivativesPrivatePostPrivateGetPositions (params?: {}): Promise<Dict>;
-    derivativesPrivatePostPrivateCreateOrder (params?: {}): Promise<Dict>;
-    derivativesPrivatePostPrivateCreateOrderList (params?: {}): Promise<Dict>;
-    derivativesPrivatePostPrivateCancelOrder (params?: {}): Promise<Dict>;
-    derivativesPrivatePostPrivateCancelOrderList (params?: {}): Promise<Dict>;
-    derivativesPrivatePostPrivateCancelAllOrders (params?: {}): Promise<Dict>;
-    derivativesPrivatePostPrivateClosePosition (params?: {}): Promise<Dict>;
-    derivativesPrivatePostPrivateConvertCollateral (params?: {}): Promise<Dict>;
-    derivativesPrivatePostPrivateGetOrderHistory (params?: {}): Promise<Dict>;
-    derivativesPrivatePostPrivateGetOpenOrders (params?: {}): Promise<Dict>;
-    derivativesPrivatePostPrivateGetOrderDetail (params?: {}): Promise<Dict>;
-    derivativesPrivatePostPrivateGetTrades (params?: {}): Promise<Dict>;
-    derivativesPrivatePostPrivateChangeAccountLeverage (params?: {}): Promise<Dict>;
-    derivativesPrivatePostPrivateGetTransactions (params?: {}): Promise<Dict>;
-    derivativesPrivatePostPrivateCreateSubaccountTransfer (params?: {}): Promise<Dict>;
-    derivativesPrivatePostPrivateGetSubaccountBalances (params?: {}): Promise<Dict>;
-    derivativesPrivatePostPrivateGetOrderList (params?: {}): Promise<Dict>;
+abstract class Exchange extends _Exchange {
+    basePublicGetV1PublicGetAnnouncements (params = {}): Promise<Dict> {
+        return this.request ("v1/public/get-announcements", ["base","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetPublicAuth (params = {}): Promise<Dict> {
+        return this.request ("public/auth", ["v1","public"], 'GET', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v1PublicGetPublicGetInstruments (params = {}): Promise<Dict> {
+        return this.request ("public/get-instruments", ["v1","public"], 'GET', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v1PublicGetPublicGetBook (params = {}): Promise<Dict> {
+        return this.request ("public/get-book", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetPublicGetCandlestick (params = {}): Promise<Dict> {
+        return this.request ("public/get-candlestick", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetPublicGetTrades (params = {}): Promise<Dict> {
+        return this.request ("public/get-trades", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetPublicGetTickers (params = {}): Promise<Dict> {
+        return this.request ("public/get-tickers", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetPublicGetValuations (params = {}): Promise<Dict> {
+        return this.request ("public/get-valuations", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetPublicGetExpiredSettlementPrice (params = {}): Promise<Dict> {
+        return this.request ("public/get-expired-settlement-price", ["v1","public"], 'GET', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v1PublicGetPublicGetInsurance (params = {}): Promise<Dict> {
+        return this.request ("public/get-insurance", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetPublicGetAnnouncements (params = {}): Promise<Dict> {
+        return this.request ("public/get-announcements", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetPublicGetRiskParameters (params = {}): Promise<Dict> {
+        return this.request ("public/get-risk-parameters", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicPostPublicStakingGetConversionRate (params = {}): Promise<Dict> {
+        return this.request ("public/staking/get-conversion-rate", ["v1","public"], 'POST', params, undefined, undefined, {"cost":2});
+    }
+    v1PrivatePostPrivateSetCancelOnDisconnect (params = {}): Promise<Dict> {
+        return this.request ("private/set-cancel-on-disconnect", ["v1","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v1PrivatePostPrivateGetCancelOnDisconnect (params = {}): Promise<Dict> {
+        return this.request ("private/get-cancel-on-disconnect", ["v1","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v1PrivatePostPrivateUserBalance (params = {}): Promise<Dict> {
+        return this.request ("private/user-balance", ["v1","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v1PrivatePostPrivateUserBalanceHistory (params = {}): Promise<Dict> {
+        return this.request ("private/user-balance-history", ["v1","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v1PrivatePostPrivateGetPositions (params = {}): Promise<Dict> {
+        return this.request ("private/get-positions", ["v1","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v1PrivatePostPrivateCreateOrder (params = {}): Promise<Dict> {
+        return this.request ("private/create-order", ["v1","private"], 'POST', params, undefined, undefined, {"cost":0.6666666666666666});
+    }
+    v1PrivatePostPrivateAmendOrder (params = {}): Promise<Dict> {
+        return this.request ("private/amend-order", ["v1","private"], 'POST', params, undefined, undefined, {"cost":1.3333333333333333});
+    }
+    v1PrivatePostPrivateCreateOrderList (params = {}): Promise<Dict> {
+        return this.request ("private/create-order-list", ["v1","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v1PrivatePostPrivateCancelOrder (params = {}): Promise<Dict> {
+        return this.request ("private/cancel-order", ["v1","private"], 'POST', params, undefined, undefined, {"cost":0.6666666666666666});
+    }
+    v1PrivatePostPrivateCancelOrderList (params = {}): Promise<Dict> {
+        return this.request ("private/cancel-order-list", ["v1","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v1PrivatePostPrivateCancelAllOrders (params = {}): Promise<Dict> {
+        return this.request ("private/cancel-all-orders", ["v1","private"], 'POST', params, undefined, undefined, {"cost":0.6666666666666666});
+    }
+    v1PrivatePostPrivateClosePosition (params = {}): Promise<Dict> {
+        return this.request ("private/close-position", ["v1","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v1PrivatePostPrivateGetOrderHistory (params = {}): Promise<Dict> {
+        return this.request ("private/get-order-history", ["v1","private"], 'POST', params, undefined, undefined, {"cost":100});
+    }
+    v1PrivatePostPrivateGetOpenOrders (params = {}): Promise<Dict> {
+        return this.request ("private/get-open-orders", ["v1","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v1PrivatePostPrivateGetOrderDetail (params = {}): Promise<Dict> {
+        return this.request ("private/get-order-detail", ["v1","private"], 'POST', params, undefined, undefined, {"cost":0.3333333333333333});
+    }
+    v1PrivatePostPrivateGetTrades (params = {}): Promise<Dict> {
+        return this.request ("private/get-trades", ["v1","private"], 'POST', params, undefined, undefined, {"cost":100});
+    }
+    v1PrivatePostPrivateChangeAccountLeverage (params = {}): Promise<Dict> {
+        return this.request ("private/change-account-leverage", ["v1","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v1PrivatePostPrivateGetTransactions (params = {}): Promise<Dict> {
+        return this.request ("private/get-transactions", ["v1","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v1PrivatePostPrivateCreateSubaccountTransfer (params = {}): Promise<Dict> {
+        return this.request ("private/create-subaccount-transfer", ["v1","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v1PrivatePostPrivateGetSubaccountBalances (params = {}): Promise<Dict> {
+        return this.request ("private/get-subaccount-balances", ["v1","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v1PrivatePostPrivateGetOrderList (params = {}): Promise<Dict> {
+        return this.request ("private/get-order-list", ["v1","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v1PrivatePostPrivateCreateWithdrawal (params = {}): Promise<Dict> {
+        return this.request ("private/create-withdrawal", ["v1","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v1PrivatePostPrivateGetCurrencyNetworks (params = {}): Promise<Dict> {
+        return this.request ("private/get-currency-networks", ["v1","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v1PrivatePostPrivateGetDepositAddress (params = {}): Promise<Dict> {
+        return this.request ("private/get-deposit-address", ["v1","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v1PrivatePostPrivateGetAccounts (params = {}): Promise<Dict> {
+        return this.request ("private/get-accounts", ["v1","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v1PrivatePostPrivateGetWithdrawalHistory (params = {}): Promise<Dict> {
+        return this.request ("private/get-withdrawal-history", ["v1","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v1PrivatePostPrivateGetDepositHistory (params = {}): Promise<Dict> {
+        return this.request ("private/get-deposit-history", ["v1","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v1PrivatePostPrivateGetFeeRate (params = {}): Promise<Dict> {
+        return this.request ("private/get-fee-rate", ["v1","private"], 'POST', params, undefined, undefined, {"cost":2});
+    }
+    v1PrivatePostPrivateGetInstrumentFeeRate (params = {}): Promise<Dict> {
+        return this.request ("private/get-instrument-fee-rate", ["v1","private"], 'POST', params, undefined, undefined, {"cost":2});
+    }
+    v1PrivatePostPrivateGetFeeCreditBalances (params = {}): Promise<Dict> {
+        return this.request ("private/get-fee-credit-balances", ["v1","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v1PrivatePostPrivateFiatFiatDepositInfo (params = {}): Promise<Dict> {
+        return this.request ("private/fiat/fiat-deposit-info", ["v1","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v1PrivatePostPrivateFiatFiatDepositHistory (params = {}): Promise<Dict> {
+        return this.request ("private/fiat/fiat-deposit-history", ["v1","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v1PrivatePostPrivateFiatFiatWithdrawHistory (params = {}): Promise<Dict> {
+        return this.request ("private/fiat/fiat-withdraw-history", ["v1","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v1PrivatePostPrivateFiatFiatCreateWithdraw (params = {}): Promise<Dict> {
+        return this.request ("private/fiat/fiat-create-withdraw", ["v1","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v1PrivatePostPrivateFiatFiatTransactionQuota (params = {}): Promise<Dict> {
+        return this.request ("private/fiat/fiat-transaction-quota", ["v1","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v1PrivatePostPrivateFiatFiatTransactionLimit (params = {}): Promise<Dict> {
+        return this.request ("private/fiat/fiat-transaction-limit", ["v1","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v1PrivatePostPrivateFiatFiatGetBankAccounts (params = {}): Promise<Dict> {
+        return this.request ("private/fiat/fiat-get-bank-accounts", ["v1","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v1PrivatePostPrivateStakingStake (params = {}): Promise<Dict> {
+        return this.request ("private/staking/stake", ["v1","private"], 'POST', params, undefined, undefined, {"cost":2});
+    }
+    v1PrivatePostPrivateStakingUnstake (params = {}): Promise<Dict> {
+        return this.request ("private/staking/unstake", ["v1","private"], 'POST', params, undefined, undefined, {"cost":2});
+    }
+    v1PrivatePostPrivateStakingGetStakingPosition (params = {}): Promise<Dict> {
+        return this.request ("private/staking/get-staking-position", ["v1","private"], 'POST', params, undefined, undefined, {"cost":2});
+    }
+    v1PrivatePostPrivateStakingGetStakingInstruments (params = {}): Promise<Dict> {
+        return this.request ("private/staking/get-staking-instruments", ["v1","private"], 'POST', params, undefined, undefined, {"cost":2});
+    }
+    v1PrivatePostPrivateStakingGetOpenStake (params = {}): Promise<Dict> {
+        return this.request ("private/staking/get-open-stake", ["v1","private"], 'POST', params, undefined, undefined, {"cost":2});
+    }
+    v1PrivatePostPrivateStakingGetStakeHistory (params = {}): Promise<Dict> {
+        return this.request ("private/staking/get-stake-history", ["v1","private"], 'POST', params, undefined, undefined, {"cost":2});
+    }
+    v1PrivatePostPrivateStakingGetRewardHistory (params = {}): Promise<Dict> {
+        return this.request ("private/staking/get-reward-history", ["v1","private"], 'POST', params, undefined, undefined, {"cost":2});
+    }
+    v1PrivatePostPrivateStakingConvert (params = {}): Promise<Dict> {
+        return this.request ("private/staking/convert", ["v1","private"], 'POST', params, undefined, undefined, {"cost":2});
+    }
+    v1PrivatePostPrivateStakingGetOpenConvert (params = {}): Promise<Dict> {
+        return this.request ("private/staking/get-open-convert", ["v1","private"], 'POST', params, undefined, undefined, {"cost":2});
+    }
+    v1PrivatePostPrivateStakingGetConvertHistory (params = {}): Promise<Dict> {
+        return this.request ("private/staking/get-convert-history", ["v1","private"], 'POST', params, undefined, undefined, {"cost":2});
+    }
+    v1PrivatePostPrivateCreateIsolatedMarginTransfer (params = {}): Promise<Dict> {
+        return this.request ("private/create-isolated-margin-transfer", ["v1","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v1PrivatePostPrivateChangeIsolatedMarginLeverage (params = {}): Promise<Dict> {
+        return this.request ("private/change-isolated-margin-leverage", ["v1","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v1PrivatePostPrivateBotCreateTradingBot (params = {}): Promise<Dict> {
+        return this.request ("private/bot/create-trading-bot", ["v1","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v1PrivatePostPrivateBotUpdateTradingBot (params = {}): Promise<Dict> {
+        return this.request ("private/bot/update-trading-bot", ["v1","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v1PrivatePostPrivateBotTerminateTradingBot (params = {}): Promise<Dict> {
+        return this.request ("private/bot/terminate-trading-bot", ["v1","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v1PrivatePostPrivateBotPauseTradingBot (params = {}): Promise<Dict> {
+        return this.request ("private/bot/pause-trading-bot", ["v1","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v1PrivatePostPrivateBotResumeTradingBot (params = {}): Promise<Dict> {
+        return this.request ("private/bot/resume-trading-bot", ["v1","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v1PrivatePostPrivateBotGetTradingBots (params = {}): Promise<Dict> {
+        return this.request ("private/bot/get-trading-bots", ["v1","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v1PrivatePostPrivateBotGetTradingBotExecutions (params = {}): Promise<Dict> {
+        return this.request ("private/bot/get-trading-bot-executions", ["v1","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v2PublicGetPublicAuth (params = {}): Promise<Dict> {
+        return this.request ("public/auth", ["v2","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v2PublicGetPublicGetInstruments (params = {}): Promise<Dict> {
+        return this.request ("public/get-instruments", ["v2","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v2PublicGetPublicGetBook (params = {}): Promise<Dict> {
+        return this.request ("public/get-book", ["v2","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v2PublicGetPublicGetCandlestick (params = {}): Promise<Dict> {
+        return this.request ("public/get-candlestick", ["v2","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v2PublicGetPublicGetTicker (params = {}): Promise<Dict> {
+        return this.request ("public/get-ticker", ["v2","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v2PublicGetPublicGetTrades (params = {}): Promise<Dict> {
+        return this.request ("public/get-trades", ["v2","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v2PublicGetPublicMarginGetTransferCurrencies (params = {}): Promise<Dict> {
+        return this.request ("public/margin/get-transfer-currencies", ["v2","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v2PublicGetPublicMarginGetLoadCurrenices (params = {}): Promise<Dict> {
+        return this.request ("public/margin/get-load-currenices", ["v2","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v2PublicGetPublicRespondHeartbeat (params = {}): Promise<Dict> {
+        return this.request ("public/respond-heartbeat", ["v2","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v2PrivatePostPrivateSetCancelOnDisconnect (params = {}): Promise<Dict> {
+        return this.request ("private/set-cancel-on-disconnect", ["v2","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v2PrivatePostPrivateGetCancelOnDisconnect (params = {}): Promise<Dict> {
+        return this.request ("private/get-cancel-on-disconnect", ["v2","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v2PrivatePostPrivateCreateWithdrawal (params = {}): Promise<Dict> {
+        return this.request ("private/create-withdrawal", ["v2","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v2PrivatePostPrivateGetWithdrawalHistory (params = {}): Promise<Dict> {
+        return this.request ("private/get-withdrawal-history", ["v2","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v2PrivatePostPrivateGetCurrencyNetworks (params = {}): Promise<Dict> {
+        return this.request ("private/get-currency-networks", ["v2","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v2PrivatePostPrivateGetDepositHistory (params = {}): Promise<Dict> {
+        return this.request ("private/get-deposit-history", ["v2","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v2PrivatePostPrivateGetDepositAddress (params = {}): Promise<Dict> {
+        return this.request ("private/get-deposit-address", ["v2","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v2PrivatePostPrivateExportCreateExportRequest (params = {}): Promise<Dict> {
+        return this.request ("private/export/create-export-request", ["v2","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v2PrivatePostPrivateExportGetExportRequests (params = {}): Promise<Dict> {
+        return this.request ("private/export/get-export-requests", ["v2","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v2PrivatePostPrivateExportDownloadExportOutput (params = {}): Promise<Dict> {
+        return this.request ("private/export/download-export-output", ["v2","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v2PrivatePostPrivateGetAccountSummary (params = {}): Promise<Dict> {
+        return this.request ("private/get-account-summary", ["v2","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v2PrivatePostPrivateCreateOrder (params = {}): Promise<Dict> {
+        return this.request ("private/create-order", ["v2","private"], 'POST', params, undefined, undefined, {"cost":0.6666666666666666});
+    }
+    v2PrivatePostPrivateCancelOrder (params = {}): Promise<Dict> {
+        return this.request ("private/cancel-order", ["v2","private"], 'POST', params, undefined, undefined, {"cost":0.6666666666666666});
+    }
+    v2PrivatePostPrivateCancelAllOrders (params = {}): Promise<Dict> {
+        return this.request ("private/cancel-all-orders", ["v2","private"], 'POST', params, undefined, undefined, {"cost":0.6666666666666666});
+    }
+    v2PrivatePostPrivateCreateOrderList (params = {}): Promise<Dict> {
+        return this.request ("private/create-order-list", ["v2","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v2PrivatePostPrivateGetOrderHistory (params = {}): Promise<Dict> {
+        return this.request ("private/get-order-history", ["v2","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v2PrivatePostPrivateGetOpenOrders (params = {}): Promise<Dict> {
+        return this.request ("private/get-open-orders", ["v2","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v2PrivatePostPrivateGetOrderDetail (params = {}): Promise<Dict> {
+        return this.request ("private/get-order-detail", ["v2","private"], 'POST', params, undefined, undefined, {"cost":0.3333333333333333});
+    }
+    v2PrivatePostPrivateGetTrades (params = {}): Promise<Dict> {
+        return this.request ("private/get-trades", ["v2","private"], 'POST', params, undefined, undefined, {"cost":100});
+    }
+    v2PrivatePostPrivateGetAccounts (params = {}): Promise<Dict> {
+        return this.request ("private/get-accounts", ["v2","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v2PrivatePostPrivateGetSubaccountBalances (params = {}): Promise<Dict> {
+        return this.request ("private/get-subaccount-balances", ["v2","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v2PrivatePostPrivateCreateSubaccountTransfer (params = {}): Promise<Dict> {
+        return this.request ("private/create-subaccount-transfer", ["v2","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v2PrivatePostPrivateOtcGetOtcUser (params = {}): Promise<Dict> {
+        return this.request ("private/otc/get-otc-user", ["v2","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v2PrivatePostPrivateOtcGetInstruments (params = {}): Promise<Dict> {
+        return this.request ("private/otc/get-instruments", ["v2","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v2PrivatePostPrivateOtcRequestQuote (params = {}): Promise<Dict> {
+        return this.request ("private/otc/request-quote", ["v2","private"], 'POST', params, undefined, undefined, {"cost":100});
+    }
+    v2PrivatePostPrivateOtcAcceptQuote (params = {}): Promise<Dict> {
+        return this.request ("private/otc/accept-quote", ["v2","private"], 'POST', params, undefined, undefined, {"cost":100});
+    }
+    v2PrivatePostPrivateOtcGetQuoteHistory (params = {}): Promise<Dict> {
+        return this.request ("private/otc/get-quote-history", ["v2","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v2PrivatePostPrivateOtcGetTradeHistory (params = {}): Promise<Dict> {
+        return this.request ("private/otc/get-trade-history", ["v2","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    v2PrivatePostPrivateOtcCreateOrder (params = {}): Promise<Dict> {
+        return this.request ("private/otc/create-order", ["v2","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    derivativesPublicGetPublicAuth (params = {}): Promise<Dict> {
+        return this.request ("public/auth", ["derivatives","public"], 'GET', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    derivativesPublicGetPublicGetInstruments (params = {}): Promise<Dict> {
+        return this.request ("public/get-instruments", ["derivatives","public"], 'GET', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    derivativesPublicGetPublicGetBook (params = {}): Promise<Dict> {
+        return this.request ("public/get-book", ["derivatives","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    derivativesPublicGetPublicGetCandlestick (params = {}): Promise<Dict> {
+        return this.request ("public/get-candlestick", ["derivatives","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    derivativesPublicGetPublicGetTrades (params = {}): Promise<Dict> {
+        return this.request ("public/get-trades", ["derivatives","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    derivativesPublicGetPublicGetTickers (params = {}): Promise<Dict> {
+        return this.request ("public/get-tickers", ["derivatives","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    derivativesPublicGetPublicGetValuations (params = {}): Promise<Dict> {
+        return this.request ("public/get-valuations", ["derivatives","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    derivativesPublicGetPublicGetExpiredSettlementPrice (params = {}): Promise<Dict> {
+        return this.request ("public/get-expired-settlement-price", ["derivatives","public"], 'GET', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    derivativesPublicGetPublicGetInsurance (params = {}): Promise<Dict> {
+        return this.request ("public/get-insurance", ["derivatives","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    derivativesPrivatePostPrivateSetCancelOnDisconnect (params = {}): Promise<Dict> {
+        return this.request ("private/set-cancel-on-disconnect", ["derivatives","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    derivativesPrivatePostPrivateGetCancelOnDisconnect (params = {}): Promise<Dict> {
+        return this.request ("private/get-cancel-on-disconnect", ["derivatives","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    derivativesPrivatePostPrivateUserBalance (params = {}): Promise<Dict> {
+        return this.request ("private/user-balance", ["derivatives","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    derivativesPrivatePostPrivateUserBalanceHistory (params = {}): Promise<Dict> {
+        return this.request ("private/user-balance-history", ["derivatives","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    derivativesPrivatePostPrivateGetPositions (params = {}): Promise<Dict> {
+        return this.request ("private/get-positions", ["derivatives","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    derivativesPrivatePostPrivateCreateOrder (params = {}): Promise<Dict> {
+        return this.request ("private/create-order", ["derivatives","private"], 'POST', params, undefined, undefined, {"cost":0.6666666666666666});
+    }
+    derivativesPrivatePostPrivateCreateOrderList (params = {}): Promise<Dict> {
+        return this.request ("private/create-order-list", ["derivatives","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    derivativesPrivatePostPrivateCancelOrder (params = {}): Promise<Dict> {
+        return this.request ("private/cancel-order", ["derivatives","private"], 'POST', params, undefined, undefined, {"cost":0.6666666666666666});
+    }
+    derivativesPrivatePostPrivateCancelOrderList (params = {}): Promise<Dict> {
+        return this.request ("private/cancel-order-list", ["derivatives","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    derivativesPrivatePostPrivateCancelAllOrders (params = {}): Promise<Dict> {
+        return this.request ("private/cancel-all-orders", ["derivatives","private"], 'POST', params, undefined, undefined, {"cost":0.6666666666666666});
+    }
+    derivativesPrivatePostPrivateClosePosition (params = {}): Promise<Dict> {
+        return this.request ("private/close-position", ["derivatives","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    derivativesPrivatePostPrivateConvertCollateral (params = {}): Promise<Dict> {
+        return this.request ("private/convert-collateral", ["derivatives","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    derivativesPrivatePostPrivateGetOrderHistory (params = {}): Promise<Dict> {
+        return this.request ("private/get-order-history", ["derivatives","private"], 'POST', params, undefined, undefined, {"cost":100});
+    }
+    derivativesPrivatePostPrivateGetOpenOrders (params = {}): Promise<Dict> {
+        return this.request ("private/get-open-orders", ["derivatives","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    derivativesPrivatePostPrivateGetOrderDetail (params = {}): Promise<Dict> {
+        return this.request ("private/get-order-detail", ["derivatives","private"], 'POST', params, undefined, undefined, {"cost":0.3333333333333333});
+    }
+    derivativesPrivatePostPrivateGetTrades (params = {}): Promise<Dict> {
+        return this.request ("private/get-trades", ["derivatives","private"], 'POST', params, undefined, undefined, {"cost":100});
+    }
+    derivativesPrivatePostPrivateChangeAccountLeverage (params = {}): Promise<Dict> {
+        return this.request ("private/change-account-leverage", ["derivatives","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    derivativesPrivatePostPrivateGetTransactions (params = {}): Promise<Dict> {
+        return this.request ("private/get-transactions", ["derivatives","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    derivativesPrivatePostPrivateCreateSubaccountTransfer (params = {}): Promise<Dict> {
+        return this.request ("private/create-subaccount-transfer", ["derivatives","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    derivativesPrivatePostPrivateGetSubaccountBalances (params = {}): Promise<Dict> {
+        return this.request ("private/get-subaccount-balances", ["derivatives","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
+    derivativesPrivatePostPrivateGetOrderList (params = {}): Promise<Dict> {
+        return this.request ("private/get-order-list", ["derivatives","private"], 'POST', params, undefined, undefined, {"cost":3.3333333333333335});
+    }
 }
-abstract class Exchange extends _Exchange {}
-
 export default Exchange

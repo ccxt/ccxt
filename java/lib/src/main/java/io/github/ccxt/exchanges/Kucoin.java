@@ -1557,7 +1557,7 @@ public class Kucoin extends KucoinApi
                 put( "uta", null );
                 put( "version", "v1" );
                 put( "symbolSeparator", "-" );
-                put( "fetchMyTradesMethod", "private_get_fills" );
+                put( "fetchMyTradesMethod", "privateGetFills" );
                 put( "timeDifference", 0 );
                 put( "adjustForTimeDifference", false );
                 put( "fetchCurrencies", new HashMap<String, Object>() {{
@@ -2810,7 +2810,7 @@ public class Kucoin extends KucoinApi
 
             if (!(((Map<?, ?>)this.options).containsKey("hf")) || (java.util.Objects.equals(this.options.get("hf"), null)) || java.util.Objects.requireNonNullElse(force, false))
             {
-                Map<String, Object> result = (this.privateGetHfAccountsOpened()).join();
+                Map<String, Object> result = (this.privateGetHfAccountsOpened(new HashMap<String, Object>() {{}})).join();
                 Helpers.addElementToObject(this.options, "hf", this.safeBool(result, "data", (Object) null));
             }
             return true;
@@ -6216,7 +6216,7 @@ public class Kucoin extends KucoinApi
             {
                 if (java.util.Objects.equals(id, null))
                 {
-                    throw new ArgumentsRequired((this.id + " fetchOrder() requires an id argument or clientOrderId parameter")) ;
+                    throw new ArgumentsRequired((this.id + " cancelOrder() requires an id argument or clientOrderId parameter")) ;
                 }
                 request.put("orderId", id);
             }
@@ -8168,7 +8168,7 @@ public class Kucoin extends KucoinApi
                 {
                     response = (this.privateGetHfFills(this.extend(request, paramsRequest))).join();
                 }
-            } else if (java.util.Objects.equals(method, "private_get_fills"))
+            } else if ((java.util.Objects.equals(method, "privateGetFills")) || (java.util.Objects.equals(method, "private_get_fills")))
             {
                 // does not return trades earlier than 2019-02-18T00:00:00Z
                 if (!java.util.Objects.equals(since, null))
@@ -8177,7 +8177,7 @@ public class Kucoin extends KucoinApi
                     request.put("startAt", since);
                 }
                 response = (this.privateGetFills(this.extend(request, paramsRequest))).join();
-            } else if (java.util.Objects.equals(method, "private_get_limit_fills"))
+            } else if ((java.util.Objects.equals(method, "privateGetLimitFills")) || (java.util.Objects.equals(method, "private_get_limit_fills")))
             {
                 // does not return trades earlier than 2019-02-18T00:00:00Z
                 // takes no params
