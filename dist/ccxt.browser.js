@@ -399568,6 +399568,16 @@ class lighter extends _abstract_lighter_js__rspack_import_0/* ["default"] */.A {
         const [groupingType, paramsGroupingType] = this.handleOptionIntegerAndParams(params, method, 'groupingType', 3); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         const orderRequests = this.createOrderRequest(symbol, type, side, amount, price, paramsGroupingType);
         const totalOrderRequests = orderRequests.length;
+        if (totalOrderRequests > 1) {
+            // the signer replaces a -1 expiry with now + 28 days reading the clock once per leg, and rejects
+            // a group whose legs differ ("OrderExpiry is invalid"), so resolve the default once for all legs
+            const groupOrderExpiry = this.sum(this.milliseconds(), 2419200000); // 28 days
+            for(let i = 0; i < totalOrderRequests; i++){
+                if (this.safeInteger(orderRequests[i], 'order_expiry') === -1) {
+                    orderRequests[i]['order_expiry'] = groupOrderExpiry;
+                }
+            }
+        }
         let order = undefined;
         if (totalOrderRequests > 0) {
             order = orderRequests[0];
