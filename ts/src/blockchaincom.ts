@@ -5,7 +5,6 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type { Balances, Currency, Dict, Int, List, Market, Num, Order, OrderBook, OrderBookL3, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, Fee, FeeString, Bool, Endpoint } from './base/types.js';
 
-
 // ---------------------------------------------------------------------------
 
 /**
@@ -462,7 +461,7 @@ export default class blockchaincom extends Exchange {
             request['depth'] = limit;
         }
         const response = await this.publicGetL3Symbol (this.extend (request, params));
-        return this.parseOrderBookL3 (response, market['symbol'], undefined, 'bids', 'asks', 'px', 'qty') as OrderBookL3;
+        return this.parseOrderBookL3 (response, market['symbol'], undefined, 'bids', 'asks', 'px', 'qty', 'num') as OrderBookL3;
     }
 
     override async fetchL2OrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {

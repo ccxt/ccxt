@@ -5796,9 +5796,9 @@ export class BaseExchange {
         return result;
     }
 
-    parseOrderBookBidsAsksL3 (bidasks: any, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2): Num[][] {
+    parseOrderBookBidsAsksL3 (bidasks: any, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2): any[][] {
         const bidasksValue: any = this.toArray (bidasks);
-        const result: Num[][] = [];
+        const result: any[][] = [];
         for (let i = 0; i < bidasksValue.length; i++) {
             result.push (this.parseOrderBookBidAskL3 (bidasksValue[i], priceKey, amountKey, countOrIdKey));
         }
