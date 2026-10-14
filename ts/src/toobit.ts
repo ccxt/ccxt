@@ -1490,7 +1490,7 @@ export default class toobit extends Exchange {
             'symbol': marketResolved['symbol'],
             'timestamp': undefined,
             'datetime': undefined,
-            'price': this.safeNumberOmitZero (entry, 'price'),
+            'price': this.safeNumberOmitZero (entry, 'p'),
             'side': undefined,
             'info': entry,
         };
