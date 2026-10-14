@@ -92,6 +92,806 @@
                     "networks": {}
                 }
             }
+        ],
+        "fetchBalance": [
+            {
+                "description": "TAPI v2 account balances",
+                "method": "fetchBalance",
+                "input": [],
+                "options": {
+                    "tapiVersion": "2"
+                },
+                "httpResponse": {
+                    "canTrade": true,
+                    "balances": [
+                        {
+                            "asset": "BTC",
+                            "free": "0.1",
+                            "locked": "0.01"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "canTrade": true,
+                        "balances": [
+                            {
+                                "asset": "BTC",
+                                "free": "0.1",
+                                "locked": "0.01"
+                            }
+                        ]
+                    },
+                    "BTC": {
+                        "free": 0.1,
+                        "used": 0.01,
+                        "total": 0.11
+                    },
+                    "free": {
+                        "BTC": 0.1
+                    },
+                    "used": {
+                        "BTC": 0.01
+                    },
+                    "total": {
+                        "BTC": 0.11
+                    }
+                }
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "TAPI v2 limit order has no status",
+                "method": "createOrder",
+                "input": [
+                    "BTC/IDR",
+                    "limit",
+                    "buy",
+                    0.01,
+                    1000000
+                ],
+                "options": {
+                    "tapiVersion": "2"
+                },
+                "httpResponse": {
+                    "symbol": "BTCIDR",
+                    "orderId": 6423,
+                    "clientOrderId": "btcidr-buy-1",
+                    "side": "BUY",
+                    "type": "LIMIT",
+                    "price": "1000000",
+                    "origQty": "0.01",
+                    "executedQty": "0",
+                    "fullOrderId": "btcidr-limit-6423"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTCIDR",
+                        "orderId": 6423,
+                        "clientOrderId": "btcidr-buy-1",
+                        "side": "BUY",
+                        "type": "LIMIT",
+                        "price": "1000000",
+                        "origQty": "0.01",
+                        "executedQty": "0",
+                        "fullOrderId": "btcidr-limit-6423"
+                    },
+                    "id": "btcidr-limit-6423",
+                    "clientOrderId": "btcidr-buy-1",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "symbol": "BTC/IDR",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "buy",
+                    "price": 1000000,
+                    "triggerPrice": null,
+                    "cost": null,
+                    "average": null,
+                    "amount": 0.01,
+                    "filled": 0,
+                    "remaining": 0.01,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "TAPI v2 order history uses oriQty",
+                "method": "fetchOrders",
+                "input": [
+                    "BTC/IDR"
+                ],
+                "options": {
+                    "tapiVersion": "2"
+                },
+                "httpResponse": {
+                    "data": [
+                        {
+                            "orderId": "btcidr-limit-3568",
+                            "clientOrderId": "abc",
+                            "symbol": "btcidr",
+                            "side": "BUY",
+                            "type": "LIMIT",
+                            "status": "FILLED",
+                            "price": "1000000",
+                            "oriQty": "0.01",
+                            "executedQty": "0.01",
+                            "submitTime": 1609459200000,
+                            "finishTime": 1609459300000
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "orderId": "btcidr-limit-3568",
+                            "clientOrderId": "abc",
+                            "symbol": "btcidr",
+                            "side": "BUY",
+                            "type": "LIMIT",
+                            "status": "FILLED",
+                            "price": "1000000",
+                            "oriQty": "0.01",
+                            "executedQty": "0.01",
+                            "submitTime": 1609459200000,
+                            "finishTime": 1609459300000
+                        },
+                        "id": "btcidr-limit-3568",
+                        "clientOrderId": "abc",
+                        "timestamp": 1609459200000,
+                        "datetime": "2021-01-01T00:00:00.000Z",
+                        "lastTradeTimestamp": 1609459300000,
+                        "symbol": "BTC/IDR",
+                        "type": "limit",
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "side": "buy",
+                        "price": 1000000,
+                        "triggerPrice": null,
+                        "cost": null,
+                        "average": null,
+                        "amount": 0.01,
+                        "filled": 0.01,
+                        "remaining": 0,
+                        "status": "closed",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "TAPI v2 trade history",
+                "method": "fetchMyTrades",
+                "input": [
+                    "BTC/IDR"
+                ],
+                "options": {
+                    "tapiVersion": "2"
+                },
+                "httpResponse": {
+                    "data": [
+                        {
+                            "tradeId": "trade1",
+                            "orderId": "btcidr-limit-3568",
+                            "symbol": "BTCIDR",
+                            "price": "1000000",
+                            "qty": "0.01",
+                            "quoteQty": "10000",
+                            "commission": "30",
+                            "commissionAsset": "IDR",
+                            "isBuyer": true,
+                            "isMaker": false,
+                            "time": 1609459200000
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "trade1",
+                        "info": {
+                            "tradeId": "trade1",
+                            "orderId": "btcidr-limit-3568",
+                            "symbol": "BTCIDR",
+                            "price": "1000000",
+                            "qty": "0.01",
+                            "quoteQty": "10000",
+                            "commission": "30",
+                            "commissionAsset": "IDR",
+                            "isBuyer": true,
+                            "isMaker": false,
+                            "time": 1609459200000
+                        },
+                        "timestamp": 1609459200000,
+                        "datetime": "2021-01-01T00:00:00.000Z",
+                        "symbol": "BTC/IDR",
+                        "type": null,
+                        "side": "buy",
+                        "order": "btcidr-limit-3568",
+                        "takerOrMaker": "taker",
+                        "price": 1000000,
+                        "amount": 0.01,
+                        "cost": 10000,
+                        "fee": {
+                            "currency": "IDR",
+                            "cost": 30
+                        },
+                        "fees": [
+                            {
+                                "currency": "IDR",
+                                "cost": 30
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "TAPI v2 crypto deposit times are milliseconds",
+                "method": "fetchDeposits",
+                "input": [
+                    "BTC"
+                ],
+                "options": {
+                    "tapiVersion": "2"
+                },
+                "httpResponse": [
+                    {
+                        "id": "3602369",
+                        "amount": "0.001",
+                        "coin": "BTC",
+                        "txId": "c816aeb35a5b42f389970325a32aff69bb6b2126784dcda8f23b9dd9570d6573",
+                        "address": "1FZdVHtiBqMrWdjPyRPULCUceZPJ2WLCsB",
+                        "addressTag": "",
+                        "network": "",
+                        "status": "success",
+                        "insertTime": 1661493146000,
+                        "completeTime": 1661493146000
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "3602369",
+                        "txid": "c816aeb35a5b42f389970325a32aff69bb6b2126784dcda8f23b9dd9570d6573",
+                        "timestamp": 1661493146000,
+                        "datetime": "2022-08-26T05:52:26.000Z",
+                        "network": null,
+                        "addressFrom": null,
+                        "address": "1FZdVHtiBqMrWdjPyRPULCUceZPJ2WLCsB",
+                        "addressTo": null,
+                        "amount": 0.001,
+                        "type": "deposit",
+                        "currency": "BTC",
+                        "status": "ok",
+                        "updated": 1661493146000,
+                        "tagFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "comment": null,
+                        "internal": null,
+                        "fee": null,
+                        "info": {
+                            "id": "3602369",
+                            "amount": "0.001",
+                            "coin": "BTC",
+                            "txId": "c816aeb35a5b42f389970325a32aff69bb6b2126784dcda8f23b9dd9570d6573",
+                            "address": "1FZdVHtiBqMrWdjPyRPULCUceZPJ2WLCsB",
+                            "addressTag": "",
+                            "network": "",
+                            "status": "success",
+                            "insertTime": 1661493146000,
+                            "completeTime": 1661493146000
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "public pair fee is a percent, not an account tier",
+                "method": "fetchTradingFees",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "id": "btcidr",
+                        "symbol": "BTCIDR",
+                        "base_currency": "idr",
+                        "traded_currency": "btc",
+                        "ticker_id": "btc_idr",
+                        "volume_precision": 0,
+                        "price_precision": 1000,
+                        "price_round": 8,
+                        "pricescale": 1000,
+                        "quantity_increment": "0.00000001",
+                        "trade_min_base_currency": 10000,
+                        "trade_min_traded_currency": 0.0001,
+                        "trade_fee_percent": 0.3,
+                        "trade_fee_percent_maker": 0.1,
+                        "trade_fee_percent_taker": 0.2,
+                        "is_maintenance": 0
+                    }
+                ],
+                "parsedResponse": {
+                    "BTC/IDR": {
+                        "info": {
+                            "id": "btcidr",
+                            "symbol": "BTCIDR",
+                            "base_currency": "idr",
+                            "traded_currency": "btc",
+                            "ticker_id": "btc_idr",
+                            "volume_precision": 0,
+                            "price_precision": 1000,
+                            "price_round": 8,
+                            "pricescale": 1000,
+                            "quantity_increment": "0.00000001",
+                            "trade_min_base_currency": 10000,
+                            "trade_min_traded_currency": 0.0001,
+                            "trade_fee_percent": 0.3,
+                            "trade_fee_percent_maker": 0.1,
+                            "trade_fee_percent_taker": 0.2,
+                            "is_maintenance": 0
+                        },
+                        "symbol": "BTC/IDR",
+                        "percentage": true,
+                        "tierBased": false,
+                        "maker": 0.001,
+                        "taker": 0.002
+                    }
+                }
+            }
+        ],
+        "fetchTradingLimits": [
+            {
+                "description": "public pair limits and price step",
+                "method": "fetchTradingLimits",
+                "input": [],
+                "httpResponseByUrl": {
+                    "api/pairs": [
+                        {
+                            "id": "btcidr",
+                            "symbol": "BTCIDR",
+                            "base_currency": "idr",
+                            "traded_currency": "btc",
+                            "ticker_id": "btc_idr",
+                            "volume_precision": 0,
+                            "price_precision": 1000,
+                            "price_round": 8,
+                            "pricescale": 1000,
+                            "quantity_increment": "0.00000001",
+                            "trade_min_base_currency": 10000,
+                            "trade_min_traded_currency": 0.0001,
+                            "is_maintenance": 0
+                        }
+                    ],
+                    "api/price_increments": {
+                        "increments": {
+                            "btc_idr": "1000"
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "BTC/IDR": {
+                        "info": {
+                            "id": "btcidr",
+                            "symbol": "BTCIDR",
+                            "base_currency": "idr",
+                            "traded_currency": "btc",
+                            "ticker_id": "btc_idr",
+                            "volume_precision": 0,
+                            "price_precision": 1000,
+                            "price_round": 8,
+                            "pricescale": 1000,
+                            "quantity_increment": "0.00000001",
+                            "trade_min_base_currency": 10000,
+                            "trade_min_traded_currency": 0.0001,
+                            "is_maintenance": 0
+                        },
+                        "precision": {
+                            "amount": 0.00000001,
+                            "price": 1000
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": 0.0001,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": 10000,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "public pair precision, fees, and minimums",
+                "method": "fetchMarkets",
+                "input": [],
+                "httpResponseByUrl": {
+                    "api/pairs": [
+                        {
+                            "id": "btcidr",
+                            "symbol": "BTCIDR",
+                            "base_currency": "idr",
+                            "traded_currency": "btc",
+                            "ticker_id": "btc_idr",
+                            "volume_precision": 0,
+                            "price_precision": 1000,
+                            "price_round": 8,
+                            "pricescale": 1000,
+                            "quantity_increment": "0.00000001",
+                            "trade_min_base_currency": 10000,
+                            "trade_min_traded_currency": 0.0001,
+                            "trade_fee_percent": 0.3,
+                            "trade_fee_percent_maker": 0.1,
+                            "trade_fee_percent_taker": 0.2,
+                            "is_maintenance": 0
+                        }
+                    ],
+                    "api/price_increments": {
+                        "increments": {
+                            "btc_idr": "1000"
+                        }
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "btcidr",
+                        "symbol": "BTC/IDR",
+                        "base": "BTC",
+                        "quote": "IDR",
+                        "settle": null,
+                        "baseId": "btc",
+                        "quoteId": "idr",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "taker": 0.002,
+                        "maker": 0.001,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "percentage": true,
+                        "tierBased": false,
+                        "precision": {
+                            "amount": 0.00000001,
+                            "price": 1000,
+                            "cost": 1
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": 0.0001,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": 10000,
+                                "max": null
+                            }
+                        },
+                        "created": null,
+                        "info": {
+                            "id": "btcidr",
+                            "symbol": "BTCIDR",
+                            "base_currency": "idr",
+                            "traded_currency": "btc",
+                            "ticker_id": "btc_idr",
+                            "volume_precision": 0,
+                            "price_precision": 1000,
+                            "price_round": 8,
+                            "pricescale": 1000,
+                            "quantity_increment": "0.00000001",
+                            "trade_min_base_currency": 10000,
+                            "trade_min_traded_currency": 0.0001,
+                            "trade_fee_percent": 0.3,
+                            "trade_fee_percent_maker": 0.1,
+                            "trade_fee_percent_taker": 0.2,
+                            "is_maintenance": 0
+                        }
+                    }
+                ]
+            },
+            {
+                "description": "price increment wins when it disagrees with pricescale",
+                "method": "fetchMarkets",
+                "input": [],
+                "httpResponseByUrl": {
+                    "api/pairs": [
+                        {
+                            "id": "btcusdt",
+                            "symbol": "BTCUSDT",
+                            "base_currency": "usdt",
+                            "traded_currency": "btc",
+                            "ticker_id": "btc_usdt",
+                            "volume_precision": 8,
+                            "price_precision": 0.000001,
+                            "price_round": 6,
+                            "pricescale": 1,
+                            "quantity_increment": "0.000001",
+                            "trade_min_base_currency": 1,
+                            "trade_min_traded_currency": 0.000013,
+                            "trade_fee_percent": 0.06,
+                            "trade_fee_percent_maker": 0.03,
+                            "trade_fee_percent_taker": 0.06,
+                            "is_maintenance": 0
+                        }
+                    ],
+                    "api/price_increments": {
+                        "increments": {
+                            "btc_usdt": "0.000001"
+                        }
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "btcusdt",
+                        "symbol": "BTC/USDT",
+                        "base": "BTC",
+                        "quote": "USDT",
+                        "settle": null,
+                        "baseId": "btc",
+                        "quoteId": "usdt",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "taker": 0.0006,
+                        "maker": 0.0003,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "percentage": true,
+                        "tierBased": false,
+                        "precision": {
+                            "amount": 0.000001,
+                            "price": 0.000001,
+                            "cost": 0.00000001
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": 0.000013,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": 1,
+                                "max": null
+                            }
+                        },
+                        "created": null,
+                        "info": {
+                            "id": "btcusdt",
+                            "symbol": "BTCUSDT",
+                            "base_currency": "usdt",
+                            "traded_currency": "btc",
+                            "ticker_id": "btc_usdt",
+                            "volume_precision": 8,
+                            "price_precision": 0.000001,
+                            "price_round": 6,
+                            "pricescale": 1,
+                            "quantity_increment": "0.000001",
+                            "trade_min_base_currency": 1,
+                            "trade_min_traded_currency": 0.000013,
+                            "trade_fee_percent": 0.06,
+                            "trade_fee_percent_maker": 0.03,
+                            "trade_fee_percent_taker": 0.06,
+                            "is_maintenance": 0
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "TAPI v1 open orders without a symbol parse ticker ids",
+                "method": "fetchOpenOrders",
+                "input": [],
+                "httpResponse": {
+                    "success": 1,
+                    "return": {
+                        "orders": {
+                            "btc_idr": [
+                                {
+                                    "order_id": "172",
+                                    "submit_time": "1693226027",
+                                    "price": "100",
+                                    "type": "sell",
+                                    "order_btc": "1",
+                                    "remain_btc": "0.25"
+                                }
+                            ],
+                            "doge_btc": [
+                                {
+                                    "order_id": "9",
+                                    "submit_time": "1693226027",
+                                    "price": "2",
+                                    "type": "sell",
+                                    "order_doge": "4",
+                                    "remain_doge": "1"
+                                }
+                            ]
+                        }
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "order_id": "172",
+                            "submit_time": "1693226027",
+                            "price": "100",
+                            "type": "sell",
+                            "order_btc": "1",
+                            "remain_btc": "0.25"
+                        },
+                        "id": "172",
+                        "clientOrderId": null,
+                        "timestamp": 1693226027,
+                        "datetime": "1970-01-20T14:20:26.027Z",
+                        "lastTradeTimestamp": null,
+                        "symbol": "BTC/IDR",
+                        "type": "limit",
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "side": "sell",
+                        "price": 100,
+                        "triggerPrice": null,
+                        "cost": 75,
+                        "average": null,
+                        "amount": 1,
+                        "filled": 0.75,
+                        "remaining": 0.25,
+                        "status": "open",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    },
+                    {
+                        "info": {
+                            "order_id": "9",
+                            "submit_time": "1693226027",
+                            "price": "2",
+                            "type": "sell",
+                            "order_doge": "4",
+                            "remain_doge": "1"
+                        },
+                        "id": "9",
+                        "clientOrderId": null,
+                        "timestamp": 1693226027,
+                        "datetime": "1970-01-20T14:20:26.027Z",
+                        "lastTradeTimestamp": null,
+                        "symbol": "DOGE/BTC",
+                        "type": "limit",
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "side": "sell",
+                        "price": 2,
+                        "triggerPrice": null,
+                        "cost": 6,
+                        "average": null,
+                        "amount": 4,
+                        "filled": 3,
+                        "remaining": 1,
+                        "status": "open",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchDepositAddresses": [
+            {
+                "description": "TAPI v1 deposit addresses allow a missing network and a network list",
+                "method": "fetchDepositAddresses",
+                "input": [],
+                "httpResponse": {
+                    "success": 1,
+                    "return": {
+                        "address": {
+                            "btc": "1KMntgzvU7iTSgMBWc11nVuJjAyfW3qJyk",
+                            "eth": "0xa6fd81330501442e8dff403f966b6e023a53763e"
+                        },
+                        "network": {
+                            "btc": null,
+                            "eth": [
+                                "eth",
+                                "arb"
+                            ]
+                        }
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {},
+                        "currency": "BTC",
+                        "network": null,
+                        "address": "1KMntgzvU7iTSgMBWc11nVuJjAyfW3qJyk",
+                        "tag": null
+                    },
+                    {
+                        "info": {},
+                        "currency": "ETH",
+                        "network": "ETH",
+                        "address": "0xa6fd81330501442e8dff403f966b6e023a53763e",
+                        "tag": null
+                    },
+                    {
+                        "info": {},
+                        "currency": "ETH",
+                        "network": "ARB",
+                        "address": "0xa6fd81330501442e8dff403f966b6e023a53763e",
+                        "tag": null
+                    }
+                ]
+            }
         ]
     }
 }
