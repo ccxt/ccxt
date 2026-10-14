@@ -2073,8 +2073,15 @@ pub trait ExchangeBase:
 }));
         let __userConfig_empty = indexmap::IndexMap::new();
         let userConfig = userConfig.as_map().unwrap_or(&__userConfig_empty);
-        // networks
-        self.create_networks_by_id_object();
+        // networksById: inverse of options.networks, explicit options.networksById entries win
+        let mut networkIdsToCodesGenerated: Value = self.invert_flat_string_dictionary(self.safe_value_k(self.options.clone(), "networks", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]));
+        { let __be_tmp = self.extend(networkIdsToCodesGenerated, &[self.safe_value_k(self.options.clone(), "networksById", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})])]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("networksById".into(), __be_tmp); } }
         self.features_generator();
         // init predefined markets if any
         if (self.markets.clone() != Value::Null) {
@@ -2348,60 +2355,9 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn create_networks_by_id_object(&mut self) {
-        // automatically generate network-id-to-code mappings
-        let mut networkIdsToCodesGenerated: Value = self.invert_flat_string_dictionary(self.safe_value_k(self.options.clone(), "networks", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })])); // invert defined networks dictionary
-        { let __be_tmp = self.extend(networkIdsToCodesGenerated, &[self.safe_value_k(self.options.clone(), "networksById", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})])]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("networksById".into(), __be_tmp); } }; // support manually overriden "networksById" dictionary too
-}
-
     fn get_default_options(&self) -> Value {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("defaultNetworkCodeReplacements".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("ETH".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("primary".to_string(), Value::Str("ETH".into()));
-        m.insert("secondary".to_string(), Value::Str("ERC20".into()));
-        m.insert("default".to_string(), Value::Str("secondary".into()));
-    m
-}));
-        m.insert("CRO".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("primary".to_string(), Value::Str("CRONOS".into()));
-        m.insert("secondary".to_string(), Value::Str("CRC20".into()));
-        m.insert("default".to_string(), Value::Str("secondary".into()));
-    m
-}));
-        m.insert("TRX".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("primary".to_string(), Value::Str("TRX".into()));
-        m.insert("secondary".to_string(), Value::Str("TRC20".into()));
-        m.insert("default".to_string(), Value::Str("secondary".into()));
-    m
-}));
-        m.insert("BTC".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("primary".to_string(), Value::Str("BTC".into()));
-        m.insert("secondary".to_string(), Value::Str("BRC20".into()));
-        m.insert("default".to_string(), Value::Str("primary".into()));
-    m
-}));
-    m
-}));
-        m.insert("backwardSupportedNetworkCodes".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("ARB".to_string(), Value::Str("ARBITRUM".into()));
-        m.insert("ARBONE".to_string(), Value::Str("ARBITRUM".into()));
-        m.insert("ARBNOVA".to_string(), Value::Str("ARBITRUM_NOVA".into()));
-    m
-}));
         m.insert("withdrawTagRequiredCurrencies".to_string(), Value::from(vec![Value::Str("XRP".into()), Value::Str("XLM".into()), Value::Str("EOS".into()), Value::Str("ATOM".into()), Value::Str("HBAR".into()), Value::Str("TON".into()), Value::Str("KAVA".into()), Value::Str("STX".into()), Value::Str("XEM".into()), Value::Str("IOST".into()), Value::Str("OSMO".into()), Value::Str("WAXP".into())]));
     m
 });
@@ -4399,74 +4355,13 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn prioritized_network_aliases(&self, optional_args: &[Value]) -> Value {
-        let mut networkCode = get_arg(optional_args, 0, Value::Null);
-        let mut currencyCode = get_arg(optional_args, 1, Value::Null);
-        let mut allowDefault = get_arg(optional_args, 2, Value::Bool(false));
-        /*
-         * @method
-         * @name Exchange#prioritizedNetworkAliases
-         * @description returns the chain pair [preferred, alternative] for the given networkCode & currency, e.g:
-         *   ---------------------------------
-         *   | input          | output       |
-         *   --------------------------------|
-         *   | ETH & USDC     | ERC20, ETH   |
-         *   | ERC20 & USDC   | ERC20, ETH   |
-         *   | ETH & ETH      | ETH, ERC20   |
-         *   | ERC20 & ETH    | ETH, ERC20   |
-         *   | ERC20          | ERC20, ETH   |
-         *   | ETH            | ERC20, ETH   |
-         *   ---------------------------------
-         * @param {string} networkCode unified network-code
-         * @param {string} currencyCode unified currency-code
-         * @param {boolean} allowDefault when currencyCode is undefined, order by replacement's "default" instead of by user input
-         * @returns {string[]} [preferredChain, alternativeChain]
-         */
-        if (networkCode == Value::Null) {
-            return Value::Null;
-        }
-        let mut replacements: Value = self.safe_dict_k(self.options.clone(), "defaultNetworkCodeReplacements", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut keys: Value = object_keys(&replacements);
-        {
-                        let mut i: Value = Value::Int(0);
-            let mut __for_first_114: bool = true;
-            while { if !__for_first_114 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_114 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-            let mut baseCoin: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut entry: Value = replacements.as_map().and_then(|__m| baseCoin.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
-            let mut primary: Value = crate::value::get_value_k(&entry, "primary");
-            let mut secondary: Value = crate::value::get_value_k(&entry, "secondary");
-            if !is_equal(&networkCode, &primary) && !is_equal(&networkCode, &secondary) {
-                continue;
-            }
-            // pick which form goes first in the returned pair
-            let mut preferPrimary: bool = false;
-            if (currencyCode.as_str() == baseCoin.as_str()) {
-                preferPrimary = true; // mainnet currency uses primary chain
-            }  else if (currencyCode != Value::Null) {
-                preferPrimary = false; // any other (token) currency uses secondary chain
-            }  else if is_true(&allowDefault) {
-                preferPrimary = crate::value::get_value_k(&entry, "default").as_str() == Some("primary");
-            }  else {
-                preferPrimary = is_equal(&networkCode, &primary); // keep user input first
-            }
-            return (if (preferPrimary) { Value::from(vec![primary.clone(), secondary.clone()]) } else { Value::from(vec![secondary, primary]) });
-        }
-        }
-        return Value::from(vec![networkCode.clone(), networkCode.clone()]);
-
-    Value::Null
-}
-
     fn network_code_to_id(&self, mut networkCode: Value, optional_args: &[Value]) -> Value {
         let mut currencyCode = get_arg(optional_args, 0, Value::Null);
         /*
          * @ignore
          * @method
          * @name exchange#networkCodeToId
-         * @description tries to convert the provided networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
+         * @description tries to convert the provided networkCode (a unified network code or one of its aliases) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
          * @param {string} networkCode unified network code
          * @param {string} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {string|undefined} exchange-specific network id
@@ -4474,24 +4369,34 @@ pub trait ExchangeBase:
         if (networkCode == Value::Null) {
             return Value::Null;
         }
+        let mut unifiedCode: Value = self.safe_string(self.networkAliases.clone(), networkCode.clone(), &[networkCode.clone()]);
         let mut networkIdsByCodes: Value = self.safe_dict_k(self.options.clone(), "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        // try the preferred form first, fall back to its alternative (e.g. when only 'ETH' or only 'ERC20' is defined)
-        let mut chainPair: Value = self.prioritized_network_aliases(&[networkCode.clone(), currencyCode.clone(), Value::Bool(false)]);
-        let mut preferredChain: Value = (if (chainPair == Value::Null) { networkCode.clone() } else { chainPair.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null) });
-        let mut alternativeChain: Value = (if (chainPair == Value::Null) { networkCode.clone() } else { chainPair.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null) });
-        let mut networkId: Value = self.safe_string2(networkIdsByCodes, preferredChain, alternativeChain, &[]);
+        let mut networkId: Value = self.safe_string(networkIdsByCodes.clone(), unifiedCode.clone(), &[]);
         if (networkId != Value::Null) {
             return networkId;
+        }
+        // options.networks may still be keyed by an alias of the unified code
+        let mut aliases: Value = self.networkAliases.clone();
+        let mut aliasKeys: Value = object_keys(&aliases);
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_114: bool = true;
+            while { if !__for_first_114 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_114 = false; i.as_f64().unwrap_or(f64::NAN) < ((aliasKeys.len() as i64) as f64) } {
+            let mut alias: Value = aliasKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            if (aliases.as_map().and_then(|__m| alias.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null).as_str() == unifiedCode.as_str()) && (in_op(&networkIdsByCodes, &alias)) {
+                return networkIdsByCodes.as_map().and_then(|__m| alias.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            }
+        }
         }
         // fall back to scanning loaded currencies
         let mut currenciesToCheck: Value = Value::from(vec![]);
         if (currencyCode == Value::Null) {
             currenciesToCheck = object_keys(&self.currencies);
         }  else {
-            currenciesToCheck = Value::from(vec![self.safe_dict(self.currencies.clone(), currencyCode.clone(), &[])]);
+            currenciesToCheck = Value::from(vec![self.safe_dict(self.currencies.clone(), currencyCode, &[])]);
         }
         {
                         let mut i: Value = Value::Int(0);
@@ -4501,18 +4406,10 @@ pub trait ExchangeBase:
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if (in_op(&networks, &networkCode)) {
-                return self.safe_string(networks.as_map().and_then(|__m| networkCode.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str("id".into()), &[]);
+            if (in_op(&networks, &unifiedCode)) {
+                return self.safe_string(networks.as_map().and_then(|__m| unifiedCode.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str("id".into()), &[]);
             }
         }
-        }
-        // before returning the original input, try to match if it's backward-maintained networkCode
-        let mut oldCodes: Value = self.safe_dict_k(self.options.clone(), "backwardSupportedNetworkCodes", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        if (in_op(&oldCodes, &networkCode)) {
-            return self.network_code_to_id(oldCodes.as_map().and_then(|__m| networkCode.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &[currencyCode]);
         }
         return networkCode;
 
@@ -4538,25 +4435,9 @@ pub trait ExchangeBase:
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut networkCode: Value = self.safe_string(networkCodesByIds, networkId.clone(), &[networkId.clone()]);
-        let mut chainPair: Value = self.prioritized_network_aliases(&[networkCode.clone(), currencyCode.clone(), Value::Bool(true)]);
-        if (chainPair == Value::Null) {
-            return networkCode;
-        }
-        let mut preferredChain: Value = chainPair.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut alternativeChain: Value = chainPair.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        // when the exchange explicitly defines both forms in options.networks (e.g. BTC + BRC20),
-        // it disambiguates them — trust the direct id→code inversion instead of guessing
-        if (currencyCode == Value::Null) {
-            let mut networkIdsByCodes: Value = self.safe_dict_k(self.options.clone(), "networks", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-            if (in_op(&networkIdsByCodes, &preferredChain)) && (in_op(&networkIdsByCodes, &alternativeChain)) {
-                return networkCode;
-            }
-        }
-        return preferredChain;
+        let mut mappedCode: Value = self.safe_string(networkCodesByIds, networkId.clone(), &[]);
+        let mut networkCode: Value = (if (mappedCode == Value::Null) { networkId } else { mappedCode });
+        return self.safe_string(self.networkAliases.clone(), networkCode.clone(), &[networkCode.clone()]);
 
     Value::Null
 }
@@ -4565,39 +4446,6 @@ pub trait ExchangeBase:
         let mut networkCodeInParams: Value = self.safe_string2(params.clone(), Value::Str("networkCode".into()), Value::Str("network".into()), &[]);
         let mut paramsOmitted: Value = (if (networkCodeInParams != Value::Null) { self.omit(params.clone(), Value::from(vec![Value::Str("networkCode".into()), Value::Str("network".into())]), &[]) } else { params });
         return Value::from(vec![networkCodeInParams, paramsOmitted]);
-
-    Value::Null
-}
-
-    fn default_network_code(&self, mut currencyCode: Value) -> Value {
-        let mut defaultNetworkCode: Value = Value::Null;
-        let mut defaultNetworks: Value = self.safe_dict_k(self.options.clone(), "defaultNetworks", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        if (in_op(&defaultNetworks, &currencyCode)) {
-            // if currency had set its network in "defaultNetworks", use it
-            defaultNetworkCode = defaultNetworks.as_map().and_then(|__m| currencyCode.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
-        }  else {
-            // otherwise, try to use the global-scope 'defaultNetwork' value (even if that network is not supported by currency, it doesn't make any problem, this will be just used "at first" if currency supports this network at all)
-            let mut defaultNetwork: Value = self.safe_string_k(self.options.clone(), "defaultNetwork", &[]);
-            if (defaultNetwork != Value::Null) {
-                defaultNetworkCode = defaultNetwork;
-            }
-        }
-        return defaultNetworkCode;
-
-    Value::Null
-}
-
-    fn select_network_code_from_unified_networks(&self, mut currencyCode: Value, mut networkCode: Value, mut indexedNetworkEntries: Value) -> Value {
-        return self.select_network_key_from_networks(currencyCode, networkCode, indexedNetworkEntries, &[Value::Bool(true)]);
-
-    Value::Null
-}
-
-    fn select_network_id_from_raw_networks(&self, mut currencyCode: Value, mut networkCode: Value, mut indexedNetworkEntries: Value) -> Value {
-        return self.select_network_key_from_networks(currencyCode, networkCode, indexedNetworkEntries, &[Value::Bool(false)]);
 
     Value::Null
 }
@@ -4628,7 +4476,10 @@ pub trait ExchangeBase:
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" - no networks were returned for ".into())).into()), currencyCode)));
             }  else {
                 // if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
-                let mut defaultNetworkCode: Value = self.default_network_code(currencyCode.clone());
+                let mut defaultNetworkCode: Value = self.safe_string(self.safe_dict_k(self.options.clone(), "defaultNetworks", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]), currencyCode.clone(), &[self.safe_string_k(self.options.clone(), "defaultNetwork", &[])]);
                 let mut defaultNetworkId: Value = (if is_true(&isIndexedByUnifiedNetworkCode) { defaultNetworkCode.clone() } else { self.network_code_to_id(defaultNetworkCode, &[currencyCode]) });
                 if (defaultNetworkId == Value::Null) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" selectNetworkKeyFromNetworks() missing defaultNetworkId".into()))));
@@ -5157,30 +5008,6 @@ pub trait ExchangeBase:
         let mut value: Value = self.safe_bool2(params.clone(), paramName1.clone(), paramName2.clone(), &[defaultValue]);
         let mut paramsOmitted: Value = (if (value != Value::Null) { self.omit(params.clone(), Value::from(vec![paramName1, paramName2]), &[]) } else { params });
         return Value::from(vec![value, paramsOmitted]);
-
-    Value::Null
-}
-
-/*
- * @param {object} params - extra parameters
- * @param {object} request - existing dictionary of request
- * @param {string} exchangeSpecificKey - the key for chain id to be set in request
- * @param {object} currencyCode - (optional) existing dictionary of request
- * @param {boolean} isRequired - (optional) whether that param is required to be present
- * @returns {object[]} - returns [request, params] where request is the modified request object and params is the modified params object
- */
-    fn handle_request_network(&self, mut params: Value, mut request: Value, mut exchangeSpecificKey: Value, optional_args: &[Value]) -> Value {
-        let mut currencyCode = get_arg(optional_args, 0, Value::Null);
-        let mut isRequired = get_arg(optional_args, 1, Value::Bool(false));
-        let mut networkCodeparamsNetworkCodeVariable = self.handle_network_code_and_params(params);
-        let mut networkCode: Value = networkCodeparamsNetworkCodeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut paramsNetworkCode: Value = networkCodeparamsNetworkCodeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        if (networkCode != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&exchangeSpecificKey), self.network_code_to_id(networkCode, &[currencyCode])); }
-        }  else if is_true(&isRequired) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" - \"network\" param is required for this request".into()))));
-        }
-        return Value::from(vec![request, paramsNetworkCode]);
 
     Value::Null
 }
@@ -11630,7 +11457,6 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "currency_id" => self.currency_id(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "currency_ids" => self.currency_ids(&args[..]),
             "currency_to_precision" => self.currency_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
-            "default_network_code" => self.default_network_code(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "deposit_withdraw_fee" => self.deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "edit_limit_buy_order" => self.edit_limit_buy_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
             "edit_limit_order" => self.edit_limit_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
@@ -11817,7 +11643,6 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "handle_param_string" => self.handle_param_string(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
             "handle_param_string2" => self.handle_param_string2(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]),
             "handle_post_only" => self.handle_post_only(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
-            "handle_request_network" => self.handle_request_network(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]),
             "handle_sub_type_and_params" => self.handle_sub_type_and_params(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "handle_time_in_force" => self.handle_time_in_force(&args[..]),
             "handle_trigger_and_params" => self.handle_trigger_and_params(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -11935,7 +11760,6 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "parse_ws_trades" => self.parse_ws_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parsed_fee_and_fees" => self.parsed_fee_and_fees(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "price_to_precision" => self.price_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-            "prioritized_network_aliases" => self.prioritized_network_aliases(&args[..]),
             "reduce_fees_by_currency" => self.reduce_fees_by_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "reduce_margin" => self.reduce_margin(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
             "remove_keys_from_dict" => self.remove_keys_from_dict(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -11977,8 +11801,6 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "safe_symbol" => self.safe_symbol(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "safe_ticker" => self.safe_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "safe_trade" => self.safe_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-            "select_network_code_from_unified_networks" => self.select_network_code_from_unified_networks(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
-            "select_network_id_from_raw_networks" => self.select_network_id_from_raw_networks(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
             "select_network_key_from_networks" => self.select_network_key_from_networks(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]),
             "set_headers" => self.set_headers(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "set_leverage" => self.set_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,

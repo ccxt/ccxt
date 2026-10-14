@@ -645,7 +645,7 @@ impl IndependentreserveCore {
         m.insert("networks".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("BTC".to_string(), Value::Str("Bitcoin".into()));
-        m.insert("ETH".to_string(), Value::Str("Ethereum".into()));
+        m.insert("ERC20".to_string(), Value::Str("Ethereum".into()));
         m.insert("BCH".to_string(), Value::Str("BitcoinCash".into()));
         m.insert("LTC".to_string(), Value::Str("Litecoin".into()));
         m.insert("XRP".to_string(), Value::Str("XrpLedger".into()));
@@ -657,7 +657,7 @@ impl IndependentreserveCore {
         m.insert("DOT".to_string(), Value::Str("Polkadot".into()));
         m.insert("ADA".to_string(), Value::Str("Cardano".into()));
         m.insert("SOL".to_string(), Value::Str("Solana".into()));
-        m.insert("TRX".to_string(), Value::Str("Tron".into()));
+        m.insert("TRC20".to_string(), Value::Str("Tron".into()));
     m
 }));
     m

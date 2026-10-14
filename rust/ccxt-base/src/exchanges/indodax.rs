@@ -463,7 +463,7 @@ impl IndodaxCore {
         m.insert("networks".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("XLM".to_string(), Value::Str("Stellar Token".into()));
-        m.insert("BSC".to_string(), Value::Str("bep20".into()));
+        m.insert("BEP20".to_string(), Value::Str("bep20".into()));
         m.insert("TRC20".to_string(), Value::Str("trc20".into()));
         m.insert("MATIC".to_string(), Value::Str("polygon".into()));
     m

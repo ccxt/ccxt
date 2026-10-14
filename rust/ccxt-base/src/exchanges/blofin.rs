@@ -2995,7 +2995,8 @@ impl BlofinCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut unifiedCode: Value = self.safe_string(aliases, networkCode.clone(), &[networkCode.clone()]);
+        let mut aliasedCode: Value = self.safe_string(aliases, networkCode.clone(), &[networkCode.clone()]);
+        let mut unifiedCode: Value = self.safe_string(self.networkAliases.clone(), aliasedCode.clone(), &[aliasedCode.clone()]);
         // prefer the exact chain id from the currencies registry when it is
         // loaded, since some ids are currency-specific (USDT on Optimism)
         if (currency != Value::Null) {
