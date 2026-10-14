@@ -5759,7 +5759,7 @@ public Object describe()
         return timestamp;
     }
 
-    public void afterConstruct()
+    public void afterConstruct(Map<String, Object> userConfig)
     {
         // networks
         this.createNetworksByIdObject();
@@ -5776,6 +5776,11 @@ public Object describe()
         if (java.util.Objects.equals(isSandbox, true))
         {
             this.setSandboxMode(isSandbox);
+        }
+        // compatibility for sandbox/testnet options in userConfig
+        if (Helpers.isTrue(Boolean.TRUE.equals((this.safeBool(userConfig, "sandbox", false))) || Boolean.TRUE.equals((this.safeBool(userConfig, "testnet", false)))))
+        {
+            this.setSandboxMode(true);
         }
     }
 
