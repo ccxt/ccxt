@@ -9,32 +9,11 @@ class Exchange extends Exchange$1["default"] {
     publicGetGetAllCurrencies(params = {}) {
         return this.request("get_all_currencies", "public", 'GET', params, undefined, undefined, { "cost": 1 });
     }
-    publicPostBuildRegisterSessionKeyTx(params = {}) {
-        return this.request("build_register_session_key_tx", "public", 'POST', params, undefined, undefined, { "cost": 1 });
-    }
-    publicPostRegisterSessionKey(params = {}) {
-        return this.request("register_session_key", "public", 'POST', params, undefined, undefined, { "cost": 1 });
-    }
-    publicPostDeregisterSessionKey(params = {}) {
-        return this.request("deregister_session_key", "public", 'POST', params, undefined, undefined, { "cost": 1 });
+    publicPostDecodeAction(params = {}) {
+        return this.request("decode_action", "public", 'POST', params, undefined, undefined, { "cost": 1 });
     }
     publicPostGetWalletsFromSessionKey(params = {}) {
         return this.request("get_wallets_from_session_key", "public", 'POST', params, undefined, undefined, { "cost": 1 });
-    }
-    publicPostLogin(params = {}) {
-        return this.request("login", "public", 'POST', params, undefined, undefined, { "cost": 1 });
-    }
-    publicPostStatistics(params = {}) {
-        return this.request("statistics", "public", 'POST', params, undefined, undefined, { "cost": 1 });
-    }
-    publicPostAllStatistics(params = {}) {
-        return this.request("all_statistics", "public", 'POST', params, undefined, undefined, { "cost": 1 });
-    }
-    publicPostUserStatistics(params = {}) {
-        return this.request("user_statistics", "public", 'POST', params, undefined, undefined, { "cost": 1 });
-    }
-    publicPostAllUserStatistics(params = {}) {
-        return this.request("all_user_statistics", "public", 'POST', params, undefined, undefined, { "cost": 1 });
     }
     publicPostGetAllCurrencies(params = {}) {
         return this.request("get_all_currencies", "public", 'POST', params, undefined, undefined, { "cost": 1 });
@@ -42,11 +21,8 @@ class Exchange extends Exchange$1["default"] {
     publicPostGetCurrency(params = {}) {
         return this.request("get_currency", "public", 'POST', params, undefined, undefined, { "cost": 1 });
     }
-    publicPostGetAsset(params = {}) {
-        return this.request("get_asset", "public", 'POST', params, undefined, undefined, { "cost": 1 });
-    }
-    publicPostGetAssets(params = {}) {
-        return this.request("get_assets", "public", 'POST', params, undefined, undefined, { "cost": 1 });
+    publicPostGetRiskUniverses(params = {}) {
+        return this.request("get_risk_universes", "public", 'POST', params, undefined, undefined, { "cost": 1 });
     }
     publicPostGetInstrument(params = {}) {
         return this.request("get_instrument", "public", 'POST', params, undefined, undefined, { "cost": 1 });
@@ -54,8 +30,8 @@ class Exchange extends Exchange$1["default"] {
     publicPostGetAllInstruments(params = {}) {
         return this.request("get_all_instruments", "public", 'POST', params, undefined, undefined, { "cost": 1 });
     }
-    publicPostGetInstruments(params = {}) {
-        return this.request("get_instruments", "public", 'POST', params, undefined, undefined, { "cost": 1 });
+    publicPostGetAllLiveInstruments(params = {}) {
+        return this.request("get_all_live_instruments", "public", 'POST', params, undefined, undefined, { "cost": 1 });
     }
     publicPostGetTicker(params = {}) {
         return this.request("get_ticker", "public", 'POST', params, undefined, undefined, { "cost": 1 });
@@ -69,12 +45,6 @@ class Exchange extends Exchange$1["default"] {
     publicPostGetOptionSettlementPrices(params = {}) {
         return this.request("get_option_settlement_prices", "public", 'POST', params, undefined, undefined, { "cost": 1 });
     }
-    publicPostGetSpotFeedHistory(params = {}) {
-        return this.request("get_spot_feed_history", "public", 'POST', params, undefined, undefined, { "cost": 1 });
-    }
-    publicPostGetSpotFeedHistoryCandles(params = {}) {
-        return this.request("get_spot_feed_history_candles", "public", 'POST', params, undefined, undefined, { "cost": 1 });
-    }
     publicPostGetIndexChartData(params = {}) {
         return this.request("get_index_chart_data", "public", 'POST', params, undefined, undefined, { "cost": 1 });
     }
@@ -87,20 +57,23 @@ class Exchange extends Exchange$1["default"] {
     publicPostGetTradeHistory(params = {}) {
         return this.request("get_trade_history", "public", 'POST', params, undefined, undefined, { "cost": 1 });
     }
-    publicPostGetOptionSettlementHistory(params = {}) {
-        return this.request("get_option_settlement_history", "public", 'POST', params, undefined, undefined, { "cost": 1 });
-    }
     publicPostGetLiquidationHistory(params = {}) {
         return this.request("get_liquidation_history", "public", 'POST', params, undefined, undefined, { "cost": 1 });
     }
     publicPostGetInterestRateHistory(params = {}) {
         return this.request("get_interest_rate_history", "public", 'POST', params, undefined, undefined, { "cost": 1 });
     }
-    publicPostGetPerpImpactTwap(params = {}) {
-        return this.request("get_perp_impact_twap", "public", 'POST', params, undefined, undefined, { "cost": 1 });
-    }
     publicPostGetTransaction(params = {}) {
         return this.request("get_transaction", "public", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    publicPostGetOnchainActionHistory(params = {}) {
+        return this.request("get_onchain_action_history", "public", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    publicPostGetPendingDeposits(params = {}) {
+        return this.request("get_pending_deposits", "public", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    publicPostRegisterDepositAddress(params = {}) {
+        return this.request("register_deposit_address", "public", 'POST', params, undefined, undefined, { "cost": 1 });
     }
     publicPostGetMargin(params = {}) {
         return this.request("get_margin", "public", 'POST', params, undefined, undefined, { "cost": 1 });
@@ -111,71 +84,26 @@ class Exchange extends Exchange$1["default"] {
     publicPostOrderQuote(params = {}) {
         return this.request("order_quote", "public", 'POST', params, undefined, undefined, { "cost": 1 });
     }
-    publicPostValidateInviteCode(params = {}) {
-        return this.request("validate_invite_code", "public", 'POST', params, undefined, undefined, { "cost": 1 });
+    publicPostGetLiveAuctions(params = {}) {
+        return this.request("get_live_auctions", "public", 'POST', params, undefined, undefined, { "cost": 1 });
     }
-    publicPostGetPoints(params = {}) {
-        return this.request("get_points", "public", 'POST', params, undefined, undefined, { "cost": 1 });
+    publicPostStartAuction(params = {}) {
+        return this.request("start_auction", "public", 'POST', params, undefined, undefined, { "cost": 1 });
     }
-    publicPostGetAllPoints(params = {}) {
-        return this.request("get_all_points", "public", 'POST', params, undefined, undefined, { "cost": 1 });
+    publicPostGetVault(params = {}) {
+        return this.request("get_vault", "public", 'POST', params, undefined, undefined, { "cost": 1 });
     }
-    publicPostGetPointsLeaderboard(params = {}) {
-        return this.request("get_points_leaderboard", "public", 'POST', params, undefined, undefined, { "cost": 1 });
+    publicPostGetVaults(params = {}) {
+        return this.request("get_vaults", "public", 'POST', params, undefined, undefined, { "cost": 1 });
     }
-    publicPostGetDescendantTree(params = {}) {
-        return this.request("get_descendant_tree", "public", 'POST', params, undefined, undefined, { "cost": 1 });
+    publicPostGetVaultActionHistory(params = {}) {
+        return this.request("get_vault_action_history", "public", 'POST', params, undefined, undefined, { "cost": 1 });
     }
-    publicPostGetTreeRoots(params = {}) {
-        return this.request("get_tree_roots", "public", 'POST', params, undefined, undefined, { "cost": 1 });
+    publicPostGetVaultPerformanceHistory(params = {}) {
+        return this.request("get_vault_performance_history", "public", 'POST', params, undefined, undefined, { "cost": 1 });
     }
-    publicPostGetSwellPercentPoints(params = {}) {
-        return this.request("get_swell_percent_points", "public", 'POST', params, undefined, undefined, { "cost": 1 });
-    }
-    publicPostGetStdrvSnapshots(params = {}) {
-        return this.request("get_stdrv_snapshots", "public", 'POST', params, undefined, undefined, { "cost": 1 });
-    }
-    publicPostGetVaultAssets(params = {}) {
-        return this.request("get_vault_assets", "public", 'POST', params, undefined, undefined, { "cost": 1 });
-    }
-    publicPostGetEtherfiEffectiveBalances(params = {}) {
-        return this.request("get_etherfi_effective_balances", "public", 'POST', params, undefined, undefined, { "cost": 1 });
-    }
-    publicPostGetKelpEffectiveBalances(params = {}) {
-        return this.request("get_kelp_effective_balances", "public", 'POST', params, undefined, undefined, { "cost": 1 });
-    }
-    publicPostGetBridgeBalances(params = {}) {
-        return this.request("get_bridge_balances", "public", 'POST', params, undefined, undefined, { "cost": 1 });
-    }
-    publicPostGetEthenaParticipants(params = {}) {
-        return this.request("get_ethena_participants", "public", 'POST', params, undefined, undefined, { "cost": 1 });
-    }
-    publicPostGetVaultShare(params = {}) {
-        return this.request("get_vault_share", "public", 'POST', params, undefined, undefined, { "cost": 1 });
-    }
-    publicPostGetVaultStatistics(params = {}) {
-        return this.request("get_vault_statistics", "public", 'POST', params, undefined, undefined, { "cost": 1 });
-    }
-    publicPostGetVaultBalances(params = {}) {
-        return this.request("get_vault_balances", "public", 'POST', params, undefined, undefined, { "cost": 1 });
-    }
-    publicPostGetVaultPools(params = {}) {
-        return this.request("get_vault_pools", "public", 'POST', params, undefined, undefined, { "cost": 1 });
-    }
-    publicPostGetVaultRates(params = {}) {
-        return this.request("get_vault_rates", "public", 'POST', params, undefined, undefined, { "cost": 1 });
-    }
-    publicPostEstimateIntegratorPoints(params = {}) {
-        return this.request("estimate_integrator_points", "public", 'POST', params, undefined, undefined, { "cost": 1 });
-    }
-    publicPostCreateSubaccountDebug(params = {}) {
-        return this.request("create_subaccount_debug", "public", 'POST', params, undefined, undefined, { "cost": 1 });
-    }
-    publicPostCreateAccountWithSecret(params = {}) {
-        return this.request("create_account_with_secret", "public", 'POST', params, undefined, undefined, { "cost": 1 });
-    }
-    publicPostDepositDebug(params = {}) {
-        return this.request("deposit_debug", "public", 'POST', params, undefined, undefined, { "cost": 1 });
+    publicPostSetSocializationFeedData(params = {}) {
+        return this.request("set_socialization_feed_data", "public", 'POST', params, undefined, undefined, { "cost": 1 });
     }
     publicPostWithdrawDebug(params = {}) {
         return this.request("withdraw_debug", "public", 'POST', params, undefined, undefined, { "cost": 1 });
@@ -185,12 +113,6 @@ class Exchange extends Exchange$1["default"] {
     }
     publicPostExecuteQuoteDebug(params = {}) {
         return this.request("execute_quote_debug", "public", 'POST', params, undefined, undefined, { "cost": 1 });
-    }
-    publicPostGetInviteCode(params = {}) {
-        return this.request("get_invite_code", "public", 'POST', params, undefined, undefined, { "cost": 1 });
-    }
-    publicPostRegisterInvite(params = {}) {
-        return this.request("register_invite", "public", 'POST', params, undefined, undefined, { "cost": 1 });
     }
     publicPostGetAllReferralCodes(params = {}) {
         return this.request("get_all_referral_codes", "public", 'POST', params, undefined, undefined, { "cost": 1 });
@@ -210,17 +132,8 @@ class Exchange extends Exchange$1["default"] {
     publicPostGetMakerProgramScores(params = {}) {
         return this.request("get_maker_program_scores", "public", 'POST', params, undefined, undefined, { "cost": 1 });
     }
-    publicPostGetDetailedMakerSnapshotHistory(params = {}) {
-        return this.request("get_detailed_maker_snapshot_history", "public", 'POST', params, undefined, undefined, { "cost": 1 });
-    }
-    publicPostGetRateLimits(params = {}) {
-        return this.request("getRateLimits", "public", 'POST', params, undefined, undefined, { "cost": 1 });
-    }
     privatePostGetAccount(params = {}) {
         return this.request("get_account", "private", 'POST', params, undefined, undefined, { "cost": 1 });
-    }
-    privatePostCreateSubaccount(params = {}) {
-        return this.request("create_subaccount", "private", 'POST', params, undefined, undefined, { "cost": 1 });
     }
     privatePostGetSubaccount(params = {}) {
         return this.request("get_subaccount", "private", 'POST', params, undefined, undefined, { "cost": 1 });
@@ -228,35 +141,32 @@ class Exchange extends Exchange$1["default"] {
     privatePostGetSubaccounts(params = {}) {
         return this.request("get_subaccounts", "private", 'POST', params, undefined, undefined, { "cost": 1 });
     }
+    privatePostDeleteSubaccount(params = {}) {
+        return this.request("delete_subaccount", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
     privatePostGetAllPortfolios(params = {}) {
         return this.request("get_all_portfolios", "private", 'POST', params, undefined, undefined, { "cost": 1 });
     }
     privatePostChangeSubaccountLabel(params = {}) {
         return this.request("change_subaccount_label", "private", 'POST', params, undefined, undefined, { "cost": 1 });
     }
-    privatePostGetNotificationsv(params = {}) {
-        return this.request("get_notificationsv", "private", 'POST', params, undefined, undefined, { "cost": 1 });
-    }
-    privatePostGetNotifications(params = {}) {
-        return this.request("get_notifications", "private", 'POST', params, undefined, undefined, { "cost": 1 });
-    }
-    privatePostUpdateNotifications(params = {}) {
-        return this.request("update_notifications", "private", 'POST', params, undefined, undefined, { "cost": 1 });
-    }
-    privatePostDeposit(params = {}) {
-        return this.request("deposit", "private", 'POST', params, undefined, undefined, { "cost": 1 });
-    }
     privatePostWithdraw(params = {}) {
         return this.request("withdraw", "private", 'POST', params, undefined, undefined, { "cost": 1 });
     }
-    privatePostTransferErc20(params = {}) {
-        return this.request("transfer_erc20", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    privatePostTransferSpot(params = {}) {
+        return this.request("transfer_spot", "private", 'POST', params, undefined, undefined, { "cost": 1 });
     }
-    privatePostTransferPosition(params = {}) {
-        return this.request("transfer_position", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    privatePostTransferSpotExternal(params = {}) {
+        return this.request("transfer_spot_external", "private", 'POST', params, undefined, undefined, { "cost": 1 });
     }
     privatePostTransferPositions(params = {}) {
         return this.request("transfer_positions", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostRejectDepositRequest(params = {}) {
+        return this.request("reject_deposit_request", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostUpdateWhitelistedRecipients(params = {}) {
+        return this.request("update_whitelisted_recipients", "private", 'POST', params, undefined, undefined, { "cost": 1 });
     }
     privatePostOrder(params = {}) {
         return this.request("order", "private", 'POST', params, undefined, undefined, { "cost": 1 });
@@ -269,9 +179,6 @@ class Exchange extends Exchange$1["default"] {
     }
     privatePostGetOrder(params = {}) {
         return this.request("get_order", "private", 'POST', params, undefined, undefined, { "cost": 1 });
-    }
-    privatePostGetOrders(params = {}) {
-        return this.request("get_orders", "private", 'POST', params, undefined, undefined, { "cost": 1 });
     }
     privatePostGetOpenOrders(params = {}) {
         return this.request("get_open_orders", "private", 'POST', params, undefined, undefined, { "cost": 1 });
@@ -378,9 +285,6 @@ class Exchange extends Exchange$1["default"] {
     privatePostGetSubaccountValueHistory(params = {}) {
         return this.request("get_subaccount_value_history", "private", 'POST', params, undefined, undefined, { "cost": 1 });
     }
-    privatePostExpiredAndCancelledHistory(params = {}) {
-        return this.request("expired_and_cancelled_history", "private", 'POST', params, undefined, undefined, { "cost": 1 });
-    }
     privatePostGetFundingHistory(params = {}) {
         return this.request("get_funding_history", "private", 'POST', params, undefined, undefined, { "cost": 1 });
     }
@@ -396,20 +300,14 @@ class Exchange extends Exchange$1["default"] {
     privatePostLiquidate(params = {}) {
         return this.request("liquidate", "private", 'POST', params, undefined, undefined, { "cost": 1 });
     }
-    privatePostGetLiquidatorHistory(params = {}) {
-        return this.request("get_liquidator_history", "private", 'POST', params, undefined, undefined, { "cost": 1 });
-    }
     privatePostSessionKeys(params = {}) {
         return this.request("session_keys", "private", 'POST', params, undefined, undefined, { "cost": 1 });
     }
+    privatePostSetSessionKey(params = {}) {
+        return this.request("set_session_key", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
     privatePostEditSessionKey(params = {}) {
         return this.request("edit_session_key", "private", 'POST', params, undefined, undefined, { "cost": 1 });
-    }
-    privatePostChangeSessionKeyLabel(params = {}) {
-        return this.request("change_session_key_label", "private", 'POST', params, undefined, undefined, { "cost": 1 });
-    }
-    privatePostRegisterScopedSessionKey(params = {}) {
-        return this.request("register_scoped_session_key", "private", 'POST', params, undefined, undefined, { "cost": 1 });
     }
     privatePostGetMmpConfig(params = {}) {
         return this.request("get_mmp_config", "private", 'POST', params, undefined, undefined, { "cost": 1 });
@@ -420,26 +318,50 @@ class Exchange extends Exchange$1["default"] {
     privatePostResetMmp(params = {}) {
         return this.request("reset_mmp", "private", 'POST', params, undefined, undefined, { "cost": 1 });
     }
-    privatePostSetCancelOnDisconnect(params = {}) {
-        return this.request("set_cancel_on_disconnect", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    privatePostCreateVault(params = {}) {
+        return this.request("create_vault", "private", 'POST', params, undefined, undefined, { "cost": 1 });
     }
-    privatePostGetInviteCode(params = {}) {
-        return this.request("get_invite_code", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    privatePostUpdateVaultInfo(params = {}) {
+        return this.request("update_vault_info", "private", 'POST', params, undefined, undefined, { "cost": 1 });
     }
-    privatePostRegisterInvite(params = {}) {
-        return this.request("register_invite", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    privatePostMintVaultShares(params = {}) {
+        return this.request("mint_vault_shares", "private", 'POST', params, undefined, undefined, { "cost": 1 });
     }
-    privatePostGetContactInfo(params = {}) {
-        return this.request("get_contact_info", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    privatePostBurnVaultShares(params = {}) {
+        return this.request("burn_vault_shares", "private", 'POST', params, undefined, undefined, { "cost": 1 });
     }
-    privatePostCreateContactInfo(params = {}) {
-        return this.request("create_contact_info", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    privatePostForceBurn(params = {}) {
+        return this.request("force_burn", "private", 'POST', params, undefined, undefined, { "cost": 1 });
     }
-    privatePostUpdateContactInfo(params = {}) {
-        return this.request("update_contact_info", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    privatePostRequestVaultDeposit(params = {}) {
+        return this.request("request_vault_deposit", "private", 'POST', params, undefined, undefined, { "cost": 1 });
     }
-    privatePostDeleteContactInfo(params = {}) {
-        return this.request("delete_contact_info", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    privatePostRequestVaultWithdraw(params = {}) {
+        return this.request("request_vault_withdraw", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostCancelAllVaultRequests(params = {}) {
+        return this.request("cancel_all_vault_requests", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostGetVaultShares(params = {}) {
+        return this.request("get_vault_shares", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostGetCuratedVaults(params = {}) {
+        return this.request("get_curated_vaults", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostGetShareholderVaults(params = {}) {
+        return this.request("get_shareholder_vaults", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostGetLiveMintRequests(params = {}) {
+        return this.request("get_live_mint_requests", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostGetLiveBurnRequests(params = {}) {
+        return this.request("get_live_burn_requests", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostGetLiveVaultRequests(params = {}) {
+        return this.request("get_live_vault_requests", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostGetVaultRequestHistory(params = {}) {
+        return this.request("get_vault_request_history", "private", 'POST', params, undefined, undefined, { "cost": 1 });
     }
 }
 

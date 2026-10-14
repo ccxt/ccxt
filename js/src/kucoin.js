@@ -5242,7 +5242,7 @@ export default class kucoin extends Exchange {
         }
         else {
             if (id === undefined) {
-                throw new ArgumentsRequired(this.id + ' fetchOrder() requires an id argument or clientOrderId parameter');
+                throw new ArgumentsRequired(this.id + ' cancelOrder() requires an id argument or clientOrderId parameter');
             }
             request['orderId'] = id;
         }

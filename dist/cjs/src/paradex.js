@@ -1584,7 +1584,11 @@ class paradex extends paradex$1["default"] {
         //
         const timestamp = this.safeInteger(order, 'created_at');
         const orderId = this.safeString(order, 'id');
-        const clientOrderId = this.omitZero(this.safeString(order, 'client_id'));
+        // a client id is free text, omitZero would drop every non-numeric one in php
+        let clientOrderId = this.safeString(order, 'client_id');
+        if (clientOrderId === '') {
+            clientOrderId = undefined;
+        }
         const marketId = this.safeString(order, 'market');
         const marketResolved = this.safeMarket(marketId, market);
         const symbol = marketResolved['symbol'];

@@ -5241,7 +5241,7 @@ class kucoin extends kucoin$1["default"] {
         }
         else {
             if (id === undefined) {
-                throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires an id argument or clientOrderId parameter');
+                throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires an id argument or clientOrderId parameter');
             }
             request['orderId'] = id;
         }
