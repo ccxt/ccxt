@@ -589,7 +589,7 @@ public partial class coinbaseexchange : Exchange
             { "options", new Dictionary<string, object>() {
                 { "networks", new Dictionary<string, object>() {
                     { "BTC", "bitcoin" },
-                    { "ETH", "ethereum" },
+                    { "ERC20", "ethereum" },
                     { "SOL", "solana" },
                     { "ARBITRUM", "arbitrum" },
                     { "AVAXC", "avacchain" },

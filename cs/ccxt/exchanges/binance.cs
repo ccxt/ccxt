@@ -3009,11 +3009,8 @@ public partial class binance : Exchange
                     { "BTCSEGWIT", "SEGWITBTC" },
                     { "BTCLIGHTNING", "LIGHTNING" },
                     { "ERC20", "ETH" },
-                    { "ETH", "ETH" },
                     { "TRC20", "TRX" },
-                    { "TRX", "TRX" },
                     { "BEP2", "BNB" },
-                    { "BSC", "BSC" },
                     { "BEP20", "BSC" },
                     { "CHZ2", "CHZ2" },
                     { "XRP", "XRP" },
@@ -12778,7 +12775,7 @@ public partial class binance : Exchange
             {
                 IDictionary<string, object> networkEntry = this.safeDict(networkList, j);
                 string? networkId = this.safeString(networkEntry, "network");
-                string? networkCode = this.safeCurrencyCode(networkId);
+                string? networkCode = this.networkIdToCode(networkId, code);
                 double? fee = this.safeNumber(networkEntry, "withdrawFee");
                 if (((code != null)) && ((networkCode != null)))
                 {

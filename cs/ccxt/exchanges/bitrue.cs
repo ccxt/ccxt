@@ -3060,7 +3060,7 @@ public partial class bitrue : Exchange
             string? networkId = this.safeString(parts, 1);
             if ((networkId != null))
             {
-                network = networkId.ToUpper();
+                network = this.networkIdToCode(networkId.ToUpper());
             }
         }
         string? code = this.safeCurrencyCode(currencyId, currency);

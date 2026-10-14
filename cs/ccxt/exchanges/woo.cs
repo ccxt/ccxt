@@ -608,7 +608,6 @@ public partial class woo : Exchange
                 { "sandboxMode", false },
                 { "createMarketBuyOrderRequiresPrice", true },
                 { "networks", new Dictionary<string, object>() {
-                    { "TRX", "TRX" },
                     { "TRC20", "TRX" },
                     { "ERC20", "ETH" },
                     { "BEP20", "BSC" },
@@ -3789,7 +3788,7 @@ public partial class woo : Exchange
             { "amount", amount },
             { "addressTo", address },
             { "tag", tagWithdrawTag },
-            { "network", network },
+            { "network", this.safeString(this.networkAliases, network, network) },
             { "type", "withdrawal" },
             { "status", "pending" },
         });
@@ -5222,7 +5221,7 @@ public partial class woo : Exchange
         for (int i = 0; i < networkKeys.Count; i++)
         {
             object network = networkKeys[i];
-            if ((network is "ETH"))
+            if (isEqual(network, "ERC20"))
             {
                 return network;
             }

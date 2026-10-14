@@ -1587,13 +1587,10 @@ public partial class gate : Exchange
                 { "networks", new Dictionary<string, object>() {
                     { "BTC", "BTC" },
                     { "BRC20", "BTCBRC" },
-                    { "ETH", "ETH" },
                     { "ERC20", "ETH" },
-                    { "TRX", "TRX" },
                     { "TRC20", "TRX" },
                     { "HECO", "HT" },
                     { "HRC20", "HT" },
-                    { "BSC", "BSC" },
                     { "BEP20", "BSC" },
                     { "SOL", "SOL" },
                     { "MATIC", "MATIC" },
@@ -1605,7 +1602,7 @@ public partial class gate : Exchange
                     { "ARBITRUM_NOVA", "ARBNOVA" },
                     { "BASE", "BASEEVM" },
                     { "SUI", "SUI" },
-                    { "CRONOS", "CRO" },
+                    { "CRC20", "CRO" },
                     { "CRO", "CRO" },
                     { "APT", "APT" },
                     { "SCROLL", "SCROLLETH" },
@@ -3289,7 +3286,7 @@ public partial class gate : Exchange
         IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable.Item2);
         Dictionary<string, object> chainsIndexedByIdRaw = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(code, paramsNetworkCode));
         Dictionary<string, object> chainsIndexedById = chainsIndexedByIdRaw;
-        object selectedNetworkIdOrCode = this.selectNetworkCodeFromUnifiedNetworks(code, networkCode, chainsIndexedById);
+        object selectedNetworkIdOrCode = this.selectNetworkKeyFromNetworks(code, networkCode, chainsIndexedById, true);
         return ccxt.BaseExchange.ToDepositAddress(getValue(chainsIndexedById, ((string)selectedNetworkIdOrCode)));
     }
 
