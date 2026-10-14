@@ -5,7 +5,7 @@ import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import { Precise } from './base/Precise.js';
 import Exchange from './abstract/paradex.js';
-import { ExchangeError, PermissionDenied, AuthenticationError, BadRequest, ArgumentsRequired, BadSymbol, OperationRejected, InvalidOrder, OrderNotFound, DuplicateOrderId, ExchangeNotAvailable, AccountNotEnabled, AccountSuspended, OnMaintenance, RateLimitExceeded, InvalidNonce, NotSupported } from './base/errors.js';
+import { ExchangeError, PermissionDenied, AuthenticationError, BadRequest, ArgumentsRequired, BadSymbol, OperationRejected, InvalidOrder, OrderNotFound, DuplicateOrderId, ExchangeNotAvailable, AccountNotEnabled, AccountSuspended, OnMaintenance, RateLimitExceeded, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type { NullableDict, Str, Num, Dict, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction, OHLCV, Position, int, MarginMode, Leverage, Greeks, FundingRate, FundingRates, FundingRateHistory, FundingHistory, Liquidation, TradingFeeInterface, TradingFees, TransferEntry, OrderRequest, Bool, List, Status, Endpoint, AllGreeks, OpenInterest } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
@@ -318,6 +318,7 @@ export default class paradex extends Exchange {
                     'ORDER_ID_NOT_FOUND': OrderNotFound,
                     'ORDER_IS_CLOSED': InvalidOrder,
                     'ORDER_IS_NOT_OPEN': InvalidOrder,
+                    'INVALID_PRICE_PRECISION': InvalidOrder,
                     'INVALID_ORDER_SIZE': InvalidOrder,
                     'CLIENT_ORDER_ID_NOT_FOUND': OrderNotFound,
                     'ALGO_ID_NOT_FOUND': OrderNotFound,
@@ -391,9 +392,7 @@ export default class paradex extends Exchange {
                 'broad': {
                     // INVALID_REQUEST_PARAMETER is shared by every validation failure, its message tells them apart
                     'must be a multiple of': InvalidOrder,
-                    'does not exist': BadSymbol,
                     'market not found': BadSymbol,
-                    'signature timestamp is too old': InvalidNonce,
                     'missing or malformed jwt': AuthenticationError,
                 },
             },
@@ -1997,14 +1996,14 @@ export default class paradex extends Exchange {
      * @param {float} [params.triggerPrice] The price a trigger order is triggered at
      * @param {float} [params.stopLossPrice] the price a stop loss order is triggered at
      * @param {float} [params.takeProfitPrice] the price a take profit order is triggered at
-     * @param {int} [params.recvWindow] the number of milliseconds after the signature timestamp the request is valid for, the exchange applies its own default when omitted
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (amount === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires an amount argument');
         }
-        if ((price === undefined) && (type !== 'market')) {
+        const isMarket = (type !== undefined) && ((type as string).toUpperCase () === 'MARKET');
+        if ((price === undefined) && !isMarket) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires a price argument for limit orders');
         }
         await this.authenticateRest ();
@@ -2013,7 +2012,7 @@ export default class paradex extends Exchange {
         }
         const market = this.market (symbol);
         let request = this.createOrderRequest (symbol, type, side, amount, price, params);
-        request = this.omit (request, [ 'instruction', 'client_id', 'flags' ]);
+        request = this.omit (request, [ 'instruction', 'client_id', 'flags', 'recv_window' ]);
         request['order_id'] = id;
         request['id'] = id;
         request = await this.signOrderRequest (request, true);
@@ -2801,8 +2800,12 @@ export default class paradex extends Exchange {
         }
         const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchDeposits', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchDeposits', code, since, limit, paramsPaginate, 'next', 'cursor', undefined, 100) as Transaction[];
+            // a page can hold no deposit at all, which would end the pagination early, so every row is paginated and filtered afterwards
+            const transactions = await this.fetchPaginatedCallCursor ('fetchDeposits', code, since, undefined, this.extend (paramsPaginate, { 'allKinds': true }), 'next', 'cursor', undefined, 100);
+            return this.filterTransactionsByKind (transactions, 'DEPOSIT', since, limit);
         }
+        const allKinds = this.safeBool (paramsPaginate, 'allKinds', false);
+        const paramsKinds = this.omit (paramsPaginate, 'allKinds');
         const request: Dict = {};
         if (limit !== undefined) {
             request['page_size'] = limit;
@@ -2810,7 +2813,7 @@ export default class paradex extends Exchange {
         if (since !== undefined) {
             request['start_at'] = since;
         }
-        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end_at', request, paramsPaginate);
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end_at', request, paramsKinds);
         const response = await this.privateGetTransfers (this.extend (requestUntil, paramsUntil));
         //
         //     {
@@ -2842,7 +2845,7 @@ export default class paradex extends Exchange {
         const deposits: List = [];
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
-            if (this.safeString (row, 'kind') === 'DEPOSIT') {
+            if (allKinds || (this.safeString (row, 'kind') === 'DEPOSIT')) {
                 deposits.push (row);
             }
         }
@@ -2869,8 +2872,12 @@ export default class paradex extends Exchange {
         }
         const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchWithdrawals', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchWithdrawals', code, since, limit, paramsPaginate, 'next', 'cursor', undefined, 100) as Transaction[];
+            // a page can hold no withdrawal at all, which would end the pagination early, so every row is paginated and filtered afterwards
+            const transactions = await this.fetchPaginatedCallCursor ('fetchWithdrawals', code, since, undefined, this.extend (paramsPaginate, { 'allKinds': true }), 'next', 'cursor', undefined, 100);
+            return this.filterTransactionsByKind (transactions, 'WITHDRAWAL', since, limit);
         }
+        const allKinds = this.safeBool (paramsPaginate, 'allKinds', false);
+        const paramsKinds = this.omit (paramsPaginate, 'allKinds');
         const request: Dict = {};
         if (limit !== undefined) {
             request['page_size'] = limit;
@@ -2878,7 +2885,7 @@ export default class paradex extends Exchange {
         if (since !== undefined) {
             request['start_at'] = since;
         }
-        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end_at', request, paramsPaginate);
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end_at', request, paramsKinds);
         const response = await this.privateGetTransfers (this.extend (requestUntil, paramsUntil));
         //
         //     {
@@ -2910,7 +2917,7 @@ export default class paradex extends Exchange {
         const deposits: List = [];
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
-            if (this.safeString (row, 'kind') === 'WITHDRAWAL') {
+            if (allKinds || (this.safeString (row, 'kind') === 'WITHDRAWAL')) {
                 deposits.push (row);
             }
         }
@@ -3075,6 +3082,17 @@ export default class paradex extends Exchange {
             'comment': undefined,
             'fee': undefined,
         };
+    }
+
+    filterTransactionsByKind (transactions: Transaction[], kind: string, since: Int = undefined, limit: Int = undefined): Transaction[] {
+        const result: Transaction[] = [];
+        for (let i = 0; i < transactions.length; i++) {
+            const info = this.safeDict (transactions[i], 'info');
+            if (this.safeString (info, 'kind') === kind) {
+                result.push (transactions[i]);
+            }
+        }
+        return this.filterBySinceLimit (result, since, limit) as Transaction[];
     }
 
     parseTransactionStatus (status: Str): Str {
@@ -3716,6 +3734,10 @@ export default class paradex extends Exchange {
         }
         // the broad patterns read the message of a validation failure only, other codes carry free text that could match them by accident
         if ((errorCode === 'INVALID_REQUEST_PARAMETER') && (message !== undefined)) {
+            // an unknown market fails the validation of the market field, "market: FOO-USD-PERP does not exist."
+            if ((message.indexOf ('market') === 0) && (message.indexOf ('does not exist') >= 0)) {
+                throw new BadSymbol (feedback);
+            }
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
         }
         this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);

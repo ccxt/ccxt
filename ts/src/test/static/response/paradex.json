@@ -4346,6 +4346,110 @@
                     }
                 }
             }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "paginate continues past a page without withdrawals",
+                "method": "fetchWithdrawals",
+                "input": [
+                    null,
+                    1721828300000,
+                    null,
+                    {
+                        "paginate": true,
+                        "paginationCalls": 3
+                    }
+                ],
+                "httpResponseByUrl": {
+                    "cursor=eyJwYWdlIjoyfQ": {
+                        "next": null,
+                        "prev": "eyJwYWdlIjoxfQ",
+                        "results": [
+                            {
+                                "id": "1721828386450201709187710001",
+                                "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941efdcfdab31402ec42d72e",
+                                "kind": "WITHDRAWAL",
+                                "status": "PENDING",
+                                "amount": "12.5",
+                                "token": "USDC",
+                                "created_at": "1721828386455",
+                                "last_updated_at": "1721828393926",
+                                "txn_hash": "0x76a736440f751c258d5bd89355a766b581518fab91c9w8e5d448502bcd8c3dd",
+                                "external_txn_hash": "0xb6a6d888e9be955d4ab7e63bbb5ea3b8e23da3cac5747fa63094f2e51f15812e",
+                                "socialized_loss_factor": "",
+                                "bridge": "RHINOFI",
+                                "external_chain": "ETHEREUM",
+                                "external_account": "0xc950889d14a3717f541ec136bc133d7a9e98c78f",
+                                "failure_reason": ""
+                            }
+                        ]
+                    },
+                    "transfers": {
+                        "next": "eyJwYWdlIjoyfQ",
+                        "prev": null,
+                        "results": [
+                            {
+                                "id": "1721828326450201709187710000",
+                                "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941efdcfdab31402ec42d72e",
+                                "kind": "DEPOSIT",
+                                "status": "COMPLETED",
+                                "amount": "78.544",
+                                "token": "USDC",
+                                "created_at": "1721828356455",
+                                "last_updated_at": "1721828373926",
+                                "txn_hash": "0x66a736440f751c258d5bd89355a766b581518fab91c9w8e5d448502bcd8c3cc",
+                                "external_txn_hash": "0xa6a6d888e9be955d4ab7e63bbb5ea3b8e23da3cac5747fa63094f2e51f15812d",
+                                "socialized_loss_factor": "",
+                                "bridge": "RHINOFI",
+                                "external_chain": "ETHEREUM",
+                                "external_account": "0xc950889d14a3717f541ec136bc133d7a9e98c78f",
+                                "failure_reason": ""
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "1721828386450201709187710001",
+                            "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941efdcfdab31402ec42d72e",
+                            "kind": "WITHDRAWAL",
+                            "status": "PENDING",
+                            "amount": "12.5",
+                            "token": "USDC",
+                            "created_at": "1721828386455",
+                            "last_updated_at": "1721828393926",
+                            "txn_hash": "0x76a736440f751c258d5bd89355a766b581518fab91c9w8e5d448502bcd8c3dd",
+                            "external_txn_hash": "0xb6a6d888e9be955d4ab7e63bbb5ea3b8e23da3cac5747fa63094f2e51f15812e",
+                            "socialized_loss_factor": "",
+                            "bridge": "RHINOFI",
+                            "external_chain": "ETHEREUM",
+                            "external_account": "0xc950889d14a3717f541ec136bc133d7a9e98c78f",
+                            "failure_reason": "",
+                            "next": null
+                        },
+                        "id": "1721828386450201709187710001",
+                        "txid": "0x76a736440f751c258d5bd89355a766b581518fab91c9w8e5d448502bcd8c3dd",
+                        "timestamp": 1721828386455,
+                        "datetime": "2024-07-24T13:39:46.455Z",
+                        "network": null,
+                        "address": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941efdcfdab31402ec42d72e",
+                        "addressTo": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941efdcfdab31402ec42d72e",
+                        "addressFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "tagFrom": null,
+                        "type": "withdrawal",
+                        "amount": 12.5,
+                        "currency": "USDC",
+                        "status": "pending",
+                        "updated": 1721828393926,
+                        "internal": null,
+                        "comment": null,
+                        "fee": null
+                    }
+                ]
+            }
         ]
     }
 }
