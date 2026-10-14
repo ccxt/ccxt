@@ -12,6 +12,7 @@ import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Position;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
@@ -1684,10 +1685,10 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             {
                 if (java.util.Objects.equals(type, "spot"))
                 {
-                    (this.sapiPrivatePutV3ListenKey()).join(); // extend the expiry
+                    (this.sapiPrivatePutV3ListenKey(new HashMap<String, Object>() {{}})).join(); // extend the expiry
                 } else
                 {
-                    (this.fapiPrivatePutV3ListenKey()).join(); // extend the expiry
+                    (this.fapiPrivatePutV3ListenKey(new HashMap<String, Object>() {{}})).join(); // extend the expiry
                 }
             } catch(Exception error)
             {
@@ -1740,7 +1741,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String type = null;
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeMarketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, parameters, type);
+            Pair<String, Map<String, Object>> typeMarketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, parameters, type);
             var typeMarketType = ((List<Object>) typeMarketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = typeMarketTypeparamsMarketTypeVariable.second();
             if (java.util.Objects.equals(type, null))
@@ -2159,7 +2160,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             }
             String messageHash = "orders";
             String type = null;
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeMarketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchOrders", market, parameters, type);
+            Pair<String, Map<String, Object>> typeMarketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchOrders", market, parameters, type);
             var typeMarketType = ((List<Object>) typeMarketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = typeMarketTypeparamsMarketTypeVariable.second();
             if (java.util.Objects.equals(type, null))
@@ -2216,7 +2217,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             }
             String messageHash = "myTrades";
             String type = null;
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeMarketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchMyTrades", market, parameters, type);
+            Pair<String, Map<String, Object>> typeMarketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchMyTrades", market, parameters, type);
             var typeMarketType = ((List<Object>) typeMarketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = typeMarketTypeparamsMarketTypeVariable.second();
             if (java.util.Objects.equals(type, null))

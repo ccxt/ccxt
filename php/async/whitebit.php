@@ -3259,11 +3259,11 @@ class whitebit extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal
          *
@@ -3272,10 +3272,11 @@ class whitebit extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination $tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
+        list($tag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -3285,7 +3286,7 @@ class whitebit extends Exchange {
             'amount' => $this->currency_to_precision($code, $amount),
             'address' => $address,
         );
-        $uniqueId = $this->safe_value($params, 'uniqueId');
+        $uniqueId = $this->safe_value($paramsWithdrawTag, 'uniqueId');
         if ($uniqueId === null) {
             $uniqueId = $this->uuid22();
         }
@@ -3294,13 +3295,13 @@ class whitebit extends Exchange {
             $request['memo'] = $tag;
         }
         if ($this->is_fiat($code)) {
-            $provider = $this->safe_value($params, 'provider');
+            $provider = $this->safe_value($paramsWithdrawTag, 'provider');
             if ($provider === null) {
                 throw new ArgumentsRequired($this->id . ' withdraw() requires a provider when the ticker is fiat');
             }
             $request['provider'] = $provider;
         }
-        $response = Async\await($this->v4PrivatePostMainAccountWithdraw($this->extend($request, $params)));
+        $response = Async\await($this->v4PrivatePostMainAccountWithdraw($this->extend($request, $paramsWithdrawTag)));
         //
         // empty array with a success status
         // go to deposit/withdraw history and check you request status by uniqueId

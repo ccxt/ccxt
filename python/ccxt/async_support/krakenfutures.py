@@ -1755,7 +1755,7 @@ class krakenfutures(Exchange, ImplicitAPI):
     async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
 
-        https://docs.kraken.com/api/docs/futures-api/history/get-order-events
+        https://docs.kraken.com/api-reference/account-history/get-order-events
 
         Gets all canceled orders, including trigger orders, for an account from the exchange api
         :param str symbol: Unified market symbol
@@ -1774,7 +1774,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         if limit is not None:
             request['count'] = limit
         if since is not None:
-            request['from'] = since
+            request['since'] = since
         response: dict
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
         paramsOmitted = self.omit(params, ['trigger', 'stop'])

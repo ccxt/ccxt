@@ -2,16 +2,16 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var binance = require('./binance.js');
-var binanceusdm$1 = require('../binanceusdm.js');
+var binanceusdm$1 = require('../abstract/pro/binanceusdm.js');
+var binanceusdm$2 = require('../binanceusdm.js');
 var errors = require('../base/errors.js');
 
 // ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-class binanceusdm extends binance["default"] {
+class binanceusdm extends binanceusdm$1["default"] {
     describe() {
         // eslint-disable-next-line new-cap
-        const restInstance = new binanceusdm$1["default"]();
+        const restInstance = new binanceusdm$2["default"]();
         const restDescribe = restInstance.describe();
         const parentWsDescribe = super.describeData();
         const extended = this.deepExtend(restDescribe, parentWsDescribe);

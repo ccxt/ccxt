@@ -365,11 +365,11 @@ export default class gate extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
     parseTransactionStatus(status: Str): string;
     parseTransactionType(type: Str): Str;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
@@ -761,8 +761,8 @@ export default class gate extends Exchange {
     addMargin(symbol: string, amount: number, params?: Dict): Promise<MarginModification>;
     /**
      * @method
-     * @name gate#fetchOpenInterest
-     * @description Retrieves the open interest of a currency
+     * @name gate#fetchOpenInterestHistory
+     * @description Retrieves the open interest history of a currency
      * @see https://www.gate.com/docs/developers/apiv4/en/#futures-statistics
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} timeframe "5m", "15m", "30m", "1h", "4h", "1d"

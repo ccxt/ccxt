@@ -3476,8 +3476,8 @@ func (this *Ndax) ParseTransaction(transaction any, optionalArgs ...any) map[str
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Ndax) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
@@ -3488,12 +3488,10 @@ func (this *Ndax) WithdrawAsync(code string, amount any, address any, optionalAr
 func (this *Ndax) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	var tagWithdrawTag *string = SafeStringPtr(tagWithdrawTagparamsWithdrawTagVariable[0])
+	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
+	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 	// this method required login, password and twofa key
 	var sessionToken *string = this.SafeString(this.Options, "sessionToken")
@@ -3503,7 +3501,7 @@ func (this *Ndax) withdrawBody(ch chan EndpointResult[map[string]any], code stri
 	if IsEqual(this.Twofa, nil) {
 		panic(AuthenticationError(this.Id + " withdraw() requires exchange.twofa credentials"))
 	}
-	this.CheckAddress(address)
+	this.CheckAddress(address, code, tagWithdrawTag)
 	var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
 	if this.Markets == nil {
 
@@ -3577,7 +3575,7 @@ func (this *Ndax) withdrawBody(ch chan EndpointResult[map[string]any], code stri
 	}
 	var withdrawTemplate any = JsonParse(template)
 	AddElementToObject(withdrawTemplate, "ExternalAddress", address)
-	if tagWithdrawTag != nil {
+	if !IsEqual(tagWithdrawTag, nil) {
 		if InOp(withdrawTemplate, "Memo") {
 			AddElementToObject(withdrawTemplate, "Memo", tagWithdrawTag)
 		}
@@ -4308,8 +4306,8 @@ func (this *Ndax) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transa
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Ndax) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
@@ -4319,7 +4317,7 @@ func (this *Ndax) Withdraw(code string, amount float64, address string, options 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

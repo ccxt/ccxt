@@ -4298,8 +4298,8 @@ func (this *Deribit) ParseTransferStatus(status *string) *string {
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Deribit) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
@@ -4310,13 +4310,12 @@ func (this *Deribit) WithdrawAsync(code string, amount any, address any, optiona
 func (this *Deribit) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagAndParams any = this.HandleWithdrawTagAndParams(tag, params)
-	var paramsWithdrawTag any = GetValue(tagAndParams, 1)
-	this.CheckAddress(address)
+	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
+	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
+	this.CheckAddress(address, code, tagWithdrawTag)
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -4541,11 +4540,11 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan AsyncResult[any], optio
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes333219 []any = ListTyped(r1.Value)
-		if retRes333219 == nil {
+		var retRes333119 []any = ListTyped(r1.Value)
+		if retRes333119 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes333219}
+			ch <- AsyncResult[any]{Value: retRes333119}
 		}
 		return nil
 	}
@@ -4710,11 +4709,11 @@ func (this *Deribit) fetchLiquidationsBody(ch chan AsyncResult[any], symbol stri
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes345019 []any = ListTyped(r1.Value)
-		if retRes345019 == nil {
+		var retRes344919 []any = ListTyped(r1.Value)
+		if retRes344919 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes345019}
+			ch <- AsyncResult[any]{Value: retRes344919}
 		}
 		return nil
 	}
@@ -6220,8 +6219,8 @@ func (this *Deribit) Transfer(code string, amount float64, fromAccount string, t
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Deribit) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
@@ -6231,7 +6230,7 @@ func (this *Deribit) Withdraw(code string, amount float64, address string, optio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

@@ -1,9 +1,10 @@
 // ----------------------------------------------------------------------------
 
 import deriveRest from '../derive.js';
+import { Precise } from '../base/Precise.js';
 import { ExchangeError, AuthenticationError, UnsubscribeError } from '../base/errors.js';
-import { ArrayCacheBySymbolById, ArrayCache } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, Dict, Bool, List } from '../base/types.js';
+import { ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCache } from '../base/ws/Cache.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Balances, Position, Dict, Bool, List } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
@@ -13,25 +14,25 @@ export default class derive extends deriveRest {
     override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
-                'ws': false,
-                'watchBalance': false,
+                'ws': true,
+                'watchBalance': true,
                 'watchMyTrades': true,
                 'watchOHLCV': false,
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchTicker': true,
                 'watchTickers': false,
-                'watchBidsAsks': false,
+                'watchBidsAsks': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
-                'watchPositions': false,
+                'watchPositions': true,
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://api.lyra.finance/ws',
+                    'ws': 'wss://api.derive.xyz/v3/ws',
                 },
                 'test': {
-                    'ws': 'wss://api-demo.lyra.finance/ws',
+                    'ws': 'wss://testnet.api.derive.xyz/v3/ws',
                 },
             },
             'options': {
@@ -74,7 +75,7 @@ export default class derive extends deriveRest {
     /**
      * @method
      * @name derive#watchOrderBook
-     * @see https://docs.derive.xyz/reference/orderbook-instrument_name-group-depth
+     * @see https://docs.derive.xyz/api-reference/channels/orderbook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
@@ -144,7 +145,7 @@ export default class derive extends deriveRest {
     /**
      * @method
      * @name derive#watchTicker
-     * @see https://docs.derive.xyz/reference/ticker-instrument_name-interval
+     * @see https://docs.derive.xyz/api-reference/channels/tickerslim
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -155,7 +156,7 @@ export default class derive extends deriveRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const topic = 'ticker_slim.' + market['id'] + '.100'; // the venue deprecated the fat ticker channel in favor of ticker_slim
+        const topic = 'ticker_slim.' + market['id'] + '.100'; // v3 removed the fat ticker channel, ticker_slim is the only ticker feed
         const request: Dict = {
             'method': 'subscribe',
             'params': {
@@ -172,106 +173,138 @@ export default class derive extends deriveRest {
         return await this.watchPublic (topic, request, subscription);
     }
 
+    /**
+     * @method
+     * @name derive#unWatchTicker
+     * @description unsubscribe from the ticker channel; note that the bid ask feed of the same symbol shares the channel and stops as well
+     * @see https://docs.derive.xyz/api-reference/channels/tickerslim
+     * @param {string} symbol unified symbol of the market to unwatch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    override async unWatchTicker (symbol: string, params: Dict = {}): Promise<any> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const market = this.market (symbol);
+        const topic = 'ticker_slim.' + market['id'] + '.100';
+        const messageHash = 'unwatch' + topic;
+        const request: Dict = {
+            'method': 'unsubscribe',
+            'params': {
+                'channels': [
+                    topic,
+                ],
+            },
+        };
+        const subscription: Dict = {
+            'name': topic,
+        };
+        return await this.unWatchPublic (messageHash, request, subscription);
+    }
+
+    /**
+     * @method
+     * @name derive#watchBidsAsks
+     * @description watches best bid & ask for symbols; the data is sourced from the same ticker_slim channel the ticker uses
+     * @see https://docs.derive.xyz/api-reference/channels/tickerslim
+     * @param {string[]} symbols unified symbols of the markets to fetch the bids and asks for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    override async watchBidsAsks (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const symbolsResolved = this.marketSymbols (symbols, undefined, false);
+        const topics = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbolsResolved.length; i++) {
+            const market = this.market (symbolsResolved[i]);
+            topics.push ('ticker_slim.' + market['id'] + '.100');
+            messageHashes.push ('bidask:' + market['symbol']);
+        }
+        const url = this.urls['api']['ws'];
+        const requestId = this.requestId (url);
+        const request: Dict = {
+            'method': 'subscribe',
+            'params': {
+                'channels': topics,
+            },
+            'id': requestId,
+        };
+        const subscription: Dict = {
+            'id': requestId,
+            'method': 'subscribe',
+        };
+        const ticker = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, subscription);
+        if (this.newUpdates) {
+            const result: Dict = {};
+            result[ticker['symbol']] = ticker;
+            return result;
+        }
+        return this.filterByArray (this.bidsasks, 'symbol', symbolsResolved);
+    }
+
     handleTicker (client: Client, message: Dict): Dict {
         //
-        // {
-        //     method: 'subscription',
-        //     params: {
-        //       channel: 'ticker.BTC-PERP.100',
-        //       data: {
-        //         timestamp: 1738485104439,
-        //         instrument_ticker: {
-        //           instrument_type: 'perp',
-        //           instrument_name: 'BTC-PERP',
-        //           scheduled_activation: 1701840228,
-        //           scheduled_deactivation: '9223372036854775807',
-        //           is_active: true,
-        //           tick_size: '0.1',
-        //           minimum_amount: '0.01',
-        //           maximum_amount: '10000',
-        //           amount_step: '0.001',
-        //           mark_price_fee_rate_cap: '0',
-        //           maker_fee_rate: '0.0001',
-        //           taker_fee_rate: '0.0003',
-        //           base_fee: '0.1',
-        //           base_currency: 'BTC',
-        //           quote_currency: 'USD',
-        //           option_details: null,
-        //           perp_details: {
-        //             index: 'BTC-USD',
-        //             max_rate_per_hour: '0.004',
-        //             min_rate_per_hour: '-0.004',
-        //             static_interest_rate: '0.0000125',
-        //             aggregate_funding: '10581.779418721074588722',
-        //             funding_rate: '0.000024792239208858'
-        //           },
-        //           erc20_details: null,
-        //           base_asset_address: '0xDBa83C0C654DB1cd914FA2710bA743e925B53086',
-        //           base_asset_sub_id: '0',
-        //           pro_rata_fraction: '0',
-        //           fifo_min_allocation: '0',
-        //           pro_rata_amount_step: '0.1',
-        //           best_ask_amount: '0.131',
-        //           best_ask_price: '99898.6',
-        //           best_bid_amount: '0.056',
-        //           best_bid_price: '99889.1',
-        //           five_percent_bid_depth: '11.817',
-        //           five_percent_ask_depth: '9.116',
-        //           option_pricing: null,
-        //           index_price: '99883.8',
-        //           mark_price: '99897.52408421244763303548098',
-        //           stats: {
-        //             contract_volume: '92.395',
-        //             num_trades: '2924',
-        //             open_interest: '33.743468027373780786',
-        //             high: '102320.4',
-        //             low: '99064.3',
-        //             percent_change: '-0.021356',
-        //             usd_change: '-2178'
-        //           },
-        //           timestamp: 1738485165881,
-        //           min_price: '97939.1',
-        //           max_price: '101895.2'
+        //     {
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "ticker_slim.BTC-PERP.100",
+        //             "data": {
+        //                 "timestamp": 1790879819285,
+        //                 "instrument_ticker": {
+        //                     "t": 1790879819268,
+        //                     "A": "0.278",
+        //                     "a": "84214.6",
+        //                     "B": "0.213",
+        //                     "b": "84205.4",
+        //                     "f": "0.000012500",
+        //                     "option_pricing": null,
+        //                     "I": "84210.9",
+        //                     "M": "84210.2",
+        //                     "stats": {
+        //                         "c": "16.41",
+        //                         "v": "1377350.271",
+        //                         "pr": "1377095.872",
+        //                         "n": 98,
+        //                         "oi": "0",
+        //                         "h": "84282",
+        //                         "l": "83661.8",
+        //                         "p": "0"
+        //                     },
+        //                     "minp": "82526.1",
+        //                     "maxp": "85894.9"
+        //                 }
+        //             }
         //         }
-        //       }
         //     }
-        // }
         //
         const params = this.safeDict (message, 'params');
         const rawData = this.safeDict (params, 'data');
         const data = this.safeDict (rawData, 'instrument_ticker', {});
-        const topic = this.safeString (params, 'channel');
-        let ticker = undefined;
-        if (topic !== undefined && topic.startsWith ('ticker_slim')) {
-            // the slim payload uses short keys and does not carry the instrument name,
-            // so the symbol is recovered from the channel: ticker_slim.BTC-PERP.100
-            const parts = topic.split ('.');
-            const marketId = this.safeString (parts, 1);
-            const market = this.safeMarket (marketId);
-            const stats = this.safeDict (data, 'stats', {});
-            ticker = this.safeTicker ({
-                'symbol': market['symbol'],
-                'timestamp': this.safeInteger (data, 't'),
-                'datetime': this.iso8601 (this.safeInteger (data, 't')),
-                'bid': this.safeString (data, 'b'),
-                'bidVolume': this.safeString (data, 'B'),
-                'ask': this.safeString (data, 'a'),
-                'askVolume': this.safeString (data, 'A'),
-                'high': this.safeString (stats, 'h'),
-                'low': this.safeString (stats, 'l'),
-                'baseVolume': this.safeString (stats, 'c'),
-                'quoteVolume': this.safeString (stats, 'v'),
-                'percentage': this.safeString (stats, 'p'),
-                'markPrice': this.safeString (data, 'M'),
-                'indexPrice': this.safeString (data, 'I'),
-                'info': rawData,
-            }, market);
-        } else {
-            ticker = this.parseTicker (data);
-        }
+        const topic = this.safeString (params, 'channel', '');
+        // the slim payload does not carry the instrument name, so the symbol is recovered from the channel: ticker_slim.BTC-PERP.100
+        const parts = topic.split ('.');
+        const marketId = this.safeString (parts, 1);
+        const market = this.safeMarket (marketId);
+        const ticker = this.parseTicker (data, market);
         const tickerSymbol = ticker['symbol'];
         if (tickerSymbol !== undefined) {
             this.tickers[tickerSymbol] = ticker;
+            const bidAsk = this.safeTicker ({
+                'symbol': tickerSymbol,
+                'timestamp': this.safeInteger (ticker, 'timestamp'),
+                'datetime': this.safeString (ticker, 'datetime'),
+                'bid': this.safeNumber (ticker, 'bid'),
+                'bidVolume': this.safeNumber (ticker, 'bidVolume'),
+                'ask': this.safeNumber (ticker, 'ask'),
+                'askVolume': this.safeNumber (ticker, 'askVolume'),
+                'info': data,
+            }, market);
+            this.bidsasks[tickerSymbol] = bidAsk;
+            client.resolve (bidAsk, 'bidask:' + tickerSymbol);
         }
         client.resolve (ticker, topic);
         return message;
@@ -361,12 +394,7 @@ export default class derive extends deriveRest {
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
-        if (topic in client.subscriptions) {
-            delete client.subscriptions[topic];
-        }
-        const error = new UnsubscribeError (this.id + ' orderbook ' + symbol);
-        client.reject (error, topic);
-        client.resolve (error, 'unwatch' + topic);
+        this.cleanUnsubscription (client, topic, 'unwatch' + topic);
     }
 
     handleTradesUnSubscription (client: Client, topic: string) {
@@ -374,26 +402,51 @@ export default class derive extends deriveRest {
         const marketId = this.safeString (parsedTopic, 1);
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        if (symbol in this.orderbooks) {
+        if (symbol in this.trades) {
             delete this.trades[symbol];
         }
-        if (topic in client.subscriptions) {
-            delete client.subscriptions[topic];
+        this.cleanUnsubscription (client, topic, 'unwatch' + topic);
+    }
+
+    handleTickerUnSubscription (client: Client, topic: string) {
+        const parsedTopic = topic.split ('.');
+        const marketId = this.safeString (parsedTopic, 1);
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        if (symbol in this.tickers) {
+            delete this.tickers[symbol];
         }
-        const error = new UnsubscribeError (this.id + ' trades ' + symbol);
-        client.reject (error, topic);
-        client.resolve (error, 'unwatch' + topic);
+        if (symbol in this.bidsasks) {
+            delete this.bidsasks[symbol];
+        }
+        // the bid ask stream shares the ticker_slim channel, so its waiters must not be left hanging either
+        const bidAskHash = 'bidask:' + symbol;
+        if (bidAskHash in client.futures) {
+            const error = new UnsubscribeError (this.id + ' ' + bidAskHash);
+            client.reject (error, bidAskHash);
+        }
+        this.cleanUnsubscription (client, topic, 'unwatch' + topic);
+    }
+
+    handleOrdersUnSubscription (client: Client, topic: string) {
+        this.orders = undefined;
+        this.cleanUnsubscription (client, topic, 'unwatch' + topic, true);
+    }
+
+    handleMyTradesUnSubscription (client: Client, topic: string) {
+        this.myTrades = undefined;
+        this.cleanUnsubscription (client, topic, 'unwatch' + topic, true);
     }
 
     handleUnSubscribe (client: Client, message: Dict): Dict {
         //
-        // {
-        //     id: 1,
-        //     result: {
-        //       status: { 'orderbook.BTC-PERP.10.10': 'ok' },
-        //       remaining_subscriptions: []
+        //     {
+        //         "id": 1,
+        //         "result": {
+        //             "status": { "orderbook.BTC-PERP.10.10": "ok" },
+        //             "remaining_subscriptions": []
+        //         }
         //     }
-        // }
         //
         const result = this.safeDict (message, 'result');
         const status = this.safeDict (result, 'status');
@@ -401,10 +454,18 @@ export default class derive extends deriveRest {
             const topics = Object.keys (status);
             for (let i = 0; i < topics.length; i++) {
                 const topic = topics[i];
-                if (topic.indexOf ('orderbook') >= 0) {
+                const parsedTopic = topic.split ('.');
+                const suffix = this.safeString (parsedTopic, 1);
+                if (topic.indexOf ('orderbook') === 0) {
                     this.handleOrderBookUnSubscription (client, topic);
-                } else if (topic.indexOf ('trades') >= 0) {
+                } else if (topic.indexOf ('ticker_slim') === 0) {
+                    this.handleTickerUnSubscription (client, topic);
+                } else if (topic.indexOf ('trades') === 0) {
                     this.handleTradesUnSubscription (client, topic);
+                } else if (suffix === 'orders') {
+                    this.handleOrdersUnSubscription (client, topic);
+                } else if (suffix === 'trades') {
+                    this.handleMyTradesUnSubscription (client, topic);
                 }
             }
         }
@@ -415,7 +476,7 @@ export default class derive extends deriveRest {
      * @method
      * @name derive#watchTrades
      * @description watches information on multiple trades made in a market
-     * @see https://docs.derive.xyz/reference/trades-instrument_name
+     * @see https://docs.derive.xyz/api-reference/channels/tradesbyinstrument
      * @param {string} symbol unified market symbol of the market trades were made in
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -454,7 +515,7 @@ export default class derive extends deriveRest {
         //
         const params = this.safeDict (message, 'params');
         const data = this.safeDict (params, 'data', {});
-        const topic = this.safeValue (params, 'channel');
+        const topic = this.safeString (params, 'channel', '');
         const parsedTopic = topic.split ('.');
         const marketId = this.safeString (parsedTopic, 1);
         const market = this.safeMarket (marketId);
@@ -481,9 +542,12 @@ export default class derive extends deriveRest {
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const requestId = this.requestId (url);
-            const now = this.milliseconds ().toString ();
+            const now = this.numberToString (this.nonce ());
             const signature = this.signMessage (now, this.privateKey);
-            const deriveWalletAddress = this.safeString (this.options, 'deriveWalletAddress');
+            let deriveWalletAddress = this.safeString (this.options, 'deriveWalletAddress');
+            if ((deriveWalletAddress === undefined) || (deriveWalletAddress === '')) {
+                deriveWalletAddress = this.walletAddress; // v3: the owner wallet is the user's own EOA
+            }
             const request: Dict = {
                 'id': requestId,
                 'method': 'public/login',
@@ -521,7 +585,7 @@ export default class derive extends deriveRest {
     /**
      * @method
      * @name derive#watchOrders
-     * @see https://docs.derive.xyz/reference/subaccount_id-orders
+     * @see https://docs.derive.xyz/api-reference/channels/subaccountorders
      * @description watches information on multiple orders made by the user
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
@@ -621,15 +685,15 @@ export default class derive extends deriveRest {
                 const orders = this.safeDict (cachedOrders.hashmap, symbol, {});
                 const order = (orderId === undefined) ? undefined : this.safeDict (orders, orderId);
                 if (order !== undefined) {
-                    const fee = this.safeValue (order, 'fee');
+                    const fee = this.safeDict (order, 'fee');
                     if (fee !== undefined) {
-                        parsed['fee'] = fee;
+                        (parsed as Dict)['fee'] = fee;
                     }
                     const fees = this.safeList (order, 'fees');
                     if (fees !== undefined) {
                         (parsed as Dict)['fees'] = fees;
                     }
-                    parsed['trades'] = this.safeValue (order, 'trades');
+                    (parsed as Dict)['trades'] = this.safeList (order, 'trades');
                     parsed['timestamp'] = this.safeInteger (order, 'timestamp');
                     parsed['datetime'] = this.safeString (order, 'datetime');
                 }
@@ -645,8 +709,40 @@ export default class derive extends deriveRest {
 
     /**
      * @method
+     * @name derive#unWatchOrders
+     * @description unsubscribe from the orders channel
+     * @see https://docs.derive.xyz/api-reference/channels/subaccountorders
+     * @param {string} [symbol] not used by derive unWatchOrders, the whole subaccount channel is unsubscribed
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subaccount_id] *required* the subaccount id
+     * @returns {any} status of the unwatch request
+     */
+    override async unWatchOrders (symbol: Str = undefined, params: Dict = {}): Promise<any> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const [ subaccountId, paramsDeriveSubaccountId ] = this.handleDeriveSubaccountId ('unWatchOrders', params);
+        const topic = this.numberToString (subaccountId) + '.orders';
+        const messageHash = 'unwatch' + topic;
+        const request: Dict = {
+            'method': 'unsubscribe',
+            'params': {
+                'channels': [
+                    topic,
+                ],
+            },
+        };
+        const subscription: Dict = {
+            'name': topic,
+        };
+        const message = this.extend (request, paramsDeriveSubaccountId);
+        return await this.unWatchPublic (messageHash, message, subscription);
+    }
+
+    /**
+     * @method
      * @name derive#watchMyTrades
-     * @see https://docs.derive.xyz/reference/subaccount_id-trades
+     * @see https://docs.derive.xyz/api-reference/channels/subaccounttrades
      * @description watches information on multiple trades made by the user
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
@@ -694,18 +790,277 @@ export default class derive extends deriveRest {
         if (myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             myTrades = new ArrayCacheBySymbolById (limit);
+            this.myTrades = myTrades;
         }
         const params = this.safeDict (message, 'params');
         const topic = this.safeString (params, 'channel');
         const rawTrades = this.safeList (params, 'data', []);
         for (let i = 0; i < rawTrades.length; i++) {
-            const trade = this.parseTrade (message);
+            const trade = this.parseTrade (rawTrades[i]);
             myTrades.append (trade);
             client.resolve (myTrades, topic);
             if (topic !== undefined) {
-                const messageHash = topic + this.safeString (trade, 'symbol', '');
+                const messageHash = topic + ':' + this.safeString (trade, 'symbol', '');
                 client.resolve (myTrades, messageHash);
             }
+        }
+    }
+
+    /**
+     * @method
+     * @name derive#unWatchMyTrades
+     * @description unsubscribe from the my trades channel
+     * @see https://docs.derive.xyz/api-reference/channels/subaccounttrades
+     * @param {string} [symbol] not used by derive unWatchMyTrades, the whole subaccount channel is unsubscribed
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subaccount_id] *required* the subaccount id
+     * @returns {any} status of the unwatch request
+     */
+    override async unWatchMyTrades (symbol: Str = undefined, params: Dict = {}): Promise<any> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const [ subaccountId, paramsDeriveSubaccountId ] = this.handleDeriveSubaccountId ('unWatchMyTrades', params);
+        const topic = this.numberToString (subaccountId) + '.trades';
+        const messageHash = 'unwatch' + topic;
+        const request: Dict = {
+            'method': 'unsubscribe',
+            'params': {
+                'channels': [
+                    topic,
+                ],
+            },
+        };
+        const subscription: Dict = {
+            'name': topic,
+        };
+        const message = this.extend (request, paramsDeriveSubaccountId);
+        return await this.unWatchPublic (messageHash, message, subscription);
+    }
+
+    /**
+     * @method
+     * @name derive#watchBalance
+     * @description watches balance updates for a single subaccount, the returned structure is scoped to the watched subaccount
+     * @see https://docs.derive.xyz/api-reference/channels/subaccountbalances
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subaccount_id] *required* the subaccount id
+     * @param {boolean} [params.fetchBalanceSnapshot] default true, the channel only streams changed totals, so an initial snapshot is loaded over rest before subscribing
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    override async watchBalance (params: Dict = {}): Promise<Balances> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const [ fetchSnapshot, paramsSnapshot ] = this.handleOptionBoolAndParams (params, 'watchBalance', 'fetchBalanceSnapshot', true);
+        const [ subaccountId, paramsDeriveSubaccountId ] = this.handleDeriveSubaccountId ('watchBalance', paramsSnapshot);
+        if (this.balance === undefined) {
+            const emptyBalances: Dict = {};
+            this.balance = emptyBalances;
+        }
+        // the balance state and the snapshot are tracked per subaccount, mirroring the subaccount-scoped channel and fetchBalance (params.subaccount_id)
+        const subaccountIdKey = this.numberToString (subaccountId) as string;
+        if (fetchSnapshot && !(subaccountIdKey in this.balance)) {
+            const snapshotRequest: Dict = {
+                'subaccount_id': subaccountId,
+            };
+            const snapshotParams = this.extend (snapshotRequest, paramsDeriveSubaccountId);
+            const snapshot = await this.fetchBalance (snapshotParams);
+            const emptyBalance: Dict = {}; // hoisted: an inline literal on the right side of a property assignment derails the rust transpiler
+            const seeded = this.extend (snapshot, emptyBalance); // the extra extend keeps the csharp assignment dictionary-typed (CS0266 otherwise)
+            this.balance[subaccountIdKey] = seeded;
+        }
+        const topic = this.numberToString (subaccountId) + '.balances';
+        const request: Dict = {
+            'method': 'subscribe',
+            'params': {
+                'channels': [
+                    topic,
+                ],
+            },
+        };
+        const subscription: Dict = {
+            'name': topic,
+            'params': paramsDeriveSubaccountId,
+        };
+        const message = this.extend (request, paramsDeriveSubaccountId);
+        return await this.watchPrivate (topic, message, subscription);
+    }
+
+    /**
+     * @method
+     * @name derive#watchPositions
+     * @description watch all open positions; the sizes stream over the balances channel, while entry price, pnl and margin fields stay from the rest snapshot until the next one
+     * @see https://docs.derive.xyz/api-reference/channels/subaccountbalances
+     * @param {string[]} [symbols] list of unified market symbols to watch positions for
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum number of positions to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subaccount_id] *required* the subaccount id
+     * @param {boolean} [params.fetchPositionsSnapshot] default true, the channel only streams size changes, so an initial snapshot is loaded over rest before subscribing
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Position[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const symbolsResolved = this.marketSymbols (symbols, undefined, true);
+        const [ fetchSnapshot, paramsSnapshot ] = this.handleOptionBoolAndParams (params, 'watchPositions', 'fetchPositionsSnapshot', true);
+        const [ subaccountId, paramsDeriveSubaccountId ] = this.handleDeriveSubaccountId ('watchPositions', paramsSnapshot);
+        if (this.positions === undefined) {
+            const emptyCaches: Dict = {};
+            this.positions = emptyCaches;
+            const emptySnapshots: Dict = {};
+            this.options['loadedPositionsSnapshots'] = emptySnapshots;
+        }
+        // the cache and the snapshot are tracked per subaccount, so subaccounts holding the same instrument and side do not overwrite each other
+        const subaccountIdKey = this.numberToString (subaccountId) as string;
+        if (!(subaccountIdKey in this.positions)) {
+            this.positions[subaccountIdKey] = new ArrayCacheBySymbolBySide ();
+        }
+        const loadedSnapshots = this.safeDict (this.options, 'loadedPositionsSnapshots', {});
+        if (fetchSnapshot && !(subaccountIdKey in loadedSnapshots)) {
+            const snapshotRequest: Dict = {
+                'subaccount_id': subaccountId,
+            };
+            const snapshotParams = this.extend (snapshotRequest, paramsDeriveSubaccountId);
+            const positionsSnapshot = await this.fetchPositions (undefined, snapshotParams);
+            const cache = this.positions[subaccountIdKey];
+            for (let i = 0; i < positionsSnapshot.length; i++) {
+                cache.append (positionsSnapshot[i]);
+            }
+            loadedSnapshots[subaccountIdKey] = true;
+            this.options['loadedPositionsSnapshots'] = loadedSnapshots;
+        }
+        const topic = this.numberToString (subaccountId) + '.balances';
+        const messageHash = 'positions:' + topic;
+        const request: Dict = {
+            'method': 'subscribe',
+            'params': {
+                'channels': [
+                    topic,
+                ],
+            },
+        };
+        const subscription: Dict = {
+            'name': topic,
+            'params': paramsDeriveSubaccountId,
+        };
+        const message = this.extend (request, paramsDeriveSubaccountId);
+        const newPositions = await this.watchPrivate (messageHash, message, subscription);
+        if (this.newUpdates) {
+            return newPositions;
+        }
+        return this.filterBySymbolsSinceLimit (this.positions[subaccountIdKey], symbolsResolved, since, limit, true);
+    }
+
+    handlePositionDelta (subaccountIdKey: string, entry: Dict): Position {
+        const marketId = this.safeString (entry, 'name');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const newSize = this.safeString (entry, 'new_balance', '0');
+        const isShort = Precise.stringLt (newSize, '0');
+        const side = isShort ? 'short' : 'long';
+        const contracts = Precise.stringAbs (newSize);
+        const cache = this.positions[subaccountIdKey];
+        const symbolPositions = this.safeDict (cache.hashmap, symbol, {});
+        // a fill through zero flattens the opposite side first
+        const oppositeSide = isShort ? 'long' : 'short';
+        const opposite = this.safeDict (symbolPositions, oppositeSide);
+        if (opposite !== undefined) {
+            const oppositeContracts = this.safeString (opposite, 'contracts');
+            if ((oppositeContracts !== undefined) && (oppositeContracts !== '0')) {
+                (opposite as Dict)['contracts'] = this.parseNumber ('0');
+                (opposite as Dict)['lastUpdateTimestamp'] = this.milliseconds ();
+                cache.append (opposite as Position);
+            }
+        }
+        let position = this.safeDict (symbolPositions, side);
+        if (position === undefined) {
+            // the position is freshly opened by the current fill, so the local clock approximates the open time
+            const timestamp = this.milliseconds ();
+            position = this.safePosition ({
+                'symbol': symbol,
+                'side': side,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'info': entry,
+            });
+        }
+        (position as Dict)['contracts'] = this.parseNumber (contracts);
+        (position as Dict)['side'] = side;
+        (position as Dict)['lastUpdateTimestamp'] = this.milliseconds ();
+        (position as Dict)['info'] = entry;
+        cache.append (position as Position);
+        return position as Position;
+    }
+
+    handleBalance (client: Client, message: Dict) {
+        //
+        //     {
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "86815.balances",
+        //             "data": [
+        //                 {
+        //                     "name": "USDC",
+        //                     "new_balance": "8427.545482",
+        //                     "previous_balance": "8428.545482",
+        //                     "update_type": "trade"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const params = this.safeDict (message, 'params');
+        const topic = this.safeString (params, 'channel');
+        const topicParts = (topic as string).split ('.');
+        const subaccountIdKey = this.safeString (topicParts, 0) as string;
+        const data = this.safeList (params, 'data', []);
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
+        let subBalance = this.safeDict (this.balance, subaccountIdKey);
+        if (subBalance === undefined) {
+            const emptySubBalance: Dict = {};
+            subBalance = emptySubBalance;
+        }
+        let updated = false;
+        const positionUpdates = [];
+        for (let i = 0; i < data.length; i++) {
+            const entry = this.safeDict (data, i, {});
+            const name = this.safeString (entry, 'name', '');
+            if (name.indexOf ('-') >= 0) {
+                // position deltas carry instrument names and do not belong into the balance structure
+                if ((this.positions !== undefined) && (subaccountIdKey in this.positions)) {
+                    const position = this.handlePositionDelta (subaccountIdKey, entry);
+                    positionUpdates.push (position);
+                }
+                continue;
+            }
+            const code = this.safeCurrencyCode (name);
+            if (code === undefined) {
+                continue;
+            }
+            let account = this.safeDict (subBalance, code);
+            if (account === undefined) {
+                account = this.account ();
+            }
+            // the channel and the balance state are both subaccount-scoped, so the streamed new_balance is the authoritative absolute total
+            account['total'] = this.safeString (entry, 'new_balance');
+            // the margin requirements the rest free/used model needs are not part of the stream, so stale snapshot values are dropped instead of reporting free + used != total
+            account['free'] = undefined;
+            account['used'] = undefined;
+            subBalance[code] = account;
+            updated = true;
+        }
+        if (updated) {
+            this.balance[subaccountIdKey] = this.safeBalance (subBalance as any);
+            client.resolve (this.balance[subaccountIdKey], topic);
+        }
+        const positionUpdatesLength = positionUpdates.length;
+        if (positionUpdatesLength > 0) {
+            client.resolve (positionUpdates, 'positions:' + topic);
         }
     }
 
@@ -753,6 +1108,7 @@ export default class derive extends deriveRest {
             'trades': this.handleTrade,
             'orders': this.handleOrder,
             'mytrades': this.handleMyTrade,
+            'balances': this.handleBalance,
         };
         let event: Str = undefined;
         const params = this.safeDict (message, 'params');
@@ -760,9 +1116,9 @@ export default class derive extends deriveRest {
             const channel = this.safeString (params, 'channel');
             if (channel !== undefined) {
                 const parsedChannel = channel.split ('.');
-                if ((channel.indexOf ('orders') >= 0) || channel.indexOf ('trades') > 0) {
+                if ((channel.indexOf ('orders') >= 0) || (channel.indexOf ('trades') > 0) || (channel.indexOf ('balances') > 0)) {
                     event = this.safeString (parsedChannel, 1);
-                    // {subaccounr_id}.trades
+                    // {subaccount_id}.trades
                     if (event === 'trades') {
                         event = 'mytrades';
                     }
@@ -778,15 +1134,31 @@ export default class derive extends deriveRest {
         }
         if ('id' in message) {
             const id = this.safeString (message, 'id');
-            const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-            const subscription = (id === undefined) ? {} : this.safeDict (subscriptionsById, id, {});
-            if ('method' in subscription) {
-                if (this.safeString (subscription, 'method') === 'public/login') {
-                    this.handleAuth (client, message);
-                } else if (this.safeString (subscription, 'method') === 'unsubscribe') {
-                    this.handleUnSubscribe (client, message);
+            // the subscriptions are scanned with safeString comparisons: an indexBy over the integer ids would need an integer lookup key in python while the object keys are always strings in javascript
+            const subscriptionKeys = Object.keys (client.subscriptions);
+            let matched = false;
+            for (let i = 0; i < subscriptionKeys.length; i++) {
+                const subscription = this.safeDict (client.subscriptions, subscriptionKeys[i], {});
+                const subscriptionId = this.safeString (subscription, 'id');
+                if ((subscriptionId !== undefined) && (subscriptionId === id)) {
+                    matched = true;
+                    const subscriptionMethod = this.safeString (subscription, 'method');
+                    if (subscriptionMethod === 'public/login') {
+                        this.handleAuth (client, message);
+                    } else if (subscriptionMethod === 'unsubscribe') {
+                        this.handleUnSubscribe (client, message);
+                    }
+                    // could handleSubscribe
                 }
-                // could handleSubscribe
+            }
+            if (!matched) {
+                const loginResult = this.safeList (message, 'result');
+                if (loginResult !== undefined) {
+                    // the login acknowledgement is the only id reply whose result is a bare list (the subaccount ids)
+                    // in java the acknowledgement can arrive before the subscription record is stored
+                    // so the shape serves as the routing fallback when the id scan finds nothing
+                    this.handleAuth (client, message);
+                }
             }
         }
     }
@@ -800,7 +1172,8 @@ export default class derive extends deriveRest {
         //
         const messageHash = 'authenticated';
         const ids = this.safeList (message, 'result', []);
-        if (ids.length > 0) {
+        const idsLength = ids.length;
+        if (idsLength > 0) {
             // client.resolve (message, messageHash);
             const future = this.safeValue (client.futures, 'authenticated');
             future.resolve (true);

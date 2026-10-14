@@ -165,7 +165,12 @@ func (this *WSClient) handleMessages() {
 		// raced Send's writes had it ever run, gorilla's default ping handler
 		// already answers with a concurrency safe WriteControl pong
 		switch messageType {
-		case websocket.TextMessage, websocket.BinaryMessage:
+		case websocket.TextMessage:
+			// the frame type travels with the payload, a text frame as a string and
+			// a binary frame as []byte, so OnMessage never has to guess it from the
+			// bytes, which a binary payload (protobuf, SBE) can pass for utf-8 text
+			this.OnMessage(string(data))
+		case websocket.BinaryMessage:
 			this.OnMessage(data)
 		}
 	}

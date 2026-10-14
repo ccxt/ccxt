@@ -23,7 +23,7 @@ export default class htx extends Exchange {
             'countries': ['CN'],
             'rateLimit': 100,
             'userAgent': this.userAgents['chrome100'],
-            'certified': true,
+            'certified': false,
             'version': 'v1',
             'hostname': 'api.huobi.pro', // api.testnet.huobi.pro
             'pro': true,
@@ -2020,7 +2020,17 @@ export default class htx extends Exchange {
         const open = this.safeString(ticker, 'open');
         const close = this.safeString(ticker, 'close');
         const baseVolume = this.safeString(ticker, 'amount');
-        const quoteVolume = this.safeString(ticker, 'vol');
+        let quoteVolume = this.safeString(ticker, 'vol');
+        const marketResolved = this.safeDict(this.markets, symbol, market);
+        if (this.safeBool(marketResolved, 'contract') === true) {
+            // contract tickers count 'vol' in contracts
+            if (this.safeBool(marketResolved, 'linear') === true) {
+                quoteVolume = this.safeString(ticker, 'trade_turnover');
+            }
+            else {
+                quoteVolume = Precise.stringMul(quoteVolume, this.safeString(marketResolved, 'contractSize'));
+            }
+        }
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -6896,16 +6906,16 @@ export default class htx extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const [tagValue, paramsTag] = this.handleWithdrawTagAndParams(tag, params);
+    async withdraw(code, amount, address, params = {}) {
+        const [tagValue, paramsTag] = this.handleParamString(params, 'tag');
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        this.checkAddress(address);
+        this.checkAddress(address, code, tagValue);
         const currency = this.currency(code);
         const request = {
             'address': address, // only supports existing addresses in your withdraw address list
@@ -8524,7 +8534,7 @@ export default class htx extends Exchange {
                 response = await this.contractPrivatePostSwapApiV1SwapAccountPositionInfo(this.extend(request, query));
             }
             else {
-                throw new NotSupported(this.id + ' setLeverage() not support this market type');
+                throw new NotSupported(this.id + ' fetchPosition() not support this market type');
             }
             //
             // future, swap

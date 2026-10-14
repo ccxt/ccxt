@@ -867,7 +867,12 @@ func (this *Gate) HandleOrderBookSubscription(client any, message map[string]any
 	var symbol *string = this.SafeString(subscription, "symbol")
 	var limit *int64 = this.SafeInteger(subscription, "limit")
 	if symbol != nil {
-		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
+		if !(ccxt.InOp(this.Orderbooks, symbol)) {
+			ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
+		}
+		var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+		ccxt.AddElementToObject(orderbook, "nonce", nil)
+		orderbook.(ccxt.OrderBookInterface).SetCache([]any{})
 	}
 }
 func (this *Gate) HandleNewSpotOrderBook(client any, message any) {
@@ -1022,7 +1027,8 @@ func (this *Gate) HandleOrderBook(client any, message any) {
 		this.HandleBookDelta(storedOrderBook, delta)
 	} else {
 		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
-		ccxt.Remove(this.Orderbooks, symbol)
+		ccxt.AddElementToObject(storedOrderBook, "nonce", nil)
+		storedOrderBook.(ccxt.OrderBookInterface).SetCache([]any{})
 		var checksum any = this.HandleOption("watchOrderBook", "checksum", true)
 		if checksum == true {
 			error := ccxt.ChecksumError(ccxt.Add(this.Id+" ", this.OrderbookChecksumMessage(symbol)))
@@ -1160,9 +1166,9 @@ func (this *Gate) watchTickersBody(ch chan ccxt.AsyncResult[map[string]any], opt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	retRes79415 := r.Value
+	retRes80015 := r.Value
 	var resolved map[string]any
-	switch resolvedBox := retRes79415.(type) {
+	switch resolvedBox := retRes80015.(type) {
 	case map[string]any:
 		resolved = resolvedBox
 	case *sync.Map:
@@ -1226,9 +1232,9 @@ func (this *Gate) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]any], op
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	retRes83115 := r.Value
+	retRes83715 := r.Value
 	var resolved map[string]any
-	switch resolvedBox := retRes83115.(type) {
+	switch resolvedBox := retRes83715.(type) {
 	case map[string]any:
 		resolved = resolvedBox
 	case *sync.Map:

@@ -2054,7 +2054,11 @@ export default class mexc extends Exchange {
             //         ]
             //     }
             //
-            tickers = this.safeList (response, 'data', []);
+            if (isSingularMarket) {
+                tickers = this.safeDict (response, 'data', {}); // when queried with a symbol, "data" holds a single ticker object, like in fetchTicker
+            } else {
+                tickers = this.safeList (response, 'data', []);
+            }
         }
         // when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
         if (isSingularMarket) {
@@ -2185,6 +2189,17 @@ export default class mexc extends Exchange {
             ask = this.safeString (ticker, 'ask1');
             baseVolume = this.safeString (ticker, 'volume24');
             quoteVolume = this.safeString (ticker, 'amount24');
+            const contractSize = this.safeString (marketResolved, 'contractSize');
+            if ((isSwap === true) && (contractSize !== undefined)) {
+                // volume24 counts contracts, amount24 is in the settle currency
+                const contractVolume = Precise.stringMul (baseVolume, contractSize);
+                if (marketResolved['inverse'] === true) {
+                    baseVolume = quoteVolume;
+                    quoteVolume = contractVolume;
+                } else {
+                    baseVolume = contractVolume;
+                }
+            }
             high = this.safeString (ticker, 'high24Price');
             low = this.safeString (ticker, 'lower24Price');
             changeValue = this.safeString (ticker, 'riseFallValue');
@@ -2342,7 +2357,7 @@ export default class mexc extends Exchange {
         }
         const market = this.market (symbol);
         if (market['spot'] !== true) {
-            throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
+            throw new NotSupported (this.id + ' createMarketSellOrderWithCost() supports spot orders only');
         }
         const req: Dict = {
             'cost': cost,
@@ -2630,7 +2645,11 @@ export default class mexc extends Exchange {
             request['triggerType'] = this.safeInteger (paramsOmitted, 'triggerType', 1);
             request['executeCycle'] = this.safeInteger (paramsOmitted, 'executeCycle', 1);
             request['trend'] = this.safeInteger (paramsOmitted, 'trend', 1);
-            request['orderType'] = this.safeInteger (paramsOmitted, 'orderType', 1);
+            let planOrderType = orderType;
+            if (orderType === 6) {
+                planOrderType = 5; // 6 (convert to current price) does not exist for trigger orders, 5 is their market type
+            }
+            request['orderType'] = this.safeInteger (paramsOmitted, 'orderType', planOrderType);
             response = await this.contractPrivatePostPlanorderPlace (this.extend (request, paramsOmitted));
         } else {
             response = await this.contractPrivatePostOrderCreate (this.extend (request, paramsOmitted));
@@ -2645,7 +2664,13 @@ export default class mexc extends Exchange {
         // {"success":true,"code":0,"data":{"orderId":"814218083416790528","ts":1779795118533}}
         //
         const data = this.safeDict (response, 'data');
-        return this.safeOrder ({ 'id': this.safeString (data, 'orderId'), 'timestamp': this.safeInteger (data, 'ts') }, market);
+        let id: Str = undefined;
+        if (data === undefined) {
+            id = this.safeString (response, 'data'); // planorder/place answers with the bare trigger order id
+        } else {
+            id = this.safeString (data, 'orderId');
+        }
+        return this.safeOrder ({ 'id': id, 'timestamp': this.safeInteger (data, 'ts') }, market);
     }
 
     /**
@@ -3111,6 +3136,7 @@ export default class mexc extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] set to true for fetching trigger orders
      * @param {string} [params.marginMode] only 'isolated' is supported, for spot-margin trading
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -3188,12 +3214,21 @@ export default class mexc extends Exchange {
             //
             return this.parseOrders (response, market, since, limit);
         } else {
+            const trigger = this.safeBool2 (paramsMarketType, 'stop', 'trigger');
+            const swapParams = this.omit (paramsMarketType, [ 'stop', 'trigger' ]);
             if (limit === undefined) {
                 request['page_size'] = 100; // max
             }
-            const swapResponse = await this.contractPrivateGetOrderListOpenOrders (this.extend (request, paramsMarketType));
-            const data: Dict[] = this.safeList (swapResponse, 'data', []);
-            return this.parseOrders (data, market, since, limit, paramsMarketType);
+            let data: Dict[] = [];
+            if (trigger === true) {
+                request['states'] = 1; // untriggered
+                const triggerResponse = await this.contractPrivateGetPlanorderListOrders (this.extend (request, swapParams));
+                data = this.safeList (triggerResponse, 'data', []);
+            } else {
+                const swapResponse = await this.contractPrivateGetOrderListOpenOrders (this.extend (request, swapParams));
+                data = this.safeList (swapResponse, 'data', []);
+            }
+            return this.parseOrders (data, market, since, limit, swapParams);
         }
     }
 
@@ -3259,6 +3294,7 @@ export default class mexc extends Exchange {
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] set to true for canceling trigger orders
      * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -3331,14 +3367,21 @@ export default class mexc extends Exchange {
             //     ]
             //
         } else {
-            // TODO: PlanorderCancel endpoint has bug atm. waiting for fix.
+            const trigger = this.safeBool2 (query, 'stop', 'trigger');
             let method = this.safeString (this.options, 'cancelOrder', 'contractPrivatePostOrderCancel'); // contractPrivatePostOrderCancel, contractPrivatePostPlanorderCancel
             method = this.safeString (query, 'method', method);
+            if (trigger === true) {
+                method = 'contractPrivatePostPlanorderCancel';
+            }
             let response: Dict;
             if (method === 'contractPrivatePostOrderCancel') {
                 response = await this.contractPrivatePostOrderCancel ([ id ]); // the request cannot be changed or extended. This is the only way to send.
             } else if (method === 'contractPrivatePostPlanorderCancel') {
-                response = await this.contractPrivatePostPlanorderCancel ([ id ]); // the request cannot be changed or extended. This is the only way to send.
+                if (symbol === undefined) {
+                    throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument for trigger orders');
+                }
+                const cancelRequest: Dict = { 'symbol': this.safeString (market, 'id'), 'orderId': id };
+                response = await this.contractPrivatePostPlanorderCancel ([ cancelRequest ]); // the request cannot be changed or extended. This is the only way to send.
             } else {
                 throw new NotSupported (this.id + ' cancelOrder() not support this method');
             }
@@ -3355,6 +3398,9 @@ export default class mexc extends Exchange {
             //         ]
             //     }
             //
+            if (method === 'contractPrivatePostPlanorderCancel') {
+                return this.safeOrder ({ 'id': id, 'symbol': this.safeString (market, 'symbol'), 'info': response }, market); // planorder/cancel answers without data, failures are raised by handleErrors
+            }
             data = this.safeValue (response, 'data');
             const order = this.safeDict (data, 0);
             const errorMsg = this.safeString (order, 'errorMsg', '');
@@ -3740,7 +3786,7 @@ export default class mexc extends Exchange {
             'PARTIALLY_FILLED': 'open',
             'PARTIALLY_CANCELED': 'canceled',
             // contracts v1
-            // '1': 'uninformed', // TODO: wt?
+            '1': 'open', // regular: uninformed, trigger: untriggered
             '2': 'open',
             '3': 'closed',
             '4': 'canceled',
@@ -4844,7 +4890,8 @@ export default class mexc extends Exchange {
         //        coin: "USDT",
         //        network: "BNB Smart Chain(BEP20)",
         //        address: "0x0d48003e0c27c5de62b97c9b4cdb31fdd29da619",
-        //        memo:  null
+        //        memo:  null,
+        //        netWork: "BSC"
         //    }
         //
         const address = this.safeString (depositAddress, 'address');
@@ -4902,7 +4949,8 @@ export default class mexc extends Exchange {
         //            coin: "USDT",
         //            network: "BNB Smart Chain(BEP20)",
         //            address: "0x0d48003e0c27c5de62b97c9b4cdb31fdd29da619",
-        //            memo:  null
+        //            memo:  null,
+        //            netWork: "BSC"
         //        }
         //        ...
         //    ]
@@ -5054,7 +5102,7 @@ export default class mexc extends Exchange {
         //         "memo": "xxyy1122",
         //         "transHash": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
         //         "updateTime": "1664805621000",
-        //         "netWork: "TRX"
+        //         "netWork": "TRX"
         //     }
         // ]
         //
@@ -5117,7 +5165,7 @@ export default class mexc extends Exchange {
         //       "explorerUrl": "https://etherscan.io/tx/0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
         //       "transHash": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
         //       "updateTime": "1664882799000",
-        //       "netWork: "MATIC"
+        //       "netWork": "MATIC"
         //     }
         // ]
         //
@@ -5141,7 +5189,7 @@ export default class mexc extends Exchange {
         //     "memo": "xxyy1122",
         //     "transHash": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
         //     "updateTime": "1664805621000",
-        //     "netWork: "TRX"
+        //     "netWork": "TRX"
         // }
         //
         // fetchWithdrawals
@@ -5163,7 +5211,7 @@ export default class mexc extends Exchange {
         //     "explorerUrl": "https://etherscan.io/tx/0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
         //     "transHash": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
         //     "updateTime": "1664882799000",
-        //     "netWork: "MATIC"
+        //     "netWork": "MATIC"
         //   }
         //
         // withdraw
@@ -5777,18 +5825,18 @@ export default class mexc extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {object} [params.internal] false by default, set to true for an "internal transfer"
      * @param {object} [params.toAccountType] skipped by default, set to 'EMAIL|UID|MOBILE' when making an "internal transfer"
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
-        const [ tagResolved, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
+        const [ tagResolved, paramsWithdrawTag ] = this.handleParamString (params, 'tag');
         const internal = this.safeBool (paramsWithdrawTag, 'internal', false);
         if (internal === true) {
             const paramsInternal: Dict = this.omit (paramsWithdrawTag, 'internal');
@@ -5813,7 +5861,7 @@ export default class mexc extends Exchange {
         let network = this.safeString2 (paramsWithdrawTag, 'network', 'netWork'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString (networks, network, network); // handle ETH > ERC-20 alias
         network = this.networkCodeToId (network, this.safeString (currency, 'code'));
-        this.checkAddress (address);
+        this.checkAddress (address, code, tagResolved);
         const request: Dict = {
             'coin': currency['id'],
             'address': address,

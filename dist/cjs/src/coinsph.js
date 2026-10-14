@@ -1920,17 +1920,18 @@ class coinsph extends coinsph$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address not used by withdraw ()
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
+    async withdraw(code, amount, address, params = {}) {
+        const [tag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
         const options = this.safeDict(this.options, 'withdraw');
         const warning = this.safeBool(options, 'warning', true);
         if (warning === true) {
             throw new errors.InvalidAddress(this.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account");
         }
-        const networkCode = this.safeString(params, 'network');
+        const networkCode = this.safeString(paramsWithdrawTag, 'network');
         const networkId = (networkCode === undefined) ? undefined : this.networkCodeToId(networkCode, code);
         if (networkId === undefined) {
             throw new errors.BadRequest(this.id + ' withdraw() require network parameter');
@@ -1948,7 +1949,7 @@ class coinsph extends coinsph$1["default"] {
         if (tag !== undefined) {
             request['withdrawOrderId'] = tag;
         }
-        const paramsOmitted = this.omit(params, 'network');
+        const paramsOmitted = this.omit(paramsWithdrawTag, 'network');
         const response = await this.privatePostOpenapiWalletV1WithdrawApply(this.extend(request, paramsOmitted));
         return this.parseTransaction(response, currency);
     }

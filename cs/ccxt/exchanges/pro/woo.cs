@@ -303,11 +303,15 @@ public partial class woo : ccxt.woo
         {
             return;
         }
-        if (((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol)))
+        if (!(((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))))
         {
-            ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
         }
-        ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
+        ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
+        // handleOrderBook queues deltas while timestamp is undefined, until the REST snapshot lands
+        orderbook["timestamp"] = null;
+        orderbook["datetime"] = null;
+        (orderbook as ccxt.pro.OrderBook).cache = new List<object>() {};
         this.spawn(this.fetchOrderBookSnapshot, new object[] { client, message, subscription});
     }
 

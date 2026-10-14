@@ -782,13 +782,13 @@ export default class mercado extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
-        this.checkAddress(address);
+    async withdraw(code, amount, address, params = {}) {
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
+        this.checkAddress(address, code, tagWithdrawTag);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -812,7 +812,7 @@ export default class mercado extends Exchange {
             if (code === 'XRP') {
                 if (tagWithdrawTag === undefined) {
                     if (!('destination_tag' in paramsWithdrawTag)) {
-                        throw new ArgumentsRequired(this.id + ' withdraw() requires a tag argument or destination_tag parameter to withdraw ' + code);
+                        throw new ArgumentsRequired(this.id + ' withdraw() requires a tag or destination_tag parameter to withdraw ' + code);
                     }
                 }
                 else {

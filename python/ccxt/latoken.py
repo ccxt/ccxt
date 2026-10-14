@@ -248,6 +248,7 @@ class latoken(Exchange, ImplicitAPI):
                     'INTERNAL_ERROR': ExchangeError,  # internal server error. You can contact our support to solve this problem. {"message":"Internal Server Error","error":"INTERNAL_ERROR","status":"FAILURE"}
                     'SERVICE_UNAVAILABLE': ExchangeNotAvailable,  # requested information currently not available. You can contact our support to solve this problem or retry later.
                     'NOT_AUTHORIZED': AuthenticationError,  # user's query not authorized. Check if you are logged in.
+                    'UNAUTHORIZED': AuthenticationError,  # {"result":false,"message":"user must be authenticated","error":"UNAUTHORIZED","status":"FAILURE"}
                     'FORBIDDEN': PermissionDenied,  # you don't have enough access rights.
                     'BAD_REQUEST': BadRequest,  # some bad request, for example bad fields values or something else. Read response message for more information.
                     'NOT_FOUND': ExchangeError,  # entity not found. Read message for more information.
@@ -270,6 +271,7 @@ class latoken(Exchange, ImplicitAPI):
                 },
                 'broad': {
                     'invalid API key, signature or digest': AuthenticationError,  # {"result":false,"message":"invalid API key, signature or digest","error":"BAD_REQUEST","status":"FAILURE"}
+                    'Invalid API key specified': AuthenticationError,  # {"result":false,"message":"Invalid API key specified","error":"NOT_FOUND","status":"FAILURE"}
                     'The API key was revoked': AuthenticationError,  # {"result":false,"message":"The API key was revoked","error":"BAD_REQUEST","status":"FAILURE"}
                     'request expired or bad': InvalidNonce,  # {"result":false,"message":"request expired or bad <timeAlive>/<timestamp> format","error":"BAD_REQUEST","status":"FAILURE"}
                     'For input string': BadRequest,  # {"result":false,"message":"Internal error","error":"For input string: \"NaN\"","status":"FAILURE"}
@@ -576,7 +578,10 @@ class latoken(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        response = self.privateGetAuthAccount(params)
+        defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType', 'spot')
+        type = self.safe_string(params, 'type', defaultType)
+        paramsOmitted = self.omit(params, 'type')
+        response = self.privateGetAuthAccount(paramsOmitted)
         #
         #     [
         #         {
@@ -605,8 +610,6 @@ class latoken(Exchange, ImplicitAPI):
             'datetime': None,
         }
         maxTimestamp = None
-        defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType', 'spot')
-        type = self.safe_string(params, 'type', defaultType)
         types = self.safe_dict(self.options, 'types', {})
         accountType = self.safe_string(types, type, type)
         balancesByType = self.group_by(response, 'type')
@@ -695,7 +698,7 @@ class latoken(Exchange, ImplicitAPI):
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #    {
-        #        "symbol": "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        #        "symbol": "BTC/USDT",
         #        "baseCurrency": "92151d82-df98-4d88-9a4d-284fa9eca49f",
         #        "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
         #        "volume24h": "165723597.189022176000000000",
@@ -710,14 +713,26 @@ class latoken(Exchange, ImplicitAPI):
         #        "bestBidQuantity": "0.6520232",
         #        "bestAsk": "25779.17",
         #        "bestAskQuantity": "0.4956043",
-        #        "updateTimestamp": "1693965231406"
+        #        "updateTimestamp": 1693965231406
         #    }
         #
-        marketId = self.safe_string(ticker, 'symbol')
+        # the "symbol" field carries the currency tags, which differ from the
+        # unified symbol whenever commonCurrencies renames a code, so resolve
+        # the market from the currency ids like parseTrade and parseOrder do
+        baseId = self.safe_string(ticker, 'baseCurrency')
+        quoteId = self.safe_string(ticker, 'quoteCurrency')
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        symbol = None
+        marketResolved = market
+        if (base is not None) and (quote is not None):
+            symbol = base + '/' + quote
+            if (self.markets is not None) and (symbol in self.markets):
+                marketResolved = self.market(symbol)
         last = self.safe_string(ticker, 'lastPrice')
         timestamp = self.safe_integer_omit_zero(ticker, 'updateTimestamp')  # sometimes latoken provided '0' ts from /ticker endpoint
         return self.safe_ticker({
-            'symbol': self.safe_symbol(marketId, market),
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'low': None,
@@ -737,7 +752,7 @@ class latoken(Exchange, ImplicitAPI):
             'baseVolume': self.safe_string(ticker, 'amount24h'),
             'quoteVolume': self.safe_string(ticker, 'volume24h'),
             'info': ticker,
-        }, market)
+        }, marketResolved)
 
     def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
@@ -759,7 +774,7 @@ class latoken(Exchange, ImplicitAPI):
         response = self.publicGetTickerBaseQuote(self.extend(request, params))
         #
         #    {
-        #        "symbol": "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        #        "symbol": "BTC/USDT",
         #        "baseCurrency": "92151d82-df98-4d88-9a4d-284fa9eca49f",
         #        "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
         #        "volume24h": "165723597.189022176000000000",
@@ -774,7 +789,7 @@ class latoken(Exchange, ImplicitAPI):
         #        "bestBidQuantity": "0.6520232",
         #        "bestAsk": "25779.17",
         #        "bestAskQuantity": "0.4956043",
-        #        "updateTimestamp": "1693965231406"
+        #        "updateTimestamp": 1693965231406
         #    }
         #
         return self.parse_ticker(response, market)
@@ -795,7 +810,7 @@ class latoken(Exchange, ImplicitAPI):
         #
         #    [
         #        {
-        #            "symbol": "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        #            "symbol": "BTC/USDT",
         #            "baseCurrency": "92151d82-df98-4d88-9a4d-284fa9eca49f",
         #            "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
         #            "volume24h": "165723597.189022176000000000",
@@ -810,7 +825,7 @@ class latoken(Exchange, ImplicitAPI):
         #            "bestBidQuantity": "0.6520232",
         #            "bestAsk": "25779.17",
         #            "bestAskQuantity": "0.4956043",
-        #            "updateTimestamp": "1693965231406"
+        #            "updateTimestamp": 1693965231406
         #        }
         #    ]
         #
@@ -1204,7 +1219,7 @@ class latoken(Exchange, ImplicitAPI):
             self.load_markets()
         response: dict
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop')
-        paramsOmitted = self.omit(params, 'stop')
+        paramsOmitted = self.omit(params, ['stop', 'trigger'])
         # privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
         market = self.market(symbol)
         request = {
@@ -1823,9 +1838,8 @@ class latoken(Exchange, ImplicitAPI):
         if message is not None:
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
-        error = self.safe_value(response, 'error')
-        errorMessage = self.safe_string(error, 'message')
-        if (error is not None) or (errorMessage is not None):
+        error = self.safe_string(response, 'error')
+        if error is not None:
             self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             raise ExchangeError(feedback)  # unknown message

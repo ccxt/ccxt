@@ -1725,7 +1725,7 @@ class extended(Exchange, ImplicitAPI):
         """
         return await self.fetch_transactions(code, since, limit, self.extend({'type': 'WITHDRAWAL'}, params))
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a Starknet withdrawal
 
@@ -1734,16 +1734,17 @@ class extended(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the Starknet address to withdraw to
-        :param str tag: unused
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :param str [params.chainId]: only STRK is supported
         :param int [params.settlementExpiration]: settlement expiration timestamp in seconds, defaults to now + 14 days + 60 seconds
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
+        tag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
         self.check_required_credentials()
         await self.load_markets()
         currency = self.currency(code)
-        chainId = self.safe_string_upper_2(params, 'chainId', 'network', 'STRK')
+        chainId = self.safe_string_upper_2(paramsWithdrawTag, 'chainId', 'network', 'STRK')
         if chainId != 'STRK':
             raise BadRequest(self.id + ' withdraw() only supports Starknet withdrawals with chainId STRK')
         if len(address) <= 42:
@@ -1751,7 +1752,7 @@ class extended(Exchange, ImplicitAPI):
         account = await self.fetch_extended_account()
         amountString = self.currency_to_precision(code, amount)
         accountId = self.safe_string(account, 'accountId')
-        settlement = self.create_withdrawal_settlement_data(address, amountString, currency, account, params)
+        settlement = self.create_withdrawal_settlement_data(address, amountString, currency, account, paramsWithdrawTag)
         request = {
             'accountId': accountId,
             'amount': amountString,
@@ -1759,7 +1760,7 @@ class extended(Exchange, ImplicitAPI):
             'asset': currency['id'],
             'settlement': settlement,
         }
-        paramsOmitted = self.omit(params, ['chainId', 'network', 'settlementExpiration', 'nonce', 'recipient', 'positionId', 'l2Vault', 'collateralId', 'resolution'])
+        paramsOmitted = self.omit(paramsWithdrawTag, ['chainId', 'network', 'settlementExpiration', 'nonce', 'recipient', 'positionId', 'l2Vault', 'collateralId', 'resolution'])
         response = await self.v1PrivatePostUserWithdrawal(self.extend(request, paramsOmitted))
         #
         #     {
@@ -2509,15 +2510,17 @@ class extended(Exchange, ImplicitAPI):
         fee = self.safe_string(params, 'fee', '0.0005')
         builderFeeRate = None
         builderId = None
-        paramsBuilder = None
-        if self.isSandboxModeEnabled:
-            builderFeeRate = self.safe_string_2(params, 'builderFeeRate', 'defaultBuilderFeeRate')
-            builderId = self.safe_string_2(params, 'builderId', 'defaultBuilderId')
-            paramsBuilder = self.omit(params, ['builderFeeRate', 'defaultBuilderFeeRate', 'builderId', 'defaultBuilderId'])
-        else:
-            paramsBuilderFeeRate = None
-            builderFeeRate, paramsBuilderFeeRate = self.handle_option_string_and_params(params, 'createOrder', 'builderFeeRate', '0.0001')
-            builderId, paramsBuilder = self.handle_option_string_and_params(paramsBuilderFeeRate, 'createOrder', 'builderId')
+        paramsBuilder = params
+        builderEnabled = self.safe_bool(self.options, 'builderFee')
+        if builderEnabled is True:
+            if self.isSandboxModeEnabled:
+                builderFeeRate = self.safe_string_2(params, 'builderFeeRate', 'defaultBuilderFeeRate')
+                builderId = self.safe_string_2(params, 'builderId', 'defaultBuilderId')
+                paramsBuilder = self.omit(params, ['builderFeeRate', 'defaultBuilderFeeRate', 'builderId', 'defaultBuilderId'])
+            else:
+                paramsBuilderFeeRate = None
+                builderFeeRate, paramsBuilderFeeRate = self.handle_option_string_and_params(params, 'createOrder', 'builderFeeRate', '0.0001')
+                builderId, paramsBuilder = self.handle_option_string_and_params(paramsBuilderFeeRate, 'createOrder', 'builderId')
         totalFee = fee
         if builderFeeRate is not None:
             totalFee = Precise.string_add(fee, builderFeeRate)

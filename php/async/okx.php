@@ -1420,7 +1420,12 @@ class okx extends Exchange {
                         'trailing' => true,
                         'iceberg' => true, // todo implement
                         'leverage' => false,
-                        'selfTradePrevention' => true, // todo implement
+                        'selfTradePrevention' => array(
+                            'EXPIRE_MAKER' => true,
+                            'EXPIRE_TAKER' => true,
+                            'EXPIRE_BOTH' => true,
+                            'NONE' => false, // okx enforces stp at the account level, it cannot be turned off
+                        ),
                         'marketBuyByCost' => true,
                         'marketBuyRequiresPrice' => false,
                     ),
@@ -3575,6 +3580,30 @@ class okx extends Exchange {
                 $request['slTriggerPxType'] = $slTriggerPxType;
             }
         }
+        // unified stp
+        $selfTradePrevention = null;
+        list($selfTradePrevention, $orderParams) = $this->handle_option_and_params($orderParams, 'createOrder', 'selfTradePrevention');
+        if ($selfTradePrevention !== null) {
+            $stpModes = array(
+                'EXPIRE_MAKER' => 'cancel_maker',
+                'EXPIRE_TAKER' => 'cancel_taker',
+                'EXPIRE_BOTH' => 'cancel_both',
+            );
+            $selfTradePreventionUpper = strtoupper($selfTradePrevention);
+            if ($selfTradePreventionUpper === 'NONE') {
+                throw new NotSupported($this->id . ' createOrder() does not support NONE for selfTradePrevention, okx enforces self trade prevention at the account level and it cannot be turned off per order');
+            }
+            $stpMode = $this->safe_string($stpModes, $selfTradePreventionUpper, strtolower($selfTradePrevention));
+            $algoOrderTypes = $this->safe_dict($this->options, 'algoOrderTypes', array());
+            $requestOrdType = $this->safe_string($request, 'ordType');
+            if (($requestOrdType !== null) && (is_array($algoOrderTypes) && array_key_exists($requestOrdType ?? '', $algoOrderTypes))) {
+                throw new NotSupported($this->id . ' createOrder() selfTradePrevention is not supported for algo orders, the venue silently ignores stpMode on that endpoint');
+            }
+            if (($stpMode === 'cancel_both') && ($requestOrdType === 'fok')) {
+                throw new InvalidOrder($this->id . ' createOrder() EXPIRE_BOTH for selfTradePrevention is not supported for fok orders');
+            }
+            $request['stpMode'] = $stpMode;
+        }
         if ($clientOrderId === null) {
             $brokerId = $this->safe_string($this->options, 'brokerId');
             if ($brokerId !== null) {
@@ -3623,6 +3652,7 @@ class okx extends Exchange {
          * @param {string} [$params->marginMode] 'cross' or 'isolated', the default is 'cross'
          * @param {bool} [$params->rpiTakerAccess] true to $a taker $order match against retail $price improvement liquidity
          * @param {bool} [$params->rpiPxRound] *rpi orders only* true to round the $price outward to the nearest placeable non-crossing level
+         * @param {string} [$params->selfTradePrevention] set unified value for stp, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH, other values are forwarded as-is, NONE is not supported, not supported for algo orders, and EXPIRE_BOTH is not supported for fok orders
          * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
          */
         if ($this->markets === null) {
@@ -5709,11 +5739,11 @@ class okx extends Exchange {
         return $this->safe_dict($response, $first);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal
          *
@@ -5722,12 +5752,12 @@ class okx extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for $currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=$transaction-structure $transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->check_address($address);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
+        $this->check_address($address, $code, $tagWithdrawTag);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }

@@ -2360,7 +2360,7 @@ class upbit extends Exchange {
         return $this->parse_deposit_address($response);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
+    public function withdraw(string $code, float $amount, string $address, $params = array()): array {
         /**
          *
          * @see https://docs.upbit.com/kr/reference/withdraw
@@ -2370,11 +2370,11 @@ class upbit extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagResolved, $paramsTag) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagResolved, $paramsTag) = $this->handle_param_string($params, 'tag');
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -2383,7 +2383,7 @@ class upbit extends Exchange {
             'amount' => $amount,
         );
         if ($code !== 'KRW') {
-            $this->check_address($address);
+            $this->check_address($address, $code, $tagResolved);
             // 2023-05-23 Change to required parameters for digital assets
             $network = $this->safe_string_upper_2($paramsTag, 'network', 'net_type');
             if ($network === null) {

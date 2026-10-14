@@ -7,6 +7,7 @@ import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 from ccxt.base.types import Bool, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade
 from ccxt.async_support.base.ws.client import Client
+from ccxt.base.precise import Precise
 
 
 class paradex(ccxt.async_support.paradex):
@@ -39,9 +40,29 @@ class paradex(ccxt.async_support.paradex):
                 'fees': 'https://docs.paradex.trade/getting-started/trading-fees',
                 'referral': '',
             },
-            'options': {},
+            'options': {
+                # SBE (Simple Binary Encoding) frames on the data channels, see parseSbeMessage. the
+                # servers answer a connect without it with a 400, false keeps the JSON feed for any
+                # environment that still serves it
+                'sbe': True,
+                # the schema version asked for at connect. the decoder reads 1:0 to 1:3 (it takes the
+                # block length from each frame header), a server answers a version above its cap with a 400
+                'sbeSchemaVersion': '3',
+                # SBE frames must reach handleMessage as raw bytes, the JSON feed only sends text frames
+                'decompressBinary': False,
+            },
             'streaming': {},
         })
+
+    def get_ws_url(self) -> str:
+        url = self.urls['api']['ws']
+        if not self.safe_bool(self.options, 'sbe', True):
+            return url
+        schemaVersion = self.safe_string(self.options, 'sbeSchemaVersion', '3')
+        return url + '?sbeSchemaId=1&sbeSchemaVersion=' + schemaVersion
+
+    def get_order_book_channel(self, marketId: Str) -> str:
+        return 'order_book.' + marketId + '.snapshot@15@100ms'
 
     def request_id(self) -> float:
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
@@ -49,7 +70,7 @@ class paradex(ccxt.async_support.paradex):
         return requestId
 
     async def authenticate(self, params: dict = {}):
-        url = self.urls['api']['ws']
+        url = self.get_ws_url()
         client = self.client(url)
         messageHash = 'authenticated'
         future = client.reusableFuture('authenticated')
@@ -102,7 +123,7 @@ class paradex(ccxt.async_support.paradex):
             messageHash += market['id']
         else:
             messageHash += 'ALL'
-        url = self.urls['api']['ws']
+        url = self.get_ws_url()
         request = {
             'jsonrpc': '2.0',
             'method': 'subscribe',
@@ -146,6 +167,11 @@ class paradex(ccxt.async_support.paradex):
             self.trades[symbol] = stored
         stored.append(parsedTrade)
         client.resolve(stored, messageHash)
+        # an SBE frame names its market but not the subscription it was sent for,
+        # so the trades.ALL subscription is resolved from the per-market channel too
+        isSbe = self.safe_bool(message, 'sbe', False)
+        if isSbe and (messageHash != 'trades.ALL'):
+            client.resolve(stored, 'trades.ALL')
         return message
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
@@ -162,8 +188,8 @@ class paradex(ccxt.async_support.paradex):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        messageHash = 'order_book.' + market['id'] + '.snapshot@15@100ms'
-        url = self.urls['api']['ws']
+        messageHash = self.get_order_book_channel(market['id'])
+        url = self.get_ws_url()
         request = {
             'jsonrpc': '2.0',
             'method': 'subscribe',
@@ -212,10 +238,9 @@ class paradex(ccxt.async_support.paradex):
         symbol = market['symbol']
         if not (symbol in self.orderbooks):
             self.orderbooks[symbol] = self.order_book()
-        orderbookData = {
-            'bids': [],
-            'asks': [],
-        }
+        # levels go into local arrays first: pushing into orderbookData['bids'] appends to a copy in go
+        bids = []
+        asks = []
         inserts = self.safe_list(data, 'inserts')
         for i in range(0, len((inserts))):
             insert = self.safe_dict(inserts, i)
@@ -223,9 +248,13 @@ class paradex(ccxt.async_support.paradex):
             price = self.safe_string(insert, 'price')
             size = self.safe_string(insert, 'size')
             if side == 'BUY':
-                orderbookData['bids'].append([price, size])
+                bids.append([price, size])
             else:
-                orderbookData['asks'].append([price, size])
+                asks.append([price, size])
+        orderbookData = {
+            'bids': bids,
+            'asks': asks,
+        }
         orderbook = self.orderbooks[symbol]
         snapshot = self.parse_order_book(orderbookData, symbol, timestamp, 'bids', 'asks')
         snapshot['nonce'] = self.safe_integer(data, 'seq_no')
@@ -245,9 +274,11 @@ class paradex(ccxt.async_support.paradex):
         """
         if self.markets is None:
             await self.load_markets()
-        symbolValue = self.symbol(symbol)
-        channel = 'markets_summary'
-        url = self.urls['api']['ws']
+        market = self.market(symbol)
+        # the per-market channel: the all-markets one carries a summary for every listed
+        # option too, thousands of messages a second, all decoded only to be filtered out
+        channel = 'markets_summary.' + market['id']
+        url = self.get_ws_url()
         request = {
             'jsonrpc': '2.0',
             'method': 'subscribe',
@@ -255,8 +286,8 @@ class paradex(ccxt.async_support.paradex):
                 'channel': channel,
             },
         }
-        messageHash = channel + '.' + symbolValue
-        return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
+        messageHash = 'markets_summary.' + market['symbol']
+        return await self.watch(url, messageHash, self.deep_extend(request, params), channel)
 
     async def watch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
@@ -272,7 +303,7 @@ class paradex(ccxt.async_support.paradex):
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols)
         channel = 'markets_summary'
-        url = self.urls['api']['ws']
+        url = self.get_ws_url()
         request = {
             'jsonrpc': '2.0',
             'method': 'subscribe',
@@ -320,7 +351,7 @@ class paradex(ccxt.async_support.paradex):
             messageHash += ':' + symbolResolved
         else:
             channel += 'ALL'
-        url = self.urls['api']['ws']
+        url = self.get_ws_url()
         request = {
             'jsonrpc': '2.0',
             'method': 'subscribe',
@@ -410,9 +441,9 @@ class paradex(ccxt.async_support.paradex):
         ticker = self.parse_ticker(data, market)
         self.tickers[symbol] = ticker
         client.resolve(ticker, channel)
-        if channel is not None:
-            messageHash = channel + '.' + symbol
-            client.resolve(ticker, messageHash)
+        # watchTicker waits on the symbol whichever channel, per-market or all, carried it
+        messageHash = 'markets_summary.' + symbol
+        client.resolve(ticker, messageHash)
         return message
 
     async def watch_funding_rate(self, symbol: str, params: dict = {}) -> FundingRate:
@@ -429,7 +460,7 @@ class paradex(ccxt.async_support.paradex):
             await self.load_markets()
         symbolValue = self.symbol(symbol)
         channel = 'funding_data'
-        url = self.urls['api']['ws']
+        url = self.get_ws_url()
         request = {
             'jsonrpc': '2.0',
             'method': 'subscribe',
@@ -454,7 +485,7 @@ class paradex(ccxt.async_support.paradex):
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols)
         channel = 'funding_data'
-        url = self.urls['api']['ws']
+        url = self.get_ws_url()
         request = {
             'jsonrpc': '2.0',
             'method': 'subscribe',
@@ -507,6 +538,8 @@ class paradex(ccxt.async_support.paradex):
         symbol = fundingRate['symbol']
         self.fundingRates[symbol] = fundingRate
         channel = self.safe_string(params, 'channel')
+        # watchFundingRates without symbols waits on the bare channel
+        client.resolve(fundingRate, channel)
         if channel is not None:
             messageHash = channel + '.' + symbol
             client.resolve(fundingRate, messageHash)
@@ -551,6 +584,323 @@ class paradex(ccxt.async_support.paradex):
             'interval': interval,
         }
 
+    def parse_sbe_message(self, message: object) -> object:
+        #
+        # Paradex SBE schema 1:3 (https://docs.paradex.trade), little-endian. Every frame is an 8-byte
+        # header (blockLength, templateId, schemaId, version as uint16) followed by a fixed block of
+        # blockLength bytes, then repeating groups and length-prefixed strings. The frame is rebuilt in
+        # the shape of the matching JSON subscription message, so the JSON handlers parse both.
+        # Requests, subscribe acks and errors stay JSON text frames.
+        #
+        # Returns undefined for frames that carry nothing to route: heartbeats, binary acks, template
+        # ids this decoder does not know (the schema says to skip them), and malformed frames.
+        #
+        frameHex = self.binary_to_base16(message)
+        frameLength = self.parse_to_int(len(frameHex) / 2)
+        if frameLength < 8:
+            return None
+        blockLength = self.sbe_read_uint(frameHex, 0, 2)
+        templateId = self.sbe_read_uint(frameHex, 2, 2)
+        schemaId = self.sbe_read_uint(frameHex, 4, 2)
+        if (schemaId != 1) or (frameLength < self.sum(blockLength, 8)):
+            return None
+        channel = None
+        data = None
+        if templateId == 1:
+            data = self.parse_sbe_trade(frameHex, blockLength, frameLength)
+            if data is not None:
+                channel = 'trades.' + data['market']
+        elif templateId == 3:
+            data = self.parse_sbe_order_book(frameHex, blockLength, frameLength)
+            if data is not None:
+                channel = self.get_order_book_channel(data['market'])
+        elif templateId == 4:
+            data = self.parse_sbe_market_summary(frameHex, blockLength, frameLength)
+            channel = 'markets_summary'
+        elif templateId == 5:
+            data = self.parse_sbe_funding_data(frameHex, blockLength, frameLength)
+            channel = 'funding_data'
+        elif templateId == 20:
+            data = self.parse_sbe_order(frameHex, blockLength, frameLength)
+            if data is not None:
+                channel = 'orders.' + data['market']
+        if data is None:
+            return None
+        return {
+            'sbe': True,
+            'params': {
+                'channel': channel,
+                'data': data,
+            },
+        }
+
+    def sbe_read_uint(self, frameHex: str, offset: float, length: float) -> object:
+        # a little-endian unsigned integer of at most 4 bytes, so that it stays exact in every language
+        digits = '0123456789abcdef'
+        result = 0
+        factor = 1
+        position = offset * 2
+        for i in range(0, length):
+            # plain variables as slice bounds, php gets end - start unparenthesized
+            middle = position + 1
+            next = position + 2
+            high = digits.find(frameHex[position:middle])
+            low = digits.find(frameHex[middle:next])
+            result = self.sum(result, high * 16 * factor, low * factor)
+            factor = factor * 256
+            position = next
+        return result
+
+    def sbe_read_int64(self, frameHex: str, offset: float) -> Str:
+        # a signed int64 as a decimal string, undefined for INT64_MIN which the schema uses as null
+        low = self.sbe_read_uint(frameHex, offset, 4)
+        high = self.sbe_read_uint(frameHex, offset + 4, 4)
+        if (high == 2147483648) and (low == 0):
+            return None
+        if high == 0:
+            return self.number_to_string(low)
+        result = Precise.string_add(Precise.string_mul(self.number_to_string(high), '4294967296'), self.number_to_string(low))
+        if high >= 2147483648:
+            result = Precise.string_sub(result, '18446744073709551616')
+        return result
+
+    def sbe_read_decimal(self, frameHex: str, offset: float) -> Str:
+        # prices, sizes and rates are int64 mantissas with a fixed exponent of -8
+        mantissa = self.sbe_read_int64(frameHex, offset)
+        if mantissa is None:
+            return None
+        return Precise.string_div(mantissa, '100000000', 8)
+
+    def sbe_read_timestamp(self, frameHex: str, offset: float) -> Int:
+        # timestamps are microseconds, truncated to milliseconds with Precise: a float
+        # quotient like 1791906071000.999 is rounded up when php converts it to an int
+        microseconds = self.sbe_read_int64(frameHex, offset)
+        if microseconds is None:
+            return None
+        return self.parse_to_int(Precise.string_div(microseconds, '1000', 0))
+
+    def sbe_read_enum(self, frameHex: str, offset: float, values: dict) -> Str:
+        value = self.sbe_read_uint(frameHex, offset, 1)
+        return self.safe_string(values, self.number_to_string(value))
+
+    def sbe_read_string(self, frameHex: str, offset: float, length: float) -> str:
+        start = offset * 2
+        end = self.sum(start, length * 2)
+        return self.binary_to_string(self.base16_to_binary(frameHex[start:end]))
+
+    def sbe_read_address(self, frameHex: str, offset: float) -> str:
+        # a 32-byte big-endian account address, printed without leading zeros like the JSON feed
+        rawStart = offset * 2
+        rawEnd = rawStart + 64
+        raw = frameHex[rawStart:rawEnd]
+        start = 0
+        next = 1
+        while((start < 63) and (raw[start:next] == '0')):
+            start = next
+            next = start + 1
+        return '0x' + raw[start:64]
+
+    def sbe_read_var_strings(self, frameHex: str, offset: float, count: float, frameLength: float) -> object:
+        # the var-data section: count strings, each prefixed with a uint8 length. Returns undefined
+        # when the frame ends before all of them, and only the strings present when a trailing one is
+        # absent, which is how a field appended to var-data reads on a frame from before it
+        result = []
+        position = offset
+        for i in range(0, count):
+            if position >= frameLength:
+                return result
+            length = self.sbe_read_uint(frameHex, position, 1)
+            if self.sum(position, 1, length) > frameLength:
+                return None
+            result.append(self.sbe_read_string(frameHex, position + 1, length))
+            position = self.sum(position, 1, length)
+        return result
+
+    def parse_sbe_trade(self, frameHex: str, blockLength: float, frameLength: float) -> object:
+        #
+        # TradeEvent (templateId 1), 50-byte block
+        #
+        #     ts int64, seq int64, tradeId int64 (deprecated, truncated), side uint8, price int64,
+        #     size int64, createdAt int64, tradeType uint8, then market and tradeIdStr strings
+        #
+        if blockLength < 50:
+            return None
+        strings = self.sbe_read_var_strings(frameHex, self.sum(blockLength, 8), 2, frameLength)
+        stringsLength = 0 if (strings is None) else len(strings)
+        if stringsLength < 1:
+            return None
+        sides = {'1': 'BUY', '2': 'SELL'}
+        tradeTypes = {'1': 'FILL', '2': 'LIQUIDATION', '3': 'UNWIND_TRANSFER', '4': 'SETTLE_MARKET', '5': 'RPI', '6': 'BLOCK_TRADE'}
+        return {
+            # the full trade id, absent only on frames that predate it, the int64 tradeId cannot hold it
+            'id': self.safe_string(strings, 1),
+            'market': strings[0],
+            'side': self.sbe_read_enum(frameHex, 32, sides),
+            'size': self.sbe_read_decimal(frameHex, 41),
+            'price': self.sbe_read_decimal(frameHex, 33),
+            'created_at': self.sbe_read_timestamp(frameHex, 49),
+            'trade_type': self.sbe_read_enum(frameHex, 57, tradeTypes),
+        }
+
+    def parse_sbe_order_book(self, frameHex: str, blockLength: float, frameLength: float) -> object:
+        #
+        # BookEvent (templateId 3), 89-byte block
+        #
+        #     ts int64, seq int64, pkgType uint8, nine best bid/ask int64 fields, then the bids and asks
+        #     groups of (price int64, size int64) entries and the market string
+        #
+        if blockLength < 17:
+            return None
+        # watchOrderBook subscribes to the snapshot channel, a delta would need a book to apply it to
+        pkgType = self.sbe_read_uint(frameHex, 24, 1)
+        if pkgType != 0:
+            return None
+        inserts = []
+        sides = ['BUY', 'SELL']
+        position = self.sum(blockLength, 8)
+        for i in range(0, len(sides)):
+            if position + 4 > frameLength:
+                return None
+            entryLength = self.sbe_read_uint(frameHex, position, 2)
+            numInGroup = self.sbe_read_uint(frameHex, position + 2, 2)
+            position = position + 4
+            if (entryLength < 16) or (self.sum(position, numInGroup * entryLength) > frameLength):
+                return None
+            for j in range(0, numInGroup):
+                inserts.append({
+                    'side': sides[i],
+                    'price': self.sbe_read_decimal(frameHex, position),
+                    'size': self.sbe_read_decimal(frameHex, position + 8),
+                })
+                position = self.sum(position, entryLength)
+        strings = self.sbe_read_var_strings(frameHex, position, 1, frameLength)
+        stringsLength = 0 if (strings is None) else len(strings)
+        if stringsLength < 1:
+            return None
+        return {
+            'seq_no': self.sbe_read_int64(frameHex, 16),
+            'market': strings[0],
+            'last_updated_at': self.sbe_read_timestamp(frameHex, 8),
+            'update_type': 's',
+            'inserts': inserts,
+            'updates': [],
+            'deletes': [],
+        }
+
+    def parse_sbe_market_summary(self, frameHex: str, blockLength: float, frameLength: float) -> object:
+        #
+        # MarketSummaryEvent (templateId 4), 248-byte block (240 before 1:3), of which the first
+        # 12 int64 fields and settlementTwapEstimate are read
+        #
+        #     ts, seq, markPrice, indexPrice, lastPrice, volumeUsd24h, openInterest, fundingRate, bid,
+        #     ask, totalVolume, priceChangeRate24h, ..., settlementTwapEstimate (1:3, at 240), then the
+        #     market string
+        #
+        if blockLength < 96:
+            return None
+        strings = self.sbe_read_var_strings(frameHex, self.sum(blockLength, 8), 1, frameLength)
+        stringsLength = 0 if (strings is None) else len(strings)
+        if stringsLength < 1:
+            return None
+        # appended in 1:3: null outside the pre-expiry settlement window and for undated markets
+        settlementTwapEstimate = None
+        if blockLength >= 248:
+            settlementTwapEstimate = self.sbe_read_decimal(frameHex, 248)
+        return {
+            'symbol': strings[0],
+            'mark_price': self.sbe_read_decimal(frameHex, 24),
+            'last_traded_price': self.sbe_read_decimal(frameHex, 40),
+            'bid': self.sbe_read_decimal(frameHex, 72),
+            'ask': self.sbe_read_decimal(frameHex, 80),
+            'volume_24h': self.sbe_read_decimal(frameHex, 48),
+            # saturates at the int64 maximum, 92233720368.54775807 once scaled
+            'total_volume': self.sbe_read_decimal(frameHex, 88),
+            'created_at': self.sbe_read_timestamp(frameHex, 8),
+            'open_interest': self.sbe_read_decimal(frameHex, 56),
+            'funding_rate': self.sbe_read_decimal(frameHex, 64),
+            'price_change_rate_24h': self.sbe_read_decimal(frameHex, 96),
+            'settlement_twap_estimate': settlementTwapEstimate,
+        }
+
+    def parse_sbe_funding_data(self, frameHex: str, blockLength: float, frameLength: float) -> object:
+        #
+        # FundingDataEvent (templateId 5), 66-byte block
+        #
+        #     ts int64, seq int64, fundingRate int64, fundingIndex int64, createdAt int64,
+        #     fundingPremium int64, fundingRate8h int64, fundingPeriodHours int16, ... then the market
+        #
+        if blockLength < 58:
+            return None
+        strings = self.sbe_read_var_strings(frameHex, self.sum(blockLength, 8), 1, frameLength)
+        stringsLength = 0 if (strings is None) else len(strings)
+        if stringsLength < 1:
+            return None
+        return {
+            'market': strings[0],
+            'funding_index': self.sbe_read_decimal(frameHex, 32),
+            'funding_premium': self.sbe_read_decimal(frameHex, 48),
+            'funding_rate': self.sbe_read_decimal(frameHex, 24),
+            'funding_rate_8h': self.sbe_read_decimal(frameHex, 56),
+            'funding_period_hours': self.sbe_read_uint(frameHex, 64, 2),
+            'created_at': self.sbe_read_timestamp(frameHex, 40),
+        }
+
+    def parse_sbe_order(self, frameHex: str, blockLength: float, frameLength: float) -> object:
+        #
+        # OrderEvent (templateId 20), 128-byte block (126 before the 1:2 request fields)
+        #
+        #     ts int64, seq int64, status uint8, side uint8, orderType uint8, timeInForce uint8,
+        #     price int64, triggerPrice int64, size int64, sizeOpen int64, avgFillPrice int64,
+        #     createdAt int64, updatedAt int64, account [32]byte, receivedAt int64, publishedAt int64,
+        #     stp uint8, flags uint8, ... then the orderId, clientOrderId, market and cancelReason strings
+        #
+        if blockLength < 126:
+            return None
+        strings = self.sbe_read_var_strings(frameHex, self.sum(blockLength, 8), 4, frameLength)
+        stringsLength = 0 if (strings is None) else len(strings)
+        if stringsLength < 4:
+            return None
+        statuses = {'1': 'NEW', '2': 'UNTRIGGERED', '3': 'OPEN', '4': 'CLOSED'}
+        sides = {'1': 'BUY', '2': 'SELL'}
+        orderTypes = {'1': 'LIMIT', '2': 'MARKET', '3': 'STOP_LIMIT', '4': 'STOP_MARKET', '5': 'TAKE_PROFIT_LIMIT', '6': 'TAKE_PROFIT_MARKET', '7': 'STOP_LOSS_LIMIT', '8': 'STOP_LOSS_MARKET'}
+        timeInForces = {'1': 'GTC', '2': 'IOC', '3': 'POST_ONLY', '4': 'RPI'}
+        stpModes = {'0': 'NONE', '1': 'EXPIRE_MAKER', '2': 'EXPIRE_TAKER', '3': 'EXPIRE_BOTH'}
+        flagNames = ['REDUCE_ONLY', 'STOP_CONDITION_BELOW_TRIGGER', 'STOP_CONDITION_ABOVE_TRIGGER', 'INTERACTIVE', 'TARGET_STRATEGY_VWAP', 'MMP']
+        flags = []
+        flagBits = self.sbe_read_uint(frameHex, 133, 1)
+        for i in range(0, len(flagNames)):
+            bit = self.parse_to_int(flagBits % 2)
+            if bit == 1:
+                flags.append(flagNames[i])
+            flagBits = self.parse_to_int((flagBits - bit) / 2)
+        order = {
+            'account': self.sbe_read_address(frameHex, 84),
+            'avg_fill_price': self.sbe_read_decimal(frameHex, 60),
+            'client_id': strings[1],
+            'created_at': self.sbe_read_timestamp(frameHex, 68),
+            'flags': flags,
+            'id': strings[0],
+            'instruction': self.sbe_read_enum(frameHex, 27, timeInForces),
+            'last_updated_at': self.sbe_read_timestamp(frameHex, 76),
+            'market': strings[2],
+            'price': self.sbe_read_decimal(frameHex, 28),
+            'published_at': self.sbe_read_timestamp(frameHex, 124),
+            'received_at': self.sbe_read_timestamp(frameHex, 116),
+            'remaining_size': self.sbe_read_decimal(frameHex, 52),
+            'seq_no': self.sbe_read_int64(frameHex, 16),
+            'side': self.sbe_read_enum(frameHex, 25, sides),
+            'size': self.sbe_read_decimal(frameHex, 44),
+            'status': self.sbe_read_enum(frameHex, 24, statuses),
+            'stp': self.sbe_read_enum(frameHex, 132, stpModes),
+            'timestamp': self.sbe_read_timestamp(frameHex, 8),
+            'trigger_price': self.sbe_read_decimal(frameHex, 36),
+            'type': self.sbe_read_enum(frameHex, 26, orderTypes),
+        }
+        # an empty cancel reason is sent for every live order, parseOrder reads any reason as canceled
+        if strings[3] != '':
+            order['cancel_reason'] = strings[3]
+        return order
+
     def handle_error_message(self, client: Client, message: dict) -> Bool:
         #
         #     {
@@ -579,8 +929,13 @@ class paradex(ccxt.async_support.paradex):
                     self.throw_broadly_matched_exception(self.exceptions['broad'], messageString, feedback)
             return False
 
-    def handle_message(self, client: Client, message: dict):
-        if self.handle_error_message(client, message) is not True:
+    def handle_message(self, client: Client, message: object):
+        parsedMessage = message
+        if self.is_binary_message(message):
+            parsedMessage = self.parse_sbe_message(message)
+            if parsedMessage is None:
+                return
+        if self.handle_error_message(client, parsedMessage) is not True:
             return
         #
         # auth response
@@ -610,11 +965,11 @@ class paradex(ccxt.async_support.paradex):
         #         }
         #     }
         #
-        result = self.safe_dict(message, 'result')
+        result = self.safe_dict(parsedMessage, 'result')
         if result is not None:
-            self.handle_authentication_message(client, message)
+            self.handle_authentication_message(client, parsedMessage)
             return
-        data = self.safe_dict(message, 'params')
+        data = self.safe_dict(parsedMessage, 'params')
         if data is not None:
             channel = self.safe_string(data, 'channel')
             parts = channel.split('.')
@@ -628,4 +983,4 @@ class paradex(ccxt.async_support.paradex):
             }
             method = self.safe_value(methods, name)
             if method is not None:
-                method(client, message)
+                method(client, parsedMessage)

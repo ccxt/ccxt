@@ -977,6 +977,7 @@ class backpack extends backpack$1["default"] {
         }
         const market = this.market(symbol);
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
+        const duration = this.parseTimeframe(timeframe);
         const request = {
             'symbol': market['id'],
             'interval': interval,
@@ -991,7 +992,6 @@ class backpack extends backpack$1["default"] {
             limitResolved = defaultLimit;
         }
         if (since === undefined) {
-            const duration = this.parseTimeframe(timeframe);
             const endTime = (until !== undefined && until !== null && until !== 0) ? this.parseToInt(until / 1000) : this.seconds();
             const windowLimit = (limit === undefined) ? defaultLimit : limit;
             const startTime = endTime - (windowLimit * duration);
@@ -999,6 +999,13 @@ class backpack extends backpack$1["default"] {
         }
         else {
             request['startTime'] = this.parseToInt(since / 1000); // convert milliseconds to seconds
+        }
+        if (until === undefined) {
+            const currentMs = this.seconds(); // default to current time in seconds
+            const windowLimit = (limit === undefined) ? defaultLimit : limit;
+            const windowEnd = this.sum(request['startTime'], windowLimit * duration); // sum (): `+` on a dict value is string concatenation in php
+            const minTimestamp = Math.min(currentMs, windowEnd);
+            request['endTime'] = this.parseToInt(minTimestamp); // default to current time in seconds if until is not specified
         }
         const price = this.safeString(paramsUntil, 'price');
         const paramsOmitted = (price !== undefined) ? this.omit(paramsUntil, 'price') : paramsUntil;
@@ -1507,12 +1514,13 @@ class backpack extends backpack$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} params.network the network to withdraw on (mandatory)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
+    async withdraw(code, amount, address, params = {}) {
+        const [tag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -1525,7 +1533,7 @@ class backpack extends backpack$1["default"] {
         if (tag !== undefined) {
             request['clientId'] = tag; // memo or tag
         }
-        const [networkCode, query] = this.handleNetworkCodeAndParams(params);
+        const [networkCode, query] = this.handleNetworkCodeAndParams(paramsWithdrawTag);
         const networkId = this.networkCodeToId(networkCode, this.safeString(currency, 'code'));
         if (networkId === undefined) {
             throw new errors.BadRequest(this.id + ' withdraw() requires a network parameter');

@@ -12,6 +12,7 @@ import io.github.ccxt.Client;
 import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.PredictionEvent;
 import io.github.ccxt.types.PredictionOpenInterest;
 import io.github.ccxt.types.PredictionOrder;
@@ -2540,10 +2541,10 @@ public class Kalshi extends KalshiApi
             {
                 defaultTif = "good_till_canceled";
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsOmitted), "createOrder", "time_in_force", defaultTif);
+            Pair<String, Map<String, Object>> timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsOmitted), "createOrder", "time_in_force", defaultTif);
             String timeInForce = timeInForceparamsTimeInForceVariable.first();
             Map<String, Object> paramsTimeInForce = timeInForceparamsTimeInForceVariable.second();
-            io.github.ccxt.base.Pair<String, Map<String, Object>> stpparamsSelfTradePreventionTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsTimeInForce), "createOrder", "self_trade_prevention_type", "taker_at_cross");
+            Pair<String, Map<String, Object>> stpparamsSelfTradePreventionTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsTimeInForce), "createOrder", "self_trade_prevention_type", "taker_at_cross");
             String stp = stpparamsSelfTradePreventionTypeVariable.first();
             Map<String, Object> paramsSelfTradePreventionType = stpparamsSelfTradePreventionTypeVariable.second();
             Map<String, Object> request = new HashMap<String, Object>();

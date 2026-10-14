@@ -291,7 +291,7 @@ func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig m
 	this.Accounts = make([]any, 0)
 
 	this.initializeProperties(extendedProperties)
-	this.AfterConstruct()
+	this.AfterConstruct(userConfig)
 
 	this.streaming = this.SafeDict(extendedProperties, "streaming", map[string]any{}).(map[string]any)
 	this.transformApiNew(this.Api)

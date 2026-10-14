@@ -58,7 +58,7 @@ class ImplicitAPI:
     private_post_wallets_withdraw = privatePostWalletsWithdraw = Entry[_Dict]('wallets/withdraw', 'private', 'POST', {'cost': 20})
     private_post_v2_wallets_withdraw = privatePostV2WalletsWithdraw = Entry[_Dict]('v2/wallets/withdraw', 'private', 'POST', {'cost': 20})
     private_post_orders = privatePostOrders = Entry[_Dict]('orders', 'private', 'POST', {'cost': 4})
-    private_post_orders_batch = privatePostOrdersBatch = Entry[_Dict]('orders/batch', 'private', 'POST', {'cost': 20})
+    private_post_orders_batch = privatePostOrdersBatch = Entry[_List]('orders/batch', 'private', 'POST', {'cost': 20})
     private_post_orders_killswitch = privatePostOrdersKillSwitch = Entry[_Dict]('orders/killSwitch', 'private', 'POST', {'cost': 4})
     private_post_smartorders = privatePostSmartorders = Entry[_Dict]('smartorders', 'private', 'POST', {'cost': 4})
     private_delete_orders_id = privateDeleteOrdersId = Entry[_Dict]('orders/{id}', 'private', 'DELETE', {'cost': 4})

@@ -506,7 +506,6 @@ class bingx extends bingx$1["default"] {
                     'v1': {
                         'private': {
                             'get': {
-                                'swap/trace/currentTrack': { 'cost': 2 },
                                 'PFutures/traderDetail': { 'cost': 2 },
                                 'PFutures/profitHistorySummarys': { 'cost': 2 },
                                 'PFutures/profitDetail': { 'cost': 2 },
@@ -517,7 +516,6 @@ class bingx extends bingx$1["default"] {
                                 'spot/historyOrder': { 'cost': 2 },
                             },
                             'post': {
-                                'swap/trace/closeTrackOrder': { 'cost': 2 },
                                 'swap/trace/setTPSL': { 'cost': 2 },
                                 'PFutures/setCommission': { 'cost': 2 },
                                 'spot/trader/sellOrder': { 'cost': 10 },
@@ -725,7 +723,7 @@ class bingx extends bingx$1["default"] {
                         'trailing': true,
                         'leverage': false,
                         'marketBuyRequiresPrice': false,
-                        'marketBuyByCost': false,
+                        'marketBuyByCost': true,
                         'selfTradePrevention': false,
                         'iceberg': false,
                     },
@@ -778,6 +776,9 @@ class bingx extends bingx$1["default"] {
                 'defaultForInverse': {
                     'extends': 'defaultForLinear',
                     'sandbox': false,
+                    'createOrder': {
+                        'marketBuyByCost': false,
+                    },
                     'createOrders': undefined,
                     'fetchOHLCV': {
                         'limit': 1000,
@@ -3104,7 +3105,7 @@ class bingx extends bingx$1["default"] {
     /**
      * @method
      * @name bingx#createMarketOrderWithCost
-     * @description create a spot market order by providing the symbol, side and cost
+     * @description create a spot or linear swap market order by providing the symbol, side and cost
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} side 'buy' or 'sell'
      * @param {float} cost how much you want to trade in units of the quote currency
@@ -3118,7 +3119,7 @@ class bingx extends bingx$1["default"] {
     /**
      * @method
      * @name bingx#createMarketBuyOrderWithCost
-     * @description create a spot market buy order by providing the symbol and cost
+     * @description create a spot or linear swap market buy order by providing the symbol and cost
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3131,7 +3132,7 @@ class bingx extends bingx$1["default"] {
     /**
      * @method
      * @name bingx#createMarketSellOrderWithCost
-     * @description create a spot market sell order by providing the symbol and cost
+     * @description create a spot or linear swap market sell order by providing the symbol and cost
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3163,8 +3164,8 @@ class bingx extends bingx$1["default"] {
          */
         const market = this.market(symbol);
         const cost = this.safeString2(params, 'cost', 'quoteOrderQty');
-        if ((market['contract'] === true) && (cost !== undefined)) {
-            throw new errors.NotSupported(this.id + ' createOrder() with cost or quoteOrderQty is not supported for contract markets');
+        if ((market['inverse'] === true) && (cost !== undefined)) {
+            throw new errors.NotSupported(this.id + ' createOrder() with cost or quoteOrderQty is not supported for inverse swap markets');
         }
         const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('createOrder', market, params);
         const typeValue = type.toUpperCase();
@@ -3277,6 +3278,7 @@ class bingx extends bingx$1["default"] {
             const trailingAmount = this.safeString(paramsPostOnly, 'trailingAmount');
             const trailingPercent = this.safeString2(paramsPostOnly, 'trailingPercent', 'priceRate');
             const trailingType = this.safeString(paramsPostOnly, 'trailingType', 'TRAILING_STOP_MARKET');
+            const trailingTriggerPrice = this.safeString2(paramsPostOnly, 'trailingTriggerPrice', 'activationPrice');
             const isTrailingAmountOrder = trailingAmount !== undefined;
             const isTrailingPercentOrder = trailingPercent !== undefined;
             const isTrailing = isTrailingAmountOrder || isTrailingPercentOrder;
@@ -3337,8 +3339,14 @@ class bingx extends bingx$1["default"] {
                     const requestTrailingPercent = Precise["default"].stringDiv(trailingPercent, '100');
                     request['priceRate'] = this.parseToNumeric(requestTrailingPercent);
                 }
+                if (trailingTriggerPrice !== undefined) {
+                    request['activationPrice'] = this.parseToNumeric(this.priceToPrecision(symbol, trailingTriggerPrice));
+                }
             }
             if (hasStopLoss || hasTakeProfit) {
+                if (cost !== undefined) {
+                    throw new errors.InvalidOrder(this.id + ' createOrder() does not support attached stopLoss or takeProfit on a market order by cost');
+                }
                 const stringifiedAmount = this.numberToString(amount);
                 if (hasStopLoss) {
                     const slTriggerPrice = this.safeString2(stopLossDict, 'triggerPrice', 'stopPrice');
@@ -3399,7 +3407,10 @@ class bingx extends bingx$1["default"] {
             }
             request['positionSide'] = positionSide;
             const closePosition = this.safeBool(paramsOrder, 'closePosition', false);
-            if (closePosition !== true) {
+            if (cost !== undefined) {
+                request['quoteOrderQty'] = this.parseToNumeric(this.costToPrecision(symbol, cost));
+            }
+            else if (closePosition !== true) {
                 let amountReq = amount;
                 if (market['inverse'] !== true) {
                     amountReq = this.parseToNumeric(this.amountToPrecision(symbol, amount));
@@ -3407,7 +3418,7 @@ class bingx extends bingx$1["default"] {
                 request['quantity'] = amountReq; // precision not available for inverse contracts
             }
         }
-        const paramsRequest = this.omit(paramsOrder, ['hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'clientOrderId']);
+        const paramsRequest = this.omit(paramsOrder, ['hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'trailingTriggerPrice', 'activationPrice', 'clientOrderId', 'cost', 'quoteOrderQty']);
         return this.extend(request, paramsRequest);
     }
     /**
@@ -3431,10 +3442,11 @@ class bingx extends bingx$1["default"] {
      * @param {float} [params.triggerPrice] triggerPrice at which the attached take profit / stop loss order will be triggered
      * @param {float} [params.stopLossPrice] stop loss trigger price, a spot order is placed as TAKE_STOP and parsed back with triggerPrice
      * @param {float} [params.takeProfitPrice] take profit trigger price, a spot order is placed as TAKE_STOP and parsed back with triggerPrice
-     * @param {float} [params.cost] *spot only* the quote quantity that can be used as an alternative for the amount
-     * @param {float} [params.quoteOrderQty] *spot only* the quote quantity, an alternative to params.cost
+     * @param {float} [params.cost] *spot and linear swap only* the quote quantity that can be used as an alternative for the amount
+     * @param {float} [params.quoteOrderQty] *spot and linear swap only* the quote quantity, an alternative to params.cost
      * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
      * @param {float} [params.trailingPercent] *swap only* the percent to trail away from the current market price
+     * @param {float} [params.trailingTriggerPrice] *swap only* the price to activate a trailing order at
      * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
      * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
      * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
@@ -5755,8 +5767,8 @@ class bingx extends bingx$1["default"] {
         let timestamp = this.safeInteger2(transaction, 'insertTime', 'timestamp');
         let datetime = this.iso8601(timestamp);
         if (timestamp === undefined) {
-            datetime = this.safeString(transaction, 'applyTime');
-            timestamp = this.parse8601(datetime);
+            timestamp = this.parse8601(this.safeString(transaction, 'applyTime'));
+            datetime = this.iso8601(timestamp);
         }
         const network = this.safeString(transaction, 'network');
         const currencyId = this.safeString(transaction, 'coin');
@@ -5766,10 +5778,15 @@ class bingx extends bingx$1["default"] {
                 code = code.replace(network, '');
             }
         }
+        // deposit records carry insertTime and no transferType, withdrawal records say 1 (on-chain) or 2 (internal)
         const rawType = this.safeString(transaction, 'transferType');
         let type = 'withdrawal';
-        if (rawType === '0') {
+        if ((rawType === '0') || ('insertTime' in transaction)) {
             type = 'deposit';
+        }
+        let internal = undefined;
+        if (rawType !== undefined) {
+            internal = (rawType === '2');
         }
         return {
             'info': transaction,
@@ -5779,7 +5796,7 @@ class bingx extends bingx$1["default"] {
             'currency': code,
             'network': this.networkIdToCode(network, code),
             'amount': this.safeNumber(transaction, 'amount'),
-            'status': this.parseTransactionStatus(this.safeString(transaction, 'status')),
+            'status': this.parseTransactionStatus(this.safeString(transaction, 'status'), type),
             'timestamp': timestamp,
             'datetime': datetime,
             'address': address,
@@ -5795,10 +5812,23 @@ class bingx extends bingx$1["default"] {
                 'cost': this.safeNumber(transaction, 'transactionFee'),
                 'rate': undefined,
             },
-            'internal': undefined,
+            'internal': internal,
         };
     }
-    parseTransactionStatus(status) {
+    parseTransactionStatus(status, type = undefined) {
+        const statusesByType = {
+            'deposit': {
+                '0': 'pending',
+                '6': 'pending', // chain uploaded, not yet credited
+                '1': 'ok',
+            },
+            'withdrawal': {
+                '4': 'pending', // under review
+                '5': 'failed',
+                '6': 'ok',
+            },
+        };
+        const directional = this.safeDict(statusesByType, type, {});
         const statuses = {
             '0': 'pending',
             '1': 'ok',
@@ -5815,7 +5845,8 @@ class bingx extends bingx$1["default"] {
             '5': 'rejected',
             '6': 'ok',
         };
-        return this.safeString(statuses, status, status);
+        const fallback = this.safeString(statuses, status, status);
+        return this.safeString(directional, status, fallback);
     }
     /**
      * @method
@@ -6317,14 +6348,14 @@ class bingx extends bingx$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} [tag]
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {int} [params.walletType] 1 fund (funding) account, 2 standard account, 3 perpetual account, 15 spot account
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
-        this.checkAddress(address);
+    async withdraw(code, amount, address, params = {}) {
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
+        this.checkAddress(address, code, tagWithdrawTag);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -6790,7 +6821,7 @@ class bingx extends bingx$1["default"] {
         }
         const request = this.createOrderRequest(symbol, type, side, amount, price, params);
         request['cancelOrderId'] = id;
-        request['cancelReplaceMode'] = 'STOP_ON_FAILURE';
+        request['cancelReplaceMode'] = this.safeString(params, 'cancelReplaceMode', 'STOP_ON_FAILURE');
         let response;
         if (market['swap'] === true) {
             response = await this.swapV1PrivatePostTradeCancelReplace(request);

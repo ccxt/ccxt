@@ -378,7 +378,7 @@ class bittrade extends Exchange {
                 ),
                 // https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStates' => array(
-                    'method' => 'private_get_order_orders', // 'private_get_order_history' // https://github.com/ccxt/ccxt/pull/5392
+                    'method' => 'privateGetOrderOrders', // 'privateGetOrderHistory' // https://github.com/ccxt/ccxt/pull/5392
                 ),
                 'fetchOpenOrders' => array(
                     'method' => 'fetch_open_orders_v1', // 'fetch_open_orders_v2' // https://github.com/ccxt/ccxt/issues/5388
@@ -1267,7 +1267,7 @@ class bittrade extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        $method = $this->handle_option('fetchOrdersByStates', 'method', 'private_get_order_orders');
+        $method = $this->handle_option('fetchOrdersByStates', 'method', 'privateGetOrderOrders');
         $response = null;
         if (($method === 'private_get_order_history') || ($method === 'privateGetOrderHistory')) {
             $response = $this->privateGetOrderHistory($this->extend($request, $params));
@@ -2007,21 +2007,21 @@ class bittrade extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
+    public function withdraw(string $code, float $amount, string $address, $params = array()): array {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $this->check_address($address);
+        $this->check_address($address, $code, $tagWithdrawTag);
         $currency = $this->currency($code);
         $request = array(
             'address' => $address, // only supports existing addresses in your withdraw address list

@@ -857,11 +857,6 @@ func (this *Bingx) UserAuthPrivateDeleteUserDataStream(args ...any) <-chan Endpo
 	return Fetch2Result[map[string]any](this, "userDataStream", []string{"user", "auth", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-// CopyTradingV1PrivateGetSwapTraceCurrentTrack returns a channel that yields a JSON object.
-func (this *Bingx) CopyTradingV1PrivateGetSwapTraceCurrentTrack(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "swap/trace/currentTrack", []string{"copyTrading", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
-}
-
 // CopyTradingV1PrivateGetPFuturesTraderDetail returns a channel that yields a JSON object.
 func (this *Bingx) CopyTradingV1PrivateGetPFuturesTraderDetail(args ...any) <-chan EndpointResult[map[string]any] {
 	return Fetch2Result[map[string]any](this, "PFutures/traderDetail", []string{"copyTrading", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
@@ -900,11 +895,6 @@ func (this *Bingx) CopyTradingV1PrivateGetSpotProfitDetail(args ...any) <-chan E
 // CopyTradingV1PrivateGetSpotHistoryOrder returns a channel that yields a JSON object.
 func (this *Bingx) CopyTradingV1PrivateGetSpotHistoryOrder(args ...any) <-chan EndpointResult[map[string]any] {
 	return Fetch2Result[map[string]any](this, "spot/historyOrder", []string{"copyTrading", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
-}
-
-// CopyTradingV1PrivatePostSwapTraceCloseTrackOrder returns a channel that yields a JSON object.
-func (this *Bingx) CopyTradingV1PrivatePostSwapTraceCloseTrackOrder(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "swap/trace/closeTrackOrder", []string{"copyTrading", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // CopyTradingV1PrivatePostSwapTraceSetTPSL returns a channel that yields a JSON object.

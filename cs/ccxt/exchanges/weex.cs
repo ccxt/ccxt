@@ -5082,6 +5082,10 @@ public partial class weex : Exchange
         if ((message != null))
         {
             string? errorCode = this.safeString(response, "code");
+            if (errorCode == "200" && (message.ToLower() == "success"))
+            {
+                return null;
+            }
             string feedback = ((this.id + " ") + (body));
             this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);

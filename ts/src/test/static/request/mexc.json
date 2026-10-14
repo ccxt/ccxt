@@ -54,6 +54,22 @@
         ],
         "createOrder": [
             {
+                "description": "swap market buy trigger order",
+                "method": "createOrder",
+                "url": "https://api.mexc.com/api/v1/private/planorder/place",
+                "input": [
+                    "ADA/USDT:USDT",
+                    "market",
+                    "buy",
+                    1,
+                    null,
+                    {
+                        "triggerPrice": 0.4
+                    }
+                ],
+                "output": "{\"symbol\":\"ADA_USDT\",\"vol\":1,\"type\":6,\"openType\":2,\"side\":1,\"triggerPrice\":\"0.4\",\"triggerType\":1,\"executeCycle\":1,\"trend\":1,\"orderType\":5}"
+            },
+            {
                 "description": "place swap order",
                 "method": "createOrder",
                 "url": "https://api.mexc.com/api/v1/private/order/create",
@@ -387,6 +403,20 @@
             }
         ],
         "fetchOpenOrders": [
+            {
+                "description": "swap open trigger orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.mexc.com/api/v1/private/planorder/list/orders?page_size=100&states=1",
+                "input": [
+                    "ADA/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": null
+            },
             {
                 "description": "swap open orders",
                 "options": {
@@ -769,6 +799,19 @@
         ],
         "cancelOrder": [
             {
+                "description": "cancel swap trigger order",
+                "method": "cancelOrder",
+                "url": "https://api.mexc.com/api/v1/private/planorder/cancel",
+                "input": [
+                    "864240665238925824",
+                    "ADA/USDT:USDT",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": "[{\"symbol\":\"ADA_USDT\",\"orderId\":\"864240665238925824\"}]"
+            },
+            {
                 "description": "Cancel spot orders",
                 "method": "cancelOrder",
                 "url": "https://api.mexc.com/api/v3/order?symbol=LTCUSDT&orderId=129402018493145088&timestamp=1702285204132&recvWindow=5000&signature=a4438291b6a39e4277e6895107b3ebd890df560075413ba725f059b95a37d00e",
@@ -928,12 +971,11 @@
                     "USDT",
                     0.1,
                     "to_someone@gmail.com",
-                    null,
                     {
-                        "internal": true,
-                        "toAccountType": "EMAIL"
+                      "internal": true,
+                      "toAccountType": "EMAIL"
                     }
-                ],
+                  ],
                 "output": null
             },
             {
@@ -944,7 +986,6 @@
                   "USDT",
                   5,
                   "THb2SXyLLBn81JWPNhTbGBEoXHtDX62eU7",
-                  null,
                   {
                     "network": "TRC20"
                   }

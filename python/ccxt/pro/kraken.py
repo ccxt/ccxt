@@ -918,9 +918,25 @@ class kraken(ccxt.async_support.kraken):
             orderbook['datetime'] = datetime
         else:
             # snapshot
-            depth = len(a)
-            self.orderbooks[symbol] = self.order_book({}, depth)
+            subscription = self.safe_dict(client.subscriptions, messageHash, {})
+            # size the book from the subscribed depth (10 by default), not from
+            # the level count of this snapshot: a thin market's snapshot can
+            # carry fewer levels than the subscription and must not cap the book
+            limit = self.safe_integer(subscription, 'limit', 10)
+            asksLength = len(a)
+            depth = asksLength if (asksLength > limit) else limit
+            depths = self.safe_dict(self.options, 'wsOrderBookDepths', {})
+            storedDepth = self.safe_integer(depths, symbol)
+            if not (symbol in self.orderbooks) or (storedDepth != depth):
+                # rebuild only on the first snapshot or when the depth changes,
+                # e.g. a re-subscription with a different limit
+                self.orderbooks[symbol] = self.order_book({}, depth)
+                depths[symbol] = depth
+                self.options['wsOrderBookDepths'] = depths
+            # reset in place so that references held by users keep receiving
+            # updates after a reconnect snapshot (a new object would orphan them)
             orderbook = self.orderbooks[symbol]
+            orderbook.reset({})
             keys = ['asks', 'bids']
             for i in range(0, len(keys)):
                 key = keys[i]

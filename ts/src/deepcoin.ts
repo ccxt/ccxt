@@ -98,12 +98,12 @@ export default class deepcoin extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchOrderTrades': true,
-                'fetchPosition': true,
+                'fetchPosition': false,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
                 'fetchPositionsForSymbol': true,
-                'fetchPositionsHistory': true,
+                'fetchPositionsHistory': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': false,
                 'fetchTicker': false,
@@ -591,7 +591,7 @@ export default class deepcoin extends Exchange {
         });
     }
 
-    override setMarkets (markets: any, currencies = undefined) {
+    override setMarkets (markets: any, currencies: any = undefined) {
         const result = super.setMarkets (markets, currencies);
         const symbols = Object.keys (result);
         for (let i = 0; i < symbols.length; i++) {

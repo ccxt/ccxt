@@ -1553,7 +1553,7 @@ public class Coinone extends CoinoneApi
                     );
                 }
                 String address = this.safeString(depositAddress, "address", value);
-                this.checkAddress(address);
+                this.checkAddress(address, (String) null, (String) null);
                 depositAddress.put("address", address);
                 depositAddress.put("info", address);
                 if ((java.util.Objects.equals(secondPart, "tag") || java.util.Objects.equals(secondPart, "memo")))

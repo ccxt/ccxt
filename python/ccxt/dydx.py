@@ -2009,22 +2009,23 @@ class dydx(Exchange, ImplicitAPI):
             'fee': None,
         }
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
+        tag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
         if code != 'USDC':
             raise NotSupported(self.id + ' withdraw() only support USDC')
         if self.markets is None:
             self.load_markets()
         self.check_address(address)
-        subaccountId = self.safe_integer(params, 'subaccountId')
+        subaccountId = self.safe_integer(paramsWithdrawTag, 'subaccountId')
         if subaccountId is None:
             raise ArgumentsRequired(self.id + ' withdraw requires subaccountId.')
         currency = self.currency(code)

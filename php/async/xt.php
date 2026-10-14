@@ -2076,6 +2076,19 @@ class xt extends Exchange {
         if ($percentage !== null) {
             $percentage = Precise::string_mul($percentage, '100');
         }
+        $baseVolume = $this->safe_string_2($ticker, 'a', 'q');
+        $quoteVolume = $this->safe_string($ticker, 'v');
+        $contractSize = $this->safe_string($marketResolved, 'contractSize');
+        if (($marketResolved['contract'] === true) && ($contractSize !== null)) {
+            // 'a' counts contracts, 'v' is in the settle currency
+            $contractVolume = Precise::string_mul($baseVolume, $contractSize);
+            if ($marketResolved['inverse'] === true) {
+                $baseVolume = $quoteVolume;
+                $quoteVolume = $contractVolume;
+            } else {
+                $baseVolume = $contractVolume;
+            }
+        }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -2094,8 +2107,8 @@ class xt extends Exchange {
             'change' => $this->safe_number($ticker, 'cv'),
             'percentage' => $this->parse_number($percentage),
             'average' => null,
-            'baseVolume' => $this->safe_number_2($ticker, 'a', 'q'),
-            'quoteVolume' => $this->safe_number($ticker, 'v'),
+            'baseVolume' => $baseVolume,
+            'quoteVolume' => $quoteVolume,
             'info' => $ticker,
         ), $marketResolved);
     }
@@ -4442,11 +4455,11 @@ class xt extends Exchange {
         return $this->parse_transactions($withdrawals, $currency, $since, $limit, $params);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal
          *
@@ -4455,16 +4468,15 @@ class xt extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} [$tag]
          * @param {array} $params extra parameters specific to the exchange API endpoint
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
          */
-        $this->check_address($address);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
         $currency = $this->currency($code);
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
+        $this->check_address($address, $code, $tagWithdrawTag);
         list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($paramsWithdrawTag);
         $networkIdsByCodes = $this->safe_dict($this->options, 'networks', array());
         $networkId = $this->safe_string_2($networkIdsByCodes, $networkCode, $code, $code);
@@ -5005,6 +5017,7 @@ class xt extends Exchange {
          *
          * @param {string} $symbol unified market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
          */
         return Async\await($this->fetch_funding_rate($symbol, $params));

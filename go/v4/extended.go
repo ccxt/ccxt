@@ -2551,8 +2551,8 @@ func (this *Extended) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArg
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the Starknet address to withdraw to
- * @param {string} tag unused
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @param {string} [params.chainId] only STRK is supported
  * @param {int} [params.settlementExpiration] settlement expiration timestamp in seconds, defaults to now + 14 days + 60 seconds
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
@@ -2565,10 +2565,11 @@ func (this *Extended) WithdrawAsync(code string, amount any, address any, option
 func (this *Extended) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
+	var tagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
+	var tag *string = SafeStringPtr(tagparamsWithdrawTagVariable[0])
+	var paramsWithdrawTag map[string]any = MapTyped(tagparamsWithdrawTagVariable[1])
 	this.CheckRequiredCredentials()
 
 	r := <-this.LoadMarketsAsync()
@@ -2576,7 +2577,7 @@ func (this *Extended) withdrawBody(ch chan EndpointResult[map[string]any], code 
 		panic(r.Err)
 	}
 	var currency map[string]any = this.Currency(code)
-	var chainId *string = this.SafeStringUpper2(params, "chainId", "network", "STRK")
+	var chainId *string = this.SafeStringUpper2(paramsWithdrawTag, "chainId", "network", "STRK")
 	if chainId == nil || *chainId != "STRK" {
 		panic(BadRequest(this.Id + " withdraw() only supports Starknet withdrawals with chainId STRK"))
 	}
@@ -2591,7 +2592,7 @@ func (this *Extended) withdrawBody(ch chan EndpointResult[map[string]any], code 
 	account := r1.Value
 	var amountString any = this.CurrencyToPrecision(code, amount)
 	var accountId *string = this.SafeString(account, "accountId")
-	var settlement any = this.CreateWithdrawalSettlementData(address, amountString, currency, account, params)
+	var settlement any = this.CreateWithdrawalSettlementData(address, amountString, currency, account, paramsWithdrawTag)
 	var request map[string]any = map[string]any{
 		"accountId":  accountId,
 		"amount":     amountString,
@@ -2599,7 +2600,7 @@ func (this *Extended) withdrawBody(ch chan EndpointResult[map[string]any], code 
 		"asset":      currency["id"],
 		"settlement": settlement,
 	}
-	var paramsOmitted map[string]any = this.OmitDict(params, []any{"chainId", "network", "settlementExpiration", "nonce", "recipient", "positionId", "l2Vault", "collateralId", "resolution"})
+	var paramsOmitted map[string]any = this.OmitDict(paramsWithdrawTag, []any{"chainId", "network", "settlementExpiration", "nonce", "recipient", "positionId", "l2Vault", "collateralId", "resolution"})
 
 	r2 := <-this.V1PrivatePostUserWithdrawal(this.Extend(request, paramsOmitted))
 	if r2.Err != nil {
@@ -2680,11 +2681,11 @@ func (this *Extended) fetchTransfersBody(ch chan AsyncResult[any], optionalArgs 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes188719 []any = ListTyped(r1.Value)
-		if retRes188719 == nil {
+		var retRes188819 []any = ListTyped(r1.Value)
+		if retRes188819 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes188719}
+			ch <- AsyncResult[any]{Value: retRes188819}
 		}
 		return nil
 	}
@@ -3388,11 +3389,11 @@ func (this *Extended) fetchPositionsHistoryBody(ch chan AsyncResult[[]any], opti
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes237219 []any = ListTyped(r1.Value)
-		if retRes237219 == nil {
+		var retRes237319 []any = ListTyped(r1.Value)
+		if retRes237319 == nil {
 			ch <- AsyncResult[[]any]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]any]{Value: retRes237219}
+			ch <- AsyncResult[[]any]{Value: retRes237319}
 		}
 		return nil
 	}
@@ -3723,15 +3724,18 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan EndpointResult[map[
 	var fee *string = this.SafeString(params, "fee", "0.0005")
 	var builderFeeRate *string = nil
 	var builderId *string = nil
-	var paramsBuilder any = nil
-	if this.IsSandboxModeEnabled {
-		builderFeeRate = this.SafeString2(params, "builderFeeRate", "defaultBuilderFeeRate")
-		builderId = this.SafeString2(params, "builderId", "defaultBuilderId")
-		paramsBuilder = this.Omit(params, []any{"builderFeeRate", "defaultBuilderFeeRate", "builderId", "defaultBuilderId"})
-	} else {
-		var paramsBuilderFeeRate any = nil
-		builderFeeRate, paramsBuilderFeeRate = this.HandleOptionStringAndParams(params, "createOrder", "builderFeeRate", "0.0001")
-		builderId, paramsBuilder = this.HandleOptionStringAndParams(paramsBuilderFeeRate, "createOrder", "builderId")
+	var paramsBuilder any = params
+	var builderEnabled *bool = this.SafeBool(this.Options, "builderFee")
+	if builderEnabled != nil && *builderEnabled == true {
+		if this.IsSandboxModeEnabled {
+			builderFeeRate = this.SafeString2(params, "builderFeeRate", "defaultBuilderFeeRate")
+			builderId = this.SafeString2(params, "builderId", "defaultBuilderId")
+			paramsBuilder = this.Omit(params, []any{"builderFeeRate", "defaultBuilderFeeRate", "builderId", "defaultBuilderId"})
+		} else {
+			var paramsBuilderFeeRate any = nil
+			builderFeeRate, paramsBuilderFeeRate = this.HandleOptionStringAndParams(params, "createOrder", "builderFeeRate", "0.0001")
+			builderId, paramsBuilder = this.HandleOptionStringAndParams(paramsBuilderFeeRate, "createOrder", "builderId")
+		}
 	}
 	var totalFee *string = fee
 	if builderFeeRate != nil {
@@ -4558,11 +4562,11 @@ func (this *Extended) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes321219 []any = ListTyped(r1.Value)
-		if retRes321219 == nil {
+		var retRes321619 []any = ListTyped(r1.Value)
+		if retRes321619 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes321219}
+			ch <- AsyncResult[any]{Value: retRes321619}
 		}
 		return nil
 	}
@@ -5440,8 +5444,8 @@ func (this *Extended) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tr
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the Starknet address to withdraw to
- * @param {string} tag unused
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @param {string} [params.chainId] only STRK is supported
  * @param {int} [params.settlementExpiration] settlement expiration timestamp in seconds, defaults to now + 14 days + 60 seconds
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
@@ -5453,7 +5457,7 @@ func (this *Extended) Withdraw(code string, amount float64, address string, opti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

@@ -3766,8 +3766,8 @@ func (this *Hitbtc) convertCurrencyNetworkBody(ch chan EndpointResult[map[string
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Hitbtc) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
@@ -3778,12 +3778,10 @@ func (this *Hitbtc) WithdrawAsync(code string, amount any, address any, optional
 func (this *Hitbtc) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	var tagWithdrawTag *string = SafeStringPtr(tagWithdrawTagparamsWithdrawTagVariable[0])
+	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
+	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 	if this.Markets == nil {
 
@@ -3792,14 +3790,14 @@ func (this *Hitbtc) withdrawBody(ch chan EndpointResult[map[string]any], code st
 			panic(r.Err)
 		}
 	}
-	this.CheckAddress(address)
+	this.CheckAddress(address, code, tagWithdrawTag)
 	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 		"amount":   amount,
 		"address":  address,
 	}
-	if tagWithdrawTag != nil {
+	if !IsEqual(tagWithdrawTag, nil) {
 		request["payment_id"] = tagWithdrawTag
 	}
 	var networks map[string]any = SafeMapTyped(this.Options, "networks")
@@ -4098,26 +4096,26 @@ func (this *Hitbtc) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs ..
 	var response []any = nil
 	if marginMode != nil {
 
-		listEp3725 := <-this.PrivateGetMarginAccount(this.Extend(request, paramsOmitted))
-		if listEp3725.Err != nil {
-			panic(listEp3725.Err)
+		listEp3723 := <-this.PrivateGetMarginAccount(this.Extend(request, paramsOmitted))
+		if listEp3723.Err != nil {
+			panic(listEp3723.Err)
 		}
-		response = listEp3725.Value
+		response = listEp3723.Value
 	} else {
 		if marketType != nil && *marketType == "swap" {
 
-			listEp3729 := <-this.PrivateGetFuturesAccount(this.Extend(request, paramsOmitted))
-			if listEp3729.Err != nil {
-				panic(listEp3729.Err)
+			listEp3727 := <-this.PrivateGetFuturesAccount(this.Extend(request, paramsOmitted))
+			if listEp3727.Err != nil {
+				panic(listEp3727.Err)
 			}
-			response = listEp3729.Value
+			response = listEp3727.Value
 		} else if marketType != nil && *marketType == "margin" {
 
-			listEp3732 := <-this.PrivateGetMarginAccount(this.Extend(request, paramsOmitted))
-			if listEp3732.Err != nil {
-				panic(listEp3732.Err)
+			listEp3730 := <-this.PrivateGetMarginAccount(this.Extend(request, paramsOmitted))
+			if listEp3730.Err != nil {
+				panic(listEp3730.Err)
 			}
-			response = listEp3732.Value
+			response = listEp3730.Value
 		} else {
 			panic(NotSupported(this.Id + " fetchPositions() not support this market type"))
 		}
@@ -6051,8 +6049,8 @@ func (this *Hitbtc) Transfer(code string, amount float64, fromAccount string, to
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Hitbtc) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
@@ -6062,7 +6060,7 @@ func (this *Hitbtc) Withdraw(code string, amount float64, address string, option
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

@@ -10,6 +10,7 @@ import io.github.ccxt.BaseExchange;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 import io.github.ccxt.types.Balances;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.PredictionEvent;
 import io.github.ccxt.types.PredictionOrder;
 import io.github.ccxt.types.PredictionOrderBook;
@@ -788,7 +789,7 @@ public class Sxbet extends SxbetApi
             {
                 return cached;
             }
-            Map<String, Object> response = (this.sxbetPublicGetMetadataObv3()).join();
+            Map<String, Object> response = (this.sxbetPublicGetMetadataObv3(new HashMap<String, Object>() {{}})).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(this.options, "sxObv3Metadata", data);
             return data;
@@ -912,7 +913,7 @@ public class Sxbet extends SxbetApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> response = (this.sxbetPrivateGetUserProxy()).join();
+            Map<String, Object> response = (this.sxbetPrivateGetUserProxy(new HashMap<String, Object>() {{}})).join();
             return this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         }).thenApply(res -> (Map<String, Object>) res);
 
@@ -947,7 +948,7 @@ public class Sxbet extends SxbetApi
             Boolean deployed = (Boolean) this.safeBool(proxy, "deployed", false);
             if (!java.util.Objects.equals(deployed, true))
             {
-                (this.sxbetPrivatePostUserDeployProxy()).join();
+                (this.sxbetPrivatePostUserDeployProxy(new HashMap<String, Object>() {{}})).join();
                 // deployment is asynchronous - poll until the proxy exists
                 for (var i = 0; i < 30; i++)
                 {
@@ -970,7 +971,7 @@ public class Sxbet extends SxbetApi
             {
                 throw new BadRequest((this.id + " approve() could not resolve the base token address from /metadata/obv3")) ;
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> spenderparamsSpenderVariable = this.handleOptionStringAndParams2((Map<String, Object>) (parameters), "approve", "spender", "transferToProxySpender", executorAddress);
+            Pair<String, Map<String, Object>> spenderparamsSpenderVariable = this.handleOptionStringAndParams2((Map<String, Object>) (parameters), "approve", "spender", "transferToProxySpender", executorAddress);
             String spender = spenderparamsSpenderVariable.first();
             Map<String, Object> paramsSpender = spenderparamsSpenderVariable.second();
             if (java.util.Objects.equals(spender, null))
@@ -1126,7 +1127,7 @@ public class Sxbet extends SxbetApi
             {
                 defaultTif = "GTC";
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "createOrder", "timeInForce", defaultTif);
+            Pair<String, Map<String, Object>> timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "createOrder", "timeInForce", defaultTif);
             String timeInForce = timeInForceparamsTimeInForceVariable.first();
             Map<String, Object> paramsTimeInForce = timeInForceparamsTimeInForceVariable.second();
             // an explicit IOC/FOK on a 'limit' order is honored verbatim - the venue executes exactly
@@ -2619,7 +2620,7 @@ public class Sxbet extends SxbetApi
             {
                 throw new ArgumentsRequired((this.id + " websocket streaming requires the apiKey credential - the realtime token endpoint authenticates with the X-Api-Key header")) ;
             }
-            Map<String, Object> response = (this.sxbetPrivateGetUserRealtimeTokenV3ApiKey()).join();
+            Map<String, Object> response = (this.sxbetPrivateGetUserRealtimeTokenV3ApiKey(new HashMap<String, Object>() {{}})).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.safeString2(data, "token", "realtimeToken", this.safeString(response, "token"));
         }).thenApply(res -> (String) res);

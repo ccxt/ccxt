@@ -923,18 +923,7 @@ class bithumb extends Exchange {
         $marketId = $this->safe_string($ticker, 'market');
         $symbol = $this->safe_symbol($marketId, $market);
         $close = $this->safe_string_2($ticker, 'closing_price', 'trade_price');
-        $change = $this->safe_string_2($ticker, 'signed_change_price', 'change_price');
-        $percentage = $this->safe_string_2($ticker, 'signed_change_rate', 'change_rate');
         $open = $this->safe_string($ticker, 'opening_price');
-        $nonZeroOpen = $this->omit_zero($open);
-        if (($marketId !== null) && ($nonZeroOpen !== null) && ($close !== null)) {
-            $computedChange = Precise::string_sub($close, $open);
-            // Some v2 payloads return signed_change_price as 0 while open/last imply a non-zero move.
-            if (($change !== null) && Precise::string_eq($change, '0') && !Precise::string_eq($computedChange, '0')) {
-                $change = $computedChange;
-                $percentage = null;
-            }
-        }
         $high = $this->safe_string_2($ticker, 'max_price', 'high_price');
         $low = $this->safe_string_2($ticker, 'min_price', 'low_price');
         // Some generation 2 ticker payloads can contain inconsistent high/low versus last.
@@ -959,8 +948,9 @@ class bithumb extends Exchange {
             'close' => $close,
             'last' => $close,
             'previousClose' => $this->safe_string($ticker, 'prev_closing_price'),
-            'change' => $change,
-            'percentage' => $percentage,
+            // Exchange changes use previousClose; safeTicker derives unified changes from open.
+            'change' => null,
+            'percentage' => null,
             'average' => null,
             'baseVolume' => $this->safe_string_2($ticker, 'units_traded_24H', 'acc_trade_volume_24h'),
             'quoteVolume' => $this->safe_string_2($ticker, 'acc_trade_value_24H', 'acc_trade_price_24h'),
@@ -2654,7 +2644,7 @@ class bithumb extends Exchange {
         return $this->cancel_order(($order['id']), $order['symbol'], $this->extend($request, $params));
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
+    public function withdraw(string $code, float $amount, string $address, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -2665,11 +2655,11 @@ class bithumb extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag the secondary withdrawal $destination $address
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / $destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @param {int} [$params->generation] if you want to use the API $generation 1 or 2, default is 2
          * @param {string} [$params->network] the blockchain $network to withdraw on, for example BTC or DASH
-         * @param {string} [$params->destination] secondary $address $destination for specific currencies, can alternatively use the $tag argument
+         * @param {string} [$params->destination] secondary $address $destination for specific currencies, can alternatively use the tag argument
          * @param {string} [$params->exchange_name] withdrawal exchange name
          * @param {string} [$params->receiver_type] either personal or corporation
          * @param {string} [$params->ko_name] *$generation 1 only* the receiver name in korean
@@ -2685,8 +2675,8 @@ class bithumb extends Exchange {
             $this->load_markets();
         }
         list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'withdraw', 'generation', 2);
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $paramsGeneration);
-        $this->check_address($address);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($paramsGeneration, 'tag');
+        $this->check_address($address, $code, $tagWithdrawTag);
         $network = $this->safe_string_2($paramsWithdrawTag, 'network', 'net_type');
         $paramsNetwork = $this->omit($paramsWithdrawTag, 'network');
         $currency = $this->currency($code);
@@ -2701,7 +2691,7 @@ class bithumb extends Exchange {
         if ($requiresDestination) {
             $destination = $this->safe_string_2($paramsNetwork, 'destination', 'secondary_address');
             if (($tagWithdrawTag === null) && ($destination === null)) {
-                throw new ArgumentsRequired($this->id . ' ' . $code . ' withdraw() requires a tag argument or an extra destination param');
+                throw new ArgumentsRequired($this->id . ' ' . $code . ' withdraw() requires a tag or an extra destination param');
             } elseif ($tagWithdrawTag !== null) {
                 $destinationRequest = $tagWithdrawTag;
             } else {

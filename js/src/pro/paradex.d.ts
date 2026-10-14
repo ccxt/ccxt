@@ -3,6 +3,8 @@ import type { Int, Str, Trade, Order, Dict, OrderBook, Ticker, Strings, Tickers,
 import Client from '../base/ws/Client.js';
 export default class paradex extends paradexRest {
     describe(): any;
+    getWsUrl(): string;
+    getOrderBookChannel(marketId: Str): string;
     requestId(): number;
     authenticate(params?: Dict): Promise<any>;
     handleAuthenticationMessage(client: Client, message: Dict): void;
@@ -87,6 +89,20 @@ export default class paradex extends paradexRest {
     watchFundingRates(symbols?: Strings, params?: Dict): Promise<FundingRates>;
     handleFundingRate(client: Client, message: Dict): void;
     parseFundingRateWs(contract: Dict, market?: Market): FundingRate;
+    parseSbeMessage(message: any): any;
+    sbeReadUint(frameHex: string, offset: number, length: number): any;
+    sbeReadInt64(frameHex: string, offset: number): Str;
+    sbeReadDecimal(frameHex: string, offset: number): Str;
+    sbeReadTimestamp(frameHex: string, offset: number): Int;
+    sbeReadEnum(frameHex: string, offset: number, values: Dict): Str;
+    sbeReadString(frameHex: string, offset: number, length: number): string;
+    sbeReadAddress(frameHex: string, offset: number): string;
+    sbeReadVarStrings(frameHex: string, offset: number, count: number, frameLength: number): any;
+    parseSbeTrade(frameHex: string, blockLength: number, frameLength: number): any;
+    parseSbeOrderBook(frameHex: string, blockLength: number, frameLength: number): any;
+    parseSbeMarketSummary(frameHex: string, blockLength: number, frameLength: number): any;
+    parseSbeFundingData(frameHex: string, blockLength: number, frameLength: number): any;
+    parseSbeOrder(frameHex: string, blockLength: number, frameLength: number): any;
     handleErrorMessage(client: Client, message: Dict): Bool;
-    handleMessage(client: Client, message: Dict): void;
+    handleMessage(client: Client, message: any): void;
 }

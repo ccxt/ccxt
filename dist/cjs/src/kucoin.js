@@ -655,6 +655,7 @@ class kucoin extends kucoin$1["default"] {
                     '405': errors.NotSupported,
                     '415': errors.NotSupported,
                     '429': errors.RateLimitExceeded,
+                    '429000': errors.RateLimitExceeded, // {"code":"429000","msg":"Too many requests. System-level rate limit exceeded."}
                     '500': errors.ExchangeNotAvailable, // Internal Server Error -- We had a problem with our server. Try again later.
                     '503': errors.ExchangeNotAvailable,
                     '101030': errors.PermissionDenied, // {"code":"101030","msg":"You haven't yet enabled the margin trading"}
@@ -912,7 +913,7 @@ class kucoin extends kucoin$1["default"] {
                 'uta': undefined,
                 'version': 'v1',
                 'symbolSeparator': '-',
-                'fetchMyTradesMethod': 'private_get_fills',
+                'fetchMyTradesMethod': 'privateGetFills',
                 'timeDifference': 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'fetchCurrencies': {
@@ -5240,7 +5241,7 @@ class kucoin extends kucoin$1["default"] {
         }
         else {
             if (id === undefined) {
-                throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires an id argument or clientOrderId parameter');
+                throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires an id argument or clientOrderId parameter');
             }
             request['orderId'] = id;
         }
@@ -6922,7 +6923,7 @@ class kucoin extends kucoin$1["default"] {
                 response = await this.privateGetHfFills(this.extend(request, paramsRequest));
             }
         }
-        else if (method === 'private_get_fills') {
+        else if ((method === 'privateGetFills') || (method === 'private_get_fills')) {
             // does not return trades earlier than 2019-02-18T00:00:00Z
             if (since !== undefined) {
                 // only returns trades up to one week after the since param
@@ -6930,7 +6931,7 @@ class kucoin extends kucoin$1["default"] {
             }
             response = await this.privateGetFills(this.extend(request, paramsRequest));
         }
-        else if (method === 'private_get_limit_fills') {
+        else if ((method === 'privateGetLimitFills') || (method === 'private_get_limit_fills')) {
             // does not return trades earlier than 2019-02-18T00:00:00Z
             // takes no params
             // only returns first 1000 trades (not only "in the last 24 hours" as stated in the docs)
@@ -7712,16 +7713,16 @@ class kucoin extends kucoin$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
+    async withdraw(code, amount, address, params = {}) {
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        this.checkAddress(address);
+        this.checkAddress(address, code, tagWithdrawTag);
         const currency = this.currency(code);
         const request = {
             'currency': currency['id'],

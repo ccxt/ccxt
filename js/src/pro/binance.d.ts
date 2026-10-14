@@ -69,11 +69,11 @@ export default class binance extends binanceRest {
                     spot: string;
                     margin: string;
                     future: string;
-                    delivery: string;
+                    inverse: string;
                     'ws-api': {
                         spot: string;
                         future: string;
-                        delivery: string;
+                        inverse: string;
                     };
                 };
             };
@@ -82,11 +82,11 @@ export default class binance extends binanceRest {
                     spot: string;
                     margin: string;
                     future: string;
-                    delivery: string;
+                    inverse: string;
                     'ws-api': {
                         spot: string;
                         future: string;
-                        delivery: string;
+                        inverse: string;
                     };
                 };
             };
@@ -95,7 +95,7 @@ export default class binance extends binanceRest {
                     spot: string;
                     margin: string;
                     future: string;
-                    delivery: string;
+                    inverse: string;
                     stock: string;
                     option: string;
                     optionMarket: string;
@@ -103,7 +103,7 @@ export default class binance extends binanceRest {
                     'ws-api': {
                         spot: string;
                         future: string;
-                        delivery: string;
+                        inverse: string;
                     };
                     papi: string;
                 };
@@ -119,7 +119,7 @@ export default class binance extends binanceRest {
                 spot: number;
                 margin: number;
                 future: number;
-                delivery: number;
+                inverse: number;
                 stock: number;
                 option: number;
                 optionMarket: number;
@@ -128,7 +128,7 @@ export default class binance extends binanceRest {
                 spot: number;
                 margin: number;
                 future: number;
-                delivery: number;
+                inverse: number;
                 stock: number;
                 option: number;
                 optionMarket: number;
@@ -737,7 +737,7 @@ export default class binance extends binanceRest {
      * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/account-requests#account-information-user_data
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/websocket-api
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string|undefined} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot'
+     * @param {string|undefined} [params.type] 'spot', 'margin', 'swap', 'future', 'savings' or 'funding', use params.subType 'inverse' for COIN-M
      * @param {string|undefined} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
      * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
      * @param {string|undefined} [params.method] method to use. Can be account.balance, account.status, v2/account.balance or v2/account.status

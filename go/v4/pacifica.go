@@ -109,7 +109,7 @@ func (this *Pacifica) Describe() any {
 			"fetchTime":                            nil,
 			"fetchTrades":                          true,
 			"fetchTradingFee":                      true,
-			"fetchTradingFees":                     false,
+			"fetchTradingFees":                     true,
 			"fetchTransfer":                        false,
 			"fetchTransfers":                       false,
 			"fetchWithdrawal":                      false,
@@ -2378,7 +2378,7 @@ func (this *Pacifica) createOrdersBody(ch chan AsyncResult[any], orders any, opt
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var response map[string]any = r2.Value
+	var response map[string]any = MapTyped(r2.Raw)
 	// {
 	//   "success": true,
 	//   "data": {
@@ -2473,7 +2473,7 @@ func (this *Pacifica) cancelOrdersBody(ch chan AsyncResult[any], ids any, option
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var response map[string]any = r2.Value
+	var response map[string]any = MapTyped(r2.Raw)
 	//
 	// {
 	//   "success": true,
@@ -3977,8 +3977,8 @@ func (this *Pacifica) setLeverageBody(ch chan AsyncResult[any], leverage int64, 
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address validated but not sent, funds go to the account wallet
- * @param {string} tag not used by withdraw ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @param {int} [params.expiryWindow] time to live in milliseconds
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
@@ -3990,9 +3990,7 @@ func (this *Pacifica) WithdrawAsync(code string, amount any, address any, option
 func (this *Pacifica) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var operationType string = "withdraw"
 	if this.Markets == nil {
@@ -4087,6 +4085,56 @@ func (this *Pacifica) fetchTradingFeeBody(ch chan AsyncResult[any], symbol strin
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
 	ch <- AsyncResult[any]{Value: this.ParseTradingFee(data, market)}
+	return nil
+}
+
+/**
+ * @method
+ * @name pacifica#fetchTradingFees
+ * @description fetch the trading fees for multiple markets, the account fee level applies to every market
+ * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-info
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.account] will default to walletAddress if not provided
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+ */
+func (this *Pacifica) FetchTradingFeesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
+	go this.fetchTradingFeesBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Pacifica) fetchTradingFeesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	userAddressparamsOriginAndSingleAddressVariable := this.HandleOriginAndSingleAddress("fetchTradingFees", params)
+	var userAddress *string = SafeStringPtr(GetValue(userAddressparamsOriginAndSingleAddressVariable, 0))
+	var paramsOriginAndSingleAddress map[string]any = MapTyped(GetValue(userAddressparamsOriginAndSingleAddressVariable, 1))
+	var request map[string]any = map[string]any{
+		"account": userAddress,
+	}
+
+	r1 := <-this.PublicGetAccount(this.Extend(request, paramsOriginAndSingleAddress))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
+	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var result map[string]any = map[string]any{}
+	var symbols []string = this.Symbols
+	for i := 0; i < len(symbols); i++ {
+		var symbol string = symbols[i]
+		result[symbol] = this.ParseTradingFee(data, this.Market(symbol))
+	}
+
+	ch <- AsyncResult[any]{Value: result}
 	return nil
 }
 func (this *Pacifica) ParseTradingFee(fee map[string]any, optionalArgs ...any) map[string]any {
@@ -4298,11 +4346,11 @@ func (this *Pacifica) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes309019 []any = ListTyped(r1.Value)
-		if retRes309019 == nil {
+		var retRes311819 []any = ListTyped(r1.Value)
+		if retRes311819 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes309019}
+			ch <- AsyncResult[any]{Value: retRes311819}
 		}
 		return nil
 	}
@@ -4603,11 +4651,11 @@ func (this *Pacifica) fetchFundingHistoryBody(ch chan AsyncResult[any], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes329919 []any = ListTyped(r1.Value)
-		if retRes329919 == nil {
+		var retRes332719 []any = ListTyped(r1.Value)
+		if retRes332719 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes329919}
+			ch <- AsyncResult[any]{Value: retRes332719}
 		}
 		return nil
 	}
@@ -4658,7 +4706,7 @@ func (this *Pacifica) ParseIncome(income any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(income, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])
-	var amount *string = this.SafeString(income, "amount")
+	var amount *string = this.SafeString(income, "payout")
 	var code *string = this.SafeCurrencyCode("USDC")
 	var rate *float64 = this.SafeNumber(income, "rate")
 	return map[string]any{
@@ -4680,8 +4728,8 @@ func (this *Pacifica) ParseIncome(income any, optionalArgs ...any) any {
  * @see https://docs.pacifica.fi/api-documentation/api/rest-api/subaccounts/subaccount-fund-transfer
  * @param {string} code unified currency code
  * @param {float} amount amount to transfer
- * @param {string} fromAccount account to transfer from *spot, swap*
- * @param {string} toAccount account to transfer to *swap, spot or address*
+ * @param {string} fromAccount not used, funds are always sent from the account wallet, the origin address
+ * @param {string} toAccount the address of the subaccount or main account to transfer to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.expiryWindow] time to live in milliseconds
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
@@ -4777,7 +4825,7 @@ func (this *Pacifica) ParseTransfer(transfer any, optionalArgs ...any) map[strin
 /**
  * @method
  * @name pacifica#createSubAccount
- * @description creates a sub-account under the main account
+ * @description creates a sub-account under the main account, privateKey must be the main account key, the exchange rejects agent-signed requests (an agent_wallet header with a main-key signature is accepted)
  * @see https://docs.pacifica.fi/api-documentation/api/rest-api/subaccounts/create-subaccount
  * @param {string} name unused argument
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4862,6 +4910,16 @@ func (this *Pacifica) createSubAccountBody(ch chan AsyncResult[any], name string
 	ch <- AsyncResult[any]{Value: response}
 	return nil
 }
+
+/**
+ * @method
+ * @name pacifica#bindAgentWallet
+ * @description binds an agent wallet that can sign trading actions for the account
+ * @see https://docs.pacifica.fi/api-documentation/api/signing/api-agent-keys
+ * @param {string} agentAddress the public key of the agent wallet
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} the api result
+ */
 func (this *Pacifica) BindAgentWalletAsync(agentAddress any, optionalArgs ...any) <-chan AsyncResult[any] {
 	ch := make(chan AsyncResult[any], 1)
 	go this.bindAgentWalletBody(ch, agentAddress, optionalArgs...)
@@ -4885,6 +4943,14 @@ func (this *Pacifica) bindAgentWalletBody(ch chan AsyncResult[any], agentAddress
 	ch <- AsyncResult[any]{Value: r.Raw}
 	return nil
 }
+
+/**
+ * @method
+ * @name pacifica#createApiKey
+ * @description creates an api key for the account
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} the api result
+ */
 func (this *Pacifica) CreateApiKeyAsync(optionalArgs ...any) <-chan AsyncResult[any] {
 	ch := make(chan AsyncResult[any], 1)
 	go this.createApiKeyBody(ch, optionalArgs...)
@@ -4906,6 +4972,15 @@ func (this *Pacifica) createApiKeyBody(ch chan AsyncResult[any], optionalArgs ..
 	ch <- AsyncResult[any]{Value: r.Raw}
 	return nil
 }
+
+/**
+ * @method
+ * @name pacifica#revokeApiKey
+ * @description revokes an api key of the account
+ * @param {string} apiKey the api key to revoke
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} the api result
+ */
 func (this *Pacifica) RevokeApiKeyAsync(apiKey any, optionalArgs ...any) <-chan AsyncResult[any] {
 	ch := make(chan AsyncResult[any], 1)
 	go this.revokeApiKeyBody(ch, apiKey, optionalArgs...)
@@ -4929,6 +5004,14 @@ func (this *Pacifica) revokeApiKeyBody(ch chan AsyncResult[any], apiKey any, opt
 	ch <- AsyncResult[any]{Value: r.Raw}
 	return nil
 }
+
+/**
+ * @method
+ * @name pacifica#fetchApiKeys
+ * @description fetches the api keys of the account
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} the api result
+ */
 func (this *Pacifica) FetchApiKeysAsync(optionalArgs ...any) <-chan AsyncResult[any] {
 	ch := make(chan AsyncResult[any], 1)
 	go this.fetchApiKeysBody(ch, optionalArgs...)
@@ -4950,6 +5033,17 @@ func (this *Pacifica) fetchApiKeysBody(ch chan AsyncResult[any], optionalArgs ..
 	ch <- AsyncResult[any]{Value: r.Raw}
 	return nil
 }
+
+/**
+ * @method
+ * @name pacifica#approveBuilderCode
+ * @description approves a builder code to charge fees on the account orders
+ * @see https://docs.pacifica.fi/programs/builder-program
+ * @param {string} builderCode the builder code to approve
+ * @param {string} maxFeeRate the maximum fee rate the builder may charge
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} the api result
+ */
 func (this *Pacifica) ApproveBuilderCodeAsync(builderCode any, maxFeeRate any, optionalArgs ...any) <-chan AsyncResult[any] {
 	ch := make(chan AsyncResult[any], 1)
 	go this.approveBuilderCodeBody(ch, builderCode, maxFeeRate, optionalArgs...)
@@ -4974,6 +5068,15 @@ func (this *Pacifica) approveBuilderCodeBody(ch chan AsyncResult[any], builderCo
 	ch <- AsyncResult[any]{Value: r.Raw}
 	return nil
 }
+
+/**
+ * @method
+ * @name pacifica#fetchBuilderApprovals
+ * @description fetches the builder codes approved by an account
+ * @see https://docs.pacifica.fi/programs/builder-program
+ * @param {string} address the account address
+ * @returns {object[]} the api result
+ */
 func (this *Pacifica) FetchBuilderApprovalsAsync(address any) <-chan AsyncResult[any] {
 	ch := make(chan AsyncResult[any], 1)
 	go this.fetchBuilderApprovalsBody(ch, address)
@@ -4993,6 +5096,16 @@ func (this *Pacifica) fetchBuilderApprovalsBody(ch chan AsyncResult[any], addres
 	ch <- AsyncResult[any]{Value: r.Raw}
 	return nil
 }
+
+/**
+ * @method
+ * @name pacifica#revokeBuilderCode
+ * @description revokes a previously approved builder code
+ * @see https://docs.pacifica.fi/programs/builder-program
+ * @param {string} builderCode the builder code to revoke
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} the api result
+ */
 func (this *Pacifica) RevokeBuilderCodeAsync(builderCode any, optionalArgs ...any) <-chan AsyncResult[any] {
 	ch := make(chan AsyncResult[any], 1)
 	go this.revokeBuilderCodeBody(ch, builderCode, optionalArgs...)
@@ -5985,8 +6098,8 @@ func (this *Pacifica) SetLeverage(leverage int64, options ...SetLeverageOptions)
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address validated but not sent, funds go to the account wallet
- * @param {string} tag not used by withdraw ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @param {int} [params.expiryWindow] time to live in milliseconds
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
@@ -5997,7 +6110,7 @@ func (this *Pacifica) Withdraw(code string, amount float64, address string, opti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
@@ -6027,6 +6140,24 @@ func (this *Pacifica) FetchTradingFee(symbol string, options ...FetchTradingFeeO
 		return TradingFeeInterface{}, r.Err
 	}
 	var res TradingFeeInterface = NewTradingFeeInterface(r.Value)
+	return res, nil
+}
+
+/**
+ * @method
+ * @name pacifica#fetchTradingFees
+ * @description fetch the trading fees for multiple markets, the account fee level applies to every market
+ * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-info
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.account] will default to walletAddress if not provided
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+ */
+func (this *Pacifica) FetchTradingFees(params ...any) (TradingFees, error) {
+	r := <-this.FetchTradingFeesAsync(params...)
+	if r.Err != nil {
+		return TradingFees{}, r.Err
+	}
+	var res TradingFees = NewTradingFees(r.Value)
 	return res, nil
 }
 
@@ -6197,8 +6328,8 @@ func (this *Pacifica) FetchFundingHistory(options ...FetchFundingHistoryOptions)
  * @see https://docs.pacifica.fi/api-documentation/api/rest-api/subaccounts/subaccount-fund-transfer
  * @param {string} code unified currency code
  * @param {float} amount amount to transfer
- * @param {string} fromAccount account to transfer from *spot, swap*
- * @param {string} toAccount account to transfer to *swap, spot or address*
+ * @param {string} fromAccount not used, funds are always sent from the account wallet, the origin address
+ * @param {string} toAccount the address of the subaccount or main account to transfer to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.expiryWindow] time to live in milliseconds
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
@@ -6221,7 +6352,7 @@ func (this *Pacifica) Transfer(code string, amount float64, fromAccount string, 
 /**
  * @method
  * @name pacifica#createSubAccount
- * @description creates a sub-account under the main account
+ * @description creates a sub-account under the main account, privateKey must be the main account key, the exchange rejects agent-signed requests (an agent_wallet header with a main-key signature is accepted)
  * @see https://docs.pacifica.fi/api-documentation/api/rest-api/subaccounts/create-subaccount
  * @param {string} name unused argument
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -6244,6 +6375,14 @@ func (this *Pacifica) CreateSubAccount(name string, options ...CreateSubAccountO
 	var res map[string]any = r.Value.(map[string]any)
 	return res, nil
 }
+
+/**
+ * @method
+ * @name pacifica#createApiKey
+ * @description creates an api key for the account
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} the api result
+ */
 func (this *Pacifica) CreateApiKey(params ...any) (map[string]any, error) {
 	r := <-this.CreateApiKeyAsync(params...)
 	if r.Err != nil {
@@ -6252,6 +6391,14 @@ func (this *Pacifica) CreateApiKey(params ...any) (map[string]any, error) {
 	var res map[string]any = r.Value.(map[string]any)
 	return res, nil
 }
+
+/**
+ * @method
+ * @name pacifica#fetchApiKeys
+ * @description fetches the api keys of the account
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} the api result
+ */
 func (this *Pacifica) FetchApiKeys(params ...any) (map[string]any, error) {
 	r := <-this.FetchApiKeysAsync(params...)
 	if r.Err != nil {
@@ -6260,6 +6407,15 @@ func (this *Pacifica) FetchApiKeys(params ...any) (map[string]any, error) {
 	var res map[string]any = r.Value.(map[string]any)
 	return res, nil
 }
+
+/**
+ * @method
+ * @name pacifica#fetchBuilderApprovals
+ * @description fetches the builder codes approved by an account
+ * @see https://docs.pacifica.fi/programs/builder-program
+ * @param {string} address the account address
+ * @returns {object[]} the api result
+ */
 func (this *Pacifica) FetchBuilderApprovals(address string) ([]map[string]any, error) {
 	r := <-this.FetchBuilderApprovalsAsync(address)
 	if r.Err != nil {
@@ -6537,9 +6693,6 @@ func (this *Pacifica) FetchTicker(symbol string, options ...FetchTickerOptions) 
 }
 func (this *Pacifica) FetchTime(params ...any) (int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
-}
-func (this *Pacifica) FetchTradingFees(params ...any) (TradingFees, error) {
-	return this.exchangeTyped.FetchTradingFees(params...)
 }
 func (this *Pacifica) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTradingLimits(options...)

@@ -14,6 +14,7 @@ import io.github.ccxt.types.MarginModification;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Position;
 import io.github.ccxt.types.Status;
 import io.github.ccxt.types.Ticker;
@@ -1275,6 +1276,19 @@ public class Lighter extends LighterApi
             Map<String, Object> paramsGroupingType = (Map<String, Object>) ((List<Object>) groupingTypeparamsGroupingTypeVariable).get(1); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
             List<Object> orderRequests = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, paramsGroupingType);
             Integer totalOrderRequests = ((List<?>)orderRequests).size();
+            if ((totalOrderRequests != null && totalOrderRequests > 1))
+            {
+                // the signer replaces a -1 expiry with now + 28 days reading the clock once per leg, and rejects
+                // a group whose legs differ ("OrderExpiry is invalid"), so resolve the default once for all legs
+                Object groupOrderExpiry = this.sum(this.milliseconds(), 2419200000L); // 28 days
+                for (var i = 0; (totalOrderRequests != null && i < totalOrderRequests); i++)
+                {
+                    if (java.util.Objects.equals(this.safeInteger((orderRequests == null || i < 0 || i >= orderRequests.size() ? null : orderRequests.get(i)), "order_expiry"), -1L))
+                    {
+                        Helpers.addElementToObject((orderRequests == null || i < 0 || i >= orderRequests.size() ? null : orderRequests.get(i)), "order_expiry", groupOrderExpiry);
+                    }
+                }
+            }
             Object order = null;
             if ((totalOrderRequests != null && totalOrderRequests > 0))
             {
@@ -3123,7 +3137,7 @@ public class Lighter extends LighterApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTransfers", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTransfers", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -3243,14 +3257,14 @@ public class Lighter extends LighterApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchDeposits", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchDeposits", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, paramsPaginate, "cursor", "cursor", (Long) null, 50L)).join();
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> addressparamsAddressVariable = this.handleOptionStringAndParams2((Map<String, Object>) (paramsPaginate), "fetchDeposits", "address", "l1_address", (String) null);
+            Pair<String, Map<String, Object>> addressparamsAddressVariable = this.handleOptionStringAndParams2((Map<String, Object>) (paramsPaginate), "fetchDeposits", "address", "l1_address", (String) null);
             String address = addressparamsAddressVariable.first();
             Map<String, Object> paramsAddress = addressparamsAddressVariable.second();
             if (java.util.Objects.equals(address, null))
@@ -3322,7 +3336,7 @@ public class Lighter extends LighterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchWithdrawals", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchWithdrawals", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -3458,14 +3472,14 @@ public class Lighter extends LighterApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} [tag]
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.accountIndex] account index
      * @param {string} [params.apiKeyIndex] api key index
      * @param {int} [params.routeType] wallet type, 0: perp, 1: spot, default is 0
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3538,7 +3552,7 @@ public class Lighter extends LighterApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -3717,7 +3731,7 @@ public class Lighter extends LighterApi
             {
                 throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleOptionStringAndParams2((Map<String, Object>) (parameters), "setLeverage", "marginMode", "margin_mode", (String) null);
+            Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleOptionStringAndParams2((Map<String, Object>) (parameters), "setLeverage", "marginMode", "margin_mode", (String) null);
             String marginMode = marginModeparamsMarginModeVariable.first();
             Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
             if (java.util.Objects.equals(marginMode, null))
@@ -3973,9 +3987,14 @@ public class Lighter extends LighterApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            if ((Helpers.isLessThan(timeout, 300000)) || (Helpers.isGreaterThan(timeout, 1296000000)))
+            if (java.util.Objects.equals(timeout, null))
             {
-                throw new BadRequest((this.id + " timeout should be between 5 minutes and 15 days.")) ;
+                throw new ArgumentsRequired((this.id + " cancelAllOrdersAfter() requires a timeout argument")) ;
+            }
+            Boolean isScheduled = (!Helpers.isEqual(timeout, 0));
+            if (Boolean.TRUE.equals(isScheduled) && ((Helpers.isLessThan(timeout, 300000)) || (Helpers.isGreaterThan(timeout, 1296000000))))
+            {
+                throw new BadRequest((this.id + " timeout should be between 5 minutes and 15 days, or 0 to cancel the timer.")) ;
             }
             List<Object> apiKeyIndexparamsApiKeyIndexVariable = (List<Object>) this.handleApiKeyIndex(parameters, "cancelOrder", "apiKeyIndex", "api_key_index", (Object) null);
             Long apiKeyIndex = (Long) ((List<Object>) apiKeyIndexparamsApiKeyIndexVariable).get(0);
@@ -3987,13 +4006,19 @@ public class Lighter extends LighterApi
             String strApiKeyIndex = this.numberToString(apiKeyIndex);
             Object signer = (this.loadAccount(this.options.get("chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, Helpers.toMapArg(paramsAccountIndex))).join();
             Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, Helpers.toMapArg(paramsAccountIndex))).join();
-            Map<String, Object> signRaw = new HashMap<String, Object>() {{
-                put( "time_in_force", 1 );
-                put( "time", Helpers.add(Lighter.this.milliseconds(), timeout) );
-                put( "nonce", nonce );
-                put( "api_key_index", apiKeyIndex );
-                put( "account_index", accountIndex );
-            }};
+            Integer timeInForce = 2; // 0: IMMEDIATE 1: SCHEDULED 2: ABORT
+            Object cancelTime = 0;
+            if (Boolean.TRUE.equals(isScheduled))
+            {
+                timeInForce = 1;
+                cancelTime = this.sum(this.milliseconds(), timeout);
+            }
+            Map<String, Object> signRaw = new HashMap<String, Object>();
+            signRaw.put("time_in_force", timeInForce);
+            signRaw.put("time", cancelTime);
+            signRaw.put("nonce", nonce);
+            signRaw.put("api_key_index", apiKeyIndex);
+            signRaw.put("account_index", accountIndex);
             var txTypetxInfoVariable = this.lighterSignCancelAllOrders(signer, this.extend(signRaw, paramsAccountIndex));
             var txType = ((List<Object>) txTypetxInfoVariable).get(0);
             var txInfo = ((List<Object>) txTypetxInfoVariable).get(1);

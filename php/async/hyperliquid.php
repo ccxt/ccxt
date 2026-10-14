@@ -95,7 +95,7 @@ class hyperliquid extends Exchange {
                 'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
-                'fetchMyLiquidations' => false,
+                'fetchMyLiquidations' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenInterest' => true,
@@ -1410,11 +1410,20 @@ class hyperliquid extends Exchange {
          *
          * @param {string[]} [$symbols] list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->dex] perp dex name for hip3 markets, eg => 'xyz', inferred from the $symbols if not provided
          * @return {array[]} an array of objects representing market $data
          */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbolsNormalized = $this->market_symbols($symbols);
         $request = array(
             'type' => 'metaAndAssetCtxs',
         );
+        $dexName = $this->get_dex_from_symbols('fetchFundingRates', $symbolsNormalized);
+        if ($dexName !== null) {
+            $request['dex'] = $dexName;
+        }
         $response = Async\await($this->publicPostInfo($this->extend($request, $params)));
         //
         //     [
@@ -1458,7 +1467,7 @@ class hyperliquid extends Exchange {
             );
             $result[] = $data;
         }
-        return $this->parse_funding_rates($result, $symbols);
+        return $this->parse_funding_rates($result, $symbolsNormalized);
     }
 
     public function parse_funding_rate(mixed $info, ?array $market = null): array {
@@ -3890,6 +3899,120 @@ class hyperliquid extends Exchange {
         ), $marketResolved);
     }
 
+    public function fetch_my_liquidations(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_my_liquidations(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_my_liquidations(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * retrieves the users liquidated positions
+         *
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-$fills
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-$fills-by-time
+         *
+         * @param {string} [$symbol] unified CCXT $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch liquidations for
+         * @param {int} [$limit] the maximum number of $liquidation structures to retrieve
+         * @param {array} [$params] exchange specific parameters
+         * @param {int} [$params->until] timestamp in ms of the latest $liquidation
+         * @param {string} [$params->user] $user address, will default to $this->walletAddress if not provided
+         * @return {array} an array of ~@link https://docs.ccxt.com/?id=$liquidation-structure $liquidation structures~
+         */
+        list($userAddress, $paramsPublicAddress) = $this->handle_public_address('fetchMyLiquidations', $params);
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $request = array(
+            'user' => $userAddress,
+        );
+        if ($since !== null) {
+            $request['type'] = 'userFillsByTime';
+            $request['startTime'] = $since;
+        } else {
+            $request['type'] = 'userFills';
+        }
+        $until = $this->safe_integer($paramsPublicAddress, 'until');
+        $paramsOmitted = $this->omit($paramsPublicAddress, 'until');
+        if ($until !== null) {
+            $request['endTime'] = $until;
+        }
+        $response = Async\await($this->publicPostInfo($this->extend($request, $paramsOmitted)));
+        //
+        //     [
+        //         {
+        //             "coin": "NEAR",
+        //             "px": "4.6879",
+        //             "sz": "64.8",
+        //             "side": "A",
+        //             "time": 1790964546856,
+        //             "startPosition": "64.8",
+        //             "dir": "Close Long",
+        //             "closedPnl": "-16.98408",
+        //             "hash": "0x2cdf7628db20daf2ea775b69cd99d5b63347faa4776a803907fc052901d0506f",
+        //             "oid": 719874965978,
+        //             "crossed": true,
+        //             "fee": "0.131231",
+        //             "tid": 5787071443114480,
+        //             "liquidation": {
+        //                 "liquidatedUser": "0x5c902b2eb0e1d9eb9a232014824ae6247df0a480",
+        //                 "markPx": "4.69112",
+        //                 "method": "market"
+        //             },
+        //             "feeToken": "USDC",
+        //             "twapId": null
+        //         }
+        //     ]
+        //
+        $fills = array();
+        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
+            $user = $this->safe_string_lower($request, 'user');
+            for ($i = 0; $i < count($response); $i++) {
+                $fill = $response[$i];
+                $liquidation = $this->safe_dict($fill, 'liquidation', array());
+                // liquidator fills carry the liquidated counterparty here
+                if ($this->safe_string_lower($liquidation, 'liquidatedUser') === $user) {
+                    $fills[] = $fill;
+                }
+            }
+        }
+        return $this->parse_liquidations($fills, $market, $since, $limit);
+    }
+
+    public function parse_liquidation(mixed $liquidation, ?array $market = null): array {
+        //
+        // see fetchMyLiquidations
+        //
+        $timestamp = $this->safe_integer($liquidation, 'time');
+        $marketId = $this->coin_to_market_id($this->safe_string($liquidation, 'coin'));
+        $marketResolved = $this->safe_market($marketId);
+        $symbol = $marketResolved['symbol'];
+        // swap ids are asset indexes, so the market is looked up by symbol
+        if (($symbol !== null) && ($this->markets !== null) && (is_array($this->markets) && array_key_exists($symbol ?? '', $this->markets))) {
+            $marketResolved = $this->market($symbol);
+        }
+        $side = $this->safe_string($liquidation, 'side');
+        if ($side !== null) {
+            $side = ($side === 'A') ? 'sell' : 'buy';
+        }
+        $amount = $this->safe_string($liquidation, 'sz');
+        $price = $this->safe_string($liquidation, 'px');
+        return $this->safe_liquidation(array(
+            'info' => $liquidation,
+            'symbol' => $symbol,
+            'contracts' => $amount,
+            'price' => $price,
+            'baseValue' => $amount,
+            'quoteValue' => Precise::string_mul($amount, $price),
+            'side' => $side,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        ), $marketResolved);
+    }
+
     public function fetch_position(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_position(...))($symbol, $params);
     }
@@ -3917,17 +4040,15 @@ class hyperliquid extends Exchange {
         if ($symbolsLength === 0) {
             return null;
         }
-        $dexName = null;
-        for ($i = 0; $i < $symbolsLength; $i++) {
-            if ($dexName === null) {
-                $market = $this->market($symbols[$i]);
-                $dexName = $this->get_dex_from_hip3_symbol($market);
-            } else {
-                $market = $this->market($symbols[$i]);
-                $currentDexName = $this->get_dex_from_hip3_symbol($market);
-                if ($currentDexName !== $dexName) {
-                    throw new NotSupported($this->id . ' ' . $methodName . ' only supports fetching positions for one DEX at a time for HIP3 markets');
-                }
+        // the first symbol sets the dex (undefined for the main dex); every other symbol must match it,
+        // so a mix of main-dex and HIP-3 symbols throws instead of silently dropping one side
+        $firstMarket = $this->market($symbols[0]);
+        $dexName = $this->get_dex_from_hip3_symbol($firstMarket);
+        for ($i = 1; $i < $symbolsLength; $i++) {
+            $market = $this->market($symbols[$i]);
+            $currentDexName = $this->get_dex_from_hip3_symbol($market);
+            if ($currentDexName !== $dexName) {
+                throw new NotSupported($this->id . ' ' . $methodName . ' only supports symbols from one DEX at a time for HIP3 markets');
             }
         }
         return $dexName;
@@ -4473,11 +4594,11 @@ class hyperliquid extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal (only support USDC)
          *
@@ -4487,8 +4608,8 @@ class hyperliquid extends Exchange {
          * @param {string} $code unified currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @param {string} [$params->vaultAddress] vault $address withdraw from
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
@@ -4964,13 +5085,19 @@ class hyperliquid extends Exchange {
          * Retrieves the open interest for a list of $symbols
          * @param {string[]} [$symbols] Unified CCXT market symbol
          * @param {array} [$params] exchange specific parameters
+         * @param {string} [$params->dex] perp dex name for hip3 markets, eg => 'xyz', inferred from the $symbols if not provided
          * @return {array} an open interest structurearray(@link https://docs.ccxt.com/?id=open-interest-structure)
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
         $symbolsNormalized = $this->market_symbols($symbols);
-        $swapMarkets = Async\await($this->fetch_swap_markets());
+        $request = array();
+        $dexName = $this->get_dex_from_symbols('fetchOpenInterests', $symbolsNormalized);
+        if ($dexName !== null) {
+            $request['dex'] = $dexName;
+        }
+        $swapMarkets = Async\await($this->fetch_swap_markets($this->extend($request, $params)));
         return $this->parse_open_interests($swapMarkets, $symbolsNormalized);
     }
 

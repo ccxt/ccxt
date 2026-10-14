@@ -2188,20 +2188,23 @@ public partial class coinsph : Exchange
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address not used by withdraw ()
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        IList<object> tagparamsWithdrawTagVariable = (IList<object>)this.handleParamString(parameters, "tag");
+        string? tag = (string)tagparamsWithdrawTagVariable[0];
+        IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagparamsWithdrawTagVariable[1]);
         IDictionary<string, object> options = this.safeDict(this.options, "withdraw");
         bool? warning = this.safeBool(options, "warning", true);
         if ((warning == true))
         {
             throw new InvalidAddress ((this.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account")) ;
         }
-        string? networkCode = this.safeString(parameters, "network");
+        string? networkCode = this.safeString(paramsWithdrawTag, "network");
         string? networkId = ((networkCode == null)) ? null : this.networkCodeToId(networkCode, code);
         if ((networkId == null))
         {
@@ -2222,7 +2225,7 @@ public partial class coinsph : Exchange
         {
             request["withdrawOrderId"] = tag;
         }
-        object paramsOmitted = this.omit(parameters, "network");
+        Dictionary<string, object> paramsOmitted = this.omit(paramsWithdrawTag, "network");
         Dictionary<string, object> response = await this.privatePostOpenapiWalletV1WithdrawApply(this.extend(request, paramsOmitted));
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }

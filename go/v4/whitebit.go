@@ -4363,8 +4363,8 @@ func (this *Whitebit) ParseTransfer(transfer any, optionalArgs ...any) map[strin
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Whitebit) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
@@ -4375,10 +4375,11 @@ func (this *Whitebit) WithdrawAsync(code string, amount any, address any, option
 func (this *Whitebit) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
+	var tagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
+	var tag *string = SafeStringPtr(tagparamsWithdrawTagVariable[0])
+	var paramsWithdrawTag map[string]any = MapTyped(tagparamsWithdrawTagVariable[1])
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -4392,7 +4393,7 @@ func (this *Whitebit) withdrawBody(ch chan EndpointResult[map[string]any], code 
 		"amount":  this.CurrencyToPrecision(code, amount),
 		"address": address,
 	}
-	var uniqueId any = this.SafeValue(params, "uniqueId")
+	var uniqueId any = this.SafeValue(paramsWithdrawTag, "uniqueId")
 	if IsEqual(uniqueId, nil) {
 		uniqueId = this.Uuid22()
 	}
@@ -4401,14 +4402,14 @@ func (this *Whitebit) withdrawBody(ch chan EndpointResult[map[string]any], code 
 		request["memo"] = tag
 	}
 	if this.IsFiat(code) {
-		var provider any = this.SafeValue(params, "provider")
+		var provider any = this.SafeValue(paramsWithdrawTag, "provider")
 		if IsEqual(provider, nil) {
 			panic(ArgumentsRequired(this.Id + " withdraw() requires a provider when the ticker is fiat"))
 		}
 		request["provider"] = provider
 	}
 
-	r1 := <-this.V4PrivatePostMainAccountWithdraw(this.Extend(request, params))
+	r1 := <-this.V4PrivatePostMainAccountWithdraw(this.Extend(request, paramsWithdrawTag))
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -4763,11 +4764,11 @@ func (this *Whitebit) fetchBorrowInterestBody(ch chan AsyncResult[[]any], option
 		request["market"] = market["id"]
 	}
 
-	listEp4466 := <-this.V4PrivatePostCollateralAccountPositionsOpen(this.Extend(request, params))
-	if listEp4466.Err != nil {
-		panic(listEp4466.Err)
+	listEp4467 := <-this.V4PrivatePostCollateralAccountPositionsOpen(this.Extend(request, params))
+	if listEp4467.Err != nil {
+		panic(listEp4467.Err)
 	}
-	var response []any = listEp4466.Value
+	var response []any = listEp4467.Value
 	//
 	//     [
 	//         {
@@ -5549,11 +5550,11 @@ func (this *Whitebit) fetchPositionHistoryBody(ch chan AsyncResult[any], symbol 
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endDate", request, params)
 
-	listEp5196 := <-this.V4PrivatePostCollateralAccountPositionsHistory(this.Extend(requestUntil, paramsUntil))
-	if listEp5196.Err != nil {
-		panic(listEp5196.Err)
+	listEp5197 := <-this.V4PrivatePostCollateralAccountPositionsHistory(this.Extend(requestUntil, paramsUntil))
+	if listEp5197.Err != nil {
+		panic(listEp5197.Err)
 	}
-	var response []any = listEp5196.Value
+	var response []any = listEp5197.Value
 	//
 	//     [
 	//         {
@@ -5613,11 +5614,11 @@ func (this *Whitebit) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs 
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	listEp5253 := <-this.V4PrivatePostCollateralAccountPositionsOpen(params)
-	if listEp5253.Err != nil {
-		panic(listEp5253.Err)
+	listEp5254 := <-this.V4PrivatePostCollateralAccountPositionsOpen(params)
+	if listEp5254.Err != nil {
+		panic(listEp5254.Err)
 	}
-	var response []any = listEp5253.Value
+	var response []any = listEp5254.Value
 
 	//
 	//     [
@@ -5675,11 +5676,11 @@ func (this *Whitebit) fetchPositionBody(ch chan AsyncResult[any], symbol any, op
 		"symbol": market["id"],
 	}
 
-	listEp5308 := <-this.V4PrivatePostCollateralAccountPositionsOpen(this.Extend(request, params))
-	if listEp5308.Err != nil {
-		panic(listEp5308.Err)
+	listEp5309 := <-this.V4PrivatePostCollateralAccountPositionsOpen(this.Extend(request, params))
+	if listEp5309.Err != nil {
+		panic(listEp5309.Err)
 	}
-	var response []any = listEp5308.Value
+	var response []any = listEp5309.Value
 	//
 	//     [
 	//         {
@@ -5831,11 +5832,11 @@ func (this *Whitebit) fetchFundingRateHistoryBody(ch chan AsyncResult[any], opti
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes422119 []any = ListTyped(r.Value)
-		if retRes422119 == nil {
+		var retRes422219 []any = ListTyped(r.Value)
+		if retRes422219 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes422119}
+			ch <- AsyncResult[any]{Value: retRes422219}
 		}
 		return nil
 	}
@@ -5858,11 +5859,11 @@ func (this *Whitebit) fetchFundingRateHistoryBody(ch chan AsyncResult[any], opti
 		requestUntil["limit"] = *limit
 	}
 
-	listEp5480 := <-this.V4PublicGetFundingHistoryMarket(this.Extend(requestUntil, paramsUntil))
-	if listEp5480.Err != nil {
-		panic(listEp5480.Err)
+	listEp5481 := <-this.V4PublicGetFundingHistoryMarket(this.Extend(requestUntil, paramsUntil))
+	if listEp5481.Err != nil {
+		panic(listEp5481.Err)
 	}
-	var response []any = listEp5480.Value
+	var response []any = listEp5481.Value
 
 	//
 	//     [
@@ -6947,8 +6948,8 @@ func (this *Whitebit) Transfer(code string, amount float64, fromAccount string, 
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Whitebit) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
@@ -6958,7 +6959,7 @@ func (this *Whitebit) Withdraw(code string, amount float64, address string, opti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

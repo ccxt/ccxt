@@ -3259,8 +3259,8 @@ func (this *Blofin) fetchWithdrawalBody(ch chan AsyncResult[map[string]any], id 
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw, the withdrawal fee is not included and must be reserved on top
  * @param {string} address the address to withdraw to, or a UID / email / phone number for an internal transfer
- * @param {string} tag additional identifier (memo / payment id) required by certain networks
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @param {string} [params.network] the unified network code for on-chain withdrawals, mapped to the exchange's chain name
  * @param {string} [params.dest] 'onchain' (default) or 'internal' for an internal transfer
  * @param {string} [params.addrType] address type, 1: wallet address, 2: UID, 3: email, 4: mobile phone
@@ -3286,14 +3286,12 @@ func (this *Blofin) withdrawBody(ch chan EndpointResult[map[string]any], code st
 	//   with 152002 "Invalid parameter" - see options["networks"]
 	// - 152002 responses omit the offending field name even though the
 	//   error table documents the message as "Parameter {} error"
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagValue *string = nil
+	var tagValue any = nil
 	var query any = nil
-	var tagValuequeryVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tagValue = SafeStringPtr(tagValuequeryVariable[0])
+	var tagValuequeryVariable []any = this.HandleParamString(params, "tag")
+	tagValue = GetValue(tagValuequeryVariable, 0)
 	query = GetValue(tagValuequeryVariable, 1)
 
 	r := <-this.LoadMarketsAsync()
@@ -3310,7 +3308,7 @@ func (this *Blofin) withdrawBody(ch chan EndpointResult[map[string]any], code st
 	request["dest"] = dest
 	query = this.Omit(query, "dest")
 	if dest != nil && *dest == "onchain" {
-		this.CheckAddress(address)
+		this.CheckAddress(address, code, tagValue)
 		// the doc's Request Parameters table marks addrType "Required:
 		// No", but the live venue rejects on-chain withdrawals without
 		// it (152001 "Parameter addrType cannot be empty") - default to
@@ -5506,8 +5504,8 @@ func (this *Blofin) FetchWithdrawal(id string, options ...FetchWithdrawalOptions
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw, the withdrawal fee is not included and must be reserved on top
  * @param {string} address the address to withdraw to, or a UID / email / phone number for an internal transfer
- * @param {string} tag additional identifier (memo / payment id) required by certain networks
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @param {string} [params.network] the unified network code for on-chain withdrawals, mapped to the exchange's chain name
  * @param {string} [params.dest] 'onchain' (default) or 'internal' for an internal transfer
  * @param {string} [params.addrType] address type, 1: wallet address, 2: UID, 3: email, 4: mobile phone
@@ -5522,7 +5520,7 @@ func (this *Blofin) Withdraw(code string, amount float64, address string, option
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

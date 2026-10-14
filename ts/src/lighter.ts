@@ -971,6 +971,16 @@ export default class lighter extends Exchange {
         const [ groupingType, paramsGroupingType ] = this.handleOptionIntegerAndParams (params, method, 'groupingType', 3); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         const orderRequests = this.createOrderRequest (symbol, type, side, amount, price, paramsGroupingType);
         const totalOrderRequests = orderRequests.length;
+        if (totalOrderRequests > 1) {
+            // the signer replaces a -1 expiry with now + 28 days reading the clock once per leg, and rejects
+            // a group whose legs differ ("OrderExpiry is invalid"), so resolve the default once for all legs
+            const groupOrderExpiry = this.sum (this.milliseconds (), 2419200000); // 28 days
+            for (let i = 0; i < totalOrderRequests; i++) {
+                if (this.safeInteger (orderRequests[i], 'order_expiry') === -1) {
+                    orderRequests[i]['order_expiry'] = groupOrderExpiry;
+                }
+            }
+        }
         let order: NullableDict = undefined;
         if (totalOrderRequests > 0) {
             order = orderRequests[0];
@@ -2877,14 +2887,14 @@ export default class lighter extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} [tag]
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.accountIndex] account index
      * @param {string} [params.apiKeyIndex] api key index
      * @param {int} [params.routeType] wallet type, 0: perp, 1: spot, default is 0
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3266,8 +3276,12 @@ export default class lighter extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        if (((timeout as number) < 300000) || ((timeout as number) > 1296000000)) {
-            throw new BadRequest (this.id + ' timeout should be between 5 minutes and 15 days.');
+        if (timeout === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrdersAfter() requires a timeout argument');
+        }
+        const isScheduled = (timeout !== 0);
+        if (isScheduled && (((timeout as number) < 300000) || ((timeout as number) > 1296000000))) {
+            throw new BadRequest (this.id + ' timeout should be between 5 minutes and 15 days, or 0 to cancel the timer.');
         }
         const [ apiKeyIndex, paramsApiKeyIndex ] = this.handleApiKeyIndex (params, 'cancelOrder', 'apiKeyIndex', 'api_key_index');
         const [ accountIndex, paramsAccountIndex ] = await this.handleAccountIndex (paramsApiKeyIndex, 'cancelAllOrdersAfter', 'accountIndex', 'account_index');
@@ -3275,9 +3289,15 @@ export default class lighter extends Exchange {
         const strApiKeyIndex = this.numberToString (apiKeyIndex) as string;
         const signer = await this.loadAccount (this.options['chainId'], this.getLighterPrivateKey (strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex);
         const nonce = await this.fetchNonce (accountIndex, apiKeyIndex, paramsAccountIndex);
+        let timeInForce = 2; // 0: IMMEDIATE 1: SCHEDULED 2: ABORT
+        let cancelTime = 0;
+        if (isScheduled) {
+            timeInForce = 1;
+            cancelTime = this.sum (this.milliseconds (), timeout);
+        }
         const signRaw: Dict = {
-            'time_in_force': 1, // 0: IMMEDIATE 1: SCHEDULED 2: ABORT
-            'time': this.milliseconds () + (timeout as number), // if time_in_force is not IMMEDIATE, set the timestamp_ms here
+            'time_in_force': timeInForce,
+            'time': cancelTime,
             'nonce': nonce,
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,

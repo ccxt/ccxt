@@ -213,7 +213,7 @@ export default class bit2c extends Exchange {
             },
             'options': {
                 'fetchTrades': {
-                    'method': 'public_get_exchanges_pair_trades',
+                    'method': 'publicGetExchangesPairTrades',
                 },
             },
             'features': {
@@ -480,7 +480,7 @@ export default class bit2c extends Exchange {
         }
         const market = this.market(symbol);
         const optionValue = this.safeString(this.options, 'fetchTradesMethod'); // kept here for backward compatibility #29154
-        const method = this.handleOption('fetchTrades', 'method', optionValue); // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
+        const method = this.handleOption('fetchTrades', 'method', optionValue); // publicGetExchangesPairTrades or publicGetExchangesPairLasttrades
         const request = {
             'pair': market['id'],
         };
@@ -491,7 +491,7 @@ export default class bit2c extends Exchange {
             request['limit'] = limit; // max 100000
         }
         let responseList = [];
-        if (method === 'public_get_exchanges_pair_trades') {
+        if ((method === 'publicGetExchangesPairTrades') || (method === 'public_get_exchanges_pair_trades')) {
             const response = await this.publicGetExchangesPairTrades(this.extend(request, params));
             //
             //     [

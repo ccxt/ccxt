@@ -52,6 +52,10 @@ class poloniex(ccxt.async_support.poloniex):
             },
             'options': {
                 'createMarketBuyOrderRequiresPrice': True,
+                'watchBalance': {
+                    'fetchBalanceSnapshot': True,  # or false
+                    'awaitBalanceSnapshot': True,  # whether to wait for the balance snapshot before providing updates
+                },
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'OHLCVLimit': 1000,
@@ -533,7 +537,55 @@ class poloniex(ccxt.async_support.poloniex):
             await self.load_markets()
         name = 'balances'
         await self.authenticate()
+        # the balances channel only streams per-event deltas, so seed the
+        # balance from a rest snapshot once per subscription - otherwise the
+        # first resolves would only list the currencies that changed since
+        # subscribing
+        url = self.urls['api']['ws']['private']
+        client = self.client(url)
+        self.set_balance_cache(client, name)
+        options = self.safe_dict(self.options, 'watchBalance')
+        fetchBalanceSnapshot = self.safe_bool(options, 'fetchBalanceSnapshot', False)
+        awaitBalanceSnapshot = self.safe_bool(options, 'awaitBalanceSnapshot', True)
+        if (fetchBalanceSnapshot is True) and (awaitBalanceSnapshot is True):
+            await client.future(name + ':fetchBalanceSnapshot')
         return await self.subscribe(name, name, True, None, params)
+
+    def set_balance_cache(self, client: Client, type: str):
+        if type in client.subscriptions:
+            return
+        options = self.safe_dict(self.options, 'watchBalance')
+        fetchBalanceSnapshot = self.safe_bool(options, 'fetchBalanceSnapshot', False)
+        if fetchBalanceSnapshot is True:
+            messageHash = type + ':fetchBalanceSnapshot'
+            if not (messageHash in client.futures):
+                client.future(messageHash)
+                self.spawn(self.load_balance_snapshot, client, messageHash, type)
+
+    async def load_balance_snapshot(self, client: Client, messageHash: str, type: str):
+        response = await self.fetch_balance()
+        # merge the snapshot into the existing balance object per currency so
+        # the object keeps its identity and deltas that arrived while the
+        # snapshot was in flight are not overwritten; the free/used/total
+        # aggregates are rebuilt from the merged currencies by safeBalance
+        reserved = ['info', 'timestamp', 'datetime', 'free', 'used', 'total']
+        keys = list(response.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            if self.in_array(key, reserved):
+                continue
+            if not (key in self.balance):
+                self.balance[key] = response[key]
+        if not ('info' in self.balance):
+            self.balance['info'] = response['info']
+            self.balance['timestamp'] = response['timestamp']
+            self.balance['datetime'] = response['datetime']
+        self.balance = self.safe_balance(self.balance)
+        # don't remove the future from the .futures cache
+        if messageHash in client.futures:
+            future = client.futures[messageHash]
+            future.resolve()
+            client.resolve(self.balance, type)
 
     def parse_ws_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
@@ -1066,12 +1118,18 @@ class poloniex(ccxt.async_support.poloniex):
             asks = self.safe_list(item, 'asks')
             bids = self.safe_list(item, 'bids')
             if snapshot or update:
-                if snapshot:
+                if snapshot and not (symbol in self.orderbooks):
                     self.orderbooks[symbol] = self.order_book({}, limit)
                 if not (symbol in self.orderbooks):
                     # a delta can arrive before the snapshot, it cannot be applied without a book
                     continue
                 orderbook = self.orderbooks[symbol]
+                if snapshot:
+                    # reset the existing orderbook in place instead of
+                    # replacing it: a consumer awakened earlier keeps a
+                    # reference to the old object and would be orphaned
+                    # from later updates on a resync/reconnect otherwise
+                    orderbook.reset({})
                 if bids is not None:
                     for j in range(0, len(bids)):
                         bid = self.safe_list(bids, j)
@@ -1111,45 +1169,33 @@ class poloniex(ccxt.async_support.poloniex):
         #        ]
         #    }
         #
+        # the balances channel only sends per-event deltas for the currencies
+        # that changed, so merge them into the existing balance object instead
+        # of rebuilding it from the current message: a rebuilt object would
+        # drop every other currency, and a consumer awakened by an earlier
+        # message keeps a reference to the old object while Client.resolve is
+        # a no-op with no waiter, so updates landing in that window would
+        # never reach that consumer (same class as kraken issue #26773)
         data = self.safe_list(message, 'data', [])
         messageHash = 'balances'
-        self.balance = self.parse_ws_balance(data)
-        client.resolve(self.balance, messageHash)
-
-    def parse_ws_balance(self, response: list) -> Balances:
-        #
-        #    [
-        #        {
-        #            "changeTime": 1657312008411,
-        #            "accountId": "1234",
-        #            "accountType": "SPOT",
-        #            "eventType": "place_order",
-        #            "available": "9999999983.668",
-        #            "currency": "BTC",
-        #            "id": 60018450912695040,
-        #            "userId": 12345,
-        #            "hold": "16.332",
-        #            "ts": 1657312008443
-        #        }
-        #    ]
-        #
-        firstBalance = self.safe_dict(response, 0, {})
+        if self.balance is None:
+            self.balance = {}
+        self.balance['info'] = data
+        firstBalance = self.safe_dict(data, 0, {})
         timestamp = self.safe_integer(firstBalance, 'ts')
-        result = {
-            'info': response,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-        }
-        for i in range(0, len(response)):
-            balance = self.safe_dict(response, i)
+        self.balance['timestamp'] = timestamp
+        self.balance['datetime'] = self.iso8601(timestamp)
+        for i in range(0, len(data)):
+            balance = self.safe_dict(data, i)
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             newAccount = self.account()
             newAccount['free'] = self.safe_string(balance, 'available')
             newAccount['used'] = self.safe_string(balance, 'hold')
             if code is not None:
-                result[code] = newAccount
-        return self.safe_balance(result)
+                self.balance[code] = newAccount
+        self.balance = self.safe_balance(self.balance)
+        client.resolve(self.balance, messageHash)
 
     def handle_my_trades(self, client: Client, parsedTrade: Trade):
         # emulated using the orders' stream

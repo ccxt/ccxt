@@ -1040,20 +1040,7 @@ public partial class bithumb : Exchange
         string? marketId = this.safeString(ticker, "market");
         string? symbol = this.safeSymbol(marketId, market);
         string? close = this.safeString2(ticker, "closing_price", "trade_price");
-        string? change = this.safeString2(ticker, "signed_change_price", "change_price");
-        string? percentage = this.safeString2(ticker, "signed_change_rate", "change_rate");
         string? open = this.safeString(ticker, "opening_price");
-        string? nonZeroOpen = ((string)this.omitZero(open));
-        if (((marketId != null)) && ((nonZeroOpen != null)) && ((close != null)))
-        {
-            string? computedChange = Precise.stringSub(close, open);
-            // Some v2 payloads return signed_change_price as 0 while open/last imply a non-zero move.
-            if (((change != null)) && Precise.stringEq(change, "0") && !Precise.stringEq(computedChange, "0"))
-            {
-                change = computedChange;
-                percentage = null;
-            }
-        }
         string? high = this.safeString2(ticker, "max_price", "high_price");
         string? low = this.safeString2(ticker, "min_price", "low_price");
         // Some generation 2 ticker payloads can contain inconsistent high/low versus last.
@@ -1080,8 +1067,8 @@ public partial class bithumb : Exchange
             { "close", close },
             { "last", close },
             { "previousClose", this.safeString(ticker, "prev_closing_price") },
-            { "change", change },
-            { "percentage", percentage },
+            { "change", null },
+            { "percentage", null },
             { "average", null },
             { "baseVolume", this.safeString2(ticker, "units_traded_24H", "acc_trade_volume_24h") },
             { "quoteVolume", this.safeString2(ticker, "acc_trade_value_24H", "acc_trade_price_24h") },
@@ -2934,8 +2921,8 @@ public partial class bithumb : Exchange
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag the secondary withdrawal destination address
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @param {string} [params.network] the blockchain network to withdraw on, for example BTC or DASH
      * @param {string} [params.destination] secondary address destination for specific currencies, can alternatively use the tag argument
@@ -2950,7 +2937,7 @@ public partial class bithumb : Exchange
      * @param {string} [params.two_factor_type] *generation 2 KRW withdraw only* the two factor type, for example kakao
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2960,16 +2947,16 @@ public partial class bithumb : Exchange
         (Int64?, object) generationparamsGenerationVariable = this.handleOptionIntegerAndParams(parameters, "withdraw", "generation", 2);
         Int64? generation = generationparamsGenerationVariable.Item1;
         IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
-        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleWithdrawTagAndParams(tag, paramsGeneration);
-        var tagWithdrawTag = tagWithdrawTagparamsWithdrawTagVariable[0];
+        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleParamString(paramsGeneration, "tag");
+        string? tagWithdrawTag = (string)tagWithdrawTagparamsWithdrawTagVariable[0];
         IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagWithdrawTagparamsWithdrawTagVariable[1]);
-        this.checkAddress(address);
+        this.checkAddress(address, code, tagWithdrawTag);
         string? network = this.safeString2(paramsWithdrawTag, "network", "net_type");
         Dictionary<string, object> paramsNetwork = this.omit(paramsWithdrawTag, "network");
         Dictionary<string, object> currency = this.currency(code);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> response = null;
-        object destinationRequest = null;
+        string? destinationRequest = null;
         bool requiresDestination = ((code == "XRP") || (code == "XMR") || (code == "EOS") || (code == "STEEM") || (code == "TON"));
         object paramsDestination = paramsNetwork;
         if (requiresDestination)
@@ -2981,7 +2968,7 @@ public partial class bithumb : Exchange
             string? destination = this.safeString2(paramsNetwork, "destination", "secondary_address");
             if (((tagWithdrawTag == null)) && ((destination == null)))
             {
-                throw new ArgumentsRequired ((((this.id + " ") + code) + " withdraw() requires a tag argument or an extra destination param")) ;
+                throw new ArgumentsRequired ((((this.id + " ") + code) + " withdraw() requires a tag or an extra destination param")) ;
             } else if ((tagWithdrawTag != null))
             {
                 destinationRequest = tagWithdrawTag;

@@ -12,6 +12,7 @@ import io.github.ccxt.types.DepositAddress;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Status;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
@@ -1728,7 +1729,7 @@ public class Coinsph extends CoinsphApi
                 } else if (java.util.Objects.equals(orderSide, "BUY"))
                 {
                     String quoteAmount = null;
-                    io.github.ccxt.base.Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsType), "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                    Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsType), "createOrder", "createMarketBuyOrderRequiresPrice", true);
                     Boolean createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.first();
                     Map<String, Object> paramsRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.second();
                     Double cost = this.safeNumber2(paramsRequiresPrice, "cost", "quoteOrderQty", (Object) null);
@@ -2302,22 +2303,25 @@ public class Coinsph extends CoinsphApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address not used by withdraw ()
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            List<Object> tagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
+            String tag = (String) ((List<Object>) tagparamsWithdrawTagVariable).get(0);
+            Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagparamsWithdrawTagVariable).get(1);
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "withdraw", (Object) null);
             Boolean warning = (Boolean) this.safeBool(options, "warning", true);
             if (java.util.Objects.equals(warning, true))
             {
                 throw new InvalidAddress((this.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account")) ;
             }
-            String networkCode = this.safeString(parameters, "network");
+            String networkCode = this.safeString(paramsWithdrawTag, "network");
             Object networkId = (((java.util.Objects.equals(networkCode, null)))) ? null : this.networkCodeToId(networkCode, code);
             if (java.util.Objects.equals(networkId, null))
             {
@@ -2337,7 +2341,7 @@ public class Coinsph extends CoinsphApi
             {
                 request.put("withdrawOrderId", tag);
             }
-            Map<String, Object> paramsOmitted = this.omit(parameters, "network");
+            Map<String, Object> paramsOmitted = this.omit(paramsWithdrawTag, "network");
             Map<String, Object> response = (this.privatePostOpenapiWalletV1WithdrawApply(this.extend(request, paramsOmitted))).join();
             return this.parseTransaction((Map<String, Object>) (response), currency);
         }).thenApply(Transaction::new);

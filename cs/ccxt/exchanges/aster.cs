@@ -4753,16 +4753,17 @@ public partial class aster : Exchange
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        List<object> tagAndParams = this.handleWithdrawTagAndParams(tag, parameters);
-        object paramsWithdrawTag = (tagAndParams != null && 1 < tagAndParams.Count ? tagAndParams[1] : null);
-        this.checkAddress(address);
+        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleParamString(parameters, "tag");
+        string? tagWithdrawTag = (string)tagWithdrawTagparamsWithdrawTagVariable[0];
+        IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagWithdrawTagparamsWithdrawTagVariable[1]);
+        this.checkAddress(address, code, tagWithdrawTag);
         await this.loadMarketsAndSignIn();
         Dictionary<string, object> currency = this.currency(code);
         Int64 nonce = (this.milliseconds() * 1000);
@@ -4792,7 +4793,7 @@ public partial class aster : Exchange
             throw new ArgumentsRequired ((this.id + " withdraw require fee parameter")) ;
         }
         request["fee"] = fee;
-        object paramsOmitted = this.omit(paramsWithdrawTag, new List<object>() {"chainId", "network", "fee"});
+        Dictionary<string, object> paramsOmitted = this.omit(paramsWithdrawTag, new List<object>() {"chainId", "network", "fee"});
         request["amount"] = this.currencyToPrecision(code, amount, network);
         request["userSignature"] = this.signWithdrawPayload(request, network);
         Dictionary<string, object> response = await this.sapiPrivatePostV3AsterUserWithdraw(this.extend(request, paramsOmitted));

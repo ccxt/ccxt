@@ -35,13 +35,13 @@ export default class poloniex extends Exchange {
                 'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'cancelOrders': undefined, // not yet implemented, because RL is worse than cancelOrder
+                'cancelOrders': true,
                 'createDepositAddress': true,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
-                'createOrders': undefined, // not yet implemented, because RL is worse than createOrder
+                'createOrders': true,
                 'createStopOrder': true,
                 'createTriggerOrder': true,
                 'editOrder': true,
@@ -299,7 +299,7 @@ export default class poloniex extends Exchange {
                 'XAP': 'API Coin',
                 // this is not documented in the API docs for Poloniex
                 // https://github.com/ccxt/ccxt/issues/7084
-                // when the user calls withdraw ('USDT', amount, address, tag, params)
+                // when the user calls withdraw ('USDT', amount, address, params)
                 // with params = { 'currencyToWithdrawAs': 'USDTTRON' }
                 // or params = { 'currencyToWithdrawAs': 'USDTETH' }
                 // fetchWithdrawals ('USDT') returns the corresponding withdrawals
@@ -1776,7 +1776,12 @@ export default class poloniex extends Exchange {
         const price = this.safeStringN(order, ['price', 'rate', 'px']);
         const amount = this.safeString2(order, 'quantity', 'sz');
         const filled = this.safeString2(order, 'filledQuantity', 'execQty');
-        const status = this.parseOrderStatus(this.safeString(order, 'state'));
+        let status = this.parseOrderStatus(this.safeString(order, 'state'));
+        const errorCode = this.safeInteger(order, 'code');
+        if ((status === undefined) && (errorCode !== undefined) && (errorCode !== 200)) {
+            // the batch endpoints report per-element failures with an error code instead of throwing
+            status = 'rejected';
+        }
         const side = this.safeStringLower(order, 'side');
         const rawType = this.safeString(order, 'type');
         const type = this.parseOrderType(rawType);
@@ -2088,6 +2093,94 @@ export default class poloniex extends Exchange {
         //
         return this.parseOrder(response, market);
     }
+    /**
+     * @method
+     * @name poloniex#createOrders
+     * @description create a list of trade orders, all orders must be of the same market type, either spot or swap
+     * @see https://api-docs.poloniex.com/spot/api/private/order#create-multiple-orders
+     * @see https://api-docs.poloniex.com/v3/futures/api/trade/place-multiple-orders
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint, applied to every order
+     * @param {string} [params.marginMode] *swap only* 'cross' or 'isolated', defaults to 'cross'
+     * @param {string} [params.posSide] *swap only* 'LONG', 'SHORT' or 'BOTH', defaults to 'BOTH', the batch endpoint requires it explicitly
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async createOrders(orders, params = {}) {
+        await this.loadMarkets();
+        const ordersRequests = [];
+        const ordersMarkets = [];
+        let market = undefined;
+        let isContract = false;
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const symbol = rawOrder['symbol'];
+            const marketInner = this.market(symbol);
+            if (market === undefined) {
+                market = marketInner;
+                isContract = (marketInner['contract'] === true);
+            }
+            else if (market['type'] !== marketInner['type']) {
+                throw new BadRequest(this.id + ' createOrders() requires all orders to be of the same market type, either spot or swap');
+            }
+            const type = rawOrder['type'];
+            const side = rawOrder['side'];
+            const amount = this.safeNumber(rawOrder, 'amount');
+            const price = this.safeNumber(rawOrder, 'price');
+            const orderParams = this.safeDict(rawOrder, 'params', {});
+            // the request body is a bare list, so there is no room for common params - extend each order with them instead
+            let extendedParams = this.extend(orderParams, params);
+            let request = {
+                'symbol': marketInner['id'],
+                'side': this.safeStringUpper(rawOrder, 'side'),
+            };
+            [request, extendedParams] = this.orderRequest(symbol, type, side, amount, request, price, extendedParams);
+            const merged = this.extend(request, extendedParams);
+            if (isContract) {
+                // unlike the single-order endpoint, the batch endpoint refuses to apply server-side defaults: "Param error mgnMode and posSide must be present and not empty"
+                if (!('mgnMode' in merged)) {
+                    merged['mgnMode'] = 'CROSS';
+                }
+                if (!('posSide' in merged)) {
+                    merged['posSide'] = 'BOTH';
+                }
+            }
+            ordersRequests.push(merged);
+            ordersMarkets.push(marketInner);
+        }
+        let data = [];
+        if (isContract) {
+            const response = await this.swapPrivatePostV3TradeOrders(ordersRequests);
+            //
+            //     {
+            //         "code": 200,
+            //         "msg": "Success",
+            //         "data": [
+            //             { "code": 200, "msg": "", "ordId": "613155521545418752", "clOrdId": "batch-swap-1" },
+            //             { "code": 10014, "msg": "Order price exceeds the limit", "ordId": "", "clOrdId": "" }
+            //         ]
+            //     }
+            //
+            data = this.safeList(response, 'data', []);
+        }
+        else {
+            //
+            //     [
+            //         { "id": "613155521545418752", "clientOrderId": "batch-1" },
+            //         { "code": 21709, "message": "Low available balance", "clientOrderId": "" }
+            //     ]
+            //
+            data = await this.privatePostOrdersBatch(ordersRequests);
+        }
+        // the responses are positional, aligned with the submitted orders
+        const results = [];
+        const dataLength = data.length;
+        for (let i = 0; i < dataLength; i++) {
+            const entry = data[i];
+            const entryMarket = ordersMarkets[i];
+            results.push(this.parseOrder(entry, entryMarket));
+        }
+        return results;
+    }
     orderRequest(symbol, type, side, amount, request, price = undefined, params = {}) {
         const triggerPrice = this.safeNumber2(params, 'stopPrice', 'triggerPrice');
         const market = this.market(symbol);
@@ -2296,6 +2389,69 @@ export default class poloniex extends Exchange {
         //   }
         //
         return this.parseOrder(response);
+    }
+    /**
+     * @method
+     * @name poloniex#cancelOrders
+     * @description cancel multiple orders
+     * @see https://api-docs.poloniex.com/spot/api/private/order#cancel-multiple-orders-by-ids
+     * @see https://api-docs.poloniex.com/v3/futures/api/trade/cancel-multiple-orders
+     * @param {string[]} ids order ids
+     * @param {string} [symbol] unified market symbol, required for swap markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string[]} [params.clientOrderIds] alternative to ids, cancel by client order ids
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async cancelOrders(ids, symbol = undefined, params = {}) {
+        await this.loadMarkets();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
+        const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('cancelOrders', market, params);
+        const clientOrderIds = this.safeList2(paramsMarketType, 'clientOrderIds', 'clOrdIds');
+        const query = this.omit(paramsMarketType, ['clientOrderIds', 'clOrdIds']);
+        const request = {};
+        const idsLength = ids.length;
+        if (marketType !== 'spot') {
+            if (market === undefined) {
+                throw new ArgumentsRequired(this.id + ' cancelOrders() requires a symbol argument for ' + marketType + ' markets');
+            }
+            request['symbol'] = market['id'];
+            // the api ignores clOrdIds when ordIds are also present
+            if (idsLength > 0) {
+                request['ordIds'] = ids;
+            }
+            else if (clientOrderIds !== undefined) {
+                request['clOrdIds'] = clientOrderIds;
+            }
+            const responseRaw = await this.swapPrivateDeleteV3TradeBatchOrders(this.extend(request, query));
+            //
+            //     {
+            //         "code": 200,
+            //         "msg": "Success",
+            //         "data": [
+            //             { "code": "200", "msg": "Success", "ordId": "613143856837730304", "clOrdId": "" },
+            //             { "code": "11008", "msg": "ORDER_NOT_EXISTS", "ordId": "613144005890699264", "clOrdId": "" }
+            //         ]
+            //     }
+            //
+            const data = this.safeList(responseRaw, 'data', []);
+            return this.parseOrders(data, market);
+        }
+        if (idsLength > 0) {
+            request['orderIds'] = ids;
+        }
+        if (clientOrderIds !== undefined) {
+            request['clientOrderIds'] = clientOrderIds;
+        }
+        const response = await this.privateDeleteOrdersCancelByIds(this.extend(request, query));
+        //
+        //     [
+        //         { "orderId": "123456789", "clientOrderId": "", "state": "PENDING_CANCEL", "code": 200, "message": "" }
+        //     ]
+        //
+        return this.parseOrders(response, market);
     }
     /**
      * @method
@@ -2864,13 +3020,13 @@ export default class poloniex extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
-        this.checkAddress(address);
+    async withdraw(code, amount, address, params = {}) {
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
+        this.checkAddress(address, code, tagWithdrawTag);
         const currency = this.currency(code);
         const request = {
             'coin': currency['id'],
@@ -3665,6 +3821,7 @@ export default class poloniex extends Exchange {
         return this.milliseconds();
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const isArray = Array.isArray(params);
         let url = this.urls['api']['spot'];
         if (this.inArray(api, ['swapPublic', 'swapPrivate'])) {
             url = this.urls['api']['swap'];
@@ -3690,7 +3847,7 @@ export default class poloniex extends Exchange {
             auth += '/' + implodedPath;
             if ((method === 'POST') || (method === 'PUT') || (method === 'DELETE')) {
                 auth += "\n"; // eslint-disable-line quotes
-                if (Object.keys(query).length > 0) {
+                if (isArray || Object.keys(query).length > 0) {
                     bodyJson = this.json(query);
                     auth += 'requestBody=' + bodyJson + '&';
                 }

@@ -1551,7 +1551,10 @@ class paradex(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_integer(order, 'created_at')
         orderId = self.safe_string(order, 'id')
-        clientOrderId = self.omit_zero(self.safe_string(order, 'client_id'))
+        # a client id is free text, omitZero would drop every non-numeric one in php
+        clientOrderId = self.safe_string(order, 'client_id')
+        if clientOrderId == '':
+            clientOrderId = None
         marketId = self.safe_string(order, 'market')
         marketResolved = self.safe_market(marketId, market)
         symbol = marketResolved['symbol']
@@ -2397,9 +2400,11 @@ class paradex(Exchange, ImplicitAPI):
         #                 "realized_pnl": "0",
         #                 "unrealized_pnl": "-2.39677214",
         #                 "unrealized_funding_pnl": "-0.11214013",
+        #                 "leverage": "5",
         #                 "cost": "648.39960537",
         #                 "cost_usd": "648.529",
         #                 "cached_funding_index": "35202.1002351",
+        #                 "created_at": 1718947571560,
         #                 "last_updated_at": 1718950074249,
         #                 "last_fill_id": "1718947571560201703986670001",
         #                 "seq_no": 1718950074249176253,
@@ -2424,9 +2429,11 @@ class paradex(Exchange, ImplicitAPI):
         #         "realized_pnl": "0",
         #         "unrealized_pnl": "-2.39677214",
         #         "unrealized_funding_pnl": "-0.11214013",
+        #         "leverage": "5",
         #         "cost": "648.39960537",
         #         "cost_usd": "648.529",
         #         "cached_funding_index": "35202.1002351",
+        #         "created_at": 1718947571560,
         #         "last_updated_at": 1718950074249,
         #         "last_fill_id": "1718947571560201703986670001",
         #         "seq_no": 1718950074249176253,
@@ -2437,31 +2444,33 @@ class paradex(Exchange, ImplicitAPI):
         marketResolved = self.safe_market(marketId, market)
         symbol = marketResolved['symbol']
         side = self.safe_string_lower(position, 'side')
-        quantity = self.safe_string(position, 'size')
-        if side != 'long':
-            quantity = Precise.string_mul('-1', quantity)
-        timestamp = self.safe_integer(position, 'time')
+        # side carries the direction, the unified contracts is a magnitude whether or not size is signed
+        quantity = Precise.string_abs(self.safe_string(position, 'size'))
+        timestamp = self.safe_integer(position, 'created_at')
         liquidationPrice = self.parse_number(self.omit_zero(self.safe_string(position, 'liquidation_price')))
+        # cost_usd is signed by side, the unified notional is a magnitude
+        notionalString = Precise.string_abs(self.safe_string(position, 'cost_usd'))
         return self.safe_position({
             'info': position,
             'id': self.safe_string(position, 'id'),
             'symbol': symbol,
             'entryPrice': self.safe_number(position, 'average_entry_price'),
             'markPrice': None,
-            'notional': None,
-            'collateral': self.safe_number(position, 'cost'),
+            'notional': self.parse_number(notionalString),
+            'collateral': None,  # cross margin is held at the account level, the position payload only carries its cost
             'unrealizedPnl': self.safe_number(position, 'unrealized_pnl'),
             'side': side,
             'contracts': self.parse_number(quantity),
             'contractSize': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastUpdateTimestamp': self.safe_integer(position, 'last_updated_at'),
             'hedged': None,
             'maintenanceMargin': None,
             'maintenanceMarginPercentage': None,
             'initialMargin': None,
             'initialMarginPercentage': None,
-            'leverage': None,
+            'leverage': self.safe_number(position, 'leverage'),
             'liquidationPrice': liquidationPrice,
             'marginRatio': None,
             'marginMode': None,

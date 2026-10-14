@@ -92,12 +92,12 @@ class deepcoin extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => false,
                 'fetchOrderTrades' => true,
-                'fetchPosition' => true,
+                'fetchPosition' => false,
                 'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => true,
                 'fetchPositionsForSymbol' => true,
-                'fetchPositionsHistory' => true,
+                'fetchPositionsHistory' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => false,
                 'fetchTicker' => false,
@@ -585,7 +585,7 @@ class deepcoin extends Exchange {
         ));
     }
 
-    public function set_markets(mixed $markets, $currencies = null) {
+    public function set_markets(mixed $markets, mixed $currencies = null) {
         $result = parent::set_markets($markets, $currencies);
         $symbols = is_array($result) ? array_keys($result) : array();
         for ($i = 0; $i < count($symbols); $i++) {

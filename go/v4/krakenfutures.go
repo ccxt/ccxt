@@ -2456,7 +2456,7 @@ func (this *Krakenfutures) fetchClosedOrdersBody(ch chan AsyncResult[any], optio
 /**
  * @method
  * @name krakenfutures#fetchCanceledOrders
- * @see https://docs.kraken.com/api/docs/futures-api/history/get-order-events
+ * @see https://docs.kraken.com/api-reference/account-history/get-order-events
  * @description Gets all canceled orders, including trigger orders, for an account from the exchange api
  * @param {string} symbol Unified market symbol
  * @param {int} [since] Timestamp (ms) of earliest order.
@@ -2497,7 +2497,7 @@ func (this *Krakenfutures) fetchCanceledOrdersBody(ch chan AsyncResult[[]any], o
 		request["count"] = limit
 	}
 	if since != nil {
-		request["from"] = since
+		request["since"] = since
 	}
 	var response map[string]any = nil
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
@@ -5409,7 +5409,7 @@ func (this *Krakenfutures) FetchClosedOrders(options ...FetchClosedOrdersOptions
 /**
  * @method
  * @name krakenfutures#fetchCanceledOrders
- * @see https://docs.kraken.com/api/docs/futures-api/history/get-order-events
+ * @see https://docs.kraken.com/api-reference/account-history/get-order-events
  * @description Gets all canceled orders, including trigger orders, for an account from the exchange api
  * @param {string} symbol Unified market symbol
  * @param {int} [since] Timestamp (ms) of earliest order.

@@ -20,7 +20,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"unicode/utf8"
 
 	"github.com/gorilla/websocket"
 )
@@ -494,9 +493,10 @@ func (this *Client) OnMessage(messageEvent any) {
 			// Would need to implement zlib inflation
 			messageStr = string(bytes)
 		} else {
-			// some exchanges send a regular json/string message as a binary frame
-			// so we check if it is json/string first to avoid unnecessary conversion
-			if this.DecompressBinary || IsJSON(bytes) || utf8.Valid(bytes) {
+			// some exchanges send a regular json message as a binary frame, so json
+			// is still read as text. text frames arrive here as strings, a utf-8 check
+			// would turn the binary payloads that happen to be valid utf-8 into text
+			if this.DecompressBinary || IsJSON(bytes) {
 				messageStr = string(bytes)
 			} else {
 				messageIsBinary = true

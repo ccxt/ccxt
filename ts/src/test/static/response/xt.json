@@ -660,6 +660,136 @@
           "indexPrice": null,
           "markPrice": null
         }
+      },
+      {
+        "description": "linear swap ticker, a counts contracts",
+        "method": "fetchTicker",
+        "input": [
+          "BTC/USDT:USDT"
+        ],
+        "httpResponse": {
+          "returnCode": 0,
+          "msgInfo": "success",
+          "error": null,
+          "result": {
+            "t": 1791461628065,
+            "s": "btc_usdt",
+            "c": "82369.2",
+            "h": "83686.1",
+            "l": "82193.5",
+            "a": "178903337",
+            "v": "1484937097.75401",
+            "o": "83613.4",
+            "r": "-0.0148",
+            "i": "82392.076150200000",
+            "m": "82369.2",
+            "bp": "82360.9",
+            "ap": "82361.2"
+          }
+        },
+        "parsedResponse": {
+          "symbol": "BTC/USDT:USDT",
+          "timestamp": 1791461628065,
+          "datetime": "2026-10-08T12:13:48.065Z",
+          "high": 83686.1,
+          "low": 82193.5,
+          "bid": 82360.9,
+          "bidVolume": null,
+          "ask": 82361.2,
+          "askVolume": null,
+          "vwap": 83002.20234315752,
+          "open": 83613.4,
+          "close": 82369.2,
+          "last": 82369.2,
+          "previousClose": null,
+          "change": -1244.2,
+          "percentage": -1.48,
+          "average": 82991.3,
+          "baseVolume": 17890.3337,
+          "quoteVolume": 1484937097.75401,
+          "info": {
+            "t": 1791461628065,
+            "s": "btc_usdt",
+            "c": "82369.2",
+            "h": "83686.1",
+            "l": "82193.5",
+            "a": "178903337",
+            "v": "1484937097.75401",
+            "o": "83613.4",
+            "r": "-0.0148",
+            "i": "82392.076150200000",
+            "m": "82369.2",
+            "bp": "82360.9",
+            "ap": "82361.2"
+          },
+          "indexPrice": null,
+          "markPrice": null
+        }
+      },
+      {
+        "description": "inverse swap ticker, a counts contracts",
+        "method": "fetchTicker",
+        "input": [
+          "BTC/USD:BTC"
+        ],
+        "httpResponse": {
+          "returnCode": 0,
+          "msgInfo": "success",
+          "error": null,
+          "result": {
+            "t": 1791461628287,
+            "s": "btc_usd",
+            "c": "82303.3",
+            "h": "83649.1",
+            "l": "82138.7",
+            "a": "12155417",
+            "v": "14678.09649533",
+            "o": "83577.1",
+            "r": "-0.0152",
+            "i": "82392.075420700000",
+            "m": "82303.3",
+            "bp": "82300.8",
+            "ap": "82303.3"
+          }
+        },
+        "parsedResponse": {
+          "symbol": "BTC/USD:BTC",
+          "timestamp": 1791461628287,
+          "datetime": "2026-10-08T12:13:48.287Z",
+          "high": 83649.1,
+          "low": 82138.7,
+          "bid": 82300.8,
+          "bidVolume": null,
+          "ask": 82303.3,
+          "askVolume": null,
+          "vwap": 82813.30623400236,
+          "open": 83577.1,
+          "close": 82303.3,
+          "last": 82303.3,
+          "previousClose": null,
+          "change": -1273.8,
+          "percentage": -1.52,
+          "average": 82940.2,
+          "baseVolume": 14678.09649533,
+          "quoteVolume": 1215541700,
+          "info": {
+            "t": 1791461628287,
+            "s": "btc_usd",
+            "c": "82303.3",
+            "h": "83649.1",
+            "l": "82138.7",
+            "a": "12155417",
+            "v": "14678.09649533",
+            "o": "83577.1",
+            "r": "-0.0152",
+            "i": "82392.075420700000",
+            "m": "82303.3",
+            "bp": "82300.8",
+            "ap": "82303.3"
+          },
+          "indexPrice": null,
+          "markPrice": null
+        }
       }
     ],
     "fetchOrder": [

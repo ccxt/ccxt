@@ -17,6 +17,7 @@ import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.OpenInterest;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Position;
 import io.github.ccxt.types.Status;
 import io.github.ccxt.types.Ticker;
@@ -1200,6 +1201,7 @@ public class Backpack extends BackpackApi
             }
             Map<String, Object> market = this.market(symbol);
             String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
+            int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
                 put( "interval", interval );
@@ -1211,22 +1213,29 @@ public class Backpack extends BackpackApi
             {
                 request.put("endTime", this.parseToInt((((double) until) / ((double) 1000)))); // convert milliseconds to seconds
             }
-            Long defaultLimit = 100L;
-            Long limitResolved = limit;
+            Integer defaultLimit = 100;
+            Object limitResolved = limit;
             if ((java.util.Objects.equals(since, null)) && (java.util.Objects.equals(limit, null)))
             {
                 limitResolved = defaultLimit;
             }
             if (java.util.Objects.equals(since, null))
             {
-                int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
                 Long endTime = (((!java.util.Objects.equals(until, null) && !java.util.Objects.equals(until, null) && (until != 0)))) ? this.parseToInt(Helpers.divide(until, 1000)) : this.seconds();
-                Long windowLimit = (((java.util.Objects.equals(limit, null)))) ? defaultLimit : limit;
-                Object startTime = Helpers.subtract(endTime, ((windowLimit * duration)));
+                Object windowLimit = (((java.util.Objects.equals(limit, null)))) ? defaultLimit : limit;
+                Object startTime = Helpers.subtract(endTime, (Helpers.multiply(windowLimit, duration)));
                 request.put("startTime", startTime);
             } else
             {
                 request.put("startTime", this.parseToInt((((double) since) / ((double) 1000)))); // convert milliseconds to seconds
+            }
+            if (java.util.Objects.equals(until, null))
+            {
+                Long currentMs = this.seconds(); // default to current time in seconds
+                Object windowLimit = (((java.util.Objects.equals(limit, null)))) ? defaultLimit : limit;
+                Object windowEnd = this.sum(request.get("startTime"), Helpers.multiply(windowLimit, duration)); // sum (): `+` on a dict value is string concatenation in php
+                Object minTimestamp = Helpers.mathMin(currentMs, windowEnd);
+                request.put("endTime", this.parseToInt(minTimestamp)); // default to current time in seconds if until is not specified
             }
             String price = this.safeString(paramsUntil, "price");
             Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(price, null)))) ? this.omit(paramsUntil, "price") : paramsUntil;
@@ -1236,7 +1245,7 @@ public class Backpack extends BackpackApi
             }
             List<Object> response = (this.publicGetApiV1Klines(this.extend(request, paramsOmitted))).join();
             List<Object> ohlcvs = this.toArray(response);
-            return this.parseOHLCVs(ohlcvs, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limitResolved, false);
+            return this.parseOHLCVs(ohlcvs, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, Helpers.toLongOrNull(limitResolved), false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -1852,16 +1861,19 @@ public class Backpack extends BackpackApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} params.network the network to withdraw on (mandatory)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            List<Object> tagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
+            String tag = (String) ((List<Object>) tagparamsWithdrawTagVariable).get(0);
+            Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagparamsWithdrawTagVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -1876,7 +1888,7 @@ public class Backpack extends BackpackApi
             {
                 request.put("clientId", tag); // memo or tag
             }
-            List<Object> networkCodequeryVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
+            List<Object> networkCodequeryVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (paramsWithdrawTag));
             String networkCode = (String) ((List<Object>) networkCodequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) networkCodequeryVariable).get(1);
             Object networkId = this.networkCodeToId(networkCode, this.safeString(currency, "code"));
@@ -2258,7 +2270,7 @@ public class Backpack extends BackpackApi
             }
             ((List<Object>)bracketKeys).add("stopLoss");
         }
-        io.github.ccxt.base.Pair<String, Map<String, Object>> selfTradePreventionparamsSelfTradePreventionVariable = this.handleOptionStringAndParams((Map<String, Object>) (this.omit(paramsPostOnly, bracketKeys)), "createOrder", "selfTradePrevention", (String) null);
+        Pair<String, Map<String, Object>> selfTradePreventionparamsSelfTradePreventionVariable = this.handleOptionStringAndParams((Map<String, Object>) (this.omit(paramsPostOnly, bracketKeys)), "createOrder", "selfTradePrevention", (String) null);
         String selfTradePrevention = selfTradePreventionparamsSelfTradePreventionVariable.first();
         Map<String, Object> paramsSelfTradePrevention = selfTradePreventionparamsSelfTradePreventionVariable.second();
         if (!java.util.Objects.equals(selfTradePrevention, null))

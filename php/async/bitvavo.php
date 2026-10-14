@@ -1868,7 +1868,7 @@ class bitvavo extends Exchange {
         if ($operatorId !== null) {
             $request['operatorId'] = $this->parse_to_int($operatorId);
         } else {
-            throw new ArgumentsRequired($this->id . ' canceAllOrders() requires an operatorId in params or options, eg => exchange.options[\'operatorId\'] = 1234567890');
+            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires an operatorId in params or options, eg => exchange.options[\'operatorId\'] = 1234567890');
         }
         $response = Async\await($this->privateDeleteOrders($this->extend($request, $paramsOperatorId)));
         //
@@ -2469,11 +2469,11 @@ class bitvavo extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          *
          * @see https://docs.bitvavo.com/docs/rest-api/withdraw-assets/
@@ -2482,12 +2482,12 @@ class bitvavo extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->check_address($address);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
+        $this->check_address($address, $code, $tagWithdrawTag);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }

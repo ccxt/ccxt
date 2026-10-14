@@ -1808,17 +1808,18 @@ export default class extended extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the Starknet address to withdraw to
-     * @param {string} tag unused
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.chainId] only STRK is supported
      * @param {int} [params.settlementExpiration] settlement expiration timestamp in seconds, defaults to now + 14 days + 60 seconds
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
+        const [ tag, paramsWithdrawTag ] = this.handleParamString (params, 'tag');
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const chainId = this.safeStringUpper2 (params, 'chainId', 'network', 'STRK');
+        const chainId = this.safeStringUpper2 (paramsWithdrawTag, 'chainId', 'network', 'STRK');
         if (chainId !== 'STRK') {
             throw new BadRequest (this.id + ' withdraw() only supports Starknet withdrawals with chainId STRK');
         }
@@ -1828,7 +1829,7 @@ export default class extended extends Exchange {
         const account = await this.fetchExtendedAccount ();
         const amountString = this.currencyToPrecision (code, amount);
         const accountId = this.safeString (account, 'accountId');
-        const settlement = this.createWithdrawalSettlementData (address, amountString as string, currency, account, params);
+        const settlement = this.createWithdrawalSettlementData (address, amountString as string, currency, account, paramsWithdrawTag);
         const request: Dict = {
             'accountId': accountId,
             'amount': amountString,
@@ -1836,7 +1837,7 @@ export default class extended extends Exchange {
             'asset': currency['id'],
             'settlement': settlement,
         };
-        const paramsOmitted: Dict = this.omit (params, [ 'chainId', 'network', 'settlementExpiration', 'nonce', 'recipient', 'positionId', 'l2Vault', 'collateralId', 'resolution' ]);
+        const paramsOmitted: Dict = this.omit (paramsWithdrawTag, [ 'chainId', 'network', 'settlementExpiration', 'nonce', 'recipient', 'positionId', 'l2Vault', 'collateralId', 'resolution' ]);
         const response = await this.v1PrivatePostUserWithdrawal (this.extend (request, paramsOmitted));
         //
         //     {
@@ -2644,15 +2645,18 @@ export default class extended extends Exchange {
         const fee = this.safeString (params, 'fee', '0.0005');
         let builderFeeRate: Str = undefined;
         let builderId: Str = undefined;
-        let paramsBuilder = undefined;
-        if (this.isSandboxModeEnabled) {
-            builderFeeRate = this.safeString2 (params, 'builderFeeRate', 'defaultBuilderFeeRate');
-            builderId = this.safeString2 (params, 'builderId', 'defaultBuilderId');
-            paramsBuilder = this.omit (params, [ 'builderFeeRate', 'defaultBuilderFeeRate', 'builderId', 'defaultBuilderId' ]);
-        } else {
-            let paramsBuilderFeeRate = undefined;
-            [ builderFeeRate, paramsBuilderFeeRate ] = this.handleOptionStringAndParams (params, 'createOrder', 'builderFeeRate', '0.0001');
-            [ builderId, paramsBuilder ] = this.handleOptionStringAndParams (paramsBuilderFeeRate, 'createOrder', 'builderId');
+        let paramsBuilder = params;
+        const builderEnabled = this.safeBool (this.options, 'builderFee');
+        if (builderEnabled === true) {
+            if (this.isSandboxModeEnabled) {
+                builderFeeRate = this.safeString2 (params, 'builderFeeRate', 'defaultBuilderFeeRate');
+                builderId = this.safeString2 (params, 'builderId', 'defaultBuilderId');
+                paramsBuilder = this.omit (params, [ 'builderFeeRate', 'defaultBuilderFeeRate', 'builderId', 'defaultBuilderId' ]);
+            } else {
+                let paramsBuilderFeeRate = undefined;
+                [ builderFeeRate, paramsBuilderFeeRate ] = this.handleOptionStringAndParams (params, 'createOrder', 'builderFeeRate', '0.0001');
+                [ builderId, paramsBuilder ] = this.handleOptionStringAndParams (paramsBuilderFeeRate, 'createOrder', 'builderId');
+            }
         }
         let totalFee = fee;
         if (builderFeeRate !== undefined) {

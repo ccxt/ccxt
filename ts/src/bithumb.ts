@@ -930,18 +930,7 @@ export default class bithumb extends Exchange {
         const marketId = this.safeString (ticker, 'market');
         const symbol = this.safeSymbol (marketId, market);
         const close = this.safeString2 (ticker, 'closing_price', 'trade_price');
-        let change = this.safeString2 (ticker, 'signed_change_price', 'change_price');
-        let percentage = this.safeString2 (ticker, 'signed_change_rate', 'change_rate');
         const open = this.safeString (ticker, 'opening_price');
-        const nonZeroOpen = this.omitZero (open);
-        if ((marketId !== undefined) && (nonZeroOpen !== undefined) && (close !== undefined)) {
-            const computedChange = Precise.stringSub (close, open);
-            // Some v2 payloads return signed_change_price as 0 while open/last imply a non-zero move.
-            if ((change !== undefined) && Precise.stringEq (change, '0') && !Precise.stringEq (computedChange, '0')) {
-                change = computedChange;
-                percentage = undefined;
-            }
-        }
         let high = this.safeString2 (ticker, 'max_price', 'high_price');
         let low = this.safeString2 (ticker, 'min_price', 'low_price');
         // Some generation 2 ticker payloads can contain inconsistent high/low versus last.
@@ -966,8 +955,9 @@ export default class bithumb extends Exchange {
             'close': close,
             'last': close,
             'previousClose': this.safeString (ticker, 'prev_closing_price'),
-            'change': change,
-            'percentage': percentage,
+            // Exchange changes use previousClose; safeTicker derives unified changes from open.
+            'change': undefined,
+            'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeString2 (ticker, 'units_traded_24H', 'acc_trade_volume_24h'),
             'quoteVolume': this.safeString2 (ticker, 'acc_trade_value_24H', 'acc_trade_price_24h'),
@@ -2673,8 +2663,8 @@ export default class bithumb extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag the secondary withdrawal destination address
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @param {string} [params.network] the blockchain network to withdraw on, for example BTC or DASH
      * @param {string} [params.destination] secondary address destination for specific currencies, can alternatively use the tag argument
@@ -2689,13 +2679,13 @@ export default class bithumb extends Exchange {
      * @param {string} [params.two_factor_type] *generation 2 KRW withdraw only* the two factor type, for example kakao
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const [ generation, paramsGeneration ] = this.handleOptionIntegerAndParams (params, 'withdraw', 'generation', 2);
-        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, paramsGeneration);
-        this.checkAddress (address);
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleParamString (paramsGeneration, 'tag');
+        this.checkAddress (address, code, tagWithdrawTag);
         const network = this.safeString2 (paramsWithdrawTag, 'network', 'net_type');
         const paramsNetwork = this.omit (paramsWithdrawTag, 'network');
         const currency = this.currency (code);
@@ -2710,7 +2700,7 @@ export default class bithumb extends Exchange {
         if (requiresDestination) {
             const destination = this.safeString2 (paramsNetwork, 'destination', 'secondary_address');
             if ((tagWithdrawTag === undefined) && (destination === undefined)) {
-                throw new ArgumentsRequired (this.id + ' ' + code + ' withdraw() requires a tag argument or an extra destination param');
+                throw new ArgumentsRequired (this.id + ' ' + code + ' withdraw() requires a tag or an extra destination param');
             } else if (tagWithdrawTag !== undefined) {
                 destinationRequest = tagWithdrawTag;
             } else {

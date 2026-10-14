@@ -3413,12 +3413,13 @@ class kraken extends kraken$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to, not required can be '' or undefined/none/null
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const tagAndParams = this.handleWithdrawTagAndParams(tag, params);
+    async withdraw(code, amount, address, params = {}) {
+        const tagAndParams = this.handleParamString(params, 'tag');
+        const tagWithdrawTag = tagAndParams[0];
         const paramsWithdrawTag = tagAndParams[1];
         if ('key' in paramsWithdrawTag) {
             await this.loadMarkets();
@@ -3430,7 +3431,7 @@ class kraken extends kraken$1["default"] {
             };
             if (address !== undefined && address !== '') {
                 request['address'] = address;
-                this.checkAddress(address);
+                this.checkAddress(address, code, tagWithdrawTag);
             }
             const response = await this.privatePostWithdraw(this.extend(request, paramsWithdrawTag));
             //

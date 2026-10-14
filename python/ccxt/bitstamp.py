@@ -2484,7 +2484,7 @@ class bitstamp(Exchange, ImplicitAPI):
             'tag': tag,
         }
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -2494,16 +2494,16 @@ class bitstamp(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         # For fiat withdrawals please provide all required additional parameters in the 'params'
         # Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
         if self.markets is None:
             self.load_markets()
-        self.check_address(address)
+        self.check_address(address, code, tagWithdrawTag)
         request = {
             'amount': amount,
         }
