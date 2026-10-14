@@ -7241,8 +7241,8 @@ public class Mexc extends MexcApi
     {
         Object requestHeaders = headers;
         Object requestBody = body;
-        String section = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 0);
-        String access = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 1);
+        String section = this.safeString(api, 0);
+        String access = this.safeString(api, 1);
         String pathValue = (String) this.implodeParams(path, parameters);
         Object paramsValue = this.omit(parameters, this.extractParams(path));
         String url = null;

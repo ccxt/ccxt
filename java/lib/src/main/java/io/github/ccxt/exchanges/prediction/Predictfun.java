@@ -4399,7 +4399,7 @@ public class Predictfun extends PredictfunApi
      * @name predictfun#sign
      * @description builds the request URL and attaches the API key header required by every endpoint
      * @param {string} path the endpoint path
-     * @param {string|string[]} [api] the API group and access level
+     * @param {string[]} [api] the API group and access level
      * @param {string} [method] HTTP method
      * @param {object} [params] request parameters
      * @param {object} [headers] request headers
@@ -4417,7 +4417,7 @@ public class Predictfun extends PredictfunApi
         {
             throw new AuthenticationError((this.id + " sign() requires the \"apiKey\" credential for all endpoints")) ;
         }
-        Object apiGroup = (((java.util.Objects.requireNonNullElse(api, "predictfun") instanceof String))) ? java.util.Objects.requireNonNullElse(api, "predictfun") : Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "predictfun"), 0);
+        Object apiGroup = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Object baseUrls = this.urls.get("api");
         String baseUrl = this.safeString(baseUrls, apiGroup, ((String)((Map<String, Object>)baseUrls).get("predictfun")));
         String url = ((baseUrl + "/") + this.implodeParams(path, parameters));

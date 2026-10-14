@@ -5145,19 +5145,20 @@ public class Aster extends AsterApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        String baseApiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String baseApiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(baseApiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = ((baseApiUrl + "/") + path);
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "fapiPublic") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "sapiPublic"))
+        if (java.util.Objects.equals(apiName, "fapiPublic") || java.util.Objects.equals(apiName, "sapiPublic"))
         {
             if (((Map<String, Object>)parameters).size() > 0)
             {
                 url = (url + ("?" + this.rawencode(parameters)));
             }
-        } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "fapiPrivate") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "sapiPrivate"))
+        } else if (java.util.Objects.equals(apiName, "fapiPrivate") || java.util.Objects.equals(apiName, "sapiPrivate"))
         {
             this.checkRequiredCredentials(true);
             Long nonce = (this.milliseconds() * 1000L);

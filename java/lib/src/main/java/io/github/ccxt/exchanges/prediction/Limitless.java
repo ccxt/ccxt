@@ -3725,7 +3725,7 @@ public class Limitless extends LimitlessApi
      * @name limitless#sign
      * @description builds the request URL and attaches the lmts authentication headers for private endpoints
      * @param {string} path the endpoint path
-     * @param {string|string[]} [api] the api group and access level
+     * @param {string[]} [api] the api group and access level
      * @param {string} [method] HTTP method
      * @param {object} [params] request parameters
      * @param {object} [headers] request headers
@@ -3734,8 +3734,9 @@ public class Limitless extends LimitlessApi
      */
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, Object body)
     {
-        Object apiGroup = (((java.util.Objects.requireNonNullElse(api, "limitless") instanceof String))) ? java.util.Objects.requireNonNullElse(api, "limitless") : Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "limitless"), 0);
-        Object access = (((java.util.Objects.requireNonNullElse(api, "limitless") instanceof String))) ? "public" : Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "limitless"), 1);
+        Object apiGroup = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        Integer apiLength = ((List<?>)api).size();
+        Object access = ((((apiLength != null && apiLength > 1)))) ? (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1)) : "public";
         Object baseUrls = this.urls.get("api");
         String baseUrl = this.safeString(baseUrls, apiGroup, ((Map<String, Object>)baseUrls).get("limitless"));
         Object url = ("/" + this.implodeParams(path, parameters));

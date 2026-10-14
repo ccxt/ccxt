@@ -2645,6 +2645,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Object requestHeaders = headers;
         String requestBody = body;
         String request = ("/" + this.implodeParams(path, parameters));
@@ -2656,13 +2657,13 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 request = (request + ("?" + this.urlencode(query)));
             }
         }
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = (this.implodeHostname(apiUrl) + request);
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
             String nonce = String.valueOf(this.nonce());
@@ -2725,7 +2726,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object response = (this.fetch2(path, java.util.Objects.requireNonNullElse(api, "public"), java.util.Objects.requireNonNullElse(method, "GET"), parameters, headers, body, config)).join();
+            Object response = (this.fetch2(path, api, java.util.Objects.requireNonNullElse(method, "GET"), parameters, headers, body, config)).join();
             if (!(response instanceof String))
             {
                 if (Helpers.inOp(response, "message"))

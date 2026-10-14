@@ -8865,8 +8865,8 @@ public class Gate extends GateApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Object authentication = Helpers.GetValue(api, 0); // public, private
-        Object type = Helpers.GetValue(api, 1); // spot, margin, future, delivery
+        Object authentication = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)); // public, private
+        Object type = (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1)); // spot, margin, future, delivery
         Object query = this.omit(parameters, this.extractParams(path));
         Object pathImploded = null;
         String bodyJson = null;

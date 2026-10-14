@@ -2681,7 +2681,7 @@ public class Alpaca extends AlpacaApi
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
         String endpoint = ("/" + this.implodeParams(path, parameters));
-        String baseApiUrl = this.safeString(this.urls.get("api"), Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "public"), 0));
+        String baseApiUrl = this.safeString(this.urls.get("api"), (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)));
         if (java.util.Objects.equals(baseApiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -2691,7 +2691,7 @@ public class Alpaca extends AlpacaApi
         {
             headersValue = headers;
         }
-        if (java.util.Objects.equals(Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "public"), 1), "private"))
+        if (java.util.Objects.equals((api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1)), "private"))
         {
             this.checkRequiredCredentials(true);
             ((Map<String, Object>)headersValue).put("APCA-API-KEY-ID", this.apiKey);

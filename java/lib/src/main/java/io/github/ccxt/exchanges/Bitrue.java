@@ -3647,9 +3647,9 @@ public class Bitrue extends BitrueApi
     {
         Object requestBody = null;
         Map<String, Object> requestHeaders = null;
-        String type = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 0);
-        String version = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 1);
-        String access = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 2);
+        String type = this.safeString(api, 0);
+        String version = this.safeString(api, 1);
+        String access = this.safeString(api, 2);
         String apiUrl = this.safeString(this.urls.get("api"), type);
         if (java.util.Objects.equals(apiUrl, null))
         {

@@ -3464,7 +3464,7 @@ public class Polymarket extends PolymarketApi
      * @name polymarket#sign
      * @description builds the request url and attaches HMAC-SHA256 authentication headers for private endpoints
      * @param {string} path the endpoint path
-     * @param {string|string[]} api the api group and access level
+     * @param {string[]} api the api group and access level
      * @param {string} method the http method
      * @param {object} params the request parameters
      * @param {object} [headers] request headers
@@ -3473,9 +3473,8 @@ public class Polymarket extends PolymarketApi
      */
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, Object body)
     {
-        // api is either a string ('gamma') or array (['gamma', 'public'])
-        Object apiGroup = (((java.util.Objects.requireNonNullElse(api, "gamma") instanceof String))) ? java.util.Objects.requireNonNullElse(api, "gamma") : Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "gamma"), 0);
-        Object access = (((java.util.Objects.requireNonNullElse(api, "gamma") instanceof String))) ? "public" : Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "gamma"), 1);
+        Object apiGroup = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String access = this.safeString(api, 1, "public");
         Object baseUrls = this.urls.get("api");
         String baseUrl = this.safeString(baseUrls, apiGroup, ((Map<String, Object>)baseUrls).get("gamma"));
         String url = ((baseUrl + "/") + this.implodeParams(path, parameters));

@@ -1517,10 +1517,11 @@ public class Bitflyer extends BitflyerApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String bodySigned = null;
         Map<String, Object> headersSigned = null;
         String request = (("/" + this.version) + "/");
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        if (java.util.Objects.equals(apiName, "private"))
         {
             request = (request + "me/");
         }
@@ -1539,7 +1540,7 @@ public class Bitflyer extends BitflyerApi
         }
         String baseUrl = (String) this.implodeHostname(apiUrl);
         String url = (baseUrl + request);
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
             String nonce = String.valueOf(this.nonce());

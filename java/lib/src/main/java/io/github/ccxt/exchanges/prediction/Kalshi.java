@@ -3291,8 +3291,8 @@ public class Kalshi extends KalshiApi
      */
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, Object body)
     {
-        Object apiGroup = (((java.util.Objects.requireNonNullElse(api, "kalshi") instanceof String))) ? java.util.Objects.requireNonNullElse(api, "kalshi") : Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "kalshi"), 0);
-        Object access = (((java.util.Objects.requireNonNullElse(api, "kalshi") instanceof String))) ? "public" : Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "kalshi"), 1);
+        Object apiGroup = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String access = this.safeString(api, 1, "public");
         Object baseUrls = this.urls.get("api");
         String baseUrl = this.safeString(baseUrls, apiGroup, ((Map<String, Object>)baseUrls).get("kalshi"));
         String implodedPath = (String) this.implodeParams(path, parameters);

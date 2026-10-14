@@ -8683,7 +8683,7 @@ public Object describe()
 
             if (this.enableRateLimit)
             {
-                Object cost = this.calculateRateLimiterCost(java.util.Objects.requireNonNullElse(api, "public"), java.util.Objects.requireNonNullElse(method, "GET"), path, parameters, config);
+                Object cost = this.calculateRateLimiterCost(api, java.util.Objects.requireNonNullElse(method, "GET"), path, parameters, config);
                 (this.throttle(cost)).join();
             }
             Integer retries = 0;
@@ -8713,7 +8713,7 @@ public Object describe()
                 try
                 {
                     this.setLastRestRequestTimestamp();
-                    Object request = this.sign(path, java.util.Objects.requireNonNullElse(api, "public"), java.util.Objects.requireNonNullElse(method, "GET"), paramsMaxRetriesOnFailureDelay, headers, Helpers.toStringArg(body));
+                    Object request = this.sign(path, api, java.util.Objects.requireNonNullElse(method, "GET"), paramsMaxRetriesOnFailureDelay, headers, Helpers.toStringArg(body));
                     if (!java.util.Objects.equals(fetchData, null))
                     {
                         fetchData.put("request", request);
@@ -8766,7 +8766,7 @@ public Object describe()
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.fetch2(path, java.util.Objects.requireNonNullElse(api, "public"), java.util.Objects.requireNonNullElse(method, "GET"), parameters, headers, body, config)).join();
+            return (this.fetch2(path, api, java.util.Objects.requireNonNullElse(method, "GET"), parameters, headers, body, config)).join();
         });
 
     }

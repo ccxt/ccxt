@@ -963,19 +963,20 @@ public class Btcbox extends BtcboxApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String apiUrl = this.safeString(this.urls.get("api"), "rest");
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = ((((apiUrl + "/") + this.version) + "/") + path);
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
+        if (java.util.Objects.equals(apiName, "public"))
         {
             if (((Map<String, Object>)parameters).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(parameters)));
             }
-        } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "webApi"))
+        } else if (java.util.Objects.equals(apiName, "webApi"))
         {
             url = ((this.urls.get("www") + "/") + path);
         } else
@@ -1039,7 +1040,7 @@ public class Btcbox extends BtcboxApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object response = (this.fetch2(path, java.util.Objects.requireNonNullElse(api, "public"), java.util.Objects.requireNonNullElse(method, "GET"), parameters, headers, body, config)).join();
+            Object response = (this.fetch2(path, api, java.util.Objects.requireNonNullElse(method, "GET"), parameters, headers, body, config)).join();
             if ((response instanceof String))
             {
                 // sometimes the exchange returns whitespace prepended to json

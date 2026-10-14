@@ -1503,14 +1503,15 @@ public class Blockchaincom extends BlockchaincomApi
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
         String requestPath = ("/" + this.implodeParams(path, parameters));
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = (apiUrl + requestPath);
         Object query = this.omit(parameters, this.extractParams(path));
-        Boolean isPrivate = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"));
+        Boolean isPrivate = (java.util.Objects.equals(apiName, "private"));
         Map<String, Object> privateHeaders = new HashMap<String, Object>() {{
             put( "X-API-Token", Blockchaincom.this.secret );
         }};
@@ -1525,7 +1526,7 @@ public class Blockchaincom extends BlockchaincomApi
         {
             requestBody = this.json(query);
         }
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
+        if (java.util.Objects.equals(apiName, "public"))
         {
             if (Helpers.objectKeys(query).size() > 0)
             {

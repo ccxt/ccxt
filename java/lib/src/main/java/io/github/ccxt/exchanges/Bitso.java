@@ -2315,7 +2315,7 @@ public class Bitso extends BitsoApi
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = (apiUrl + endpoint);
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        if (java.util.Objects.equals((api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)), "private"))
         {
             this.checkRequiredCredentials(true);
             // bitso rejects a nonce that is not higher than the previous one (error 104)

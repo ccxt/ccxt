@@ -3586,7 +3586,7 @@ public class Lbank extends LbankApi
         }
         String url = ((((apiUrl + "/") + this.version) + "/") + this.implodeParams(path, parameters));
         // Every spot endpoint ends with ".do"
-        if (java.util.Objects.equals(Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "public"), 0), "spot"))
+        if (java.util.Objects.equals((api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)), "spot"))
         {
             url = (url + ".do");
         } else
@@ -3598,7 +3598,7 @@ public class Lbank extends LbankApi
             }
             url = ((contractUrl + "/") + this.implodeParams(path, parameters));
         }
-        if (java.util.Objects.equals(Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "public"), 1), "public"))
+        if (java.util.Objects.equals((api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1)), "public"))
         {
             if (Helpers.objectKeys(query).size() > 0)
             {

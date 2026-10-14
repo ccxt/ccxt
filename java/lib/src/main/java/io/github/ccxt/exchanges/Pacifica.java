@@ -4464,7 +4464,8 @@ public class Pacifica extends PacificaApi
         {
             urlKey = "test";
         }
-        String baseApiUrl = this.safeString(Helpers.GetValue(this.urls, urlKey), java.util.Objects.requireNonNullElse(api, "public"));
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String baseApiUrl = this.safeString(Helpers.GetValue(this.urls, urlKey), apiName);
         if (java.util.Objects.equals(baseApiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
