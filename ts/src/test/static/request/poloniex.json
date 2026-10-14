@@ -26,7 +26,7 @@
                 "method": "fetchTransfer",
                 "url": "https://api.poloniex.com/accounts/transfer/344182843",
                 "input": [
-                    344182843
+                    "344182843"
                 ],
                 "output": null
             }

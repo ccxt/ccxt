@@ -35,7 +35,7 @@
                 "description": "fetch transfer by id",
                 "method": "fetchTransfer",
                 "input": [
-                    344182843
+                    "344182843"
                 ],
                 "httpResponse": {
                     "id": "344182843",
