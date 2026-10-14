@@ -1556,9 +1556,10 @@ public partial class BaseExchange
         return timestamp;
     }
 
-    public virtual void afterConstruct()
+    public virtual void afterConstruct(object userConfig = null)
     {
         // networks
+        userConfig ??= new Dictionary<string, object>();
         this.createNetworksByIdObject();
         this.featuresGenerator();
         // init predefined markets if any
@@ -1573,6 +1574,11 @@ public partial class BaseExchange
         if ((isSandbox == true))
         {
             this.setSandboxMode(isSandbox);
+        }
+        // compatibility for sandbox/testnet options in userConfig
+        if ((this.safeBool(userConfig, "sandbox", false) == true) || (this.safeBool(userConfig, "testnet", false) == true))
+        {
+            this.setSandboxMode(true);
         }
     }
 

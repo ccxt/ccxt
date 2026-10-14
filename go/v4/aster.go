@@ -2348,7 +2348,7 @@ func (this *Aster) fetchLastPricesBody(ch chan AsyncResult[any], optionalArgs ..
 	//         ...
 	//     ]
 	//
-	if response == nil {
+	if IsEqual(response, nil) {
 		panic(NullResponse(this.Id + " fetchLastPrices() returned empty response"))
 	}
 	var rows []any = this.ToArray(response)

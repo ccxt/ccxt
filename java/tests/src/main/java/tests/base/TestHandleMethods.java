@@ -19,7 +19,7 @@ public class TestHandleMethods extends BaseTest
             var exchange = new Exchange(new HashMap<String, Object>() {{
                 put( "id", "sampleexchange" );
                 put( "options", new HashMap<String, Object>() {{
-                    put( "defaultType", "valueFromOptions" );
+                    put( "defaultType", "option" );
                     put( "fetchX", new HashMap<String, Object>() {{
                         put( "defaultType", "valueFromMethodOptions" );
                     }} );
@@ -68,7 +68,7 @@ public class TestHandleMethods extends BaseTest
             Pair<String, Map<String, Object>> marketType5params5Variable = exchange.handleMarketTypeAndParams("fetchY", (Map<String, Object>) null, new HashMap<String, Object>() {{}}, (String) null);
             String marketType5 = marketType5params5Variable.first();
             Map<String, Object> params5 = marketType5params5Variable.second();
-            Assert(java.util.Objects.equals(marketType5, "valueFromOptions"));
+            Assert(java.util.Objects.equals(marketType5, "option"));
             //
             // case #6, should prevail: spot (because hardcoded in base)
             //

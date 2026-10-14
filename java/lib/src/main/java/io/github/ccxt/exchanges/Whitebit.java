@@ -794,7 +794,7 @@ public class Whitebit extends WhitebitApi
             {
                 (this.loadTimeDifference(new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> markets = (this.v4PublicGetMarkets()).join();
+            List<Object> markets = (this.v4PublicGetMarkets(new HashMap<String, Object>() {{}})).join();
             //
             //    [
             //        {

@@ -2349,6 +2349,19 @@ public class TestMain extends BaseTest
 
     }
 
+    public Object wsRequestWasSent(BaseExchange exchange, Object url, Object id)
+    {
+        Object sentMessages = getWsSentMessages(exchange, url);
+        for (var i = 0; i < Helpers.getArrayLength(sentMessages); i++)
+        {
+            if (java.util.Objects.equals(exchange.safeString(Helpers.GetValue(sentMessages, i), "id"), id))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public CompletableFuture<Object> injectWsMessages(BaseExchange exchange, Object url, Object messages, Object sequential)
     {
 
@@ -2365,7 +2378,22 @@ public class TestMain extends BaseTest
                     (exchange.sleep(50)).join();
                     waited = Helpers.add(waited, 50);
                 }
-                injectWsMessage(exchange, url, (messages == null || i < 0 || i >= ((List<?>)messages).size() ? null : ((List<?>)messages).get(i)));
+                // a reply frame must not arrive before its request was sent, or it is dropped
+                String frameId = exchange.safeString((messages == null || i < 0 || i >= ((List<?>)messages).size() ? null : ((List<?>)messages).get(i)), "id");
+                Object waitedSent = 0;
+                while ((!java.util.Objects.equals(frameId, null)) && !Boolean.TRUE.equals(this.wsRequestWasSent(exchange, url, frameId)) && (Helpers.isLessThan(waitedSent, 5000)))
+                {
+                    (exchange.sleep(50)).join();
+                    waitedSent = Helpers.add(waitedSent, 50);
+                }
+                // a frame given as { "binary": "<base16>" } is replayed as a binary frame (e.g. SBE)
+                Object frame = (messages == null || i < 0 || i >= ((List<?>)messages).size() ? null : ((List<?>)messages).get(i));
+                String binaryFrame = exchange.safeString(frame, "binary");
+                if (!java.util.Objects.equals(binaryFrame, null))
+                {
+                    frame = exchange.base16ToBinary(binaryFrame);
+                }
+                injectWsMessage(exchange, url, frame);
                 // threaded runtimes resolve futures on another thread — wait for
                 // the consumed frame to settle so the pending check above does not
                 // observe a stale future and burn the next frame early; frames

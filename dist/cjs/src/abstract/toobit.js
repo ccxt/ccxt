@@ -6,6 +6,294 @@ var Exchange$1 = require('../base/Exchange.js');
 
 // ----------------------------------------------------------------------------
 class Exchange extends Exchange$1["default"] {
+    commonGetApiV1Time(params = {}) {
+        return this.request("api/v1/time", "common", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    commonGetApiV1Ping(params = {}) {
+        return this.request("api/v1/ping", "common", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    commonGetApiV1ExchangeInfo(params = {}) {
+        return this.request("api/v1/exchangeInfo", "common", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    commonGetQuoteV1Depth(params = {}) {
+        return this.request("quote/v1/depth", "common", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    commonGetQuoteV1DepthMerged(params = {}) {
+        return this.request("quote/v1/depth/merged", "common", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    commonGetQuoteV1Trades(params = {}) {
+        return this.request("quote/v1/trades", "common", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    commonGetQuoteV1Klines(params = {}) {
+        return this.request("quote/v1/klines", "common", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    commonGetQuoteV1IndexKlines(params = {}) {
+        return this.request("quote/v1/index/klines", "common", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    commonGetQuoteV1IndexPriceComponents(params = {}) {
+        return this.request("quote/v1/indexPriceComponents", "common", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    commonGetQuoteV1MarkPriceKlines(params = {}) {
+        return this.request("quote/v1/markPrice/klines", "common", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    commonGetQuoteV1MarkPrice(params = {}) {
+        return this.request("quote/v1/markPrice", "common", 'GET', params, undefined, undefined, { "cost": 10 });
+    }
+    commonGetQuoteV1Index(params = {}) {
+        return this.request("quote/v1/index", "common", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    commonGetQuoteV1Ticker24hr(params = {}) {
+        return this.request("quote/v1/ticker/24hr", "common", 'GET', params, undefined, undefined, { "cost": 40 });
+    }
+    commonGetQuoteV1ContractTicker24hr(params = {}) {
+        return this.request("quote/v1/contract/ticker/24hr", "common", 'GET', params, undefined, undefined, { "cost": 40 });
+    }
+    commonGetQuoteV1TickerPrice(params = {}) {
+        return this.request("quote/v1/ticker/price", "common", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    commonGetQuoteV1ContractTickerPrice(params = {}) {
+        return this.request("quote/v1/contract/ticker/price", "common", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    commonGetQuoteV1TickerBookTicker(params = {}) {
+        return this.request("quote/v1/ticker/bookTicker", "common", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    commonGetQuoteV1ContractTickerBookTicker(params = {}) {
+        return this.request("quote/v1/contract/ticker/bookTicker", "common", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    commonGetApiV1FuturesFundingRate(params = {}) {
+        return this.request("api/v1/futures/fundingRate", "common", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    commonGetApiV1FuturesHistoryFundingRate(params = {}) {
+        return this.request("api/v1/futures/historyFundingRate", "common", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    commonGetApiV1FuturesRiskLimits(params = {}) {
+        return this.request("api/v1/futures/riskLimits", "common", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    privateGetApiV1Account(params = {}) {
+        return this.request("api/v1/account", "private", 'GET', params, undefined, undefined, { "cost": 5 });
+    }
+    privateGetApiV1AccountCheckApiKey(params = {}) {
+        return this.request("api/v1/account/checkApiKey", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    privateGetApiV1SpotOrder(params = {}) {
+        return this.request("api/v1/spot/order", "private", 'GET', params, undefined, undefined, { "cost": 1.67 });
+    }
+    privateGetApiV1SpotOpenOrders(params = {}) {
+        return this.request("api/v1/spot/openOrders", "private", 'GET', params, undefined, undefined, { "cost": 1.67 });
+    }
+    privateGetApiV1FuturesOpenOrders(params = {}) {
+        return this.request("api/v1/futures/openOrders", "private", 'GET', params, undefined, undefined, { "cost": 1.67 });
+    }
+    privateGetApiV1SpotTradeOrders(params = {}) {
+        return this.request("api/v1/spot/tradeOrders", "private", 'GET', params, undefined, undefined, { "cost": 8.35 });
+    }
+    privateGetApiV1FuturesHistoryOrders(params = {}) {
+        return this.request("api/v1/futures/historyOrders", "private", 'GET', params, undefined, undefined, { "cost": 8.35 });
+    }
+    privateGetApiV1AccountTrades(params = {}) {
+        return this.request("api/v1/account/trades", "private", 'GET', params, undefined, undefined, { "cost": 8.35 });
+    }
+    privateGetApiV1AccountBalanceFlow(params = {}) {
+        return this.request("api/v1/account/balanceFlow", "private", 'GET', params, undefined, undefined, { "cost": 5 });
+    }
+    privateGetApiV1AccountDepositOrders(params = {}) {
+        return this.request("api/v1/account/depositOrders", "private", 'GET', params, undefined, undefined, { "cost": 5 });
+    }
+    privateGetApiV1AccountWithdrawOrders(params = {}) {
+        return this.request("api/v1/account/withdrawOrders", "private", 'GET', params, undefined, undefined, { "cost": 5 });
+    }
+    privateGetApiV1AccountDepositAddress(params = {}) {
+        return this.request("api/v1/account/deposit/address", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    privateGetApiV1SubAccount(params = {}) {
+        return this.request("api/v1/subAccount", "private", 'GET', params, undefined, undefined, { "cost": 5 });
+    }
+    privateGetApiV1AccountSubAccount(params = {}) {
+        return this.request("api/v1/account/subAccount", "private", 'GET', params, undefined, undefined, { "cost": 5 });
+    }
+    privateGetApiV1SubAccountList(params = {}) {
+        return this.request("api/v1/subAccount/list", "private", 'GET', params, undefined, undefined, { "cost": 5 });
+    }
+    privateGetApiV1FuturesAccountLeverage(params = {}) {
+        return this.request("api/v1/futures/accountLeverage", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    privateGetApiV1FuturesOrder(params = {}) {
+        return this.request("api/v1/futures/order", "private", 'GET', params, undefined, undefined, { "cost": 1.67 });
+    }
+    privateGetApiV1FuturesPositions(params = {}) {
+        return this.request("api/v1/futures/positions", "private", 'GET', params, undefined, undefined, { "cost": 8.35 });
+    }
+    privateGetApiV1FuturesHistoryPositions(params = {}) {
+        return this.request("api/v1/futures/historyPositions", "private", 'GET', params, undefined, undefined, { "cost": 5 });
+    }
+    privateGetApiV1FuturesBalance(params = {}) {
+        return this.request("api/v1/futures/balance", "private", 'GET', params, undefined, undefined, { "cost": 5 });
+    }
+    privateGetApiV1FuturesUserTrades(params = {}) {
+        return this.request("api/v1/futures/userTrades", "private", 'GET', params, undefined, undefined, { "cost": 8.35 });
+    }
+    privateGetApiV1FuturesBalanceFlow(params = {}) {
+        return this.request("api/v1/futures/balanceFlow", "private", 'GET', params, undefined, undefined, { "cost": 5 });
+    }
+    privateGetApiV1FuturesCommissionRate(params = {}) {
+        return this.request("api/v1/futures/commissionRate", "private", 'GET', params, undefined, undefined, { "cost": 5 });
+    }
+    privateGetApiV1FuturesTodayPnl(params = {}) {
+        return this.request("api/v1/futures/todayPnl", "private", 'GET', params, undefined, undefined, { "cost": 5 });
+    }
+    privateGetApiV1AccountDownloadDetail(params = {}) {
+        return this.request("api/v1/account/download/detail", "private", 'GET', params, undefined, undefined, { "cost": 10 });
+    }
+    privateGetApiV1AgentInviteUserList(params = {}) {
+        return this.request("api/v1/agent/inviteUserList", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    privateGetApiV1AgentCommissionDataList(params = {}) {
+        return this.request("api/v1/agent/commissionDataList", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    privateGetApiV1AgentCommissionDataInfo(params = {}) {
+        return this.request("api/v1/agent/commissionDataInfo", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    privateGetApiV1AgentInviteRelationCheck(params = {}) {
+        return this.request("api/v1/agent/inviteRelationCheck", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    privateGetApiV1AgentDepositDetailList(params = {}) {
+        return this.request("api/v1/agent/depositDetailList", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    privateGetApiV1AgentQuerySubAgentData(params = {}) {
+        return this.request("api/v1/agent/querySubAgentData", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    privateGetApiV1AgentSpotOrdersList(params = {}) {
+        return this.request("api/v1/agent/spotOrdersList", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    privateGetApiV1AgentFuturesOrdersList(params = {}) {
+        return this.request("api/v1/agent/futuresOrdersList", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    privateGetApiV1AgentFuturesPositionsList(params = {}) {
+        return this.request("api/v1/agent/futuresPositionsList", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    privateGetApiV1AgentInviteCommissionDetail(params = {}) {
+        return this.request("api/v1/agent/invite-commission-detail", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    privateGetApiV1AgentUserExport(params = {}) {
+        return this.request("api/v1/agent/user/export", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    privateGetApiV1AgentExportList(params = {}) {
+        return this.request("api/v1/agent/export-list", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    privateGetApiV1AgentExportUrl(params = {}) {
+        return this.request("api/v1/agent/export-url", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    privateGetApiV2AccountBalanceFlow(params = {}) {
+        return this.request("api/v2/account/balance-flow", "private", 'GET', params, undefined, undefined, { "cost": 5 });
+    }
+    privateGetApiV2FuturesOrder(params = {}) {
+        return this.request("api/v2/futures/order", "private", 'GET', params, undefined, undefined, { "cost": 1.67 });
+    }
+    privateGetApiV2FuturesOpenOrders(params = {}) {
+        return this.request("api/v2/futures/open-orders", "private", 'GET', params, undefined, undefined, { "cost": 1.67 });
+    }
+    privateGetApiV2FuturesHistoryOrders(params = {}) {
+        return this.request("api/v2/futures/history-orders", "private", 'GET', params, undefined, undefined, { "cost": 8.35 });
+    }
+    privateGetApiV2FuturesUserTrades(params = {}) {
+        return this.request("api/v2/futures/user-trades", "private", 'GET', params, undefined, undefined, { "cost": 8.35 });
+    }
+    privateGetApiV2FuturesAlgoOrder(params = {}) {
+        return this.request("api/v2/futures/algo-order", "private", 'GET', params, undefined, undefined, { "cost": 1.67 });
+    }
+    privateGetApiV2FuturesOpenAlgoOrders(params = {}) {
+        return this.request("api/v2/futures/open-algo-orders", "private", 'GET', params, undefined, undefined, { "cost": 1.67 });
+    }
+    privateGetApiV2FuturesHistoryAlgoOrders(params = {}) {
+        return this.request("api/v2/futures/history-algo-orders", "private", 'GET', params, undefined, undefined, { "cost": 8.35 });
+    }
+    privateGetApiV2FuturesVoucherList(params = {}) {
+        return this.request("api/v2/futures/voucher/list", "private", 'GET', params, undefined, undefined, { "cost": 5 });
+    }
+    privatePostApiV1SpotOrderTest(params = {}) {
+        return this.request("api/v1/spot/orderTest", "private", 'POST', params, undefined, undefined, { "cost": 1.67 });
+    }
+    privatePostApiV1SpotOrder(params = {}) {
+        return this.request("api/v1/spot/order", "private", 'POST', params, undefined, undefined, { "cost": 1.67 });
+    }
+    privatePostApiV1FuturesOrder(params = {}) {
+        return this.request("api/v1/futures/order", "private", 'POST', params, undefined, undefined, { "cost": 1.67 });
+    }
+    privatePostApiV1SpotBatchOrders(params = {}) {
+        return this.request("api/v1/spot/batchOrders", "private", 'POST', params, undefined, undefined, { "cost": 3.34 });
+    }
+    privatePostApiV1SubAccountTransfer(params = {}) {
+        return this.request("api/v1/subAccount/transfer", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostApiV1AccountWithdraw(params = {}) {
+        return this.request("api/v1/account/withdraw", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostApiV1FuturesMarginType(params = {}) {
+        return this.request("api/v1/futures/marginType", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostApiV1FuturesLeverage(params = {}) {
+        return this.request("api/v1/futures/leverage", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostApiV1FuturesBatchOrders(params = {}) {
+        return this.request("api/v1/futures/batchOrders", "private", 'POST', params, undefined, undefined, { "cost": 3.34 });
+    }
+    privatePostApiV1FuturesPositionTradingStop(params = {}) {
+        return this.request("api/v1/futures/position/trading-stop", "private", 'POST', params, undefined, undefined, { "cost": 5.01 });
+    }
+    privatePostApiV1FuturesPositionMargin(params = {}) {
+        return this.request("api/v1/futures/positionMargin", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostApiV1FuturesOrderUpdate(params = {}) {
+        return this.request("api/v1/futures/order/update", "private", 'POST', params, undefined, undefined, { "cost": 3.34 });
+    }
+    privatePostApiV1FuturesAutoAddMargin(params = {}) {
+        return this.request("api/v1/futures/autoAddMargin", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostApiV1FuturesFlashClose(params = {}) {
+        return this.request("api/v1/futures/flashClose", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostApiV1FuturesReversePosition(params = {}) {
+        return this.request("api/v1/futures/reversePosition", "private", 'POST', params, undefined, undefined, { "cost": 5 });
+    }
+    privatePostApiV1AccountDownloadApply(params = {}) {
+        return this.request("api/v1/account/download/apply", "private", 'POST', params, undefined, undefined, { "cost": 1000 });
+    }
+    privatePostApiV1UserDataStream(params = {}) {
+        return this.request("api/v1/userDataStream", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostApiV1ListenKey(params = {}) {
+        return this.request("api/v1/listenKey", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privateDeleteApiV1SpotOrder(params = {}) {
+        return this.request("api/v1/spot/order", "private", 'DELETE', params, undefined, undefined, { "cost": 1.67 });
+    }
+    privateDeleteApiV1FuturesOrder(params = {}) {
+        return this.request("api/v1/futures/order", "private", 'DELETE', params, undefined, undefined, { "cost": 1.67 });
+    }
+    privateDeleteApiV1SpotOpenOrders(params = {}) {
+        return this.request("api/v1/spot/openOrders", "private", 'DELETE', params, undefined, undefined, { "cost": 8.35 });
+    }
+    privateDeleteApiV1FuturesBatchOrders(params = {}) {
+        return this.request("api/v1/futures/batchOrders", "private", 'DELETE', params, undefined, undefined, { "cost": 5.01 });
+    }
+    privateDeleteApiV1SpotCancelOrderByIds(params = {}) {
+        return this.request("api/v1/spot/cancelOrderByIds", "private", 'DELETE', params, undefined, undefined, { "cost": 8.35 });
+    }
+    privateDeleteApiV1FuturesCancelOrderByIds(params = {}) {
+        return this.request("api/v1/futures/cancelOrderByIds", "private", 'DELETE', params, undefined, undefined, { "cost": 5.01 });
+    }
+    privateDeleteApiV1UserDataStream(params = {}) {
+        return this.request("api/v1/userDataStream", "private", 'DELETE', params, undefined, undefined, { "cost": 1 });
+    }
+    privateDeleteApiV1ListenKey(params = {}) {
+        return this.request("api/v1/listenKey", "private", 'DELETE', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePutApiV1UserDataStream(params = {}) {
+        return this.request("api/v1/userDataStream", "private", 'PUT', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePutApiV1ListenKey(params = {}) {
+        return this.request("api/v1/listenKey", "private", 'PUT', params, undefined, undefined, { "cost": 1 });
+    }
 }
 
 exports["default"] = Exchange;

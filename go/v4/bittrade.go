@@ -601,7 +601,7 @@ func (this *Bittrade) Describe() any {
 				"ALGO":  "algo",
 			},
 			"fetchOrdersByStates": map[string]any{
-				"method": "private_get_order_orders",
+				"method": "privateGetOrderOrders",
 			},
 			"fetchOpenOrders": map[string]any{
 				"method": "fetch_open_orders_v1",
@@ -1885,7 +1885,7 @@ func (this *Bittrade) fetchOrdersByStatesBody(ch chan AsyncResult[[]any], states
 		market = this.Market(symbol)
 		request["symbol"] = market["id"]
 	}
-	var method any = this.HandleOption("fetchOrdersByStates", "method", "private_get_order_orders")
+	var method any = this.HandleOption("fetchOrdersByStates", "method", "privateGetOrderOrders")
 	var response any = nil
 	if (IsEqual(method, "private_get_order_history")) || (IsEqual(method, "privateGetOrderHistory")) {
 

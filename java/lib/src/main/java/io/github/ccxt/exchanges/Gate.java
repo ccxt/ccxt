@@ -2746,7 +2746,7 @@ public class Gate extends GateApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> underlyingsResponse = (this.publicOptionsGetUnderlyings()).join();
+            List<Object> underlyingsResponse = (this.publicOptionsGetUnderlyings(new HashMap<String, Object>() {{}})).join();
             //
             //    [
             //        {
@@ -9115,8 +9115,8 @@ public class Gate extends GateApi
 
     /**
      * @method
-     * @name gate#fetchOpenInterest
-     * @description Retrieves the open interest of a currency
+     * @name gate#fetchOpenInterestHistory
+     * @description Retrieves the open interest history of a currency
      * @see https://www.gate.com/docs/developers/apiv4/en/#futures-statistics
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} timeframe "5m", "15m", "30m", "1h", "4h", "1d"
@@ -9145,7 +9145,7 @@ public class Gate extends GateApi
             Map<String, Object> market = this.market(symbol);
             if (!java.util.Objects.equals(market.get("swap"), true))
             {
-                throw new BadRequest((this.id + " fetchOpenInterest() supports swap markets only")) ;
+                throw new BadRequest((this.id + " fetchOpenInterestHistory() supports swap markets only")) ;
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "contract", market.get("id") );

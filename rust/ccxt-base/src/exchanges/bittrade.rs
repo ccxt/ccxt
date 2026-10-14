@@ -30,7 +30,9 @@ impl BittradeCore {
     pub fn init(&mut self) {
         let described = BittradeCore::describe(self);
         self.initialize_properties(described);
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self);
+        // compatibility for sandbox/testnet options in userConfig
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -1034,7 +1036,7 @@ impl BittradeCore {
 }));
         m.insert("fetchOrdersByStates".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("method".to_string(), Value::Str("private_get_order_orders".into()));
+        m.insert("method".to_string(), Value::Str("privateGetOrderOrders".into()));
     m
 }));
         m.insert("fetchOpenOrders".to_string(), Value::Map({
@@ -2138,7 +2140,7 @@ impl BittradeCore {
             market = self.market(symbol);
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
-        let mut method: Value = self.handle_option(Value::Str("fetchOrdersByStates".into()), Value::Str("method".into()), &[Value::Str("private_get_order_orders".into())]);
+        let mut method: Value = self.handle_option(Value::Str("fetchOrdersByStates".into()), Value::Str("method".into()), &[Value::Str("privateGetOrderOrders".into())]);
         let mut response: Value = Value::Null;
         if (method.as_str() == Some("private_get_order_history")) || (method.as_str() == Some("privateGetOrderHistory")) {
             let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);

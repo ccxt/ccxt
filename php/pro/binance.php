@@ -92,11 +92,11 @@ class binance extends \ccxt\async\binance {
                         'spot' => 'wss://stream.testnet.binance.vision/ws',
                         'margin' => 'wss://stream.testnet.binance.vision/ws',
                         'future' => 'wss://fstream.binancefuture.com/ws',
-                        'delivery' => 'wss://dstream.binancefuture.com/ws',
+                        'inverse' => 'wss://dstream.binancefuture.com/ws',
                         'ws-api' => array(
                             'spot' => 'wss://ws-api.testnet.binance.vision/ws-api/v3',
                             'future' => 'wss://testnet.binancefuture.com/ws-fapi/v1',
-                            'delivery' => 'wss://testnet.binancefuture.com/ws-dapi/v1',
+                            'inverse' => 'wss://testnet.binancefuture.com/ws-dapi/v1',
                         ),
                     ),
                 ),
@@ -105,11 +105,11 @@ class binance extends \ccxt\async\binance {
                         'spot' => 'wss://demo-stream.binance.com/ws',
                         'margin' => 'wss://demo-stream.binance.com/ws',
                         'future' => 'wss://fstream.binancefuture.com/ws',
-                        'delivery' => 'wss://dstream.binancefuture.com/ws',
+                        'inverse' => 'wss://dstream.binancefuture.com/ws',
                         'ws-api' => array(
                             'spot' => 'wss://demo-ws-api.binance.com/ws-api/v3',
                             'future' => 'wss://testnet.binancefuture.com/ws-fapi/v1',
-                            'delivery' => 'wss://testnet.binancefuture.com/ws-dapi/v1',
+                            'inverse' => 'wss://testnet.binancefuture.com/ws-dapi/v1',
                         ),
                     ),
                 ),
@@ -118,7 +118,7 @@ class binance extends \ccxt\async\binance {
                         'spot' => 'wss://stream.binance.com:9443/ws',
                         'margin' => 'wss://stream.binance.com:9443/ws',
                         'future' => 'wss://fstream.binance.com/ws',
-                        'delivery' => 'wss://dstream.binance.com/ws',
+                        'inverse' => 'wss://dstream.binance.com/ws',
                         'stock' => 'wss://nbstream.binance.com/equity/ws',
                         'option' => 'wss://fstream.binance.com/public/ws',
                         'optionMarket' => 'wss://fstream.binance.com/market/ws',
@@ -126,7 +126,7 @@ class binance extends \ccxt\async\binance {
                         'ws-api' => array(
                             'spot' => 'wss://ws-api.binance.com:443/ws-api/v3',
                             'future' => 'wss://ws-fapi.binance.com/ws-fapi/v1',
-                            'delivery' => 'wss://ws-dapi.binance.com/ws-dapi/v1',
+                            'inverse' => 'wss://ws-dapi.binance.com/ws-dapi/v1',
                         ),
                         'papi' => 'wss://fstream.binance.com/pm/ws',
                     ),
@@ -142,7 +142,7 @@ class binance extends \ccxt\async\binance {
                     'spot' => 50, // max 1024
                     'margin' => 50, // max 1024
                     'future' => 50, // max 200
-                    'delivery' => 50, // max 200
+                    'inverse' => 50, // max 200
                     'stock' => 50,
                     'option' => 50, // max 200
                     'optionMarket' => 50, // max 200
@@ -151,7 +151,7 @@ class binance extends \ccxt\async\binance {
                     'spot' => 200,
                     'margin' => 200,
                     'future' => 200,
-                    'delivery' => 200,
+                    'inverse' => 200,
                     'stock' => 200,
                     'option' => 200,
                     'optionMarket' => 200,
@@ -799,7 +799,7 @@ class binance extends \ccxt\async\binance {
         if ($firstMarket['option'] === true) {
             $type = 'option';
         } elseif ($firstMarket['contract'] === true) {
-            $type = ($firstMarket['linear'] === true) ? 'future' : 'delivery';
+            $type = ($firstMarket['linear'] === true) ? 'future' : 'inverse';
         }
         $name = 'depth';
         $streamHash = 'multipleOrderbook';
@@ -883,7 +883,7 @@ class binance extends \ccxt\async\binance {
         if ($firstMarket['option'] === true) {
             $type = 'option';
         } elseif ($firstMarket['contract'] === true) {
-            $type = ($firstMarket['linear'] === true) ? 'future' : 'delivery';
+            $type = ($firstMarket['linear'] === true) ? 'future' : 'inverse';
         }
         $name = 'depth';
         $streamHash = 'multipleOrderbook';
@@ -1328,7 +1328,7 @@ class binance extends \ccxt\async\binance {
         if ($isOption === true) {
             $type = 'option';
         } elseif ($firstMarket['contract'] === true) {
-            $type = ($firstMarket['linear'] === true) ? 'future' : 'delivery';
+            $type = ($firstMarket['linear'] === true) ? 'future' : 'inverse';
         }
         $messageHashes = array();
         $subParams = array();
@@ -1419,7 +1419,7 @@ class binance extends \ccxt\async\binance {
         if ($isOption === true) {
             $type = 'option';
         } elseif ($firstMarket['contract'] === true) {
-            $type = ($firstMarket['linear'] === true) ? 'future' : 'delivery';
+            $type = ($firstMarket['linear'] === true) ? 'future' : 'inverse';
         }
         $subMessageHashes = array();
         $subParams = array();
@@ -1585,7 +1585,7 @@ class binance extends \ccxt\async\binance {
         //         "Q": "0.00000000"
         //     }
         //
-        // private watchMyTrades future/delivery
+        // private watchMyTrades linear/inverse
         //
         //     {
         //         "s": "BTCUSDT",
@@ -1815,7 +1815,7 @@ class binance extends \ccxt\async\binance {
             $type = 'option';
             $wsUrlType = 'optionMarket'; // eOptions klines are served from /market/ws
         } elseif ($firstMarket['contract'] === true) {
-            $type = ($firstMarket['linear'] === true) ? 'future' : 'delivery';
+            $type = ($firstMarket['linear'] === true) ? 'future' : 'inverse';
             $wsUrlType = $type;
         }
         $isSpot = ($type === 'spot');
@@ -1899,7 +1899,7 @@ class binance extends \ccxt\async\binance {
             $type = 'option';
             $wsUrlType = 'optionMarket'; // eOptions klines are served from /market/ws
         } elseif ($firstMarket['contract'] === true) {
-            $type = ($firstMarket['linear'] === true) ? 'future' : 'delivery';
+            $type = ($firstMarket['linear'] === true) ? 'future' : 'inverse';
             $wsUrlType = $type;
         }
         $isSpot = ($type === 'spot');
@@ -2517,7 +2517,7 @@ class binance extends \ccxt\async\binance {
         } elseif ($this->isLinear($marketType, $subType)) {
             $rawMarketType = 'future';
         } elseif ($this->isInverse($marketType, $subType)) {
-            $rawMarketType = 'delivery';
+            $rawMarketType = 'inverse';
         } elseif ($marketType === 'spot') {
             $rawMarketType = $marketType;
         } else {
@@ -3271,7 +3271,7 @@ class binance extends \ccxt\async\binance {
                     $response = Async\await($this->papiPostListenKey($paramsOmitted));
                 } elseif ($type === 'future') {
                     $response = Async\await($this->fapiPrivatePostListenKey($paramsOmitted));
-                } elseif ($type === 'delivery') {
+                } elseif ($type === 'inverse') {
                     $response = Async\await($this->dapiPrivatePostListenKey($paramsOmitted));
                 } elseif ($type === 'option') {
                     $response = Async\await($this->eapiPrivatePostListenKey($paramsOmitted));
@@ -3335,7 +3335,7 @@ class binance extends \ccxt\async\binance {
             if ($this->isLinear($type, $subType)) {
                 $type = 'future';
             } elseif ($this->isInverse($type, $subType)) {
-                $type = 'delivery';
+                $type = 'inverse';
             }
         }
         // For margin, token renewal is handled by renewListenToken method
@@ -3365,7 +3365,7 @@ class binance extends \ccxt\async\binance {
                 Async\await($this->papiPutListenKey($this->extend($request, $paramsOmitted)));
             } elseif ($type === 'future') {
                 Async\await($this->fapiPrivatePutListenKey($this->extend($request, $paramsOmitted)));
-            } elseif ($type === 'delivery') {
+            } elseif ($type === 'inverse') {
                 Async\await($this->dapiPrivatePutListenKey($this->extend($request, $paramsOmitted)));
             } elseif ($type === 'option') {
                 Async\await($this->eapiPrivatePutListenKey($this->extend($request, $paramsOmitted)));
@@ -3485,7 +3485,7 @@ class binance extends \ccxt\async\binance {
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/websocket-api
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string|null} [$params->type] 'future', 'delivery', 'savings', 'funding', or 'spot'
+         * @param {string|null} [$params->type] 'spot', 'margin', 'swap', 'future', 'savings' or 'funding', use $params->subType 'inverse' for COIN-M
          * @param {string|null} [$params->marginMode] 'cross' or 'isolated', for margin trading, uses $this->options.defaultMarginMode if not passed, defaults to null/None/null
          * @param {string[]|null} [$params->symbols] unified market symbols, only used in isolated margin mode
          * @param {string|null} [$params->method] $method to use. Can be account.balance, account.status, v2/account.balance or v2/account.status
@@ -3495,7 +3495,7 @@ class binance extends \ccxt\async\binance {
             Async\await($this->load_markets());
         }
         $type = $this->get_market_type('fetchBalanceWs', null, $params);
-        if ($type !== 'spot' && $type !== 'future' && $type !== 'delivery') {
+        if ($type !== 'spot' && $type !== 'future' && $type !== 'inverse') {
             throw new BadRequest($this->id . ' fetchBalanceWs only supports spot or swap markets');
         }
         $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $type);
@@ -3639,7 +3639,7 @@ class binance extends \ccxt\async\binance {
             // we shouldn't rely on the defaultType
             $type = 'future';
         }
-        if ($type !== 'future' && $type !== 'delivery') {
+        if ($type !== 'future' && $type !== 'inverse') {
             throw new BadRequest($this->id . ' fetchPositionsWs only supports swap markets');
         }
         $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $type);
@@ -3786,7 +3786,7 @@ class binance extends \ccxt\async\binance {
         //         ]
         //     }
         //
-        // future/delivery
+        // linear/inverse
         //
         //     {
         //         "e": "ACCOUNT_UPDATE",            // Event Type
@@ -3884,7 +3884,7 @@ class binance extends \ccxt\async\binance {
         $accountType = '';
         for ($i = 0; $i < count($subscriptions); $i++) {
             $subscription = $subscriptions[$i];
-            if (($subscription === 'spot') || ($subscription === 'margin') || ($subscription === 'future') || ($subscription === 'delivery') || ($subscription === 'option')) {
+            if (($subscription === 'spot') || ($subscription === 'margin') || ($subscription === 'future') || ($subscription === 'inverse') || ($subscription === 'option')) {
                 $accountType = $subscription;
                 break;
             }
@@ -3907,7 +3907,7 @@ class binance extends \ccxt\async\binance {
             if ($this->isLinear($type, $subType)) {
                 $type = 'future';
             } elseif ($this->isInverse($type, $subType)) {
-                $type = 'delivery';
+                $type = 'inverse';
             }
         }
         // sites consuming every element unpack this; the two that skip subType
@@ -3923,7 +3923,7 @@ class binance extends \ccxt\async\binance {
         if ($this->isLinear($type, $subType)) {
             $type = 'future';
         } elseif ($this->isInverse($type, $subType)) {
-            $type = 'delivery';
+            $type = 'inverse';
         }
         return $type;
     }
@@ -3956,7 +3956,7 @@ class binance extends \ccxt\async\binance {
         }
         $market = $this->market($symbol);
         $marketType = $this->get_market_type('createOrderWs', $market, $params);
-        if ($marketType !== 'spot' && $marketType !== 'future' && $marketType !== 'delivery') {
+        if ($marketType !== 'spot' && $marketType !== 'future' && $marketType !== 'inverse') {
             throw new BadRequest($this->id . ' createOrderWs only supports spot or swap markets');
         }
         $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $marketType);
@@ -4125,7 +4125,7 @@ class binance extends \ccxt\async\binance {
         }
         $market = $this->market($symbol);
         $marketType = $this->get_market_type('editOrderWs', $market, $params);
-        if ($marketType !== 'spot' && $marketType !== 'future' && $marketType !== 'delivery') {
+        if ($marketType !== 'spot' && $marketType !== 'future' && $marketType !== 'inverse') {
             throw new BadRequest($this->id . ' editOrderWs only supports spot or swap markets');
         }
         $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $marketType);
@@ -4134,7 +4134,7 @@ class binance extends \ccxt\async\binance {
         }
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
-        $isSwap = ($marketType === 'future' || $marketType === 'delivery');
+        $isSwap = ($marketType === 'future' || $marketType === 'inverse');
         $payload = array();
         if ($marketType === 'spot') {
             $payload = $this->editSpotOrderRequest($id, $symbol, $type, $side, $amount, $price, $params);
@@ -4406,7 +4406,7 @@ class binance extends \ccxt\async\binance {
         }
         $market = $this->market($symbol);
         $type = $this->get_market_type('fetchOrderWs', $market, $params);
-        if ($type !== 'spot' && $type !== 'future' && $type !== 'delivery') {
+        if ($type !== 'spot' && $type !== 'future' && $type !== 'inverse') {
             throw new BadRequest($this->id . ' fetchOrderWs only supports spot or swap markets');
         }
         $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $type);
@@ -5272,10 +5272,10 @@ class binance extends \ccxt\async\binance {
         // spot and margin have no positions - whatever still RESOLVES to spot
         // or margin after the helper falls through to the derivatives stream
         // matching the subType. requests a defaultSubType already rewrote
-        // arrive here as future or delivery and pass untouched, which lands on
+        // arrive here as future or inverse and pass untouched, which lands on
         // the same stream the old raw-type ordering produced in every case
         if ($type === 'spot' || $type === 'margin') {
-            $type = ($subType === 'inverse') ? 'delivery' : 'future';
+            $type = ($subType === 'inverse') ? 'inverse' : 'future';
         }
         // 'option' stays as 'option', don't redirect to 'future' - the helper's
         // guard finally makes this comment true

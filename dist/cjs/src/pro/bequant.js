@@ -2,15 +2,15 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var hitbtc = require('./hitbtc.js');
-var bequant$1 = require('../bequant.js');
+var bequant$1 = require('../abstract/pro/bequant.js');
+var bequant$2 = require('../bequant.js');
 
 // ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-class bequant extends hitbtc["default"] {
+class bequant extends bequant$1["default"] {
     describe() {
         // eslint-disable-next-line new-cap
-        const restInstance = new bequant$1["default"]();
+        const restInstance = new bequant$2["default"]();
         const restDescribe = restInstance.describe();
         const parentWsDescribe = super.describeData();
         const extended = this.deepExtend(restDescribe, parentWsDescribe);

@@ -217,7 +217,7 @@ query for balance and get the amount of funds available for trading or funds loc
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.type | <code>string</code> | No | 'future', 'delivery', 'savings', 'funding', or 'spot' |
+| params.type | <code>string</code> | No | 'spot', 'margin', 'swap', 'future', 'savings' or 'funding' |
 | params.marginMode | <code>string</code> | No | 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null |
 | params.symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | No | unified market symbols, only used in isolated margin mode |
 

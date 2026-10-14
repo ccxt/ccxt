@@ -2686,7 +2686,7 @@ public partial class mexc : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) != true))
         {
-            throw new NotSupported ((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
+            throw new NotSupported ((this.id + " createMarketSellOrderWithCost() supports spot orders only")) ;
         }
         Dictionary<string, object> req = new Dictionary<string, object>() {
             { "cost", cost },

@@ -139,7 +139,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                     String listenKey = null;
                     if (Boolean.TRUE.equals(isContract))
                     {
-                        Map<String, Object> response = (this.privateLinearGetFutureUserV1UserListenKey()).join();
+                        Map<String, Object> response = (this.privateLinearGetFutureUserV1UserListenKey(new HashMap<String, Object>() {{}})).join();
                         //
                         //    {
                         //        returnCode: '0',
@@ -151,7 +151,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                         listenKey = this.safeString(response, "result");
                     } else
                     {
-                        Map<String, Object> response = (this.privateSpotPostWsToken()).join();
+                        Map<String, Object> response = (this.privateSpotPostWsToken(new HashMap<String, Object>() {{}})).join();
                         //
                         //    {
                         //        "rc": 0,

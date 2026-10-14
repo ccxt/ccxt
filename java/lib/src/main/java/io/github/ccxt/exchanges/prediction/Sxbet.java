@@ -789,7 +789,7 @@ public class Sxbet extends SxbetApi
             {
                 return cached;
             }
-            Map<String, Object> response = (this.sxbetPublicGetMetadataObv3()).join();
+            Map<String, Object> response = (this.sxbetPublicGetMetadataObv3(new HashMap<String, Object>() {{}})).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(this.options, "sxObv3Metadata", data);
             return data;
@@ -913,7 +913,7 @@ public class Sxbet extends SxbetApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> response = (this.sxbetPrivateGetUserProxy()).join();
+            Map<String, Object> response = (this.sxbetPrivateGetUserProxy(new HashMap<String, Object>() {{}})).join();
             return this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         }).thenApply(res -> (Map<String, Object>) res);
 
@@ -948,7 +948,7 @@ public class Sxbet extends SxbetApi
             Boolean deployed = (Boolean) this.safeBool(proxy, "deployed", false);
             if (!java.util.Objects.equals(deployed, true))
             {
-                (this.sxbetPrivatePostUserDeployProxy()).join();
+                (this.sxbetPrivatePostUserDeployProxy(new HashMap<String, Object>() {{}})).join();
                 // deployment is asynchronous - poll until the proxy exists
                 for (var i = 0; i < 30; i++)
                 {
@@ -2620,7 +2620,7 @@ public class Sxbet extends SxbetApi
             {
                 throw new ArgumentsRequired((this.id + " websocket streaming requires the apiKey credential - the realtime token endpoint authenticates with the X-Api-Key header")) ;
             }
-            Map<String, Object> response = (this.sxbetPrivateGetUserRealtimeTokenV3ApiKey()).join();
+            Map<String, Object> response = (this.sxbetPrivateGetUserRealtimeTokenV3ApiKey(new HashMap<String, Object>() {{}})).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.safeString2(data, "token", "realtimeToken", this.safeString(response, "token"));
         }).thenApply(res -> (String) res);

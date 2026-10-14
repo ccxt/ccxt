@@ -1211,8 +1211,8 @@
         }
     },
     "derive": {
+        "preferredSpotSymbol": "DRV/USDC",
         "skipMethods": {
-            "features": "not implemented",
             "loadMarkets": {
                 "currency": "messed",
                 "currencyIdAndCode": "messed"
@@ -1229,7 +1229,8 @@
             "fetchTrades": {
                 "takerOrMaker": "todo fix",
                 "sideSequence": "todo check"
-            }
+            },
+            "watchOrderBook.rs": "the rust base orderbook fails the strict bid sorting assert on live books (pre-existing core issue, kraken fails the same way on master), recheck 2026-12-01"
         }
     },
     "digifinex": {

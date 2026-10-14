@@ -136,6 +136,17 @@ fn parse_binary(b: &[u8]) -> Value {
     crate::exchange_stubs::bytes_to_value(b)
 }
 
+/// Decode a binary frame for a client with `decompressBinary` off (mexc
+/// protobuf, paradex SBE): JSON is still read as text, as some venues send it
+/// over the binary opcode, everything else is carried through as raw bytes.
+/// No utf-8 fallback here: a binary payload can pass for utf-8 text.
+fn parse_raw_binary(b: &[u8]) -> Value {
+    match serde_json::from_slice::<serde_json::Value>(b) {
+        Ok(j) => Value::from_json(&j),
+        Err(_) => crate::exchange_stubs::bytes_to_value(b),
+    }
+}
+
 impl ClientState {
     fn push_incoming(&self, v: Value) {
         self.incoming.lock().unwrap().push_back(v);
@@ -524,7 +535,7 @@ async fn connect_via_proxy(
     Ok(ws)
 }
 
-pub async fn ensure_client(url: &str, proxy: Option<String>) -> Result<Arc<ClientState>, String> {
+pub async fn ensure_client(url: &str, proxy: Option<String>, decompress_binary: bool) -> Result<Arc<ClientState>, String> {
     let state = ensure_slot(url);
     if *state.connected.lock().unwrap() {
         return Ok(state);
@@ -566,7 +577,7 @@ pub async fn ensure_client(url: &str, proxy: Option<String>) -> Result<Arc<Clien
         while let Some(frame) = read.next().await {
             match frame {
                 Ok(Message::Text(t)) => st.push_incoming(parse_text(&t)),
-                Ok(Message::Binary(b)) => st.push_incoming(parse_binary(&b)),
+                Ok(Message::Binary(b)) => st.push_incoming(if decompress_binary { parse_binary(&b) } else { parse_raw_binary(&b) }),
                 Ok(Message::Pong(_)) => st.on_pong(),
                 // tungstenite answers Ping frames with Pong automatically.
                 Ok(Message::Ping(_)) => {}
@@ -1005,7 +1016,7 @@ mod tests {
     #[tokio::test]
     async fn transport_roundtrip() {
         let url = spawn_mock_server().await;
-        let client = ensure_client(&url, None).await.expect("connect");
+        let client = ensure_client(&url, None, true).await.expect("connect");
 
         // Send a subscribe frame once (idempotent per hash).
         assert!(client.subscribe_once("ticker:BTC/USDT", Value::Null));
@@ -1219,5 +1230,16 @@ mod tests {
         e.write_all(b"{\"x\":true}").unwrap();
         let gz = e.finish().unwrap();
         assert!(matches!(parse_binary(&gz), Value::Dict(_)));
+    }
+
+    #[test]
+    fn raw_binary_frames_stay_bytes() {
+        // an SBE heartbeat header is all small integers, so the frame is valid
+        // utf-8, it must still reach the exchange as bytes with decompressBinary off
+        let frame: Vec<u8> = vec![0x10, 0x00, 0x28, 0x00, 0x01, 0x00, 0x02, 0x00, 0x41, 0x42, 0x43, 0x01];
+        assert!(std::str::from_utf8(&frame).is_ok());
+        assert_eq!(parse_raw_binary(&frame), crate::exchange_stubs::bytes_to_value(&frame));
+        // json over the binary opcode is still parsed
+        assert!(matches!(parse_raw_binary(b"{\"x\":true}"), Value::Dict(_)));
     }
 }

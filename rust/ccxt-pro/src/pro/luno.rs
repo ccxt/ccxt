@@ -31,7 +31,9 @@ impl LunoCore {
     pub fn init(&mut self) {
         let described = LunoCore::describe(self);
         self.initialize_properties(described);
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self);
+        // compatibility for sandbox/testnet options in userConfig
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -357,8 +359,8 @@ impl LunoCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_465: bool = true;
-            while { if !__for_first_465 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_465 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawTrades.len() as i64) as f64) } {
+            let mut __for_first_469: bool = true;
+            while { if !__for_first_469 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_469 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawTrades.len() as i64) as f64) } {
             let mut rawTrade: Value = rawTrades.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut trade: Value = self.parse_trade(rawTrade, &[market.clone()]);
             stored.append(trade);
@@ -552,8 +554,8 @@ impl LunoCore {
         let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_466: bool = true;
-            while { if !__for_first_466 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_466 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&bidasksValue).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_470: bool = true;
+            while { if !__for_first_470 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_470 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&bidasksValue).as_f64().unwrap_or(f64::NAN) } {
             append_to_array(&mut result, self.custom_parse_bid_ask(get_value(&bidasksValue, &i), &[priceKey.clone(), amountKey.clone(), thirdKey.clone()]));
         }
         }
@@ -629,8 +631,8 @@ impl LunoCore {
         let mut tradeUpdates: Value = self.safe_list_k(message.clone(), "trade_updates", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_467: bool = true;
-            while { if !__for_first_467 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_467 = false; i.as_f64().unwrap_or(f64::NAN) < ((tradeUpdates.len() as i64) as f64) } {
+            let mut __for_first_471: bool = true;
+            while { if !__for_first_471 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_471 = false; i.as_f64().unwrap_or(f64::NAN) < ((tradeUpdates.len() as i64) as f64) } {
             let mut tradeUpdate: Value = tradeUpdates.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut makerOrderId: Value = self.safe_string_k(tradeUpdate.clone(), "maker_order_id", &[]);
             let mut tradedAmount: Value = self.safe_string_k(tradeUpdate, "base", &[]);
@@ -677,8 +679,8 @@ impl LunoCore {
         let mut sideLength: Value = get_array_length(&orderSide);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_468: bool = true;
-            while { if !__for_first_468 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_468 = false; i.as_f64().unwrap_or(f64::NAN) < sideLength.as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_472: bool = true;
+            while { if !__for_first_472 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_472 = false; i.as_f64().unwrap_or(f64::NAN) < sideLength.as_f64().unwrap_or(f64::NAN) } {
             let mut order: Value = get_value(&orderSide, &i);
             let mut order: Value = get_value(&orderSide, &i);
             let mut entryId: Value = self.safe_string(order.clone(), Value::Int(2), &[]);
@@ -767,8 +769,8 @@ impl LunoCore {
         let mut handlers: Value = Value::from(vec![Value::Str("handle_order_book".into()).clone(), Value::Str("handle_trades".into()).clone()]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_469: bool = true;
-            while { if !__for_first_469 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_469 = false; j.as_f64().unwrap_or(f64::NAN) < ((handlers.len() as i64) as f64) } {
+            let mut __for_first_473: bool = true;
+            while { if !__for_first_473 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_473 = false; j.as_f64().unwrap_or(f64::NAN) < ((handlers.len() as i64) as f64) } {
             let mut handler: Value = handlers.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             self.dispatch_ws_handler(&handler, &[client.clone(), message.clone(), subscriptions.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)]);
         }

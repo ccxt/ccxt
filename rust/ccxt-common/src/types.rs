@@ -1474,6 +1474,35 @@ pub fn vec_from_value<T>(v: &Value, decode: fn(Value) -> T) -> Vec<T> {
     }
 }
 
+macro_rules! string_enum {
+    ($(#[$m:meta])* $name:ident { $($v:ident => $s:literal),+ $(,)? }) => {
+        $(#[$m])*
+        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+        pub enum $name { $($v),+ }
+        impl $name {
+            pub fn as_str(&self) -> &'static str { match self { $(Self::$v => $s),+ } }
+        }
+        impl std::fmt::Display for $name {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result { f.write_str(self.as_str()) }
+        }
+        impl std::str::FromStr for $name {
+            type Err = String;
+            fn from_str(s: &str) -> Result<Self, String> {
+                match s { $($s => Ok(Self::$v),)+ _ => Err(format!("invalid {}: {}", stringify!($name), s)) }
+            }
+        }
+    };
+}
+
+string_enum!(
+    /// TS `DefaultType` — `options.defaultType`.
+    DefaultType { Spot => "spot", Margin => "margin", Option => "option", Swap => "swap", Future => "future" }
+);
+string_enum!(
+    /// TS `DefaultSubType` — `options.defaultSubType`.
+    DefaultSubType { Linear => "linear", Inverse => "inverse" }
+);
+
 #[cfg(test)]
 mod from_value_tests {
     use super::{Market, Order, OrderBook, MarginModification, Conversion, IsolatedBorrowRate, BorrowRate, PositionModeInfo, LastPrice, LeverageTier, DepositWithdrawFee, MarginLoan, Ticker, Trade, Position, Transaction, LedgerEntry, FundingRate, TradingFee, OpenInterest, Liquidation, Greeks};

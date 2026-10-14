@@ -46,11 +46,11 @@ use Lighter\Signer;
 
 use Exception;
 
-$version = '4.5.86';
+$version = '4.5.88';
 
 class BaseExchange extends \ccxt\BaseExchange {
 
-    const VERSION = '4.5.86';
+    const VERSION = '4.5.88';
 
     public $browser;
     public $marketsLoading = null;
@@ -1718,7 +1718,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         return $timestamp;
     }
 
-    public function after_construct() {
+    public function after_construct(array $userConfig = array()) {
         // networks
         $this->create_networks_by_id_object();
         $this->features_generator();
@@ -1732,6 +1732,10 @@ class BaseExchange extends \ccxt\BaseExchange {
         $isSandbox = $this->safe_bool_2($this->options, 'sandbox', 'testnet', false);
         if ($isSandbox === true) {
             $this->set_sandbox_mode($isSandbox);
+        }
+        // compatibility for sandbox/testnet options in userConfig
+        if (($this->safe_bool($userConfig, 'sandbox', false)) || ($this->safe_bool($userConfig, 'testnet', false))) {
+            $this->set_sandbox_mode(true);
         }
     }
 

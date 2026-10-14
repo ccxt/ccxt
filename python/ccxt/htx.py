@@ -7785,7 +7785,7 @@ class htx(Exchange, ImplicitAPI):
             elif marketType == 'swap':
                 response = self.contractPrivatePostSwapApiV1SwapAccountPositionInfo(self.extend(request, query))
             else:
-                raise NotSupported(self.id + ' setLeverage() not support self market type')
+                raise NotSupported(self.id + ' fetchPosition() not support self market type')
             #
             # future, swap
             #

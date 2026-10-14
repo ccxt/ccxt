@@ -7403,8 +7403,8 @@ class gate extends gate$1["default"] {
     }
     /**
      * @method
-     * @name gate#fetchOpenInterest
-     * @description Retrieves the open interest of a currency
+     * @name gate#fetchOpenInterestHistory
+     * @description Retrieves the open interest history of a currency
      * @see https://www.gate.com/docs/developers/apiv4/en/#futures-statistics
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} timeframe "5m", "15m", "30m", "1h", "4h", "1d"
@@ -7424,7 +7424,7 @@ class gate extends gate$1["default"] {
         }
         const market = this.market(symbol);
         if (market['swap'] !== true) {
-            throw new errors.BadRequest(this.id + ' fetchOpenInterest() supports swap markets only');
+            throw new errors.BadRequest(this.id + ' fetchOpenInterestHistory() supports swap markets only');
         }
         const request = {
             'contract': market['id'],

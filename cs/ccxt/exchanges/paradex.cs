@@ -1942,7 +1942,12 @@ public partial class paradex : Exchange
         //
         Int64? timestamp = this.safeInteger(order, "created_at");
         string? orderId = this.safeString(order, "id");
-        string? clientOrderId = ((string)this.omitZero(this.safeString(order, "client_id")));
+        // a client id is free text, omitZero would drop every non-numeric one in php
+        string? clientOrderId = this.safeString(order, "client_id");
+        if (clientOrderId == "")
+        {
+            clientOrderId = null;
+        }
         string? marketId = this.safeString(order, "market");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));

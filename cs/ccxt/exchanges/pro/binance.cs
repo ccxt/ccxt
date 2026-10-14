@@ -80,11 +80,11 @@ public partial class binance : ccxt.binance
                         { "spot", "wss://stream.testnet.binance.vision/ws" },
                         { "margin", "wss://stream.testnet.binance.vision/ws" },
                         { "future", "wss://fstream.binancefuture.com/ws" },
-                        { "delivery", "wss://dstream.binancefuture.com/ws" },
+                        { "inverse", "wss://dstream.binancefuture.com/ws" },
                         { "ws-api", new Dictionary<string, object>() {
                             { "spot", "wss://ws-api.testnet.binance.vision/ws-api/v3" },
                             { "future", "wss://testnet.binancefuture.com/ws-fapi/v1" },
-                            { "delivery", "wss://testnet.binancefuture.com/ws-dapi/v1" },
+                            { "inverse", "wss://testnet.binancefuture.com/ws-dapi/v1" },
                         } },
                     } },
                 } },
@@ -93,11 +93,11 @@ public partial class binance : ccxt.binance
                         { "spot", "wss://demo-stream.binance.com/ws" },
                         { "margin", "wss://demo-stream.binance.com/ws" },
                         { "future", "wss://fstream.binancefuture.com/ws" },
-                        { "delivery", "wss://dstream.binancefuture.com/ws" },
+                        { "inverse", "wss://dstream.binancefuture.com/ws" },
                         { "ws-api", new Dictionary<string, object>() {
                             { "spot", "wss://demo-ws-api.binance.com/ws-api/v3" },
                             { "future", "wss://testnet.binancefuture.com/ws-fapi/v1" },
-                            { "delivery", "wss://testnet.binancefuture.com/ws-dapi/v1" },
+                            { "inverse", "wss://testnet.binancefuture.com/ws-dapi/v1" },
                         } },
                     } },
                 } },
@@ -106,7 +106,7 @@ public partial class binance : ccxt.binance
                         { "spot", "wss://stream.binance.com:9443/ws" },
                         { "margin", "wss://stream.binance.com:9443/ws" },
                         { "future", "wss://fstream.binance.com/ws" },
-                        { "delivery", "wss://dstream.binance.com/ws" },
+                        { "inverse", "wss://dstream.binance.com/ws" },
                         { "stock", "wss://nbstream.binance.com/equity/ws" },
                         { "option", "wss://fstream.binance.com/public/ws" },
                         { "optionMarket", "wss://fstream.binance.com/market/ws" },
@@ -114,7 +114,7 @@ public partial class binance : ccxt.binance
                         { "ws-api", new Dictionary<string, object>() {
                             { "spot", "wss://ws-api.binance.com:443/ws-api/v3" },
                             { "future", "wss://ws-fapi.binance.com/ws-fapi/v1" },
-                            { "delivery", "wss://ws-dapi.binance.com/ws-dapi/v1" },
+                            { "inverse", "wss://ws-dapi.binance.com/ws-dapi/v1" },
                         } },
                         { "papi", "wss://fstream.binance.com/pm/ws" },
                     } },
@@ -130,7 +130,7 @@ public partial class binance : ccxt.binance
                     { "spot", 50 },
                     { "margin", 50 },
                     { "future", 50 },
-                    { "delivery", 50 },
+                    { "inverse", 50 },
                     { "stock", 50 },
                     { "option", 50 },
                     { "optionMarket", 50 },
@@ -139,7 +139,7 @@ public partial class binance : ccxt.binance
                     { "spot", 200 },
                     { "margin", 200 },
                     { "future", 200 },
-                    { "delivery", 200 },
+                    { "inverse", 200 },
                     { "stock", 200 },
                     { "option", 200 },
                     { "optionMarket", 200 },
@@ -838,7 +838,7 @@ public partial class binance : ccxt.binance
             type = "option";
         } else if ((((firstMarket != null && firstMarket.ContainsKey("contract") ? firstMarket["contract"] : null) as bool?) == true))
         {
-            type = ((((firstMarket != null && firstMarket.ContainsKey("linear") ? firstMarket["linear"] : null) as bool?) == true)) ? "future" : "delivery";
+            type = ((((firstMarket != null && firstMarket.ContainsKey("linear") ? firstMarket["linear"] : null) as bool?) == true)) ? "future" : "inverse";
         }
         string name = "depth";
         string streamHash = "multipleOrderbook";
@@ -932,7 +932,7 @@ public partial class binance : ccxt.binance
             type = "option";
         } else if ((((firstMarket != null && firstMarket.ContainsKey("contract") ? firstMarket["contract"] : null) as bool?) == true))
         {
-            type = ((((firstMarket != null && firstMarket.ContainsKey("linear") ? firstMarket["linear"] : null) as bool?) == true)) ? "future" : "delivery";
+            type = ((((firstMarket != null && firstMarket.ContainsKey("linear") ? firstMarket["linear"] : null) as bool?) == true)) ? "future" : "inverse";
         }
         string name = "depth";
         string streamHash = "multipleOrderbook";
@@ -1437,7 +1437,7 @@ public partial class binance : ccxt.binance
             type = "option";
         } else if ((((firstMarket != null && firstMarket.ContainsKey("contract") ? firstMarket["contract"] : null) as bool?) == true))
         {
-            type = ((((firstMarket != null && firstMarket.ContainsKey("linear") ? firstMarket["linear"] : null) as bool?) == true)) ? "future" : "delivery";
+            type = ((((firstMarket != null && firstMarket.ContainsKey("linear") ? firstMarket["linear"] : null) as bool?) == true)) ? "future" : "inverse";
         }
         List<object> messageHashes = new List<object>() {};
         List<object> subParams = new List<object>() {};
@@ -1539,7 +1539,7 @@ public partial class binance : ccxt.binance
             type = "option";
         } else if ((((firstMarket != null && firstMarket.ContainsKey("contract") ? firstMarket["contract"] : null) as bool?) == true))
         {
-            type = ((((firstMarket != null && firstMarket.ContainsKey("linear") ? firstMarket["linear"] : null) as bool?) == true)) ? "future" : "delivery";
+            type = ((((firstMarket != null && firstMarket.ContainsKey("linear") ? firstMarket["linear"] : null) as bool?) == true)) ? "future" : "inverse";
         }
         List<object> subMessageHashes = new List<object>() {};
         List<object> subParams = new List<object>() {};
@@ -1711,7 +1711,7 @@ public partial class binance : ccxt.binance
         //         "Q": "0.00000000"
         //     }
         //
-        // private watchMyTrades future/delivery
+        // private watchMyTrades linear/inverse
         //
         //     {
         //         "s": "BTCUSDT",
@@ -1970,7 +1970,7 @@ public partial class binance : ccxt.binance
             wsUrlType = "optionMarket"; // eOptions klines are served from /market/ws
         } else if ((((firstMarket != null && firstMarket.ContainsKey("contract") ? firstMarket["contract"] : null) as bool?) == true))
         {
-            type = ((((firstMarket != null && firstMarket.ContainsKey("linear") ? firstMarket["linear"] : null) as bool?) == true)) ? "future" : "delivery";
+            type = ((((firstMarket != null && firstMarket.ContainsKey("linear") ? firstMarket["linear"] : null) as bool?) == true)) ? "future" : "inverse";
             wsUrlType = type;
         }
         bool isSpot = (type == "spot");
@@ -2067,7 +2067,7 @@ public partial class binance : ccxt.binance
             wsUrlType = "optionMarket"; // eOptions klines are served from /market/ws
         } else if ((((firstMarket != null && firstMarket.ContainsKey("contract") ? firstMarket["contract"] : null) as bool?) == true))
         {
-            type = ((((firstMarket != null && firstMarket.ContainsKey("linear") ? firstMarket["linear"] : null) as bool?) == true)) ? "future" : "delivery";
+            type = ((((firstMarket != null && firstMarket.ContainsKey("linear") ? firstMarket["linear"] : null) as bool?) == true)) ? "future" : "inverse";
             wsUrlType = type;
         }
         bool isSpot = (type == "spot");
@@ -2731,7 +2731,7 @@ public partial class binance : ccxt.binance
             rawMarketType = "future";
         } else if (this.isInverse(marketType, subType))
         {
-            rawMarketType = "delivery";
+            rawMarketType = "inverse";
         } else if ((marketType == "spot"))
         {
             rawMarketType = marketType;
@@ -3584,7 +3584,7 @@ public partial class binance : ccxt.binance
                 } else if (type == "future")
                 {
                     response = await this.fapiPrivatePostListenKey(paramsOmitted);
-                } else if (type == "delivery")
+                } else if (type == "inverse")
                 {
                     response = await this.dapiPrivatePostListenKey(paramsOmitted);
                 } else if (type == "option")
@@ -3657,7 +3657,7 @@ public partial class binance : ccxt.binance
                 type = "future";
             } else if (this.isInverse(type, subType))
             {
-                type = "delivery";
+                type = "inverse";
             }
         }
         // For margin, token renewal is handled by renewListenToken method
@@ -3693,7 +3693,7 @@ public partial class binance : ccxt.binance
             } else if (type == "future")
             {
                 await this.fapiPrivatePutListenKey(this.extend(request, paramsOmitted));
-            } else if (type == "delivery")
+            } else if (type == "inverse")
             {
                 await this.dapiPrivatePutListenKey(this.extend(request, paramsOmitted));
             } else if (type == "option")
@@ -3832,7 +3832,7 @@ public partial class binance : ccxt.binance
      * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/account-requests#account-information-user_data
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/websocket-api
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string|undefined} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot'
+     * @param {string|undefined} [params.type] 'spot', 'margin', 'swap', 'future', 'savings' or 'funding', use params.subType 'inverse' for COIN-M
      * @param {string|undefined} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
      * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
      * @param {string|undefined} [params.method] method to use. Can be account.balance, account.status, v2/account.balance or v2/account.status
@@ -3846,7 +3846,7 @@ public partial class binance : ccxt.binance
             await this.loadMarkets();
         }
         string? type = this.getMarketType("fetchBalanceWs", null, parameters);
-        if (type != "spot" && type != "future" && type != "delivery")
+        if (type != "spot" && type != "future" && type != "inverse")
         {
             throw new BadRequest ((this.id + " fetchBalanceWs only supports spot or swap markets")) ;
         }
@@ -4004,7 +4004,7 @@ public partial class binance : ccxt.binance
             // we shouldn't rely on the defaultType
             type = "future";
         }
-        if (type != "future" && type != "delivery")
+        if (type != "future" && type != "inverse")
         {
             throw new BadRequest ((this.id + " fetchPositionsWs only supports swap markets")) ;
         }
@@ -4174,7 +4174,7 @@ public partial class binance : ccxt.binance
         //         ]
         //     }
         //
-        // future/delivery
+        // linear/inverse
         //
         //     {
         //         "e": "ACCOUNT_UPDATE",            // Event Type
@@ -4284,7 +4284,7 @@ public partial class binance : ccxt.binance
         for (int i = 0; i < (subscriptions?.Count ?? 0); i++)
         {
             string? subscription = ((string)(subscriptions != null && i < subscriptions.Count ? subscriptions[i] : null));
-            if ((subscription == "spot") || (subscription == "margin") || (subscription == "future") || (subscription == "delivery") || (subscription == "option"))
+            if ((subscription == "spot") || (subscription == "margin") || (subscription == "future") || (subscription == "inverse") || (subscription == "option"))
             {
                 accountType = subscription;
                 break;
@@ -4317,7 +4317,7 @@ public partial class binance : ccxt.binance
                 type = "future";
             } else if (this.isInverse(type, subType))
             {
-                type = "delivery";
+                type = "inverse";
             }
         }
         // sites consuming every element unpack this; the two that skip subType
@@ -4339,7 +4339,7 @@ public partial class binance : ccxt.binance
             type = "future";
         } else if (this.isInverse(type, subType))
         {
-            type = "delivery";
+            type = "inverse";
         }
         return type;
     }
@@ -4371,7 +4371,7 @@ public partial class binance : ccxt.binance
         }
         Dictionary<string, object> market = this.market(symbol);
         string? marketType = this.getMarketType("createOrderWs", market, parameters);
-        if (marketType != "spot" && marketType != "future" && marketType != "delivery")
+        if (marketType != "spot" && marketType != "future" && marketType != "inverse")
         {
             throw new BadRequest ((this.id + " createOrderWs only supports spot or swap markets")) ;
         }
@@ -4553,7 +4553,7 @@ public partial class binance : ccxt.binance
         }
         Dictionary<string, object> market = this.market(symbol);
         string? marketType = this.getMarketType("editOrderWs", market, parameters);
-        if (marketType != "spot" && marketType != "future" && marketType != "delivery")
+        if (marketType != "spot" && marketType != "future" && marketType != "inverse")
         {
             throw new BadRequest ((this.id + " editOrderWs only supports spot or swap markets")) ;
         }
@@ -4564,7 +4564,7 @@ public partial class binance : ccxt.binance
         }
         Int64 requestId = this.requestId(url);
         string messageHash = requestId.ToString();
-        bool isSwap = (marketType == "future" || marketType == "delivery");
+        bool isSwap = (marketType == "future" || marketType == "inverse");
         Dictionary<string, object> payload = new Dictionary<string, object>() {};
         if (marketType == "spot")
         {
@@ -4858,7 +4858,7 @@ public partial class binance : ccxt.binance
         }
         Dictionary<string, object> market = this.market(symbol);
         string? type = this.getMarketType("fetchOrderWs", market, parameters);
-        if (type != "spot" && type != "future" && type != "delivery")
+        if (type != "spot" && type != "future" && type != "inverse")
         {
             throw new BadRequest ((this.id + " fetchOrderWs only supports spot or swap markets")) ;
         }
@@ -5798,11 +5798,11 @@ public partial class binance : ccxt.binance
         // spot and margin have no positions - whatever still RESOLVES to spot
         // or margin after the helper falls through to the derivatives stream
         // matching the subType. requests a defaultSubType already rewrote
-        // arrive here as future or delivery and pass untouched, which lands on
+        // arrive here as future or inverse and pass untouched, which lands on
         // the same stream the old raw-type ordering produced in every case
         if ((type is "spot") || (type is "margin"))
         {
-            type = (subType == "inverse") ? "delivery" : "future";
+            type = (subType == "inverse") ? "inverse" : "future";
         }
         // 'option' stays as 'option', don't redirect to 'future' - the helper's
         // guard finally makes this comment true

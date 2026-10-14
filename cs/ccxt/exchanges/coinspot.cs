@@ -527,7 +527,7 @@ public partial class coinspot : Exchange
                 { "DRK", "DASH" },
             } },
             { "options", new Dictionary<string, object>() {
-                { "fetchBalance", "private_post_my_balances" },
+                { "fetchBalance", "privatePostMyBalances" },
             } },
             { "features", new Dictionary<string, object>() {
                 { "spot", new Dictionary<string, object>() {
@@ -639,7 +639,7 @@ public partial class coinspot : Exchange
         {
             await this.loadMarkets();
         }
-        string? method = this.safeString(this.options, "fetchBalance", "private_post_my_balances");
+        string? method = this.safeString(this.options, "fetchBalance", "privatePostMyBalances");
         Dictionary<string, object> response = null;
         if ((method == "private_post_ro_my_balances") || (method == "privatePostRoMyBalances"))
         {

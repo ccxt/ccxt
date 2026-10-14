@@ -238,7 +238,7 @@ class coinspot(Exchange, ImplicitAPI):
                 'DRK': 'DASH',
             },
             'options': {
-                'fetchBalance': 'private_post_my_balances',
+                'fetchBalance': 'privatePostMyBalances',
             },
             'features': {
                 'spot': {
@@ -328,7 +328,7 @@ class coinspot(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        method = self.safe_string(self.options, 'fetchBalance', 'private_post_my_balances')
+        method = self.safe_string(self.options, 'fetchBalance', 'privatePostMyBalances')
         response = None
         if (method == 'private_post_ro_my_balances') or (method == 'privatePostRoMyBalances'):
             response = self.privatePostRoMyBalances(params)

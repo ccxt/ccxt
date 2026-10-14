@@ -1849,7 +1849,7 @@ public class Paradex extends ParadexApi
             {
                 return cachedConfig;
             }
-            Map<String, Object> response = (this.publicGetSystemConfig()).join();
+            Map<String, Object> response = (this.publicGetSystemConfig(new HashMap<String, Object>() {{}})).join();
             //
             // {
             //     "starknet_gateway_url": "https://potc-testnet-sepolia.starknet.io",
@@ -2066,7 +2066,12 @@ public class Paradex extends ParadexApi
         //
         Long timestamp = this.safeInteger(order, "created_at");
         String orderId = this.safeString(order, "id");
-        String clientOrderId = this.omitZero(this.safeString(order, "client_id"));
+        // a client id is free text, omitZero would drop every non-numeric one in php
+        String clientOrderId = this.safeString(order, "client_id");
+        if (java.util.Objects.equals(clientOrderId, ""))
+        {
+            clientOrderId = null;
+        }
         String marketId = this.safeString(order, "market");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = (String) marketResolved.get("symbol");
@@ -2986,7 +2991,7 @@ public class Paradex extends ParadexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> response = (this.privateGetBalance()).join();
+            Map<String, Object> response = (this.privateGetBalance(new HashMap<String, Object>() {{}})).join();
             //
             //     {
             //         "results": [
@@ -3152,7 +3157,7 @@ public class Paradex extends ParadexApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            Map<String, Object> response = (this.privateGetPositions()).join();
+            Map<String, Object> response = (this.privateGetPositions(new HashMap<String, Object>() {{}})).join();
             //
             //     {
             //         "results": [

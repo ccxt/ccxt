@@ -384,7 +384,7 @@ export default class bittrade extends Exchange {
                 },
                 // https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStates': {
-                    'method': 'private_get_order_orders', // 'private_get_order_history' // https://github.com/ccxt/ccxt/pull/5392
+                    'method': 'privateGetOrderOrders', // 'privateGetOrderHistory' // https://github.com/ccxt/ccxt/pull/5392
                 },
                 'fetchOpenOrders': {
                     'method': 'fetch_open_orders_v1', // 'fetch_open_orders_v2' // https://github.com/ccxt/ccxt/issues/5388
@@ -1297,7 +1297,7 @@ export default class bittrade extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const method = this.handleOption ('fetchOrdersByStates', 'method', 'private_get_order_orders');
+        const method = this.handleOption ('fetchOrdersByStates', 'method', 'privateGetOrderOrders');
         let response = undefined;
         if ((method === 'private_get_order_history') || (method === 'privateGetOrderHistory')) {
             response = await this.privateGetOrderHistory (this.extend (request, params));

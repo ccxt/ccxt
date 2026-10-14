@@ -907,7 +907,7 @@ class kucoin extends Exchange {
                 'uta' => null,
                 'version' => 'v1',
                 'symbolSeparator' => '-',
-                'fetchMyTradesMethod' => 'private_get_fills',
+                'fetchMyTradesMethod' => 'privateGetFills',
                 'timeDifference' => 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'fetchCurrencies' => array(
@@ -5186,7 +5186,7 @@ class kucoin extends Exchange {
             $request['clientOid'] = $clientOrderId;
         } else {
             if ($id === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrder() requires an id argument or clientOrderId parameter');
+                throw new ArgumentsRequired($this->id . ' cancelOrder() requires an id argument or clientOrderId parameter');
             }
             $request['orderId'] = $id;
         }
@@ -6838,14 +6838,14 @@ class kucoin extends Exchange {
             } else {
                 $response = $this->privateGetHfFills($this->extend($request, $paramsRequest));
             }
-        } elseif ($method === 'private_get_fills') {
+        } elseif (($method === 'privateGetFills') || ($method === 'private_get_fills')) {
             // does not return trades earlier than 2019-02-18T00:00:00Z
             if ($since !== null) {
                 // only returns trades up to one week after the since param
                 $request['startAt'] = $since;
             }
             $response = $this->privateGetFills($this->extend($request, $paramsRequest));
-        } elseif ($method === 'private_get_limit_fills') {
+        } elseif (($method === 'privateGetLimitFills') || ($method === 'private_get_limit_fills')) {
             // does not return trades earlier than 2019-02-18T00:00:00Z
             // takes no params
             // only returns first 1000 trades (not only "in the last 24 hours" as stated in the docs)

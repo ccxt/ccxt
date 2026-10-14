@@ -1199,6 +1199,19 @@ public partial class lighter : Exchange
         IDictionary<string, object> paramsGroupingType = ((IDictionary<string, object>)groupingTypeparamsGroupingTypeVariable.Item2); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         List<object> orderRequests = this.createOrderRequest(symbol, type, side, amount, price, paramsGroupingType);
         int totalOrderRequests = (orderRequests?.Count ?? 0);
+        if (totalOrderRequests > 1)
+        {
+            // the signer replaces a -1 expiry with now + 28 days reading the clock once per leg, and rejects
+            // a group whose legs differ ("OrderExpiry is invalid"), so resolve the default once for all legs
+            Int64 groupOrderExpiry = this.sum(this.milliseconds(), 2419200000); // 28 days
+            for (int i = 0; i < totalOrderRequests; i++)
+            {
+                if ((this.safeInteger((orderRequests != null && i < orderRequests.Count ? orderRequests[i] : null), "order_expiry") == -1))
+                {
+                    ((IDictionary<string,object>)(orderRequests != null && i < orderRequests.Count ? orderRequests[i] : null))["order_expiry"] = groupOrderExpiry;
+                }
+            }
+        }
         object order = null;
         if (totalOrderRequests > 0)
         {

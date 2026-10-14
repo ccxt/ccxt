@@ -78,7 +78,7 @@ public class Apex extends ApexApi
                 put( "createStopOrder", true );
                 put( "createTriggerOrder", true );
                 put( "editOrder", false );
-                put( "fetchAccounts", true );
+                put( "fetchAccounts", false );
                 put( "fetchAllGreeks", false );
                 put( "fetchBalance", true );
                 put( "fetchBorrowInterest", false );
@@ -138,8 +138,8 @@ public class Apex extends ApexApi
                 put( "fetchTrades", true );
                 put( "fetchTradingFee", false );
                 put( "fetchTradingFees", false );
-                put( "fetchTransfer", true );
-                put( "fetchTransfers", true );
+                put( "fetchTransfer", false );
+                put( "fetchTransfers", false );
                 put( "fetchVolatilityHistory", false );
                 put( "fetchWithdrawal", false );
                 put( "fetchWithdrawals", false );
