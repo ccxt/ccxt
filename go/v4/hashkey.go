@@ -5487,7 +5487,7 @@ func (this *Hashkey) ParseTradingFee(fee any, optionalArgs ...any) map[string]an
 	}
 }
 func (this *Hashkey) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -5497,13 +5497,14 @@ func (this *Hashkey) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url any = *apiUrl + "/" + path
 	var query string
-	if api == "private" {
+	if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		var timestamp int64 = this.Milliseconds()
 		var additionalParams map[string]any = map[string]any{

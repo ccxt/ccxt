@@ -2750,7 +2750,7 @@ func (this *Apex) ParsePosition(position any, optionalArgs ...any) any {
 	})
 }
 func (this *Apex) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -2760,7 +2760,8 @@ func (this *Apex) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var baseApiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var baseApiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -2781,7 +2782,7 @@ func (this *Apex) Sign(path string, optionalArgs ...any) any {
 		var sortedQuery map[string]any = this.Keysort(params)
 		signBody = this.Rawencode(sortedQuery)
 	}
-	if api == "private" {
+	if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		var timestamp string = strconv.FormatInt(this.Milliseconds(), 10)
 		var messageString any = timestamp + strings.ToUpper(method) + signPath

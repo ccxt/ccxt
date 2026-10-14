@@ -8504,7 +8504,7 @@ func (this *Bingx) ParseMarketLeverageTiers(info any, optionalArgs ...any) any {
 	return tiers
 }
 func (this *Bingx) Sign(path string, optionalArgs ...any) any {
-	section := GetArg(optionalArgs, 0, "public")
+	section := GetArg(optionalArgs, 0, []any{"public"})
 	_ = section
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -8514,32 +8514,32 @@ func (this *Bingx) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
-	var typeVar any = GetValue(section, 0)
+	var typeVar *string = SafeStringPtr(GetValue(section, 0))
 	var version any = GetValue(section, 1)
 	var access any = GetValue(section, 2)
 	var isSandbox *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	var url any = this.ImplodeHostname(GetValue(this.Urls["api"], typeVar))
 	if (isSandbox != nil && *isSandbox == true) && (url == nil) {
-		panic(NotSupported(Add(Add(this.Id+" does not have a testnet/sandbox URL for ", typeVar), " endpoints")))
+		panic(NotSupported(this.Id + " does not have a testnet/sandbox URL for " + *typeVar + " endpoints"))
 	}
 	var pathValue string = this.ImplodeParams(path, params)
 	var versionIsTransfer bool = (version == "transfer")
 	var versionIsAsset bool = (version == "asset")
 	if versionIsTransfer || versionIsAsset {
 		if versionIsTransfer {
-			typeVar = "account/transfer"
+			typeVar = SafeStringPtr("account/transfer")
 		} else {
-			typeVar = "api/asset"
+			typeVar = SafeStringPtr("api/asset")
 		}
 		version = GetValue(section, 2)
 		access = GetValue(section, 3)
 	}
 	var flatAccountPaths []any = []any{"account/apiPermissions", "account/apiRestrictions"}
 	if !this.InArray(pathValue, flatAccountPaths) {
-		if (typeVar == "spot") && (version == "v3") {
+		if (typeVar != nil && *typeVar == "spot") && (version == "v3") {
 			url = Add(url, "/api")
 		} else {
-			url = Add(url, Add("/", typeVar))
+			url = Add(url, "/"+*typeVar)
 		}
 	}
 	url = Add(url, Add(Add(Add("/", version), "/"), pathValue))
@@ -8554,7 +8554,7 @@ func (this *Bingx) Sign(path string, optionalArgs ...any) any {
 		}
 	} else if access == "private" {
 		this.CheckRequiredCredentials()
-		var isJsonContentType bool = (((typeVar == "subAccount") || (typeVar == "account/transfer")) && (method == "POST"))
+		var isJsonContentType bool = (((typeVar != nil && *typeVar == "subAccount") || (typeVar != nil && *typeVar == "account/transfer")) && (method == "POST"))
 		var parsedParams any = nil
 		var encodeRequest any = nil
 		if isJsonContentType {

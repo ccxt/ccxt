@@ -7920,11 +7920,11 @@ func (this *Xt) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var signed bool = IsEqual(GetValue(api, 0), "private")
-	var endpoint any = GetValue(api, 1)
+	var signed bool = (GetValue(api, 0) == "private")
+	var endpoint *string = SafeStringPtr(GetValue(api, 1))
 	var request string = "/" + this.ImplodeParams(path, params)
 	var payload string
-	if (endpoint == "spot") || (endpoint == "user") {
+	if (endpoint != nil && *endpoint == "spot") || (endpoint != nil && *endpoint == "user") {
 		if signed {
 			payload = "/" + this.Version + request
 		} else {
@@ -7964,7 +7964,7 @@ func (this *Xt) Sign(path string, optionalArgs ...any) any {
 			}
 		}
 		var isUndefinedBody bool = ((method == "GET") || (path == "order/{orderId}") || (path == "ws-token"))
-		if (method == "PUT") && (endpoint == "spot") {
+		if (method == "PUT") && (endpoint != nil && *endpoint == "spot") {
 			isUndefinedBody = false
 		}
 		signedBody = func() any {
@@ -7974,7 +7974,7 @@ func (this *Xt) Sign(path string, optionalArgs ...any) any {
 			return this.Json(query)
 		}()
 		var payloadString any = nil
-		if (endpoint == "spot") || (endpoint == "user") {
+		if (endpoint != nil && *endpoint == "spot") || (endpoint != nil && *endpoint == "user") {
 			payloadString = Add(Add(Add(Add(Add(Add("xt-validate-algorithms=HmacSHA256&xt-validate-appkey=", this.ApiKey), "&xt-validate-recvwindow="), recvWindow), "&xt-validate-t"), "imestamp="), timestamp)
 			if isUndefinedBody {
 				if urlencoded != "" {

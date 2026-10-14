@@ -4024,7 +4024,7 @@ func (this *Bitrue) setMarginBody(ch chan AsyncResult[any], symbol any, amount a
 	return nil
 }
 func (this *Bitrue) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method

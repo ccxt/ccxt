@@ -3361,7 +3361,7 @@ func (this *Dydx) GetWalletAddress() any {
 	panic(ArgumentsRequired(this.Id + " getWalletAddress() requires a wallet address. Set `walletAddress` or `dydxAccount` in exchange options."))
 }
 func (this *Dydx) Sign(path string, optionalArgs ...any) any {
-	section := GetArg(optionalArgs, 0, "public")
+	section := GetArg(optionalArgs, 0, []any{"public"})
 	_ = section
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -3374,7 +3374,7 @@ func (this *Dydx) Sign(path string, optionalArgs ...any) any {
 	var requestHeaders any = nil
 	var requestBody any = nil
 	var pathWithParams string = this.ImplodeParams(path, params)
-	var apiUrl *string = this.SafeString(this.Urls["api"], section)
+	var apiUrl *string = this.SafeString(this.Urls["api"], GetValue(section, 0))
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

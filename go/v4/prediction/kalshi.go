@@ -3876,7 +3876,7 @@ func (this *Kalshi) ParseEvent(rawEvent any) any {
  * @returns {object} a dictionary with url, method, body and headers
  */
 func (this *Kalshi) Sign(path string, optionalArgs ...any) any {
-	api := ccxt.GetArg(optionalArgs, 0, "kalshi")
+	api := ccxt.GetArg(optionalArgs, 0, []any{"kalshi"})
 	_ = api
 	var method string = ccxt.GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -3886,18 +3886,8 @@ func (this *Kalshi) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	body := ccxt.GetArg(optionalArgs, 4, nil)
 	_ = body
-	var apiGroup any = func() any {
-		if ccxt.IsString(api) {
-			return api
-		}
-		return ccxt.GetValue(api, 0)
-	}()
-	var access any = func() any {
-		if ccxt.IsString(api) {
-			return "public"
-		}
-		return ccxt.GetValue(api, 1)
-	}()
+	var apiGroup *string = ccxt.SafeStringPtr(ccxt.GetValue(api, 0))
+	var access *string = this.SafeString(api, 1, "public")
 	var baseUrls any = this.Urls["api"]
 	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "kalshi"))
 	var implodedPath string = this.ImplodeParams(path, params)
@@ -3918,7 +3908,7 @@ func (this *Kalshi) Sign(path string, optionalArgs ...any) any {
 		"Content-Type": "application/json",
 	}, existingHeaders)
 	var bodyValue any = body
-	if ccxt.IsEqual(access, "private") {
+	if access != nil && *access == "private" {
 		this.CheckRequiredCredentials()
 		var timestamp string = strconv.FormatInt(this.Milliseconds(), 10)
 		// Signing payload: {timestamp}{METHOD}{path}, where path is the full request path

@@ -4188,7 +4188,7 @@ func (this *Bithumb) UrlencodeWithArrayBrackets(query any) any {
 	return result
 }
 func (this *Bithumb) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -4198,10 +4198,11 @@ func (this *Bithumb) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var requestHeaders map[string]any = nil
 	var requestBody any = nil
 	var endpoint string = "/" + this.ImplodeParams(path, params)
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -4210,7 +4211,7 @@ func (this *Bithumb) Sign(path string, optionalArgs ...any) any {
 	var queryKeys []string = ObjectKeys(query)
 	var queryKeysLength int = len(queryKeys)
 	var hasQuery bool = (queryKeysLength > 0)
-	if api == "public" {
+	if apiName != nil && *apiName == "public" {
 		requestHeaders = map[string]any{
 			"OPEN-API-PARTNER": "CCXT",
 		}

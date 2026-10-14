@@ -4855,7 +4855,7 @@ func (this *Krakenfutures) HandleErrors(code any, reason any, url any, method an
 	panic(ExchangeError(feedback))
 }
 func (this *Krakenfutures) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -4865,12 +4865,13 @@ func (this *Krakenfutures) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
-	var apiVersions map[string]any = SafeMapTyped(GetValue(this.Options, "versions"), api)
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var apiVersions map[string]any = SafeMapTyped(GetValue(this.Options, "versions"), apiName)
 	var methodVersions map[string]any = SafeMapTyped(apiVersions, method)
 	var defaultVersion *string = this.SafeString(methodVersions, path, this.Version)
 	var version *string = this.SafeString(params, "version", defaultVersion)
 	var paramsOmitted any = this.Omit(params, "version")
-	var apiAccess map[string]any = SafeMapTyped(GetValue(this.Options, "access"), api)
+	var apiAccess map[string]any = SafeMapTyped(GetValue(this.Options, "access"), apiName)
 	var methodAccess map[string]any = SafeMapTyped(apiAccess, method)
 	var access *string = this.SafeString(methodAccess, path, "public")
 	var endpoint any = Add(Add(version, "/"), this.ImplodeParams(path, paramsOmitted))
@@ -4887,7 +4888,7 @@ func (this *Krakenfutures) Sign(path string, optionalArgs ...any) any {
 		}
 		query = Add(query, "?"+postData)
 	}
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -4899,11 +4900,11 @@ func (this *Krakenfutures) Sign(path string, optionalArgs ...any) any {
 		return body
 	}()
 	var privateHeaders any = nil
-	if (api == "private") || (access != nil && *access == "private") {
+	if (apiName != nil && *apiName == "private") || (access != nil && *access == "private") {
 		this.CheckRequiredCredentials()
 		var auth any = postData + "/api/"
-		if api != "private" {
-			auth = Add(auth, Add(api, "/"))
+		if apiName == nil || *apiName != "private" {
+			auth = Add(auth, *apiName+"/")
 		}
 		auth = Add(auth, endpoint)                                       // 1
 		var hash any = this.Hash(this.Encode(auth), sha256, "binary")    // 2

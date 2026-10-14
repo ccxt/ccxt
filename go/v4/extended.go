@@ -4941,7 +4941,7 @@ func (this *Extended) HandleErrors(httpCode any, reason any, url any, method any
 	return nil
 }
 func (this *Extended) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method

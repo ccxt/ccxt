@@ -242,7 +242,7 @@ func (this *Revolutx) Describe() any {
 	})
 }
 func (this *Revolutx) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -258,14 +258,15 @@ func (this *Revolutx) Sign(path string, optionalArgs ...any) any {
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var queryKeys []string = ObjectKeys(query)
 	var queryLength int = len(queryKeys)
-	var baseApiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var baseApiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var baseUrl *string = baseApiUrl
 	var url string = *baseUrl + "/" + implodedPath
 	var queryString string = ""
-	if api == "private" {
+	if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		var timestamp string = strconv.FormatInt(this.Milliseconds(), 10)
 		if method == "GET" {
@@ -1727,11 +1728,11 @@ func (this *Revolutx) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes127715 []any = ListTyped(r.Value)
-	if retRes127715 == nil {
+	var retRes127815 []any = ListTyped(r.Value)
+	if retRes127815 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes127715}
+		ch <- AsyncResult[any]{Value: retRes127815}
 	}
 	return nil
 }

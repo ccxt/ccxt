@@ -3071,7 +3071,7 @@ func (this *Bittrade) withdrawBody(ch chan EndpointResult[map[string]any], code 
 	return nil
 }
 func (this *Bittrade) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -3081,19 +3081,20 @@ func (this *Bittrade) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var requestHeaders any = nil
 	var requestBody any = nil
 	var url string = "/"
-	if api == "market" {
+	if apiName != nil && *apiName == "market" {
 		url += "market"
-	} else if (api == "public") || (api == "private") {
+	} else if (apiName != nil && *apiName == "public") || (apiName != nil && *apiName == "private") {
 		url += this.Version
-	} else if (api == "v2Public") || (api == "v2Private") {
+	} else if (apiName != nil && *apiName == "v2Public") || (apiName != nil && *apiName == "v2Private") {
 		url += "v2"
 	}
 	url += "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	if (api == "private") || (api == "v2Private") {
+	if (apiName != nil && *apiName == "private") || (apiName != nil && *apiName == "v2Private") {
 		this.CheckRequiredCredentials()
 		var timestamp string = this.Ymdhms(this.Milliseconds(), "T")
 		var request map[string]any = map[string]any{
@@ -3131,7 +3132,7 @@ func (this *Bittrade) Sign(path string, optionalArgs ...any) any {
 			url += "?" + this.Urlencode(params)
 		}
 	}
-	var baseApiUrl *string = this.SafeString(this.Urls["api"], api)
+	var baseApiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

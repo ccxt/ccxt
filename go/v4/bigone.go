@@ -2478,7 +2478,7 @@ func (this *Bigone) Nonce() any {
 	return this.Sum(this.Microseconds()*1000, exchangeTimeCorrection)
 }
 func (this *Bigone) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -2488,16 +2488,17 @@ func (this *Bigone) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var bodySigned any = nil
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var baseUrl string = this.ImplodeHostname(apiUrl)
 	var url string = baseUrl + "/" + this.ImplodeParams(path, params)
 	var headersValue map[string]any = map[string]any{}
-	if (api == "public") || (api == "webExchange") || (api == "contractPublic") {
+	if (apiName != nil && *apiName == "public") || (apiName != nil && *apiName == "webExchange") || (apiName != nil && *apiName == "contractPublic") {
 		if len(ObjectKeys(query)) > 0 {
 			url += "?" + this.Urlencode(query)
 		}

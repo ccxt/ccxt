@@ -1415,7 +1415,7 @@ func (this *Bit2c) Nonce() any {
 	return this.Milliseconds()
 }
 func (this *Bit2c) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -1432,7 +1432,7 @@ func (this *Bit2c) Sign(path string, optionalArgs ...any) any {
 	var url string = *apiUrl + "/" + this.ImplodeParams(path, params)
 	var requestBody any = nil
 	var requestHeaders any = nil
-	if api == "public" {
+	if GetValue(api, 0) == "public" {
 		url += ".json"
 	} else {
 		this.CheckRequiredCredentials()

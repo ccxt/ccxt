@@ -2492,7 +2492,7 @@ func (this *Bitopro) fetchDepositWithdrawFeesBody(ch chan AsyncResult[any], opti
 	return nil
 }
 func (this *Bitopro) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -2502,6 +2502,7 @@ func (this *Bitopro) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var url string = "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var requestHeaders map[string]any = func() map[string]any {
@@ -2510,14 +2511,14 @@ func (this *Bitopro) Sign(path string, optionalArgs ...any) any {
 		}
 		return headers
 	}()
-	var isSignedBody bool = (api == "private") && ((method == "POST") || (method == "PUT"))
+	var isSignedBody bool = (apiName != nil && *apiName == "private") && ((method == "POST") || (method == "PUT"))
 	var signedBody string = this.Json(params)
 	var requestBody any = body
 	if isSignedBody {
 		requestBody = signedBody
 	}
 	AddElementToObject(requestHeaders, "X-BITOPRO-API", "ccxt")
-	if api == "private" {
+	if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		if (method == "POST") || (method == "PUT") {
 			var payload string = this.StringToBase64(signedBody)
@@ -2540,7 +2541,7 @@ func (this *Bitopro) Sign(path string, optionalArgs ...any) any {
 			AddElementToObject(requestHeaders, "X-BITOPRO-PAYLOAD", payload)
 			AddElementToObject(requestHeaders, "X-BITOPRO-SIGNATURE", signature)
 		}
-	} else if (api == "public") && (method == "GET") {
+	} else if (apiName != nil && *apiName == "public") && (method == "GET") {
 		if len(ObjectKeys(query)) > 0 {
 			url += "?" + this.Urlencode(query)
 		}

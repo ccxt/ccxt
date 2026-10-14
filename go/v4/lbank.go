@@ -4111,7 +4111,7 @@ func (this *Lbank) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	return result
 }
 func (this *Lbank) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method

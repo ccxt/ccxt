@@ -5029,7 +5029,7 @@ func (this *Woofipro) Nonce() any {
 	return this.Milliseconds()
 }
 func (this *Woofipro) Sign(path string, optionalArgs ...any) any {
-	section := GetArg(optionalArgs, 0, "public")
+	section := GetArg(optionalArgs, 0, []any{"public"})
 	_ = section
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -5039,21 +5039,21 @@ func (this *Woofipro) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
-	var version any = GetValue(section, 0)
-	var access any = GetValue(section, 1)
+	var version *string = SafeStringPtr(GetValue(section, 0))
+	var access *string = SafeStringPtr(GetValue(section, 1))
 	var pathWithParams string = this.ImplodeParams(path, params)
 	var apiUrl *string = this.SafeString(this.Urls["api"], access)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = Add(Add(*apiUrl+"/", version), "/")
+	var url string = *apiUrl + "/" + *version + "/"
 	var requestParams map[string]any = this.Keysort(this.Omit(params, this.ExtractParams(path)))
 	var requestBody any = nil
 	var requestHeaders any = nil
-	if access == "public" {
-		url = Add(url, pathWithParams)
+	if access != nil && *access == "public" {
+		url += pathWithParams
 		if len(requestParams) > 0 {
-			url = Add(url, "?"+this.Urlencode(requestParams))
+			url += "?" + this.Urlencode(requestParams)
 		}
 	} else {
 		this.CheckRequiredCredentials()
@@ -5074,7 +5074,7 @@ func (this *Woofipro) Sign(path string, optionalArgs ...any) any {
 		}
 		var auth any = ""
 		var ts string = ToString(this.Nonce())
-		url = Add(url, pathWithParams)
+		url += pathWithParams
 		var apiKey any = this.ApiKey
 		if GetIndexOf(apiKey, "ed25519:") < 0 {
 			apiKey = Add("ed25519:", apiKey)
@@ -5084,14 +5084,14 @@ func (this *Woofipro) Sign(path string, optionalArgs ...any) any {
 			"orderly-key":        apiKey,
 			"orderly-timestamp":  ts,
 		}
-		auth = Add(Add(Add(ts+method+"/", version), "/"), pathWithParams)
+		auth = ts + method + "/" + *version + "/" + pathWithParams
 		if (method == "POST") || (method == "PUT") {
 			requestBody = this.Json(requestParams)
 			auth = Add(auth, requestBody)
 			AddElementToObject(requestHeaders, "content-type", "application/json")
 		} else {
 			if len(requestParams) > 0 {
-				url = Add(url, "?"+this.Urlencode(requestParams))
+				url += "?" + this.Urlencode(requestParams)
 				auth = Add(auth, "?"+this.Rawencode(requestParams))
 			}
 			AddElementToObject(requestHeaders, "content-type", "application/x-www-form-urlencoded")

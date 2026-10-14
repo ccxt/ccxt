@@ -1426,7 +1426,7 @@ func (this *Mercado) Nonce() any {
 	return this.Milliseconds()
 }
 func (this *Mercado) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -1436,13 +1436,14 @@ func (this *Mercado) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *apiUrl + "/"
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var isPublic bool = (api == "public") || (api == "v4Public") || (api == "v4PublicNet")
+	var isPublic bool = (apiName != nil && *apiName == "public") || (apiName != nil && *apiName == "v4Public") || (apiName != nil && *apiName == "v4PublicNet")
 	var privateBody *string = nil
 	var privateHeaders any = nil
 	if isPublic {

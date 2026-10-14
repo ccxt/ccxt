@@ -13496,7 +13496,7 @@ func (this *Bybit) ParseMarginModeType(marginMode *string) *string {
 	return this.SafeString(marginModes, marginMode, marginMode)
 }
 func (this *Bybit) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -13506,18 +13506,19 @@ func (this *Bybit) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var requestBody any = nil
 	var requestHeaders any = nil
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url any = this.ImplodeHostname(apiUrl) + "/" + path
-	if api == "public" {
+	if apiName != nil && *apiName == "public" {
 		if len(ObjectKeys(params)) > 0 {
 			url = Add(url, "?"+this.Rawencode(params))
 		}
-	} else if api == "private" {
+	} else if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		var isOpenapi bool = (GetIndexOf(url, "openapi") >= 0)
 		var isV3UnifiedMargin bool = (GetIndexOf(url, "unified/v3") >= 0)

@@ -4910,7 +4910,7 @@ func (this *Predictfun) Nonce() any {
  * @name predictfun#sign
  * @description builds the request URL and attaches the API key header required by every endpoint
  * @param {string} path the endpoint path
- * @param {string|string[]} [api] the API group and access level
+ * @param {string[]} [api] the API group and access level
  * @param {string} [method] HTTP method
  * @param {object} [params] request parameters
  * @param {object} [headers] request headers
@@ -4921,7 +4921,7 @@ func (this *Predictfun) Sign(path string, optionalArgs ...any) any {
 	// the venue authenticates every endpoint, so the key is required up front rather than
 	// per access level - a key-less request is answered with a 401 by the API gateway.
 	// the testnet is the exception, it is served without an API key at all
-	api := ccxt.GetArg(optionalArgs, 0, "predictfun")
+	api := ccxt.GetArg(optionalArgs, 0, []any{"predictfun"})
 	_ = api
 	var method string = ccxt.GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -4936,12 +4936,7 @@ func (this *Predictfun) Sign(path string, optionalArgs ...any) any {
 	if (apiKey == nil) && !(sandboxMode != nil && *sandboxMode) {
 		panic(ccxt.AuthenticationError(this.Id + " sign() requires the \"apiKey\" credential for all endpoints"))
 	}
-	var apiGroup any = func() any {
-		if ccxt.IsString(api) {
-			return api
-		}
-		return ccxt.GetValue(api, 0)
-	}()
+	var apiGroup *string = ccxt.SafeStringPtr(ccxt.GetValue(api, 0))
 	var baseUrls any = this.Urls["api"]
 	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "predictfun"))
 	var url string = *baseUrl + "/" + this.ImplodeParams(path, params)

@@ -3607,7 +3607,7 @@ func (this *Ndax) Nonce() any {
 	return this.Milliseconds()
 }
 func (this *Ndax) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -3617,15 +3617,16 @@ func (this *Ndax) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var bodySigned any = nil
 	var headersSigned any = nil
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *apiUrl + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	if api == "public" {
+	if apiName != nil && *apiName == "public" {
 		if path == "Authenticate" {
 			var auth any = Add(Add(this.Login, ":"), this.Password)
 			var auth64 string = this.StringToBase64(auth)
@@ -3644,7 +3645,7 @@ func (this *Ndax) Sign(path string, optionalArgs ...any) any {
 		if len(ObjectKeys(query)) > 0 {
 			url += "?" + this.Urlencode(query)
 		}
-	} else if api == "private" {
+	} else if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		var sessionToken *string = this.SafeString(this.Options, "sessionToken")
 		if sessionToken == nil {

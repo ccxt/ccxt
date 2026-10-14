@@ -1410,7 +1410,7 @@ func (this *Btcturk) Nonce() any {
 	return this.Milliseconds()
 }
 func (this *Btcturk) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -1420,10 +1420,11 @@ func (this *Btcturk) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	if this.Id == "btctrader" {
 		panic(ExchangeError(this.Id + " is an abstract base API for BTCExchange, BTCTurk"))
 	}
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -1441,7 +1442,7 @@ func (this *Btcturk) Sign(path string, optionalArgs ...any) any {
 		requestBody = this.Json(params)
 	}
 	var privateHeaders any = nil
-	if api == "private" {
+	if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		var nonce string = ToString(this.Nonce())
 		var secret []byte = this.Base64ToBinary(this.Secret)

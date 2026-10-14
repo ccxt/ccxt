@@ -988,7 +988,7 @@ func (this *BaseExchange) EnableDemoTrading(enable any) {
 	this.Options.Store("enableDemoTrading", enable)
 }
 func (this *BaseExchange) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -4943,7 +4943,7 @@ func (this *BaseExchange) fetch2Body(ch chan AsyncResult[any], path any, optiona
 	defer ReturnPanicError(ch)
 	chSent := false
 	_ = chSent
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -5058,7 +5058,7 @@ func (this *BaseExchange) RequestAsync(path any, optionalArgs ...any) <-chan Asy
 func (this *BaseExchange) requestBody(ch chan AsyncResult[any], path any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method

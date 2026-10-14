@@ -6008,7 +6008,7 @@ func (this *Weex) SetSandboxMode(enable any) {
 	this.Options.Store("sandboxMode", enable)
 }
 func (this *Weex) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -6018,6 +6018,7 @@ func (this *Weex) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var endpoint string = this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var isBatch bool = (strings.Index(path, "batch") >= 0)
@@ -6026,7 +6027,7 @@ func (this *Weex) Sign(path string, optionalArgs ...any) any {
 			endpoint += "?" + this.Urlencode(query)
 		}
 	}
-	var isPrivate bool = (api == "private") || (api == "contractPrivate")
+	var isPrivate bool = (apiName != nil && *apiName == "private") || (apiName != nil && *apiName == "contractPrivate")
 	var hasJsonBody bool = isPrivate && ((method == "POST") || isBatch)
 	var requestBody any = body
 	if hasJsonBody {
@@ -6059,7 +6060,7 @@ func (this *Weex) Sign(path string, optionalArgs ...any) any {
 			"User-Agent": "ccxt",
 		}
 	}
-	var baseApiUrl *string = this.SafeString(this.Urls["api"], api)
+	var baseApiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

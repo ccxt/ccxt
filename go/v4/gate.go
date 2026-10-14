@@ -9954,8 +9954,8 @@ func (this *Gate) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var authentication any = GetValue(api, 0) // public, private
-	var typeVar any = GetValue(api, 1)        // spot, margin, future, delivery
+	var authentication *string = SafeStringPtr(GetValue(api, 0)) // public, private
+	var typeVar *string = SafeStringPtr(GetValue(api, 1))        // spot, margin, future, delivery
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var pathImploded string
 	var bodyJson any = nil
@@ -9988,16 +9988,16 @@ func (this *Gate) Sign(path string, optionalArgs ...any) any {
 	} else {
 		endPart = ("/" + pathImploded)
 	}
-	var entirePath any = Add(Add("/", typeVar), endPart)
-	if (typeVar == "subAccounts") || (typeVar == "withdrawals") {
+	var entirePath any = Add("/"+*typeVar, endPart)
+	if (typeVar != nil && *typeVar == "subAccounts") || (typeVar != nil && *typeVar == "withdrawals") {
 		entirePath = endPart
 	}
 	var url any = GetValue(GetValue(this.Urls["api"], authentication), typeVar)
 	if IsEqual(url, nil) {
-		panic(NotSupported(Add(Add(this.Id+" does not have a testnet for the ", typeVar), " market type.")))
+		panic(NotSupported(this.Id + " does not have a testnet for the " + *typeVar + " market type."))
 	}
 	url = Add(url, entirePath)
-	if authentication == "public" {
+	if authentication != nil && *authentication == "public" {
 		if len(ObjectKeys(query)) > 0 {
 			url = Add(url, "?"+this.Urlencode(query))
 		}
@@ -10006,7 +10006,7 @@ func (this *Gate) Sign(path string, optionalArgs ...any) any {
 		var queryString string = ""
 		var rawQueryString string = ""
 		var requiresURLEncoding bool = false
-		if ((typeVar == "futures") || (typeVar == "delivery")) && (method == "POST") {
+		if ((typeVar != nil && *typeVar == "futures") || (typeVar != nil && *typeVar == "delivery")) && (method == "POST") {
 			var pathParts []string = strings.Split(pathImploded, "/")
 			var secondPart *string = this.SafeString(pathParts, 1, "")
 			requiresURLEncoding = (func() int {

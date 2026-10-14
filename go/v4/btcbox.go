@@ -1135,7 +1135,7 @@ func (this *Btcbox) Nonce() any {
 	return this.Milliseconds()
 }
 func (this *Btcbox) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -1145,16 +1145,17 @@ func (this *Btcbox) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var apiUrl *string = this.SafeString(this.Urls["api"], "rest")
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url any = *apiUrl + "/" + this.Version + "/" + path
-	if api == "public" {
+	if apiName != nil && *apiName == "public" {
 		if len(ObjectKeys(params)) > 0 {
 			url = Add(url, "?"+this.Urlencode(params))
 		}
-	} else if api == "webApi" {
+	} else if apiName != nil && *apiName == "webApi" {
 		url = Add(Add(this.Urls["www"], "/"), path)
 	} else {
 		this.CheckRequiredCredentials()
@@ -1209,7 +1210,7 @@ func (this *Btcbox) RequestAsync(path any, optionalArgs ...any) <-chan AsyncResu
 func (this *Btcbox) requestBody(ch chan AsyncResult[any], path any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
