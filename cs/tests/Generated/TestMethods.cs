@@ -2268,6 +2268,7 @@ public partial class testMainClass
         // something — a fixed head-start sleep is not enough on slow ci
         // runners and the frame's resolution would be dropped
         // a reply frame must not arrive before its request was sent, or it is dropped
+        // a frame given as { "binary": "<base16>" } is replayed as a binary frame (e.g. SBE)
         // threaded runtimes resolve futures on another thread — wait for
         // the consumed frame to settle so the pending check above does not
         // observe a stale future and burn the next frame early; frames
@@ -2289,7 +2290,13 @@ public partial class testMainClass
                 await exchange.sleep(50);
                 waitedSent = add(waitedSent, 50);
             }
-            injectWsMessage(exchange, url, getValue(messages, i));
+            object frame = getValue(messages, i);
+            object binaryFrame = exchange.safeString(frame, "binary");
+            if ((binaryFrame != null))
+            {
+                frame = exchange.base16ToBinary(binaryFrame);
+            }
+            injectWsMessage(exchange, url, frame);
             object settled = 0;
             while (isTrue(wsClientHasPendingFutures(exchange, url)) && (isLessThan(settled, 500)))
             {
