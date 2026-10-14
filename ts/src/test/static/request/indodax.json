@@ -278,7 +278,6 @@
                     "IDR",
                     150000,
                     "001234567890",
-                    null,
                     {
                         "clientOrderId": "fiat-zeros",
                         "bankCode": "014"
