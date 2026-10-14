@@ -3746,7 +3746,12 @@ class testMainClass {
         assert (await this.paradexOrderNotSent (exchange, 'limit', 20000, { 'stopLossPrice': 19000, 'timeInForce': 'RPI', 'clientOrderId': 'stopLossRpiOrder' }), 'paradex - stop loss RPI order was sent');
         // setMarginMode without a leverage keeps the current one instead of resetting it to 1x
         setFetchResponse (exchange, { 'configs': [ { 'market': 'BTC-USD-PERP', 'leverage': 7, 'margin_type': 'CROSS' } ] });
-        await exchange.setMarginMode ('cross', 'BTC/USD:USDC');
+        const marginArgs = [ 'cross', 'BTC/USD:USDC' ];
+        if (!isSync ()) {
+            await callExchangeMethodDynamically (exchange, 'setMarginMode', marginArgs);
+        } else {
+            callExchangeMethodDynamicallySync (exchange, 'setMarginMode', marginArgs);
+        }
         setFetchResponse (exchange, undefined);
         const marginRequest = jsonParse (exchange.last_request_body);
         const leverage = exchange.safeInteger (marginRequest, 'leverage');
