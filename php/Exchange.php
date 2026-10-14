@@ -285,6 +285,7 @@ class BaseExchange {
     public $reloadingEvents = null;
     public $eventsLoading = null;
     public $minFundingAddressLength = 1; // used in check_address
+    public $networkAliases = array('ETH' => 'ERC20', 'TRX' => 'TRC20', 'BSC' => 'BEP20', 'BSC20' => 'BEP20', 'CRONOS' => 'CRC20', 'ARB' => 'ARBITRUM', 'ARBONE' => 'ARBITRUM', 'ARBNOVA' => 'ARBITRUM_NOVA'); // alias -> unified network code
     public $substituteCommonCurrencyCodes = true;
 
     // whether fees should be summed by currency code

@@ -289,6 +289,17 @@ export class BaseExchange {
     httpsAgent: any = undefined;
 
     minFundingAddressLength: number = 1;  // used in checkAddress
+    // alias -> unified network code; aliases are accepted as input but never returned
+    networkAliases: Dictionary<string> = {
+        'ETH': 'ERC20',
+        'TRX': 'TRC20',
+        'BSC': 'BEP20',
+        'BSC20': 'BEP20',
+        'CRONOS': 'CRC20',
+        'ARB': 'ARBITRUM',
+        'ARBONE': 'ARBITRUM',
+        'ARBNOVA': 'ARBITRUM_NOVA',
+    };
     substituteCommonCurrencyCodes: boolean = true;  // reserved
     quoteJsonNumbers: boolean = true;  // quote json numbers as precise strings when a response carries precision-risky (16+ digit or exponent) numbers
     // eslint-disable-next-line no-unused-vars
@@ -4320,17 +4331,6 @@ export class BaseExchange {
 
     getDefaultOptions () {
         return {
-            // alias -> unified network code; aliases are accepted as input but never returned
-            'networkAliases': {
-                'ETH': 'ERC20',
-                'TRX': 'TRC20',
-                'BSC': 'BEP20',
-                'BSC20': 'BEP20',
-                'CRONOS': 'CRC20',
-                'ARB': 'ARBITRUM',
-                'ARBONE': 'ARBITRUM',
-                'ARBNOVA': 'ARBITRUM_NOVA',
-            },
             // native-chain withdrawals of these currencies may need a destination tag / memo
             'withdrawTagRequiredCurrencies': [ 'XRP', 'XLM', 'EOS', 'ATOM', 'HBAR', 'TON', 'KAVA', 'STX', 'XEM', 'IOST', 'OSMO', 'WAXP' ],
         };
@@ -5864,7 +5864,7 @@ export class BaseExchange {
          * @param {string} networkCode unified network code or one of its aliases
          * @returns {string} unified network code
          */
-        const aliases = this.safeDict (this.options, 'networkAliases', {});
+        const aliases = this.networkAliases;
         const unifiedCode = this.safeString (aliases, networkCode);
         return (unifiedCode === undefined) ? networkCode : unifiedCode;
     }
@@ -5889,7 +5889,7 @@ export class BaseExchange {
             return networkId;
         }
         // options.networks may still be keyed by an alias of the unified code
-        const aliases = this.safeDict (this.options, 'networkAliases', {});
+        const aliases = this.networkAliases;
         const aliasKeys = Object.keys (aliases);
         for (let i = 0; i < aliasKeys.length; i++) {
             const alias = aliasKeys[i];

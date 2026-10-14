@@ -67,7 +67,7 @@ function helperTestUnifiedNetworkCode () {
         },
     });
     exchange.currencies = exchange.mapToSafeMap ({}); // go fix + c# uninitialized prop fix
-    const aliases = exchange.options['networkAliases'];
+    const aliases = exchange.networkAliases;
     const keys = Object.keys (aliases);
     for (let i = 0; i < keys.length; i++) {
         const unified = exchange.unifiedNetworkCode (keys[i]);

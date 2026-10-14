@@ -187,6 +187,7 @@ type BaseExchange struct {
 	Pro       bool
 
 	MinFundingAddressLength int
+	NetworkAliases          map[string]any
 	MaxEntriesPerRequest    int
 
 	// tests only
