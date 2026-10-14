@@ -96,7 +96,7 @@ public class Derive extends DeriveApi
                 put( "fetchIndexOHLCV", false );
                 put( "fetchIsolatedBorrowRate", false );
                 put( "fetchIsolatedBorrowRates", false );
-                put( "fetchLedger", true );
+                put( "fetchLedger", false );
                 put( "fetchLeverage", false );
                 put( "fetchLeverageTiers", false );
                 put( "fetchLiquidations", false );
