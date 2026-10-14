@@ -2914,7 +2914,7 @@ class bitfinex(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         apiName = api[0]
         request = '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
@@ -2944,8 +2944,8 @@ class bitfinex(Exchange, ImplicitAPI):
                 'bfx-signature': signature,
                 'Content-Type': 'application/json',
             }
-        bodyResolved = body if (requestBody is None) else requestBody
-        headersResolved = headers if (requestHeaders is None) else requestHeaders
+        bodyResolved = requestBody
+        headersResolved = requestHeaders
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
     def handle_errors(self, statusCode: int, statusText: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

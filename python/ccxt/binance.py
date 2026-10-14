@@ -12462,7 +12462,7 @@ class binance(Exchange, ImplicitAPI):
             return None
         return scheme + '//' + domain + '/'
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         apiName = api[0]
         urls = self.urls
         if not (apiName in urls['api']):
@@ -12557,8 +12557,8 @@ class binance(Exchange, ImplicitAPI):
         else:
             if len(params) > 0:
                 url += '?' + self.urlencode(params)
-        headersResolved = signedHeaders if (signedHeaders is not None) else headers
-        bodyResolved = signedBody if (signedBody is not None) else body
+        headersResolved = signedHeaders
+        bodyResolved = signedBody
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
     def get_exceptions_by_url(self, url: Str, exactOrBroad: str):
@@ -12667,8 +12667,8 @@ class binance(Exchange, ImplicitAPI):
                     return entry[1]
         return self.safe_value(config, 'cost', 1)
 
-    def request(self, path: str, api: list[str] = ['public'], method: object = 'GET', params: dict = {}, headers: object = None, body: object = None, config: dict = {}):
-        response = self.fetch2(path, api, method, params, headers, body, config)
+    def request(self, path: str, api: list[str] = ['public'], method: object = 'GET', params: dict = {}, config: dict = {}):
+        response = self.fetch2(path, api, method, params, config)
         # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
         if api[0] == 'private':
             self.options['hasAlreadyAuthenticatedSuccessfully'] = True

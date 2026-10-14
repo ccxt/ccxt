@@ -3589,7 +3589,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             raise BadRequest(feedback)
         raise ExchangeError(feedback)  # unknown message
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         apiName = api[0]
         apiVersions = self.safe_dict(self.options['versions'], apiName, {})
         methodVersions = self.safe_dict(apiVersions, method, {})
@@ -3615,7 +3615,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + query
-        requestBody = postData if (path == 'batchorder') else body
+        requestBody = postData if (path == 'batchorder') else None
         privateHeaders = None
         if apiName == 'private' or access == 'private':
             self.check_required_credentials()
@@ -3632,5 +3632,5 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'APIKey': self.apiKey,
                 'Authent': signature,
             }
-        requestHeaders = privateHeaders if (privateHeaders is not None) else headers
+        requestHeaders = privateHeaders
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}

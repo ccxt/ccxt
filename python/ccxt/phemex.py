@@ -4464,7 +4464,7 @@ class phemex(Exchange, ImplicitAPI):
             minNotional = maxNotional
         return tiers
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         apiName = api[0]
         query = self.omit(params, self.extract_params(path))
         requestPath = '/' + self.implode_params(path, params)
@@ -4503,10 +4503,10 @@ class phemex(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = self.implode_hostname(baseApiUrl) + url
         isPrivatePost = (apiName == 'private') and (method == 'POST')
-        bodyResolved = body
+        bodyResolved = None
         if isPrivatePost:
             bodyResolved = requestBody
-        requestHeaders = privateHeaders if (apiName == 'private') else headers
+        requestHeaders = privateHeaders if (apiName == 'private') else None
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': requestHeaders}
 
     def set_leverage(self, leverage: int, symbol: Str = None, params: dict = {}):

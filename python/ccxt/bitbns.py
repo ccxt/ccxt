@@ -1207,7 +1207,7 @@ class bitbns(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: str, api: list[str] = ['www'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['www'], method='GET', params: dict = {}) -> dict:
         urls = self.urls
         apiName = api[0]
         if not (apiName in urls['api']):
@@ -1217,7 +1217,7 @@ class bitbns(Exchange, ImplicitAPI):
         apiKeyHeaders = {
             'X-BITBNS-APIKEY': self.apiKey,
         }
-        requestHeaders = apiKeyHeaders if (apiName != 'www') else headers
+        requestHeaders = apiKeyHeaders if (apiName != 'www') else None
         baseApiUrl = self.safe_string(self.urls['api'], apiName)
         if baseApiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
@@ -1229,7 +1229,7 @@ class bitbns(Exchange, ImplicitAPI):
         postBody = '{}'
         if queryLength > 0:
             postBody = self.json(query)
-        requestBody = postBody if (method == 'POST') else body
+        requestBody = postBody if (method == 'POST') else None
         if method == 'GET':
             if queryLength > 0:
                 url += '?' + self.urlencode(query)

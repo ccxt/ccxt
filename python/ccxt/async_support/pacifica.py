@@ -3465,8 +3465,8 @@ class pacifica(Exchange, ImplicitAPI):
                 raise ExchangeError(feedback)  # unknown message
         return None
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        requestBody = body
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        requestBody = None
         isTestnet = self.isSandboxModeEnabled
         urlKey = 'api'
         if isTestnet:

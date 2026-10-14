@@ -1075,7 +1075,7 @@ class independentreserve(Exchange, ImplicitAPI):
         # the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
         return self.milliseconds()
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         apiName = api[0]
         apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
@@ -1110,4 +1110,4 @@ class independentreserve(Exchange, ImplicitAPI):
             signedBody = self.json(query)
             signedHeaders = {'Content-Type': 'application/json'}
             return {'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders}
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}

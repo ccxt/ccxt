@@ -4372,7 +4372,7 @@ class digifinex(Exchange, ImplicitAPI):
         }
         return await self.privateSwapPostAccountPositionMode(self.extend(request, params))
 
-    def sign(self, path: str, api: list[str] = [], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = [], method='GET', params: dict = {}) -> dict:
         signed = self.safe_string(api, 0) == 'private'
         endpoint = self.safe_string(api, 1)
         pathPart = '/swap/v2'
@@ -4409,7 +4409,7 @@ class digifinex(Exchange, ImplicitAPI):
                 if (urlencoded is not None) and (urlencoded != ''):
                     url += '?' + urlencoded
             hasPostBody = (method == 'POST') and (urlencoded is not None) and (urlencoded != '')
-            requestBody = body
+            requestBody = None
             if hasPostBody:
                 requestBody = urlencoded
             privateHeaders = {
@@ -4421,7 +4421,7 @@ class digifinex(Exchange, ImplicitAPI):
         else:
             if (urlencoded is not None) and (urlencoded != ''):
                 url += '?' + urlencoded
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}
 
     def handle_errors(self, statusCode: int, statusText: str, url: str, method: str, responseHeaders: dict, responseBody: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:

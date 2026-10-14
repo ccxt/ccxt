@@ -3530,7 +3530,7 @@ class BaseExchange(object):
             self.urls = newUrls
         self.options['enableDemoTrading'] = enable
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None):
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}):
         return {'url': None, 'method': None, 'headers': None, 'body': None}
 
     def fetch_accounts(self, params: dict = {}):
@@ -5783,7 +5783,7 @@ class BaseExchange(object):
             return self.index_by(results, key)
         return results
 
-    def fetch2(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: object = None, body: object = None, config: dict = {}):
+    def fetch2(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, config: dict = {}):
         if self.enableRateLimit:
             cost = self.calculate_rate_limiter_cost(api, method, path, params, config)
             self.throttle(cost)
@@ -5800,7 +5800,7 @@ class BaseExchange(object):
                 fetchData = {'request': None, 'response': {'body': None}, 'error': None}
             try:
                 self.set_last_rest_request_timestamp()
-                request = self.sign(path, api, method, paramsMaxRetriesOnFailureDelay, headers, body)
+                request = self.sign(path, api, method, paramsMaxRetriesOnFailureDelay)
                 if fetchData is not None:
                     fetchData['request'] = request
                 self.set_last_request(request)
@@ -5826,8 +5826,8 @@ class BaseExchange(object):
                     raise e
         return None  # this line is never reached, but exists for c# value return requirement
 
-    def request(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: object = None, body: object = None, config: dict = {}):
-        return self.fetch2(path, api, method, params, headers, body, config)
+    def request(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, config: dict = {}):
+        return self.fetch2(path, api, method, params, config)
 
     def load_accounts(self, reload=False, params: dict = {}):
         if reload:

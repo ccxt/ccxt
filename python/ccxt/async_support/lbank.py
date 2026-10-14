@@ -2894,7 +2894,7 @@ class lbank(Exchange, ImplicitAPI):
                     }
         return result
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         query = self.omit(params, self.extract_params(path))
         apiUrl = self.safe_string(self.urls['api'], 'rest')
         if apiUrl is None:
@@ -2955,7 +2955,7 @@ class lbank(Exchange, ImplicitAPI):
                 'echostr': echostr,
             }
             return {'url': url, 'method': method, 'body': bodySigned, 'headers': headersSigned}
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}
 
     def convert_secret_to_pem(self, secret: object):
         lineLength = 64

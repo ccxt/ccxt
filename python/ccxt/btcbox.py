@@ -777,7 +777,7 @@ class btcbox(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         apiName = api[0]
         apiUrl = self.safe_string(self.urls['api'], 'rest')
         if apiUrl is None:
@@ -803,7 +803,7 @@ class btcbox(Exchange, ImplicitAPI):
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
             return {'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders}
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
@@ -819,8 +819,8 @@ class btcbox(Exchange, ImplicitAPI):
         self.throw_exactly_matched_exception(self.exceptions, code, feedback)
         raise ExchangeError(feedback)  # unknown message
 
-    def request(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: object = None, body: object = None, config: dict = {}):
-        response = self.fetch2(path, api, method, params, headers, body, config)
+    def request(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, config: dict = {}):
+        response = self.fetch2(path, api, method, params, config)
         if isinstance(response, str):
             # sometimes the exchange returns whitespace prepended to json
             response = self.strip(response)

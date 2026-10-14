@@ -1810,14 +1810,14 @@ class bitopro(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_deposit_withdraw_fees(data, codes, 'currency')
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         apiName = api[0]
         url = '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        requestHeaders = {} if (headers is None) else headers
+        requestHeaders = {}
         isSignedBody = (apiName == 'private') and ((method == 'POST') or (method == 'PUT'))
         signedBody = self.json(params)
-        requestBody = body
+        requestBody = None
         if isSignedBody:
             requestBody = signedBody
         requestHeaders['X-BITOPRO-API'] = 'ccxt'

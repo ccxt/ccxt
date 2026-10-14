@@ -4777,7 +4777,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)  # unknown message
         return None
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         apiName = api[0]
         apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
@@ -4787,10 +4787,10 @@ class hyperliquid(Exchange, ImplicitAPI):
         postHeaders = {
             'Content-Type': 'application/json',
         }
-        requestHeaders = headers
+        requestHeaders = None
         if isPost:
             requestHeaders = postHeaders
-        requestBody = body
+        requestBody = None
         if isPost:
             requestBody = self.json(params)
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}

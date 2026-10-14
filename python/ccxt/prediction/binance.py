@@ -1778,7 +1778,7 @@ class binance(PredictionExchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path: str, api: list[str] = ['sapi'], method='GET', params: dict = {}, headers: object = None, body: object = None):
+    def sign(self, path: str, api: list[str] = ['sapi'], method='GET', params: dict = {}):
         """
  @ignore
         builds the request URL and attaches the standard binance SAPI HMAC-SHA256 signature — every prediction endpoint is signed
@@ -1786,8 +1786,6 @@ class binance(PredictionExchange, ImplicitAPI):
         :param string|str[] [api]: the api group and access level
         :param str [method]: HTTP method
         :param dict [params]: request parameters
-        :param dict [headers]: request headers
-        :param dict [body]: request body
         :returns dict: a dictionary with url, method, body and headers
         """
         apiGroup = api[0]
@@ -1810,7 +1808,7 @@ class binance(PredictionExchange, ImplicitAPI):
         headersValue = {
             'X-MBX-APIKEY': self.apiKey,
         }
-        bodyValue = body
+        bodyValue = None
         if (method == 'GET') or (method == 'DELETE'):
             url = url + '?' + querystring
         else:

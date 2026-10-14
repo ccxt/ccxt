@@ -1884,7 +1884,7 @@ class bigone(Exchange, ImplicitAPI):
         exchangeTimeCorrection = self.safe_integer(self.options, 'exchangeMillisecondsCorrection', 0) * 1000000
         return self.sum(self.microseconds() * 1000, exchangeTimeCorrection)
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         apiName = api[0]
         bodySigned = None
         query = self.omit(params, self.extract_params(path))
@@ -1915,7 +1915,7 @@ class bigone(Exchange, ImplicitAPI):
                 headersValue['Content-Type'] = 'application/json'
                 bodySigned = self.json(query)
         headersValue['User-Agent'] = 'ccxt/' + self.id + '-' + self.version
-        bodyResolved = body if (bodySigned is None) else bodySigned
+        bodyResolved = bodySigned
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersValue}
 
     async def fetch_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:

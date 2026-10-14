@@ -2459,7 +2459,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
             raise BadRequest(feedback)
         return None
 
-    def sign(self, path: str, api: list[str] = ['sxbet'], method='GET', params: dict = {}, headers: object = None, body: object = None):
+    def sign(self, path: str, api: list[str] = ['sxbet'], method='GET', params: dict = {}):
         """
  @ignore
         builds the request url and attaches the x-sx-api-key header; every private v3 route authenticates with the apiKey credential, so its absence fails fast instead of surfacing a raw 401
@@ -2467,8 +2467,6 @@ class sxbet(PredictionExchange, ImplicitAPI):
         :param str[] api: the api group and access level
         :param str method: the http method
         :param dict params: the request parameters
-        :param dict [headers]: request headers
-        :param str [body]: the request body
         :returns dict: a dict with url, method, body and headers
         """
         apiGroup = api[0]
@@ -2479,7 +2477,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         baseUrl = self.safe_string(baseUrls, apiGroup, baseUrls['sxbet'])
         url = baseUrl + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        existingHeaders = headers if (headers is not None) else {}
+        existingHeaders = {}
         headersExtended = self.extend({
             'Accept': 'application/json',
             'Content-Type': 'application/json',
@@ -2492,7 +2490,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         if method == 'DELETE':
             hasOrdersList = ('orders' in query)
             sendAsQuery = not hasOrdersList
-        bodyValue = body
+        bodyValue = None
         if sendAsQuery:
             querystring = self.urlencode(query)
             if querystring != '':

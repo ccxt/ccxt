@@ -2239,7 +2239,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def sign(self, path: str, api: list[str] = [], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = [], method='GET', params: dict = {}) -> dict:
         version = self.safe_string(api, 0)
         signed = self.safe_string(api, 1) == 'private'
         fullPath = '/' + version + '/' + self.implode_params(path, params)
@@ -2256,7 +2256,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         signedBody = ''
         if hasSignedBody:
             signedBody = self.json(query)
-        requestBody = body
+        requestBody = None
         if hasSignedBody:
             requestBody = signedBody
         signedHeaders = None
@@ -2272,7 +2272,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                 'CB-ACCESS-PASSPHRASE': self.password,
                 'CB-ACCESS-KEY': self.apiKey,
             }
-        requestHeaders = headers
+        requestHeaders = None
         if signed:
             requestHeaders = signedHeaders
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}

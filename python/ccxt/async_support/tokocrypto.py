@@ -2557,7 +2557,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def sign(self, path: str, api: list[str] = ['public'], method: object = 'GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: object = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
         if not (apiName in self.urls['api']['rest']):
             raise NotSupported(self.id + ' does not have a testnet/sandbox URL for ' + apiName + ' endpoints')
@@ -2576,7 +2576,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                     'X-MBX-APIKEY': self.apiKey,
                     'Content-Type': 'application/x-www-form-urlencoded',
                 }
-                bodyStream = self.urlencode(params) if (method != 'GET') else body
+                bodyStream = self.urlencode(params) if (method != 'GET') else None
                 return {'url': url, 'method': method, 'body': bodyStream, 'headers': headersStream}
             else:
                 raise AuthenticationError(self.id + ' userDataStream endpoint requires `apiKey` credential')
@@ -2606,7 +2606,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             queryInUrl = (method == 'GET') or (method == 'DELETE') or (apiName == 'wapi')
             bodySigned = query
             if queryInUrl:
-                bodySigned = body
+                bodySigned = None
             if queryInUrl:
                 url += '?' + query
             else:
@@ -2615,7 +2615,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         else:
             if len(params) > 0:
                 url += '?' + self.urlencode(params)
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if (code == 418) or (code == 429):

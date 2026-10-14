@@ -10963,7 +10963,7 @@ class kucoin(Exchange, ImplicitAPI):
             self.options['uta'] = uta
         return uta
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         apiName = api[0]
         #
         # the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
@@ -10991,9 +10991,7 @@ class kucoin(Exchange, ImplicitAPI):
         query = self.omit(paramsOmitted, self.extract_params(path))
         endpart = ''
         headersBase = {}
-        if headers is not None:
-            headersBase = headers
-        bodyJson = body
+        bodyJson = None
         apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')

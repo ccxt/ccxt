@@ -2850,10 +2850,10 @@ class bullish(Exchange, ImplicitAPI):
             'quoteVolume': None,
         }, market)
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         apiName = api[0]
-        requestHeaders = headers
-        requestBody = body
+        requestHeaders = None
+        requestBody = None
         request = self.omit(params, self.extract_params(path))
         endpoint = '/' + self.implode_params(path, params)
         apiUrl = self.safe_string(self.urls['api'], apiName)

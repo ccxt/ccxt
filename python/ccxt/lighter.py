@@ -3144,7 +3144,7 @@ class lighter(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params={}, headers: dict = None, body: object = None):
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params={}):
         apiName = api[0]
         url = None
         if apiName == 'root':
@@ -3170,8 +3170,8 @@ class lighter(Exchange, ImplicitAPI):
                 return {'url': url, 'method': method, 'body': params, 'headers': multipartHeaders}
             url += '?' + self.rawencode(params)
         if apiName == 'private':
-            return {'url': url, 'method': method, 'body': body, 'headers': authHeaders}
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+            return {'url': url, 'method': method, 'body': None, 'headers': authHeaders}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if (response is None) or (response is None):

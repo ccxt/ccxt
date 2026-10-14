@@ -2167,7 +2167,7 @@ class coinsph(Exchange, ImplicitAPI):
         urlEncodedParam = key + '=' + stringifiedArray
         return urlEncodedParam
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         apiName = api[0]
         apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
@@ -2189,11 +2189,11 @@ class coinsph(Exchange, ImplicitAPI):
             signedHeaders = {
                 'X-COINS-APIKEY': self.apiKey,
             }
-            return {'url': url, 'method': method, 'body': body, 'headers': signedHeaders}
+            return {'url': url, 'method': method, 'body': None, 'headers': signedHeaders}
         encodedQuery = self.url_encode_query(query)
         if len(encodedQuery) != 0:
             url += '?' + encodedQuery
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:

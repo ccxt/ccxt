@@ -2893,7 +2893,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         # unique when two orders are signed within the same millisecond
         return self.milliseconds()
 
-    def sign(self, path: str, api: list[str] = ['limitless'], method='GET', params: dict = {}, headers: object = None, body: object = None):
+    def sign(self, path: str, api: list[str] = ['limitless'], method='GET', params: dict = {}):
         """
  @ignore
         builds the request URL and attaches the lmts authentication headers for private endpoints
@@ -2901,8 +2901,6 @@ class limitless(PredictionExchange, ImplicitAPI):
         :param str[] [api]: the api group and access level
         :param str [method]: HTTP method
         :param dict [params]: request parameters
-        :param dict [headers]: request headers
-        :param dict [body]: request body
         :returns dict: a dictionary with url, method, body and headers
         """
         apiGroup = api[0]
@@ -2915,8 +2913,8 @@ class limitless(PredictionExchange, ImplicitAPI):
         querystring = self.urlencode_with_array_repeat(query)
         if method == 'GET' and (querystring != ''):
             url += '?' + querystring
-        headersValue = headers
-        bodyValue = body
+        headersValue = None
+        bodyValue = None
         if access == 'private':
             bodyString = ''
             if headersValue is None:

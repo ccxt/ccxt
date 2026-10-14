@@ -1862,7 +1862,7 @@ class onetrading(Exchange, ImplicitAPI):
         tradeHistory = self.safe_list(response, 'trade_history', [])
         return self.parse_trades(tradeHistory, market, since, limit)
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         apiName = api[0]
         apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
@@ -1878,14 +1878,14 @@ class onetrading(Exchange, ImplicitAPI):
                 'Accept': 'application/json',
                 'Authorization': 'Bearer ' + self.apiKey,
             }
-            bodyJson = self.json(query) if (method == 'POST') else body
+            bodyJson = self.json(query) if (method == 'POST') else None
             if method == 'POST':
                 headersSigned['Content-Type'] = 'application/json'
             else:
                 if len(query) > 0:
                     url += '?' + self.urlencode(query)
             return {'url': url, 'method': method, 'body': bodyJson, 'headers': headersSigned}
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:

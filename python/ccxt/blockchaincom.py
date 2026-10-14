@@ -1202,7 +1202,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         requestPath = '/' + self.implode_params(path, params)
         apiName = api[0]
         apiUrl = self.safe_string(self.urls['api'], apiName)
@@ -1214,11 +1214,11 @@ class blockchaincom(Exchange, ImplicitAPI):
         privateHeaders = {
             'X-API-Token': self.secret,
         }
-        requestHeaders = headers
+        requestHeaders = None
         if isPrivate:
             requestHeaders = privateHeaders
         isPrivatePost = isPrivate and (method != 'GET')
-        requestBody = body
+        requestBody = None
         if isPrivatePost:
             requestBody = self.json(query)
         if apiName == 'public':

@@ -4032,7 +4032,7 @@ class weex(Exchange, ImplicitAPI):
         super(weex, self).set_sandbox_mode(enable)
         self.options['sandboxMode'] = enable
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         apiName = api[0]
         endpoint = self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
@@ -4042,7 +4042,7 @@ class weex(Exchange, ImplicitAPI):
                 endpoint += '?' + self.urlencode(query)
         isPrivate = (apiName == 'private') or (apiName == 'contractPrivate')
         hasJsonBody = isPrivate and ((method == 'POST') or isBatch)
-        requestBody = body
+        requestBody = None
         if hasJsonBody:
             requestBody = self.json(query)
         requestHeaders = None

@@ -1039,7 +1039,7 @@ class btcturk(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         apiName = api[0]
         if self.id == 'btctrader':
             raise ExchangeError(self.id + ' is an abstract base API for BTCExchange, BTCTurk')
@@ -1053,7 +1053,7 @@ class btcturk(Exchange, ImplicitAPI):
                 url += '?' + self.urlencode(params)
         requestBody = None
         if isQueryMethod:
-            requestBody = body
+            requestBody = None
         else:
             requestBody = self.json(params)
         privateHeaders = None
@@ -1068,7 +1068,7 @@ class btcturk(Exchange, ImplicitAPI):
                 'X-Signature': self.hmac(self.encode(auth), secret, hashlib.sha256, 'base64'),
                 'Content-Type': 'application/json',
             }
-        requestHeaders = privateHeaders if (privateHeaders is not None) else headers
+        requestHeaders = privateHeaders
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

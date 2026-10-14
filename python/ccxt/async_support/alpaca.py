@@ -2106,14 +2106,12 @@ class alpaca(Exchange, ImplicitAPI):
                 result[positionCode] = positionAccount
         return self.safe_balance(result)
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         endpoint = '/' + self.implode_params(path, params)
         baseApiUrl = self.safe_string(self.urls['api'], api[0])
         if baseApiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         headersValue = {}
-        if headers is not None:
-            headersValue = headers
         if api[1] == 'private':
             self.check_required_credentials()
             headersValue['APCA-API-KEY-ID'] = self.apiKey
@@ -2127,7 +2125,7 @@ class alpaca(Exchange, ImplicitAPI):
                 bodyJson = self.json(query)
                 headersValue['Content-Type'] = 'application/json'
         url = self.implode_hostname(baseApiUrl) + endpoint
-        bodyResolved = body if (bodyJson is None) else bodyJson
+        bodyResolved = bodyJson
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersValue}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

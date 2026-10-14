@@ -6407,7 +6407,7 @@ class okx(Exchange, ImplicitAPI):
         transfers = self.safe_list(response, 'data', [])
         return self.parse_transfers(transfers, currency, since, limit, params)
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         apiName = api[0]
         isArray = isinstance(params, list)
         request = '/api/' + self.version + '/' + self.implode_params(path, params)
@@ -6464,10 +6464,10 @@ class okx(Exchange, ImplicitAPI):
                 privateHeaders['Content-Type'] = 'application/json'
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
             privateHeaders['OK-ACCESS-SIGN'] = signature
-        requestBody = body
+        requestBody = None
         if hasJsonBody:
             requestBody = jsonBody
-        requestHeaders = privateHeaders if (apiName == 'private') else headers
+        requestHeaders = privateHeaders if (apiName == 'private') else None
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
     def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:

@@ -6724,7 +6724,7 @@ class gate(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' nonce() requires a numeric options["timeDifference"]')
         return self.milliseconds() - timeDifference
 
-    def sign(self, path: str, api: list[str] = [], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = [], method='GET', params: dict = {}) -> dict:
         authentication = api[0]  # public, private
         type = api[1]  # spot, margin, future, delivery
         query = self.omit(params, self.extract_params(path))
@@ -6795,7 +6795,7 @@ class gate(Exchange, ImplicitAPI):
                     url += '?' + queryString
                 query = self.omit(query, 'query')
                 bodyJson = self.json(query)
-            bodySigned = body if (bodyJson is None) else bodyJson
+            bodySigned = bodyJson
             bodyPayload = '' if (bodySigned is None) else bodySigned
             bodySignature = self.hash(self.encode(bodyPayload), 'sha512')
             nonce = self.nonce()
@@ -6812,8 +6812,8 @@ class gate(Exchange, ImplicitAPI):
                 'SIGN': signature,
                 'Content-Type': 'application/json',
             }
-        bodyResolved = body if (bodyJson is None) else bodyJson
-        headersResolved = headers if (signedHeaders is None) else signedHeaders
+        bodyResolved = bodyJson
+        headersResolved = signedHeaders
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
     def modify_margin_helper(self, symbol: str, amount: Num, params: dict = {}) -> MarginModification:
