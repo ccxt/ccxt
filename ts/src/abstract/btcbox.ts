@@ -10,40 +10,40 @@ import { Exchange as _Exchange } from '../base/Exchange.js';
 
 abstract class Exchange extends _Exchange {
     publicGetDepth (params = {}): Promise<Dict> {
-        return this.request ("depth", "public", 'GET', params, {"cost":1});
+        return this.request ("depth", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
     publicGetOrders (params = {}): Promise<List> {
-        return this.request ("orders", "public", 'GET', params, {"cost":1});
+        return this.request ("orders", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
     publicGetTicker (params = {}): Promise<Dict> {
-        return this.request ("ticker", "public", 'GET', params, {"cost":1});
+        return this.request ("ticker", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
     publicGetTickers (params = {}): Promise<Dict> {
-        return this.request ("tickers", "public", 'GET', params, {"cost":1});
+        return this.request ("tickers", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
     privatePostBalance (params = {}): Promise<Dict> {
-        return this.request ("balance", "private", 'POST', params, {"cost":1});
+        return this.request ("balance", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostOrderHistory (params = {}): Promise<List> {
-        return this.request ("order_history", "private", 'POST', params, {"cost":1});
+        return this.request ("order_history", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostTradeAdd (params = {}): Promise<Dict> {
-        return this.request ("trade_add", "private", 'POST', params, {"cost":1});
+        return this.request ("trade_add", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostTradeCancel (params = {}): Promise<Dict> {
-        return this.request ("trade_cancel", "private", 'POST', params, {"cost":1});
+        return this.request ("trade_cancel", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostTradeList (params = {}): Promise<List> {
-        return this.request ("trade_list", "private", 'POST', params, {"cost":1});
+        return this.request ("trade_list", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostTradeView (params = {}): Promise<Dict> {
-        return this.request ("trade_view", "private", 'POST', params, {"cost":1});
+        return this.request ("trade_view", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostWallet (params = {}): Promise<Dict> {
-        return this.request ("wallet", "private", 'POST', params, {"cost":1});
+        return this.request ("wallet", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
     webApiGetAjaxCoinCoinInfo (params = {}): Promise<Dict> {
-        return this.request ("ajax/coin/coinInfo", "webApi", 'GET', params, {"cost":1});
+        return this.request ("ajax/coin/coinInfo", "webApi", 'GET', params, undefined, undefined, {"cost":1});
     }
 }
 export default Exchange

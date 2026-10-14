@@ -10,2638 +10,2638 @@ import _binance from '../../pro/binance.js';
 
 abstract class binance extends _binance {
     override sapiGetCopyTradingFuturesUserStatus (params = {}): Promise<Dict> {
-        return this.request ("copyTrading/futures/userStatus", "sapi", 'GET', params, {"cost":2});
+        return this.request ("copyTrading/futures/userStatus", "sapi", 'GET', params, undefined, undefined, {"cost":2});
     }
     override sapiGetCopyTradingFuturesLeadSymbol (params = {}): Promise<Dict> {
-        return this.request ("copyTrading/futures/leadSymbol", "sapi", 'GET', params, {"cost":2});
+        return this.request ("copyTrading/futures/leadSymbol", "sapi", 'GET', params, undefined, undefined, {"cost":2});
     }
     override sapiGetSystemStatus (params = {}): Promise<Dict> {
-        return this.request ("system/status", "sapi", 'GET', params, {"cost":1});
+        return this.request ("system/status", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetAccountSnapshot (params = {}): Promise<Dict> {
-        return this.request ("accountSnapshot", "sapi", 'GET', params, {"cost":240});
+        return this.request ("accountSnapshot", "sapi", 'GET', params, undefined, undefined, {"cost":240});
     }
     override sapiGetAccountInfo (params = {}): Promise<Dict> {
-        return this.request ("account/info", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("account/info", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetMarginAsset (params = {}): Promise<Dict> {
-        return this.request ("margin/asset", "sapi", 'GET', params, {"cost":1});
+        return this.request ("margin/asset", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetMarginPair (params = {}): Promise<Dict> {
-        return this.request ("margin/pair", "sapi", 'GET', params, {"cost":1});
+        return this.request ("margin/pair", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetMarginAllAssets (params = {}): Promise<List> {
-        return this.request ("margin/allAssets", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("margin/allAssets", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetMarginAllPairs (params = {}): Promise<List> {
-        return this.request ("margin/allPairs", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("margin/allPairs", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetMarginPriceIndex (params = {}): Promise<Dict> {
-        return this.request ("margin/priceIndex", "sapi", 'GET', params, {"cost":1});
+        return this.request ("margin/priceIndex", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetSpotDelistSchedule (params = {}): Promise<List> {
-        return this.request ("spot/delist-schedule", "sapi", 'GET', params, {"cost":10});
+        return this.request ("spot/delist-schedule", "sapi", 'GET', params, undefined, undefined, {"cost":10});
     }
     override sapiGetAssetAssetDividend (params = {}): Promise<Dict> {
-        return this.request ("asset/assetDividend", "sapi", 'GET', params, {"cost":1});
+        return this.request ("asset/assetDividend", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetAssetDribblet (params = {}): Promise<Dict> {
-        return this.request ("asset/dribblet", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("asset/dribblet", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetAssetTransfer (params = {}): Promise<Dict> {
-        return this.request ("asset/transfer", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("asset/transfer", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetAssetAssetDetail (params = {}): Promise<Dict> {
-        return this.request ("asset/assetDetail", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("asset/assetDetail", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetAssetTradeFee (params = {}): Promise<Dict> {
-        return this.request ("asset/tradeFee", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("asset/tradeFee", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetAssetLedgerTransferCloudMiningQueryByPage (params = {}): Promise<Dict> {
-        return this.request ("asset/ledger-transfer/cloud-mining/queryByPage", "sapi", 'GET', params, {"cost":4.0002});
+        return this.request ("asset/ledger-transfer/cloud-mining/queryByPage", "sapi", 'GET', params, undefined, undefined, {"cost":4.0002});
     }
     override sapiGetAssetConvertTransferQueryByPage (params = {}): Promise<Dict> {
-        return this.request ("asset/convert-transfer/queryByPage", "sapi", 'GET', params, {"cost":0.033335});
+        return this.request ("asset/convert-transfer/queryByPage", "sapi", 'GET', params, undefined, undefined, {"cost":0.033335});
     }
     override sapiGetAssetWalletBalance (params = {}): Promise<List> {
-        return this.request ("asset/wallet/balance", "sapi", 'GET', params, {"cost":6});
+        return this.request ("asset/wallet/balance", "sapi", 'GET', params, undefined, undefined, {"cost":6});
     }
     override sapiGetAssetCustodyTransferHistory (params = {}): Promise<Dict> {
-        return this.request ("asset/custody/transfer-history", "sapi", 'GET', params, {"cost":6});
+        return this.request ("asset/custody/transfer-history", "sapi", 'GET', params, undefined, undefined, {"cost":6});
     }
     override sapiGetMarginBorrowRepay (params = {}): Promise<Dict> {
-        return this.request ("margin/borrow-repay", "sapi", 'GET', params, {"cost":1});
+        return this.request ("margin/borrow-repay", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetMarginLoan (params = {}): Promise<Dict> {
-        return this.request ("margin/loan", "sapi", 'GET', params, {"cost":1});
+        return this.request ("margin/loan", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetMarginRepay (params = {}): Promise<Dict> {
-        return this.request ("margin/repay", "sapi", 'GET', params, {"cost":1});
+        return this.request ("margin/repay", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetMarginAccount (params = {}): Promise<Dict> {
-        return this.request ("margin/account", "sapi", 'GET', params, {"cost":1});
+        return this.request ("margin/account", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetMarginTransfer (params = {}): Promise<Dict> {
-        return this.request ("margin/transfer", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("margin/transfer", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetMarginInterestHistory (params = {}): Promise<Dict> {
-        return this.request ("margin/interestHistory", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("margin/interestHistory", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetMarginForceLiquidationRec (params = {}): Promise<Dict> {
-        return this.request ("margin/forceLiquidationRec", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("margin/forceLiquidationRec", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetMarginOrder (params = {}): Promise<Dict> {
-        return this.request ("margin/order", "sapi", 'GET', params, {"cost":1});
+        return this.request ("margin/order", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetMarginOpenOrders (params = {}): Promise<List> {
-        return this.request ("margin/openOrders", "sapi", 'GET', params, {"cost":1});
+        return this.request ("margin/openOrders", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetMarginAllOrders (params = {}): Promise<List> {
-        return this.request ("margin/allOrders", "sapi", 'GET', params, {"cost":20});
+        return this.request ("margin/allOrders", "sapi", 'GET', params, undefined, undefined, {"cost":20});
     }
     override sapiGetMarginMyTrades (params = {}): Promise<List> {
-        return this.request ("margin/myTrades", "sapi", 'GET', params, {"cost":1});
+        return this.request ("margin/myTrades", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetMarginMaxBorrowable (params = {}): Promise<Dict> {
-        return this.request ("margin/maxBorrowable", "sapi", 'GET', params, {"cost":5});
+        return this.request ("margin/maxBorrowable", "sapi", 'GET', params, undefined, undefined, {"cost":5});
     }
     override sapiGetMarginMaxTransferable (params = {}): Promise<Dict> {
-        return this.request ("margin/maxTransferable", "sapi", 'GET', params, {"cost":5});
+        return this.request ("margin/maxTransferable", "sapi", 'GET', params, undefined, undefined, {"cost":5});
     }
     override sapiGetMarginTradeCoeff (params = {}): Promise<Dict> {
-        return this.request ("margin/tradeCoeff", "sapi", 'GET', params, {"cost":1});
+        return this.request ("margin/tradeCoeff", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetMarginIsolatedTransfer (params = {}): Promise<Dict> {
-        return this.request ("margin/isolated/transfer", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("margin/isolated/transfer", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetMarginIsolatedAccount (params = {}): Promise<Dict> {
-        return this.request ("margin/isolated/account", "sapi", 'GET', params, {"cost":1});
+        return this.request ("margin/isolated/account", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetMarginIsolatedPair (params = {}): Promise<Dict> {
-        return this.request ("margin/isolated/pair", "sapi", 'GET', params, {"cost":1});
+        return this.request ("margin/isolated/pair", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetMarginIsolatedAllPairs (params = {}): Promise<List> {
-        return this.request ("margin/isolated/allPairs", "sapi", 'GET', params, {"cost":1});
+        return this.request ("margin/isolated/allPairs", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetMarginIsolatedAccountLimit (params = {}): Promise<Dict> {
-        return this.request ("margin/isolated/accountLimit", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("margin/isolated/accountLimit", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetMarginInterestRateHistory (params = {}): Promise<List> {
-        return this.request ("margin/interestRateHistory", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("margin/interestRateHistory", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetMarginOrderList (params = {}): Promise<Dict> {
-        return this.request ("margin/orderList", "sapi", 'GET', params, {"cost":1});
+        return this.request ("margin/orderList", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetMarginAllOrderList (params = {}): Promise<List> {
-        return this.request ("margin/allOrderList", "sapi", 'GET', params, {"cost":20});
+        return this.request ("margin/allOrderList", "sapi", 'GET', params, undefined, undefined, {"cost":20});
     }
     override sapiGetMarginOpenOrderList (params = {}): Promise<List> {
-        return this.request ("margin/openOrderList", "sapi", 'GET', params, {"cost":1});
+        return this.request ("margin/openOrderList", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetMarginCrossMarginData (params = {}): Promise<List> {
-        return this.request ("margin/crossMarginData", "sapi", 'GET', params, {"cost":0.1,"noCoin":0.5});
+        return this.request ("margin/crossMarginData", "sapi", 'GET', params, undefined, undefined, {"cost":0.1,"noCoin":0.5});
     }
     override sapiGetMarginIsolatedMarginData (params = {}): Promise<List> {
-        return this.request ("margin/isolatedMarginData", "sapi", 'GET', params, {"cost":0.1,"noCoin":1});
+        return this.request ("margin/isolatedMarginData", "sapi", 'GET', params, undefined, undefined, {"cost":0.1,"noCoin":1});
     }
     override sapiGetMarginIsolatedMarginTier (params = {}): Promise<List> {
-        return this.request ("margin/isolatedMarginTier", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("margin/isolatedMarginTier", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetMarginRateLimitOrder (params = {}): Promise<List> {
-        return this.request ("margin/rateLimit/order", "sapi", 'GET', params, {"cost":2});
+        return this.request ("margin/rateLimit/order", "sapi", 'GET', params, undefined, undefined, {"cost":2});
     }
     override sapiGetMarginDribblet (params = {}): Promise<Dict> {
-        return this.request ("margin/dribblet", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("margin/dribblet", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetMarginDust (params = {}): Promise<Dict> {
-        return this.request ("margin/dust", "sapi", 'GET', params, {"cost":20.001});
+        return this.request ("margin/dust", "sapi", 'GET', params, undefined, undefined, {"cost":20.001});
     }
     override sapiGetMarginCrossMarginCollateralRatio (params = {}): Promise<List> {
-        return this.request ("margin/crossMarginCollateralRatio", "sapi", 'GET', params, {"cost":10});
+        return this.request ("margin/crossMarginCollateralRatio", "sapi", 'GET', params, undefined, undefined, {"cost":10});
     }
     override sapiGetMarginExchangeSmallLiability (params = {}): Promise<List> {
-        return this.request ("margin/exchange-small-liability", "sapi", 'GET', params, {"cost":0.6667});
+        return this.request ("margin/exchange-small-liability", "sapi", 'GET', params, undefined, undefined, {"cost":0.6667});
     }
     override sapiGetMarginExchangeSmallLiabilityHistory (params = {}): Promise<Dict> {
-        return this.request ("margin/exchange-small-liability-history", "sapi", 'GET', params, {"cost":0.6667});
+        return this.request ("margin/exchange-small-liability-history", "sapi", 'GET', params, undefined, undefined, {"cost":0.6667});
     }
     override sapiGetMarginNextHourlyInterestRate (params = {}): Promise<List> {
-        return this.request ("margin/next-hourly-interest-rate", "sapi", 'GET', params, {"cost":0.6667});
+        return this.request ("margin/next-hourly-interest-rate", "sapi", 'GET', params, undefined, undefined, {"cost":0.6667});
     }
     override sapiGetMarginCapitalFlow (params = {}): Promise<List> {
-        return this.request ("margin/capital-flow", "sapi", 'GET', params, {"cost":10});
+        return this.request ("margin/capital-flow", "sapi", 'GET', params, undefined, undefined, {"cost":10});
     }
     override sapiGetMarginDelistSchedule (params = {}): Promise<List> {
-        return this.request ("margin/delist-schedule", "sapi", 'GET', params, {"cost":10});
+        return this.request ("margin/delist-schedule", "sapi", 'GET', params, undefined, undefined, {"cost":10});
     }
     override sapiGetMarginAvailableInventory (params = {}): Promise<Dict> {
-        return this.request ("margin/available-inventory", "sapi", 'GET', params, {"cost":0.3334});
+        return this.request ("margin/available-inventory", "sapi", 'GET', params, undefined, undefined, {"cost":0.3334});
     }
     override sapiGetMarginLeverageBracket (params = {}): Promise<List> {
-        return this.request ("margin/leverageBracket", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("margin/leverageBracket", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetLoanVipLoanableData (params = {}): Promise<Dict> {
-        return this.request ("loan/vip/loanable/data", "sapi", 'GET', params, {"cost":40});
+        return this.request ("loan/vip/loanable/data", "sapi", 'GET', params, undefined, undefined, {"cost":40});
     }
     override sapiGetLoanVipCollateralData (params = {}): Promise<Dict> {
-        return this.request ("loan/vip/collateral/data", "sapi", 'GET', params, {"cost":40});
+        return this.request ("loan/vip/collateral/data", "sapi", 'GET', params, undefined, undefined, {"cost":40});
     }
     override sapiGetLoanVipRequestData (params = {}): Promise<Dict> {
-        return this.request ("loan/vip/request/data", "sapi", 'GET', params, {"cost":2.6668});
+        return this.request ("loan/vip/request/data", "sapi", 'GET', params, undefined, undefined, {"cost":2.6668});
     }
     override sapiGetLoanVipRequestInterestRate (params = {}): Promise<List> {
-        return this.request ("loan/vip/request/interestRate", "sapi", 'GET', params, {"cost":2.6668});
+        return this.request ("loan/vip/request/interestRate", "sapi", 'GET', params, undefined, undefined, {"cost":2.6668});
     }
     override sapiGetLoanIncome (params = {}): Promise<List> {
-        return this.request ("loan/income", "sapi", 'GET', params, {"cost":40.002});
+        return this.request ("loan/income", "sapi", 'GET', params, undefined, undefined, {"cost":40.002});
     }
     override sapiGetLoanOngoingOrders (params = {}): Promise<Dict> {
-        return this.request ("loan/ongoing/orders", "sapi", 'GET', params, {"cost":40});
+        return this.request ("loan/ongoing/orders", "sapi", 'GET', params, undefined, undefined, {"cost":40});
     }
     override sapiGetLoanLtvAdjustmentHistory (params = {}): Promise<Dict> {
-        return this.request ("loan/ltv/adjustment/history", "sapi", 'GET', params, {"cost":40});
+        return this.request ("loan/ltv/adjustment/history", "sapi", 'GET', params, undefined, undefined, {"cost":40});
     }
     override sapiGetLoanBorrowHistory (params = {}): Promise<Dict> {
-        return this.request ("loan/borrow/history", "sapi", 'GET', params, {"cost":40});
+        return this.request ("loan/borrow/history", "sapi", 'GET', params, undefined, undefined, {"cost":40});
     }
     override sapiGetLoanRepayHistory (params = {}): Promise<Dict> {
-        return this.request ("loan/repay/history", "sapi", 'GET', params, {"cost":40});
+        return this.request ("loan/repay/history", "sapi", 'GET', params, undefined, undefined, {"cost":40});
     }
     override sapiGetLoanLoanableData (params = {}): Promise<Dict> {
-        return this.request ("loan/loanable/data", "sapi", 'GET', params, {"cost":40});
+        return this.request ("loan/loanable/data", "sapi", 'GET', params, undefined, undefined, {"cost":40});
     }
     override sapiGetLoanCollateralData (params = {}): Promise<Dict> {
-        return this.request ("loan/collateral/data", "sapi", 'GET', params, {"cost":40});
+        return this.request ("loan/collateral/data", "sapi", 'GET', params, undefined, undefined, {"cost":40});
     }
     override sapiGetLoanRepayCollateralRate (params = {}): Promise<Dict> {
-        return this.request ("loan/repay/collateral/rate", "sapi", 'GET', params, {"cost":600});
+        return this.request ("loan/repay/collateral/rate", "sapi", 'GET', params, undefined, undefined, {"cost":600});
     }
     override sapiGetLoanFlexibleOngoingOrders (params = {}): Promise<Dict> {
-        return this.request ("loan/flexible/ongoing/orders", "sapi", 'GET', params, {"cost":30});
+        return this.request ("loan/flexible/ongoing/orders", "sapi", 'GET', params, undefined, undefined, {"cost":30});
     }
     override sapiGetLoanFlexibleBorrowHistory (params = {}): Promise<Dict> {
-        return this.request ("loan/flexible/borrow/history", "sapi", 'GET', params, {"cost":40});
+        return this.request ("loan/flexible/borrow/history", "sapi", 'GET', params, undefined, undefined, {"cost":40});
     }
     override sapiGetLoanFlexibleRepayHistory (params = {}): Promise<Dict> {
-        return this.request ("loan/flexible/repay/history", "sapi", 'GET', params, {"cost":40});
+        return this.request ("loan/flexible/repay/history", "sapi", 'GET', params, undefined, undefined, {"cost":40});
     }
     override sapiGetLoanFlexibleLtvAdjustmentHistory (params = {}): Promise<Dict> {
-        return this.request ("loan/flexible/ltv/adjustment/history", "sapi", 'GET', params, {"cost":40});
+        return this.request ("loan/flexible/ltv/adjustment/history", "sapi", 'GET', params, undefined, undefined, {"cost":40});
     }
     override sapiGetLoanVipOngoingOrders (params = {}): Promise<Dict> {
-        return this.request ("loan/vip/ongoing/orders", "sapi", 'GET', params, {"cost":40});
+        return this.request ("loan/vip/ongoing/orders", "sapi", 'GET', params, undefined, undefined, {"cost":40});
     }
     override sapiGetLoanVipRepayHistory (params = {}): Promise<Dict> {
-        return this.request ("loan/vip/repay/history", "sapi", 'GET', params, {"cost":40});
+        return this.request ("loan/vip/repay/history", "sapi", 'GET', params, undefined, undefined, {"cost":40});
     }
     override sapiGetLoanVipCollateralAccount (params = {}): Promise<Dict> {
-        return this.request ("loan/vip/collateral/account", "sapi", 'GET', params, {"cost":600});
+        return this.request ("loan/vip/collateral/account", "sapi", 'GET', params, undefined, undefined, {"cost":600});
     }
     override sapiGetFiatOrders (params = {}): Promise<Dict> {
-        return this.request ("fiat/orders", "sapi", 'GET', params, {"cost":600.03});
+        return this.request ("fiat/orders", "sapi", 'GET', params, undefined, undefined, {"cost":600.03});
     }
     override sapiGetFiatPayments (params = {}): Promise<Dict> {
-        return this.request ("fiat/payments", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("fiat/payments", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetFuturesTransfer (params = {}): Promise<Dict> {
-        return this.request ("futures/transfer", "sapi", 'GET', params, {"cost":1});
+        return this.request ("futures/transfer", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetFuturesHistDataLink (params = {}): Promise<Dict> {
-        return this.request ("futures/histDataLink", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("futures/histDataLink", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetRebateTaxQuery (params = {}): Promise<Dict> {
-        return this.request ("rebate/taxQuery", "sapi", 'GET', params, {"cost":80.004});
+        return this.request ("rebate/taxQuery", "sapi", 'GET', params, undefined, undefined, {"cost":80.004});
     }
     override sapiGetCapitalConfigGetall (params = {}): Promise<List> {
-        return this.request ("capital/config/getall", "sapi", 'GET', params, {"cost":1});
+        return this.request ("capital/config/getall", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetCapitalDepositAddress (params = {}): Promise<Dict> {
-        return this.request ("capital/deposit/address", "sapi", 'GET', params, {"cost":1});
+        return this.request ("capital/deposit/address", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetCapitalDepositAddressList (params = {}): Promise<List> {
-        return this.request ("capital/deposit/address/list", "sapi", 'GET', params, {"cost":1});
+        return this.request ("capital/deposit/address/list", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetCapitalDepositHisrec (params = {}): Promise<List> {
-        return this.request ("capital/deposit/hisrec", "sapi", 'GET', params, {"cost":1});
+        return this.request ("capital/deposit/hisrec", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetCapitalDepositSubAddress (params = {}): Promise<Dict> {
-        return this.request ("capital/deposit/subAddress", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("capital/deposit/subAddress", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetCapitalDepositSubHisrec (params = {}): Promise<List> {
-        return this.request ("capital/deposit/subHisrec", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("capital/deposit/subHisrec", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetCapitalWithdrawHistory (params = {}): Promise<List> {
-        return this.request ("capital/withdraw/history", "sapi", 'GET', params, {"cost":1});
+        return this.request ("capital/withdraw/history", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetCapitalWithdrawAddressList (params = {}): Promise<List> {
-        return this.request ("capital/withdraw/address/list", "sapi", 'GET', params, {"cost":10});
+        return this.request ("capital/withdraw/address/list", "sapi", 'GET', params, undefined, undefined, {"cost":10});
     }
     override sapiGetCapitalContractConvertibleCoins (params = {}): Promise<Dict> {
-        return this.request ("capital/contract/convertible-coins", "sapi", 'GET', params, {"cost":4.0002});
+        return this.request ("capital/contract/convertible-coins", "sapi", 'GET', params, undefined, undefined, {"cost":4.0002});
     }
     override sapiGetConvertTradeFlow (params = {}): Promise<Dict> {
-        return this.request ("convert/tradeFlow", "sapi", 'GET', params, {"cost":20.001});
+        return this.request ("convert/tradeFlow", "sapi", 'GET', params, undefined, undefined, {"cost":20.001});
     }
     override sapiGetConvertExchangeInfo (params = {}): Promise<List> {
-        return this.request ("convert/exchangeInfo", "sapi", 'GET', params, {"cost":50});
+        return this.request ("convert/exchangeInfo", "sapi", 'GET', params, undefined, undefined, {"cost":50});
     }
     override sapiGetConvertAssetInfo (params = {}): Promise<List> {
-        return this.request ("convert/assetInfo", "sapi", 'GET', params, {"cost":10});
+        return this.request ("convert/assetInfo", "sapi", 'GET', params, undefined, undefined, {"cost":10});
     }
     override sapiGetConvertOrderStatus (params = {}): Promise<Dict> {
-        return this.request ("convert/orderStatus", "sapi", 'GET', params, {"cost":0.6667});
+        return this.request ("convert/orderStatus", "sapi", 'GET', params, undefined, undefined, {"cost":0.6667});
     }
     override sapiGetConvertLimitQueryOpenOrders (params = {}): Promise<Dict> {
-        return this.request ("convert/limit/queryOpenOrders", "sapi", 'GET', params, {"cost":20.001});
+        return this.request ("convert/limit/queryOpenOrders", "sapi", 'GET', params, undefined, undefined, {"cost":20.001});
     }
     override sapiGetAccountStatus (params = {}): Promise<Dict> {
-        return this.request ("account/status", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("account/status", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetAccountApiTradingStatus (params = {}): Promise<Dict> {
-        return this.request ("account/apiTradingStatus", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("account/apiTradingStatus", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetAccountApiRestrictionsIpRestriction (params = {}): Promise<Dict> {
-        return this.request ("account/apiRestrictions/ipRestriction", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("account/apiRestrictions/ipRestriction", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetBnbBurn (params = {}): Promise<Dict> {
-        return this.request ("bnbBurn", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("bnbBurn", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetSubAccountFuturesAccount (params = {}): Promise<Dict> {
-        return this.request ("sub-account/futures/account", "sapi", 'GET', params, {"cost":1});
+        return this.request ("sub-account/futures/account", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetSubAccountFuturesAccountSummary (params = {}): Promise<Dict> {
-        return this.request ("sub-account/futures/accountSummary", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("sub-account/futures/accountSummary", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetSubAccountFuturesPositionRisk (params = {}): Promise<List> {
-        return this.request ("sub-account/futures/positionRisk", "sapi", 'GET', params, {"cost":1});
+        return this.request ("sub-account/futures/positionRisk", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetSubAccountFuturesInternalTransfer (params = {}): Promise<Dict> {
-        return this.request ("sub-account/futures/internalTransfer", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("sub-account/futures/internalTransfer", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetSubAccountList (params = {}): Promise<Dict> {
-        return this.request ("sub-account/list", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("sub-account/list", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetSubAccountMarginAccount (params = {}): Promise<Dict> {
-        return this.request ("sub-account/margin/account", "sapi", 'GET', params, {"cost":1});
+        return this.request ("sub-account/margin/account", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetSubAccountMarginAccountSummary (params = {}): Promise<Dict> {
-        return this.request ("sub-account/margin/accountSummary", "sapi", 'GET', params, {"cost":1});
+        return this.request ("sub-account/margin/accountSummary", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetSubAccountSpotSummary (params = {}): Promise<Dict> {
-        return this.request ("sub-account/spotSummary", "sapi", 'GET', params, {"cost":1});
+        return this.request ("sub-account/spotSummary", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetSubAccountStatus (params = {}): Promise<List> {
-        return this.request ("sub-account/status", "sapi", 'GET', params, {"cost":1});
+        return this.request ("sub-account/status", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetSubAccountSubTransferHistory (params = {}): Promise<List> {
-        return this.request ("sub-account/sub/transfer/history", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("sub-account/sub/transfer/history", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetSubAccountTransferSubUserHistory (params = {}): Promise<List> {
-        return this.request ("sub-account/transfer/subUserHistory", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("sub-account/transfer/subUserHistory", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetSubAccountUniversalTransfer (params = {}): Promise<Dict> {
-        return this.request ("sub-account/universalTransfer", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("sub-account/universalTransfer", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetSubAccountApiRestrictionsIpRestrictionThirdPartyList (params = {}): Promise<Dict> {
-        return this.request ("sub-account/apiRestrictions/ipRestriction/thirdPartyList", "sapi", 'GET', params, {"cost":1});
+        return this.request ("sub-account/apiRestrictions/ipRestriction/thirdPartyList", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetSubAccountTransactionStatistics (params = {}): Promise<Dict> {
-        return this.request ("sub-account/transaction-statistics", "sapi", 'GET', params, {"cost":0.40002});
+        return this.request ("sub-account/transaction-statistics", "sapi", 'GET', params, undefined, undefined, {"cost":0.40002});
     }
     override sapiGetSubAccountSubAccountApiIpRestriction (params = {}): Promise<Dict> {
-        return this.request ("sub-account/subAccountApi/ipRestriction", "sapi", 'GET', params, {"cost":20.001});
+        return this.request ("sub-account/subAccountApi/ipRestriction", "sapi", 'GET', params, undefined, undefined, {"cost":20.001});
     }
     override sapiGetManagedSubaccountAsset (params = {}): Promise<List> {
-        return this.request ("managed-subaccount/asset", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("managed-subaccount/asset", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetManagedSubaccountAccountSnapshot (params = {}): Promise<Dict> {
-        return this.request ("managed-subaccount/accountSnapshot", "sapi", 'GET', params, {"cost":240});
+        return this.request ("managed-subaccount/accountSnapshot", "sapi", 'GET', params, undefined, undefined, {"cost":240});
     }
     override sapiGetManagedSubaccountQueryTransLogForInvestor (params = {}): Promise<Dict> {
-        return this.request ("managed-subaccount/queryTransLogForInvestor", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("managed-subaccount/queryTransLogForInvestor", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetManagedSubaccountQueryTransLogForTradeParent (params = {}): Promise<Dict> {
-        return this.request ("managed-subaccount/queryTransLogForTradeParent", "sapi", 'GET', params, {"cost":0.40002});
+        return this.request ("managed-subaccount/queryTransLogForTradeParent", "sapi", 'GET', params, undefined, undefined, {"cost":0.40002});
     }
     override sapiGetManagedSubaccountFetchFutureAsset (params = {}): Promise<Dict> {
-        return this.request ("managed-subaccount/fetch-future-asset", "sapi", 'GET', params, {"cost":0.40002});
+        return this.request ("managed-subaccount/fetch-future-asset", "sapi", 'GET', params, undefined, undefined, {"cost":0.40002});
     }
     override sapiGetManagedSubaccountMarginAsset (params = {}): Promise<Dict> {
-        return this.request ("managed-subaccount/marginAsset", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("managed-subaccount/marginAsset", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetManagedSubaccountInfo (params = {}): Promise<Dict> {
-        return this.request ("managed-subaccount/info", "sapi", 'GET', params, {"cost":0.40002});
+        return this.request ("managed-subaccount/info", "sapi", 'GET', params, undefined, undefined, {"cost":0.40002});
     }
     override sapiGetManagedSubaccountDepositAddress (params = {}): Promise<Dict> {
-        return this.request ("managed-subaccount/deposit/address", "sapi", 'GET', params, {"cost":0.006667});
+        return this.request ("managed-subaccount/deposit/address", "sapi", 'GET', params, undefined, undefined, {"cost":0.006667});
     }
     override sapiGetManagedSubaccountQueryTransLog (params = {}): Promise<Dict> {
-        return this.request ("managed-subaccount/query-trans-log", "sapi", 'GET', params, {"cost":0.40002});
+        return this.request ("managed-subaccount/query-trans-log", "sapi", 'GET', params, undefined, undefined, {"cost":0.40002});
     }
     override sapiGetLendingDailyProductList (params = {}): Promise<List> {
-        return this.request ("lending/daily/product/list", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("lending/daily/product/list", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetLendingDailyUserLeftQuota (params = {}): Promise<Dict> {
-        return this.request ("lending/daily/userLeftQuota", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("lending/daily/userLeftQuota", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetLendingDailyUserRedemptionQuota (params = {}): Promise<Dict> {
-        return this.request ("lending/daily/userRedemptionQuota", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("lending/daily/userRedemptionQuota", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetLendingDailyTokenPosition (params = {}): Promise<List> {
-        return this.request ("lending/daily/token/position", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("lending/daily/token/position", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetLendingUnionAccount (params = {}): Promise<Dict> {
-        return this.request ("lending/union/account", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("lending/union/account", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetLendingUnionPurchaseRecord (params = {}): Promise<List> {
-        return this.request ("lending/union/purchaseRecord", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("lending/union/purchaseRecord", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetLendingUnionRedemptionRecord (params = {}): Promise<Dict> {
-        return this.request ("lending/union/redemptionRecord", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("lending/union/redemptionRecord", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetLendingUnionInterestHistory (params = {}): Promise<List> {
-        return this.request ("lending/union/interestHistory", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("lending/union/interestHistory", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetLendingProjectList (params = {}): Promise<List> {
-        return this.request ("lending/project/list", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("lending/project/list", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetLendingProjectPositionList (params = {}): Promise<List> {
-        return this.request ("lending/project/position/list", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("lending/project/position/list", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetEthStakingEthHistoryStakingHistory (params = {}): Promise<Dict> {
-        return this.request ("eth-staking/eth/history/stakingHistory", "sapi", 'GET', params, {"cost":15});
+        return this.request ("eth-staking/eth/history/stakingHistory", "sapi", 'GET', params, undefined, undefined, {"cost":15});
     }
     override sapiGetEthStakingEthHistoryRedemptionHistory (params = {}): Promise<Dict> {
-        return this.request ("eth-staking/eth/history/redemptionHistory", "sapi", 'GET', params, {"cost":15});
+        return this.request ("eth-staking/eth/history/redemptionHistory", "sapi", 'GET', params, undefined, undefined, {"cost":15});
     }
     override sapiGetEthStakingEthHistoryRewardsHistory (params = {}): Promise<Dict> {
-        return this.request ("eth-staking/eth/history/rewardsHistory", "sapi", 'GET', params, {"cost":15});
+        return this.request ("eth-staking/eth/history/rewardsHistory", "sapi", 'GET', params, undefined, undefined, {"cost":15});
     }
     override sapiGetEthStakingEthQuota (params = {}): Promise<Dict> {
-        return this.request ("eth-staking/eth/quota", "sapi", 'GET', params, {"cost":15});
+        return this.request ("eth-staking/eth/quota", "sapi", 'GET', params, undefined, undefined, {"cost":15});
     }
     override sapiGetEthStakingEthHistoryRateHistory (params = {}): Promise<Dict> {
-        return this.request ("eth-staking/eth/history/rateHistory", "sapi", 'GET', params, {"cost":15});
+        return this.request ("eth-staking/eth/history/rateHistory", "sapi", 'GET', params, undefined, undefined, {"cost":15});
     }
     override sapiGetEthStakingAccount (params = {}): Promise<Dict> {
-        return this.request ("eth-staking/account", "sapi", 'GET', params, {"cost":15});
+        return this.request ("eth-staking/account", "sapi", 'GET', params, undefined, undefined, {"cost":15});
     }
     override sapiGetEthStakingWbethHistoryWrapHistory (params = {}): Promise<Dict> {
-        return this.request ("eth-staking/wbeth/history/wrapHistory", "sapi", 'GET', params, {"cost":15});
+        return this.request ("eth-staking/wbeth/history/wrapHistory", "sapi", 'GET', params, undefined, undefined, {"cost":15});
     }
     override sapiGetEthStakingWbethHistoryUnwrapHistory (params = {}): Promise<Dict> {
-        return this.request ("eth-staking/wbeth/history/unwrapHistory", "sapi", 'GET', params, {"cost":15});
+        return this.request ("eth-staking/wbeth/history/unwrapHistory", "sapi", 'GET', params, undefined, undefined, {"cost":15});
     }
     override sapiGetEthStakingEthHistoryWbethRewardsHistory (params = {}): Promise<Dict> {
-        return this.request ("eth-staking/eth/history/wbethRewardsHistory", "sapi", 'GET', params, {"cost":15});
+        return this.request ("eth-staking/eth/history/wbethRewardsHistory", "sapi", 'GET', params, undefined, undefined, {"cost":15});
     }
     override sapiGetSolStakingSolHistoryStakingHistory (params = {}): Promise<Dict> {
-        return this.request ("sol-staking/sol/history/stakingHistory", "sapi", 'GET', params, {"cost":15});
+        return this.request ("sol-staking/sol/history/stakingHistory", "sapi", 'GET', params, undefined, undefined, {"cost":15});
     }
     override sapiGetSolStakingSolHistoryRedemptionHistory (params = {}): Promise<Dict> {
-        return this.request ("sol-staking/sol/history/redemptionHistory", "sapi", 'GET', params, {"cost":15});
+        return this.request ("sol-staking/sol/history/redemptionHistory", "sapi", 'GET', params, undefined, undefined, {"cost":15});
     }
     override sapiGetSolStakingSolHistoryBnsolRewardsHistory (params = {}): Promise<Dict> {
-        return this.request ("sol-staking/sol/history/bnsolRewardsHistory", "sapi", 'GET', params, {"cost":15});
+        return this.request ("sol-staking/sol/history/bnsolRewardsHistory", "sapi", 'GET', params, undefined, undefined, {"cost":15});
     }
     override sapiGetSolStakingSolHistoryRateHistory (params = {}): Promise<Dict> {
-        return this.request ("sol-staking/sol/history/rateHistory", "sapi", 'GET', params, {"cost":15});
+        return this.request ("sol-staking/sol/history/rateHistory", "sapi", 'GET', params, undefined, undefined, {"cost":15});
     }
     override sapiGetSolStakingAccount (params = {}): Promise<Dict> {
-        return this.request ("sol-staking/account", "sapi", 'GET', params, {"cost":15});
+        return this.request ("sol-staking/account", "sapi", 'GET', params, undefined, undefined, {"cost":15});
     }
     override sapiGetSolStakingSolQuota (params = {}): Promise<Dict> {
-        return this.request ("sol-staking/sol/quota", "sapi", 'GET', params, {"cost":15});
+        return this.request ("sol-staking/sol/quota", "sapi", 'GET', params, undefined, undefined, {"cost":15});
     }
     override sapiGetMiningPubAlgoList (params = {}): Promise<Dict> {
-        return this.request ("mining/pub/algoList", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("mining/pub/algoList", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetMiningPubCoinList (params = {}): Promise<Dict> {
-        return this.request ("mining/pub/coinList", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("mining/pub/coinList", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetMiningWorkerDetail (params = {}): Promise<Dict> {
-        return this.request ("mining/worker/detail", "sapi", 'GET', params, {"cost":0.5});
+        return this.request ("mining/worker/detail", "sapi", 'GET', params, undefined, undefined, {"cost":0.5});
     }
     override sapiGetMiningWorkerList (params = {}): Promise<Dict> {
-        return this.request ("mining/worker/list", "sapi", 'GET', params, {"cost":0.5});
+        return this.request ("mining/worker/list", "sapi", 'GET', params, undefined, undefined, {"cost":0.5});
     }
     override sapiGetMiningPaymentList (params = {}): Promise<Dict> {
-        return this.request ("mining/payment/list", "sapi", 'GET', params, {"cost":0.5});
+        return this.request ("mining/payment/list", "sapi", 'GET', params, undefined, undefined, {"cost":0.5});
     }
     override sapiGetMiningStatisticsUserStatus (params = {}): Promise<Dict> {
-        return this.request ("mining/statistics/user/status", "sapi", 'GET', params, {"cost":0.5});
+        return this.request ("mining/statistics/user/status", "sapi", 'GET', params, undefined, undefined, {"cost":0.5});
     }
     override sapiGetMiningStatisticsUserList (params = {}): Promise<Dict> {
-        return this.request ("mining/statistics/user/list", "sapi", 'GET', params, {"cost":0.5});
+        return this.request ("mining/statistics/user/list", "sapi", 'GET', params, undefined, undefined, {"cost":0.5});
     }
     override sapiGetMiningPaymentUid (params = {}): Promise<Dict> {
-        return this.request ("mining/payment/uid", "sapi", 'GET', params, {"cost":0.5});
+        return this.request ("mining/payment/uid", "sapi", 'GET', params, undefined, undefined, {"cost":0.5});
     }
     override sapiGetBswapPools (params = {}): Promise<List> {
-        return this.request ("bswap/pools", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("bswap/pools", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetBswapLiquidity (params = {}): Promise<List> {
-        return this.request ("bswap/liquidity", "sapi", 'GET', params, {"cost":0.1,"noPoolId":1});
+        return this.request ("bswap/liquidity", "sapi", 'GET', params, undefined, undefined, {"cost":0.1,"noPoolId":1});
     }
     override sapiGetBswapLiquidityOps (params = {}): Promise<List> {
-        return this.request ("bswap/liquidityOps", "sapi", 'GET', params, {"cost":20.001});
+        return this.request ("bswap/liquidityOps", "sapi", 'GET', params, undefined, undefined, {"cost":20.001});
     }
     override sapiGetBswapQuote (params = {}): Promise<Dict> {
-        return this.request ("bswap/quote", "sapi", 'GET', params, {"cost":1.00005});
+        return this.request ("bswap/quote", "sapi", 'GET', params, undefined, undefined, {"cost":1.00005});
     }
     override sapiGetBswapSwap (params = {}): Promise<List> {
-        return this.request ("bswap/swap", "sapi", 'GET', params, {"cost":20.001});
+        return this.request ("bswap/swap", "sapi", 'GET', params, undefined, undefined, {"cost":20.001});
     }
     override sapiGetBswapPoolConfigure (params = {}): Promise<List> {
-        return this.request ("bswap/poolConfigure", "sapi", 'GET', params, {"cost":1.00005});
+        return this.request ("bswap/poolConfigure", "sapi", 'GET', params, undefined, undefined, {"cost":1.00005});
     }
     override sapiGetBswapAddLiquidityPreview (params = {}): Promise<Dict> {
-        return this.request ("bswap/addLiquidityPreview", "sapi", 'GET', params, {"cost":1.00005});
+        return this.request ("bswap/addLiquidityPreview", "sapi", 'GET', params, undefined, undefined, {"cost":1.00005});
     }
     override sapiGetBswapRemoveLiquidityPreview (params = {}): Promise<Dict> {
-        return this.request ("bswap/removeLiquidityPreview", "sapi", 'GET', params, {"cost":1.00005});
+        return this.request ("bswap/removeLiquidityPreview", "sapi", 'GET', params, undefined, undefined, {"cost":1.00005});
     }
     override sapiGetBswapUnclaimedRewards (params = {}): Promise<Dict> {
-        return this.request ("bswap/unclaimedRewards", "sapi", 'GET', params, {"cost":6.667});
+        return this.request ("bswap/unclaimedRewards", "sapi", 'GET', params, undefined, undefined, {"cost":6.667});
     }
     override sapiGetBswapClaimedHistory (params = {}): Promise<List> {
-        return this.request ("bswap/claimedHistory", "sapi", 'GET', params, {"cost":6.667});
+        return this.request ("bswap/claimedHistory", "sapi", 'GET', params, undefined, undefined, {"cost":6.667});
     }
     override sapiGetBlvtTokenInfo (params = {}): Promise<List> {
-        return this.request ("blvt/tokenInfo", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("blvt/tokenInfo", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetBlvtSubscribeRecord (params = {}): Promise<List> {
-        return this.request ("blvt/subscribe/record", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("blvt/subscribe/record", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetBlvtRedeemRecord (params = {}): Promise<List> {
-        return this.request ("blvt/redeem/record", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("blvt/redeem/record", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetBlvtUserLimit (params = {}): Promise<List> {
-        return this.request ("blvt/userLimit", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("blvt/userLimit", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetApiReferralIfNewUser (params = {}): Promise<Dict> {
-        return this.request ("apiReferral/ifNewUser", "sapi", 'GET', params, {"cost":1});
+        return this.request ("apiReferral/ifNewUser", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetApiReferralCustomization (params = {}): Promise<List> {
-        return this.request ("apiReferral/customization", "sapi", 'GET', params, {"cost":1});
+        return this.request ("apiReferral/customization", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetApiReferralUserCustomization (params = {}): Promise<Dict> {
-        return this.request ("apiReferral/userCustomization", "sapi", 'GET', params, {"cost":1});
+        return this.request ("apiReferral/userCustomization", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetApiReferralRebateRecentRecord (params = {}): Promise<List> {
-        return this.request ("apiReferral/rebate/recentRecord", "sapi", 'GET', params, {"cost":1});
+        return this.request ("apiReferral/rebate/recentRecord", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetApiReferralRebateHistoricalRecord (params = {}): Promise<List> {
-        return this.request ("apiReferral/rebate/historicalRecord", "sapi", 'GET', params, {"cost":1});
+        return this.request ("apiReferral/rebate/historicalRecord", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetApiReferralKickbackRecentRecord (params = {}): Promise<List> {
-        return this.request ("apiReferral/kickback/recentRecord", "sapi", 'GET', params, {"cost":1});
+        return this.request ("apiReferral/kickback/recentRecord", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetApiReferralKickbackHistoricalRecord (params = {}): Promise<List> {
-        return this.request ("apiReferral/kickback/historicalRecord", "sapi", 'GET', params, {"cost":1});
+        return this.request ("apiReferral/kickback/historicalRecord", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetBrokerSubAccountApi (params = {}): Promise<List> {
-        return this.request ("broker/subAccountApi", "sapi", 'GET', params, {"cost":1});
+        return this.request ("broker/subAccountApi", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetBrokerSubAccount (params = {}): Promise<List> {
-        return this.request ("broker/subAccount", "sapi", 'GET', params, {"cost":1});
+        return this.request ("broker/subAccount", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetBrokerSubAccountApiCommissionFutures (params = {}): Promise<List> {
-        return this.request ("broker/subAccountApi/commission/futures", "sapi", 'GET', params, {"cost":1});
+        return this.request ("broker/subAccountApi/commission/futures", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetBrokerSubAccountApiCommissionCoinFutures (params = {}): Promise<List> {
-        return this.request ("broker/subAccountApi/commission/coinFutures", "sapi", 'GET', params, {"cost":1});
+        return this.request ("broker/subAccountApi/commission/coinFutures", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetBrokerInfo (params = {}): Promise<Dict> {
-        return this.request ("broker/info", "sapi", 'GET', params, {"cost":1});
+        return this.request ("broker/info", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetBrokerTransfer (params = {}): Promise<List> {
-        return this.request ("broker/transfer", "sapi", 'GET', params, {"cost":1});
+        return this.request ("broker/transfer", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetBrokerTransferFutures (params = {}): Promise<Dict> {
-        return this.request ("broker/transfer/futures", "sapi", 'GET', params, {"cost":1});
+        return this.request ("broker/transfer/futures", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetBrokerRebateRecentRecord (params = {}): Promise<List> {
-        return this.request ("broker/rebate/recentRecord", "sapi", 'GET', params, {"cost":1});
+        return this.request ("broker/rebate/recentRecord", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetBrokerRebateHistoricalRecord (params = {}): Promise<List> {
-        return this.request ("broker/rebate/historicalRecord", "sapi", 'GET', params, {"cost":1});
+        return this.request ("broker/rebate/historicalRecord", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetBrokerSubAccountBnbBurnStatus (params = {}): Promise<Dict> {
-        return this.request ("broker/subAccount/bnbBurn/status", "sapi", 'GET', params, {"cost":1});
+        return this.request ("broker/subAccount/bnbBurn/status", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetBrokerSubAccountDepositHist (params = {}): Promise<List> {
-        return this.request ("broker/subAccount/depositHist", "sapi", 'GET', params, {"cost":1});
+        return this.request ("broker/subAccount/depositHist", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetBrokerSubAccountSpotSummary (params = {}): Promise<Dict> {
-        return this.request ("broker/subAccount/spotSummary", "sapi", 'GET', params, {"cost":1});
+        return this.request ("broker/subAccount/spotSummary", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetBrokerSubAccountMarginSummary (params = {}): Promise<Dict> {
-        return this.request ("broker/subAccount/marginSummary", "sapi", 'GET', params, {"cost":1});
+        return this.request ("broker/subAccount/marginSummary", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetBrokerSubAccountFuturesSummary (params = {}): Promise<Dict> {
-        return this.request ("broker/subAccount/futuresSummary", "sapi", 'GET', params, {"cost":1});
+        return this.request ("broker/subAccount/futuresSummary", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetBrokerRebateFuturesRecentRecord (params = {}): Promise<List> {
-        return this.request ("broker/rebate/futures/recentRecord", "sapi", 'GET', params, {"cost":1});
+        return this.request ("broker/rebate/futures/recentRecord", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetBrokerSubAccountApiIpRestriction (params = {}): Promise<Dict> {
-        return this.request ("broker/subAccountApi/ipRestriction", "sapi", 'GET', params, {"cost":1});
+        return this.request ("broker/subAccountApi/ipRestriction", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetBrokerUniversalTransfer (params = {}): Promise<List> {
-        return this.request ("broker/universalTransfer", "sapi", 'GET', params, {"cost":1});
+        return this.request ("broker/universalTransfer", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiGetAccountApiRestrictions (params = {}): Promise<Dict> {
-        return this.request ("account/apiRestrictions", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("account/apiRestrictions", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetC2cOrderMatchListUserOrderHistory (params = {}): Promise<Dict> {
-        return this.request ("c2c/orderMatch/listUserOrderHistory", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("c2c/orderMatch/listUserOrderHistory", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetNftHistoryTransactions (params = {}): Promise<Dict> {
-        return this.request ("nft/history/transactions", "sapi", 'GET', params, {"cost":20.001});
+        return this.request ("nft/history/transactions", "sapi", 'GET', params, undefined, undefined, {"cost":20.001});
     }
     override sapiGetNftHistoryDeposit (params = {}): Promise<Dict> {
-        return this.request ("nft/history/deposit", "sapi", 'GET', params, {"cost":20.001});
+        return this.request ("nft/history/deposit", "sapi", 'GET', params, undefined, undefined, {"cost":20.001});
     }
     override sapiGetNftHistoryWithdraw (params = {}): Promise<Dict> {
-        return this.request ("nft/history/withdraw", "sapi", 'GET', params, {"cost":20.001});
+        return this.request ("nft/history/withdraw", "sapi", 'GET', params, undefined, undefined, {"cost":20.001});
     }
     override sapiGetNftUserGetAsset (params = {}): Promise<Dict> {
-        return this.request ("nft/user/getAsset", "sapi", 'GET', params, {"cost":20.001});
+        return this.request ("nft/user/getAsset", "sapi", 'GET', params, undefined, undefined, {"cost":20.001});
     }
     override sapiGetPayTransactions (params = {}): Promise<Dict> {
-        return this.request ("pay/transactions", "sapi", 'GET', params, {"cost":20.001});
+        return this.request ("pay/transactions", "sapi", 'GET', params, undefined, undefined, {"cost":20.001});
     }
     override sapiGetGiftcardVerify (params = {}): Promise<Dict> {
-        return this.request ("giftcard/verify", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("giftcard/verify", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetGiftcardCryptographyRsaPublicKey (params = {}): Promise<Dict> {
-        return this.request ("giftcard/cryptography/rsa-public-key", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("giftcard/cryptography/rsa-public-key", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetGiftcardBuyCodeTokenLimit (params = {}): Promise<Dict> {
-        return this.request ("giftcard/buyCode/token-limit", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("giftcard/buyCode/token-limit", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetAlgoSpotOpenOrders (params = {}): Promise<Dict> {
-        return this.request ("algo/spot/openOrders", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("algo/spot/openOrders", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetAlgoSpotHistoricalOrders (params = {}): Promise<Dict> {
-        return this.request ("algo/spot/historicalOrders", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("algo/spot/historicalOrders", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetAlgoSpotSubOrders (params = {}): Promise<Dict> {
-        return this.request ("algo/spot/subOrders", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("algo/spot/subOrders", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetAlgoFuturesOpenOrders (params = {}): Promise<Dict> {
-        return this.request ("algo/futures/openOrders", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("algo/futures/openOrders", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetAlgoFuturesHistoricalOrders (params = {}): Promise<Dict> {
-        return this.request ("algo/futures/historicalOrders", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("algo/futures/historicalOrders", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetAlgoFuturesSubOrders (params = {}): Promise<Dict> {
-        return this.request ("algo/futures/subOrders", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("algo/futures/subOrders", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetPortfolioAccount (params = {}): Promise<Dict> {
-        return this.request ("portfolio/account", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("portfolio/account", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetPortfolioCollateralRate (params = {}): Promise<List> {
-        return this.request ("portfolio/collateralRate", "sapi", 'GET', params, {"cost":5});
+        return this.request ("portfolio/collateralRate", "sapi", 'GET', params, undefined, undefined, {"cost":5});
     }
     override sapiGetPortfolioPmLoan (params = {}): Promise<Dict> {
-        return this.request ("portfolio/pmLoan", "sapi", 'GET', params, {"cost":3.3335});
+        return this.request ("portfolio/pmLoan", "sapi", 'GET', params, undefined, undefined, {"cost":3.3335});
     }
     override sapiGetPortfolioInterestHistory (params = {}): Promise<List> {
-        return this.request ("portfolio/interest-history", "sapi", 'GET', params, {"cost":0.6667});
+        return this.request ("portfolio/interest-history", "sapi", 'GET', params, undefined, undefined, {"cost":0.6667});
     }
     override sapiGetPortfolioAssetIndexPrice (params = {}): Promise<List> {
-        return this.request ("portfolio/asset-index-price", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("portfolio/asset-index-price", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetPortfolioRepayFuturesSwitch (params = {}): Promise<Dict> {
-        return this.request ("portfolio/repay-futures-switch", "sapi", 'GET', params, {"cost":3});
+        return this.request ("portfolio/repay-futures-switch", "sapi", 'GET', params, undefined, undefined, {"cost":3});
     }
     override sapiGetPortfolioMarginAssetLeverage (params = {}): Promise<List> {
-        return this.request ("portfolio/margin-asset-leverage", "sapi", 'GET', params, {"cost":5});
+        return this.request ("portfolio/margin-asset-leverage", "sapi", 'GET', params, undefined, undefined, {"cost":5});
     }
     override sapiGetPortfolioBalance (params = {}): Promise<List> {
-        return this.request ("portfolio/balance", "sapi", 'GET', params, {"cost":2});
+        return this.request ("portfolio/balance", "sapi", 'GET', params, undefined, undefined, {"cost":2});
     }
     override sapiGetPortfolioNegativeBalanceExchangeRecord (params = {}): Promise<List> {
-        return this.request ("portfolio/negative-balance-exchange-record", "sapi", 'GET', params, {"cost":2});
+        return this.request ("portfolio/negative-balance-exchange-record", "sapi", 'GET', params, undefined, undefined, {"cost":2});
     }
     override sapiGetPortfolioPmloanHistory (params = {}): Promise<Dict> {
-        return this.request ("portfolio/pmloan-history", "sapi", 'GET', params, {"cost":5});
+        return this.request ("portfolio/pmloan-history", "sapi", 'GET', params, undefined, undefined, {"cost":5});
     }
     override sapiGetPortfolioEarnAssetBalance (params = {}): Promise<Dict> {
-        return this.request ("portfolio/earn-asset-balance", "sapi", 'GET', params, {"cost":150});
+        return this.request ("portfolio/earn-asset-balance", "sapi", 'GET', params, undefined, undefined, {"cost":150});
     }
     override sapiGetPortfolioDeltaMode (params = {}): Promise<Dict> {
-        return this.request ("portfolio/delta-mode", "sapi", 'GET', params, {"cost":150});
+        return this.request ("portfolio/delta-mode", "sapi", 'GET', params, undefined, undefined, {"cost":150});
     }
     override sapiGetPortfolioMarginCallLevel (params = {}): Promise<Dict> {
-        return this.request ("portfolio/margin-call-level", "sapi", 'GET', params, {"cost":150});
+        return this.request ("portfolio/margin-call-level", "sapi", 'GET', params, undefined, undefined, {"cost":150});
     }
     override sapiGetStakingProductList (params = {}): Promise<List> {
-        return this.request ("staking/productList", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("staking/productList", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetStakingPosition (params = {}): Promise<List> {
-        return this.request ("staking/position", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("staking/position", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetStakingStakingRecord (params = {}): Promise<List> {
-        return this.request ("staking/stakingRecord", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("staking/stakingRecord", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetStakingPersonalLeftQuota (params = {}): Promise<List> {
-        return this.request ("staking/personalLeftQuota", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("staking/personalLeftQuota", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetLendingAutoInvestTargetAssetList (params = {}): Promise<Dict> {
-        return this.request ("lending/auto-invest/target-asset/list", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("lending/auto-invest/target-asset/list", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetLendingAutoInvestTargetAssetRoiList (params = {}): Promise<List> {
-        return this.request ("lending/auto-invest/target-asset/roi/list", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("lending/auto-invest/target-asset/roi/list", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetLendingAutoInvestAllAsset (params = {}): Promise<Dict> {
-        return this.request ("lending/auto-invest/all/asset", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("lending/auto-invest/all/asset", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetLendingAutoInvestSourceAssetList (params = {}): Promise<Dict> {
-        return this.request ("lending/auto-invest/source-asset/list", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("lending/auto-invest/source-asset/list", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetLendingAutoInvestPlanList (params = {}): Promise<Dict> {
-        return this.request ("lending/auto-invest/plan/list", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("lending/auto-invest/plan/list", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetLendingAutoInvestPlanId (params = {}): Promise<Dict> {
-        return this.request ("lending/auto-invest/plan/id", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("lending/auto-invest/plan/id", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetLendingAutoInvestHistoryList (params = {}): Promise<List> {
-        return this.request ("lending/auto-invest/history/list", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("lending/auto-invest/history/list", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetLendingAutoInvestIndexInfo (params = {}): Promise<Dict> {
-        return this.request ("lending/auto-invest/index/info", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("lending/auto-invest/index/info", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetLendingAutoInvestIndexUserSummary (params = {}): Promise<Dict> {
-        return this.request ("lending/auto-invest/index/user-summary", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("lending/auto-invest/index/user-summary", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetLendingAutoInvestOneOffStatus (params = {}): Promise<Dict> {
-        return this.request ("lending/auto-invest/one-off/status", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("lending/auto-invest/one-off/status", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetLendingAutoInvestRedeemHistory (params = {}): Promise<List> {
-        return this.request ("lending/auto-invest/redeem/history", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("lending/auto-invest/redeem/history", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetLendingAutoInvestRebalanceHistory (params = {}): Promise<List> {
-        return this.request ("lending/auto-invest/rebalance/history", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("lending/auto-invest/rebalance/history", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetSimpleEarnFlexibleList (params = {}): Promise<Dict> {
-        return this.request ("simple-earn/flexible/list", "sapi", 'GET', params, {"cost":15});
+        return this.request ("simple-earn/flexible/list", "sapi", 'GET', params, undefined, undefined, {"cost":15});
     }
     override sapiGetSimpleEarnLockedList (params = {}): Promise<Dict> {
-        return this.request ("simple-earn/locked/list", "sapi", 'GET', params, {"cost":15});
+        return this.request ("simple-earn/locked/list", "sapi", 'GET', params, undefined, undefined, {"cost":15});
     }
     override sapiGetSimpleEarnFlexiblePersonalLeftQuota (params = {}): Promise<Dict> {
-        return this.request ("simple-earn/flexible/personalLeftQuota", "sapi", 'GET', params, {"cost":15});
+        return this.request ("simple-earn/flexible/personalLeftQuota", "sapi", 'GET', params, undefined, undefined, {"cost":15});
     }
     override sapiGetSimpleEarnLockedPersonalLeftQuota (params = {}): Promise<Dict> {
-        return this.request ("simple-earn/locked/personalLeftQuota", "sapi", 'GET', params, {"cost":15});
+        return this.request ("simple-earn/locked/personalLeftQuota", "sapi", 'GET', params, undefined, undefined, {"cost":15});
     }
     override sapiGetSimpleEarnFlexibleSubscriptionPreview (params = {}): Promise<Dict> {
-        return this.request ("simple-earn/flexible/subscriptionPreview", "sapi", 'GET', params, {"cost":15});
+        return this.request ("simple-earn/flexible/subscriptionPreview", "sapi", 'GET', params, undefined, undefined, {"cost":15});
     }
     override sapiGetSimpleEarnLockedSubscriptionPreview (params = {}): Promise<List> {
-        return this.request ("simple-earn/locked/subscriptionPreview", "sapi", 'GET', params, {"cost":15});
+        return this.request ("simple-earn/locked/subscriptionPreview", "sapi", 'GET', params, undefined, undefined, {"cost":15});
     }
     override sapiGetSimpleEarnFlexibleHistoryRateHistory (params = {}): Promise<Dict> {
-        return this.request ("simple-earn/flexible/history/rateHistory", "sapi", 'GET', params, {"cost":15});
+        return this.request ("simple-earn/flexible/history/rateHistory", "sapi", 'GET', params, undefined, undefined, {"cost":15});
     }
     override sapiGetSimpleEarnFlexiblePosition (params = {}): Promise<Dict> {
-        return this.request ("simple-earn/flexible/position", "sapi", 'GET', params, {"cost":15});
+        return this.request ("simple-earn/flexible/position", "sapi", 'GET', params, undefined, undefined, {"cost":15});
     }
     override sapiGetSimpleEarnLockedPosition (params = {}): Promise<Dict> {
-        return this.request ("simple-earn/locked/position", "sapi", 'GET', params, {"cost":15});
+        return this.request ("simple-earn/locked/position", "sapi", 'GET', params, undefined, undefined, {"cost":15});
     }
     override sapiGetSimpleEarnAccount (params = {}): Promise<Dict> {
-        return this.request ("simple-earn/account", "sapi", 'GET', params, {"cost":15});
+        return this.request ("simple-earn/account", "sapi", 'GET', params, undefined, undefined, {"cost":15});
     }
     override sapiGetSimpleEarnFlexibleHistorySubscriptionRecord (params = {}): Promise<Dict> {
-        return this.request ("simple-earn/flexible/history/subscriptionRecord", "sapi", 'GET', params, {"cost":15});
+        return this.request ("simple-earn/flexible/history/subscriptionRecord", "sapi", 'GET', params, undefined, undefined, {"cost":15});
     }
     override sapiGetSimpleEarnLockedHistorySubscriptionRecord (params = {}): Promise<Dict> {
-        return this.request ("simple-earn/locked/history/subscriptionRecord", "sapi", 'GET', params, {"cost":15});
+        return this.request ("simple-earn/locked/history/subscriptionRecord", "sapi", 'GET', params, undefined, undefined, {"cost":15});
     }
     override sapiGetSimpleEarnFlexibleHistoryRedemptionRecord (params = {}): Promise<Dict> {
-        return this.request ("simple-earn/flexible/history/redemptionRecord", "sapi", 'GET', params, {"cost":15});
+        return this.request ("simple-earn/flexible/history/redemptionRecord", "sapi", 'GET', params, undefined, undefined, {"cost":15});
     }
     override sapiGetSimpleEarnLockedHistoryRedemptionRecord (params = {}): Promise<Dict> {
-        return this.request ("simple-earn/locked/history/redemptionRecord", "sapi", 'GET', params, {"cost":15});
+        return this.request ("simple-earn/locked/history/redemptionRecord", "sapi", 'GET', params, undefined, undefined, {"cost":15});
     }
     override sapiGetSimpleEarnFlexibleHistoryRewardsRecord (params = {}): Promise<Dict> {
-        return this.request ("simple-earn/flexible/history/rewardsRecord", "sapi", 'GET', params, {"cost":15});
+        return this.request ("simple-earn/flexible/history/rewardsRecord", "sapi", 'GET', params, undefined, undefined, {"cost":15});
     }
     override sapiGetSimpleEarnLockedHistoryRewardsRecord (params = {}): Promise<Dict> {
-        return this.request ("simple-earn/locked/history/rewardsRecord", "sapi", 'GET', params, {"cost":15});
+        return this.request ("simple-earn/locked/history/rewardsRecord", "sapi", 'GET', params, undefined, undefined, {"cost":15});
     }
     override sapiGetSimpleEarnFlexibleHistoryCollateralRecord (params = {}): Promise<Dict> {
-        return this.request ("simple-earn/flexible/history/collateralRecord", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("simple-earn/flexible/history/collateralRecord", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetDciProductList (params = {}): Promise<Dict> {
-        return this.request ("dci/product/list", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("dci/product/list", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetDciProductPositions (params = {}): Promise<Dict> {
-        return this.request ("dci/product/positions", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("dci/product/positions", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetDciProductAccounts (params = {}): Promise<Dict> {
-        return this.request ("dci/product/accounts", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("dci/product/accounts", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetAccumulatorProductList (params = {}): Promise<Dict> {
-        return this.request ("accumulator/product/list", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("accumulator/product/list", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetAccumulatorProductPositionList (params = {}): Promise<Dict> {
-        return this.request ("accumulator/product/position/list", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("accumulator/product/position/list", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetAccumulatorProductSumHolding (params = {}): Promise<Dict> {
-        return this.request ("accumulator/product/sum-holding", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("accumulator/product/sum-holding", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetEquityMarketExchangeInfo (params = {}): Promise<Dict> {
-        return this.request ("equity/market/exchangeInfo", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("equity/market/exchangeInfo", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetEquityMarketTokenizedAssets (params = {}): Promise<Dict> {
-        return this.request ("equity/market/tokenized-assets", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("equity/market/tokenized-assets", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetEquityMarketQuote (params = {}): Promise<Dict> {
-        return this.request ("equity/market/quote", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("equity/market/quote", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetEquityOrderOpenOrders (params = {}): Promise<List> {
-        return this.request ("equity/order/open-orders", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("equity/order/open-orders", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetEquityOrderHistory (params = {}): Promise<Dict> {
-        return this.request ("equity/order/history", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("equity/order/history", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetEquityOrderDetail (params = {}): Promise<Dict> {
-        return this.request ("equity/order/detail", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("equity/order/detail", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetEquityTradeHistory (params = {}): Promise<Dict> {
-        return this.request ("equity/trade/history", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("equity/trade/history", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetEquityTokenizedConvertStatus (params = {}): Promise<Dict> {
-        return this.request ("equity/tokenized/convert-status", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("equity/tokenized/convert-status", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiGetEquityTokenizedHistory (params = {}): Promise<Dict> {
-        return this.request ("equity/tokenized/history", "sapi", 'GET', params, {"cost":0.1});
+        return this.request ("equity/tokenized/history", "sapi", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     sapiGetAssetAssetDistributionHistory (params = {}): Promise<Dict> {
-        return this.request ("asset/assetDistributionHistory", "sapi", 'GET', params, {"cost":1});
+        return this.request ("asset/assetDistributionHistory", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     sapiGetAssetQueryTradingFee (params = {}): Promise<List> {
-        return this.request ("asset/query/trading-fee", "sapi", 'GET', params, {"cost":1});
+        return this.request ("asset/query/trading-fee", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     sapiGetAssetQueryTradingVolume (params = {}): Promise<Dict> {
-        return this.request ("asset/query/trading-volume", "sapi", 'GET', params, {"cost":1});
+        return this.request ("asset/query/trading-volume", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     sapiGetOtcCoinPairs (params = {}): Promise<List> {
-        return this.request ("otc/coinPairs", "sapi", 'GET', params, {"cost":1});
+        return this.request ("otc/coinPairs", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     sapiGetOtcOrdersOrderId (params = {}): Promise<Dict> {
-        return this.request ("otc/orders/{orderId}", "sapi", 'GET', params, {"cost":1});
+        return this.request ("otc/orders/{orderId}", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     sapiGetOtcOrders (params = {}): Promise<Dict> {
-        return this.request ("otc/orders", "sapi", 'GET', params, {"cost":1});
+        return this.request ("otc/orders", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     sapiGetOcbsOrders (params = {}): Promise<Dict> {
-        return this.request ("ocbs/orders", "sapi", 'GET', params, {"cost":1});
+        return this.request ("ocbs/orders", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     sapiGetFiatpaymentQueryWithdrawHistory (params = {}): Promise<Dict> {
-        return this.request ("fiatpayment/query/withdraw/history", "sapi", 'GET', params, {"cost":1});
+        return this.request ("fiatpayment/query/withdraw/history", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     sapiGetFiatpaymentQueryDepositHistory (params = {}): Promise<Dict> {
-        return this.request ("fiatpayment/query/deposit/history", "sapi", 'GET', params, {"cost":1});
+        return this.request ("fiatpayment/query/deposit/history", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     sapiGetCapitalSubAccountDepositAddress (params = {}): Promise<Dict> {
-        return this.request ("capital/sub-account/deposit/address", "sapi", 'GET', params, {"cost":1});
+        return this.request ("capital/sub-account/deposit/address", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     sapiGetCapitalSubAccountDepositHistory (params = {}): Promise<List> {
-        return this.request ("capital/sub-account/deposit/history", "sapi", 'GET', params, {"cost":1});
+        return this.request ("capital/sub-account/deposit/history", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     sapiGetAssetQueryDustLogs (params = {}): Promise<Dict> {
-        return this.request ("asset/query/dust-logs", "sapi", 'GET', params, {"cost":1});
+        return this.request ("asset/query/dust-logs", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     sapiGetAssetQueryDustAssets (params = {}): Promise<Dict> {
-        return this.request ("asset/query/dust-assets", "sapi", 'GET', params, {"cost":1});
+        return this.request ("asset/query/dust-assets", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     sapiGetMarketingReferralRewardHistory (params = {}): Promise<Dict> {
-        return this.request ("marketing/referral/reward/history", "sapi", 'GET', params, {"cost":1});
+        return this.request ("marketing/referral/reward/history", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     sapiGetStakingAsset (params = {}): Promise<List> {
-        return this.request ("staking/asset", "sapi", 'GET', params, {"cost":1});
+        return this.request ("staking/asset", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     sapiGetStakingStakingBalance (params = {}): Promise<Dict> {
-        return this.request ("staking/stakingBalance", "sapi", 'GET', params, {"cost":1});
+        return this.request ("staking/stakingBalance", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     sapiGetStakingHistory (params = {}): Promise<List> {
-        return this.request ("staking/history", "sapi", 'GET', params, {"cost":1});
+        return this.request ("staking/history", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     sapiGetStakingStakingRewardsHistory (params = {}): Promise<Dict> {
-        return this.request ("staking/stakingRewardsHistory", "sapi", 'GET', params, {"cost":1});
+        return this.request ("staking/stakingRewardsHistory", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     sapiGetCustodianBalance (params = {}): Promise<Dict> {
-        return this.request ("custodian/balance", "sapi", 'GET', params, {"cost":1});
+        return this.request ("custodian/balance", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     sapiGetCustodianSupportedAssetList (params = {}): Promise<Dict> {
-        return this.request ("custodian/supportedAssetList", "sapi", 'GET', params, {"cost":1});
+        return this.request ("custodian/supportedAssetList", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     sapiGetCustodianWalletTransferHistory (params = {}): Promise<Dict> {
-        return this.request ("custodian/walletTransferHistory", "sapi", 'GET', params, {"cost":1});
+        return this.request ("custodian/walletTransferHistory", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     sapiGetCustodianCustodianTransferHistory (params = {}): Promise<Dict> {
-        return this.request ("custodian/custodianTransferHistory", "sapi", 'GET', params, {"cost":1});
+        return this.request ("custodian/custodianTransferHistory", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     sapiGetCustodianOpenOrders (params = {}): Promise<List> {
-        return this.request ("custodian/openOrders", "sapi", 'GET', params, {"cost":1});
+        return this.request ("custodian/openOrders", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     sapiGetCustodianOrder (params = {}): Promise<Dict> {
-        return this.request ("custodian/order", "sapi", 'GET', params, {"cost":1});
+        return this.request ("custodian/order", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     sapiGetCustodianOrderHistory (params = {}): Promise<List> {
-        return this.request ("custodian/orderHistory", "sapi", 'GET', params, {"cost":1});
+        return this.request ("custodian/orderHistory", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     sapiGetCustodianTradeHistory (params = {}): Promise<List> {
-        return this.request ("custodian/tradeHistory", "sapi", 'GET', params, {"cost":1});
+        return this.request ("custodian/tradeHistory", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     sapiGetCustodianSettlementSetting (params = {}): Promise<Dict> {
-        return this.request ("custodian/settlementSetting", "sapi", 'GET', params, {"cost":1});
+        return this.request ("custodian/settlementSetting", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     sapiGetCustodianSettlementHistory (params = {}): Promise<Dict> {
-        return this.request ("custodian/settlementHistory", "sapi", 'GET', params, {"cost":1});
+        return this.request ("custodian/settlementHistory", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     sapiGetClTransferHistory (params = {}): Promise<List> {
-        return this.request ("cl/transferHistory", "sapi", 'GET', params, {"cost":1});
+        return this.request ("cl/transferHistory", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     sapiGetApipartnerCheckEligibility (params = {}): Promise<Dict> {
-        return this.request ("apipartner/checkEligibility", "sapi", 'GET', params, {"cost":1});
+        return this.request ("apipartner/checkEligibility", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     sapiGetApipartnerRebateHistory (params = {}): Promise<List> {
-        return this.request ("apipartner/rebateHistory", "sapi", 'GET', params, {"cost":1});
+        return this.request ("apipartner/rebateHistory", "sapi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiPostAssetDust (params = {}): Promise<Dict> {
-        return this.request ("asset/dust", "sapi", 'POST', params, {"cost":10});
+        return this.request ("asset/dust", "sapi", 'POST', params, undefined, undefined, {"cost":10});
     }
     override sapiPostAssetDustBtc (params = {}): Promise<Dict> {
-        return this.request ("asset/dust-btc", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("asset/dust-btc", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostAssetTransfer (params = {}): Promise<Dict> {
-        return this.request ("asset/transfer", "sapi", 'POST', params, {"cost":6.0003});
+        return this.request ("asset/transfer", "sapi", 'POST', params, undefined, undefined, {"cost":6.0003});
     }
     override sapiPostAssetGetFundingAsset (params = {}): Promise<List> {
-        return this.request ("asset/get-funding-asset", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("asset/get-funding-asset", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostAssetConvertTransfer (params = {}): Promise<Dict> {
-        return this.request ("asset/convert-transfer", "sapi", 'POST', params, {"cost":0.033335});
+        return this.request ("asset/convert-transfer", "sapi", 'POST', params, undefined, undefined, {"cost":0.033335});
     }
     override sapiPostAccountDisableFastWithdrawSwitch (params = {}): Promise<Dict> {
-        return this.request ("account/disableFastWithdrawSwitch", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("account/disableFastWithdrawSwitch", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostAccountEnableFastWithdrawSwitch (params = {}): Promise<Dict> {
-        return this.request ("account/enableFastWithdrawSwitch", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("account/enableFastWithdrawSwitch", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostCapitalWithdrawApply (params = {}): Promise<Dict> {
-        return this.request ("capital/withdraw/apply", "sapi", 'POST', params, {"cost":1});
+        return this.request ("capital/withdraw/apply", "sapi", 'POST', params, undefined, undefined, {"cost":1});
     }
     override sapiPostCapitalContractConvertibleCoins (params = {}): Promise<Dict> {
-        return this.request ("capital/contract/convertible-coins", "sapi", 'POST', params, {"cost":4.0002});
+        return this.request ("capital/contract/convertible-coins", "sapi", 'POST', params, undefined, undefined, {"cost":4.0002});
     }
     override sapiPostCapitalDepositCreditApply (params = {}): Promise<Dict> {
-        return this.request ("capital/deposit/credit-apply", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("capital/deposit/credit-apply", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostMarginBorrowRepay (params = {}): Promise<Dict> {
-        return this.request ("margin/borrow-repay", "sapi", 'POST', params, {"cost":20.001});
+        return this.request ("margin/borrow-repay", "sapi", 'POST', params, undefined, undefined, {"cost":20.001});
     }
     override sapiPostMarginTransfer (params = {}): Promise<Dict> {
-        return this.request ("margin/transfer", "sapi", 'POST', params, {"cost":4.0002});
+        return this.request ("margin/transfer", "sapi", 'POST', params, undefined, undefined, {"cost":4.0002});
     }
     override sapiPostMarginLoan (params = {}): Promise<Dict> {
-        return this.request ("margin/loan", "sapi", 'POST', params, {"cost":20.001});
+        return this.request ("margin/loan", "sapi", 'POST', params, undefined, undefined, {"cost":20.001});
     }
     override sapiPostMarginRepay (params = {}): Promise<Dict> {
-        return this.request ("margin/repay", "sapi", 'POST', params, {"cost":20.001});
+        return this.request ("margin/repay", "sapi", 'POST', params, undefined, undefined, {"cost":20.001});
     }
     override sapiPostMarginOrder (params = {}): Promise<Dict> {
-        return this.request ("margin/order", "sapi", 'POST', params, {"cost":0.040002});
+        return this.request ("margin/order", "sapi", 'POST', params, undefined, undefined, {"cost":0.040002});
     }
     override sapiPostMarginOrderOco (params = {}): Promise<Dict> {
-        return this.request ("margin/order/oco", "sapi", 'POST', params, {"cost":0.040002});
+        return this.request ("margin/order/oco", "sapi", 'POST', params, undefined, undefined, {"cost":0.040002});
     }
     override sapiPostMarginDust (params = {}): Promise<Dict> {
-        return this.request ("margin/dust", "sapi", 'POST', params, {"cost":20.001});
+        return this.request ("margin/dust", "sapi", 'POST', params, undefined, undefined, {"cost":20.001});
     }
     override sapiPostMarginExchangeSmallLiability (params = {}): Promise<Dict> {
-        return this.request ("margin/exchange-small-liability", "sapi", 'POST', params, {"cost":20.001});
+        return this.request ("margin/exchange-small-liability", "sapi", 'POST', params, undefined, undefined, {"cost":20.001});
     }
     override sapiPostMarginIsolatedTransfer (params = {}): Promise<Dict> {
-        return this.request ("margin/isolated/transfer", "sapi", 'POST', params, {"cost":4.0002});
+        return this.request ("margin/isolated/transfer", "sapi", 'POST', params, undefined, undefined, {"cost":4.0002});
     }
     override sapiPostMarginIsolatedAccount (params = {}): Promise<Dict> {
-        return this.request ("margin/isolated/account", "sapi", 'POST', params, {"cost":2.0001});
+        return this.request ("margin/isolated/account", "sapi", 'POST', params, undefined, undefined, {"cost":2.0001});
     }
     override sapiPostMarginMaxLeverage (params = {}): Promise<Dict> {
-        return this.request ("margin/max-leverage", "sapi", 'POST', params, {"cost":300});
+        return this.request ("margin/max-leverage", "sapi", 'POST', params, undefined, undefined, {"cost":300});
     }
     override sapiPostBnbBurn (params = {}): Promise<Dict> {
-        return this.request ("bnbBurn", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("bnbBurn", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostSubAccountVirtualSubAccount (params = {}): Promise<Dict> {
-        return this.request ("sub-account/virtualSubAccount", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("sub-account/virtualSubAccount", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostSubAccountMarginTransfer (params = {}): Promise<Dict> {
-        return this.request ("sub-account/margin/transfer", "sapi", 'POST', params, {"cost":4.0002});
+        return this.request ("sub-account/margin/transfer", "sapi", 'POST', params, undefined, undefined, {"cost":4.0002});
     }
     override sapiPostSubAccountMarginEnable (params = {}): Promise<Dict> {
-        return this.request ("sub-account/margin/enable", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("sub-account/margin/enable", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostSubAccountFuturesEnable (params = {}): Promise<Dict> {
-        return this.request ("sub-account/futures/enable", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("sub-account/futures/enable", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostSubAccountFuturesTransfer (params = {}): Promise<Dict> {
-        return this.request ("sub-account/futures/transfer", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("sub-account/futures/transfer", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostSubAccountFuturesInternalTransfer (params = {}): Promise<Dict> {
-        return this.request ("sub-account/futures/internalTransfer", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("sub-account/futures/internalTransfer", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostSubAccountTransferSubToSub (params = {}): Promise<Dict> {
-        return this.request ("sub-account/transfer/subToSub", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("sub-account/transfer/subToSub", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostSubAccountTransferSubToMaster (params = {}): Promise<Dict> {
-        return this.request ("sub-account/transfer/subToMaster", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("sub-account/transfer/subToMaster", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostSubAccountUniversalTransfer (params = {}): Promise<Dict> {
-        return this.request ("sub-account/universalTransfer", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("sub-account/universalTransfer", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostSubAccountOptionsEnable (params = {}): Promise<Dict> {
-        return this.request ("sub-account/options/enable", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("sub-account/options/enable", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostManagedSubaccountDeposit (params = {}): Promise<Dict> {
-        return this.request ("managed-subaccount/deposit", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("managed-subaccount/deposit", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostManagedSubaccountWithdraw (params = {}): Promise<Dict> {
-        return this.request ("managed-subaccount/withdraw", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("managed-subaccount/withdraw", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostUserDataStream (params = {}): Promise<Dict> {
-        return this.request ("userDataStream", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("userDataStream", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostUserDataStreamIsolated (params = {}): Promise<Dict> {
-        return this.request ("userDataStream/isolated", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("userDataStream/isolated", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostUserListenToken (params = {}): Promise<Dict> {
-        return this.request ("userListenToken", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("userListenToken", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostFuturesTransfer (params = {}): Promise<Dict> {
-        return this.request ("futures/transfer", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("futures/transfer", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostLendingCustomizedFixedPurchase (params = {}): Promise<Dict> {
-        return this.request ("lending/customizedFixed/purchase", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("lending/customizedFixed/purchase", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostLendingDailyPurchase (params = {}): Promise<Dict> {
-        return this.request ("lending/daily/purchase", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("lending/daily/purchase", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostLendingDailyRedeem (params = {}): Promise<Dict> {
-        return this.request ("lending/daily/redeem", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("lending/daily/redeem", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostBswapLiquidityAdd (params = {}): Promise<Dict> {
-        return this.request ("bswap/liquidityAdd", "sapi", 'POST', params, {"cost":60});
+        return this.request ("bswap/liquidityAdd", "sapi", 'POST', params, undefined, undefined, {"cost":60});
     }
     override sapiPostBswapLiquidityRemove (params = {}): Promise<Dict> {
-        return this.request ("bswap/liquidityRemove", "sapi", 'POST', params, {"cost":60});
+        return this.request ("bswap/liquidityRemove", "sapi", 'POST', params, undefined, undefined, {"cost":60});
     }
     override sapiPostBswapSwap (params = {}): Promise<Dict> {
-        return this.request ("bswap/swap", "sapi", 'POST', params, {"cost":60});
+        return this.request ("bswap/swap", "sapi", 'POST', params, undefined, undefined, {"cost":60});
     }
     override sapiPostBswapClaimRewards (params = {}): Promise<Dict> {
-        return this.request ("bswap/claimRewards", "sapi", 'POST', params, {"cost":6.667});
+        return this.request ("bswap/claimRewards", "sapi", 'POST', params, undefined, undefined, {"cost":6.667});
     }
     override sapiPostBlvtSubscribe (params = {}): Promise<Dict> {
-        return this.request ("blvt/subscribe", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("blvt/subscribe", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostBlvtRedeem (params = {}): Promise<Dict> {
-        return this.request ("blvt/redeem", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("blvt/redeem", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostApiReferralCustomization (params = {}): Promise<Dict> {
-        return this.request ("apiReferral/customization", "sapi", 'POST', params, {"cost":1});
+        return this.request ("apiReferral/customization", "sapi", 'POST', params, undefined, undefined, {"cost":1});
     }
     override sapiPostApiReferralUserCustomization (params = {}): Promise<Dict> {
-        return this.request ("apiReferral/userCustomization", "sapi", 'POST', params, {"cost":1});
+        return this.request ("apiReferral/userCustomization", "sapi", 'POST', params, undefined, undefined, {"cost":1});
     }
     override sapiPostApiReferralRebateHistoricalRecord (params = {}): Promise<List> {
-        return this.request ("apiReferral/rebate/historicalRecord", "sapi", 'POST', params, {"cost":1});
+        return this.request ("apiReferral/rebate/historicalRecord", "sapi", 'POST', params, undefined, undefined, {"cost":1});
     }
     override sapiPostApiReferralKickbackHistoricalRecord (params = {}): Promise<List> {
-        return this.request ("apiReferral/kickback/historicalRecord", "sapi", 'POST', params, {"cost":1});
+        return this.request ("apiReferral/kickback/historicalRecord", "sapi", 'POST', params, undefined, undefined, {"cost":1});
     }
     override sapiPostBrokerSubAccount (params = {}): Promise<Dict> {
-        return this.request ("broker/subAccount", "sapi", 'POST', params, {"cost":1});
+        return this.request ("broker/subAccount", "sapi", 'POST', params, undefined, undefined, {"cost":1});
     }
     override sapiPostBrokerSubAccountMargin (params = {}): Promise<Dict> {
-        return this.request ("broker/subAccount/margin", "sapi", 'POST', params, {"cost":1});
+        return this.request ("broker/subAccount/margin", "sapi", 'POST', params, undefined, undefined, {"cost":1});
     }
     override sapiPostBrokerSubAccountFutures (params = {}): Promise<Dict> {
-        return this.request ("broker/subAccount/futures", "sapi", 'POST', params, {"cost":1});
+        return this.request ("broker/subAccount/futures", "sapi", 'POST', params, undefined, undefined, {"cost":1});
     }
     override sapiPostBrokerSubAccountApi (params = {}): Promise<Dict> {
-        return this.request ("broker/subAccountApi", "sapi", 'POST', params, {"cost":1});
+        return this.request ("broker/subAccountApi", "sapi", 'POST', params, undefined, undefined, {"cost":1});
     }
     override sapiPostBrokerSubAccountApiPermission (params = {}): Promise<Dict> {
-        return this.request ("broker/subAccountApi/permission", "sapi", 'POST', params, {"cost":1});
+        return this.request ("broker/subAccountApi/permission", "sapi", 'POST', params, undefined, undefined, {"cost":1});
     }
     override sapiPostBrokerSubAccountApiCommission (params = {}): Promise<Dict> {
-        return this.request ("broker/subAccountApi/commission", "sapi", 'POST', params, {"cost":1});
+        return this.request ("broker/subAccountApi/commission", "sapi", 'POST', params, undefined, undefined, {"cost":1});
     }
     override sapiPostBrokerSubAccountApiCommissionFutures (params = {}): Promise<Dict> {
-        return this.request ("broker/subAccountApi/commission/futures", "sapi", 'POST', params, {"cost":1});
+        return this.request ("broker/subAccountApi/commission/futures", "sapi", 'POST', params, undefined, undefined, {"cost":1});
     }
     override sapiPostBrokerSubAccountApiCommissionCoinFutures (params = {}): Promise<Dict> {
-        return this.request ("broker/subAccountApi/commission/coinFutures", "sapi", 'POST', params, {"cost":1});
+        return this.request ("broker/subAccountApi/commission/coinFutures", "sapi", 'POST', params, undefined, undefined, {"cost":1});
     }
     override sapiPostBrokerTransfer (params = {}): Promise<Dict> {
-        return this.request ("broker/transfer", "sapi", 'POST', params, {"cost":1});
+        return this.request ("broker/transfer", "sapi", 'POST', params, undefined, undefined, {"cost":1});
     }
     override sapiPostBrokerTransferFutures (params = {}): Promise<Dict> {
-        return this.request ("broker/transfer/futures", "sapi", 'POST', params, {"cost":1});
+        return this.request ("broker/transfer/futures", "sapi", 'POST', params, undefined, undefined, {"cost":1});
     }
     override sapiPostBrokerRebateHistoricalRecord (params = {}): Promise<List> {
-        return this.request ("broker/rebate/historicalRecord", "sapi", 'POST', params, {"cost":1});
+        return this.request ("broker/rebate/historicalRecord", "sapi", 'POST', params, undefined, undefined, {"cost":1});
     }
     override sapiPostBrokerSubAccountBnbBurnSpot (params = {}): Promise<Dict> {
-        return this.request ("broker/subAccount/bnbBurn/spot", "sapi", 'POST', params, {"cost":1});
+        return this.request ("broker/subAccount/bnbBurn/spot", "sapi", 'POST', params, undefined, undefined, {"cost":1});
     }
     override sapiPostBrokerSubAccountBnbBurnMarginInterest (params = {}): Promise<Dict> {
-        return this.request ("broker/subAccount/bnbBurn/marginInterest", "sapi", 'POST', params, {"cost":1});
+        return this.request ("broker/subAccount/bnbBurn/marginInterest", "sapi", 'POST', params, undefined, undefined, {"cost":1});
     }
     override sapiPostBrokerSubAccountBlvt (params = {}): Promise<Dict> {
-        return this.request ("broker/subAccount/blvt", "sapi", 'POST', params, {"cost":1});
+        return this.request ("broker/subAccount/blvt", "sapi", 'POST', params, undefined, undefined, {"cost":1});
     }
     override sapiPostBrokerSubAccountApiIpRestriction (params = {}): Promise<Dict> {
-        return this.request ("broker/subAccountApi/ipRestriction", "sapi", 'POST', params, {"cost":1});
+        return this.request ("broker/subAccountApi/ipRestriction", "sapi", 'POST', params, undefined, undefined, {"cost":1});
     }
     override sapiPostBrokerSubAccountApiIpRestrictionIpList (params = {}): Promise<Dict> {
-        return this.request ("broker/subAccountApi/ipRestriction/ipList", "sapi", 'POST', params, {"cost":1});
+        return this.request ("broker/subAccountApi/ipRestriction/ipList", "sapi", 'POST', params, undefined, undefined, {"cost":1});
     }
     override sapiPostBrokerUniversalTransfer (params = {}): Promise<Dict> {
-        return this.request ("broker/universalTransfer", "sapi", 'POST', params, {"cost":1});
+        return this.request ("broker/universalTransfer", "sapi", 'POST', params, undefined, undefined, {"cost":1});
     }
     override sapiPostBrokerSubAccountApiPermissionUniversalTransfer (params = {}): Promise<Dict> {
-        return this.request ("broker/subAccountApi/permission/universalTransfer", "sapi", 'POST', params, {"cost":1});
+        return this.request ("broker/subAccountApi/permission/universalTransfer", "sapi", 'POST', params, undefined, undefined, {"cost":1});
     }
     override sapiPostBrokerSubAccountApiPermissionVanillaOptions (params = {}): Promise<Dict> {
-        return this.request ("broker/subAccountApi/permission/vanillaOptions", "sapi", 'POST', params, {"cost":1});
+        return this.request ("broker/subAccountApi/permission/vanillaOptions", "sapi", 'POST', params, undefined, undefined, {"cost":1});
     }
     override sapiPostGiftcardCreateCode (params = {}): Promise<Dict> {
-        return this.request ("giftcard/createCode", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("giftcard/createCode", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostGiftcardRedeemCode (params = {}): Promise<Dict> {
-        return this.request ("giftcard/redeemCode", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("giftcard/redeemCode", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostGiftcardBuyCode (params = {}): Promise<Dict> {
-        return this.request ("giftcard/buyCode", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("giftcard/buyCode", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostAlgoSpotNewOrderTwap (params = {}): Promise<Dict> {
-        return this.request ("algo/spot/newOrderTwap", "sapi", 'POST', params, {"cost":20.001});
+        return this.request ("algo/spot/newOrderTwap", "sapi", 'POST', params, undefined, undefined, {"cost":20.001});
     }
     override sapiPostAlgoFuturesNewOrderVp (params = {}): Promise<Dict> {
-        return this.request ("algo/futures/newOrderVp", "sapi", 'POST', params, {"cost":20.001});
+        return this.request ("algo/futures/newOrderVp", "sapi", 'POST', params, undefined, undefined, {"cost":20.001});
     }
     override sapiPostAlgoFuturesNewOrderTwap (params = {}): Promise<Dict> {
-        return this.request ("algo/futures/newOrderTwap", "sapi", 'POST', params, {"cost":20.001});
+        return this.request ("algo/futures/newOrderTwap", "sapi", 'POST', params, undefined, undefined, {"cost":20.001});
     }
     override sapiPostStakingPurchase (params = {}): Promise<Dict> {
-        return this.request ("staking/purchase", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("staking/purchase", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostStakingRedeem (params = {}): Promise<Dict> {
-        return this.request ("staking/redeem", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("staking/redeem", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostStakingSetAutoStaking (params = {}): Promise<Dict> {
-        return this.request ("staking/setAutoStaking", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("staking/setAutoStaking", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostEthStakingEthStake (params = {}): Promise<Dict> {
-        return this.request ("eth-staking/eth/stake", "sapi", 'POST', params, {"cost":15});
+        return this.request ("eth-staking/eth/stake", "sapi", 'POST', params, undefined, undefined, {"cost":15});
     }
     override sapiPostEthStakingEthRedeem (params = {}): Promise<Dict> {
-        return this.request ("eth-staking/eth/redeem", "sapi", 'POST', params, {"cost":15});
+        return this.request ("eth-staking/eth/redeem", "sapi", 'POST', params, undefined, undefined, {"cost":15});
     }
     override sapiPostEthStakingWbethWrap (params = {}): Promise<Dict> {
-        return this.request ("eth-staking/wbeth/wrap", "sapi", 'POST', params, {"cost":15});
+        return this.request ("eth-staking/wbeth/wrap", "sapi", 'POST', params, undefined, undefined, {"cost":15});
     }
     override sapiPostSolStakingSolStake (params = {}): Promise<Dict> {
-        return this.request ("sol-staking/sol/stake", "sapi", 'POST', params, {"cost":15});
+        return this.request ("sol-staking/sol/stake", "sapi", 'POST', params, undefined, undefined, {"cost":15});
     }
     override sapiPostSolStakingSolRedeem (params = {}): Promise<Dict> {
-        return this.request ("sol-staking/sol/redeem", "sapi", 'POST', params, {"cost":15});
+        return this.request ("sol-staking/sol/redeem", "sapi", 'POST', params, undefined, undefined, {"cost":15});
     }
     override sapiPostMiningHashTransferConfig (params = {}): Promise<Dict> {
-        return this.request ("mining/hash-transfer/config", "sapi", 'POST', params, {"cost":0.5});
+        return this.request ("mining/hash-transfer/config", "sapi", 'POST', params, undefined, undefined, {"cost":0.5});
     }
     override sapiPostMiningHashTransferConfigCancel (params = {}): Promise<Dict> {
-        return this.request ("mining/hash-transfer/config/cancel", "sapi", 'POST', params, {"cost":0.5});
+        return this.request ("mining/hash-transfer/config/cancel", "sapi", 'POST', params, undefined, undefined, {"cost":0.5});
     }
     override sapiPostPortfolioRepay (params = {}): Promise<Dict> {
-        return this.request ("portfolio/repay", "sapi", 'POST', params, {"cost":20.001});
+        return this.request ("portfolio/repay", "sapi", 'POST', params, undefined, undefined, {"cost":20.001});
     }
     override sapiPostLoanVipRenew (params = {}): Promise<Dict> {
-        return this.request ("loan/vip/renew", "sapi", 'POST', params, {"cost":40.002});
+        return this.request ("loan/vip/renew", "sapi", 'POST', params, undefined, undefined, {"cost":40.002});
     }
     override sapiPostLoanVipBorrow (params = {}): Promise<Dict> {
-        return this.request ("loan/vip/borrow", "sapi", 'POST', params, {"cost":40.002});
+        return this.request ("loan/vip/borrow", "sapi", 'POST', params, undefined, undefined, {"cost":40.002});
     }
     override sapiPostLoanBorrow (params = {}): Promise<Dict> {
-        return this.request ("loan/borrow", "sapi", 'POST', params, {"cost":40.002});
+        return this.request ("loan/borrow", "sapi", 'POST', params, undefined, undefined, {"cost":40.002});
     }
     override sapiPostLoanRepay (params = {}): Promise<Dict> {
-        return this.request ("loan/repay", "sapi", 'POST', params, {"cost":40.002});
+        return this.request ("loan/repay", "sapi", 'POST', params, undefined, undefined, {"cost":40.002});
     }
     override sapiPostLoanAdjustLtv (params = {}): Promise<Dict> {
-        return this.request ("loan/adjust/ltv", "sapi", 'POST', params, {"cost":40.002});
+        return this.request ("loan/adjust/ltv", "sapi", 'POST', params, undefined, undefined, {"cost":40.002});
     }
     override sapiPostLoanCustomizeMarginCall (params = {}): Promise<Dict> {
-        return this.request ("loan/customize/margin_call", "sapi", 'POST', params, {"cost":40.002});
+        return this.request ("loan/customize/margin_call", "sapi", 'POST', params, undefined, undefined, {"cost":40.002});
     }
     override sapiPostLoanFlexibleRepay (params = {}): Promise<Dict> {
-        return this.request ("loan/flexible/repay", "sapi", 'POST', params, {"cost":40.002});
+        return this.request ("loan/flexible/repay", "sapi", 'POST', params, undefined, undefined, {"cost":40.002});
     }
     override sapiPostLoanFlexibleAdjustLtv (params = {}): Promise<Dict> {
-        return this.request ("loan/flexible/adjust/ltv", "sapi", 'POST', params, {"cost":40.002});
+        return this.request ("loan/flexible/adjust/ltv", "sapi", 'POST', params, undefined, undefined, {"cost":40.002});
     }
     override sapiPostLoanVipRepay (params = {}): Promise<Dict> {
-        return this.request ("loan/vip/repay", "sapi", 'POST', params, {"cost":40.002});
+        return this.request ("loan/vip/repay", "sapi", 'POST', params, undefined, undefined, {"cost":40.002});
     }
     override sapiPostConvertGetQuote (params = {}): Promise<Dict> {
-        return this.request ("convert/getQuote", "sapi", 'POST', params, {"cost":1.3334});
+        return this.request ("convert/getQuote", "sapi", 'POST', params, undefined, undefined, {"cost":1.3334});
     }
     override sapiPostConvertAcceptQuote (params = {}): Promise<Dict> {
-        return this.request ("convert/acceptQuote", "sapi", 'POST', params, {"cost":3.3335});
+        return this.request ("convert/acceptQuote", "sapi", 'POST', params, undefined, undefined, {"cost":3.3335});
     }
     override sapiPostConvertLimitPlaceOrder (params = {}): Promise<Dict> {
-        return this.request ("convert/limit/placeOrder", "sapi", 'POST', params, {"cost":3.3335});
+        return this.request ("convert/limit/placeOrder", "sapi", 'POST', params, undefined, undefined, {"cost":3.3335});
     }
     override sapiPostConvertLimitCancelOrder (params = {}): Promise<Dict> {
-        return this.request ("convert/limit/cancelOrder", "sapi", 'POST', params, {"cost":1.3334});
+        return this.request ("convert/limit/cancelOrder", "sapi", 'POST', params, undefined, undefined, {"cost":1.3334});
     }
     override sapiPostPortfolioAutoCollection (params = {}): Promise<Dict> {
-        return this.request ("portfolio/auto-collection", "sapi", 'POST', params, {"cost":150});
+        return this.request ("portfolio/auto-collection", "sapi", 'POST', params, undefined, undefined, {"cost":150});
     }
     override sapiPostPortfolioAssetCollection (params = {}): Promise<Dict> {
-        return this.request ("portfolio/asset-collection", "sapi", 'POST', params, {"cost":6});
+        return this.request ("portfolio/asset-collection", "sapi", 'POST', params, undefined, undefined, {"cost":6});
     }
     override sapiPostPortfolioBnbTransfer (params = {}): Promise<Dict> {
-        return this.request ("portfolio/bnb-transfer", "sapi", 'POST', params, {"cost":150});
+        return this.request ("portfolio/bnb-transfer", "sapi", 'POST', params, undefined, undefined, {"cost":150});
     }
     override sapiPostPortfolioRepayFuturesSwitch (params = {}): Promise<Dict> {
-        return this.request ("portfolio/repay-futures-switch", "sapi", 'POST', params, {"cost":150});
+        return this.request ("portfolio/repay-futures-switch", "sapi", 'POST', params, undefined, undefined, {"cost":150});
     }
     override sapiPostPortfolioRepayFuturesNegativeBalance (params = {}): Promise<Dict> {
-        return this.request ("portfolio/repay-futures-negative-balance", "sapi", 'POST', params, {"cost":150});
+        return this.request ("portfolio/repay-futures-negative-balance", "sapi", 'POST', params, undefined, undefined, {"cost":150});
     }
     override sapiPostPortfolioMint (params = {}): Promise<Dict> {
-        return this.request ("portfolio/mint", "sapi", 'POST', params, {"cost":20});
+        return this.request ("portfolio/mint", "sapi", 'POST', params, undefined, undefined, {"cost":20});
     }
     override sapiPostPortfolioRedeem (params = {}): Promise<Dict> {
-        return this.request ("portfolio/redeem", "sapi", 'POST', params, {"cost":20});
+        return this.request ("portfolio/redeem", "sapi", 'POST', params, undefined, undefined, {"cost":20});
     }
     override sapiPostPortfolioEarnAssetTransfer (params = {}): Promise<Dict> {
-        return this.request ("portfolio/earn-asset-transfer", "sapi", 'POST', params, {"cost":150});
+        return this.request ("portfolio/earn-asset-transfer", "sapi", 'POST', params, undefined, undefined, {"cost":150});
     }
     override sapiPostPortfolioDeltaMode (params = {}): Promise<Dict> {
-        return this.request ("portfolio/delta-mode", "sapi", 'POST', params, {"cost":150});
+        return this.request ("portfolio/delta-mode", "sapi", 'POST', params, undefined, undefined, {"cost":150});
     }
     override sapiPostPortfolioMarginCallLevel (params = {}): Promise<Dict> {
-        return this.request ("portfolio/margin-call-level", "sapi", 'POST', params, {"cost":150});
+        return this.request ("portfolio/margin-call-level", "sapi", 'POST', params, undefined, undefined, {"cost":150});
     }
     override sapiPostLendingAutoInvestPlanAdd (params = {}): Promise<Dict> {
-        return this.request ("lending/auto-invest/plan/add", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("lending/auto-invest/plan/add", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostLendingAutoInvestPlanEdit (params = {}): Promise<Dict> {
-        return this.request ("lending/auto-invest/plan/edit", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("lending/auto-invest/plan/edit", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostLendingAutoInvestPlanEditStatus (params = {}): Promise<Dict> {
-        return this.request ("lending/auto-invest/plan/edit-status", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("lending/auto-invest/plan/edit-status", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostLendingAutoInvestOneOff (params = {}): Promise<Dict> {
-        return this.request ("lending/auto-invest/one-off", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("lending/auto-invest/one-off", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostLendingAutoInvestRedeem (params = {}): Promise<Dict> {
-        return this.request ("lending/auto-invest/redeem", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("lending/auto-invest/redeem", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostSimpleEarnFlexibleSubscribe (params = {}): Promise<Dict> {
-        return this.request ("simple-earn/flexible/subscribe", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("simple-earn/flexible/subscribe", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostSimpleEarnLockedSubscribe (params = {}): Promise<Dict> {
-        return this.request ("simple-earn/locked/subscribe", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("simple-earn/locked/subscribe", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostSimpleEarnFlexibleRedeem (params = {}): Promise<Dict> {
-        return this.request ("simple-earn/flexible/redeem", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("simple-earn/flexible/redeem", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostSimpleEarnLockedRedeem (params = {}): Promise<Dict> {
-        return this.request ("simple-earn/locked/redeem", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("simple-earn/locked/redeem", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostSimpleEarnFlexibleSetAutoSubscribe (params = {}): Promise<Dict> {
-        return this.request ("simple-earn/flexible/setAutoSubscribe", "sapi", 'POST', params, {"cost":15});
+        return this.request ("simple-earn/flexible/setAutoSubscribe", "sapi", 'POST', params, undefined, undefined, {"cost":15});
     }
     override sapiPostSimpleEarnLockedSetAutoSubscribe (params = {}): Promise<Dict> {
-        return this.request ("simple-earn/locked/setAutoSubscribe", "sapi", 'POST', params, {"cost":15});
+        return this.request ("simple-earn/locked/setAutoSubscribe", "sapi", 'POST', params, undefined, undefined, {"cost":15});
     }
     override sapiPostSimpleEarnLockedSetRedeemOption (params = {}): Promise<Dict> {
-        return this.request ("simple-earn/locked/setRedeemOption", "sapi", 'POST', params, {"cost":5});
+        return this.request ("simple-earn/locked/setRedeemOption", "sapi", 'POST', params, undefined, undefined, {"cost":5});
     }
     override sapiPostDciProductSubscribe (params = {}): Promise<Dict> {
-        return this.request ("dci/product/subscribe", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("dci/product/subscribe", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostDciProductAutoCompoundEdit (params = {}): Promise<Dict> {
-        return this.request ("dci/product/auto_compound/edit", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("dci/product/auto_compound/edit", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostAccumulatorProductSubscribe (params = {}): Promise<Dict> {
-        return this.request ("accumulator/product/subscribe", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("accumulator/product/subscribe", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostEquityOrderPlace (params = {}): Promise<Dict> {
-        return this.request ("equity/order/place", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("equity/order/place", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostEquityOrderCancel (params = {}): Promise<Dict> {
-        return this.request ("equity/order/cancel", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("equity/order/cancel", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostEquityOrderCancelAll (params = {}): Promise<Dict> {
-        return this.request ("equity/order/cancel-all", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("equity/order/cancel-all", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostEquityTokenizedMint (params = {}): Promise<Dict> {
-        return this.request ("equity/tokenized/mint", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("equity/tokenized/mint", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostEquityTokenizedRedeem (params = {}): Promise<Dict> {
-        return this.request ("equity/tokenized/redeem", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("equity/tokenized/redeem", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostEquityAccountDisclaimer (params = {}): Promise<Dict> {
-        return this.request ("equity/account/disclaimer", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("equity/account/disclaimer", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPostEquityListenKey (params = {}): Promise<Dict> {
-        return this.request ("equity/listenKey", "sapi", 'POST', params, {"cost":0.1});
+        return this.request ("equity/listenKey", "sapi", 'POST', params, undefined, undefined, {"cost":0.1});
     }
     sapiPostOtcQuotes (params = {}): Promise<Dict> {
-        return this.request ("otc/quotes", "sapi", 'POST', params, {"cost":1});
+        return this.request ("otc/quotes", "sapi", 'POST', params, undefined, undefined, {"cost":1});
     }
     sapiPostOtcOrders (params = {}): Promise<Dict> {
-        return this.request ("otc/orders", "sapi", 'POST', params, {"cost":1});
+        return this.request ("otc/orders", "sapi", 'POST', params, undefined, undefined, {"cost":1});
     }
     sapiPostFiatpaymentWithdrawApply (params = {}): Promise<Dict> {
-        return this.request ("fiatpayment/withdraw/apply", "sapi", 'POST', params, {"cost":1});
+        return this.request ("fiatpayment/withdraw/apply", "sapi", 'POST', params, undefined, undefined, {"cost":1});
     }
     sapiPostStakingStake (params = {}): Promise<Dict> {
-        return this.request ("staking/stake", "sapi", 'POST', params, {"cost":1});
+        return this.request ("staking/stake", "sapi", 'POST', params, undefined, undefined, {"cost":1});
     }
     sapiPostStakingUnstake (params = {}): Promise<Dict> {
-        return this.request ("staking/unstake", "sapi", 'POST', params, {"cost":1});
+        return this.request ("staking/unstake", "sapi", 'POST', params, undefined, undefined, {"cost":1});
     }
     sapiPostCustodianWalletTransfer (params = {}): Promise<Dict> {
-        return this.request ("custodian/walletTransfer", "sapi", 'POST', params, {"cost":1});
+        return this.request ("custodian/walletTransfer", "sapi", 'POST', params, undefined, undefined, {"cost":1});
     }
     sapiPostCustodianCustodianTransfer (params = {}): Promise<Dict> {
-        return this.request ("custodian/custodianTransfer", "sapi", 'POST', params, {"cost":1});
+        return this.request ("custodian/custodianTransfer", "sapi", 'POST', params, undefined, undefined, {"cost":1});
     }
     sapiPostCustodianUndoTransfer (params = {}): Promise<Dict> {
-        return this.request ("custodian/undoTransfer", "sapi", 'POST', params, {"cost":1});
+        return this.request ("custodian/undoTransfer", "sapi", 'POST', params, undefined, undefined, {"cost":1});
     }
     sapiPostCustodianOrder (params = {}): Promise<Dict> {
-        return this.request ("custodian/order", "sapi", 'POST', params, {"cost":1});
+        return this.request ("custodian/order", "sapi", 'POST', params, undefined, undefined, {"cost":1});
     }
     sapiPostCustodianOcoOrder (params = {}): Promise<Dict> {
-        return this.request ("custodian/ocoOrder", "sapi", 'POST', params, {"cost":1});
+        return this.request ("custodian/ocoOrder", "sapi", 'POST', params, undefined, undefined, {"cost":1});
     }
     sapiPostClTransfer (params = {}): Promise<Dict> {
-        return this.request ("cl/transfer", "sapi", 'POST', params, {"cost":1});
+        return this.request ("cl/transfer", "sapi", 'POST', params, undefined, undefined, {"cost":1});
     }
     override sapiPutUserDataStream (params = {}): Promise<Dict> {
-        return this.request ("userDataStream", "sapi", 'PUT', params, {"cost":0.1});
+        return this.request ("userDataStream", "sapi", 'PUT', params, undefined, undefined, {"cost":0.1});
     }
     override sapiPutUserDataStreamIsolated (params = {}): Promise<Dict> {
-        return this.request ("userDataStream/isolated", "sapi", 'PUT', params, {"cost":0.1});
+        return this.request ("userDataStream/isolated", "sapi", 'PUT', params, undefined, undefined, {"cost":0.1});
     }
     override sapiDeletePortfolioMarginCallLevel (params = {}): Promise<Dict> {
-        return this.request ("portfolio/margin-call-level", "sapi", 'DELETE', params, {"cost":150});
+        return this.request ("portfolio/margin-call-level", "sapi", 'DELETE', params, undefined, undefined, {"cost":150});
     }
     override sapiDeleteMarginOpenOrders (params = {}): Promise<List> {
-        return this.request ("margin/openOrders", "sapi", 'DELETE', params, {"cost":0.1});
+        return this.request ("margin/openOrders", "sapi", 'DELETE', params, undefined, undefined, {"cost":0.1});
     }
     override sapiDeleteMarginOrder (params = {}): Promise<Dict> {
-        return this.request ("margin/order", "sapi", 'DELETE', params, {"cost":0.006667});
+        return this.request ("margin/order", "sapi", 'DELETE', params, undefined, undefined, {"cost":0.006667});
     }
     override sapiDeleteMarginOrderList (params = {}): Promise<Dict> {
-        return this.request ("margin/orderList", "sapi", 'DELETE', params, {"cost":0.006667});
+        return this.request ("margin/orderList", "sapi", 'DELETE', params, undefined, undefined, {"cost":0.006667});
     }
     override sapiDeleteMarginIsolatedAccount (params = {}): Promise<Dict> {
-        return this.request ("margin/isolated/account", "sapi", 'DELETE', params, {"cost":2.0001});
+        return this.request ("margin/isolated/account", "sapi", 'DELETE', params, undefined, undefined, {"cost":2.0001});
     }
     override sapiDeleteUserDataStream (params = {}): Promise<Dict> {
-        return this.request ("userDataStream", "sapi", 'DELETE', params, {"cost":0.1});
+        return this.request ("userDataStream", "sapi", 'DELETE', params, undefined, undefined, {"cost":0.1});
     }
     override sapiDeleteUserDataStreamIsolated (params = {}): Promise<Dict> {
-        return this.request ("userDataStream/isolated", "sapi", 'DELETE', params, {"cost":0.1});
+        return this.request ("userDataStream/isolated", "sapi", 'DELETE', params, undefined, undefined, {"cost":0.1});
     }
     override sapiDeleteBrokerSubAccountApi (params = {}): Promise<Dict> {
-        return this.request ("broker/subAccountApi", "sapi", 'DELETE', params, {"cost":1});
+        return this.request ("broker/subAccountApi", "sapi", 'DELETE', params, undefined, undefined, {"cost":1});
     }
     override sapiDeleteBrokerSubAccountApiIpRestrictionIpList (params = {}): Promise<Dict> {
-        return this.request ("broker/subAccountApi/ipRestriction/ipList", "sapi", 'DELETE', params, {"cost":1});
+        return this.request ("broker/subAccountApi/ipRestriction/ipList", "sapi", 'DELETE', params, undefined, undefined, {"cost":1});
     }
     override sapiDeleteAlgoSpotOrder (params = {}): Promise<Dict> {
-        return this.request ("algo/spot/order", "sapi", 'DELETE', params, {"cost":0.1});
+        return this.request ("algo/spot/order", "sapi", 'DELETE', params, undefined, undefined, {"cost":0.1});
     }
     override sapiDeleteAlgoFuturesOrder (params = {}): Promise<Dict> {
-        return this.request ("algo/futures/order", "sapi", 'DELETE', params, {"cost":0.1});
+        return this.request ("algo/futures/order", "sapi", 'DELETE', params, undefined, undefined, {"cost":0.1});
     }
     override sapiDeleteSubAccountSubAccountApiIpRestrictionIpList (params = {}): Promise<Dict> {
-        return this.request ("sub-account/subAccountApi/ipRestriction/ipList", "sapi", 'DELETE', params, {"cost":20.001});
+        return this.request ("sub-account/subAccountApi/ipRestriction/ipList", "sapi", 'DELETE', params, undefined, undefined, {"cost":20.001});
     }
     sapiDeleteCustodianCancelOrder (params = {}): Promise<Dict> {
-        return this.request ("custodian/cancelOrder", "sapi", 'DELETE', params, {"cost":1});
+        return this.request ("custodian/cancelOrder", "sapi", 'DELETE', params, undefined, undefined, {"cost":1});
     }
     sapiDeleteCustodianCancelOrdersBySymbol (params = {}): Promise<List> {
-        return this.request ("custodian/cancelOrdersBySymbol", "sapi", 'DELETE', params, {"cost":1});
+        return this.request ("custodian/cancelOrdersBySymbol", "sapi", 'DELETE', params, undefined, undefined, {"cost":1});
     }
     sapiDeleteCustodianCancelOcoOrder (params = {}): Promise<Dict> {
-        return this.request ("custodian/cancelOcoOrder", "sapi", 'DELETE', params, {"cost":1});
+        return this.request ("custodian/cancelOcoOrder", "sapi", 'DELETE', params, undefined, undefined, {"cost":1});
     }
     override sapiV2GetEthStakingAccount (params = {}): Promise<Dict> {
-        return this.request ("eth-staking/account", "sapiV2", 'GET', params, {"cost":15});
+        return this.request ("eth-staking/account", "sapiV2", 'GET', params, undefined, undefined, {"cost":15});
     }
     override sapiV2GetSubAccountFuturesAccount (params = {}): Promise<Dict> {
-        return this.request ("sub-account/futures/account", "sapiV2", 'GET', params, {"cost":0.1});
+        return this.request ("sub-account/futures/account", "sapiV2", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiV2GetSubAccountFuturesAccountSummary (params = {}): Promise<Dict> {
-        return this.request ("sub-account/futures/accountSummary", "sapiV2", 'GET', params, {"cost":1});
+        return this.request ("sub-account/futures/accountSummary", "sapiV2", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiV2GetSubAccountFuturesPositionRisk (params = {}): Promise<Dict> {
-        return this.request ("sub-account/futures/positionRisk", "sapiV2", 'GET', params, {"cost":0.1});
+        return this.request ("sub-account/futures/positionRisk", "sapiV2", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     override sapiV2GetLoanFlexibleOngoingOrders (params = {}): Promise<Dict> {
-        return this.request ("loan/flexible/ongoing/orders", "sapiV2", 'GET', params, {"cost":30});
+        return this.request ("loan/flexible/ongoing/orders", "sapiV2", 'GET', params, undefined, undefined, {"cost":30});
     }
     override sapiV2GetLoanFlexibleBorrowHistory (params = {}): Promise<Dict> {
-        return this.request ("loan/flexible/borrow/history", "sapiV2", 'GET', params, {"cost":40});
+        return this.request ("loan/flexible/borrow/history", "sapiV2", 'GET', params, undefined, undefined, {"cost":40});
     }
     override sapiV2GetLoanFlexibleRepayHistory (params = {}): Promise<Dict> {
-        return this.request ("loan/flexible/repay/history", "sapiV2", 'GET', params, {"cost":40});
+        return this.request ("loan/flexible/repay/history", "sapiV2", 'GET', params, undefined, undefined, {"cost":40});
     }
     override sapiV2GetLoanFlexibleLtvAdjustmentHistory (params = {}): Promise<Dict> {
-        return this.request ("loan/flexible/ltv/adjustment/history", "sapiV2", 'GET', params, {"cost":40});
+        return this.request ("loan/flexible/ltv/adjustment/history", "sapiV2", 'GET', params, undefined, undefined, {"cost":40});
     }
     override sapiV2GetLoanFlexibleLoanableData (params = {}): Promise<Dict> {
-        return this.request ("loan/flexible/loanable/data", "sapiV2", 'GET', params, {"cost":40});
+        return this.request ("loan/flexible/loanable/data", "sapiV2", 'GET', params, undefined, undefined, {"cost":40});
     }
     override sapiV2GetLoanFlexibleCollateralData (params = {}): Promise<Dict> {
-        return this.request ("loan/flexible/collateral/data", "sapiV2", 'GET', params, {"cost":40});
+        return this.request ("loan/flexible/collateral/data", "sapiV2", 'GET', params, undefined, undefined, {"cost":40});
     }
     override sapiV2GetPortfolioAccount (params = {}): Promise<Dict> {
-        return this.request ("portfolio/account", "sapiV2", 'GET', params, {"cost":2});
+        return this.request ("portfolio/account", "sapiV2", 'GET', params, undefined, undefined, {"cost":2});
     }
     sapiV2GetClAccount (params = {}): Promise<Dict> {
-        return this.request ("cl/account", "sapiV2", 'GET', params, {"cost":10});
+        return this.request ("cl/account", "sapiV2", 'GET', params, undefined, undefined, {"cost":10});
     }
     sapiV2GetClAlertHistory (params = {}): Promise<List> {
-        return this.request ("cl/alertHistory", "sapiV2", 'GET', params, {"cost":1});
+        return this.request ("cl/alertHistory", "sapiV2", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiV2PostEthStakingEthStake (params = {}): Promise<Dict> {
-        return this.request ("eth-staking/eth/stake", "sapiV2", 'POST', params, {"cost":15});
+        return this.request ("eth-staking/eth/stake", "sapiV2", 'POST', params, undefined, undefined, {"cost":15});
     }
     override sapiV2PostSubAccountSubAccountApiIpRestriction (params = {}): Promise<Dict> {
-        return this.request ("sub-account/subAccountApi/ipRestriction", "sapiV2", 'POST', params, {"cost":20.001});
+        return this.request ("sub-account/subAccountApi/ipRestriction", "sapiV2", 'POST', params, undefined, undefined, {"cost":20.001});
     }
     override sapiV2PostLoanFlexibleBorrow (params = {}): Promise<Dict> {
-        return this.request ("loan/flexible/borrow", "sapiV2", 'POST', params, {"cost":40.002});
+        return this.request ("loan/flexible/borrow", "sapiV2", 'POST', params, undefined, undefined, {"cost":40.002});
     }
     override sapiV2PostLoanFlexibleRepay (params = {}): Promise<Dict> {
-        return this.request ("loan/flexible/repay", "sapiV2", 'POST', params, {"cost":40.002});
+        return this.request ("loan/flexible/repay", "sapiV2", 'POST', params, undefined, undefined, {"cost":40.002});
     }
     override sapiV2PostLoanFlexibleAdjustLtv (params = {}): Promise<Dict> {
-        return this.request ("loan/flexible/adjust/ltv", "sapiV2", 'POST', params, {"cost":40.002});
+        return this.request ("loan/flexible/adjust/ltv", "sapiV2", 'POST', params, undefined, undefined, {"cost":40.002});
     }
     override sapiV3GetSubAccountAssets (params = {}): Promise<Dict> {
-        return this.request ("sub-account/assets", "sapiV3", 'GET', params, {"cost":1});
+        return this.request ("sub-account/assets", "sapiV3", 'GET', params, undefined, undefined, {"cost":1});
     }
     sapiV3GetAccountStatus (params = {}): Promise<Dict> {
-        return this.request ("accountStatus", "sapiV3", 'GET', params, {"cost":1});
+        return this.request ("accountStatus", "sapiV3", 'GET', params, undefined, undefined, {"cost":1});
     }
     sapiV3GetApiTradingStatus (params = {}): Promise<Dict> {
-        return this.request ("apiTradingStatus", "sapiV3", 'GET', params, {"cost":1});
+        return this.request ("apiTradingStatus", "sapiV3", 'GET', params, undefined, undefined, {"cost":1});
     }
     sapiV3GetSubAccountList (params = {}): Promise<Dict> {
-        return this.request ("sub-account/list", "sapiV3", 'GET', params, {"cost":1});
+        return this.request ("sub-account/list", "sapiV3", 'GET', params, undefined, undefined, {"cost":1});
     }
     sapiV3GetSubAccountTransferHistory (params = {}): Promise<Dict> {
-        return this.request ("sub-account/transfer/history", "sapiV3", 'GET', params, {"cost":1});
+        return this.request ("sub-account/transfer/history", "sapiV3", 'GET', params, undefined, undefined, {"cost":1});
     }
     override sapiV3PostAssetGetUserAsset (params = {}): Promise<List> {
-        return this.request ("asset/getUserAsset", "sapiV3", 'POST', params, {"cost":0.5});
+        return this.request ("asset/getUserAsset", "sapiV3", 'POST', params, undefined, undefined, {"cost":0.5});
     }
     sapiV3PostSubAccountTransfer (params = {}): Promise<Dict> {
-        return this.request ("sub-account/transfer", "sapiV3", 'POST', params, {"cost":1});
+        return this.request ("sub-account/transfer", "sapiV3", 'POST', params, undefined, undefined, {"cost":1});
     }
     override sapiV4GetSubAccountAssets (params = {}): Promise<Dict> {
-        return this.request ("sub-account/assets", "sapiV4", 'GET', params, {"cost":0.40002});
+        return this.request ("sub-account/assets", "sapiV4", 'GET', params, undefined, undefined, {"cost":0.40002});
     }
     override dapiPublicGetPing (params = {}): Promise<Dict> {
-        return this.request ("ping", "dapiPublic", 'GET', params, {"cost":1});
+        return this.request ("ping", "dapiPublic", 'GET', params, undefined, undefined, {"cost":1});
     }
     override dapiPublicGetTime (params = {}): Promise<Dict> {
-        return this.request ("time", "dapiPublic", 'GET', params, {"cost":1});
+        return this.request ("time", "dapiPublic", 'GET', params, undefined, undefined, {"cost":1});
     }
     override dapiPublicGetExchangeInfo (params = {}): Promise<Dict> {
-        return this.request ("exchangeInfo", "dapiPublic", 'GET', params, {"cost":1});
+        return this.request ("exchangeInfo", "dapiPublic", 'GET', params, undefined, undefined, {"cost":1});
     }
     override dapiPublicGetDepth (params = {}): Promise<Dict> {
-        return this.request ("depth", "dapiPublic", 'GET', params, {"cost":2,"byLimit":[[50,2],[100,5],[500,10],[1000,20]]});
+        return this.request ("depth", "dapiPublic", 'GET', params, undefined, undefined, {"cost":2,"byLimit":[[50,2],[100,5],[500,10],[1000,20]]});
     }
     override dapiPublicGetTrades (params = {}): Promise<List> {
-        return this.request ("trades", "dapiPublic", 'GET', params, {"cost":5});
+        return this.request ("trades", "dapiPublic", 'GET', params, undefined, undefined, {"cost":5});
     }
     override dapiPublicGetHistoricalTrades (params = {}): Promise<List> {
-        return this.request ("historicalTrades", "dapiPublic", 'GET', params, {"cost":200});
+        return this.request ("historicalTrades", "dapiPublic", 'GET', params, undefined, undefined, {"cost":200});
     }
     override dapiPublicGetAggTrades (params = {}): Promise<List> {
-        return this.request ("aggTrades", "dapiPublic", 'GET', params, {"cost":20});
+        return this.request ("aggTrades", "dapiPublic", 'GET', params, undefined, undefined, {"cost":20});
     }
     override dapiPublicGetPremiumIndex (params = {}): Promise<List> {
-        return this.request ("premiumIndex", "dapiPublic", 'GET', params, {"cost":10});
+        return this.request ("premiumIndex", "dapiPublic", 'GET', params, undefined, undefined, {"cost":10});
     }
     override dapiPublicGetFundingRate (params = {}): Promise<List> {
-        return this.request ("fundingRate", "dapiPublic", 'GET', params, {"cost":1});
+        return this.request ("fundingRate", "dapiPublic", 'GET', params, undefined, undefined, {"cost":1});
     }
     override dapiPublicGetKlines (params = {}): Promise<List> {
-        return this.request ("klines", "dapiPublic", 'GET', params, {"cost":1,"byLimit":[[99,1],[499,2],[1000,5],[10000,10]]});
+        return this.request ("klines", "dapiPublic", 'GET', params, undefined, undefined, {"cost":1,"byLimit":[[99,1],[499,2],[1000,5],[10000,10]]});
     }
     override dapiPublicGetContinuousKlines (params = {}): Promise<List> {
-        return this.request ("continuousKlines", "dapiPublic", 'GET', params, {"cost":1,"byLimit":[[99,1],[499,2],[1000,5],[10000,10]]});
+        return this.request ("continuousKlines", "dapiPublic", 'GET', params, undefined, undefined, {"cost":1,"byLimit":[[99,1],[499,2],[1000,5],[10000,10]]});
     }
     override dapiPublicGetIndexPriceKlines (params = {}): Promise<List> {
-        return this.request ("indexPriceKlines", "dapiPublic", 'GET', params, {"cost":1,"byLimit":[[99,1],[499,2],[1000,5],[10000,10]]});
+        return this.request ("indexPriceKlines", "dapiPublic", 'GET', params, undefined, undefined, {"cost":1,"byLimit":[[99,1],[499,2],[1000,5],[10000,10]]});
     }
     override dapiPublicGetMarkPriceKlines (params = {}): Promise<List> {
-        return this.request ("markPriceKlines", "dapiPublic", 'GET', params, {"cost":1,"byLimit":[[99,1],[499,2],[1000,5],[10000,10]]});
+        return this.request ("markPriceKlines", "dapiPublic", 'GET', params, undefined, undefined, {"cost":1,"byLimit":[[99,1],[499,2],[1000,5],[10000,10]]});
     }
     override dapiPublicGetPremiumIndexKlines (params = {}): Promise<List> {
-        return this.request ("premiumIndexKlines", "dapiPublic", 'GET', params, {"cost":1,"byLimit":[[99,1],[499,2],[1000,5],[10000,10]]});
+        return this.request ("premiumIndexKlines", "dapiPublic", 'GET', params, undefined, undefined, {"cost":1,"byLimit":[[99,1],[499,2],[1000,5],[10000,10]]});
     }
     override dapiPublicGetTicker24hr (params = {}): Promise<Dict | List> {
-        return this.request ("ticker/24hr", "dapiPublic", 'GET', params, {"cost":1,"noSymbol":40});
+        return this.request ("ticker/24hr", "dapiPublic", 'GET', params, undefined, undefined, {"cost":1,"noSymbol":40});
     }
     override dapiPublicGetTickerPrice (params = {}): Promise<List> {
-        return this.request ("ticker/price", "dapiPublic", 'GET', params, {"cost":1,"noSymbol":2});
+        return this.request ("ticker/price", "dapiPublic", 'GET', params, undefined, undefined, {"cost":1,"noSymbol":2});
     }
     override dapiPublicGetTickerBookTicker (params = {}): Promise<List> {
-        return this.request ("ticker/bookTicker", "dapiPublic", 'GET', params, {"cost":2,"noSymbol":5});
+        return this.request ("ticker/bookTicker", "dapiPublic", 'GET', params, undefined, undefined, {"cost":2,"noSymbol":5});
     }
     override dapiPublicGetConstituents (params = {}): Promise<Dict> {
-        return this.request ("constituents", "dapiPublic", 'GET', params, {"cost":2});
+        return this.request ("constituents", "dapiPublic", 'GET', params, undefined, undefined, {"cost":2});
     }
     override dapiPublicGetOpenInterest (params = {}): Promise<Dict> {
-        return this.request ("openInterest", "dapiPublic", 'GET', params, {"cost":1});
+        return this.request ("openInterest", "dapiPublic", 'GET', params, undefined, undefined, {"cost":1});
     }
     override dapiPublicGetFundingInfo (params = {}): Promise<List> {
-        return this.request ("fundingInfo", "dapiPublic", 'GET', params, {"cost":1});
+        return this.request ("fundingInfo", "dapiPublic", 'GET', params, undefined, undefined, {"cost":1});
     }
     override dapiDataGetDeliveryPrice (params = {}): Promise<List> {
-        return this.request ("delivery-price", "dapiData", 'GET', params, {"cost":1});
+        return this.request ("delivery-price", "dapiData", 'GET', params, undefined, undefined, {"cost":1});
     }
     override dapiDataGetOpenInterestHist (params = {}): Promise<List> {
-        return this.request ("openInterestHist", "dapiData", 'GET', params, {"cost":1});
+        return this.request ("openInterestHist", "dapiData", 'GET', params, undefined, undefined, {"cost":1});
     }
     override dapiDataGetTopLongShortAccountRatio (params = {}): Promise<List> {
-        return this.request ("topLongShortAccountRatio", "dapiData", 'GET', params, {"cost":1});
+        return this.request ("topLongShortAccountRatio", "dapiData", 'GET', params, undefined, undefined, {"cost":1});
     }
     override dapiDataGetTopLongShortPositionRatio (params = {}): Promise<List> {
-        return this.request ("topLongShortPositionRatio", "dapiData", 'GET', params, {"cost":1});
+        return this.request ("topLongShortPositionRatio", "dapiData", 'GET', params, undefined, undefined, {"cost":1});
     }
     override dapiDataGetGlobalLongShortAccountRatio (params = {}): Promise<List> {
-        return this.request ("globalLongShortAccountRatio", "dapiData", 'GET', params, {"cost":1});
+        return this.request ("globalLongShortAccountRatio", "dapiData", 'GET', params, undefined, undefined, {"cost":1});
     }
     override dapiDataGetTakerBuySellVol (params = {}): Promise<List> {
-        return this.request ("takerBuySellVol", "dapiData", 'GET', params, {"cost":1});
+        return this.request ("takerBuySellVol", "dapiData", 'GET', params, undefined, undefined, {"cost":1});
     }
     override dapiDataGetBasis (params = {}): Promise<List> {
-        return this.request ("basis", "dapiData", 'GET', params, {"cost":1});
+        return this.request ("basis", "dapiData", 'GET', params, undefined, undefined, {"cost":1});
     }
     override dapiPrivateGetPositionSideDual (params = {}): Promise<Dict> {
-        return this.request ("positionSide/dual", "dapiPrivate", 'GET', params, {"cost":30});
+        return this.request ("positionSide/dual", "dapiPrivate", 'GET', params, undefined, undefined, {"cost":30});
     }
     override dapiPrivateGetOrderAmendment (params = {}): Promise<List> {
-        return this.request ("orderAmendment", "dapiPrivate", 'GET', params, {"cost":1});
+        return this.request ("orderAmendment", "dapiPrivate", 'GET', params, undefined, undefined, {"cost":1});
     }
     override dapiPrivateGetOrder (params = {}): Promise<Dict> {
-        return this.request ("order", "dapiPrivate", 'GET', params, {"cost":1});
+        return this.request ("order", "dapiPrivate", 'GET', params, undefined, undefined, {"cost":1});
     }
     override dapiPrivateGetOpenOrder (params = {}): Promise<Dict> {
-        return this.request ("openOrder", "dapiPrivate", 'GET', params, {"cost":1});
+        return this.request ("openOrder", "dapiPrivate", 'GET', params, undefined, undefined, {"cost":1});
     }
     override dapiPrivateGetOpenOrders (params = {}): Promise<List> {
-        return this.request ("openOrders", "dapiPrivate", 'GET', params, {"cost":1,"noSymbol":5});
+        return this.request ("openOrders", "dapiPrivate", 'GET', params, undefined, undefined, {"cost":1,"noSymbol":5});
     }
     override dapiPrivateGetOpenAlgoOrders (params = {}): Promise<List> {
-        return this.request ("openAlgoOrders", "dapiPrivate", 'GET', params, {"cost":1,"noSymbol":40});
+        return this.request ("openAlgoOrders", "dapiPrivate", 'GET', params, undefined, undefined, {"cost":1,"noSymbol":40});
     }
     override dapiPrivateGetAlgoOrder (params = {}): Promise<Dict> {
-        return this.request ("algoOrder", "dapiPrivate", 'GET', params, {"cost":1});
+        return this.request ("algoOrder", "dapiPrivate", 'GET', params, undefined, undefined, {"cost":1});
     }
     override dapiPrivateGetAllAlgoOrders (params = {}): Promise<List> {
-        return this.request ("allAlgoOrders", "dapiPrivate", 'GET', params, {"cost":5});
+        return this.request ("allAlgoOrders", "dapiPrivate", 'GET', params, undefined, undefined, {"cost":5});
     }
     override dapiPrivateGetAllOrders (params = {}): Promise<List> {
-        return this.request ("allOrders", "dapiPrivate", 'GET', params, {"cost":5});
+        return this.request ("allOrders", "dapiPrivate", 'GET', params, undefined, undefined, {"cost":5});
     }
     override dapiPrivateGetBalance (params = {}): Promise<List> {
-        return this.request ("balance", "dapiPrivate", 'GET', params, {"cost":1});
+        return this.request ("balance", "dapiPrivate", 'GET', params, undefined, undefined, {"cost":1});
     }
     override dapiPrivateGetAccount (params = {}): Promise<Dict> {
-        return this.request ("account", "dapiPrivate", 'GET', params, {"cost":5});
+        return this.request ("account", "dapiPrivate", 'GET', params, undefined, undefined, {"cost":5});
     }
     override dapiPrivateGetPositionMarginHistory (params = {}): Promise<List> {
-        return this.request ("positionMargin/history", "dapiPrivate", 'GET', params, {"cost":1});
+        return this.request ("positionMargin/history", "dapiPrivate", 'GET', params, undefined, undefined, {"cost":1});
     }
     override dapiPrivateGetPositionRisk (params = {}): Promise<List> {
-        return this.request ("positionRisk", "dapiPrivate", 'GET', params, {"cost":1});
+        return this.request ("positionRisk", "dapiPrivate", 'GET', params, undefined, undefined, {"cost":1});
     }
     override dapiPrivateGetUserTrades (params = {}): Promise<List> {
-        return this.request ("userTrades", "dapiPrivate", 'GET', params, {"cost":5});
+        return this.request ("userTrades", "dapiPrivate", 'GET', params, undefined, undefined, {"cost":5});
     }
     override dapiPrivateGetIncome (params = {}): Promise<List> {
-        return this.request ("income", "dapiPrivate", 'GET', params, {"cost":20});
+        return this.request ("income", "dapiPrivate", 'GET', params, undefined, undefined, {"cost":20});
     }
     override dapiPrivateGetLeverageBracket (params = {}): Promise<List> {
-        return this.request ("leverageBracket", "dapiPrivate", 'GET', params, {"cost":2,"noSymbol":2});
+        return this.request ("leverageBracket", "dapiPrivate", 'GET', params, undefined, undefined, {"cost":2,"noSymbol":2});
     }
     override dapiPrivateGetForceOrders (params = {}): Promise<Dict> {
-        return this.request ("forceOrders", "dapiPrivate", 'GET', params, {"cost":20,"noSymbol":50});
+        return this.request ("forceOrders", "dapiPrivate", 'GET', params, undefined, undefined, {"cost":20,"noSymbol":50});
     }
     override dapiPrivateGetAdlQuantile (params = {}): Promise<List> {
-        return this.request ("adlQuantile", "dapiPrivate", 'GET', params, {"cost":5});
+        return this.request ("adlQuantile", "dapiPrivate", 'GET', params, undefined, undefined, {"cost":5});
     }
     override dapiPrivateGetCommissionRate (params = {}): Promise<Dict> {
-        return this.request ("commissionRate", "dapiPrivate", 'GET', params, {"cost":20});
+        return this.request ("commissionRate", "dapiPrivate", 'GET', params, undefined, undefined, {"cost":20});
     }
     override dapiPrivateGetIncomeAsyn (params = {}): Promise<Dict> {
-        return this.request ("income/asyn", "dapiPrivate", 'GET', params, {"cost":5});
+        return this.request ("income/asyn", "dapiPrivate", 'GET', params, undefined, undefined, {"cost":5});
     }
     override dapiPrivateGetIncomeAsynId (params = {}): Promise<Dict> {
-        return this.request ("income/asyn/id", "dapiPrivate", 'GET', params, {"cost":5});
+        return this.request ("income/asyn/id", "dapiPrivate", 'GET', params, undefined, undefined, {"cost":5});
     }
     override dapiPrivateGetTradeAsyn (params = {}): Promise<Dict> {
-        return this.request ("trade/asyn", "dapiPrivate", 'GET', params, {"cost":0.5});
+        return this.request ("trade/asyn", "dapiPrivate", 'GET', params, undefined, undefined, {"cost":0.5});
     }
     override dapiPrivateGetTradeAsynId (params = {}): Promise<Dict> {
-        return this.request ("trade/asyn/id", "dapiPrivate", 'GET', params, {"cost":0.5});
+        return this.request ("trade/asyn/id", "dapiPrivate", 'GET', params, undefined, undefined, {"cost":0.5});
     }
     override dapiPrivateGetOrderAsyn (params = {}): Promise<Dict> {
-        return this.request ("order/asyn", "dapiPrivate", 'GET', params, {"cost":0.5});
+        return this.request ("order/asyn", "dapiPrivate", 'GET', params, undefined, undefined, {"cost":0.5});
     }
     override dapiPrivateGetOrderAsynId (params = {}): Promise<Dict> {
-        return this.request ("order/asyn/id", "dapiPrivate", 'GET', params, {"cost":0.5});
+        return this.request ("order/asyn/id", "dapiPrivate", 'GET', params, undefined, undefined, {"cost":0.5});
     }
     override dapiPrivateGetPmExchangeInfo (params = {}): Promise<Dict> {
-        return this.request ("pmExchangeInfo", "dapiPrivate", 'GET', params, {"cost":0.5});
+        return this.request ("pmExchangeInfo", "dapiPrivate", 'GET', params, undefined, undefined, {"cost":0.5});
     }
     override dapiPrivateGetPmAccountInfo (params = {}): Promise<Dict> {
-        return this.request ("pmAccountInfo", "dapiPrivate", 'GET', params, {"cost":0.5});
+        return this.request ("pmAccountInfo", "dapiPrivate", 'GET', params, undefined, undefined, {"cost":0.5});
     }
     override dapiPrivatePostPositionSideDual (params = {}): Promise<Dict> {
-        return this.request ("positionSide/dual", "dapiPrivate", 'POST', params, {"cost":1});
+        return this.request ("positionSide/dual", "dapiPrivate", 'POST', params, undefined, undefined, {"cost":1});
     }
     override dapiPrivatePostOrder (params = {}): Promise<Dict> {
-        return this.request ("order", "dapiPrivate", 'POST', params, {"cost":4});
+        return this.request ("order", "dapiPrivate", 'POST', params, undefined, undefined, {"cost":4});
     }
     override dapiPrivatePostAlgoOrder (params = {}): Promise<Dict> {
-        return this.request ("algoOrder", "dapiPrivate", 'POST', params, {"cost":1});
+        return this.request ("algoOrder", "dapiPrivate", 'POST', params, undefined, undefined, {"cost":1});
     }
     override dapiPrivatePostBatchOrders (params = {}): Promise<List> {
-        return this.request ("batchOrders", "dapiPrivate", 'POST', params, {"cost":5});
+        return this.request ("batchOrders", "dapiPrivate", 'POST', params, undefined, undefined, {"cost":5});
     }
     override dapiPrivatePostCountdownCancelAll (params = {}): Promise<Dict> {
-        return this.request ("countdownCancelAll", "dapiPrivate", 'POST', params, {"cost":10});
+        return this.request ("countdownCancelAll", "dapiPrivate", 'POST', params, undefined, undefined, {"cost":10});
     }
     override dapiPrivatePostLeverage (params = {}): Promise<Dict> {
-        return this.request ("leverage", "dapiPrivate", 'POST', params, {"cost":1});
+        return this.request ("leverage", "dapiPrivate", 'POST', params, undefined, undefined, {"cost":1});
     }
     override dapiPrivatePostMarginType (params = {}): Promise<Dict> {
-        return this.request ("marginType", "dapiPrivate", 'POST', params, {"cost":1});
+        return this.request ("marginType", "dapiPrivate", 'POST', params, undefined, undefined, {"cost":1});
     }
     override dapiPrivatePostPositionMargin (params = {}): Promise<Dict> {
-        return this.request ("positionMargin", "dapiPrivate", 'POST', params, {"cost":1});
+        return this.request ("positionMargin", "dapiPrivate", 'POST', params, undefined, undefined, {"cost":1});
     }
     override dapiPrivatePostListenKey (params = {}): Promise<Dict> {
-        return this.request ("listenKey", "dapiPrivate", 'POST', params, {"cost":1});
+        return this.request ("listenKey", "dapiPrivate", 'POST', params, undefined, undefined, {"cost":1});
     }
     override dapiPrivatePutListenKey (params = {}): Promise<Dict> {
-        return this.request ("listenKey", "dapiPrivate", 'PUT', params, {"cost":1});
+        return this.request ("listenKey", "dapiPrivate", 'PUT', params, undefined, undefined, {"cost":1});
     }
     override dapiPrivatePutOrder (params = {}): Promise<Dict> {
-        return this.request ("order", "dapiPrivate", 'PUT', params, {"cost":1});
+        return this.request ("order", "dapiPrivate", 'PUT', params, undefined, undefined, {"cost":1});
     }
     override dapiPrivatePutBatchOrders (params = {}): Promise<List> {
-        return this.request ("batchOrders", "dapiPrivate", 'PUT', params, {"cost":5});
+        return this.request ("batchOrders", "dapiPrivate", 'PUT', params, undefined, undefined, {"cost":5});
     }
     override dapiPrivateDeleteOrder (params = {}): Promise<Dict> {
-        return this.request ("order", "dapiPrivate", 'DELETE', params, {"cost":1});
+        return this.request ("order", "dapiPrivate", 'DELETE', params, undefined, undefined, {"cost":1});
     }
     override dapiPrivateDeleteAlgoOrder (params = {}): Promise<Dict> {
-        return this.request ("algoOrder", "dapiPrivate", 'DELETE', params, {"cost":1});
+        return this.request ("algoOrder", "dapiPrivate", 'DELETE', params, undefined, undefined, {"cost":1});
     }
     override dapiPrivateDeleteAlgoOpenOrders (params = {}): Promise<Dict> {
-        return this.request ("algoOpenOrders", "dapiPrivate", 'DELETE', params, {"cost":1});
+        return this.request ("algoOpenOrders", "dapiPrivate", 'DELETE', params, undefined, undefined, {"cost":1});
     }
     override dapiPrivateDeleteAllOpenOrders (params = {}): Promise<List> {
-        return this.request ("allOpenOrders", "dapiPrivate", 'DELETE', params, {"cost":1});
+        return this.request ("allOpenOrders", "dapiPrivate", 'DELETE', params, undefined, undefined, {"cost":1});
     }
     override dapiPrivateDeleteBatchOrders (params = {}): Promise<List> {
-        return this.request ("batchOrders", "dapiPrivate", 'DELETE', params, {"cost":5});
+        return this.request ("batchOrders", "dapiPrivate", 'DELETE', params, undefined, undefined, {"cost":5});
     }
     override dapiPrivateDeleteListenKey (params = {}): Promise<Dict> {
-        return this.request ("listenKey", "dapiPrivate", 'DELETE', params, {"cost":1});
+        return this.request ("listenKey", "dapiPrivate", 'DELETE', params, undefined, undefined, {"cost":1});
     }
     override dapiPrivateV2GetLeverageBracket (params = {}): Promise<List> {
-        return this.request ("leverageBracket", "dapiPrivateV2", 'GET', params, {"cost":1,"noSymbol":2});
+        return this.request ("leverageBracket", "dapiPrivateV2", 'GET', params, undefined, undefined, {"cost":1,"noSymbol":2});
     }
     override fapiPublicGetPing (params = {}): Promise<Dict> {
-        return this.request ("ping", "fapiPublic", 'GET', params, {"cost":1});
+        return this.request ("ping", "fapiPublic", 'GET', params, undefined, undefined, {"cost":1});
     }
     override fapiPublicGetTime (params = {}): Promise<Dict> {
-        return this.request ("time", "fapiPublic", 'GET', params, {"cost":1});
+        return this.request ("time", "fapiPublic", 'GET', params, undefined, undefined, {"cost":1});
     }
     override fapiPublicGetExchangeInfo (params = {}): Promise<Dict> {
-        return this.request ("exchangeInfo", "fapiPublic", 'GET', params, {"cost":1});
+        return this.request ("exchangeInfo", "fapiPublic", 'GET', params, undefined, undefined, {"cost":1});
     }
     override fapiPublicGetDepth (params = {}): Promise<Dict> {
-        return this.request ("depth", "fapiPublic", 'GET', params, {"cost":2,"byLimit":[[50,2],[100,5],[500,10],[1000,20]]});
+        return this.request ("depth", "fapiPublic", 'GET', params, undefined, undefined, {"cost":2,"byLimit":[[50,2],[100,5],[500,10],[1000,20]]});
     }
     override fapiPublicGetRpiDepth (params = {}): Promise<Dict> {
-        return this.request ("rpiDepth", "fapiPublic", 'GET', params, {"cost":20});
+        return this.request ("rpiDepth", "fapiPublic", 'GET', params, undefined, undefined, {"cost":20});
     }
     override fapiPublicGetTrades (params = {}): Promise<List> {
-        return this.request ("trades", "fapiPublic", 'GET', params, {"cost":5});
+        return this.request ("trades", "fapiPublic", 'GET', params, undefined, undefined, {"cost":5});
     }
     override fapiPublicGetHistoricalTrades (params = {}): Promise<List> {
-        return this.request ("historicalTrades", "fapiPublic", 'GET', params, {"cost":200});
+        return this.request ("historicalTrades", "fapiPublic", 'GET', params, undefined, undefined, {"cost":200});
     }
     override fapiPublicGetAggTrades (params = {}): Promise<List> {
-        return this.request ("aggTrades", "fapiPublic", 'GET', params, {"cost":20});
+        return this.request ("aggTrades", "fapiPublic", 'GET', params, undefined, undefined, {"cost":20});
     }
     override fapiPublicGetKlines (params = {}): Promise<List> {
-        return this.request ("klines", "fapiPublic", 'GET', params, {"cost":1,"byLimit":[[99,1],[499,2],[1000,5],[10000,10]]});
+        return this.request ("klines", "fapiPublic", 'GET', params, undefined, undefined, {"cost":1,"byLimit":[[99,1],[499,2],[1000,5],[10000,10]]});
     }
     override fapiPublicGetContinuousKlines (params = {}): Promise<List> {
-        return this.request ("continuousKlines", "fapiPublic", 'GET', params, {"cost":1,"byLimit":[[99,1],[499,2],[1000,5],[10000,10]]});
+        return this.request ("continuousKlines", "fapiPublic", 'GET', params, undefined, undefined, {"cost":1,"byLimit":[[99,1],[499,2],[1000,5],[10000,10]]});
     }
     override fapiPublicGetMarkPriceKlines (params = {}): Promise<List> {
-        return this.request ("markPriceKlines", "fapiPublic", 'GET', params, {"cost":1,"byLimit":[[99,1],[499,2],[1000,5],[10000,10]]});
+        return this.request ("markPriceKlines", "fapiPublic", 'GET', params, undefined, undefined, {"cost":1,"byLimit":[[99,1],[499,2],[1000,5],[10000,10]]});
     }
     override fapiPublicGetIndexPriceKlines (params = {}): Promise<List> {
-        return this.request ("indexPriceKlines", "fapiPublic", 'GET', params, {"cost":1,"byLimit":[[99,1],[499,2],[1000,5],[10000,10]]});
+        return this.request ("indexPriceKlines", "fapiPublic", 'GET', params, undefined, undefined, {"cost":1,"byLimit":[[99,1],[499,2],[1000,5],[10000,10]]});
     }
     override fapiPublicGetPremiumIndexKlines (params = {}): Promise<List> {
-        return this.request ("premiumIndexKlines", "fapiPublic", 'GET', params, {"cost":1,"byLimit":[[99,1],[499,2],[1000,5],[10000,10]]});
+        return this.request ("premiumIndexKlines", "fapiPublic", 'GET', params, undefined, undefined, {"cost":1,"byLimit":[[99,1],[499,2],[1000,5],[10000,10]]});
     }
     override fapiPublicGetFundingRate (params = {}): Promise<List> {
-        return this.request ("fundingRate", "fapiPublic", 'GET', params, {"cost":1});
+        return this.request ("fundingRate", "fapiPublic", 'GET', params, undefined, undefined, {"cost":1});
     }
     override fapiPublicGetFundingInfo (params = {}): Promise<List> {
-        return this.request ("fundingInfo", "fapiPublic", 'GET', params, {"cost":1});
+        return this.request ("fundingInfo", "fapiPublic", 'GET', params, undefined, undefined, {"cost":1});
     }
     override fapiPublicGetPremiumIndex (params = {}): Promise<List> {
-        return this.request ("premiumIndex", "fapiPublic", 'GET', params, {"cost":1});
+        return this.request ("premiumIndex", "fapiPublic", 'GET', params, undefined, undefined, {"cost":1});
     }
     override fapiPublicGetTicker24hr (params = {}): Promise<Dict | List> {
-        return this.request ("ticker/24hr", "fapiPublic", 'GET', params, {"cost":1,"noSymbol":40});
+        return this.request ("ticker/24hr", "fapiPublic", 'GET', params, undefined, undefined, {"cost":1,"noSymbol":40});
     }
     override fapiPublicGetTickerPrice (params = {}): Promise<Dict | List> {
-        return this.request ("ticker/price", "fapiPublic", 'GET', params, {"cost":1,"noSymbol":2});
+        return this.request ("ticker/price", "fapiPublic", 'GET', params, undefined, undefined, {"cost":1,"noSymbol":2});
     }
     override fapiPublicGetTickerBookTicker (params = {}): Promise<Dict | List> {
-        return this.request ("ticker/bookTicker", "fapiPublic", 'GET', params, {"cost":2,"noSymbol":5});
+        return this.request ("ticker/bookTicker", "fapiPublic", 'GET', params, undefined, undefined, {"cost":2,"noSymbol":5});
     }
     override fapiPublicGetOpenInterest (params = {}): Promise<Dict> {
-        return this.request ("openInterest", "fapiPublic", 'GET', params, {"cost":1});
+        return this.request ("openInterest", "fapiPublic", 'GET', params, undefined, undefined, {"cost":1});
     }
     override fapiPublicGetIndexInfo (params = {}): Promise<List> {
-        return this.request ("indexInfo", "fapiPublic", 'GET', params, {"cost":1});
+        return this.request ("indexInfo", "fapiPublic", 'GET', params, undefined, undefined, {"cost":1});
     }
     override fapiPublicGetAssetIndex (params = {}): Promise<Dict> {
-        return this.request ("assetIndex", "fapiPublic", 'GET', params, {"cost":1,"noSymbol":10});
+        return this.request ("assetIndex", "fapiPublic", 'GET', params, undefined, undefined, {"cost":1,"noSymbol":10});
     }
     override fapiPublicGetConstituents (params = {}): Promise<Dict> {
-        return this.request ("constituents", "fapiPublic", 'GET', params, {"cost":2});
+        return this.request ("constituents", "fapiPublic", 'GET', params, undefined, undefined, {"cost":2});
     }
     override fapiPublicGetApiTradingStatus (params = {}): Promise<Dict> {
-        return this.request ("apiTradingStatus", "fapiPublic", 'GET', params, {"cost":1,"noSymbol":10});
+        return this.request ("apiTradingStatus", "fapiPublic", 'GET', params, undefined, undefined, {"cost":1,"noSymbol":10});
     }
     override fapiPublicGetLvtKlines (params = {}): Promise<List> {
-        return this.request ("lvtKlines", "fapiPublic", 'GET', params, {"cost":1});
+        return this.request ("lvtKlines", "fapiPublic", 'GET', params, undefined, undefined, {"cost":1});
     }
     override fapiPublicGetConvertExchangeInfo (params = {}): Promise<List> {
-        return this.request ("convert/exchangeInfo", "fapiPublic", 'GET', params, {"cost":4});
+        return this.request ("convert/exchangeInfo", "fapiPublic", 'GET', params, undefined, undefined, {"cost":4});
     }
     override fapiPublicGetInsuranceBalance (params = {}): Promise<List> {
-        return this.request ("insuranceBalance", "fapiPublic", 'GET', params, {"cost":1});
+        return this.request ("insuranceBalance", "fapiPublic", 'GET', params, undefined, undefined, {"cost":1});
     }
     override fapiPublicGetSymbolAdlRisk (params = {}): Promise<Dict> {
-        return this.request ("symbolAdlRisk", "fapiPublic", 'GET', params, {"cost":1});
+        return this.request ("symbolAdlRisk", "fapiPublic", 'GET', params, undefined, undefined, {"cost":1});
     }
     override fapiPublicGetTradingSchedule (params = {}): Promise<Dict> {
-        return this.request ("tradingSchedule", "fapiPublic", 'GET', params, {"cost":5});
+        return this.request ("tradingSchedule", "fapiPublic", 'GET', params, undefined, undefined, {"cost":5});
     }
     override fapiDataGetDeliveryPrice (params = {}): Promise<List> {
-        return this.request ("delivery-price", "fapiData", 'GET', params, {"cost":1});
+        return this.request ("delivery-price", "fapiData", 'GET', params, undefined, undefined, {"cost":1});
     }
     override fapiDataGetOpenInterestHist (params = {}): Promise<List> {
-        return this.request ("openInterestHist", "fapiData", 'GET', params, {"cost":1});
+        return this.request ("openInterestHist", "fapiData", 'GET', params, undefined, undefined, {"cost":1});
     }
     override fapiDataGetTopLongShortAccountRatio (params = {}): Promise<List> {
-        return this.request ("topLongShortAccountRatio", "fapiData", 'GET', params, {"cost":1});
+        return this.request ("topLongShortAccountRatio", "fapiData", 'GET', params, undefined, undefined, {"cost":1});
     }
     override fapiDataGetTopLongShortPositionRatio (params = {}): Promise<List> {
-        return this.request ("topLongShortPositionRatio", "fapiData", 'GET', params, {"cost":1});
+        return this.request ("topLongShortPositionRatio", "fapiData", 'GET', params, undefined, undefined, {"cost":1});
     }
     override fapiDataGetGlobalLongShortAccountRatio (params = {}): Promise<List> {
-        return this.request ("globalLongShortAccountRatio", "fapiData", 'GET', params, {"cost":1});
+        return this.request ("globalLongShortAccountRatio", "fapiData", 'GET', params, undefined, undefined, {"cost":1});
     }
     override fapiDataGetTakerlongshortRatio (params = {}): Promise<List> {
-        return this.request ("takerlongshortRatio", "fapiData", 'GET', params, {"cost":1});
+        return this.request ("takerlongshortRatio", "fapiData", 'GET', params, undefined, undefined, {"cost":1});
     }
     override fapiDataGetBasis (params = {}): Promise<List> {
-        return this.request ("basis", "fapiData", 'GET', params, {"cost":1});
+        return this.request ("basis", "fapiData", 'GET', params, undefined, undefined, {"cost":1});
     }
     override fapiPrivateGetForceOrders (params = {}): Promise<Dict> {
-        return this.request ("forceOrders", "fapiPrivate", 'GET', params, {"cost":20,"noSymbol":50});
+        return this.request ("forceOrders", "fapiPrivate", 'GET', params, undefined, undefined, {"cost":20,"noSymbol":50});
     }
     override fapiPrivateGetAllOrders (params = {}): Promise<List> {
-        return this.request ("allOrders", "fapiPrivate", 'GET', params, {"cost":5});
+        return this.request ("allOrders", "fapiPrivate", 'GET', params, undefined, undefined, {"cost":5});
     }
     override fapiPrivateGetOpenOrder (params = {}): Promise<Dict> {
-        return this.request ("openOrder", "fapiPrivate", 'GET', params, {"cost":1});
+        return this.request ("openOrder", "fapiPrivate", 'GET', params, undefined, undefined, {"cost":1});
     }
     override fapiPrivateGetOpenOrders (params = {}): Promise<List> {
-        return this.request ("openOrders", "fapiPrivate", 'GET', params, {"cost":1,"noSymbol":40});
+        return this.request ("openOrders", "fapiPrivate", 'GET', params, undefined, undefined, {"cost":1,"noSymbol":40});
     }
     override fapiPrivateGetOrder (params = {}): Promise<Dict> {
-        return this.request ("order", "fapiPrivate", 'GET', params, {"cost":1});
+        return this.request ("order", "fapiPrivate", 'GET', params, undefined, undefined, {"cost":1});
     }
     override fapiPrivateGetAccount (params = {}): Promise<Dict> {
-        return this.request ("account", "fapiPrivate", 'GET', params, {"cost":5});
+        return this.request ("account", "fapiPrivate", 'GET', params, undefined, undefined, {"cost":5});
     }
     override fapiPrivateGetBalance (params = {}): Promise<List> {
-        return this.request ("balance", "fapiPrivate", 'GET', params, {"cost":5});
+        return this.request ("balance", "fapiPrivate", 'GET', params, undefined, undefined, {"cost":5});
     }
     override fapiPrivateGetLeverageBracket (params = {}): Promise<List> {
-        return this.request ("leverageBracket", "fapiPrivate", 'GET', params, {"cost":1});
+        return this.request ("leverageBracket", "fapiPrivate", 'GET', params, undefined, undefined, {"cost":1});
     }
     override fapiPrivateGetPositionMarginHistory (params = {}): Promise<List> {
-        return this.request ("positionMargin/history", "fapiPrivate", 'GET', params, {"cost":1});
+        return this.request ("positionMargin/history", "fapiPrivate", 'GET', params, undefined, undefined, {"cost":1});
     }
     override fapiPrivateGetPositionRisk (params = {}): Promise<List> {
-        return this.request ("positionRisk", "fapiPrivate", 'GET', params, {"cost":5});
+        return this.request ("positionRisk", "fapiPrivate", 'GET', params, undefined, undefined, {"cost":5});
     }
     override fapiPrivateGetPositionSideDual (params = {}): Promise<Dict> {
-        return this.request ("positionSide/dual", "fapiPrivate", 'GET', params, {"cost":30});
+        return this.request ("positionSide/dual", "fapiPrivate", 'GET', params, undefined, undefined, {"cost":30});
     }
     override fapiPrivateGetUserTrades (params = {}): Promise<List> {
-        return this.request ("userTrades", "fapiPrivate", 'GET', params, {"cost":5});
+        return this.request ("userTrades", "fapiPrivate", 'GET', params, undefined, undefined, {"cost":5});
     }
     override fapiPrivateGetIncome (params = {}): Promise<List> {
-        return this.request ("income", "fapiPrivate", 'GET', params, {"cost":30});
+        return this.request ("income", "fapiPrivate", 'GET', params, undefined, undefined, {"cost":30});
     }
     override fapiPrivateGetCommissionRate (params = {}): Promise<Dict> {
-        return this.request ("commissionRate", "fapiPrivate", 'GET', params, {"cost":20});
+        return this.request ("commissionRate", "fapiPrivate", 'GET', params, undefined, undefined, {"cost":20});
     }
     override fapiPrivateGetRateLimitOrder (params = {}): Promise<List> {
-        return this.request ("rateLimit/order", "fapiPrivate", 'GET', params, {"cost":1});
+        return this.request ("rateLimit/order", "fapiPrivate", 'GET', params, undefined, undefined, {"cost":1});
     }
     override fapiPrivateGetApiTradingStatus (params = {}): Promise<Dict> {
-        return this.request ("apiTradingStatus", "fapiPrivate", 'GET', params, {"cost":1});
+        return this.request ("apiTradingStatus", "fapiPrivate", 'GET', params, undefined, undefined, {"cost":1});
     }
     override fapiPrivateGetMultiAssetsMargin (params = {}): Promise<Dict> {
-        return this.request ("multiAssetsMargin", "fapiPrivate", 'GET', params, {"cost":30});
+        return this.request ("multiAssetsMargin", "fapiPrivate", 'GET', params, undefined, undefined, {"cost":30});
     }
     override fapiPrivateGetApiReferralIfNewUser (params = {}): Promise<Dict> {
-        return this.request ("apiReferral/ifNewUser", "fapiPrivate", 'GET', params, {"cost":1});
+        return this.request ("apiReferral/ifNewUser", "fapiPrivate", 'GET', params, undefined, undefined, {"cost":1});
     }
     override fapiPrivateGetApiReferralCustomization (params = {}): Promise<List> {
-        return this.request ("apiReferral/customization", "fapiPrivate", 'GET', params, {"cost":1});
+        return this.request ("apiReferral/customization", "fapiPrivate", 'GET', params, undefined, undefined, {"cost":1});
     }
     override fapiPrivateGetApiReferralUserCustomization (params = {}): Promise<Dict> {
-        return this.request ("apiReferral/userCustomization", "fapiPrivate", 'GET', params, {"cost":1});
+        return this.request ("apiReferral/userCustomization", "fapiPrivate", 'GET', params, undefined, undefined, {"cost":1});
     }
     override fapiPrivateGetApiReferralTraderNum (params = {}): Promise<List> {
-        return this.request ("apiReferral/traderNum", "fapiPrivate", 'GET', params, {"cost":1});
+        return this.request ("apiReferral/traderNum", "fapiPrivate", 'GET', params, undefined, undefined, {"cost":1});
     }
     override fapiPrivateGetApiReferralOverview (params = {}): Promise<Dict> {
-        return this.request ("apiReferral/overview", "fapiPrivate", 'GET', params, {"cost":1});
+        return this.request ("apiReferral/overview", "fapiPrivate", 'GET', params, undefined, undefined, {"cost":1});
     }
     override fapiPrivateGetApiReferralTradeVol (params = {}): Promise<List> {
-        return this.request ("apiReferral/tradeVol", "fapiPrivate", 'GET', params, {"cost":1});
+        return this.request ("apiReferral/tradeVol", "fapiPrivate", 'GET', params, undefined, undefined, {"cost":1});
     }
     override fapiPrivateGetApiReferralRebateVol (params = {}): Promise<List> {
-        return this.request ("apiReferral/rebateVol", "fapiPrivate", 'GET', params, {"cost":1});
+        return this.request ("apiReferral/rebateVol", "fapiPrivate", 'GET', params, undefined, undefined, {"cost":1});
     }
     override fapiPrivateGetApiReferralTraderSummary (params = {}): Promise<List> {
-        return this.request ("apiReferral/traderSummary", "fapiPrivate", 'GET', params, {"cost":1});
+        return this.request ("apiReferral/traderSummary", "fapiPrivate", 'GET', params, undefined, undefined, {"cost":1});
     }
     override fapiPrivateGetAdlQuantile (params = {}): Promise<List> {
-        return this.request ("adlQuantile", "fapiPrivate", 'GET', params, {"cost":5});
+        return this.request ("adlQuantile", "fapiPrivate", 'GET', params, undefined, undefined, {"cost":5});
     }
     override fapiPrivateGetPmAccountInfo (params = {}): Promise<Dict> {
-        return this.request ("pmAccountInfo", "fapiPrivate", 'GET', params, {"cost":5});
+        return this.request ("pmAccountInfo", "fapiPrivate", 'GET', params, undefined, undefined, {"cost":5});
     }
     override fapiPrivateGetOrderAmendment (params = {}): Promise<List> {
-        return this.request ("orderAmendment", "fapiPrivate", 'GET', params, {"cost":1});
+        return this.request ("orderAmendment", "fapiPrivate", 'GET', params, undefined, undefined, {"cost":1});
     }
     override fapiPrivateGetIncomeAsyn (params = {}): Promise<Dict> {
-        return this.request ("income/asyn", "fapiPrivate", 'GET', params, {"cost":1000});
+        return this.request ("income/asyn", "fapiPrivate", 'GET', params, undefined, undefined, {"cost":1000});
     }
     override fapiPrivateGetIncomeAsynId (params = {}): Promise<Dict> {
-        return this.request ("income/asyn/id", "fapiPrivate", 'GET', params, {"cost":10});
+        return this.request ("income/asyn/id", "fapiPrivate", 'GET', params, undefined, undefined, {"cost":10});
     }
     override fapiPrivateGetOrderAsyn (params = {}): Promise<Dict> {
-        return this.request ("order/asyn", "fapiPrivate", 'GET', params, {"cost":1000});
+        return this.request ("order/asyn", "fapiPrivate", 'GET', params, undefined, undefined, {"cost":1000});
     }
     override fapiPrivateGetOrderAsynId (params = {}): Promise<Dict> {
-        return this.request ("order/asyn/id", "fapiPrivate", 'GET', params, {"cost":10});
+        return this.request ("order/asyn/id", "fapiPrivate", 'GET', params, undefined, undefined, {"cost":10});
     }
     override fapiPrivateGetTradeAsyn (params = {}): Promise<Dict> {
-        return this.request ("trade/asyn", "fapiPrivate", 'GET', params, {"cost":1000});
+        return this.request ("trade/asyn", "fapiPrivate", 'GET', params, undefined, undefined, {"cost":1000});
     }
     override fapiPrivateGetTradeAsynId (params = {}): Promise<Dict> {
-        return this.request ("trade/asyn/id", "fapiPrivate", 'GET', params, {"cost":10});
+        return this.request ("trade/asyn/id", "fapiPrivate", 'GET', params, undefined, undefined, {"cost":10});
     }
     override fapiPrivateGetFeeBurn (params = {}): Promise<Dict> {
-        return this.request ("feeBurn", "fapiPrivate", 'GET', params, {"cost":1});
+        return this.request ("feeBurn", "fapiPrivate", 'GET', params, undefined, undefined, {"cost":1});
     }
     override fapiPrivateGetSymbolConfig (params = {}): Promise<List> {
-        return this.request ("symbolConfig", "fapiPrivate", 'GET', params, {"cost":5});
+        return this.request ("symbolConfig", "fapiPrivate", 'GET', params, undefined, undefined, {"cost":5});
     }
     override fapiPrivateGetAccountConfig (params = {}): Promise<Dict> {
-        return this.request ("accountConfig", "fapiPrivate", 'GET', params, {"cost":5});
+        return this.request ("accountConfig", "fapiPrivate", 'GET', params, undefined, undefined, {"cost":5});
     }
     override fapiPrivateGetConvertOrderStatus (params = {}): Promise<Dict> {
-        return this.request ("convert/orderStatus", "fapiPrivate", 'GET', params, {"cost":5});
+        return this.request ("convert/orderStatus", "fapiPrivate", 'GET', params, undefined, undefined, {"cost":5});
     }
     override fapiPrivateGetAlgoOrder (params = {}): Promise<Dict> {
-        return this.request ("algoOrder", "fapiPrivate", 'GET', params, {"cost":1});
+        return this.request ("algoOrder", "fapiPrivate", 'GET', params, undefined, undefined, {"cost":1});
     }
     override fapiPrivateGetOpenAlgoOrders (params = {}): Promise<List> {
-        return this.request ("openAlgoOrders", "fapiPrivate", 'GET', params, {"cost":1,"noSymbol":40});
+        return this.request ("openAlgoOrders", "fapiPrivate", 'GET', params, undefined, undefined, {"cost":1,"noSymbol":40});
     }
     override fapiPrivateGetAllAlgoOrders (params = {}): Promise<List> {
-        return this.request ("allAlgoOrders", "fapiPrivate", 'GET', params, {"cost":5});
+        return this.request ("allAlgoOrders", "fapiPrivate", 'GET', params, undefined, undefined, {"cost":5});
     }
     override fapiPrivateGetStockContract (params = {}): Promise<Dict> {
-        return this.request ("stock/contract", "fapiPrivate", 'GET', params, {"cost":50});
+        return this.request ("stock/contract", "fapiPrivate", 'GET', params, undefined, undefined, {"cost":50});
     }
     override fapiPrivatePostBatchOrders (params = {}): Promise<List> {
-        return this.request ("batchOrders", "fapiPrivate", 'POST', params, {"cost":5});
+        return this.request ("batchOrders", "fapiPrivate", 'POST', params, undefined, undefined, {"cost":5});
     }
     override fapiPrivatePostPositionSideDual (params = {}): Promise<Dict> {
-        return this.request ("positionSide/dual", "fapiPrivate", 'POST', params, {"cost":1});
+        return this.request ("positionSide/dual", "fapiPrivate", 'POST', params, undefined, undefined, {"cost":1});
     }
     override fapiPrivatePostPositionMargin (params = {}): Promise<Dict> {
-        return this.request ("positionMargin", "fapiPrivate", 'POST', params, {"cost":1});
+        return this.request ("positionMargin", "fapiPrivate", 'POST', params, undefined, undefined, {"cost":1});
     }
     override fapiPrivatePostMarginType (params = {}): Promise<Dict> {
-        return this.request ("marginType", "fapiPrivate", 'POST', params, {"cost":1});
+        return this.request ("marginType", "fapiPrivate", 'POST', params, undefined, undefined, {"cost":1});
     }
     override fapiPrivatePostOrder (params = {}): Promise<Dict> {
-        return this.request ("order", "fapiPrivate", 'POST', params, {"cost":4});
+        return this.request ("order", "fapiPrivate", 'POST', params, undefined, undefined, {"cost":4});
     }
     override fapiPrivatePostOrderTest (params = {}): Promise<Dict> {
-        return this.request ("order/test", "fapiPrivate", 'POST', params, {"cost":1});
+        return this.request ("order/test", "fapiPrivate", 'POST', params, undefined, undefined, {"cost":1});
     }
     override fapiPrivatePostLeverage (params = {}): Promise<Dict> {
-        return this.request ("leverage", "fapiPrivate", 'POST', params, {"cost":1});
+        return this.request ("leverage", "fapiPrivate", 'POST', params, undefined, undefined, {"cost":1});
     }
     override fapiPrivatePostListenKey (params = {}): Promise<Dict> {
-        return this.request ("listenKey", "fapiPrivate", 'POST', params, {"cost":1});
+        return this.request ("listenKey", "fapiPrivate", 'POST', params, undefined, undefined, {"cost":1});
     }
     override fapiPrivatePostCountdownCancelAll (params = {}): Promise<Dict> {
-        return this.request ("countdownCancelAll", "fapiPrivate", 'POST', params, {"cost":10});
+        return this.request ("countdownCancelAll", "fapiPrivate", 'POST', params, undefined, undefined, {"cost":10});
     }
     override fapiPrivatePostMultiAssetsMargin (params = {}): Promise<Dict> {
-        return this.request ("multiAssetsMargin", "fapiPrivate", 'POST', params, {"cost":1});
+        return this.request ("multiAssetsMargin", "fapiPrivate", 'POST', params, undefined, undefined, {"cost":1});
     }
     override fapiPrivatePostApiReferralCustomization (params = {}): Promise<Dict> {
-        return this.request ("apiReferral/customization", "fapiPrivate", 'POST', params, {"cost":1});
+        return this.request ("apiReferral/customization", "fapiPrivate", 'POST', params, undefined, undefined, {"cost":1});
     }
     override fapiPrivatePostApiReferralUserCustomization (params = {}): Promise<Dict> {
-        return this.request ("apiReferral/userCustomization", "fapiPrivate", 'POST', params, {"cost":1});
+        return this.request ("apiReferral/userCustomization", "fapiPrivate", 'POST', params, undefined, undefined, {"cost":1});
     }
     override fapiPrivatePostFeeBurn (params = {}): Promise<Dict> {
-        return this.request ("feeBurn", "fapiPrivate", 'POST', params, {"cost":1});
+        return this.request ("feeBurn", "fapiPrivate", 'POST', params, undefined, undefined, {"cost":1});
     }
     override fapiPrivatePostConvertGetQuote (params = {}): Promise<Dict> {
-        return this.request ("convert/getQuote", "fapiPrivate", 'POST', params, {"cost":200});
+        return this.request ("convert/getQuote", "fapiPrivate", 'POST', params, undefined, undefined, {"cost":200});
     }
     override fapiPrivatePostConvertAcceptQuote (params = {}): Promise<Dict> {
-        return this.request ("convert/acceptQuote", "fapiPrivate", 'POST', params, {"cost":20});
+        return this.request ("convert/acceptQuote", "fapiPrivate", 'POST', params, undefined, undefined, {"cost":20});
     }
     override fapiPrivatePostAlgoOrder (params = {}): Promise<Dict> {
-        return this.request ("algoOrder", "fapiPrivate", 'POST', params, {"cost":1});
+        return this.request ("algoOrder", "fapiPrivate", 'POST', params, undefined, undefined, {"cost":1});
     }
     override fapiPrivatePutListenKey (params = {}): Promise<Dict> {
-        return this.request ("listenKey", "fapiPrivate", 'PUT', params, {"cost":1});
+        return this.request ("listenKey", "fapiPrivate", 'PUT', params, undefined, undefined, {"cost":1});
     }
     override fapiPrivatePutOrder (params = {}): Promise<Dict> {
-        return this.request ("order", "fapiPrivate", 'PUT', params, {"cost":1});
+        return this.request ("order", "fapiPrivate", 'PUT', params, undefined, undefined, {"cost":1});
     }
     override fapiPrivatePutBatchOrders (params = {}): Promise<List> {
-        return this.request ("batchOrders", "fapiPrivate", 'PUT', params, {"cost":5});
+        return this.request ("batchOrders", "fapiPrivate", 'PUT', params, undefined, undefined, {"cost":5});
     }
     override fapiPrivateDeleteBatchOrders (params = {}): Promise<List> {
-        return this.request ("batchOrders", "fapiPrivate", 'DELETE', params, {"cost":1});
+        return this.request ("batchOrders", "fapiPrivate", 'DELETE', params, undefined, undefined, {"cost":1});
     }
     override fapiPrivateDeleteOrder (params = {}): Promise<Dict> {
-        return this.request ("order", "fapiPrivate", 'DELETE', params, {"cost":1});
+        return this.request ("order", "fapiPrivate", 'DELETE', params, undefined, undefined, {"cost":1});
     }
     override fapiPrivateDeleteAllOpenOrders (params = {}): Promise<List> {
-        return this.request ("allOpenOrders", "fapiPrivate", 'DELETE', params, {"cost":1});
+        return this.request ("allOpenOrders", "fapiPrivate", 'DELETE', params, undefined, undefined, {"cost":1});
     }
     override fapiPrivateDeleteListenKey (params = {}): Promise<Dict> {
-        return this.request ("listenKey", "fapiPrivate", 'DELETE', params, {"cost":1});
+        return this.request ("listenKey", "fapiPrivate", 'DELETE', params, undefined, undefined, {"cost":1});
     }
     override fapiPrivateDeleteAlgoOrder (params = {}): Promise<Dict> {
-        return this.request ("algoOrder", "fapiPrivate", 'DELETE', params, {"cost":1});
+        return this.request ("algoOrder", "fapiPrivate", 'DELETE', params, undefined, undefined, {"cost":1});
     }
     override fapiPrivateDeleteAlgoOpenOrders (params = {}): Promise<Dict> {
-        return this.request ("algoOpenOrders", "fapiPrivate", 'DELETE', params, {"cost":1});
+        return this.request ("algoOpenOrders", "fapiPrivate", 'DELETE', params, undefined, undefined, {"cost":1});
     }
     override fapiPublicV2GetTickerPrice (params = {}): Promise<Dict | List> {
-        return this.request ("ticker/price", "fapiPublicV2", 'GET', params, {"cost":0});
+        return this.request ("ticker/price", "fapiPublicV2", 'GET', params, undefined, undefined, {"cost":0});
     }
     override fapiPrivateV2GetAccount (params = {}): Promise<Dict> {
-        return this.request ("account", "fapiPrivateV2", 'GET', params, {"cost":1});
+        return this.request ("account", "fapiPrivateV2", 'GET', params, undefined, undefined, {"cost":1});
     }
     override fapiPrivateV2GetBalance (params = {}): Promise<List> {
-        return this.request ("balance", "fapiPrivateV2", 'GET', params, {"cost":1});
+        return this.request ("balance", "fapiPrivateV2", 'GET', params, undefined, undefined, {"cost":1});
     }
     override fapiPrivateV2GetPositionRisk (params = {}): Promise<List> {
-        return this.request ("positionRisk", "fapiPrivateV2", 'GET', params, {"cost":1});
+        return this.request ("positionRisk", "fapiPrivateV2", 'GET', params, undefined, undefined, {"cost":1});
     }
     override fapiPrivateV3GetAccount (params = {}): Promise<Dict> {
-        return this.request ("account", "fapiPrivateV3", 'GET', params, {"cost":1});
+        return this.request ("account", "fapiPrivateV3", 'GET', params, undefined, undefined, {"cost":1});
     }
     override fapiPrivateV3GetBalance (params = {}): Promise<List> {
-        return this.request ("balance", "fapiPrivateV3", 'GET', params, {"cost":1});
+        return this.request ("balance", "fapiPrivateV3", 'GET', params, undefined, undefined, {"cost":1});
     }
     override fapiPrivateV3GetPositionRisk (params = {}): Promise<List> {
-        return this.request ("positionRisk", "fapiPrivateV3", 'GET', params, {"cost":1});
+        return this.request ("positionRisk", "fapiPrivateV3", 'GET', params, undefined, undefined, {"cost":1});
     }
     override eapiPublicGetPing (params = {}): Promise<Dict> {
-        return this.request ("ping", "eapiPublic", 'GET', params, {"cost":1});
+        return this.request ("ping", "eapiPublic", 'GET', params, undefined, undefined, {"cost":1});
     }
     override eapiPublicGetTime (params = {}): Promise<Dict> {
-        return this.request ("time", "eapiPublic", 'GET', params, {"cost":1});
+        return this.request ("time", "eapiPublic", 'GET', params, undefined, undefined, {"cost":1});
     }
     override eapiPublicGetExchangeInfo (params = {}): Promise<Dict> {
-        return this.request ("exchangeInfo", "eapiPublic", 'GET', params, {"cost":1});
+        return this.request ("exchangeInfo", "eapiPublic", 'GET', params, undefined, undefined, {"cost":1});
     }
     override eapiPublicGetIndex (params = {}): Promise<Dict> {
-        return this.request ("index", "eapiPublic", 'GET', params, {"cost":1});
+        return this.request ("index", "eapiPublic", 'GET', params, undefined, undefined, {"cost":1});
     }
     override eapiPublicGetTicker (params = {}): Promise<List> {
-        return this.request ("ticker", "eapiPublic", 'GET', params, {"cost":5});
+        return this.request ("ticker", "eapiPublic", 'GET', params, undefined, undefined, {"cost":5});
     }
     override eapiPublicGetMark (params = {}): Promise<List> {
-        return this.request ("mark", "eapiPublic", 'GET', params, {"cost":5});
+        return this.request ("mark", "eapiPublic", 'GET', params, undefined, undefined, {"cost":5});
     }
     override eapiPublicGetDepth (params = {}): Promise<Dict> {
-        return this.request ("depth", "eapiPublic", 'GET', params, {"cost":1});
+        return this.request ("depth", "eapiPublic", 'GET', params, undefined, undefined, {"cost":1});
     }
     override eapiPublicGetKlines (params = {}): Promise<List> {
-        return this.request ("klines", "eapiPublic", 'GET', params, {"cost":1});
+        return this.request ("klines", "eapiPublic", 'GET', params, undefined, undefined, {"cost":1});
     }
     override eapiPublicGetTrades (params = {}): Promise<List> {
-        return this.request ("trades", "eapiPublic", 'GET', params, {"cost":5});
+        return this.request ("trades", "eapiPublic", 'GET', params, undefined, undefined, {"cost":5});
     }
     override eapiPublicGetHistoricalTrades (params = {}): Promise<List> {
-        return this.request ("historicalTrades", "eapiPublic", 'GET', params, {"cost":20});
+        return this.request ("historicalTrades", "eapiPublic", 'GET', params, undefined, undefined, {"cost":20});
     }
     override eapiPublicGetExerciseHistory (params = {}): Promise<List> {
-        return this.request ("exerciseHistory", "eapiPublic", 'GET', params, {"cost":3});
+        return this.request ("exerciseHistory", "eapiPublic", 'GET', params, undefined, undefined, {"cost":3});
     }
     override eapiPublicGetOpenInterest (params = {}): Promise<Dict> {
-        return this.request ("openInterest", "eapiPublic", 'GET', params, {"cost":3});
+        return this.request ("openInterest", "eapiPublic", 'GET', params, undefined, undefined, {"cost":3});
     }
     override eapiPrivateGetAccount (params = {}): Promise<Dict> {
-        return this.request ("account", "eapiPrivate", 'GET', params, {"cost":3});
+        return this.request ("account", "eapiPrivate", 'GET', params, undefined, undefined, {"cost":3});
     }
     override eapiPrivateGetPosition (params = {}): Promise<List> {
-        return this.request ("position", "eapiPrivate", 'GET', params, {"cost":5});
+        return this.request ("position", "eapiPrivate", 'GET', params, undefined, undefined, {"cost":5});
     }
     override eapiPrivateGetOpenOrders (params = {}): Promise<List> {
-        return this.request ("openOrders", "eapiPrivate", 'GET', params, {"cost":1,"noSymbol":40});
+        return this.request ("openOrders", "eapiPrivate", 'GET', params, undefined, undefined, {"cost":1,"noSymbol":40});
     }
     override eapiPrivateGetHistoryOrders (params = {}): Promise<List> {
-        return this.request ("historyOrders", "eapiPrivate", 'GET', params, {"cost":3});
+        return this.request ("historyOrders", "eapiPrivate", 'GET', params, undefined, undefined, {"cost":3});
     }
     override eapiPrivateGetUserTrades (params = {}): Promise<List> {
-        return this.request ("userTrades", "eapiPrivate", 'GET', params, {"cost":5});
+        return this.request ("userTrades", "eapiPrivate", 'GET', params, undefined, undefined, {"cost":5});
     }
     override eapiPrivateGetExerciseRecord (params = {}): Promise<List> {
-        return this.request ("exerciseRecord", "eapiPrivate", 'GET', params, {"cost":5});
+        return this.request ("exerciseRecord", "eapiPrivate", 'GET', params, undefined, undefined, {"cost":5});
     }
     override eapiPrivateGetBill (params = {}): Promise<List> {
-        return this.request ("bill", "eapiPrivate", 'GET', params, {"cost":1});
+        return this.request ("bill", "eapiPrivate", 'GET', params, undefined, undefined, {"cost":1});
     }
     override eapiPrivateGetIncomeAsyn (params = {}): Promise<Dict> {
-        return this.request ("income/asyn", "eapiPrivate", 'GET', params, {"cost":5});
+        return this.request ("income/asyn", "eapiPrivate", 'GET', params, undefined, undefined, {"cost":5});
     }
     override eapiPrivateGetIncomeAsynId (params = {}): Promise<Dict> {
-        return this.request ("income/asyn/id", "eapiPrivate", 'GET', params, {"cost":5});
+        return this.request ("income/asyn/id", "eapiPrivate", 'GET', params, undefined, undefined, {"cost":5});
     }
     override eapiPrivateGetMarginAccount (params = {}): Promise<Dict> {
-        return this.request ("marginAccount", "eapiPrivate", 'GET', params, {"cost":3});
+        return this.request ("marginAccount", "eapiPrivate", 'GET', params, undefined, undefined, {"cost":3});
     }
     override eapiPrivateGetMmp (params = {}): Promise<Dict> {
-        return this.request ("mmp", "eapiPrivate", 'GET', params, {"cost":1});
+        return this.request ("mmp", "eapiPrivate", 'GET', params, undefined, undefined, {"cost":1});
     }
     override eapiPrivateGetCountdownCancelAll (params = {}): Promise<Dict> {
-        return this.request ("countdownCancelAll", "eapiPrivate", 'GET', params, {"cost":1});
+        return this.request ("countdownCancelAll", "eapiPrivate", 'GET', params, undefined, undefined, {"cost":1});
     }
     override eapiPrivateGetOrder (params = {}): Promise<Dict> {
-        return this.request ("order", "eapiPrivate", 'GET', params, {"cost":1});
+        return this.request ("order", "eapiPrivate", 'GET', params, undefined, undefined, {"cost":1});
     }
     override eapiPrivateGetBlockOrderOrders (params = {}): Promise<List> {
-        return this.request ("block/order/orders", "eapiPrivate", 'GET', params, {"cost":5});
+        return this.request ("block/order/orders", "eapiPrivate", 'GET', params, undefined, undefined, {"cost":5});
     }
     override eapiPrivateGetBlockOrderExecute (params = {}): Promise<Dict> {
-        return this.request ("block/order/execute", "eapiPrivate", 'GET', params, {"cost":5});
+        return this.request ("block/order/execute", "eapiPrivate", 'GET', params, undefined, undefined, {"cost":5});
     }
     override eapiPrivateGetBlockUserTrades (params = {}): Promise<List> {
-        return this.request ("block/user-trades", "eapiPrivate", 'GET', params, {"cost":5});
+        return this.request ("block/user-trades", "eapiPrivate", 'GET', params, undefined, undefined, {"cost":5});
     }
     override eapiPrivateGetBlockTrades (params = {}): Promise<List> {
-        return this.request ("blockTrades", "eapiPrivate", 'GET', params, {"cost":5});
+        return this.request ("blockTrades", "eapiPrivate", 'GET', params, undefined, undefined, {"cost":5});
     }
     override eapiPrivateGetComission (params = {}): Promise<Dict> {
-        return this.request ("comission", "eapiPrivate", 'GET', params, {"cost":5});
+        return this.request ("comission", "eapiPrivate", 'GET', params, undefined, undefined, {"cost":5});
     }
     override eapiPrivatePostOrder (params = {}): Promise<Dict> {
-        return this.request ("order", "eapiPrivate", 'POST', params, {"cost":1});
+        return this.request ("order", "eapiPrivate", 'POST', params, undefined, undefined, {"cost":1});
     }
     override eapiPrivatePostBatchOrders (params = {}): Promise<List> {
-        return this.request ("batchOrders", "eapiPrivate", 'POST', params, {"cost":5});
+        return this.request ("batchOrders", "eapiPrivate", 'POST', params, undefined, undefined, {"cost":5});
     }
     override eapiPrivatePostListenKey (params = {}): Promise<Dict> {
-        return this.request ("listenKey", "eapiPrivate", 'POST', params, {"cost":1});
+        return this.request ("listenKey", "eapiPrivate", 'POST', params, undefined, undefined, {"cost":1});
     }
     override eapiPrivatePostMmpSet (params = {}): Promise<Dict> {
-        return this.request ("mmpSet", "eapiPrivate", 'POST', params, {"cost":1});
+        return this.request ("mmpSet", "eapiPrivate", 'POST', params, undefined, undefined, {"cost":1});
     }
     override eapiPrivatePostMmpReset (params = {}): Promise<Dict> {
-        return this.request ("mmpReset", "eapiPrivate", 'POST', params, {"cost":1});
+        return this.request ("mmpReset", "eapiPrivate", 'POST', params, undefined, undefined, {"cost":1});
     }
     override eapiPrivatePostCountdownCancelAll (params = {}): Promise<Dict> {
-        return this.request ("countdownCancelAll", "eapiPrivate", 'POST', params, {"cost":1});
+        return this.request ("countdownCancelAll", "eapiPrivate", 'POST', params, undefined, undefined, {"cost":1});
     }
     override eapiPrivatePostCountdownCancelAllHeartBeat (params = {}): Promise<Dict> {
-        return this.request ("countdownCancelAllHeartBeat", "eapiPrivate", 'POST', params, {"cost":10});
+        return this.request ("countdownCancelAllHeartBeat", "eapiPrivate", 'POST', params, undefined, undefined, {"cost":10});
     }
     override eapiPrivatePostBlockOrderCreate (params = {}): Promise<Dict> {
-        return this.request ("block/order/create", "eapiPrivate", 'POST', params, {"cost":5});
+        return this.request ("block/order/create", "eapiPrivate", 'POST', params, undefined, undefined, {"cost":5});
     }
     override eapiPrivatePostBlockOrderExecute (params = {}): Promise<Dict> {
-        return this.request ("block/order/execute", "eapiPrivate", 'POST', params, {"cost":5});
+        return this.request ("block/order/execute", "eapiPrivate", 'POST', params, undefined, undefined, {"cost":5});
     }
     override eapiPrivatePostStockContract (params = {}): Promise<Dict> {
-        return this.request ("stock/contract", "eapiPrivate", 'POST', params, {"cost":50});
+        return this.request ("stock/contract", "eapiPrivate", 'POST', params, undefined, undefined, {"cost":50});
     }
     override eapiPrivatePutListenKey (params = {}): Promise<Dict> {
-        return this.request ("listenKey", "eapiPrivate", 'PUT', params, {"cost":1});
+        return this.request ("listenKey", "eapiPrivate", 'PUT', params, undefined, undefined, {"cost":1});
     }
     override eapiPrivatePutBlockOrderCreate (params = {}): Promise<Dict> {
-        return this.request ("block/order/create", "eapiPrivate", 'PUT', params, {"cost":5});
+        return this.request ("block/order/create", "eapiPrivate", 'PUT', params, undefined, undefined, {"cost":5});
     }
     override eapiPrivateDeleteOrder (params = {}): Promise<Dict> {
-        return this.request ("order", "eapiPrivate", 'DELETE', params, {"cost":1});
+        return this.request ("order", "eapiPrivate", 'DELETE', params, undefined, undefined, {"cost":1});
     }
     override eapiPrivateDeleteBatchOrders (params = {}): Promise<List> {
-        return this.request ("batchOrders", "eapiPrivate", 'DELETE', params, {"cost":1});
+        return this.request ("batchOrders", "eapiPrivate", 'DELETE', params, undefined, undefined, {"cost":1});
     }
     override eapiPrivateDeleteAllOpenOrders (params = {}): Promise<List> {
-        return this.request ("allOpenOrders", "eapiPrivate", 'DELETE', params, {"cost":1});
+        return this.request ("allOpenOrders", "eapiPrivate", 'DELETE', params, undefined, undefined, {"cost":1});
     }
     override eapiPrivateDeleteAllOpenOrdersByUnderlying (params = {}): Promise<Dict> {
-        return this.request ("allOpenOrdersByUnderlying", "eapiPrivate", 'DELETE', params, {"cost":1});
+        return this.request ("allOpenOrdersByUnderlying", "eapiPrivate", 'DELETE', params, undefined, undefined, {"cost":1});
     }
     override eapiPrivateDeleteListenKey (params = {}): Promise<Dict> {
-        return this.request ("listenKey", "eapiPrivate", 'DELETE', params, {"cost":1});
+        return this.request ("listenKey", "eapiPrivate", 'DELETE', params, undefined, undefined, {"cost":1});
     }
     override eapiPrivateDeleteBlockOrderCreate (params = {}): Promise<Dict> {
-        return this.request ("block/order/create", "eapiPrivate", 'DELETE', params, {"cost":5});
+        return this.request ("block/order/create", "eapiPrivate", 'DELETE', params, undefined, undefined, {"cost":5});
     }
     override publicGetPing (params = {}): Promise<Dict> {
-        return this.request ("ping", "public", 'GET', params, {"cost":1});
+        return this.request ("ping", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
     override publicGetTime (params = {}): Promise<Dict> {
-        return this.request ("time", "public", 'GET', params, {"cost":1});
+        return this.request ("time", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
     override publicGetDepth (params = {}): Promise<Dict> {
-        return this.request ("depth", "public", 'GET', params, {"cost":1,"byLimit":[[100,1],[500,5],[1000,10],[5000,50]]});
+        return this.request ("depth", "public", 'GET', params, undefined, undefined, {"cost":1,"byLimit":[[100,1],[500,5],[1000,10],[5000,50]]});
     }
     override publicGetTrades (params = {}): Promise<List> {
-        return this.request ("trades", "public", 'GET', params, {"cost":1});
+        return this.request ("trades", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
     override publicGetAggTrades (params = {}): Promise<List> {
-        return this.request ("aggTrades", "public", 'GET', params, {"cost":1});
+        return this.request ("aggTrades", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
     override publicGetHistoricalTrades (params = {}): Promise<List> {
-        return this.request ("historicalTrades", "public", 'GET', params, {"cost":5});
+        return this.request ("historicalTrades", "public", 'GET', params, undefined, undefined, {"cost":5});
     }
     override publicGetKlines (params = {}): Promise<List> {
-        return this.request ("klines", "public", 'GET', params, {"cost":1});
+        return this.request ("klines", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
     override publicGetUiKlines (params = {}): Promise<List> {
-        return this.request ("uiKlines", "public", 'GET', params, {"cost":0.4});
+        return this.request ("uiKlines", "public", 'GET', params, undefined, undefined, {"cost":0.4});
     }
     override publicGetTicker24hr (params = {}): Promise<Dict | List> {
-        return this.request ("ticker/24hr", "public", 'GET', params, {"cost":1,"noSymbol":40});
+        return this.request ("ticker/24hr", "public", 'GET', params, undefined, undefined, {"cost":1,"noSymbol":40});
     }
     override publicGetTicker (params = {}): Promise<List> {
-        return this.request ("ticker", "public", 'GET', params, {"cost":2,"noSymbol":100});
+        return this.request ("ticker", "public", 'GET', params, undefined, undefined, {"cost":2,"noSymbol":100});
     }
     override publicGetTickerTradingDay (params = {}): Promise<Dict> {
-        return this.request ("ticker/tradingDay", "public", 'GET', params, {"cost":4});
+        return this.request ("ticker/tradingDay", "public", 'GET', params, undefined, undefined, {"cost":4});
     }
     override publicGetTickerPrice (params = {}): Promise<Dict | List> {
-        return this.request ("ticker/price", "public", 'GET', params, {"cost":1,"noSymbol":2});
+        return this.request ("ticker/price", "public", 'GET', params, undefined, undefined, {"cost":1,"noSymbol":2});
     }
     override publicGetTickerBookTicker (params = {}): Promise<List> {
-        return this.request ("ticker/bookTicker", "public", 'GET', params, {"cost":1,"noSymbol":2});
+        return this.request ("ticker/bookTicker", "public", 'GET', params, undefined, undefined, {"cost":1,"noSymbol":2});
     }
     override publicGetExchangeInfo (params = {}): Promise<Dict> {
-        return this.request ("exchangeInfo", "public", 'GET', params, {"cost":10});
+        return this.request ("exchangeInfo", "public", 'GET', params, undefined, undefined, {"cost":10});
     }
     override publicGetExecutionRules (params = {}): Promise<Dict> {
-        return this.request ("executionRules", "public", 'GET', params, {"cost":0.4,"noSymbol":8});
+        return this.request ("executionRules", "public", 'GET', params, undefined, undefined, {"cost":0.4,"noSymbol":8});
     }
     override publicGetAvgPrice (params = {}): Promise<Dict> {
-        return this.request ("avgPrice", "public", 'GET', params, {"cost":1});
+        return this.request ("avgPrice", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
     override publicGetReferencePrice (params = {}): Promise<Dict> {
-        return this.request ("referencePrice", "public", 'GET', params, {"cost":0.4});
+        return this.request ("referencePrice", "public", 'GET', params, undefined, undefined, {"cost":0.4});
     }
     override publicGetReferencePriceCalculation (params = {}): Promise<Dict> {
-        return this.request ("referencePrice/calculation", "public", 'GET', params, {"cost":0.4});
+        return this.request ("referencePrice/calculation", "public", 'GET', params, undefined, undefined, {"cost":0.4});
     }
     override publicGetHistoricalBlockTrades (params = {}): Promise<List> {
-        return this.request ("historicalBlockTrades", "public", 'GET', params, {"cost":5});
+        return this.request ("historicalBlockTrades", "public", 'GET', params, undefined, undefined, {"cost":5});
     }
     override publicPutUserDataStream (params = {}): Promise<Dict> {
-        return this.request ("userDataStream", "public", 'PUT', params, {"cost":0.4});
+        return this.request ("userDataStream", "public", 'PUT', params, undefined, undefined, {"cost":0.4});
     }
     override publicPostUserDataStream (params = {}): Promise<Dict> {
-        return this.request ("userDataStream", "public", 'POST', params, {"cost":0.4});
+        return this.request ("userDataStream", "public", 'POST', params, undefined, undefined, {"cost":0.4});
     }
     override publicDeleteUserDataStream (params = {}): Promise<Dict> {
-        return this.request ("userDataStream", "public", 'DELETE', params, {"cost":0.4});
+        return this.request ("userDataStream", "public", 'DELETE', params, undefined, undefined, {"cost":0.4});
     }
     override privateGetAllOrderList (params = {}): Promise<List> {
-        return this.request ("allOrderList", "private", 'GET', params, {"cost":10});
+        return this.request ("allOrderList", "private", 'GET', params, undefined, undefined, {"cost":10});
     }
     override privateGetOpenOrderList (params = {}): Promise<List> {
-        return this.request ("openOrderList", "private", 'GET', params, {"cost":3});
+        return this.request ("openOrderList", "private", 'GET', params, undefined, undefined, {"cost":3});
     }
     override privateGetOrderList (params = {}): Promise<Dict> {
-        return this.request ("orderList", "private", 'GET', params, {"cost":2});
+        return this.request ("orderList", "private", 'GET', params, undefined, undefined, {"cost":2});
     }
     override privateGetOrder (params = {}): Promise<Dict> {
-        return this.request ("order", "private", 'GET', params, {"cost":2});
+        return this.request ("order", "private", 'GET', params, undefined, undefined, {"cost":2});
     }
     override privateGetOpenOrders (params = {}): Promise<List> {
-        return this.request ("openOrders", "private", 'GET', params, {"cost":3,"noSymbol":40});
+        return this.request ("openOrders", "private", 'GET', params, undefined, undefined, {"cost":3,"noSymbol":40});
     }
     override privateGetAllOrders (params = {}): Promise<List> {
-        return this.request ("allOrders", "private", 'GET', params, {"cost":10});
+        return this.request ("allOrders", "private", 'GET', params, undefined, undefined, {"cost":10});
     }
     override privateGetAccount (params = {}): Promise<Dict> {
-        return this.request ("account", "private", 'GET', params, {"cost":10});
+        return this.request ("account", "private", 'GET', params, undefined, undefined, {"cost":10});
     }
     override privateGetMyTrades (params = {}): Promise<List> {
-        return this.request ("myTrades", "private", 'GET', params, {"cost":10});
+        return this.request ("myTrades", "private", 'GET', params, undefined, undefined, {"cost":10});
     }
     override privateGetRateLimitOrder (params = {}): Promise<List> {
-        return this.request ("rateLimit/order", "private", 'GET', params, {"cost":20});
+        return this.request ("rateLimit/order", "private", 'GET', params, undefined, undefined, {"cost":20});
     }
     override privateGetMyPreventedMatches (params = {}): Promise<List> {
-        return this.request ("myPreventedMatches", "private", 'GET', params, {"cost":10});
+        return this.request ("myPreventedMatches", "private", 'GET', params, undefined, undefined, {"cost":10});
     }
     override privateGetMyAllocations (params = {}): Promise<List> {
-        return this.request ("myAllocations", "private", 'GET', params, {"cost":4});
+        return this.request ("myAllocations", "private", 'GET', params, undefined, undefined, {"cost":4});
     }
     override privateGetAccountCommission (params = {}): Promise<Dict> {
-        return this.request ("account/commission", "private", 'GET', params, {"cost":20});
+        return this.request ("account/commission", "private", 'GET', params, undefined, undefined, {"cost":20});
     }
     privateGetMyFilters (params = {}): Promise<Dict> {
-        return this.request ("myFilters", "private", 'GET', params, {"cost":40});
+        return this.request ("myFilters", "private", 'GET', params, undefined, undefined, {"cost":40});
     }
     override privatePostOrderOco (params = {}): Promise<Dict> {
-        return this.request ("order/oco", "private", 'POST', params, {"cost":1});
+        return this.request ("order/oco", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
     override privatePostOrderListOco (params = {}): Promise<Dict> {
-        return this.request ("orderList/oco", "private", 'POST', params, {"cost":0.2});
+        return this.request ("orderList/oco", "private", 'POST', params, undefined, undefined, {"cost":0.2});
     }
     override privatePostOrderListOto (params = {}): Promise<Dict> {
-        return this.request ("orderList/oto", "private", 'POST', params, {"cost":0.2});
+        return this.request ("orderList/oto", "private", 'POST', params, undefined, undefined, {"cost":0.2});
     }
     override privatePostOrderListOtoco (params = {}): Promise<Dict> {
-        return this.request ("orderList/otoco", "private", 'POST', params, {"cost":0.2});
+        return this.request ("orderList/otoco", "private", 'POST', params, undefined, undefined, {"cost":0.2});
     }
     override privatePostOrderListOpo (params = {}): Promise<Dict> {
-        return this.request ("orderList/opo", "private", 'POST', params, {"cost":0.2});
+        return this.request ("orderList/opo", "private", 'POST', params, undefined, undefined, {"cost":0.2});
     }
     override privatePostOrderListOpoco (params = {}): Promise<Dict> {
-        return this.request ("orderList/opoco", "private", 'POST', params, {"cost":0.2});
+        return this.request ("orderList/opoco", "private", 'POST', params, undefined, undefined, {"cost":0.2});
     }
     override privatePostSorOrder (params = {}): Promise<Dict> {
-        return this.request ("sor/order", "private", 'POST', params, {"cost":0.2});
+        return this.request ("sor/order", "private", 'POST', params, undefined, undefined, {"cost":0.2});
     }
     override privatePostSorOrderTest (params = {}): Promise<Dict> {
-        return this.request ("sor/order/test", "private", 'POST', params, {"cost":0.2});
+        return this.request ("sor/order/test", "private", 'POST', params, undefined, undefined, {"cost":0.2});
     }
     override privatePostOrder (params = {}): Promise<Dict> {
-        return this.request ("order", "private", 'POST', params, {"cost":1});
+        return this.request ("order", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
     override privatePostOrderCancelReplace (params = {}): Promise<Dict> {
-        return this.request ("order/cancelReplace", "private", 'POST', params, {"cost":1});
+        return this.request ("order/cancelReplace", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
     override privatePostOrderTest (params = {}): Promise<Dict> {
-        return this.request ("order/test", "private", 'POST', params, {"cost":1});
+        return this.request ("order/test", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
     override privateDeleteOpenOrders (params = {}): Promise<List> {
-        return this.request ("openOrders", "private", 'DELETE', params, {"cost":1});
+        return this.request ("openOrders", "private", 'DELETE', params, undefined, undefined, {"cost":1});
     }
     override privateDeleteOrderList (params = {}): Promise<Dict> {
-        return this.request ("orderList", "private", 'DELETE', params, {"cost":1});
+        return this.request ("orderList", "private", 'DELETE', params, undefined, undefined, {"cost":1});
     }
     override privateDeleteOrder (params = {}): Promise<Dict> {
-        return this.request ("order", "private", 'DELETE', params, {"cost":1});
+        return this.request ("order", "private", 'DELETE', params, undefined, undefined, {"cost":1});
     }
     override papiGetPing (params = {}): Promise<Dict> {
-        return this.request ("ping", "papi", 'GET', params, {"cost":0.2});
+        return this.request ("ping", "papi", 'GET', params, undefined, undefined, {"cost":0.2});
     }
     override papiGetUmOrder (params = {}): Promise<Dict> {
-        return this.request ("um/order", "papi", 'GET', params, {"cost":1});
+        return this.request ("um/order", "papi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override papiGetUmOpenOrder (params = {}): Promise<Dict> {
-        return this.request ("um/openOrder", "papi", 'GET', params, {"cost":1});
+        return this.request ("um/openOrder", "papi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override papiGetUmOpenOrders (params = {}): Promise<List> {
-        return this.request ("um/openOrders", "papi", 'GET', params, {"cost":1,"noSymbol":40});
+        return this.request ("um/openOrders", "papi", 'GET', params, undefined, undefined, {"cost":1,"noSymbol":40});
     }
     override papiGetUmAllOrders (params = {}): Promise<List> {
-        return this.request ("um/allOrders", "papi", 'GET', params, {"cost":5});
+        return this.request ("um/allOrders", "papi", 'GET', params, undefined, undefined, {"cost":5});
     }
     override papiGetCmOrder (params = {}): Promise<Dict> {
-        return this.request ("cm/order", "papi", 'GET', params, {"cost":1});
+        return this.request ("cm/order", "papi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override papiGetCmOpenOrder (params = {}): Promise<Dict> {
-        return this.request ("cm/openOrder", "papi", 'GET', params, {"cost":1});
+        return this.request ("cm/openOrder", "papi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override papiGetCmOpenOrders (params = {}): Promise<List> {
-        return this.request ("cm/openOrders", "papi", 'GET', params, {"cost":1,"noSymbol":40});
+        return this.request ("cm/openOrders", "papi", 'GET', params, undefined, undefined, {"cost":1,"noSymbol":40});
     }
     override papiGetCmAllOrders (params = {}): Promise<List> {
-        return this.request ("cm/allOrders", "papi", 'GET', params, {"cost":20});
+        return this.request ("cm/allOrders", "papi", 'GET', params, undefined, undefined, {"cost":20});
     }
     override papiGetUmConditionalOpenOrder (params = {}): Promise<Dict> {
-        return this.request ("um/conditional/openOrder", "papi", 'GET', params, {"cost":1});
+        return this.request ("um/conditional/openOrder", "papi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override papiGetUmConditionalOpenOrders (params = {}): Promise<List> {
-        return this.request ("um/conditional/openOrders", "papi", 'GET', params, {"cost":1,"noSymbol":40});
+        return this.request ("um/conditional/openOrders", "papi", 'GET', params, undefined, undefined, {"cost":1,"noSymbol":40});
     }
     override papiGetUmConditionalOrderHistory (params = {}): Promise<Dict> {
-        return this.request ("um/conditional/orderHistory", "papi", 'GET', params, {"cost":1});
+        return this.request ("um/conditional/orderHistory", "papi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override papiGetUmConditionalAllOrders (params = {}): Promise<List> {
-        return this.request ("um/conditional/allOrders", "papi", 'GET', params, {"cost":1,"noSymbol":40});
+        return this.request ("um/conditional/allOrders", "papi", 'GET', params, undefined, undefined, {"cost":1,"noSymbol":40});
     }
     override papiGetUmAlgoAlgoOrder (params = {}): Promise<Dict> {
-        return this.request ("um/algo/algoOrder", "papi", 'GET', params, {"cost":1});
+        return this.request ("um/algo/algoOrder", "papi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override papiGetUmAlgoOpenAlgoOrders (params = {}): Promise<List> {
-        return this.request ("um/algo/openAlgoOrders", "papi", 'GET', params, {"cost":1});
+        return this.request ("um/algo/openAlgoOrders", "papi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override papiGetUmAlgoAllAlgoOrders (params = {}): Promise<List> {
-        return this.request ("um/algo/allAlgoOrders", "papi", 'GET', params, {"cost":5});
+        return this.request ("um/algo/allAlgoOrders", "papi", 'GET', params, undefined, undefined, {"cost":5});
     }
     override papiGetCmConditionalOpenOrder (params = {}): Promise<Dict> {
-        return this.request ("cm/conditional/openOrder", "papi", 'GET', params, {"cost":1});
+        return this.request ("cm/conditional/openOrder", "papi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override papiGetCmConditionalOpenOrders (params = {}): Promise<List> {
-        return this.request ("cm/conditional/openOrders", "papi", 'GET', params, {"cost":1,"noSymbol":40});
+        return this.request ("cm/conditional/openOrders", "papi", 'GET', params, undefined, undefined, {"cost":1,"noSymbol":40});
     }
     override papiGetCmConditionalOrderHistory (params = {}): Promise<Dict> {
-        return this.request ("cm/conditional/orderHistory", "papi", 'GET', params, {"cost":1});
+        return this.request ("cm/conditional/orderHistory", "papi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override papiGetCmConditionalAllOrders (params = {}): Promise<List> {
-        return this.request ("cm/conditional/allOrders", "papi", 'GET', params, {"cost":40});
+        return this.request ("cm/conditional/allOrders", "papi", 'GET', params, undefined, undefined, {"cost":40});
     }
     override papiGetMarginOrder (params = {}): Promise<Dict> {
-        return this.request ("margin/order", "papi", 'GET', params, {"cost":10});
+        return this.request ("margin/order", "papi", 'GET', params, undefined, undefined, {"cost":10});
     }
     override papiGetMarginOpenOrders (params = {}): Promise<List> {
-        return this.request ("margin/openOrders", "papi", 'GET', params, {"cost":5});
+        return this.request ("margin/openOrders", "papi", 'GET', params, undefined, undefined, {"cost":5});
     }
     override papiGetMarginAllOrders (params = {}): Promise<List> {
-        return this.request ("margin/allOrders", "papi", 'GET', params, {"cost":100});
+        return this.request ("margin/allOrders", "papi", 'GET', params, undefined, undefined, {"cost":100});
     }
     override papiGetMarginOrderList (params = {}): Promise<Dict> {
-        return this.request ("margin/orderList", "papi", 'GET', params, {"cost":5});
+        return this.request ("margin/orderList", "papi", 'GET', params, undefined, undefined, {"cost":5});
     }
     override papiGetMarginAllOrderList (params = {}): Promise<List> {
-        return this.request ("margin/allOrderList", "papi", 'GET', params, {"cost":100});
+        return this.request ("margin/allOrderList", "papi", 'GET', params, undefined, undefined, {"cost":100});
     }
     override papiGetMarginOpenOrderList (params = {}): Promise<List> {
-        return this.request ("margin/openOrderList", "papi", 'GET', params, {"cost":5});
+        return this.request ("margin/openOrderList", "papi", 'GET', params, undefined, undefined, {"cost":5});
     }
     override papiGetMarginMyTrades (params = {}): Promise<List> {
-        return this.request ("margin/myTrades", "papi", 'GET', params, {"cost":5});
+        return this.request ("margin/myTrades", "papi", 'GET', params, undefined, undefined, {"cost":5});
     }
     override papiGetBalance (params = {}): Promise<List> {
-        return this.request ("balance", "papi", 'GET', params, {"cost":4});
+        return this.request ("balance", "papi", 'GET', params, undefined, undefined, {"cost":4});
     }
     override papiGetAccount (params = {}): Promise<Dict> {
-        return this.request ("account", "papi", 'GET', params, {"cost":4});
+        return this.request ("account", "papi", 'GET', params, undefined, undefined, {"cost":4});
     }
     override papiGetMarginMaxBorrowable (params = {}): Promise<Dict> {
-        return this.request ("margin/maxBorrowable", "papi", 'GET', params, {"cost":1});
+        return this.request ("margin/maxBorrowable", "papi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override papiGetMarginMaxWithdraw (params = {}): Promise<Dict> {
-        return this.request ("margin/maxWithdraw", "papi", 'GET', params, {"cost":1});
+        return this.request ("margin/maxWithdraw", "papi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override papiGetUmPositionRisk (params = {}): Promise<List> {
-        return this.request ("um/positionRisk", "papi", 'GET', params, {"cost":1});
+        return this.request ("um/positionRisk", "papi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override papiGetCmPositionRisk (params = {}): Promise<List> {
-        return this.request ("cm/positionRisk", "papi", 'GET', params, {"cost":0.2});
+        return this.request ("cm/positionRisk", "papi", 'GET', params, undefined, undefined, {"cost":0.2});
     }
     override papiGetUmPositionSideDual (params = {}): Promise<Dict> {
-        return this.request ("um/positionSide/dual", "papi", 'GET', params, {"cost":6});
+        return this.request ("um/positionSide/dual", "papi", 'GET', params, undefined, undefined, {"cost":6});
     }
     override papiGetCmPositionSideDual (params = {}): Promise<Dict> {
-        return this.request ("cm/positionSide/dual", "papi", 'GET', params, {"cost":6});
+        return this.request ("cm/positionSide/dual", "papi", 'GET', params, undefined, undefined, {"cost":6});
     }
     override papiGetUmUserTrades (params = {}): Promise<List> {
-        return this.request ("um/userTrades", "papi", 'GET', params, {"cost":5});
+        return this.request ("um/userTrades", "papi", 'GET', params, undefined, undefined, {"cost":5});
     }
     override papiGetCmUserTrades (params = {}): Promise<List> {
-        return this.request ("cm/userTrades", "papi", 'GET', params, {"cost":20});
+        return this.request ("cm/userTrades", "papi", 'GET', params, undefined, undefined, {"cost":20});
     }
     override papiGetUmLeverageBracket (params = {}): Promise<List> {
-        return this.request ("um/leverageBracket", "papi", 'GET', params, {"cost":0.2});
+        return this.request ("um/leverageBracket", "papi", 'GET', params, undefined, undefined, {"cost":0.2});
     }
     override papiGetCmLeverageBracket (params = {}): Promise<List> {
-        return this.request ("cm/leverageBracket", "papi", 'GET', params, {"cost":0.2});
+        return this.request ("cm/leverageBracket", "papi", 'GET', params, undefined, undefined, {"cost":0.2});
     }
     override papiGetMarginForceOrders (params = {}): Promise<Dict> {
-        return this.request ("margin/forceOrders", "papi", 'GET', params, {"cost":1});
+        return this.request ("margin/forceOrders", "papi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override papiGetUmForceOrders (params = {}): Promise<Dict> {
-        return this.request ("um/forceOrders", "papi", 'GET', params, {"cost":20,"noSymbol":50});
+        return this.request ("um/forceOrders", "papi", 'GET', params, undefined, undefined, {"cost":20,"noSymbol":50});
     }
     override papiGetCmForceOrders (params = {}): Promise<Dict> {
-        return this.request ("cm/forceOrders", "papi", 'GET', params, {"cost":20,"noSymbol":50});
+        return this.request ("cm/forceOrders", "papi", 'GET', params, undefined, undefined, {"cost":20,"noSymbol":50});
     }
     override papiGetUmApiTradingStatus (params = {}): Promise<Dict> {
-        return this.request ("um/apiTradingStatus", "papi", 'GET', params, {"cost":0.2,"noSymbol":2});
+        return this.request ("um/apiTradingStatus", "papi", 'GET', params, undefined, undefined, {"cost":0.2,"noSymbol":2});
     }
     override papiGetUmCommissionRate (params = {}): Promise<Dict> {
-        return this.request ("um/commissionRate", "papi", 'GET', params, {"cost":4});
+        return this.request ("um/commissionRate", "papi", 'GET', params, undefined, undefined, {"cost":4});
     }
     override papiGetCmCommissionRate (params = {}): Promise<Dict> {
-        return this.request ("cm/commissionRate", "papi", 'GET', params, {"cost":4});
+        return this.request ("cm/commissionRate", "papi", 'GET', params, undefined, undefined, {"cost":4});
     }
     override papiGetMarginMarginLoan (params = {}): Promise<Dict> {
-        return this.request ("margin/marginLoan", "papi", 'GET', params, {"cost":2});
+        return this.request ("margin/marginLoan", "papi", 'GET', params, undefined, undefined, {"cost":2});
     }
     override papiGetMarginRepayLoan (params = {}): Promise<Dict> {
-        return this.request ("margin/repayLoan", "papi", 'GET', params, {"cost":2});
+        return this.request ("margin/repayLoan", "papi", 'GET', params, undefined, undefined, {"cost":2});
     }
     override papiGetMarginMarginInterestHistory (params = {}): Promise<Dict> {
-        return this.request ("margin/marginInterestHistory", "papi", 'GET', params, {"cost":0.2});
+        return this.request ("margin/marginInterestHistory", "papi", 'GET', params, undefined, undefined, {"cost":0.2});
     }
     override papiGetPortfolioInterestHistory (params = {}): Promise<List> {
-        return this.request ("portfolio/interest-history", "papi", 'GET', params, {"cost":10});
+        return this.request ("portfolio/interest-history", "papi", 'GET', params, undefined, undefined, {"cost":10});
     }
     override papiGetUmIncome (params = {}): Promise<List> {
-        return this.request ("um/income", "papi", 'GET', params, {"cost":6});
+        return this.request ("um/income", "papi", 'GET', params, undefined, undefined, {"cost":6});
     }
     override papiGetCmIncome (params = {}): Promise<List> {
-        return this.request ("cm/income", "papi", 'GET', params, {"cost":6});
+        return this.request ("cm/income", "papi", 'GET', params, undefined, undefined, {"cost":6});
     }
     override papiGetUmAccount (params = {}): Promise<Dict> {
-        return this.request ("um/account", "papi", 'GET', params, {"cost":1});
+        return this.request ("um/account", "papi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override papiGetCmAccount (params = {}): Promise<Dict> {
-        return this.request ("cm/account", "papi", 'GET', params, {"cost":1});
+        return this.request ("cm/account", "papi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override papiGetRepayFuturesSwitch (params = {}): Promise<Dict> {
-        return this.request ("repay-futures-switch", "papi", 'GET', params, {"cost":6});
+        return this.request ("repay-futures-switch", "papi", 'GET', params, undefined, undefined, {"cost":6});
     }
     override papiGetUmAdlQuantile (params = {}): Promise<List> {
-        return this.request ("um/adlQuantile", "papi", 'GET', params, {"cost":5});
+        return this.request ("um/adlQuantile", "papi", 'GET', params, undefined, undefined, {"cost":5});
     }
     override papiGetCmAdlQuantile (params = {}): Promise<List> {
-        return this.request ("cm/adlQuantile", "papi", 'GET', params, {"cost":5});
+        return this.request ("cm/adlQuantile", "papi", 'GET', params, undefined, undefined, {"cost":5});
     }
     override papiGetUmTradeAsyn (params = {}): Promise<Dict> {
-        return this.request ("um/trade/asyn", "papi", 'GET', params, {"cost":300});
+        return this.request ("um/trade/asyn", "papi", 'GET', params, undefined, undefined, {"cost":300});
     }
     override papiGetUmTradeAsynId (params = {}): Promise<Dict> {
-        return this.request ("um/trade/asyn/id", "papi", 'GET', params, {"cost":2});
+        return this.request ("um/trade/asyn/id", "papi", 'GET', params, undefined, undefined, {"cost":2});
     }
     override papiGetUmOrderAsyn (params = {}): Promise<Dict> {
-        return this.request ("um/order/asyn", "papi", 'GET', params, {"cost":300});
+        return this.request ("um/order/asyn", "papi", 'GET', params, undefined, undefined, {"cost":300});
     }
     override papiGetUmOrderAsynId (params = {}): Promise<Dict> {
-        return this.request ("um/order/asyn/id", "papi", 'GET', params, {"cost":2});
+        return this.request ("um/order/asyn/id", "papi", 'GET', params, undefined, undefined, {"cost":2});
     }
     override papiGetUmIncomeAsyn (params = {}): Promise<Dict> {
-        return this.request ("um/income/asyn", "papi", 'GET', params, {"cost":300});
+        return this.request ("um/income/asyn", "papi", 'GET', params, undefined, undefined, {"cost":300});
     }
     override papiGetUmIncomeAsynId (params = {}): Promise<Dict> {
-        return this.request ("um/income/asyn/id", "papi", 'GET', params, {"cost":2});
+        return this.request ("um/income/asyn/id", "papi", 'GET', params, undefined, undefined, {"cost":2});
     }
     override papiGetUmOrderAmendment (params = {}): Promise<List> {
-        return this.request ("um/orderAmendment", "papi", 'GET', params, {"cost":1});
+        return this.request ("um/orderAmendment", "papi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override papiGetCmOrderAmendment (params = {}): Promise<List> {
-        return this.request ("cm/orderAmendment", "papi", 'GET', params, {"cost":1});
+        return this.request ("cm/orderAmendment", "papi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override papiGetUmFeeBurn (params = {}): Promise<Dict> {
-        return this.request ("um/feeBurn", "papi", 'GET', params, {"cost":30});
+        return this.request ("um/feeBurn", "papi", 'GET', params, undefined, undefined, {"cost":30});
     }
     override papiGetUmAccountConfig (params = {}): Promise<Dict> {
-        return this.request ("um/accountConfig", "papi", 'GET', params, {"cost":1});
+        return this.request ("um/accountConfig", "papi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override papiGetUmSymbolConfig (params = {}): Promise<List> {
-        return this.request ("um/symbolConfig", "papi", 'GET', params, {"cost":1});
+        return this.request ("um/symbolConfig", "papi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override papiGetCmAccountConfig (params = {}): Promise<Dict> {
-        return this.request ("cm/accountConfig", "papi", 'GET', params, {"cost":1});
+        return this.request ("cm/accountConfig", "papi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override papiGetCmSymbolConfig (params = {}): Promise<Dict> {
-        return this.request ("cm/symbolConfig", "papi", 'GET', params, {"cost":1});
+        return this.request ("cm/symbolConfig", "papi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override papiGetRateLimitOrder (params = {}): Promise<List> {
-        return this.request ("rateLimit/order", "papi", 'GET', params, {"cost":1});
+        return this.request ("rateLimit/order", "papi", 'GET', params, undefined, undefined, {"cost":1});
     }
     override papiPostUmOrder (params = {}): Promise<Dict> {
-        return this.request ("um/order", "papi", 'POST', params, {"cost":1});
+        return this.request ("um/order", "papi", 'POST', params, undefined, undefined, {"cost":1});
     }
     override papiPostUmConditionalOrder (params = {}): Promise<Dict> {
-        return this.request ("um/conditional/order", "papi", 'POST', params, {"cost":1});
+        return this.request ("um/conditional/order", "papi", 'POST', params, undefined, undefined, {"cost":1});
     }
     override papiPostUmAlgoOrder (params = {}): Promise<Dict> {
-        return this.request ("um/algo/order", "papi", 'POST', params, {"cost":1});
+        return this.request ("um/algo/order", "papi", 'POST', params, undefined, undefined, {"cost":1});
     }
     override papiPostCmOrder (params = {}): Promise<Dict> {
-        return this.request ("cm/order", "papi", 'POST', params, {"cost":1});
+        return this.request ("cm/order", "papi", 'POST', params, undefined, undefined, {"cost":1});
     }
     override papiPostCmConditionalOrder (params = {}): Promise<Dict> {
-        return this.request ("cm/conditional/order", "papi", 'POST', params, {"cost":1});
+        return this.request ("cm/conditional/order", "papi", 'POST', params, undefined, undefined, {"cost":1});
     }
     override papiPostMarginOrder (params = {}): Promise<Dict> {
-        return this.request ("margin/order", "papi", 'POST', params, {"cost":1});
+        return this.request ("margin/order", "papi", 'POST', params, undefined, undefined, {"cost":1});
     }
     override papiPostMarginLoan (params = {}): Promise<Dict> {
-        return this.request ("marginLoan", "papi", 'POST', params, {"cost":100});
+        return this.request ("marginLoan", "papi", 'POST', params, undefined, undefined, {"cost":100});
     }
     override papiPostRepayLoan (params = {}): Promise<Dict> {
-        return this.request ("repayLoan", "papi", 'POST', params, {"cost":100});
+        return this.request ("repayLoan", "papi", 'POST', params, undefined, undefined, {"cost":100});
     }
     override papiPostMarginOrderOco (params = {}): Promise<Dict> {
-        return this.request ("margin/order/oco", "papi", 'POST', params, {"cost":1});
+        return this.request ("margin/order/oco", "papi", 'POST', params, undefined, undefined, {"cost":1});
     }
     override papiPostUmLeverage (params = {}): Promise<Dict> {
-        return this.request ("um/leverage", "papi", 'POST', params, {"cost":0.2});
+        return this.request ("um/leverage", "papi", 'POST', params, undefined, undefined, {"cost":0.2});
     }
     override papiPostCmLeverage (params = {}): Promise<Dict> {
-        return this.request ("cm/leverage", "papi", 'POST', params, {"cost":0.2});
+        return this.request ("cm/leverage", "papi", 'POST', params, undefined, undefined, {"cost":0.2});
     }
     override papiPostUmPositionSideDual (params = {}): Promise<Dict> {
-        return this.request ("um/positionSide/dual", "papi", 'POST', params, {"cost":0.2});
+        return this.request ("um/positionSide/dual", "papi", 'POST', params, undefined, undefined, {"cost":0.2});
     }
     override papiPostCmPositionSideDual (params = {}): Promise<Dict> {
-        return this.request ("cm/positionSide/dual", "papi", 'POST', params, {"cost":0.2});
+        return this.request ("cm/positionSide/dual", "papi", 'POST', params, undefined, undefined, {"cost":0.2});
     }
     override papiPostAutoCollection (params = {}): Promise<Dict> {
-        return this.request ("auto-collection", "papi", 'POST', params, {"cost":150});
+        return this.request ("auto-collection", "papi", 'POST', params, undefined, undefined, {"cost":150});
     }
     override papiPostBnbTransfer (params = {}): Promise<Dict> {
-        return this.request ("bnb-transfer", "papi", 'POST', params, {"cost":150});
+        return this.request ("bnb-transfer", "papi", 'POST', params, undefined, undefined, {"cost":150});
     }
     override papiPostRepayFuturesSwitch (params = {}): Promise<Dict> {
-        return this.request ("repay-futures-switch", "papi", 'POST', params, {"cost":150});
+        return this.request ("repay-futures-switch", "papi", 'POST', params, undefined, undefined, {"cost":150});
     }
     override papiPostRepayFuturesNegativeBalance (params = {}): Promise<Dict> {
-        return this.request ("repay-futures-negative-balance", "papi", 'POST', params, {"cost":150});
+        return this.request ("repay-futures-negative-balance", "papi", 'POST', params, undefined, undefined, {"cost":150});
     }
     override papiPostListenKey (params = {}): Promise<Dict> {
-        return this.request ("listenKey", "papi", 'POST', params, {"cost":0.2});
+        return this.request ("listenKey", "papi", 'POST', params, undefined, undefined, {"cost":0.2});
     }
     override papiPostAssetCollection (params = {}): Promise<Dict> {
-        return this.request ("asset-collection", "papi", 'POST', params, {"cost":6});
+        return this.request ("asset-collection", "papi", 'POST', params, undefined, undefined, {"cost":6});
     }
     override papiPostMarginRepayDebt (params = {}): Promise<Dict> {
-        return this.request ("margin/repay-debt", "papi", 'POST', params, {"cost":3000});
+        return this.request ("margin/repay-debt", "papi", 'POST', params, undefined, undefined, {"cost":3000});
     }
     override papiPostUmFeeBurn (params = {}): Promise<Dict> {
-        return this.request ("um/feeBurn", "papi", 'POST', params, {"cost":1});
+        return this.request ("um/feeBurn", "papi", 'POST', params, undefined, undefined, {"cost":1});
     }
     override papiPostUmStockContract (params = {}): Promise<Dict> {
-        return this.request ("um/stock/contract", "papi", 'POST', params, {"cost":1});
+        return this.request ("um/stock/contract", "papi", 'POST', params, undefined, undefined, {"cost":1});
     }
     override papiPutListenKey (params = {}): Promise<Dict> {
-        return this.request ("listenKey", "papi", 'PUT', params, {"cost":0.2});
+        return this.request ("listenKey", "papi", 'PUT', params, undefined, undefined, {"cost":0.2});
     }
     override papiPutUmOrder (params = {}): Promise<Dict> {
-        return this.request ("um/order", "papi", 'PUT', params, {"cost":1});
+        return this.request ("um/order", "papi", 'PUT', params, undefined, undefined, {"cost":1});
     }
     override papiPutCmOrder (params = {}): Promise<Dict> {
-        return this.request ("cm/order", "papi", 'PUT', params, {"cost":1});
+        return this.request ("cm/order", "papi", 'PUT', params, undefined, undefined, {"cost":1});
     }
     override papiDeleteUmOrder (params = {}): Promise<Dict> {
-        return this.request ("um/order", "papi", 'DELETE', params, {"cost":1});
+        return this.request ("um/order", "papi", 'DELETE', params, undefined, undefined, {"cost":1});
     }
     override papiDeleteUmConditionalOrder (params = {}): Promise<Dict> {
-        return this.request ("um/conditional/order", "papi", 'DELETE', params, {"cost":1});
+        return this.request ("um/conditional/order", "papi", 'DELETE', params, undefined, undefined, {"cost":1});
     }
     override papiDeleteUmAllOpenOrders (params = {}): Promise<List> {
-        return this.request ("um/allOpenOrders", "papi", 'DELETE', params, {"cost":1});
+        return this.request ("um/allOpenOrders", "papi", 'DELETE', params, undefined, undefined, {"cost":1});
     }
     override papiDeleteUmConditionalAllOpenOrders (params = {}): Promise<List> {
-        return this.request ("um/conditional/allOpenOrders", "papi", 'DELETE', params, {"cost":1});
+        return this.request ("um/conditional/allOpenOrders", "papi", 'DELETE', params, undefined, undefined, {"cost":1});
     }
     override papiDeleteUmAlgoOrder (params = {}): Promise<Dict> {
-        return this.request ("um/algo/order", "papi", 'DELETE', params, {"cost":1});
+        return this.request ("um/algo/order", "papi", 'DELETE', params, undefined, undefined, {"cost":1});
     }
     override papiDeleteUmAlgoAllOpenOrders (params = {}): Promise<List> {
-        return this.request ("um/algo/allOpenOrders", "papi", 'DELETE', params, {"cost":1});
+        return this.request ("um/algo/allOpenOrders", "papi", 'DELETE', params, undefined, undefined, {"cost":1});
     }
     override papiDeleteCmOrder (params = {}): Promise<Dict> {
-        return this.request ("cm/order", "papi", 'DELETE', params, {"cost":1});
+        return this.request ("cm/order", "papi", 'DELETE', params, undefined, undefined, {"cost":1});
     }
     override papiDeleteCmConditionalOrder (params = {}): Promise<Dict> {
-        return this.request ("cm/conditional/order", "papi", 'DELETE', params, {"cost":1});
+        return this.request ("cm/conditional/order", "papi", 'DELETE', params, undefined, undefined, {"cost":1});
     }
     override papiDeleteCmAllOpenOrders (params = {}): Promise<List> {
-        return this.request ("cm/allOpenOrders", "papi", 'DELETE', params, {"cost":1});
+        return this.request ("cm/allOpenOrders", "papi", 'DELETE', params, undefined, undefined, {"cost":1});
     }
     override papiDeleteCmConditionalAllOpenOrders (params = {}): Promise<List> {
-        return this.request ("cm/conditional/allOpenOrders", "papi", 'DELETE', params, {"cost":1});
+        return this.request ("cm/conditional/allOpenOrders", "papi", 'DELETE', params, undefined, undefined, {"cost":1});
     }
     override papiDeleteMarginOrder (params = {}): Promise<Dict> {
-        return this.request ("margin/order", "papi", 'DELETE', params, {"cost":2});
+        return this.request ("margin/order", "papi", 'DELETE', params, undefined, undefined, {"cost":2});
     }
     override papiDeleteMarginAllOpenOrders (params = {}): Promise<List> {
-        return this.request ("margin/allOpenOrders", "papi", 'DELETE', params, {"cost":5});
+        return this.request ("margin/allOpenOrders", "papi", 'DELETE', params, undefined, undefined, {"cost":5});
     }
     override papiDeleteMarginOrderList (params = {}): Promise<Dict> {
-        return this.request ("margin/orderList", "papi", 'DELETE', params, {"cost":2});
+        return this.request ("margin/orderList", "papi", 'DELETE', params, undefined, undefined, {"cost":2});
     }
     override papiDeleteListenKey (params = {}): Promise<Dict> {
-        return this.request ("listenKey", "papi", 'DELETE', params, {"cost":0.2});
+        return this.request ("listenKey", "papi", 'DELETE', params, undefined, undefined, {"cost":0.2});
     }
     override papiV2GetUmAccount (params = {}): Promise<Dict> {
-        return this.request ("um/account", "papiV2", 'GET', params, {"cost":1});
+        return this.request ("um/account", "papiV2", 'GET', params, undefined, undefined, {"cost":1});
     }
 }
 export default binance
