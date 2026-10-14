@@ -227,7 +227,7 @@ impl DeriveCore {
         m.insert("fetchIndexOHLCV".to_string(), Value::Bool(false));
         m.insert("fetchIsolatedBorrowRate".to_string(), Value::Bool(false));
         m.insert("fetchIsolatedBorrowRates".to_string(), Value::Bool(false));
-        m.insert("fetchLedger".to_string(), Value::Bool(true));
+        m.insert("fetchLedger".to_string(), Value::Bool(false));
         m.insert("fetchLeverage".to_string(), Value::Bool(false));
         m.insert("fetchLeverageTiers".to_string(), Value::Bool(false));
         m.insert("fetchLiquidations".to_string(), Value::Bool(false));

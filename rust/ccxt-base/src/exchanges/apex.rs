@@ -210,7 +210,7 @@ impl ApexCore {
         m.insert("createStopOrder".to_string(), Value::Bool(true));
         m.insert("createTriggerOrder".to_string(), Value::Bool(true));
         m.insert("editOrder".to_string(), Value::Bool(false));
-        m.insert("fetchAccounts".to_string(), Value::Bool(true));
+        m.insert("fetchAccounts".to_string(), Value::Bool(false));
         m.insert("fetchAllGreeks".to_string(), Value::Bool(false));
         m.insert("fetchBalance".to_string(), Value::Bool(true));
         m.insert("fetchBorrowInterest".to_string(), Value::Bool(false));
@@ -270,8 +270,8 @@ impl ApexCore {
         m.insert("fetchTrades".to_string(), Value::Bool(true));
         m.insert("fetchTradingFee".to_string(), Value::Bool(false));
         m.insert("fetchTradingFees".to_string(), Value::Bool(false));
-        m.insert("fetchTransfer".to_string(), Value::Bool(true));
-        m.insert("fetchTransfers".to_string(), Value::Bool(true));
+        m.insert("fetchTransfer".to_string(), Value::Bool(false));
+        m.insert("fetchTransfers".to_string(), Value::Bool(false));
         m.insert("fetchVolatilityHistory".to_string(), Value::Bool(false));
         m.insert("fetchWithdrawal".to_string(), Value::Bool(false));
         m.insert("fetchWithdrawals".to_string(), Value::Bool(false));
