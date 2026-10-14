@@ -1188,10 +1188,14 @@ export default class bitfinex extends Exchange {
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
+        const [ precision, paramsWithoutPrecision ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'precision', 'P0');
+        return this.fetchOrderBookHelper (precision, symbol, limit, paramsWithoutPrecision);
+    }
+
+    async fetchOrderBookHelper (precision: Str, symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ precision, paramsWithPrecision ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'precision', 'P0');
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -1200,7 +1204,7 @@ export default class bitfinex extends Exchange {
         if (limit !== undefined) {
             request['len'] = limit;
         }
-        const fullRequest = this.extend (request, paramsWithPrecision);
+        const fullRequest = this.extend (request, params);
         const orderbook = await this.publicGetBookSymbolPrecision (fullRequest);
         const timestamp = this.milliseconds ();
         const result: Dict = {
@@ -1241,7 +1245,7 @@ export default class bitfinex extends Exchange {
      */
     override async fetchL3OrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         const paramsWithPrecision = this.extend ({'precision': 'R0'}, params);
-        return this.fetchOrderBook (symbol, limit, paramsWithPrecision);
+        return this.fetchOrderBookHelper ('R0', symbol, limit, paramsWithPrecision);
     }
 
     override parseTicker (ticker: List, market: Market = undefined): Ticker {
