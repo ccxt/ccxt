@@ -2839,6 +2839,24 @@ public partial class coinbase : Exchange
         {
             request["limit"] = 250;
             response = await this.v3PrivateGetBrokerageAccounts(this.extend(request, paramsMarketType));
+            // an explicit params.cursor means the caller pages manually
+            if ((this.safeString(paramsMarketType, "cursor") == null))
+            {
+                List<object> accounts = this.safeList(response, "accounts", new List<object>() {});
+                Dictionary<string, object> page = response;
+                string? cursor = this.safeString(page, "cursor");
+                while ((this.safeBool(page, "has_next", false) == true) && ((cursor != null)) && (cursor != ""))
+                {
+                    request["cursor"] = cursor;
+                    page = await this.v3PrivateGetBrokerageAccounts(this.extend(request, paramsMarketType));
+                    accounts = this.arrayConcat(accounts, this.safeList(page, "accounts", new List<object>() {}));
+                    string? nextCursor = this.safeString(page, "cursor");
+                    cursor = ((nextCursor == cursor)) ? null : nextCursor;
+                }
+                response["accounts"] = accounts;
+                response["has_next"] = this.safeBool(page, "has_next", false);
+                response["cursor"] = this.safeString(page, "cursor");
+            }
         } else
         {
             request["limit"] = 250;
@@ -5947,7 +5965,7 @@ public partial class coinbase : Exchange
         return ((Int64)((object)((this.milliseconds() - timeDifference)))!);
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -6074,8 +6092,8 @@ public partial class coinbase : Exchange
                 }
             }
         }
-        object bodyResolved = ((requestBody == null)) ? body : requestBody;
-        object headersResolved = ((requestHeaders == null)) ? headers : requestHeaders;
+        string? bodyResolved = requestBody;
+        Dictionary<string, object> headersResolved = requestHeaders;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

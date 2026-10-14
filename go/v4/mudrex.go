@@ -235,33 +235,27 @@ func (this *Mudrex) Describe() any {
 	})
 }
 func (this *Mudrex) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var apiUrls map[string]any = SafeMapTyped(this.Urls, "api")
-	var base *string = this.SafeString(apiUrls, api)
+	var base *string = this.SafeString(apiUrls, apiName)
 	if base == nil {
-		panic(ExchangeError(Add(this.Id+" unknown API namespace: ", api)))
+		panic(ExchangeError(this.Id + " unknown API namespace: " + *apiName))
 	}
 	var url string = *base + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var requestHeaders map[string]any = map[string]any{}
-	if headers != nil {
-		requestHeaders = this.Extend(map[string]any{}, headers)
-	}
 	var brokerId *string = this.SafeString(this.Options, "broker")
 	if brokerId != nil {
 		requestHeaders["Partner-Id"] = brokerId
 	}
 	var methodUpper string = strings.ToUpper(method)
-	if api == "private" {
+	if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		requestHeaders["X-Authentication"] = this.Secret
 		if (methodUpper == "POST") || (methodUpper == "PATCH") || (methodUpper == "DELETE") {
@@ -482,11 +476,11 @@ func (this *Mudrex) fetchMarkOHLCVBody(ch chan AsyncResult[any], symbol string, 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes35615 []any = ListTyped(r.Value)
-	if retRes35615 == nil {
+	var retRes35415 []any = ListTyped(r.Value)
+	if retRes35415 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes35615}
+		ch <- AsyncResult[any]{Value: retRes35415}
 	}
 	return nil
 }
@@ -1445,11 +1439,11 @@ func (this *Mudrex) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...an
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes99715 []any = r.Value
-	if retRes99715 == nil {
+	var retRes99515 []any = r.Value
+	if retRes99515 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes99715}
+		ch <- AsyncResult[any]{Value: retRes99515}
 	}
 	return nil
 }
@@ -1486,11 +1480,11 @@ func (this *Mudrex) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs .
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes101215 []any = r.Value
-	if retRes101215 == nil {
+	var retRes101015 []any = r.Value
+	if retRes101015 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes101215}
+		ch <- AsyncResult[any]{Value: retRes101015}
 	}
 	return nil
 }
@@ -1527,11 +1521,11 @@ func (this *Mudrex) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes102715 []any = r.Value
-	if retRes102715 == nil {
+	var retRes102515 []any = r.Value
+	if retRes102515 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes102715}
+		ch <- AsyncResult[any]{Value: retRes102515}
 	}
 	return nil
 }
@@ -1902,11 +1896,11 @@ func (this *Mudrex) reduceMarginBody(ch chan EndpointResult[map[string]any], sym
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes126715 map[string]any = r.Value
-	if retRes126715 == nil {
+	var retRes126515 map[string]any = r.Value
+	if retRes126515 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes126715, Raw: retRes126715}
+		ch <- EndpointResult[map[string]any]{Value: retRes126515, Raw: retRes126515}
 	}
 	return nil
 }

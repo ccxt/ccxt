@@ -218,20 +218,21 @@ class revolutx(Exchange, ImplicitAPI):
             },
         })
 
-    def sign(self, path: str, api: object = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         requestHeaders = None
         requestBody = None
         implodedPath = self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         queryKeys = list(query.keys())
         queryLength = len(queryKeys)
-        baseApiUrl = self.safe_string(self.urls['api'], api)
+        apiName = api[0]
+        baseApiUrl = self.safe_string(self.urls['api'], apiName)
         if baseApiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         baseUrl = baseApiUrl
         url = baseUrl + '/' + implodedPath
         queryString = ''
-        if api == 'private':
+        if apiName == 'private':
             self.check_required_credentials()
             timestamp = str(self.milliseconds())
             if method == 'GET':
@@ -245,7 +246,7 @@ class revolutx(Exchange, ImplicitAPI):
             else:
                 requestBody = self.json(query)
             requestPath = '/api/' + implodedPath
-            bodyValue = requestBody if (requestBody is not None) else body
+            bodyValue = requestBody
             bodyString = bodyValue if (bodyValue is not None) else ''
             message = timestamp + method.upper() + requestPath + queryString + bodyString
             signature = self.eddsa(self.encode(message), self.privateKey, 'ed25519')
@@ -264,8 +265,8 @@ class revolutx(Exchange, ImplicitAPI):
             else:
                 requestBody = self.json(query)
                 requestHeaders = {'Content-Type': 'application/json'}
-        headersResult = requestHeaders if (requestHeaders is not None) else headers
-        bodyResult = requestBody if (requestBody is not None) else body
+        headersResult = requestHeaders
+        bodyResult = requestBody
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
 
     def parse_market(self, market: dict) -> MarketInterface:

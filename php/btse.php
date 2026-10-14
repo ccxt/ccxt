@@ -3761,10 +3761,11 @@ class btse extends Exchange {
         return null;
     }
 
-    public function sign(string $path, mixed $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()) {
+        $apiName = $api[0];
         $requestBody = null;
         $requestHeaders = null;
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
@@ -3783,7 +3784,7 @@ class btse extends Exchange {
                 $url .= '?' . $queryString;
             }
         }
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             $nonce = $this->nonce();
             $bodyString = $this->json($query);
@@ -3812,8 +3813,8 @@ class btse extends Exchange {
                 'BROKER-ID' => 'ccxt',
             );
         }
-        $bodyResolved = ($requestBody === null) ? $body : $requestBody;
-        $headersResolved = ($requestHeaders === null) ? $headers : $requestHeaders;
+        $bodyResolved = $requestBody;
+        $headersResolved = $requestHeaders;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 

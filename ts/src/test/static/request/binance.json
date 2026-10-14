@@ -3490,11 +3490,22 @@
                 ]
             },
             {
-                "description": "Fetch Open Interest History - inverse",
+                "description": "Fetch Open Interest History - inverse perpetual",
                 "method": "fetchOpenInterestHistory",
-                "url": "https://dapi.binance.com/futures/data/openInterestHist?period=5m&pair=BTCUSD_PERP&contractType=CURRENT_QUARTER",
+                "url": "https://dapi.binance.com/futures/data/openInterestHist?period=5m&pair=BTCUSD&contractType=PERPETUAL",
                 "input": [
                     "BTC/USD:BTC"
+                ]
+            },
+            {
+                "description": "Fetch Open Interest History - inverse delivery",
+                "method": "fetchOpenInterestHistory",
+                "url": "https://dapi.binance.com/futures/data/openInterestHist?period=1h&limit=2&pair=ETHUSD&contractType=CURRENT_QUARTER",
+                "input": [
+                    "ETH/USD:ETH-261225",
+                    "1h",
+                    null,
+                    2
                 ]
             }
         ],

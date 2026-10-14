@@ -891,6 +891,13 @@ class lighter(Exchange, ImplicitAPI):
         groupingType, paramsGroupingType = self.handle_option_integer_and_params(params, method, 'groupingType', 3)  # default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         orderRequests = self.create_order_request(symbol, type, side, amount, price, paramsGroupingType)
         totalOrderRequests = len(orderRequests)
+        if totalOrderRequests > 1:
+            # the signer replaces a -1 expiry with now + 28 days reading the clock once per leg, and rejects
+            # a group whose legs differ ("OrderExpiry is invalid"), so resolve the default once for all legs
+            groupOrderExpiry = self.sum(self.milliseconds(), 2419200000)  # 28 days
+            for i in range(0, totalOrderRequests):
+                if self.safe_integer(orderRequests[i], 'order_expiry') == -1:
+                    orderRequests[i]['order_expiry'] = groupOrderExpiry
         order = None
         if totalOrderRequests > 0:
             order = orderRequests[0]
@@ -3137,20 +3144,21 @@ class lighter(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def sign(self, path: str, api: object = 'public', method='GET', params={}, headers: dict = None, body: object = None):
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params={}):
+        apiName = api[0]
         url = None
-        if api == 'root':
+        if apiName == 'root':
             baseApiUrl = self.safe_string(self.urls['api'], 'public')
             if baseApiUrl is None:
                 raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
             url = self.implode_hostname(baseApiUrl)
         else:
-            baseApiUrl2 = self.safe_string(self.urls['api'], api)
+            baseApiUrl2 = self.safe_string(self.urls['api'], apiName)
             if baseApiUrl2 is None:
                 raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
             url = self.implode_hostname(baseApiUrl2) + '/api/' + self.version + '/' + path
         authHeaders = None
-        if api == 'private':
+        if apiName == 'private':
             authHeaders = {
                 'Authorization': self.create_auth(params),
             }
@@ -3161,9 +3169,9 @@ class lighter(Exchange, ImplicitAPI):
                 }
                 return {'url': url, 'method': method, 'body': params, 'headers': multipartHeaders}
             url += '?' + self.rawencode(params)
-        if api == 'private':
-            return {'url': url, 'method': method, 'body': body, 'headers': authHeaders}
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        if apiName == 'private':
+            return {'url': url, 'method': method, 'body': None, 'headers': authHeaders}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if (response is None) or (response is None):

@@ -4233,17 +4233,18 @@ public partial class krakenfutures : Exchange
         throw new ExchangeError (feedback) ;
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        IDictionary<string, object> apiVersions = this.safeDict((this.options.ContainsKey("versions") ? this.options["versions"] : null), api, new Dictionary<string, object>() {});
+        object apiName = getValue(api, 0);
+        IDictionary<string, object> apiVersions = this.safeDict((this.options.ContainsKey("versions") ? this.options["versions"] : null), apiName, new Dictionary<string, object>() {});
         IDictionary<string, object> methodVersions = this.safeDict(apiVersions, method, new Dictionary<string, object>() {});
         string? defaultVersion = this.safeString(methodVersions, path, this.version);
         object version = this.safeString(parameters, "version", defaultVersion);
         object paramsOmitted = this.omit(parameters, "version");
-        IDictionary<string, object> apiAccess = this.safeDict((this.options.ContainsKey("access") ? this.options["access"] : null), api, new Dictionary<string, object>() {});
+        IDictionary<string, object> apiAccess = this.safeDict((this.options.ContainsKey("access") ? this.options["access"] : null), apiName, new Dictionary<string, object>() {});
         IDictionary<string, object> methodAccess = this.safeDict(apiAccess, method, new Dictionary<string, object>() {});
         string? access = this.safeString(methodAccess, path, "public");
         string? endpoint = ((string)add(add(version, "/"), this.implodeParams(path, paramsOmitted)));
@@ -4264,21 +4265,21 @@ public partial class krakenfutures : Exchange
             }
             query = add(query, ("?" + postData));
         }
-        object apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        object apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string? url = ((string)add(apiUrl, query));
-        object requestBody = ((path == "batchorder")) ? postData : body;
+        string? requestBody = ((path == "batchorder")) ? postData : null;
         Dictionary<string, object> privateHeaders = null;
-        if ((api is "private") || access == "private")
+        if ((apiName is "private") || access == "private")
         {
             this.checkRequiredCredentials();
             object auth = (postData + "/api/");
-            if (!(api is "private"))
+            if (!(apiName is "private"))
             {
-                auth = add(auth, add(api, "/"));
+                auth = add(auth, add(apiName, "/"));
             }
             auth = add(auth, endpoint); // 1
             byte[] hash = ((byte[])this.hash(this.encode(auth), sha256, "binary")); // 2
@@ -4291,7 +4292,7 @@ public partial class krakenfutures : Exchange
                 { "Authent", signature },
             };
         }
-        object requestHeaders = ((privateHeaders != null)) ? privateHeaders : headers;
+        Dictionary<string, object> requestHeaders = privateHeaders;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

@@ -7375,7 +7375,7 @@ class gate extends Exchange {
         return $this->milliseconds() - $timeDifference;
     }
 
-    public function sign(string $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array(), $method = 'GET', $params = array()): array {
         $authentication = $api[0]; // public, private
         $type = $api[1]; // spot, margin, future, delivery
         $query = $this->omit($params, $this->extract_params($path));
@@ -7458,7 +7458,7 @@ class gate extends Exchange {
                 $query = $this->omit($query, 'query');
                 $bodyJson = $this->json($query);
             }
-            $bodySigned = ($bodyJson === null) ? $body : $bodyJson;
+            $bodySigned = $bodyJson;
             $bodyPayload = ($bodySigned === null) ? '' : $bodySigned;
             $bodySignature = $this->hash($this->encode($bodyPayload), 'sha512');
             $nonce = $this->nonce();
@@ -7476,8 +7476,8 @@ class gate extends Exchange {
                 'Content-Type' => 'application/json',
             );
         }
-        $bodyResolved = ($bodyJson === null) ? $body : $bodyJson;
-        $headersResolved = ($signedHeaders === null) ? $headers : $signedHeaders;
+        $bodyResolved = $bodyJson;
+        $headersResolved = $signedHeaders;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
@@ -7591,7 +7591,7 @@ class gate extends Exchange {
 
     private function do_fetch_open_interest_history(string $symbol, $timeframe = '5m', ?int $since = null, ?int $limit = null, $params = array()) {
         /**
-         * Retrieves the open interest of a currency
+         * Retrieves the open interest history of a currency
          *
          * @see https://www.gate.com/docs/developers/apiv4/en/#futures-statistics
          *
@@ -7612,7 +7612,7 @@ class gate extends Exchange {
         }
         $market = $this->market($symbol);
         if ($market['swap'] !== true) {
-            throw new BadRequest($this->id . ' fetchOpenInterest() supports swap markets only');
+            throw new BadRequest($this->id . ' fetchOpenInterestHistory() supports swap markets only');
         }
         $request = array(
             'contract' => $market['id'],

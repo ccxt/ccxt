@@ -2417,6 +2417,20 @@ class coinbase(Exchange, ImplicitAPI):
         elif (isV3 is True) or (method == 'v3PrivateGetBrokerageAccounts'):
             request['limit'] = 250
             response = self.v3PrivateGetBrokerageAccounts(self.extend(request, paramsMarketType))
+            # an explicit params.cursor means the caller pages manually
+            if self.safe_string(paramsMarketType, 'cursor') is None:
+                accounts = self.safe_list(response, 'accounts', [])
+                page = response
+                cursor = self.safe_string(page, 'cursor')
+                while(self.safe_bool(page, 'has_next', False) and (cursor is not None) and (cursor != '')):
+                    request['cursor'] = cursor
+                    page = self.v3PrivateGetBrokerageAccounts(self.extend(request, paramsMarketType))
+                    accounts = self.array_concat(accounts, self.safe_list(page, 'accounts', []))
+                    nextCursor = self.safe_string(page, 'cursor')
+                    cursor = None if (nextCursor == cursor) else nextCursor
+                response['accounts'] = accounts
+                response['has_next'] = self.safe_bool(page, 'has_next', False)
+                response['cursor'] = self.safe_string(page, 'cursor')
         else:
             request['limit'] = 250
             response = self.v2PrivateGetAccounts(self.extend(request, paramsMarketType))
@@ -5013,7 +5027,7 @@ class coinbase(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' nonce() requires a numeric options["timeDifference"]')
         return self.milliseconds() - timeDifference
 
-    def sign(self, path: str, api: object = [], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = [], method='GET', params: dict = {}) -> dict:
         requestBody = None
         requestHeaders = None
         version = self.safe_string(api, 0)
@@ -5102,8 +5116,8 @@ class coinbase(Exchange, ImplicitAPI):
                 if method != 'GET':
                     if len(query) > 0:
                         requestBody = self.json(query)
-        bodyResolved = body if (requestBody is None) else requestBody
-        headersResolved = headers if (requestHeaders is None) else requestHeaders
+        bodyResolved = requestBody
+        headersResolved = requestHeaders
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

@@ -1993,7 +1993,7 @@ func (this *Lbank) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...an
 	//    }
 	//
 	var balanceResponse any = func() any {
-		if response == nil {
+		if IsEqual(response, nil) {
 			return map[string]any{}
 		}
 		return response
@@ -4111,16 +4111,12 @@ func (this *Lbank) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	return result
 }
 func (this *Lbank) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var apiUrl *string = this.SafeString(this.Urls["api"], "rest")
 	if apiUrl == nil {
@@ -4198,8 +4194,8 @@ func (this *Lbank) Sign(path string, optionalArgs ...any) any {
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    nil,
+		"headers": nil,
 	}
 }
 func (this *Lbank) ConvertSecretToPem(secret any) any {

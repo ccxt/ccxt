@@ -913,7 +913,7 @@ export default class kucoin extends Exchange {
                 'uta': undefined,
                 'version': 'v1',
                 'symbolSeparator': '-',
-                'fetchMyTradesMethod': 'private_get_fills',
+                'fetchMyTradesMethod': 'privateGetFills',
                 'timeDifference': 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'fetchCurrencies': {
@@ -5207,7 +5207,7 @@ export default class kucoin extends Exchange {
             request['clientOid'] = clientOrderId;
         } else {
             if (id === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOrder() requires an id argument or clientOrderId parameter');
+                throw new ArgumentsRequired (this.id + ' cancelOrder() requires an id argument or clientOrderId parameter');
             }
             request['orderId'] = id;
         }
@@ -6864,14 +6864,14 @@ export default class kucoin extends Exchange {
             } else {
                 response = await this.privateGetHfFills (this.extend (request, paramsRequest));
             }
-        } else if (method === 'private_get_fills') {
+        } else if ((method === 'privateGetFills') || (method === 'private_get_fills')) {
             // does not return trades earlier than 2019-02-18T00:00:00Z
             if (since !== undefined) {
                 // only returns trades up to one week after the since param
                 request['startAt'] = since;
             }
             response = await this.privateGetFills (this.extend (request, paramsRequest));
-        } else if (method === 'private_get_limit_fills') {
+        } else if ((method === 'privateGetLimitFills') || (method === 'private_get_limit_fills')) {
             // does not return trades earlier than 2019-02-18T00:00:00Z
             // takes no params
             // only returns first 1000 trades (not only "in the last 24 hours" as stated in the docs)
@@ -9234,9 +9234,9 @@ export default class kucoin extends Exchange {
         return this.parseLedger (items, currency, since, limit);
     }
 
-    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config: Dict = {}) {
+    override calculateRateLimiterCost (api: string[], method: any, path: any, params: any, config: Dict = {}) {
         const versions = this.safeDict (this.options, 'versions', {});
-        const apiVersions = this.safeDict (versions, api, {});
+        const apiVersions = this.safeDict (versions, api[0], {});
         const methodVersions = this.safeDict (apiVersions, method, {});
         const defaultVersion = this.safeString (methodVersions, path, this.options['version']);
         const version = this.safeString (params, 'version', defaultVersion);
@@ -11718,43 +11718,41 @@ export default class kucoin extends Exchange {
         return uta;
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
         //
         // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
         //                                ↑                 ↑
         //                                ↑                 ↑
         //
         const versions = this.safeDict (this.options, 'versions', {});
-        const apiVersions = this.safeDict (versions, api, {});
+        const apiVersions = this.safeDict (versions, apiName, {});
         const methodVersions = this.safeDict (apiVersions, method, {});
         const defaultVersion = this.safeString (methodVersions, path, this.options['version']);
         const version = this.safeString (params, 'version', defaultVersion);
         const paramsOmitted: Dict = this.omit (params, 'version');
         let endpoint = '/api/' + version + '/' + this.implodeParams (path, paramsOmitted);
-        if (api === 'utaV2') {
+        if (apiName === 'utaV2') {
             endpoint = '/api/ua/v2/' + this.implodeParams (path, paramsOmitted);
         }
-        if (api === 'webExchange') {
+        if (apiName === 'webExchange') {
             endpoint = '/' + this.implodeParams (path, paramsOmitted);
         }
-        if (api === 'earn') {
+        if (apiName === 'earn') {
             endpoint = '/api/v1/' + this.implodeParams (path, paramsOmitted);
         }
         let isUtaPrivate = false;
-        if ((api === 'uta') || (api === 'utaPrivate')) {
+        if ((apiName === 'uta') || (apiName === 'utaPrivate')) {
             endpoint = '/api/ua/v1/' + this.implodeParams (path, paramsOmitted);
-            if (api === 'utaPrivate') {
+            if (apiName === 'utaPrivate') {
                 isUtaPrivate = true;
             }
         }
         const query = this.omit (paramsOmitted, this.extractParams (path));
         let endpart = '';
-        let headersBase: NullableDict = {};
-        if (headers !== undefined) {
-            headersBase = headers;
-        }
-        let bodyJson: Str = body;
-        const apiUrl = this.safeString (this.urls['api'], api);
+        const headersBase: NullableDict = {};
+        let bodyJson: Str = undefined;
+        const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
@@ -11772,10 +11770,10 @@ export default class kucoin extends Exchange {
             }
         }
         let headersResult: NullableDict = headersBase;
-        const isFuturePrivate = (api === 'futuresPrivate');
-        const isPrivate = (api === 'private');
-        const isBroker = (api === 'broker');
-        const isEarn = (api === 'earn');
+        const isFuturePrivate = (apiName === 'futuresPrivate');
+        const isPrivate = (apiName === 'private');
+        const isBroker = (apiName === 'broker');
+        const isEarn = (apiName === 'earn');
         if (isPrivate || isFuturePrivate || isBroker || isEarn || isUtaPrivate) {
             this.checkRequiredCredentials ();
             const timestamp = this.nonce ().toString ();

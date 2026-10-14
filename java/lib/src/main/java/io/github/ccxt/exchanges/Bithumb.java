@@ -3810,12 +3810,13 @@ public class Bithumb extends BithumbApi
         return result;
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Map<String, Object> requestHeaders = null;
         Object requestBody = null;
         String endpoint = ("/" + this.implodeParams(path, parameters));
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -3825,7 +3826,7 @@ public class Bithumb extends BithumbApi
         List<Object> queryKeys = Helpers.objectKeys(query);
         Integer queryKeysLength = ((List<?>)queryKeys).size();
         Boolean hasQuery = ((queryKeysLength != null && queryKeysLength > 0));
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
+        if (java.util.Objects.equals(apiName, "public"))
         {
             requestHeaders = new HashMap<String, Object>() {{
                 put( "OPEN-API-PARTNER", "CCXT" );
@@ -3893,8 +3894,8 @@ public class Bithumb extends BithumbApi
                 }};
             }
         }
-        Object headersResult = (((!java.util.Objects.equals(requestHeaders, null)))) ? requestHeaders : headers;
-        Object bodyResult = (((!java.util.Objects.equals(requestBody, null)))) ? requestBody : body;
+        Map<String, Object> headersResult = requestHeaders;
+        Object bodyResult = requestBody;
         {
             HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
             h2kMap2.put("url", url);

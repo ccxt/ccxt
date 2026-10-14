@@ -6787,7 +6787,8 @@ class okx extends okx$1["default"] {
         const transfers = this.safeList(response, 'data', []);
         return this.parseTransfers(transfers, currency, since, limit, params);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         const isArray = Array.isArray(params);
         const request = '/api/' + this.version + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
@@ -6800,12 +6801,12 @@ class okx extends okx$1["default"] {
         let hasJsonBody = false;
         let jsonBody = undefined;
         // const type = this.getPathAuthenticationType (path);
-        if (api === 'public') {
+        if (apiName === 'public') {
             if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
-        else if (api === 'private') {
+        else if (apiName === 'private') {
             this.checkRequiredCredentials();
             // inject id in implicit api call
             if (method === 'POST' && (path === 'trade/batch-orders' || path === 'trade/order-algo' || path === 'trade/order')) {
@@ -6857,11 +6858,11 @@ class okx extends okx$1["default"] {
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256, 'base64');
             privateHeaders['OK-ACCESS-SIGN'] = signature;
         }
-        let requestBody = body;
+        let requestBody = undefined;
         if (hasJsonBody) {
             requestBody = jsonBody;
         }
-        const requestHeaders = (api === 'private') ? privateHeaders : headers;
+        const requestHeaders = (apiName === 'private') ? privateHeaders : undefined;
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
     parseFundingRate(contract, market = undefined) {

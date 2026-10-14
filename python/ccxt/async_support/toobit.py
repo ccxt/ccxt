@@ -3064,8 +3064,9 @@ class toobit(Exchange, ImplicitAPI):
             'percentage': None,
         })
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        baseApiUrl = self.safe_string(self.urls['api'], api)
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
+        baseApiUrl = self.safe_string(self.urls['api'], apiName)
         if baseApiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         baseUrl = baseApiUrl
@@ -3074,7 +3075,7 @@ class toobit(Exchange, ImplicitAPI):
         isDelete = method == 'DELETE'
         extraQuery = {}
         query = self.omit(params, self.extract_params(path))
-        if api != 'private':
+        if apiName != 'private':
             # Public endpoints
             if not isPost:
                 if len(query) > 0:
@@ -3097,7 +3098,7 @@ class toobit(Exchange, ImplicitAPI):
                     privateBody = self.json(query)
             else:
                 queryString = self.urlencode(queryExtended)
-            payloadBody = body
+            payloadBody = None
             if isPost or isDelete:
                 payloadBody = privateBody
             payload = queryString
@@ -3115,11 +3116,11 @@ class toobit(Exchange, ImplicitAPI):
                 'X-BB-API-PLATFORM': self.safe_string(self.options, 'brokerId', '177321641268789'),
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
-            requestBody = body
+            requestBody = None
             if isPost or isDelete:
                 requestBody = privateBody
             return {'url': url, 'method': method, 'body': requestBody, 'headers': privateHeaders}
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:

@@ -30,7 +30,9 @@ impl CoinspotCore {
     pub fn init(&mut self) {
         let described = CoinspotCore::describe(self);
         self.initialize_properties(described);
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self);
+        // compatibility for sandbox/testnet options in userConfig
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -839,7 +841,7 @@ impl CoinspotCore {
 }));
         m.insert("options".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("fetchBalance".to_string(), Value::Str("private_post_my_balances".into()));
+        m.insert("fetchBalance".to_string(), Value::Str("privatePostMyBalances".into()));
     m
 }));
         m.insert("features".to_string(), Value::Map({
@@ -978,7 +980,7 @@ impl CoinspotCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut method: Option<String> = self.safe_string_k(self.options.clone(), "fetchBalance", &[Value::Str("private_post_my_balances".into())]).as_str().map(str::to_owned);
+        let mut method: Option<String> = self.safe_string_k(self.options.clone(), "fetchBalance", &[Value::Str("privatePostMyBalances".into())]).as_str().map(str::to_owned);
         let mut response: Value = Value::Null;
         if (method.as_deref() == Some("private_post_ro_my_balances")) || (method.as_deref() == Some("privatePostRoMyBalances")) {
             response = self.private_post_ro_my_balances(&[params.clone()]).await;
@@ -1494,23 +1496,24 @@ impl CoinspotCore {
 }
 
     pub fn sign(&mut self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut requestHeaders: Value = headers;
-        let mut requestBody: Value = body;
-        let mut isVersionedApi: bool = matches!(&api, Value::Arr(_));
-        let mut version: Value = (if isVersionedApi { get_value(&api, &Value::Int(0)) } else { Value::Null });
-        let mut accessType: Value = (if isVersionedApi { get_value(&api, &Value::Int(1)) } else { api.clone() });
+        let __api_empty = Vec::new();
+        let api = api.as_array().unwrap_or(&__api_empty);
+        let mut requestHeaders: Value = Value::Null;
+        let mut requestBody: Value = Value::Null;
+        let mut apiLength: f64 = ((api.len() as i64) as f64);
+        let mut isVersionedApi: bool = apiLength > ((1i64) as f64);
+        let mut version: Value = (if isVersionedApi { api.get(0).cloned().unwrap_or(Value::Null) } else { Value::Null });
+        let mut accessType: Value = (if isVersionedApi { api.get(1).cloned().unwrap_or(Value::Null) } else { api.get(0).cloned().unwrap_or(Value::Null) });
         let mut endpoint: Value = Value::Str(format!("{}{}", Value::Str("/".into()), self.implode_params(path, params.clone())).into());
         let mut fullPath: Value = endpoint.clone();
         if (version != Value::Null) {
-            fullPath = Value::Str(format!("{}{}", add(&Value::Str("/".into()), &version), endpoint).into());
+            fullPath = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), version).into()), endpoint).into());
         }
         let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), accessType.clone(), &[]);
         if (apiUrl == Value::Null) {

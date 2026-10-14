@@ -1036,9 +1036,9 @@ public partial class BaseExchange
         this.options["enableDemoTrading"] = enable;
     }
 
-    public virtual Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public virtual Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         return new Dictionary<string, object>() {
@@ -1556,9 +1556,10 @@ public partial class BaseExchange
         return timestamp;
     }
 
-    public virtual void afterConstruct()
+    public virtual void afterConstruct(object userConfig = null)
     {
         // networks
+        userConfig ??= new Dictionary<string, object>();
         this.createNetworksByIdObject();
         this.featuresGenerator();
         // init predefined markets if any
@@ -1573,6 +1574,11 @@ public partial class BaseExchange
         if ((isSandbox == true))
         {
             this.setSandboxMode(isSandbox);
+        }
+        // compatibility for sandbox/testnet options in userConfig
+        if ((this.safeBool(userConfig, "sandbox", false) == true) || (this.safeBool(userConfig, "testnet", false) == true))
+        {
+            this.setSandboxMode(true);
         }
     }
 
@@ -4473,9 +4479,9 @@ public partial class BaseExchange
         return results;
     }
 
-    public async virtual Task<object> fetch2(string path, object api = null, object method = null, object parameters = null, object headers = null, object body = null, object config = null)
+    public async virtual Task<object> fetch2(string path, object api = null, object method = null, object parameters = null, object config = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         config ??= new Dictionary<string, object>();
@@ -4511,7 +4517,7 @@ public partial class BaseExchange
             try
             {
                 this.setLastRestRequestTimestamp();
-                Dictionary<string, object> request = this.sign(path, api,((string)method), paramsMaxRetriesOnFailureDelay, headers, body);
+                Dictionary<string, object> request = this.sign(path, api,((string)method), paramsMaxRetriesOnFailureDelay);
                 if ((fetchData != null))
                 {
                     fetchData["request"] = request;
@@ -4557,13 +4563,13 @@ public partial class BaseExchange
         return null;  // this line is never reached, but exists for c# value return requirement
     }
 
-    public async virtual Task<object> request(string path, object api = null, object method = null, object parameters = null, object headers = null, object body = null, object config = null)
+    public async virtual Task<object> request(string path, object api = null, object method = null, object parameters = null, object config = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         config ??= new Dictionary<string, object>();
-        return await this.fetch2(path, api, method, parameters, headers, body, config);
+        return await this.fetch2(path, api, method, parameters, config);
     }
 
     public async virtual Task<object> loadAccounts(bool? reload = null, object parameters = null)

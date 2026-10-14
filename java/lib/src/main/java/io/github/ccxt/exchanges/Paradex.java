@@ -1849,7 +1849,7 @@ public class Paradex extends ParadexApi
             {
                 return cachedConfig;
             }
-            Map<String, Object> response = (this.publicGetSystemConfig()).join();
+            Map<String, Object> response = (this.publicGetSystemConfig(new HashMap<String, Object>() {{}})).join();
             //
             // {
             //     "starknet_gateway_url": "https://potc-testnet-sepolia.starknet.io",
@@ -2066,7 +2066,12 @@ public class Paradex extends ParadexApi
         //
         Long timestamp = this.safeInteger(order, "created_at");
         String orderId = this.safeString(order, "id");
-        String clientOrderId = this.omitZero(this.safeString(order, "client_id"));
+        // a client id is free text, omitZero would drop every non-numeric one in php
+        String clientOrderId = this.safeString(order, "client_id");
+        if (java.util.Objects.equals(clientOrderId, ""))
+        {
+            clientOrderId = null;
+        }
         String marketId = this.safeString(order, "market");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = (String) marketResolved.get("symbol");
@@ -2986,7 +2991,7 @@ public class Paradex extends ParadexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> response = (this.privateGetBalance()).join();
+            Map<String, Object> response = (this.privateGetBalance(new HashMap<String, Object>() {{}})).join();
             //
             //     {
             //         "results": [
@@ -3152,7 +3157,7 @@ public class Paradex extends ParadexApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            Map<String, Object> response = (this.privateGetPositions()).join();
+            Map<String, Object> response = (this.privateGetPositions(new HashMap<String, Object>() {{}})).join();
             //
             //     {
             //         "results": [
@@ -4247,8 +4252,9 @@ public class Paradex extends ParadexApi
 
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String version = this.version;
         Object pathValue = path;
         if ((((String)path).indexOf("v2/") == 0))
@@ -4266,13 +4272,13 @@ public class Paradex extends ParadexApi
         }
         String url = ((this.implodeHostname(baseApiUrl) + "/") + this.implodeParams(pathValue, parameters));
         Object query = this.omit(parameters, this.extractParams(pathValue));
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
+        if (java.util.Objects.equals(apiName, "public"))
         {
             if (((Map<String, Object>)query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
-        } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        } else if (java.util.Objects.equals(apiName, "private"))
         {
             Map<String, Object> privateHeaders = new HashMap<String, Object>() {{
                 put( "Accept", "application/json" );
@@ -4325,7 +4331,7 @@ public class Paradex extends ParadexApi
             //         url += '?' + this.urlencode (query);
             //     }
             // }
-            String bodyResolved = (((!java.util.Objects.equals(privateBody, null)))) ? privateBody : body;
+            String bodyResolved = privateBody;
             {
                 HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
                 h2kMap4.put("url", url);
@@ -4339,8 +4345,8 @@ public class Paradex extends ParadexApi
             HashMap<String, Object> h2kMap5 = new HashMap<String, Object>();
             h2kMap5.put("url", url);
             h2kMap5.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap5.put("body", body);
-            h2kMap5.put("headers", headers);
+            h2kMap5.put("body", null);
+            h2kMap5.put("headers", null);
             return h2kMap5;
         }
     }

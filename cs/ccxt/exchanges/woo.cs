@@ -3856,9 +3856,9 @@ public partial class woo : Exchange
         return ((Int64)((object)((this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0))))!);
     }
 
-    public override Dictionary<string, object> sign(string path, object section = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object section = null, string method = null, object parameters = null)
     {
-        section ??= "public";
+        section ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> requestHeaders = null;
@@ -3951,8 +3951,8 @@ public partial class woo : Exchange
             }
             requestHeaders["x-api-signature"] = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
         }
-        object headersResult = ((requestHeaders != null)) ? requestHeaders : headers;
-        object bodyResult = ((requestBody != null)) ? requestBody : body;
+        Dictionary<string, object> headersResult = requestHeaders;
+        object bodyResult = requestBody;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

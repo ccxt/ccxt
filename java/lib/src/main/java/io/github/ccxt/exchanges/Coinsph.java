@@ -2714,9 +2714,10 @@ public class Coinsph extends CoinsphApi
         return urlEncodedParam;
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -2724,7 +2725,7 @@ public class Coinsph extends CoinsphApi
         Object query = this.omit(parameters, this.extractParams(path));
         String endpoint = (String) this.implodeParams(path, parameters);
         String url = ((apiUrl + "/") + endpoint);
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
             Helpers.addElementToObject(query, "timestamp", this.milliseconds());
@@ -2747,7 +2748,7 @@ public class Coinsph extends CoinsphApi
                 HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
                 h2kMap1.put("url", url);
                 h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-                h2kMap1.put("body", body);
+                h2kMap1.put("body", null);
                 h2kMap1.put("headers", signedHeaders);
                 return h2kMap1;
             }
@@ -2761,8 +2762,8 @@ public class Coinsph extends CoinsphApi
             HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
             h2kMap2.put("url", url);
             h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap2.put("body", body);
-            h2kMap2.put("headers", headers);
+            h2kMap2.put("body", null);
+            h2kMap2.put("headers", null);
             return h2kMap2;
         }
     }

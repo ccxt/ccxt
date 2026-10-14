@@ -1915,18 +1915,19 @@ export default class bitopro extends Exchange {
         return this.parseDepositWithdrawFees (data, codes, 'currency');
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
         let url = '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        const requestHeaders: Dict = (headers === undefined) ? {} : headers;
-        const isSignedBody = (api === 'private') && ((method === 'POST') || (method === 'PUT'));
+        const requestHeaders: Dict = {};
+        const isSignedBody = (apiName === 'private') && ((method === 'POST') || (method === 'PUT'));
         const signedBody: string = this.json (params);
-        let requestBody: Str = body;
+        let requestBody: Str = undefined;
         if (isSignedBody) {
             requestBody = signedBody;
         }
         requestHeaders['X-BITOPRO-API'] = 'ccxt';
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials ();
             if (method === 'POST' || method === 'PUT') {
                 const payload = this.stringToBase64 (signedBody);
@@ -1949,7 +1950,7 @@ export default class bitopro extends Exchange {
                 requestHeaders['X-BITOPRO-PAYLOAD'] = payload;
                 requestHeaders['X-BITOPRO-SIGNATURE'] = signature;
             }
-        } else if (api === 'public' && method === 'GET') {
+        } else if (apiName === 'public' && method === 'GET') {
             if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }

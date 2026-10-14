@@ -2334,7 +2334,7 @@ public class Zebpay extends ZebpayApi
         }};
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object bodySigned = null;
         Map<String, Object> headersSigned = null;
@@ -2357,7 +2357,7 @@ public class Zebpay extends ZebpayApi
         Object signature = "";
         Object query = this.omit(paramsOmitted, this.extractParams(path));
         Integer queryLength = Helpers.objectKeys(query).size();
-        String access = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 0, "public");
+        String access = this.safeString(api, 0, "public");
         if (java.util.Objects.equals(access, "public"))
         {
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"))
@@ -2406,8 +2406,8 @@ public class Zebpay extends ZebpayApi
             );
             headersSigned.put("Content-Type", "application/json");
         }
-        Object headersResolved = (((java.util.Objects.equals(headersSigned, null)))) ? headers : headersSigned;
-        Object bodyResolved = (((java.util.Objects.equals(bodySigned, null)))) ? body : bodySigned;
+        Map<String, Object> headersResolved = headersSigned;
+        Object bodyResolved = bodySigned;
         {
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
             h2kMap1.put("url", url);

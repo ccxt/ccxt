@@ -7017,10 +7017,10 @@ public class Xt extends XtApi
         return null;
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, Object body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Boolean signed = java.util.Objects.equals(Helpers.GetValue(api, 0), "private");
-        Object endpoint = Helpers.GetValue(api, 1);
+        Boolean signed = java.util.Objects.equals((api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)), "private");
+        Object endpoint = (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1));
         String request = ("/" + this.implodeParams(path, parameters));
         String payload = null;
         if ((java.util.Objects.equals(endpoint, "spot")) || (java.util.Objects.equals(endpoint, "user")))
@@ -7128,7 +7128,7 @@ public class Xt extends XtApi
                 url = (url + ("?" + urlencoded));
             }
         }
-        Object bodyValue = body;
+        String bodyValue = null;
         if (Boolean.TRUE.equals(signed))
         {
             bodyValue = signedBody;
@@ -7141,9 +7141,5 @@ public class Xt extends XtApi
             h2kMap2.put("headers", headersValue);
             return h2kMap2;
         }
-    }
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
-    {
-        return this.sign(path, api, method, parameters, headers, (Object) (body));
     }
 }

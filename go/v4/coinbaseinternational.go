@@ -3357,10 +3357,6 @@ func (this *Coinbaseinternational) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
 	var version *string = this.SafeString(api, 0)
 	var signed bool = (this.SafeString(api, 1) != nil && *this.SafeString(api, 1) == "private")
 	var fullPath any = Add(Add(Add("/", version), "/"), this.ImplodeParams(path, params))
@@ -3381,9 +3377,9 @@ func (this *Coinbaseinternational) Sign(path string, optionalArgs ...any) any {
 	if hasSignedBody {
 		signedBody = this.Json(query)
 	}
-	var requestBody any = body
+	var requestBody *string = nil
 	if hasSignedBody {
-		requestBody = signedBody
+		requestBody = SafeStringPtr(signedBody)
 	}
 	var signedHeaders any = nil
 	if signed {
@@ -3399,7 +3395,7 @@ func (this *Coinbaseinternational) Sign(path string, optionalArgs ...any) any {
 			"CB-ACCESS-KEY":        this.ApiKey,
 		}
 	}
-	var requestHeaders any = headers
+	var requestHeaders any = nil
 	if signed {
 		requestHeaders = signedHeaders
 	}

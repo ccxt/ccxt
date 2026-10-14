@@ -2721,16 +2721,12 @@ func (this *Zebpay) ParseMarginModification(info any, optionalArgs ...any) map[s
 	}
 }
 func (this *Zebpay) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	var bodySigned any = nil
 	var headersSigned any = nil
 	var paramsOmitted any = this.Omit(params, "defaultType")
@@ -2791,18 +2787,8 @@ func (this *Zebpay) Sign(path string, optionalArgs ...any) any {
 		}
 		AddElementToObject(headersSigned, "Content-Type", "application/json")
 	}
-	var headersResolved any = func() any {
-		if headersSigned == nil {
-			return headers
-		}
-		return headersSigned
-	}()
-	var bodyResolved any = func() any {
-		if bodySigned == nil {
-			return body
-		}
-		return bodySigned
-	}()
+	var headersResolved any = headersSigned
+	var bodyResolved any = bodySigned
 	return map[string]any{
 		"url":     url,
 		"method":  method,

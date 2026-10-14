@@ -951,13 +951,14 @@ class mercado(Exchange, ImplicitAPI):
         # the venue accepts any strictly-increasing integer tonce, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
         return self.milliseconds()
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        apiUrl = self.safe_string(self.urls['api'], api)
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + '/'
         query = self.omit(params, self.extract_params(path))
-        isPublic = (api == 'public') or (api == 'v4Public') or (api == 'v4PublicNet')
+        isPublic = (apiName == 'public') or (apiName == 'v4Public') or (apiName == 'v4PublicNet')
         privateBody = None
         privateHeaders = None
         if isPublic:
@@ -981,10 +982,10 @@ class mercado(Exchange, ImplicitAPI):
             }
         requestBody = privateBody
         if isPublic:
-            requestBody = body
+            requestBody = None
         requestHeaders = privateHeaders
         if isPublic:
-            requestHeaders = headers
+            requestHeaders = None
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

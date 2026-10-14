@@ -5,7 +5,7 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import kucoin from './kucoin.js';
+import kucoin from './abstract/kucoinfutures.js';
 import { BadRequest } from './base/errors.js';
 //  ---------------------------------------------------------------------------
 /**

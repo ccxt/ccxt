@@ -3689,7 +3689,7 @@ public class Bitget extends BitgetApi
                 Boolean accountIsUTa = false;
                 try
                 {
-                    (this.privateUtaGetV3AccountSettings()).join();
+                    (this.privateUtaGetV3AccountSettings(new HashMap<String, Object>() {{}})).join();
                     accountIsUTa = true;
                 } catch(Exception e)
                 {
@@ -14807,10 +14807,10 @@ public class Bitget extends BitgetApi
         return (this.milliseconds() - timeDifference);
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Boolean signed = java.util.Objects.equals(Helpers.GetValue(api, 0), "private");
-        Object endpoint = Helpers.GetValue(api, 1);
+        Boolean signed = java.util.Objects.equals((api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)), "private");
+        Object endpoint = (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1));
         String pathPart = "/api";
         String request = ("/" + this.implodeParams(path, parameters));
         String payload = (pathPart + request);
@@ -14874,7 +14874,7 @@ public class Bitget extends BitgetApi
                 requestHeaders.put("Content-Type", "application/json");
             }
         }
-        Object headersResult = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
+        Map<String, Object> headersResult = requestHeaders;
         Boolean sandboxMode = (Boolean) this.safeBool2(this.options, "sandboxMode", "sandbox", false);
         if ((java.util.Objects.equals(sandboxMode, true)) && (!java.util.Objects.equals(path, "v2/public/time")) && (!java.util.Objects.equals(path, "v3/market/current-fund-rate")))
         {
@@ -14886,10 +14886,10 @@ public class Bitget extends BitgetApi
             String productType = this.safeString(parameters, "productType");
             if ((!java.util.Objects.equals(productType, "SCOIN-FUTURES")) && (!java.util.Objects.equals(productType, "SUSDT-FUTURES")) && (!java.util.Objects.equals(productType, "SUSDC-FUTURES")))
             {
-                ((Map<String, Object>)headersResult).put("PAPTRADING", "1");
+                headersResult.put("PAPTRADING", "1");
             }
         }
-        String bodyResult = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
+        String bodyResult = requestBody;
         {
             HashMap<String, Object> h2kMap8 = new HashMap<String, Object>();
             h2kMap8.put("url", url);

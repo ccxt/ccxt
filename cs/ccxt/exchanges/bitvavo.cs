@@ -1986,7 +1986,7 @@ public partial class bitvavo : Exchange
             request["operatorId"] = this.parseToInt(operatorId);
         } else
         {
-            throw new ArgumentsRequired ((this.id + " canceAllOrders() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
+            throw new ArgumentsRequired ((this.id + " cancelAllOrders() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
         }
         List<object> response = await this.privateDeleteOrders(this.extend(request, paramsOperatorId));
         //
@@ -2959,13 +2959,14 @@ public partial class bitvavo : Exchange
         return ccxt.BaseExchange.ToDepositWithdrawFees(this.parseDepositWithdrawFees(response, codes, "symbol"));
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object requestHeaders = headers;
-        object requestBody = body;
+        object apiName = getValue(api, 0);
+        Dictionary<string, object> requestHeaders = null;
+        string? requestBody = null;
         object query = this.omit(parameters, this.extractParams(path));
         string url = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
         bool getOrDelete = ((method == "GET")) || ((method == "DELETE"));
@@ -2976,10 +2977,10 @@ public partial class bitvavo : Exchange
                 url = url + ("?" + this.urlencode(query));
             }
         }
-        if ((api is "private"))
+        if ((apiName is "private"))
         {
             this.checkRequiredCredentials();
-            object payload = "";
+            string? payload = "";
             if (!getOrDelete)
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
@@ -2989,7 +2990,7 @@ public partial class bitvavo : Exchange
                 }
             }
             string timestamp = this.milliseconds().ToString();
-            string? auth = ((string)(((timestamp + method) + url) + (payload)));
+            string? auth = ((string)(((timestamp + method) + url) + payload));
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             string? accessWindow = this.safeString2(this.options, "recvWindow", "BITVAVO-ACCESS-WINDOW", "10000");
             requestHeaders = new Dictionary<string, object>() {
@@ -3000,10 +3001,10 @@ public partial class bitvavo : Exchange
             };
             if (!getOrDelete)
             {
-                ((IDictionary<string,object>)requestHeaders)["Content-Type"] = "application/json";
+                requestHeaders["Content-Type"] = "application/json";
             }
         }
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;

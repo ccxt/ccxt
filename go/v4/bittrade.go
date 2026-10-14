@@ -601,7 +601,7 @@ func (this *Bittrade) Describe() any {
 				"ALGO":  "algo",
 			},
 			"fetchOrdersByStates": map[string]any{
-				"method": "private_get_order_orders",
+				"method": "privateGetOrderOrders",
 			},
 			"fetchOpenOrders": map[string]any{
 				"method": "fetch_open_orders_v1",
@@ -1885,7 +1885,7 @@ func (this *Bittrade) fetchOrdersByStatesBody(ch chan AsyncResult[[]any], states
 		market = this.Market(symbol)
 		request["symbol"] = market["id"]
 	}
-	var method any = this.HandleOption("fetchOrdersByStates", "method", "private_get_order_orders")
+	var method any = this.HandleOption("fetchOrdersByStates", "method", "privateGetOrderOrders")
 	var response any = nil
 	if (IsEqual(method, "private_get_order_history")) || (IsEqual(method, "privateGetOrderHistory")) {
 
@@ -3071,29 +3071,26 @@ func (this *Bittrade) withdrawBody(ch chan EndpointResult[map[string]any], code 
 	return nil
 }
 func (this *Bittrade) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var requestHeaders any = nil
-	var requestBody any = nil
+	var requestBody *string = nil
 	var url string = "/"
-	if api == "market" {
+	if apiName != nil && *apiName == "market" {
 		url += "market"
-	} else if (api == "public") || (api == "private") {
+	} else if (apiName != nil && *apiName == "public") || (apiName != nil && *apiName == "private") {
 		url += this.Version
-	} else if (api == "v2Public") || (api == "v2Private") {
+	} else if (apiName != nil && *apiName == "v2Public") || (apiName != nil && *apiName == "v2Private") {
 		url += "v2"
 	}
 	url += "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	if (api == "private") || (api == "v2Private") {
+	if (apiName != nil && *apiName == "private") || (apiName != nil && *apiName == "v2Private") {
 		this.CheckRequiredCredentials()
 		var timestamp string = this.Ymdhms(this.Milliseconds(), "T")
 		var request map[string]any = map[string]any{
@@ -3117,7 +3114,7 @@ func (this *Bittrade) Sign(path string, optionalArgs ...any) any {
 		})
 		url += "?" + auth
 		if method == "POST" {
-			requestBody = this.Json(query)
+			requestBody = SafeStringPtr(this.Json(query))
 			requestHeaders = map[string]any{
 				"Content-Type": "application/json",
 			}
@@ -3131,25 +3128,15 @@ func (this *Bittrade) Sign(path string, optionalArgs ...any) any {
 			url += "?" + this.Urlencode(params)
 		}
 	}
-	var baseApiUrl *string = this.SafeString(this.Urls["api"], api)
+	var baseApiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	url = this.ImplodeParams(baseApiUrl, map[string]any{
 		"hostname": this.Hostname,
 	}) + url
-	var headersResult any = func() any {
-		if requestHeaders != nil {
-			return requestHeaders
-		}
-		return headers
-	}()
-	var bodyResult any = func() any {
-		if requestBody != nil {
-			return requestBody
-		}
-		return body
-	}()
+	var headersResult any = requestHeaders
+	var bodyResult *string = requestBody
 	return map[string]any{
 		"url":     url,
 		"method":  method,

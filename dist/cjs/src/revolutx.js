@@ -212,21 +212,22 @@ class revolutx extends revolutx$1["default"] {
             },
         });
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         let requestHeaders = undefined;
         let requestBody = undefined;
         const implodedPath = this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         const queryKeys = Object.keys(query);
         const queryLength = queryKeys.length;
-        const baseApiUrl = this.safeString(this.urls['api'], api);
+        const apiName = api[0];
+        const baseApiUrl = this.safeString(this.urls['api'], apiName);
         if (baseApiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         const baseUrl = baseApiUrl;
         let url = baseUrl + '/' + implodedPath;
         let queryString = '';
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             const timestamp = this.milliseconds().toString();
             if (method === 'GET') {
@@ -245,7 +246,7 @@ class revolutx extends revolutx$1["default"] {
                 requestBody = this.json(query);
             }
             const requestPath = '/api/' + implodedPath;
-            const bodyValue = (requestBody !== undefined) ? requestBody : body;
+            const bodyValue = requestBody;
             const bodyString = (bodyValue !== undefined) ? bodyValue : '';
             const message = timestamp + method.toUpperCase() + requestPath + queryString + bodyString;
             const signature = crypto.eddsa(this.encode(message), this.privateKey, ed25519_js.ed25519);
@@ -270,8 +271,8 @@ class revolutx extends revolutx$1["default"] {
                 requestHeaders = { 'Content-Type': 'application/json' };
             }
         }
-        const headersResult = (requestHeaders !== undefined) ? requestHeaders : headers;
-        const bodyResult = (requestBody !== undefined) ? requestBody : body;
+        const headersResult = requestHeaders;
+        const bodyResult = requestBody;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
     /**

@@ -1810,17 +1810,18 @@ class bitopro(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_deposit_withdraw_fees(data, codes, 'currency')
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
         url = '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        requestHeaders = {} if (headers is None) else headers
-        isSignedBody = (api == 'private') and ((method == 'POST') or (method == 'PUT'))
+        requestHeaders = {}
+        isSignedBody = (apiName == 'private') and ((method == 'POST') or (method == 'PUT'))
         signedBody = self.json(params)
-        requestBody = body
+        requestBody = None
         if isSignedBody:
             requestBody = signedBody
         requestHeaders['X-BITOPRO-API'] = 'ccxt'
-        if api == 'private':
+        if apiName == 'private':
             self.check_required_credentials()
             if method == 'POST' or method == 'PUT':
                 payload = self.string_to_base64(signedBody)
@@ -1841,7 +1842,7 @@ class bitopro(Exchange, ImplicitAPI):
                 requestHeaders['X-BITOPRO-APIKEY'] = self.apiKey
                 requestHeaders['X-BITOPRO-PAYLOAD'] = payload
                 requestHeaders['X-BITOPRO-SIGNATURE'] = signature
-        elif api == 'public' and method == 'GET':
+        elif apiName == 'public' and method == 'GET':
             if len(query) > 0:
                 url += '?' + self.urlencode(query)
         apiUrl = self.safe_string(self.urls['api'], 'rest')

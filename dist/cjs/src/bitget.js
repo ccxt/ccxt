@@ -12213,7 +12213,7 @@ class bitget extends bitget$1["default"] {
         }
         return this.milliseconds() - timeDifference;
     }
-    sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = [], method = 'GET', params = {}) {
         const signed = api[0] === 'private';
         const endpoint = api[1];
         const pathPart = '/api';
@@ -12271,7 +12271,7 @@ class bitget extends bitget$1["default"] {
                 requestHeaders['Content-Type'] = 'application/json';
             }
         }
-        let headersResult = (requestHeaders === undefined) ? headers : requestHeaders;
+        let headersResult = requestHeaders;
         const sandboxMode = this.safeBool2(this.options, 'sandboxMode', 'sandbox', false);
         if ((sandboxMode === true) && (path !== 'v2/public/time') && (path !== 'v3/market/current-fund-rate')) {
             // https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336
@@ -12283,7 +12283,7 @@ class bitget extends bitget$1["default"] {
                 headersResult['PAPTRADING'] = '1';
             }
         }
-        const bodyResult = (requestBody === undefined) ? body : requestBody;
+        const bodyResult = requestBody;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 }

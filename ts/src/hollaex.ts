@@ -2078,7 +2078,7 @@ export default class hollaex extends Exchange {
         return this.parseDepositWithdrawFees (coins, codes, 'symbol');
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
         const query = this.omit (params, this.extractParams (path));
         let requestPath = '/' + this.version + '/' + this.implodeParams (path, params);
         if ((method === 'GET') || (method === 'DELETE')) {
@@ -2093,7 +2093,7 @@ export default class hollaex extends Exchange {
         const url = apiUrl + requestPath;
         let requestBody: Str = undefined;
         let requestHeaders: NullableDict = undefined;
-        if (api === 'private') {
+        if (api[0] === 'private') {
             this.checkRequiredCredentials ();
             const defaultExpires = this.safeInteger2 (this.options, 'api-expires', 'expires', this.parseToInt (this.timeout / 1000));
             const expires = this.sum (this.seconds (), defaultExpires);
@@ -2113,8 +2113,8 @@ export default class hollaex extends Exchange {
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
             requestHeaders['api-signature'] = signature;
         }
-        const bodyResult = (requestBody === undefined) ? body : requestBody;
-        const headersResult = (requestHeaders === undefined) ? headers : requestHeaders;
+        const bodyResult = requestBody;
+        const headersResult = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 

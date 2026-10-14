@@ -1371,7 +1371,7 @@ class binance extends Exchange {
                     'warnOnSTPForInverse' => true,
                     'quoteOrderQty' => true, // whether market orders support amounts in quote currency
                 ),
-                'defaultType' => 'spot', // 'spot', 'future', 'margin', 'delivery', 'option'
+                'defaultType' => 'spot', // 'spot', 'margin', 'swap', 'future', 'option'
                 'defaultSubType' => null, // 'linear', 'inverse'
                 'hasAlreadyAuthenticatedSuccessfully' => false,
                 'fetchOpenOrders' => array(
@@ -1400,7 +1400,6 @@ class binance extends Exchange {
                     'spot' => 'x-TKT5PX2F',
                     'margin' => 'x-TKT5PX2F',
                     'future' => 'x-cvBPrNm9',
-                    'delivery' => 'x-xcKtGhcu',
                     'swap' => 'x-cvBPrNm9',
                     'option' => 'x-xcKtGhcu',
                     'inverse' => 'x-xcKtGhcu',
@@ -1412,7 +1411,6 @@ class binance extends Exchange {
                     'margin' => 'MARGIN',
                     'cross' => 'MARGIN',
                     'future' => 'UMFUTURE', // backwards compatibility
-                    'delivery' => 'CMFUTURE', // backwards compatibility
                     'linear' => 'UMFUTURE',
                     'swap' => 'UMFUTURE',
                     'inverse' => 'CMFUTURE',
@@ -2813,11 +2811,7 @@ class binance extends Exchange {
     }
 
     public function is_inverse(string $type, ?string $subType = null): bool {
-        if ($subType === null) {
-            return ($type === 'delivery');
-        } else {
-            return $subType === 'inverse';
-        }
+        return $subType === 'inverse';
     }
 
     public function is_linear(string $type, ?string $subType = null): bool {
@@ -2903,12 +2897,12 @@ class binance extends Exchange {
         if ($this->markets === null) {
             throw new ExchangeError($this->id . ' markets not loaded');
         }
-        // defaultType has legacy support on binance
+        // defaultType 'future' resolves spot-style symbols to the derivative market of defaultSubType
         $defaultType = $this->safe_string($this->options, 'defaultType');
         $defaultSubType = $this->safe_string($this->options, 'defaultSubType');
-        $isLegacyLinear = $defaultType === 'future';
-        $isLegacyInverse = $defaultType === 'delivery';
-        $isLegacy = $isLegacyLinear || $isLegacyInverse;
+        $isLegacy = $defaultType === 'future';
+        $isLegacyInverse = $isLegacy && ($defaultSubType === 'inverse');
+        $isLegacyLinear = $isLegacy && !$isLegacyInverse;
         if (gettype($symbol) === 'string') {
             if (($this->markets !== null) && (is_array($this->markets) && array_key_exists($symbol ?? '', $this->markets))) {
                 $market = $this->markets[$symbol];
@@ -4131,7 +4125,7 @@ class binance extends Exchange {
          * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Account-Balance                            // portfolio margin
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->type] 'future', 'delivery', 'savings', 'funding', or 'spot' or 'papi'
+         * @param {string} [$params->type] 'spot', 'margin', 'swap', 'future', 'option', 'savings', 'funding' or 'papi', use $params->subType 'inverse' for COIN-M
          * @param {string} [$params->marginMode] 'cross' or 'isolated', for margin trading, uses $this->options.defaultMarginMode if not passed, defaults to null/None/null
          * @param {string[]|null} [$params->symbols] unified market $symbols, only used in isolated margin mode
          * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch the balance for a portfolio margin account
@@ -7158,9 +7152,7 @@ class binance extends Exchange {
             $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
             $defaultSubType = $this->safe_string($this->options, 'defaultSubType');
             $idMarketType = $defaultType;
-            if ($defaultType === 'delivery') {
-                $idMarketType = 'inverse';
-            } elseif (($defaultSubType === 'inverse') && (($defaultType === 'swap') || ($defaultType === 'future'))) {
+            if (($defaultSubType === 'inverse') && (($defaultType === 'swap') || ($defaultType === 'future'))) {
                 $idMarketType = 'inverse';
             }
         }
@@ -13290,12 +13282,13 @@ class binance extends Exchange {
         return $scheme . '//' . $domain . '/';
     }
 
-    public function sign(string $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $urls = $this->urls;
-        if (!(is_array($urls['api']) && array_key_exists($api ?? '', $urls['api']))) {
-            throw new NotSupported($this->id . ' does not have a testnet/sandbox URL for ' . $api . ' endpoints');
+        if (!(is_array($urls['api']) && array_key_exists($apiName ?? '', $urls['api']))) {
+            throw new NotSupported($this->id . ' does not have a testnet/sandbox URL for ' . $apiName . ' endpoints');
         }
-        $baseApiUrl = $this->safe_string($this->urls['api'], $api);
+        $baseApiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($baseApiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
@@ -13326,12 +13319,12 @@ class binance extends Exchange {
             } else {
                 throw new AuthenticationError($this->id . ' userDataStream endpoint requires `apiKey` credential');
             }
-        } elseif (($api === 'private') || ($api === 'eapiPrivate') || ($api === 'sapi' && $path !== 'system/status') || ($api === 'sapiV2') || ($api === 'sapiV3') || ($api === 'sapiV4') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2') || ($api === 'fapiPrivateV3') || ($api === 'papiV2' || $api === 'papi' && $path !== 'ping')) {
+        } elseif (($apiName === 'private') || ($apiName === 'eapiPrivate') || ($apiName === 'sapi' && $path !== 'system/status') || ($apiName === 'sapiV2') || ($apiName === 'sapiV3') || ($apiName === 'sapiV4') || ($apiName === 'dapiPrivate') || ($apiName === 'dapiPrivateV2') || ($apiName === 'fapiPrivate') || ($apiName === 'fapiPrivateV2') || ($apiName === 'fapiPrivateV3') || ($apiName === 'papiV2' || $apiName === 'papi' && $path !== 'ping')) {
             $this->check_required_credentials();
             if ((mb_strpos($url, 'testnet.binancefuture.com') > -1) && $this->isSandboxModeEnabled && (!$this->safe_bool($this->options, 'disableFuturesSandboxWarning', false))) {
                 throw new NotSupported($this->id . ' testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.');
             }
-            $requestParams = $this->handle_client_order_id($params, $api, $path, $method);
+            $requestParams = $this->handle_client_order_id($params, $apiName, $path, $method);
             $query = null;
             // handle batchOrders
             if (($path === 'batchOrders') && (($method === 'POST') || ($method === 'PUT'))) {
@@ -13350,7 +13343,7 @@ class binance extends Exchange {
             if ($recvWindow !== null) {
                 $extendedParams['recvWindow'] = $recvWindow;
             }
-            if (($api === 'sapi') && ($path === 'asset/dust')) {
+            if (($apiName === 'sapi') && ($path === 'asset/dust')) {
                 $query = $this->urlencode_with_array_repeat($extendedParams);
             } elseif (($path === 'batchOrders') || (mb_strpos($path, 'sub-account') !== false) || ($path === 'capital/withdraw/apply') || (mb_strpos($path, 'staking') !== false) || (mb_strpos($path, 'simple-earn') !== false)) {
                 if (($method === 'DELETE') && ($path === 'batchOrders')) {
@@ -13405,8 +13398,8 @@ class binance extends Exchange {
                 $url .= '?' . $this->urlencode($params);
             }
         }
-        $headersResolved = ($signedHeaders !== null) ? $signedHeaders : $headers;
-        $bodyResolved = ($signedBody !== null) ? $signedBody : $body;
+        $headersResolved = $signedHeaders;
+        $bodyResolved = $signedBody;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
@@ -13543,10 +13536,10 @@ class binance extends Exchange {
         return $this->safe_value($config, 'cost', 1);
     }
 
-    public function request(string $path, $api = 'public', mixed $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, array $config = array()) {
-        $response = $this->fetch2($path, $api, $method, $params, $headers, $body, $config);
+    public function request(string $path, array $api = array('public'), mixed $method = 'GET', $params = array(), array $config = array()) {
+        $response = $this->fetch2($path, $api, $method, $params, $config);
         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
-        if ($api === 'private') {
+        if ($api[0] === 'private') {
             $this->options['hasAlreadyAuthenticatedSuccessfully'] = true;
         }
         return $response;
@@ -13560,7 +13553,7 @@ class binance extends Exchange {
         }
         $type = $this->safe_string($params, 'type', $defaultType);
         if (($type === 'margin') || ($type === 'spot')) {
-            throw new NotSupported($this->id . ' add / reduce margin only supported with type future or delivery');
+            throw new NotSupported($this->id . ' add / reduce margin only supported with linear or inverse swap/future markets');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -14310,13 +14303,14 @@ class binance extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $symbolKey = 'pair';
         if ($market['linear'] === true) {
-            $symbolKey = 'symbol';
-        }
-        $request[$symbolKey] = $market['id'];
-        if ($market['inverse'] === true) {
-            $request['contractType'] = $this->safe_string($paramsPaginate, 'contractType', 'CURRENT_QUARTER');
+            $request['symbol'] = $market['id'];
+        } elseif ($market['inverse'] === true) {
+            // dapi expects the underlying pair (BTCUSD) and a contract type, not the market id (BTCUSD_PERP)
+            $request['pair'] = $this->safe_string($market['info'], 'pair');
+            $request['contractType'] = ($market['swap'] === true) ? 'PERPETUAL' : $this->safe_string($market['info'], 'contractType');
+        } else {
+            throw new NotSupported($this->id . ' fetchOpenInterestHistory() supports linear and inverse contracts only');
         }
         if ($since !== null) {
             $request['startTime'] = $since;
@@ -14345,6 +14339,19 @@ class binance extends Exchange {
         //          "sumOpenInterest":"75375.61700000",
         //          "sumOpenInterestValue":"3248828883.71251440",
         //          "timestamp":1642179900000
+        //      },
+        //      ...
+        //  ]
+        //
+        // inverse
+        //
+        //  [
+        //      {
+        //          "contractType":"PERPETUAL",
+        //          "sumOpenInterest":"13069401.00000000",
+        //          "sumOpenInterestValue":"15796.96988405",
+        //          "pair":"BTCUSD",
+        //          "timestamp":1791835200000
         //      },
         //      ...
         //  ]

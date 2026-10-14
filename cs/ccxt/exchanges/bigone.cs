@@ -2149,14 +2149,15 @@ public partial class bigone : Exchange
         return ((Int64)((object)(this.sum((this.microseconds() * 1000), exchangeTimeCorrection)))!);
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        object apiName = getValue(api, 0);
         string? bodySigned = null;
         object query = this.omit(parameters, this.extractParams(path));
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -2164,7 +2165,7 @@ public partial class bigone : Exchange
         string baseUrl = this.implodeHostname(apiUrl);
         string url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         Dictionary<string, object> headersValue = new Dictionary<string, object>() {};
-        if ((api is "public") || (api is "webExchange") || (api is "contractPublic"))
+        if ((apiName is "public") || (apiName is "webExchange") || (apiName is "contractPublic"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
@@ -2194,7 +2195,7 @@ public partial class bigone : Exchange
             }
         }
         headersValue["User-Agent"] = ((("ccxt/" + this.id) + "-") + this.version);
-        object bodyResolved = ((bodySigned == null)) ? body : bodySigned;
+        string? bodyResolved = bodySigned;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

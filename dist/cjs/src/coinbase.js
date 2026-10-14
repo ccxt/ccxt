@@ -2532,6 +2532,22 @@ class coinbase extends coinbase$1["default"] {
         else if ((isV3 === true) || (method === 'v3PrivateGetBrokerageAccounts')) {
             request['limit'] = 250;
             response = await this.v3PrivateGetBrokerageAccounts(this.extend(request, paramsMarketType));
+            // an explicit params.cursor means the caller pages manually
+            if (this.safeString(paramsMarketType, 'cursor') === undefined) {
+                let accounts = this.safeList(response, 'accounts', []);
+                let page = response;
+                let cursor = this.safeString(page, 'cursor');
+                while (this.safeBool(page, 'has_next', false) && (cursor !== undefined) && (cursor !== '')) {
+                    request['cursor'] = cursor;
+                    page = await this.v3PrivateGetBrokerageAccounts(this.extend(request, paramsMarketType));
+                    accounts = this.arrayConcat(accounts, this.safeList(page, 'accounts', []));
+                    const nextCursor = this.safeString(page, 'cursor');
+                    cursor = (nextCursor === cursor) ? undefined : nextCursor;
+                }
+                response['accounts'] = accounts;
+                response['has_next'] = this.safeBool(page, 'has_next', false);
+                response['cursor'] = this.safeString(page, 'cursor');
+            }
         }
         else {
             request['limit'] = 250;
@@ -5310,7 +5326,7 @@ class coinbase extends coinbase$1["default"] {
         }
         return this.milliseconds() - timeDifference;
     }
-    sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = [], method = 'GET', params = {}) {
         let requestBody = undefined;
         let requestHeaders = undefined;
         const version = this.safeString(api, 0);
@@ -5418,8 +5434,8 @@ class coinbase extends coinbase$1["default"] {
                 }
             }
         }
-        const bodyResolved = (requestBody === undefined) ? body : requestBody;
-        const headersResolved = (requestHeaders === undefined) ? headers : requestHeaders;
+        const bodyResolved = requestBody;
+        const headersResolved = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

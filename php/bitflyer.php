@@ -1244,11 +1244,12 @@ class bitflyer extends Exchange {
         );
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $bodySigned = null;
         $headersSigned = null;
         $request = '/' . $this->version . '/';
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $request .= 'me/';
         }
         $request .= $path;
@@ -1263,7 +1264,7 @@ class bitflyer extends Exchange {
         }
         $baseUrl = $this->implode_hostname($apiUrl);
         $url = $baseUrl . $request;
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();
             $content = array( $nonce, $method, $request );
@@ -1281,8 +1282,8 @@ class bitflyer extends Exchange {
                 'Content-Type' => 'application/json',
             );
         }
-        $headersResolved = ($headersSigned === null) ? $headers : $headersSigned;
-        $bodyResolved = ($bodySigned === null) ? $body : $bodySigned;
+        $headersResolved = $headersSigned;
+        $bodyResolved = $bodySigned;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 

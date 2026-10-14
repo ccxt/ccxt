@@ -213,7 +213,7 @@ class bit2c extends Exchange {
             ),
             'options' => array(
                 'fetchTrades' => array(
-                    'method' => 'public_get_exchanges_pair_trades',
+                    'method' => 'publicGetExchangesPairTrades',
                 ),
             ),
             'features' => array(
@@ -502,7 +502,7 @@ class bit2c extends Exchange {
         }
         $market = $this->market($symbol);
         $optionValue = $this->safe_string($this->options, 'fetchTradesMethod'); // kept here for backward compatibility #29154
-        $method = $this->handle_option('fetchTrades', 'method', $optionValue); // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
+        $method = $this->handle_option('fetchTrades', 'method', $optionValue); // publicGetExchangesPairTrades or publicGetExchangesPairLasttrades
         $request = array(
             'pair' => $market['id'],
         );
@@ -513,7 +513,7 @@ class bit2c extends Exchange {
             $request['limit'] = $limit; // max 100000
         }
         $responseList = array();
-        if ($method === 'public_get_exchanges_pair_trades') {
+        if (($method === 'publicGetExchangesPairTrades') || ($method === 'public_get_exchanges_pair_trades')) {
             $response = Async\await($this->publicGetExchangesPairTrades($this->extend($request, $params)));
             //
             //     [
@@ -1095,7 +1095,7 @@ class bit2c extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $apiUrl = $this->safe_string($this->urls['api'], 'rest');
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
@@ -1103,7 +1103,7 @@ class bit2c extends Exchange {
         $url = $apiUrl . '/' . $this->implode_params($path, $params);
         $requestBody = null;
         $requestHeaders = null;
-        if ($api === 'public') {
+        if ($api[0] === 'public') {
             $url .= '.json';
         } else {
             $this->check_required_credentials();
@@ -1127,8 +1127,8 @@ class bit2c extends Exchange {
                 'sign' => $signature,
             );
         }
-        $bodyResult = ($requestBody === null) ? $body : $requestBody;
-        $headersResult = ($requestHeaders === null) ? $headers : $requestHeaders;
+        $bodyResult = $requestBody;
+        $headersResult = $requestHeaders;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
     }
 

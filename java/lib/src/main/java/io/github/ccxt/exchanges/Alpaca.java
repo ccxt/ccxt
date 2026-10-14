@@ -2542,7 +2542,7 @@ public class Alpaca extends AlpacaApi
             // the two calls stay sequential deliberately — the static request harness records one request per case,
             // and concurrent calls make the recorded url nondeterministic per language
             Map<String, Object> account = (this.traderPrivateGetV2Account(parameters)).join();
-            List<Object> positions = (this.traderPrivateGetV2Positions()).join();
+            List<Object> positions = (this.traderPrivateGetV2Positions(new HashMap<String, Object>() {{}})).join();
             //
             //     {
             //         "id": "43a01bde-4eb1-64fssc26adb5",
@@ -2678,24 +2678,20 @@ public class Alpaca extends AlpacaApi
         return this.safeBalance(result);
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         String endpoint = ("/" + this.implodeParams(path, parameters));
-        String baseApiUrl = this.safeString(this.urls.get("api"), Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "public"), 0));
+        String baseApiUrl = this.safeString(this.urls.get("api"), (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)));
         if (java.util.Objects.equals(baseApiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        Object headersValue = new HashMap<String, Object>() {{}};
-        if (!java.util.Objects.equals(headers, null))
-        {
-            headersValue = headers;
-        }
-        if (java.util.Objects.equals(Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "public"), 1), "private"))
+        Map<String, Object> headersValue = new HashMap<String, Object>() {{}};
+        if (java.util.Objects.equals((api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1)), "private"))
         {
             this.checkRequiredCredentials(true);
-            ((Map<String, Object>)headersValue).put("APCA-API-KEY-ID", this.apiKey);
-            ((Map<String, Object>)headersValue).put("APCA-API-SECRET-KEY", this.secret);
+            headersValue.put("APCA-API-KEY-ID", this.apiKey);
+            headersValue.put("APCA-API-SECRET-KEY", this.secret);
         }
         Object query = this.omit(parameters, this.extractParams(path));
         String bodyJson = null;
@@ -2707,11 +2703,11 @@ public class Alpaca extends AlpacaApi
             } else
             {
                 bodyJson = this.json(query);
-                ((Map<String, Object>)headersValue).put("Content-Type", "application/json");
+                headersValue.put("Content-Type", "application/json");
             }
         }
         String url = (this.implodeHostname(baseApiUrl) + endpoint);
-        String bodyResolved = (((java.util.Objects.equals(bodyJson, null)))) ? body : bodyJson;
+        String bodyResolved = bodyJson;
         {
             HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
             h2kMap2.put("url", url);

@@ -7262,9 +7262,9 @@ public partial class bingx : Exchange
         return tiers;
     }
 
-    public override Dictionary<string, object> sign(string path, object section = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object section = null, string method = null, object parameters = null)
     {
-        section ??= "public";
+        section ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object type = getValue(section, 0);
@@ -7345,8 +7345,8 @@ public partial class bingx : Exchange
                 url = add(url, (((("?" + query) + "&") + "signature=") + signature));
             }
         }
-        object bodyResult = ((requestBody != null)) ? requestBody : body;
-        object headersResult = ((requestHeaders != null)) ? requestHeaders : headers;
+        string? bodyResult = requestBody;
+        Dictionary<string, object> headersResult = requestHeaders;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

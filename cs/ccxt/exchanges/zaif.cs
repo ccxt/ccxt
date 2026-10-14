@@ -946,11 +946,12 @@ public partial class zaif : Exchange
         return toFixed(nonce, 8);
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        object apiName = getValue(api, 0);
         string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest");
         if ((baseApiUrl == null))
         {
@@ -958,19 +959,19 @@ public partial class zaif : Exchange
         }
         string baseUrl = baseApiUrl;
         string url = (baseUrl + "/");
-        if ((api is "public"))
+        if ((apiName is "public"))
         {
             url = url + ((("api/" + this.version) + "/") + this.implodeParams(path, parameters));
-        } else if ((api is "fapi"))
+        } else if ((apiName is "fapi"))
         {
             url = url + ((("fapi/" + this.version) + "/") + this.implodeParams(path, parameters));
         } else
         {
             this.checkRequiredCredentials();
-            if ((api is "ecapi"))
+            if ((apiName is "ecapi"))
             {
                 url = url + "ecapi";
-            } else if ((api is "tlapi"))
+            } else if ((apiName is "tlapi"))
             {
                 url = url + "tlapi";
             } else
@@ -997,8 +998,8 @@ public partial class zaif : Exchange
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", null },
+            { "headers", null },
         };
     }
 

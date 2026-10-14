@@ -168,7 +168,8 @@ function safeRustName(name: string): string {
 // inline so this file is self-contained (no shared module yet).
 function isStringType(t: string) {
     return t === 'Str' || t === 'string' || t === 'StringLiteral'
-        || t === 'OrderSide' || t === 'OrderType' || t === 'MarketType';
+        || t === 'OrderSide' || t === 'OrderType' || t === 'MarketType'
+        || t === 'DefaultType' || t === 'DefaultSubType';
 }
 function isNumberType(t: string) { return t === 'Num' || t === 'number' || t === 'NumericLiteral'; }
 function isIntegerType(t: string) { return t !== undefined && t.toLowerCase() === 'int'; }
@@ -1015,8 +1016,8 @@ function discoverReachableMethods(
     return result;
 }
 
-const BASE_RS = './rust/ccxt-core/src/exchange_generated.rs';
-const STUBS_RS = './rust/ccxt-core/src/exchange_stubs.rs';
+const BASE_RS = './rust/ccxt-common/src/exchange_generated.rs';
+const STUBS_RS = './rust/ccxt-common/src/exchange_stubs.rs';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Main

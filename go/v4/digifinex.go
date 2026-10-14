@@ -6304,10 +6304,6 @@ func (this *Digifinex) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	var signed bool = (this.SafeString(api, 0) != nil && *this.SafeString(api, 0) == "private")
 	var endpoint *string = this.SafeString(api, 1)
 	var pathPart string = "/swap/v2"
@@ -6352,7 +6348,7 @@ func (this *Digifinex) Sign(path string, optionalArgs ...any) any {
 			}
 		}
 		var hasPostBody bool = (method == "POST") && (urlencoded != nil) && (!IsEqual(urlencoded, ""))
-		var requestBody any = body
+		var requestBody any = nil
 		if hasPostBody {
 			requestBody = urlencoded
 		}
@@ -6375,8 +6371,8 @@ func (this *Digifinex) Sign(path string, optionalArgs ...any) any {
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    nil,
+		"headers": nil,
 	}
 }
 func (this *Digifinex) HandleErrors(statusCode any, statusText any, url any, method any, responseHeaders any, responseBody string, response any, requestHeaders any, requestBody any) any {

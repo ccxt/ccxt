@@ -13496,28 +13496,25 @@ func (this *Bybit) ParseMarginModeType(marginMode *string) *string {
 	return this.SafeString(marginModes, marginMode, marginMode)
 }
 func (this *Bybit) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
-	var requestBody any = nil
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var requestBody *string = nil
 	var requestHeaders any = nil
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url any = this.ImplodeHostname(apiUrl) + "/" + path
-	if api == "public" {
+	if apiName != nil && *apiName == "public" {
 		if len(ObjectKeys(params)) > 0 {
 			url = Add(url, "?"+this.Rawencode(params))
 		}
-	} else if api == "private" {
+	} else if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		var isOpenapi bool = (GetIndexOf(url, "openapi") >= 0)
 		var isV3UnifiedMargin bool = (GetIndexOf(url, "unified/v3") >= 0)
@@ -13526,11 +13523,11 @@ func (this *Bybit) Sign(path string, optionalArgs ...any) any {
 		var timestamp string = ToString(this.Nonce())
 		if isOpenapi {
 			if len(ObjectKeys(params)) > 0 {
-				requestBody = this.Json(params)
+				requestBody = SafeStringPtr(this.Json(params))
 			} else {
 				// this fix for PHP is required otherwise it generates
 				// '[]' on empty arrays even when forced to use objects
-				requestBody = "{}"
+				requestBody = SafeStringPtr("{}")
 			}
 			var payload *string = SafeStringPtr(Add(Add(timestamp, this.ApiKey), requestBody))
 			var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "hex")
@@ -13555,7 +13552,7 @@ func (this *Bybit) Sign(path string, optionalArgs ...any) any {
 			var auth_base any = Add(Add(timestamp, this.ApiKey), ToString(GetValue(this.Options, "recvWindow")))
 			var authFull any = nil
 			if method == "POST" {
-				requestBody = this.Json(query)
+				requestBody = SafeStringPtr(this.Json(query))
 				authFull = Add(auth_base, requestBody)
 			} else {
 				authFull = Add(auth_base, queryEncoded)
@@ -13588,12 +13585,12 @@ func (this *Bybit) Sign(path string, optionalArgs ...any) any {
 					"sign": signature,
 				})
 				if isSpot {
-					requestBody = this.Urlencode(extendedQuery)
+					requestBody = SafeStringPtr(this.Urlencode(extendedQuery))
 					requestHeaders = map[string]any{
 						"Content-Type": "application/x-www-form-urlencoded",
 					}
 				} else {
-					requestBody = this.Json(extendedQuery)
+					requestBody = SafeStringPtr(this.Json(extendedQuery))
 					requestHeaders = map[string]any{
 						"Content-Type": "application/json",
 					}
@@ -13606,12 +13603,7 @@ func (this *Bybit) Sign(path string, optionalArgs ...any) any {
 	}
 	if method == "POST" {
 		var brokerId *string = this.SafeString(this.Options, "brokerId", "CCXT")
-		var headersBase any = func() any {
-			if IsEqual(requestHeaders, nil) {
-				return headers
-			}
-			return requestHeaders
-		}()
+		var headersBase any = requestHeaders
 		requestHeaders = func() any {
 			if IsEqual(headersBase, nil) {
 				return map[string]any{}
@@ -13620,18 +13612,8 @@ func (this *Bybit) Sign(path string, optionalArgs ...any) any {
 		}()
 		AddElementToObject(requestHeaders, "Referer", brokerId)
 	}
-	var bodyResolved any = func() any {
-		if requestBody == nil {
-			return body
-		}
-		return requestBody
-	}()
-	var headersResolved any = func() any {
-		if IsEqual(requestHeaders, nil) {
-			return headers
-		}
-		return requestHeaders
-	}()
+	var bodyResolved *string = requestBody
+	var headersResolved any = requestHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,

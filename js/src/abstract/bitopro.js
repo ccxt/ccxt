@@ -7,5 +7,83 @@
 // -------------------------------------------------------------------------------
 import { Exchange as _Exchange } from '../base/Exchange.js';
 class Exchange extends _Exchange {
+    publicGetOrderBookPair(params = {}) {
+        return this.request('order-book/{pair}', ['public'], 'GET', params, { 'cost': 1 });
+    }
+    publicGetTickers(params = {}) {
+        return this.request('tickers', ['public'], 'GET', params, { 'cost': 1 });
+    }
+    publicGetTickersPair(params = {}) {
+        return this.request('tickers/{pair}', ['public'], 'GET', params, { 'cost': 1 });
+    }
+    publicGetTradesPair(params = {}) {
+        return this.request('trades/{pair}', ['public'], 'GET', params, { 'cost': 1 });
+    }
+    publicGetProvisioningCurrencies(params = {}) {
+        return this.request('provisioning/currencies', ['public'], 'GET', params, { 'cost': 1 });
+    }
+    publicGetProvisioningTradingPairs(params = {}) {
+        return this.request('provisioning/trading-pairs', ['public'], 'GET', params, { 'cost': 1 });
+    }
+    publicGetProvisioningLimitationsAndFees(params = {}) {
+        return this.request('provisioning/limitations-and-fees', ['public'], 'GET', params, { 'cost': 1 });
+    }
+    publicGetTradingHistoryPair(params = {}) {
+        return this.request('trading-history/{pair}', ['public'], 'GET', params, { 'cost': 1 });
+    }
+    publicGetPriceOtcCurrency(params = {}) {
+        return this.request('price/otc/{currency}', ['public'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetAccountsBalance(params = {}) {
+        return this.request('accounts/balance', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetOrdersHistory(params = {}) {
+        return this.request('orders/history', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetOrdersAllPair(params = {}) {
+        return this.request('orders/all/{pair}', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetOrdersTradesPair(params = {}) {
+        return this.request('orders/trades/{pair}', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetOrdersPairOrderId(params = {}) {
+        return this.request('orders/{pair}/{orderId}', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetWalletWithdrawCurrencySerial(params = {}) {
+        return this.request('wallet/withdraw/{currency}/{serial}', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetWalletWithdrawCurrencyIdId(params = {}) {
+        return this.request('wallet/withdraw/{currency}/id/{id}', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetWalletDepositHistoryCurrency(params = {}) {
+        return this.request('wallet/depositHistory/{currency}', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetWalletWithdrawHistoryCurrency(params = {}) {
+        return this.request('wallet/withdrawHistory/{currency}', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetOrdersOpen(params = {}) {
+        return this.request('orders/open', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privatePostOrdersPair(params = {}) {
+        return this.request('orders/{pair}', ['private'], 'POST', params, { 'cost': 0.5 });
+    }
+    privatePostOrdersBatch(params = {}) {
+        return this.request('orders/batch', ['private'], 'POST', params, { 'cost': 6.666666666666667 });
+    }
+    privatePostWalletWithdrawCurrency(params = {}) {
+        return this.request('wallet/withdraw/{currency}', ['private'], 'POST', params, { 'cost': 10 });
+    }
+    privatePutOrders(params = {}) {
+        return this.request('orders', ['private'], 'PUT', params, { 'cost': 5 });
+    }
+    privateDeleteOrdersPairId(params = {}) {
+        return this.request('orders/{pair}/{id}', ['private'], 'DELETE', params, { 'cost': 0.6666666666666666 });
+    }
+    privateDeleteOrdersAll(params = {}) {
+        return this.request('orders/all', ['private'], 'DELETE', params, { 'cost': 5 });
+    }
+    privateDeleteOrdersPair(params = {}) {
+        return this.request('orders/{pair}', ['private'], 'DELETE', params, { 'cost': 5 });
+    }
 }
 export default Exchange;

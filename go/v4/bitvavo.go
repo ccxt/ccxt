@@ -2327,7 +2327,7 @@ func (this *Bitvavo) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs 
 	if !IsEqual(operatorId, nil) {
 		request["operatorId"] = this.ParseToInt(operatorId)
 	} else {
-		panic(ArgumentsRequired(this.Id + " canceAllOrders() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890"))
+		panic(ArgumentsRequired(this.Id + " cancelAllOrders() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890"))
 	}
 
 	listEp2199 := <-this.PrivateDeleteOrders(this.Extend(request, paramsOperatorId))
@@ -3518,18 +3518,15 @@ func (this *Bitvavo) fetchDepositWithdrawFeesBody(ch chan AsyncResult[any], opti
 	return nil
 }
 func (this *Bitvavo) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
-	var requestHeaders any = headers
-	var requestBody any = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var requestHeaders map[string]any = nil
+	var requestBody any = nil
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var url string = "/" + this.Version + "/" + this.ImplodeParams(path, params)
 	var getOrDelete bool = (method == "GET") || (method == "DELETE")
@@ -3538,7 +3535,7 @@ func (this *Bitvavo) Sign(path string, optionalArgs ...any) any {
 			url += "?" + this.Urlencode(query)
 		}
 	}
-	if api == "private" {
+	if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		var payload any = ""
 		if !getOrDelete {
@@ -3561,7 +3558,7 @@ func (this *Bitvavo) Sign(path string, optionalArgs ...any) any {
 			AddElementToObject(requestHeaders, "Content-Type", "application/json")
 		}
 	}
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

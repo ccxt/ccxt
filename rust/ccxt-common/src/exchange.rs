@@ -1175,7 +1175,9 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         let __ws_proxy = [&self.wsProxy, &self.ws_proxy, &self.wssProxy]
             .iter()
             .find_map(|v| match v { Value::Str(s) if !s.is_empty() => Some(s.to_string()), _ => None });
-        let client = match crate::pro::ws_client::ensure_client(&url, __ws_proxy).await {
+        // binary frames are decompressed unless the exchange opts out (mexc, paradex)
+        let __decompress_binary = !matches!(crate::get_value(&self.options, &Value::Str("decompressBinary".into())), Value::Bool(false));
+        let client = match crate::pro::ws_client::ensure_client(&url, __ws_proxy, __decompress_binary).await {
             Ok(c) => c,
             Err(e) => panic!("{}", e),
         };
@@ -1515,11 +1517,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         if matches!(self.mock_response, Value::Null) && matches!(self.mock_response_by_url, Value::Null) {
             self.throttle(&[cost]).await;
         }
-        let api_arg = if scope_segments.len() == 1 {
-            Value::Str(scope_segments[0].clone().into())
-        } else {
-            Value::Array(scope_segments.iter().map(|s| Value::Str(s.clone().into())).collect())
-        };
+        let api_arg = Value::Array(scope_segments.iter().map(|s| Value::Str(s.clone().into())).collect());
         let scope_lookup: String = scope_segments.first().cloned().unwrap_or_default();
         // Static dispatch to the derived exchange's sign override.
         let signed = crate::exchange::DerivedExchange::sign(
@@ -1598,11 +1596,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
                 format!("implicit API method {name} not found in api block"),
             )),
         };
-        let api = if scope_segments.len() == 1 {
-            Value::Str(scope_segments[0].clone().into())
-        } else {
-            Value::Array(scope_segments.iter().map(|s| Value::Str(s.clone().into())).collect())
-        };
+        let api = Value::Array(scope_segments.iter().map(|s| Value::Str(s.clone().into())).collect());
         let cost = if matches!(self.enableRateLimit, Value::Bool(true)) {
             self.call_dynamic(
                 "calculate_rate_limiter_cost",
@@ -1623,11 +1617,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             .get(name)
             .cloned()
             .ok_or_else(|| ExchangeError::new("NotSupported", format!("implicit API method {name} not found in api block")))?;
-        let api = if scope_segments.len() == 1 {
-            Value::Str(scope_segments[0].clone().into())
-        } else {
-            Value::Array(scope_segments.iter().map(|s| Value::Str(s.clone().into())).collect())
-        };
+        let api = Value::Array(scope_segments.iter().map(|s| Value::Str(s.clone().into())).collect());
         Ok(self.call_dynamic(
             "calculate_rate_limiter_cost",
             vec![api, Value::Str(verb.into()), Value::Str(path.into()), params, config],

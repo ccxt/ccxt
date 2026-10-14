@@ -397,7 +397,7 @@ class bittrade(Exchange, ImplicitAPI):
                 },
                 # https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStates': {
-                    'method': 'private_get_order_orders',  # 'private_get_order_history' // https://github.com/ccxt/ccxt/pull/5392
+                    'method': 'privateGetOrderOrders',  # 'privateGetOrderHistory' // https://github.com/ccxt/ccxt/pull/5392
                 },
                 'fetchOpenOrders': {
                     'method': 'fetch_open_orders_v1',  # 'fetch_open_orders_v2' // https://github.com/ccxt/ccxt/issues/5388
@@ -1218,7 +1218,7 @@ class bittrade(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        method = self.handle_option('fetchOrdersByStates', 'method', 'private_get_order_orders')
+        method = self.handle_option('fetchOrdersByStates', 'method', 'privateGetOrderOrders')
         response = None
         if (method == 'private_get_order_history') or (method == 'privateGetOrderHistory'):
             response = await self.privateGetOrderHistory(self.extend(request, params))
@@ -1937,19 +1937,20 @@ class bittrade(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
         requestHeaders = None
         requestBody = None
         url = '/'
-        if api == 'market':
+        if apiName == 'market':
             url += 'market'
-        elif (api == 'public') or (api == 'private'):
+        elif (apiName == 'public') or (apiName == 'private'):
             url += self.version
-        elif (api == 'v2Public') or (api == 'v2Private'):
+        elif (apiName == 'v2Public') or (apiName == 'v2Private'):
             url += 'v2'
         url += '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        if api == 'private' or api == 'v2Private':
+        if apiName == 'private' or apiName == 'v2Private':
             self.check_required_credentials()
             timestamp = self.ymdhms(self.milliseconds(), 'T')
             request = {
@@ -1981,14 +1982,14 @@ class bittrade(Exchange, ImplicitAPI):
         else:
             if len(params) > 0:
                 url += '?' + self.urlencode(params)
-        baseApiUrl = self.safe_string(self.urls['api'], api)
+        baseApiUrl = self.safe_string(self.urls['api'], apiName)
         if baseApiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = self.implode_params(baseApiUrl, {
             'hostname': self.hostname,
         }) + url
-        headersResult = requestHeaders if (requestHeaders is not None) else headers
-        bodyResult = requestBody if (requestBody is not None) else body
+        headersResult = requestHeaders
+        bodyResult = requestBody
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

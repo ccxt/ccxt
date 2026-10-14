@@ -962,16 +962,14 @@ func WithFetchWebEndpointEndRegex(endRegex string) FetchWebEndpointOptions {
 }
 
 type Fetch2OptionsStruct struct {
-	Api     *any
-	Method  *string
-	Params  *map[string]any
-	Headers *any
-	Body    *any
+	Api    *[]string
+	Method *string
+	Params *map[string]any
 }
 
 type Fetch2Options func(opts *Fetch2OptionsStruct)
 
-func WithFetch2Api(api any) Fetch2Options {
+func WithFetch2Api(api []string) Fetch2Options {
 	return func(opts *Fetch2OptionsStruct) {
 		opts.Api = &api
 	}
@@ -986,18 +984,6 @@ func WithFetch2Method(method string) Fetch2Options {
 func WithFetch2Params(params map[string]any) Fetch2Options {
 	return func(opts *Fetch2OptionsStruct) {
 		opts.Params = &params
-	}
-}
-
-func WithFetch2Headers(headers any) Fetch2Options {
-	return func(opts *Fetch2OptionsStruct) {
-		opts.Headers = &headers
-	}
-}
-
-func WithFetch2Body(body any) Fetch2Options {
-	return func(opts *Fetch2OptionsStruct) {
-		opts.Body = &body
 	}
 }
 

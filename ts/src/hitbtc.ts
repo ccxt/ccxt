@@ -3871,10 +3871,11 @@ export default class hitbtc extends Exchange {
         return undefined;
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
         const query = this.omit (params, this.extractParams (path));
         const implodedPath = this.implodeParams (path, params);
-        const apiUrl = this.safeString (this.urls['api'], api);
+        const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
@@ -3891,8 +3892,8 @@ export default class hitbtc extends Exchange {
                 url = url + getRequest;
             }
         }
-        const bodyResolved = (method === 'GET') ? body : this.json (params);
-        if (api === 'private') {
+        const bodyResolved = (method === 'GET') ? undefined : this.json (params);
+        if (apiName === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.nonce ().toString ();
             const payload = [ method, '/api/3/' + implodedPath ];

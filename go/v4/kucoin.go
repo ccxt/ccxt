@@ -1513,7 +1513,7 @@ func (this *Kucoin) Describe() any {
 			"uta":                     nil,
 			"version":                 "v1",
 			"symbolSeparator":         "-",
-			"fetchMyTradesMethod":     "private_get_fills",
+			"fetchMyTradesMethod":     "privateGetFills",
 			"timeDifference":          0,
 			"adjustForTimeDifference": false,
 			"fetchCurrencies": map[string]any{
@@ -6986,7 +6986,7 @@ func (this *Kucoin) cancelUtaOrderBody(ch chan EndpointResult[map[string]any], i
 		request["clientOid"] = clientOrderId
 	} else {
 		if IsEqual(id, nil) {
-			panic(ArgumentsRequired(this.Id + " fetchOrder() requires an id argument or clientOrderId parameter"))
+			panic(ArgumentsRequired(this.Id + " cancelOrder() requires an id argument or clientOrderId parameter"))
 		}
 		request["orderId"] = id
 	}
@@ -9418,7 +9418,7 @@ func (this *Kucoin) fetchMySpotTradesBody(ch chan AsyncResult[[]any], optionalAr
 			}
 			response = r3.Value
 		}
-	} else if method != nil && *method == "private_get_fills" {
+	} else if (method != nil && *method == "privateGetFills") || (method != nil && *method == "private_get_fills") {
 		// does not return trades earlier than 2019-02-18T00:00:00Z
 		if since != nil {
 			// only returns trades up to one week after the since param
@@ -9430,7 +9430,7 @@ func (this *Kucoin) fetchMySpotTradesBody(ch chan AsyncResult[[]any], optionalAr
 			panic(r4.Err)
 		}
 		response = MapTyped(r4.Raw)
-	} else if method != nil && *method == "private_get_limit_fills" {
+	} else if (method != nil && *method == "privateGetLimitFills") || (method != nil && *method == "private_get_limit_fills") {
 		// does not return trades earlier than 2019-02-18T00:00:00Z
 		// takes no params
 		// only returns first 1000 trades (not only "in the last 24 hours" as stated in the docs)
@@ -12515,7 +12515,7 @@ func (this *Kucoin) CalculateRateLimiterCost(api any, method any, path any, para
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = config
 	var versions map[string]any = SafeMapTyped(this.Options, "versions")
-	var apiVersions map[string]any = SafeMapTyped(versions, api)
+	var apiVersions map[string]any = SafeMapTyped(versions, GetValue(api, 0))
 	var methodVersions map[string]any = SafeMapTyped(apiVersions, method)
 	var defaultVersion *string = this.SafeString(methodVersions, path, GetValue(this.Options, "version"))
 	var version *string = this.SafeString(params, "version", defaultVersion)
@@ -15921,52 +15921,46 @@ func (this *Kucoin) isUTAEnabledBody(ch chan AsyncResult[any], optionalArgs ...a
 	return nil
 }
 func (this *Kucoin) Sign(path string, optionalArgs ...any) any {
-	//
-	// the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
-	//                                ↑                 ↑
-	//                                ↑                 ↑
-	//
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	//
+	// the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
+	//                                ↑                 ↑
+	//                                ↑                 ↑
+	//
 	var versions map[string]any = SafeMapTyped(this.Options, "versions")
-	var apiVersions map[string]any = SafeMapTyped(versions, api)
+	var apiVersions map[string]any = SafeMapTyped(versions, apiName)
 	var methodVersions map[string]any = SafeMapTyped(apiVersions, method)
 	var defaultVersion *string = this.SafeString(methodVersions, path, GetValue(this.Options, "version"))
 	var version *string = this.SafeString(params, "version", defaultVersion)
 	var paramsOmitted any = this.Omit(params, "version")
 	var endpoint any = "/api/" + *version + "/" + this.ImplodeParams(path, paramsOmitted)
-	if api == "utaV2" {
+	if apiName != nil && *apiName == "utaV2" {
 		endpoint = "/api/ua/v2/" + this.ImplodeParams(path, paramsOmitted)
 	}
-	if api == "webExchange" {
+	if apiName != nil && *apiName == "webExchange" {
 		endpoint = "/" + this.ImplodeParams(path, paramsOmitted)
 	}
-	if api == "earn" {
+	if apiName != nil && *apiName == "earn" {
 		endpoint = "/api/v1/" + this.ImplodeParams(path, paramsOmitted)
 	}
 	var isUtaPrivate bool = false
-	if (api == "uta") || (api == "utaPrivate") {
+	if (apiName != nil && *apiName == "uta") || (apiName != nil && *apiName == "utaPrivate") {
 		endpoint = "/api/ua/v1/" + this.ImplodeParams(path, paramsOmitted)
-		if api == "utaPrivate" {
+		if apiName != nil && *apiName == "utaPrivate" {
 			isUtaPrivate = true
 		}
 	}
 	var query any = this.Omit(paramsOmitted, this.ExtractParams(path))
 	var endpart any = ""
-	var headersBase any = map[string]any{}
-	if headers != nil {
-		headersBase = headers
-	}
-	var bodyJson any = body
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var headersBase map[string]any = map[string]any{}
+	var bodyJson any = nil
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -15980,14 +15974,14 @@ func (this *Kucoin) Sign(path string, optionalArgs ...any) any {
 			}
 			bodyJson = this.Json(query)
 			endpart = bodyJson
-			AddElementToObject(headersBase, "Content-Type", "application/json")
+			headersBase["Content-Type"] = "application/json"
 		}
 	}
-	var headersResult any = headersBase
-	var isFuturePrivate bool = (api == "futuresPrivate")
-	var isPrivate bool = (api == "private")
-	var isBroker bool = (api == "broker")
-	var isEarn bool = (api == "earn")
+	var headersResult map[string]any = headersBase
+	var isFuturePrivate bool = (apiName != nil && *apiName == "futuresPrivate")
+	var isPrivate bool = (apiName != nil && *apiName == "private")
+	var isBroker bool = (apiName != nil && *apiName == "broker")
+	var isEarn bool = (apiName != nil && *apiName == "earn")
 	if isPrivate || isFuturePrivate || isBroker || isEarn || isUtaPrivate {
 		this.CheckRequiredCredentials()
 		var timestamp string = ToString(this.Nonce())
@@ -16105,11 +16099,11 @@ func (this *Kucoin) fetchTransfersBody(ch chan AsyncResult[any], optionalArgs ..
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes1186219 []any = ListTyped(r1.Value)
-		if retRes1186219 == nil {
+		var retRes1186019 []any = ListTyped(r1.Value)
+		if retRes1186019 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes1186219}
+			ch <- AsyncResult[any]{Value: retRes1186019}
 		}
 		return nil
 	}

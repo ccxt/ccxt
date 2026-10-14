@@ -3042,7 +3042,6 @@ public class Binance extends BinanceApi
                     put( "spot", "x-TKT5PX2F" );
                     put( "margin", "x-TKT5PX2F" );
                     put( "future", "x-cvBPrNm9" );
-                    put( "delivery", "x-xcKtGhcu" );
                     put( "swap", "x-cvBPrNm9" );
                     put( "option", "x-xcKtGhcu" );
                     put( "inverse", "x-xcKtGhcu" );
@@ -3054,7 +3053,6 @@ public class Binance extends BinanceApi
                     put( "margin", "MARGIN" );
                     put( "cross", "MARGIN" );
                     put( "future", "UMFUTURE" );
-                    put( "delivery", "CMFUTURE" );
                     put( "linear", "UMFUTURE" );
                     put( "swap", "UMFUTURE" );
                     put( "inverse", "CMFUTURE" );
@@ -4328,13 +4326,7 @@ public class Binance extends BinanceApi
 
     public Boolean isInverse(Object type, String subType)
     {
-        if (java.util.Objects.equals(subType, null))
-        {
-            return (java.util.Objects.equals(type, "delivery"));
-        } else
-        {
-            return java.util.Objects.equals(subType, "inverse");
-        }
+        return java.util.Objects.equals(subType, "inverse");
     }
 
     public Boolean isLinear(Object type, String subType)
@@ -4430,12 +4422,12 @@ public class Binance extends BinanceApi
         {
             throw new ExchangeError((this.id + " markets not loaded")) ;
         }
-        // defaultType has legacy support on binance
+        // defaultType 'future' resolves spot-style symbols to the derivative market of defaultSubType
         String defaultType = this.safeString(this.options, "defaultType");
         String defaultSubType = this.safeString(this.options, "defaultSubType");
-        Boolean isLegacyLinear = java.util.Objects.equals(defaultType, "future");
-        Boolean isLegacyInverse = java.util.Objects.equals(defaultType, "delivery");
-        Boolean isLegacy = Boolean.TRUE.equals(isLegacyLinear) || Boolean.TRUE.equals(isLegacyInverse);
+        Boolean isLegacy = java.util.Objects.equals(defaultType, "future");
+        Boolean isLegacyInverse = Boolean.TRUE.equals(isLegacy) && (java.util.Objects.equals(defaultSubType, "inverse"));
+        Boolean isLegacyLinear = Boolean.TRUE.equals(isLegacy) && !Boolean.TRUE.equals(isLegacyInverse);
         if ((symbol instanceof String))
         {
             if ((!java.util.Objects.equals(this.markets, null)) && (((Map<?, ?>)this.markets).containsKey(symbol)))
@@ -5813,7 +5805,7 @@ public class Binance extends BinanceApi
      * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/account#option-margin-account-information // option
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Account-Balance                            // portfolio margin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot' or 'papi'
+     * @param {string} [params.type] 'spot', 'margin', 'swap', 'future', 'option', 'savings', 'funding' or 'papi', use params.subType 'inverse' for COIN-M
      * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
      * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the balance for a portfolio margin account
@@ -9222,10 +9214,7 @@ public class Binance extends BinanceApi
             String defaultType = this.safeString(this.options, "defaultType", "spot");
             String defaultSubType = this.safeString(this.options, "defaultSubType");
             idMarketType = defaultType;
-            if (java.util.Objects.equals(defaultType, "delivery"))
-            {
-                idMarketType = "inverse";
-            } else if ((java.util.Objects.equals(defaultSubType, "inverse")) && ((java.util.Objects.equals(defaultType, "swap")) || (java.util.Objects.equals(defaultType, "future"))))
+            if ((java.util.Objects.equals(defaultSubType, "inverse")) && ((java.util.Objects.equals(defaultType, "swap")) || (java.util.Objects.equals(defaultType, "future"))))
             {
                 idMarketType = "inverse";
             }
@@ -16163,14 +16152,15 @@ public class Binance extends BinanceApi
         return (((scheme + "//") + domain) + "/");
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Object urls = this.urls;
-        if (!((java.util.Objects.requireNonNullElse(api, "public") != null && ((Map<?, ?>)((Map<String, Object>)urls).get("api")).containsKey(java.util.Objects.requireNonNullElse(api, "public")))))
+        if (!(((Map<?, ?>)((Map<String, Object>)urls).get("api")).containsKey(apiName)))
         {
-            throw new NotSupported((((this.id + " does not have a testnet/sandbox URL for ") + java.util.Objects.requireNonNullElse(api, "public")) + " endpoints")) ;
+            throw new NotSupported((((this.id + " does not have a testnet/sandbox URL for ") + apiName) + " endpoints")) ;
         }
-        String baseApiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String baseApiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(baseApiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -16209,14 +16199,14 @@ public class Binance extends BinanceApi
             {
                 throw new AuthenticationError((this.id + " userDataStream endpoint requires `apiKey` credential")) ;
             }
-        } else if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "eapiPrivate")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "sapi") && !java.util.Objects.equals(path, "system/status")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "sapiV2")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "sapiV3")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "sapiV4")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "dapiPrivate")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "dapiPrivateV2")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "fapiPrivate")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "fapiPrivateV2")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "fapiPrivateV3")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "papiV2") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "papi") && !java.util.Objects.equals(path, "ping")))
+        } else if ((java.util.Objects.equals(apiName, "private")) || (java.util.Objects.equals(apiName, "eapiPrivate")) || (java.util.Objects.equals(apiName, "sapi") && !java.util.Objects.equals(path, "system/status")) || (java.util.Objects.equals(apiName, "sapiV2")) || (java.util.Objects.equals(apiName, "sapiV3")) || (java.util.Objects.equals(apiName, "sapiV4")) || (java.util.Objects.equals(apiName, "dapiPrivate")) || (java.util.Objects.equals(apiName, "dapiPrivateV2")) || (java.util.Objects.equals(apiName, "fapiPrivate")) || (java.util.Objects.equals(apiName, "fapiPrivateV2")) || (java.util.Objects.equals(apiName, "fapiPrivateV3")) || (java.util.Objects.equals(apiName, "papiV2") || java.util.Objects.equals(apiName, "papi") && !java.util.Objects.equals(path, "ping")))
         {
             this.checkRequiredCredentials(true);
             if ((((String)url).indexOf("testnet.binancefuture.com") > -1) && this.isSandboxModeEnabled && (!Boolean.TRUE.equals(this.safeBool(this.options, "disableFuturesSandboxWarning", false))))
             {
                 throw new NotSupported((this.id + " testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.")) ;
             }
-            Map<String, Object> requestParams = this.handleClientOrderId((Map<String, Object>) (parameters), (String) (java.util.Objects.requireNonNullElse(api, "public")), (String) (path), (String) (java.util.Objects.requireNonNullElse(method, "GET")));
+            Map<String, Object> requestParams = this.handleClientOrderId((Map<String, Object>) (parameters), (String) (apiName), (String) (path), (String) (java.util.Objects.requireNonNullElse(method, "GET")));
             String query = null;
             // handle batchOrders
             if ((java.util.Objects.equals(path, "batchOrders")) && ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PUT"))))
@@ -16238,7 +16228,7 @@ public class Binance extends BinanceApi
             {
                 Helpers.addElementToObject(extendedParams, "recvWindow", recvWindow);
             }
-            if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "sapi")) && (java.util.Objects.equals(path, "asset/dust")))
+            if ((java.util.Objects.equals(apiName, "sapi")) && (java.util.Objects.equals(path, "asset/dust")))
             {
                 query = this.urlencodeWithArrayRepeat(extendedParams);
             } else if ((java.util.Objects.equals(path, "batchOrders")) || (((String)path).indexOf("sub-account") >= 0) || (java.util.Objects.equals(path, "capital/withdraw/apply")) || (((String)path).indexOf("staking") >= 0) || (((String)path).indexOf("simple-earn") >= 0))
@@ -16310,8 +16300,8 @@ public class Binance extends BinanceApi
                 url = (url + ("?" + this.urlencode(parameters)));
             }
         }
-        Object headersResolved = (((!java.util.Objects.equals(signedHeaders, null)))) ? signedHeaders : headers;
-        String bodyResolved = (((!java.util.Objects.equals(signedBody, null)))) ? signedBody : body;
+        Map<String, Object> headersResolved = signedHeaders;
+        String bodyResolved = signedBody;
         {
             HashMap<String, Object> h2kMap7 = new HashMap<String, Object>();
             h2kMap7.put("url", url);
@@ -16485,14 +16475,14 @@ public class Binance extends BinanceApi
         return this.safeValue(config, "cost", 1);
     }
 
-    public CompletableFuture<Object> request(Object path, Object api, Object method, Object parameters, Object headers, Object body, Map<String, Object> config)
+    public CompletableFuture<Object> request(Object path, Object api, Object method, Object parameters, Map<String, Object> config)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object response = (this.fetch2(path, java.util.Objects.requireNonNullElse(api, "public"), java.util.Objects.requireNonNullElse(method, "GET"), parameters, headers, body, config)).join();
+            Object response = (this.fetch2(path, api, java.util.Objects.requireNonNullElse(method, "GET"), parameters, config)).join();
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
-            if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+            if (java.util.Objects.equals((api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)), "private"))
             {
                 Helpers.addElementToObject(this.options, "hasAlreadyAuthenticatedSuccessfully", true);
             }
@@ -16515,7 +16505,7 @@ public class Binance extends BinanceApi
             String type = this.safeString(parameters, "type", defaultType);
             if ((java.util.Objects.equals(type, "margin")) || (java.util.Objects.equals(type, "spot")))
             {
-                throw new NotSupported((this.id + " add / reduce margin only supported with type future or delivery")) ;
+                throw new NotSupported((this.id + " add / reduce margin only supported with linear or inverse swap/future markets")) ;
             }
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -17384,15 +17374,17 @@ public class Binance extends BinanceApi
             {
                 request.put("limit", limit);
             }
-            String symbolKey = "pair";
             if (java.util.Objects.equals(market.get("linear"), true))
             {
-                symbolKey = "symbol";
-            }
-            request.put(symbolKey, market.get("id"));
-            if (java.util.Objects.equals(market.get("inverse"), true))
+                request.put("symbol", market.get("id"));
+            } else if (java.util.Objects.equals(market.get("inverse"), true))
             {
-                request.put("contractType", this.safeString(paramsPaginate, "contractType", "CURRENT_QUARTER"));
+                // dapi expects the underlying pair (BTCUSD) and a contract type, not the market id (BTCUSD_PERP)
+                request.put("pair", this.safeString(market.get("info"), "pair"));
+                request.put("contractType", (((java.util.Objects.equals(market.get("swap"), true)))) ? "PERPETUAL" : this.safeString(market.get("info"), "contractType"));
+            } else
+            {
+                throw new NotSupported((this.id + " fetchOpenInterestHistory() supports linear and inverse contracts only")) ;
             }
             if (!java.util.Objects.equals(since, null))
             {
@@ -17426,6 +17418,19 @@ public class Binance extends BinanceApi
             //          "sumOpenInterest":"75375.61700000",
             //          "sumOpenInterestValue":"3248828883.71251440",
             //          "timestamp":1642179900000
+            //      },
+            //      ...
+            //  ]
+            //
+            // inverse
+            //
+            //  [
+            //      {
+            //          "contractType":"PERPETUAL",
+            //          "sumOpenInterest":"13069401.00000000",
+            //          "sumOpenInterestValue":"15796.96988405",
+            //          "pair":"BTCUSD",
+            //          "timestamp":1791835200000
             //      },
             //      ...
             //  ]

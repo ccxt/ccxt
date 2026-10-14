@@ -1188,16 +1188,17 @@ public partial class btcturk : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        object apiName = getValue(api, 0);
         if (isEqual(this.id, "btctrader"))
         {
             throw new ExchangeError ((this.id + " is an abstract base API for BTCExchange, BTCTurk")) ;
         }
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -1211,16 +1212,16 @@ public partial class btcturk : Exchange
                 url = url + ("?" + this.urlencode(parameters));
             }
         }
-        object requestBody = null;
+        string? requestBody = null;
         if (isQueryMethod)
         {
-            requestBody = body;
+            requestBody = null;
         } else
         {
             requestBody = this.json(parameters);
         }
         Dictionary<string, object> privateHeaders = null;
-        if ((api is "private"))
+        if ((apiName is "private"))
         {
             this.checkRequiredCredentials();
             string nonce = this.nonce().ToString();
@@ -1233,7 +1234,7 @@ public partial class btcturk : Exchange
                 { "Content-Type", "application/json" },
             };
         }
-        object requestHeaders = ((privateHeaders != null)) ? privateHeaders : headers;
+        Dictionary<string, object> requestHeaders = privateHeaders;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

@@ -768,7 +768,7 @@ func (this *ExchangeTyped) Fetch2(path string, config map[string]any, options ..
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.Exchange.Fetch2Async(path, opts.Api, opts.Method, opts.Params, opts.Headers, opts.Body, config)
+	r := <-this.Exchange.Fetch2Async(path, opts.Api, opts.Method, opts.Params, config)
 	if r.Err != nil {
 		return map[string]any{}, r.Err
 	}
@@ -4122,7 +4122,7 @@ func (this *BaseExchangeTyped) Fetch2(path string, config map[string]any, option
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.BaseExchange.Fetch2Async(path, opts.Api, opts.Method, opts.Params, opts.Headers, opts.Body, config)
+	r := <-this.BaseExchange.Fetch2Async(path, opts.Api, opts.Method, opts.Params, config)
 	if r.Err != nil {
 		return map[string]any{}, r.Err
 	}

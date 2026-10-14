@@ -1167,15 +1167,16 @@ export default class cryptomus extends Exchange {
             'taker': takerFees,
         };
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const endpoint = this.implodeParams(path, params);
         const paramsOmitted = this.omit(params, this.extractParams(path));
-        const apiUrl = this.safeString(this.urls['api'], api);
+        const apiName = api[0];
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         let url = apiUrl + '/' + endpoint;
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             let jsonParams = '';
             const privateHeaders = {
@@ -1195,7 +1196,7 @@ export default class cryptomus extends Exchange {
             const stringToSign = jsonParamsBase64 + this.secret;
             const signature = this.hash(this.encode(stringToSign), md5);
             privateHeaders['sign'] = signature;
-            const privateBody = (method !== 'GET') ? jsonParams : body;
+            const privateBody = (method !== 'GET') ? jsonParams : undefined;
             return { 'url': url, 'method': method, 'body': privateBody, 'headers': privateHeaders };
         }
         else {
@@ -1204,7 +1205,7 @@ export default class cryptomus extends Exchange {
                 url += '?' + query;
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

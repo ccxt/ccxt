@@ -3347,7 +3347,7 @@ public partial class bitstamp : Exchange
         object name = this.getCurrencyName(code);
         // the per-currency implicit methods (privatePostBtcAddress etc.) all route
         // through request(), called here directly to avoid dynamic dispatch
-        object response = await this.request(((string)add(name, "_address/")), "private", "POST", parameters);
+        object response = await this.request(((string)add(name, "_address/")), new List<object>() {"private"}, "POST", parameters);
         string? address = this.safeString(response, "address");
         string? tag = this.safeString2(response, "memo_id", "destination_tag");
         this.checkAddress(address);
@@ -3404,7 +3404,7 @@ public partial class bitstamp : Exchange
             request["address"] = address;
             // the per-currency implicit methods (privatePostBtcWithdrawal etc.) all
             // route through request(), called here directly to avoid dynamic dispatch
-            response = await this.request(((string)add(name, "_withdrawal/")), "private", "POST", this.extend(request, paramsWithdrawTag));
+            response = await this.request(((string)add(name, "_withdrawal/")), new List<object>() {"private"}, "POST", this.extend(request, paramsWithdrawTag));
         } else
         {
             currency = this.currency(code);
@@ -3501,12 +3501,13 @@ public partial class bitstamp : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        object apiName = getValue(api, 0);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -3515,7 +3516,7 @@ public partial class bitstamp : Exchange
         url = url + (this.version + "/");
         url = url + this.implodeParams(path, parameters);
         object query = this.omit(parameters, this.extractParams(path));
-        bool isPrivatePost = (!(api is "public")) && ((method == "POST"));
+        bool isPrivatePost = (!(apiName is "public")) && ((method == "POST"));
         // an empty POST triggers an API0020 error, so empty requests send a dummy object
         // https://github.com/ccxt/ccxt/issues/6846
         string emptyPostBody = this.urlencode(new Dictionary<string, object>() {
@@ -3526,13 +3527,13 @@ public partial class bitstamp : Exchange
         {
             postBody = this.urlencode(query);
         }
-        object requestBody = body;
+        string? requestBody = null;
         if (isPrivatePost)
         {
             requestBody = postBody;
         }
         Dictionary<string, object> privateHeaders = null;
-        if ((api is "public"))
+        if ((apiName is "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
@@ -3557,8 +3558,8 @@ public partial class bitstamp : Exchange
                 contentType = "application/x-www-form-urlencoded";
                 privateHeaders["Content-Type"] = contentType;
             }
-            object authBody = "";
-            if ((requestBody != null) && !(requestBody is ""))
+            string? authBody = "";
+            if ((requestBody != null) && requestBody != "")
             {
                 authBody = requestBody;
             }
@@ -3566,7 +3567,7 @@ public partial class bitstamp : Exchange
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             privateHeaders["X-Auth-Signature"] = signature;
         }
-        object requestHeaders = ((api is "public")) ? headers : privateHeaders;
+        Dictionary<string, object> requestHeaders = ((apiName is "public")) ? null : privateHeaders;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

@@ -6060,9 +6060,10 @@ public class Hyperliquid extends HyperliquidApi
         return null;
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -6072,12 +6073,12 @@ public class Hyperliquid extends HyperliquidApi
         Map<String, Object> postHeaders = new HashMap<String, Object>() {{
             put( "Content-Type", "application/json" );
         }};
-        Object requestHeaders = headers;
+        Map<String, Object> requestHeaders = null;
         if (Boolean.TRUE.equals(isPost))
         {
             requestHeaders = postHeaders;
         }
-        String requestBody = body;
+        String requestBody = null;
         if (Boolean.TRUE.equals(isPost))
         {
             requestBody = this.json(parameters);

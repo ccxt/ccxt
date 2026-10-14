@@ -30,7 +30,9 @@ impl ApexCore {
     pub fn init(&mut self) {
         let described = ApexCore::describe(self);
         self.initialize_properties(described);
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self);
+        // compatibility for sandbox/testnet options in userConfig
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -208,7 +210,7 @@ impl ApexCore {
         m.insert("createStopOrder".to_string(), Value::Bool(true));
         m.insert("createTriggerOrder".to_string(), Value::Bool(true));
         m.insert("editOrder".to_string(), Value::Bool(false));
-        m.insert("fetchAccounts".to_string(), Value::Bool(true));
+        m.insert("fetchAccounts".to_string(), Value::Bool(false));
         m.insert("fetchAllGreeks".to_string(), Value::Bool(false));
         m.insert("fetchBalance".to_string(), Value::Bool(true));
         m.insert("fetchBorrowInterest".to_string(), Value::Bool(false));
@@ -268,8 +270,8 @@ impl ApexCore {
         m.insert("fetchTrades".to_string(), Value::Bool(true));
         m.insert("fetchTradingFee".to_string(), Value::Bool(false));
         m.insert("fetchTradingFees".to_string(), Value::Bool(false));
-        m.insert("fetchTransfer".to_string(), Value::Bool(true));
-        m.insert("fetchTransfers".to_string(), Value::Bool(true));
+        m.insert("fetchTransfer".to_string(), Value::Bool(false));
+        m.insert("fetchTransfers".to_string(), Value::Bool(false));
         m.insert("fetchVolatilityHistory".to_string(), Value::Bool(false));
         m.insert("fetchWithdrawal".to_string(), Value::Bool(false));
         m.insert("fetchWithdrawals".to_string(), Value::Bool(false));
@@ -2756,15 +2758,16 @@ impl ApexCore {
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut baseApiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), api.clone(), &[]);
+        let __api_empty = Vec::new();
+        let api = api.as_array().unwrap_or(&__api_empty);
+        let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
+        let mut baseApiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone(), &[]);
         if (baseApiUrl == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
@@ -2777,7 +2780,7 @@ impl ApexCore {
             m
         });
         let mut signPath: Value = Value::Str(format!("{}{}", Value::Str("/api/".into()), path).into());
-        let mut signBody: Value = body;
+        let mut signBody: Value = Value::Null;
         if (to_upper(&method).as_str() != Some("POST")) {
             if ((object_keys(&params).len() as i64) as f64) > ((0i64) as f64) {
                 signPath = Value::Str(format!("{}{}", signPath, Value::Str(format!("{}{}", Value::Str("?".into()), self.rawencode(params.clone(), &[])).into())).into());
@@ -2787,7 +2790,7 @@ impl ApexCore {
             let mut sortedQuery: Value = self.keysort(params, &[]);
             signBody = self.rawencode(sortedQuery, &[]);
         }
-        if (api.as_str() == Some("private")) {
+        if (apiName.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut timestamp: Value = to_string_val(&self.milliseconds());
             let mut messageString: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, to_upper(&method)).into()), signPath).into());

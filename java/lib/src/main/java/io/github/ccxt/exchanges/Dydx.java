@@ -2965,12 +2965,12 @@ public class Dydx extends DydxApi
         throw new ArgumentsRequired((this.id + " getWalletAddress() requires a wallet address. Set `walletAddress` or `dydxAccount` in exchange options.")) ;
     }
 
-    public Object sign(Object path, Object section, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object section, Object method, Object parameters)
     {
         Map<String, Object> requestHeaders = null;
         String requestBody = null;
         String pathWithParams = (String) this.implodeParams(path, parameters);
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(section, "public"));
+        String apiUrl = this.safeString(this.urls.get("api"), (section == null || 0 >= ((List<?>)section).size() ? null : ((List<?>)section).get(0)));
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -2992,8 +2992,8 @@ public class Dydx extends DydxApi
                 put( "Content-type", "application/json" );
             }};
         }
-        Object headersResult = (((!java.util.Objects.equals(requestHeaders, null)))) ? requestHeaders : headers;
-        String bodyResult = (((!java.util.Objects.equals(requestBody, null)))) ? requestBody : body;
+        Map<String, Object> headersResult = requestHeaders;
+        String bodyResult = requestBody;
         {
             HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
             h2kMap0.put("url", url);

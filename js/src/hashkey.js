@@ -4493,14 +4493,15 @@ export default class hashkey extends Exchange {
             'tierBased': true,
         };
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const apiUrl = this.safeString(this.urls['api'], api);
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         let url = apiUrl + '/' + path;
         let query = undefined;
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             const timestamp = this.milliseconds();
             const additionalParams = {
@@ -4537,7 +4538,7 @@ export default class hashkey extends Exchange {
             }
             headersSigned['INPUT-SOURCE'] = this.safeString(this.options, 'broker', '10000700011');
             headersSigned['broker_sign'] = signature;
-            const bodyResolved = (method === 'GET') ? body : bodySigned;
+            const bodyResolved = (method === 'GET') ? undefined : bodySigned;
             return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersSigned };
         }
         else {
@@ -4546,7 +4547,7 @@ export default class hashkey extends Exchange {
                 url += '?' + query;
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     customUrlencode(params = {}) {
         let result = this.urlencode(params);

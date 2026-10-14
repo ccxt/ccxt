@@ -1337,7 +1337,8 @@ class coinone extends Exchange {
         return $result;
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $request = $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $apiUrl = $this->safe_string($this->urls['api'], 'rest');
@@ -1345,20 +1346,20 @@ class coinone extends Exchange {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $apiUrl . '/';
-        $isPublic = ($api === 'public') || ($api === 'v2Public');
-        if ($api === 'v2Public') {
+        $isPublic = ($apiName === 'public') || ($apiName === 'v2Public');
+        if ($apiName === 'v2Public') {
             $apiUrl2 = $this->safe_string($this->urls['api'], 'v2Public');
             if ($apiUrl2 === null) {
                 throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
             }
             $url = $apiUrl2 . '/';
-        } elseif ($api === 'v2Private') {
+        } elseif ($apiName === 'v2Private') {
             $apiUrl3 = $this->safe_string($this->urls['api'], 'v2Private');
             if ($apiUrl3 === null) {
                 throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
             }
             $url = $apiUrl3 . '/';
-        } elseif ($api === 'v2_1Private') {
+        } elseif ($apiName === 'v2_1Private') {
             $apiUrl4 = $this->safe_string($this->urls['api'], 'v2_1Private');
             if ($apiUrl4 === null) {
                 throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
@@ -1377,7 +1378,7 @@ class coinone extends Exchange {
             $url .= $request;
             // the v2.1 api requires a uuid nonce, the older apis use a numeric one
             $nonce = null;
-            if ($api === 'v2_1Private') {
+            if ($apiName === 'v2_1Private') {
                 $nonce = $this->uuid();
             } else {
                 $nonce = (string) $this->nonce();
@@ -1396,8 +1397,8 @@ class coinone extends Exchange {
                 'X-COINONE-SIGNATURE' => $signature,
             );
         }
-        $bodyResolved = ($requestBody === null) ? $body : $requestBody;
-        $headersResolved = ($requestHeaders === null) ? $headers : $requestHeaders;
+        $bodyResolved = $requestBody;
+        $headersResolved = $requestHeaders;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 

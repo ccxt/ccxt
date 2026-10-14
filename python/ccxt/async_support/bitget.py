@@ -11442,7 +11442,7 @@ class bitget(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' nonce() requires a numeric options["timeDifference"]')
         return self.milliseconds() - timeDifference
 
-    def sign(self, path: str, api: object = [], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = [], method='GET', params: dict = {}) -> dict:
         signed = api[0] == 'private'
         endpoint = api[1]
         pathPart = '/api'
@@ -11491,7 +11491,7 @@ class bitget(Exchange, ImplicitAPI):
             }
             if method == 'POST':
                 requestHeaders['Content-Type'] = 'application/json'
-        headersResult = headers if (requestHeaders is None) else requestHeaders
+        headersResult = requestHeaders
         sandboxMode = self.safe_bool_2(self.options, 'sandboxMode', 'sandbox', False)
         if (sandboxMode is True) and (path != 'v2/public/time') and (path != 'v3/market/current-fund-rate'):
             # https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336
@@ -11500,5 +11500,5 @@ class bitget(Exchange, ImplicitAPI):
             productType = self.safe_string(params, 'productType')
             if (productType != 'SCOIN-FUTURES') and (productType != 'SUSDT-FUTURES') and (productType != 'SUSDC-FUTURES'):
                 headersResult['PAPTRADING'] = '1'
-        bodyResult = body if (requestBody is None) else requestBody
+        bodyResult = requestBody
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}

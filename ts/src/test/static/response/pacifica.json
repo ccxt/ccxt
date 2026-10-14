@@ -8,6 +8,85 @@
     },
     "isSandboxModeEnabled": true,
     "methods": {
+        "fetchFundingHistory": [
+            {
+                "description": "funding history amount is the payout",
+                "method": "fetchFundingHistory",
+                "input": [
+                    null,
+                    null,
+                    2,
+                    {
+                        "account": "6V21hxa3rGZYc9mCEBHmeN6WKw9W3vUu57ofYsRB98wn"
+                    }
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": [
+                        {
+                            "history_id": 59517319,
+                            "symbol": "BTC",
+                            "side": "bid",
+                            "amount": "0.00121",
+                            "payout": "-0.001264",
+                            "rate": "0.0000125",
+                            "created_at": 1791799203834
+                        },
+                        {
+                            "history_id": 59511829,
+                            "symbol": "BTC",
+                            "side": "bid",
+                            "amount": "0.00121",
+                            "payout": "-0.001263",
+                            "rate": "0.0000125",
+                            "created_at": 1791795603833
+                        }
+                    ],
+                    "next_cursor": "11116G1o2",
+                    "has_more": true
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "history_id": 59511829,
+                            "symbol": "BTC",
+                            "side": "bid",
+                            "amount": "0.00121",
+                            "payout": "-0.001263",
+                            "rate": "0.0000125",
+                            "created_at": 1791795603833
+                        },
+                        "symbol": "BTC/USDC:USDC",
+                        "code": "USDC",
+                        "timestamp": 1791795603833,
+                        "datetime": "2026-10-12T09:00:03.833Z",
+                        "id": "59511829",
+                        "amount": -0.001263,
+                        "rate": 0.0000125
+                    },
+                    {
+                        "info": {
+                            "history_id": 59517319,
+                            "symbol": "BTC",
+                            "side": "bid",
+                            "amount": "0.00121",
+                            "payout": "-0.001264",
+                            "rate": "0.0000125",
+                            "created_at": 1791799203834,
+                            "next_cursor": "11116G1o2",
+                            "has_more": true
+                        },
+                        "symbol": "BTC/USDC:USDC",
+                        "code": "USDC",
+                        "timestamp": 1791799203834,
+                        "datetime": "2026-10-12T10:00:03.834Z",
+                        "id": "59517319",
+                        "amount": -0.001264,
+                        "rate": 0.0000125
+                    }
+                ]
+            }
+        ],
         "fetchDeposits": [
             {
                 "description": "fetch USDC deposits from balance history",

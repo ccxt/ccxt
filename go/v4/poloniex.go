@@ -5166,19 +5166,16 @@ func (this *Poloniex) Nonce() any {
 	return this.Milliseconds()
 }
 func (this *Poloniex) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var isArray bool = IsArray(params)
 	var url any = GetValue(this.Urls["api"], "spot")
-	if this.InArray(api, []any{"swapPublic", "swapPrivate"}) {
+	if this.InArray(apiName, []any{"swapPublic", "swapPrivate"}) {
 		url = GetValue(this.Urls["api"], "swap")
 	}
 	if (method == "GET") && (InOp(params, "symbol")) {
@@ -5186,9 +5183,9 @@ func (this *Poloniex) Sign(path string, optionalArgs ...any) any {
 	}
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var implodedPath string = this.ImplodeParams(path, params)
-	var bodyJson any = nil
+	var bodyJson *string = nil
 	var signedHeaders any = nil
-	if (api == "public") || (api == "swapPublic") {
+	if (apiName != nil && *apiName == "public") || (apiName != nil && *apiName == "swapPublic") {
 		url = Add(url, "/"+implodedPath)
 		if len(ObjectKeys(query)) > 0 {
 			url = Add(url, "?"+this.Urlencode(query))
@@ -5196,22 +5193,22 @@ func (this *Poloniex) Sign(path string, optionalArgs ...any) any {
 	} else {
 		this.CheckRequiredCredentials()
 		var timestamp string = ToString(this.Nonce())
-		var auth any = method + "\n" // eslint-disable-line quotes
+		var auth string = method + "\n" // eslint-disable-line quotes
 		url = Add(url, "/"+implodedPath)
-		auth = Add(auth, "/"+implodedPath)
+		auth += "/" + implodedPath
 		if (method == "POST") || (method == "PUT") || (method == "DELETE") {
-			auth = Add(auth, "\n") // eslint-disable-line quotes
+			auth += "\n" // eslint-disable-line quotes
 			if isArray || (len(ObjectKeys(query)) > 0) {
-				bodyJson = this.Json(query)
-				auth = Add(auth, Add(Add("requestBody=", bodyJson), "&"))
+				bodyJson = SafeStringPtr(this.Json(query))
+				auth += "requestBody=" + *bodyJson + "&"
 			}
-			auth = Add(auth, "signTimestamp="+timestamp)
+			auth += "signTimestamp=" + timestamp
 		} else {
 			var sortedQuery map[string]any = this.Extend(map[string]any{
 				"signTimestamp": timestamp,
 			}, query)
 			sortedQuery = this.Keysort(sortedQuery)
-			auth = Add(auth, "\n"+this.Urlencode(sortedQuery)) // eslint-disable-line quotes
+			auth += "\n" + this.Urlencode(sortedQuery) // eslint-disable-line quotes
 			if len(ObjectKeys(query)) > 0 {
 				url = Add(url, "?"+this.Urlencode(query))
 			}
@@ -5224,18 +5221,8 @@ func (this *Poloniex) Sign(path string, optionalArgs ...any) any {
 			"signature":     signature,
 		}
 	}
-	var bodyResolved any = func() any {
-		if bodyJson == nil {
-			return body
-		}
-		return bodyJson
-	}()
-	var headersResolved any = func() any {
-		if signedHeaders == nil {
-			return headers
-		}
-		return signedHeaders
-	}()
+	var bodyResolved *string = bodyJson
+	var headersResolved any = signedHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,

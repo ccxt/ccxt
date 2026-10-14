@@ -3872,10 +3872,11 @@ class hitbtc extends hitbtc$1["default"] {
         }
         return undefined;
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         const query = this.omit(params, this.extractParams(path));
         const implodedPath = this.implodeParams(path, params);
-        const apiUrl = this.safeString(this.urls['api'], api);
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
@@ -3892,8 +3893,8 @@ class hitbtc extends hitbtc$1["default"] {
                 url = url + getRequest;
             }
         }
-        const bodyResolved = (method === 'GET') ? body : this.json(params);
-        if (api === 'private') {
+        const bodyResolved = (method === 'GET') ? undefined : this.json(params);
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             const timestamp = this.nonce().toString();
             const payload = [method, '/api/3/' + implodedPath];

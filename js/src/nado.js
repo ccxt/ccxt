@@ -3079,12 +3079,9 @@ export default class nado extends Exchange {
         }
         return marketId;
     }
-    sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = [], method = 'GET', params = {}) {
         let requestBody = undefined;
-        let endpoint = api[0];
-        if (typeof api === 'string') {
-            endpoint = api;
-        }
+        const endpoint = api[0];
         const baseApiUrl = this.safeString(this.urls['api'], endpoint);
         if (baseApiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
@@ -3107,7 +3104,7 @@ export default class nado extends Exchange {
             headersValue['Content-Type'] = 'application/json';
             requestBody = this.json(query);
         }
-        const bodyResult = (requestBody !== undefined) ? requestBody : body;
+        const bodyResult = requestBody;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersValue };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

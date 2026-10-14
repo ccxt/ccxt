@@ -1333,8 +1333,9 @@ class p2b extends p2b$1["default"] {
             'trades': undefined,
         }, marketResolved);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const baseApiUrl = this.safeString(this.urls['api'], api);
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        const baseApiUrl = this.safeString(this.urls['api'], apiName);
         if (baseApiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
@@ -1346,7 +1347,7 @@ class p2b extends p2b$1["default"] {
                 url += '?' + this.urlencode(paramsOmitted);
             }
         }
-        if (api === 'private') {
+        if (apiName === 'private') {
             paramsOmitted['request'] = '/api/v2/' + path;
             // p2b rejects a repeated nonce within 10 seconds (error 1016) — a dedup window, not a server-time check, so the counter drifting ahead of the clock under bursts is harmless
             // the nonce deliberately stays on the second-resolution base nonce: the venue documents second-scale (int32-range) nonce values and millisecond nonces are unverified against the live API
@@ -1361,7 +1362,7 @@ class p2b extends p2b$1["default"] {
             const bodyJson = this.json(paramsOmitted);
             return { 'url': url, 'method': method, 'body': bodyJson, 'headers': headersSigned };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

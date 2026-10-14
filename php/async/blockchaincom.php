@@ -1370,28 +1370,29 @@ class blockchaincom extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $requestPath = '/' . $this->implode_params($path, $params);
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        $apiName = $api[0];
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $apiUrl . $requestPath;
         $query = $this->omit($params, $this->extract_params($path));
-        $isPrivate = ($api === 'private');
+        $isPrivate = ($apiName === 'private');
         $privateHeaders = array(
             'X-API-Token' => $this->secret,
         );
-        $requestHeaders = $headers;
+        $requestHeaders = null;
         if ($isPrivate) {
             $requestHeaders = $privateHeaders;
         }
         $isPrivatePost = $isPrivate && ($method !== 'GET');
-        $requestBody = $body;
+        $requestBody = null;
         if ($isPrivatePost) {
             $requestBody = $this->json($query);
         }
-        if ($api === 'public') {
+        if ($apiName === 'public') {
             if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }

@@ -3854,10 +3854,11 @@ class poloniex extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $isArray = (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params)));
         $url = $this->urls['api']['spot'];
-        if ($this->in_array($api, array( 'swapPublic', 'swapPrivate' ))) {
+        if ($this->in_array($apiName, array( 'swapPublic', 'swapPrivate' ))) {
             $url = $this->urls['api']['swap'];
         }
         if ($method === 'GET' && (is_array($params) && array_key_exists('symbol' ?? '', $params))) {
@@ -3867,7 +3868,7 @@ class poloniex extends Exchange {
         $implodedPath = $this->implode_params($path, $params);
         $bodyJson = null;
         $signedHeaders = null;
-        if ($api === 'public' || $api === 'swapPublic') {
+        if ($apiName === 'public' || $apiName === 'swapPublic') {
             $url .= '/' . $implodedPath;
             if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
@@ -3901,8 +3902,8 @@ class poloniex extends Exchange {
                 'signature' => $signature,
             );
         }
-        $bodyResolved = ($bodyJson === null) ? $body : $bodyJson;
-        $headersResolved = ($signedHeaders === null) ? $headers : $signedHeaders;
+        $bodyResolved = $bodyJson;
+        $headersResolved = $signedHeaders;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 

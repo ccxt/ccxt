@@ -3781,16 +3781,17 @@ public partial class grvt : Exchange
         return requestId;
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object requestHeaders = headers;
-        object requestBody = body;
+        Dictionary<string, object> requestHeaders = null;
+        string? requestBody = null;
         object requestPath = path;
         object query = this.omit(parameters, this.extractParams(requestPath));
-        object apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        object apiName = getValue(api, 0);
+        object apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -3823,7 +3824,7 @@ public partial class grvt : Exchange
                 requestBody = this.json(parameters);
             }
         }
-        bool isPrivate = ((string)api).StartsWith("private");
+        bool isPrivate = ((string)apiName).StartsWith("private");
         if ((isPrivate == true))
         {
             this.checkRequiredCredentials();
@@ -3836,7 +3837,7 @@ public partial class grvt : Exchange
             };
             if (((((string)requestPath).EndsWith("auth/api_key/login") == true)) || ((((string)requestPath).EndsWith("auth/wallet/login") == true)))
             {
-                ((IDictionary<string,object>)requestHeaders)["Cookie"] = "rm=true;";
+                requestHeaders["Cookie"] = "rm=true;";
             } else
             {
                 string? accountId = this.safeString(this.options, "AuthAccountId");
@@ -3845,8 +3846,8 @@ public partial class grvt : Exchange
                 {
                     throw new AuthenticationError ((this.id + " : at first, you need to authenticate with exchange using signIn() method.")) ;
                 }
-                ((IDictionary<string,object>)requestHeaders)["Cookie"] = cookieValue;
-                ((IDictionary<string,object>)requestHeaders)["X-Grvt-Account-Id"] = accountId;
+                requestHeaders["Cookie"] = cookieValue;
+                requestHeaders["X-Grvt-Account-Id"] = accountId;
             }
         }
         return new Dictionary<string, object>() {

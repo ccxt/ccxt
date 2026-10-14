@@ -12125,23 +12125,24 @@ public class Bybit extends BybitApi
         return this.safeString(marginModes, marginMode, marginMode);
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String requestBody = null;
         Object requestHeaders = null;
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = ((this.implodeHostname(apiUrl) + "/") + path);
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
+        if (java.util.Objects.equals(apiName, "public"))
         {
             if (((Map<String, Object>)parameters).size() > 0)
             {
                 url = (url + ("?" + this.rawencode(parameters)));
             }
-        } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        } else if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
             Boolean isOpenapi = ((String)url).indexOf("openapi") >= 0;
@@ -12248,12 +12249,12 @@ public class Bybit extends BybitApi
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
         {
             String brokerId = this.safeString(this.options, "brokerId", "CCXT");
-            Object headersBase = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
+            Object headersBase = requestHeaders;
             requestHeaders = (((java.util.Objects.equals(headersBase, null)))) ? new HashMap<String, Object>() {{}} : headersBase;
             ((Map<String, Object>)requestHeaders).put("Referer", brokerId);
         }
-        String bodyResolved = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
-        Object headersResolved = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
+        String bodyResolved = requestBody;
+        Object headersResolved = requestHeaders;
         {
             HashMap<String, Object> h2kMap5 = new HashMap<String, Object>();
             h2kMap5.put("url", url);

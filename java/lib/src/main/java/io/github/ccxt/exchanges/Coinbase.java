@@ -2978,6 +2978,24 @@ public class Coinbase extends CoinbaseApi
             {
                 request.put("limit", 250);
                 response = (this.v3PrivateGetBrokerageAccounts(this.extend(request, paramsMarketType))).join();
+                // an explicit params.cursor means the caller pages manually
+                if (java.util.Objects.equals(this.safeString(paramsMarketType, "cursor"), null))
+                {
+                    List<Object> accounts = (List<Object>) this.safeList(response, "accounts", new ArrayList<Object>(Arrays.asList()));
+                    Object page = response;
+                    String cursor = this.safeString(page, "cursor");
+                    while (Boolean.TRUE.equals(this.safeBool(page, "has_next", false)) && (!java.util.Objects.equals(cursor, null)) && (!java.util.Objects.equals(cursor, "")))
+                    {
+                        request.put("cursor", cursor);
+                        page = (this.v3PrivateGetBrokerageAccounts(this.extend(request, paramsMarketType))).join();
+                        accounts = (List<Object>) this.arrayConcat(accounts, this.safeList(page, "accounts", new ArrayList<Object>(Arrays.asList())));
+                        String nextCursor = this.safeString(page, "cursor");
+                        cursor = (((java.util.Objects.equals(nextCursor, cursor)))) ? null : nextCursor;
+                    }
+                    response.put("accounts", accounts);
+                    response.put("has_next", this.safeBool(page, "has_next", false));
+                    Helpers.addElementToObject(response, "cursor", this.safeString(page, "cursor"));
+                }
             } else
             {
                 request.put("limit", 250);
@@ -6207,7 +6225,7 @@ public class Coinbase extends CoinbaseApi
         return (this.milliseconds() - timeDifference);
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         String requestBody = null;
         Map<String, Object> requestHeaders = null;
@@ -6331,8 +6349,8 @@ public class Coinbase extends CoinbaseApi
                 }
             }
         }
-        String bodyResolved = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
-        Object headersResolved = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
+        String bodyResolved = requestBody;
+        Map<String, Object> headersResolved = requestHeaders;
         {
             HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
             h2kMap3.put("url", url);

@@ -3327,11 +3327,12 @@ class bithumb extends bithumb$1["default"] {
         }
         return result;
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         let requestHeaders = undefined;
         let requestBody = undefined;
         const endpoint = '/' + this.implodeParams(path, params);
-        const apiUrl = this.safeString(this.urls['api'], api);
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
@@ -3340,7 +3341,7 @@ class bithumb extends bithumb$1["default"] {
         const queryKeys = Object.keys(query);
         const queryKeysLength = queryKeys.length;
         const hasQuery = (queryKeysLength > 0);
-        if (api === 'public') {
+        if (apiName === 'public') {
             requestHeaders = {
                 'OPEN-API-PARTNER': 'CCXT',
             };
@@ -3402,8 +3403,8 @@ class bithumb extends bithumb$1["default"] {
                 };
             }
         }
-        const headersResult = (requestHeaders !== undefined) ? requestHeaders : headers;
-        const bodyResult = (requestBody !== undefined) ? requestBody : body;
+        const headersResult = requestHeaders;
+        const bodyResult = requestBody;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

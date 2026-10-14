@@ -3589,13 +3589,14 @@ class krakenfutures(Exchange, ImplicitAPI):
             raise BadRequest(feedback)
         raise ExchangeError(feedback)  # unknown message
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        apiVersions = self.safe_dict(self.options['versions'], api, {})
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
+        apiVersions = self.safe_dict(self.options['versions'], apiName, {})
         methodVersions = self.safe_dict(apiVersions, method, {})
         defaultVersion = self.safe_string(methodVersions, path, self.version)
         version = self.safe_string(params, 'version', defaultVersion)
         paramsOmitted = self.omit(params, 'version')
-        apiAccess = self.safe_dict(self.options['access'], api, {})
+        apiAccess = self.safe_dict(self.options['access'], apiName, {})
         methodAccess = self.safe_dict(apiAccess, method, {})
         access = self.safe_string(methodAccess, path, 'public')
         endpoint = version + '/' + self.implode_params(path, paramsOmitted)
@@ -3610,17 +3611,17 @@ class krakenfutures(Exchange, ImplicitAPI):
             else:
                 postData = self.urlencode(paramsOmitted2)
             query += '?' + postData
-        apiUrl = self.safe_string(self.urls['api'], api)
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + query
-        requestBody = postData if (path == 'batchorder') else body
+        requestBody = postData if (path == 'batchorder') else None
         privateHeaders = None
-        if api == 'private' or access == 'private':
+        if apiName == 'private' or access == 'private':
             self.check_required_credentials()
             auth = postData + '/api/'
-            if api != 'private':
-                auth += api + '/'
+            if apiName != 'private':
+                auth += apiName + '/'
             auth += endpoint  # 1
             hash = self.hash(self.encode(auth), 'sha256', 'binary')  # 2
             secret = self.base64_to_binary(self.secret)  # 3
@@ -3631,5 +3632,5 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'APIKey': self.apiKey,
                 'Authent': signature,
             }
-        requestHeaders = privateHeaders if (privateHeaders is not None) else headers
+        requestHeaders = privateHeaders
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}

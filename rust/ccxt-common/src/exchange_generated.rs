@@ -918,6 +918,8 @@ pub trait ExchangeBase:
 
     fn check_address(&self, optional_args: &[Value]) -> Value {
         let mut address = get_arg(optional_args, 0, Value::Null);
+        let mut code = get_arg(optional_args, 1, Value::Null);
+        let mut tag = get_arg(optional_args, 2, Value::Null);
         if (address == Value::Null) {
             panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", self.id.clone(), Value::Str(" address is undefined".into()))));
         }
@@ -926,6 +928,14 @@ pub trait ExchangeBase:
         let mut length: f64 = ((uniqChars.len() as i64) as f64); // py transpiler trick
         if (length == 1.0) || ((address.len() as i64) as f64) < self.minFundingAddressLength.as_f64().unwrap_or(f64::NAN) || Value::Int(address.as_str().and_then(|__s| __s.find(" ")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
             panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" address is invalid or has less than ".into())).into()), to_string_val(&self.minFundingAddressLength)).into()), Value::Str(" characters: \"".into())).into()), to_string_val(&address)).into()), Value::Str("\"".into()))));
+        }
+        if (code != Value::Null) {
+            let mut tagRequiredCurrencies: Value = self.safe_list_k(self.options.clone(), "withdrawTagRequiredCurrencies", &[Value::from(vec![])]);
+            if self.in_array(code.clone(), tagRequiredCurrencies).as_bool() == Some(true) {
+                if (tag == Value::Null) {
+                    panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires params[\"tag\"] for ".into())).into()), code)));
+                }
+            }
         }
         return address;
 
@@ -1119,14 +1129,12 @@ pub trait ExchangeBase:
         // virtual-dispatch (static: DerivedExchange::sign(self, ...))
         { let __v = crate::exchange::DerivedExchange::sign(self, path, crate::runtime::get_arg(optional_args, 0, crate::Value::Null), crate::runtime::get_arg(optional_args, 1, crate::Value::Null), crate::runtime::get_arg(optional_args, 2, crate::Value::Null), crate::runtime::get_arg(optional_args, 3, crate::Value::Null), crate::runtime::get_arg(optional_args, 4, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
-        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::Null);
@@ -1744,8 +1752,7 @@ pub trait ExchangeBase:
             if !matches!(__v, crate::Value::Null) { return __v; }
         }
 
-        let mut tag = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
+        let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
@@ -2059,7 +2066,13 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn after_construct(&mut self) {
+    fn after_construct(&mut self, optional_args: &[Value]) {
+        let mut userConfig = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        let __userConfig_empty = indexmap::IndexMap::new();
+        let userConfig = userConfig.as_map().unwrap_or(&__userConfig_empty);
         // networks
         self.create_networks_by_id_object();
         self.features_generator();
@@ -2073,6 +2086,10 @@ pub trait ExchangeBase:
         let mut isSandbox: Value = self.safe_bool2(self.options.clone(), Value::Str("sandbox".into()), Value::Str("testnet".into()), &[Value::Bool(false)]);
         if (isSandbox.as_bool() == Some(true)) {
             self.set_sandbox_mode(isSandbox);
+        }
+        // compatibility for sandbox/testnet options in userConfig
+        if matches!(((match userConfig.get("sandbox") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Bool(false) })), Value::Bool(true)) || matches!(((match userConfig.get("testnet") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Bool(false) })), Value::Bool(true)) {
+            self.set_sandbox_mode(Value::Bool(true));
         }
 }
 
@@ -2385,6 +2402,7 @@ pub trait ExchangeBase:
         m.insert("ARBNOVA".to_string(), Value::Str("ARBITRUM_NOVA".into()));
     m
 }));
+        m.insert("withdrawTagRequiredCurrencies".to_string(), Value::from(vec![Value::Str("XRP".into()), Value::Str("XLM".into()), Value::Str("EOS".into()), Value::Str("ATOM".into()), Value::Str("HBAR".into()), Value::Str("TON".into()), Value::Str("KAVA".into()), Value::Str("STX".into()), Value::Str("XEM".into()), Value::Str("IOST".into()), Value::Str("OSMO".into()), Value::Str("WAXP".into())]));
     m
 });
 
@@ -5282,15 +5300,13 @@ pub trait ExchangeBase:
 }
 
     fn fetch2(&mut self, mut path: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut config = get_arg(optional_args, 5, Value::Map({
+        let mut config = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
@@ -5329,7 +5345,7 @@ pub trait ExchangeBase:
             }
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 self.set_last_rest_request_timestamp();
-                let mut request: Value = <Self as crate::exchange_generated::ExchangeBase>::sign(self, path.clone(), &[api.clone(), method.clone(), paramsMaxRetriesOnFailureDelay.clone(), headers.clone(), body.clone()]);
+                let mut request: Value = <Self as crate::exchange_generated::ExchangeBase>::sign(self, path.clone(), &[api.clone(), method.clone(), paramsMaxRetriesOnFailureDelay.clone()]);
                 if (fetchData != Value::Null) {
                     add_element_to_object(&mut fetchData, &Value::Str("request".into()), request.clone());
                 }
@@ -5370,19 +5386,17 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 } }
 
     fn request(&mut self, mut path: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut config = get_arg(optional_args, 5, Value::Map({
+        let mut config = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.fetch2(path, &[api, method, params, headers, body, config]).await;
+        return self.fetch2(path, &[api, method, params, config]).await;
 
     Value::Null
 } }
@@ -6938,24 +6952,6 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         }
         return Value::Bool(false);
-
-    Value::Null
-}
-
-    fn handle_withdraw_tag_and_params(&self, mut tag: Value, mut params: Value) -> Value {
-        let mut paramsExtended: Value = params.clone();
-        let mut tagValue: Value = tag.clone();
-        if is_true(&self.is_dictionary(tag.clone())) {
-            paramsExtended = self.extend(tag, &[params]);
-            tagValue = Value::Null;
-        }
-        let mut tagResolved: Value = (if (tagValue == Value::Null) { self.safe_string_k(paramsExtended.clone(), "tag", &[]) } else { tagValue.clone() });
-        let mut tagFromParams: bool = (tagValue == Value::Null) && (tagResolved != Value::Null);
-        let mut paramsOmitted: Value = paramsExtended.clone();
-        if tagFromParams {
-            paramsOmitted = self.omit(paramsExtended, Value::Str("tag".into()), &[]);
-        }
-        return Value::from(vec![tagResolved, paramsOmitted]);
 
     Value::Null
 }
@@ -9301,8 +9297,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 } }
 
     fn withdraw_ws(&mut self, mut code: Value, mut amount: Value, mut address: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
-        let mut tag = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
+        let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
@@ -11829,7 +11824,6 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "handle_trigger_direction_and_params" => self.handle_trigger_direction_and_params(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "handle_trigger_prices_and_params" => self.handle_trigger_prices_and_params(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
             "handle_until_option" => self.handle_until_option(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]),
-            "handle_withdraw_tag_and_params" => self.handle_withdraw_tag_and_params(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "implode_hostname" => self.implode_hostname(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "incrementing_nonce" => self.incrementing_nonce(),
             "integer_precision_to_amount" => self.integer_precision_to_amount(args.get(0).cloned().unwrap_or(crate::Value::Null)),

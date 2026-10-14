@@ -3828,7 +3828,7 @@ public partial class pacifica : Exchange
         string? marketId = this.safeString(income, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
-        string? amount = this.safeString(income, "amount");
+        string? amount = this.safeString(income, "payout");
         string? code = this.safeCurrencyCode("USDC");
         double? rate = this.safeNumber(income, "rate");
         return new Dictionary<string, object>() {
@@ -4195,19 +4195,20 @@ public partial class pacifica : Exchange
         return null;
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object requestBody = body;
+        string? requestBody = null;
         bool isTestnet = this.isSandboxModeEnabled;
         string urlKey = "api";
         if (isTestnet)
         {
             urlKey = "test";
         }
-        string? baseApiUrl = this.safeString(getValue(this.urls, urlKey), api);
+        object apiName = getValue(api, 0);
+        string? baseApiUrl = this.safeString(getValue(this.urls, urlKey), apiName);
         if ((baseApiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;

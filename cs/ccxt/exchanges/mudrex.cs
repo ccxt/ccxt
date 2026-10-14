@@ -225,31 +225,28 @@ public partial class mudrex : Exchange
         });
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        object apiName = getValue(api, 0);
         IDictionary<string, object> apiUrls = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
-        string? bs = this.safeString(apiUrls, api);
+        string? bs = this.safeString(apiUrls, apiName);
         if ((bs == null))
         {
-            throw new ExchangeError ((string)((this.id + " unknown API namespace: ") + (api))) ;
+            throw new ExchangeError ((string)((this.id + " unknown API namespace: ") + (apiName))) ;
         }
         string url = ((bs + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         Dictionary<string, object> requestHeaders = new Dictionary<string, object>() {};
-        if ((headers != null))
-        {
-            requestHeaders = this.extend(new Dictionary<string, object>() {}, headers);
-        }
         string? brokerId = this.safeString(this.options, "broker");
         if ((brokerId != null))
         {
             requestHeaders["Partner-Id"] = brokerId;
         }
         string methodUpper = method.ToUpper();
-        if ((api is "private"))
+        if ((apiName is "private"))
         {
             this.checkRequiredCredentials();
             requestHeaders["X-Authentication"] = this.secret;

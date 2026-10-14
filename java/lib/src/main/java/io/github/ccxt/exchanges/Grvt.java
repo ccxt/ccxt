@@ -872,7 +872,7 @@ public class Grvt extends GrvtApi
             {
                 return true;  // skip if builder fee is already approved
             }
-            Object results = (((List<?>)(new ArrayList<Object>(Arrays.asList(this.privateTradingPostFullV1GetAuthorizedBuilders(), this.loadAccountInfos())))).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            Object results = (((List<?>)(new ArrayList<Object>(Arrays.asList(this.privateTradingPostFullV1GetAuthorizedBuilders(new HashMap<String, Object>() {{}}), this.loadAccountInfos())))).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             //
             // {
             //     "results": [{
@@ -2359,7 +2359,7 @@ public class Grvt extends GrvtApi
                 return false;
             }
             List<Object> promises = new ArrayList<Object>(Arrays.asList());
-            ((List<Object>)promises).add(this.privateTradingPostFullV1AggregatedAccountSummary());
+            ((List<Object>)promises).add(this.privateTradingPostFullV1AggregatedAccountSummary(new HashMap<String, Object>() {{}}));
             //
             //     {
             //         "result": {
@@ -2387,7 +2387,7 @@ public class Grvt extends GrvtApi
             Boolean accountIsUndefined = java.util.Objects.equals(this.safeString(this.options, "accountId"), null);
             if (Boolean.TRUE.equals(accountIsUndefined))
             {
-                ((List<Object>)promises).add(this.privateTradingPostFullV1GetSubAccounts());
+                ((List<Object>)promises).add(this.privateTradingPostFullV1GetSubAccounts(new HashMap<String, Object>() {{}}));
             }
             //
             //     {
@@ -3938,13 +3938,14 @@ public class Grvt extends GrvtApi
         return Helpers.toLongOrNull(requestId);
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object requestHeaders = headers;
-        String requestBody = body;
+        Map<String, Object> requestHeaders = null;
+        String requestBody = null;
         Object requestPath = path;
         Object query = this.omit(parameters, this.extractParams(requestPath));
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -3977,7 +3978,7 @@ public class Grvt extends GrvtApi
                 requestBody = this.json(parameters);
             }
         }
-        Boolean isPrivate = ((String)java.util.Objects.requireNonNullElse(api, "public")).startsWith("private");
+        Boolean isPrivate = ((String)apiName).startsWith("private");
         if (java.util.Objects.equals(isPrivate, true))
         {
             this.checkRequiredCredentials(true);
@@ -3990,7 +3991,7 @@ public class Grvt extends GrvtApi
             }};
             if ((java.util.Objects.equals(((String)requestPath).endsWith("auth/api_key/login"), true)) || (java.util.Objects.equals(((String)requestPath).endsWith("auth/wallet/login"), true)))
             {
-                ((Map<String, Object>)requestHeaders).put("Cookie", "rm=true;");
+                requestHeaders.put("Cookie", "rm=true;");
             } else
             {
                 String accountId = this.safeString(this.options, "AuthAccountId");
@@ -3999,8 +4000,8 @@ public class Grvt extends GrvtApi
                 {
                     throw new AuthenticationError((this.id + " : at first, you need to authenticate with exchange using signIn() method.")) ;
                 }
-                ((Map<String, Object>)requestHeaders).put("Cookie", cookieValue);
-                ((Map<String, Object>)requestHeaders).put("X-Grvt-Account-Id", accountId);
+                requestHeaders.put("Cookie", cookieValue);
+                requestHeaders.put("X-Grvt-Account-Id", accountId);
             }
         }
         {

@@ -3643,10 +3643,11 @@ class hitbtc(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
         query = self.omit(params, self.extract_params(path))
         implodedPath = self.implode_params(path, params)
-        apiUrl = self.safe_string(self.urls['api'], api)
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + '/' + implodedPath
@@ -3660,8 +3661,8 @@ class hitbtc(Exchange, ImplicitAPI):
             if queryLength != 0:
                 getRequest = '?' + self.urlencode(query)
                 url = url + getRequest
-        bodyResolved = body if (method == 'GET') else self.json(params)
-        if api == 'private':
+        bodyResolved = None if (method == 'GET') else self.json(params)
+        if apiName == 'private':
             self.check_required_credentials()
             timestamp = str(self.nonce())
             payload = [method, '/api/3/' + implodedPath]

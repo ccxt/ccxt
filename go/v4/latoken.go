@@ -2548,18 +2548,15 @@ func (this *Latoken) ParseTransferStatus(status *string) *string {
 	return this.SafeString(statuses, status, status)
 }
 func (this *Latoken) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
-	var requestHeaders any = headers
-	var requestBody any = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var requestHeaders map[string]any = nil
+	var requestBody *string = nil
 	var request string = "/" + this.Version + "/" + this.ImplodeParams(path, params)
 	var requestString string = request
 	var query any = this.Omit(params, this.ExtractParams(path))
@@ -2569,7 +2566,7 @@ func (this *Latoken) Sign(path string, optionalArgs ...any) any {
 			requestString += "?" + urlencodedQuery
 		}
 	}
-	if api == "private" {
+	if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		var auth string = method + request + urlencodedQuery
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha512)
@@ -2580,7 +2577,7 @@ func (this *Latoken) Sign(path string, optionalArgs ...any) any {
 		}
 		if method == "POST" {
 			AddElementToObject(requestHeaders, "Content-Type", "application/json")
-			requestBody = this.Json(query)
+			requestBody = SafeStringPtr(this.Json(query))
 		}
 	}
 	var apiUrl *string = this.SafeString(this.Urls["api"], "rest")

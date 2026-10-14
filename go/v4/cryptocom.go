@@ -4849,18 +4849,14 @@ func (this *Cryptocom) ParseTradingFee(fee any, optionalArgs ...any) map[string]
 	}
 }
 func (this *Cryptocom) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
-	var requestHeaders any = headers
-	var requestBody any = body
+	var requestHeaders map[string]any = nil
+	var requestBody any = nil
 	var typeVar *string = this.SafeString(api, 0)
 	var access *string = this.SafeString(api, 1)
 	var apiUrl *string = this.SafeString(this.Urls["api"], typeVar)

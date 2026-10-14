@@ -2290,7 +2290,7 @@ class mexc(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         if market['spot'] is not True:
-            raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
+            raise NotSupported(self.id + ' createMarketSellOrderWithCost() supports spot orders only')
         req = {
             'cost': cost,
         }
@@ -5986,9 +5986,9 @@ class mexc(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        requestHeaders = headers
-        requestBody = body
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        requestHeaders = None
+        requestBody = None
         section = self.safe_string(api, 0)
         access = self.safe_string(api, 1)
         pathValue = self.implode_params(path, params)

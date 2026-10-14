@@ -31,7 +31,9 @@ impl BinanceCore {
     pub fn init(&mut self) {
         let described = BinanceCore::describe(self);
         self.initialize_properties(described);
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self);
+        // compatibility for sandbox/testnet options in userConfig
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -464,12 +466,12 @@ impl BinanceCore {
         m.insert("spot".to_string(), Value::Str("wss://stream.testnet.binance.vision/ws".into()));
         m.insert("margin".to_string(), Value::Str("wss://stream.testnet.binance.vision/ws".into()));
         m.insert("future".to_string(), Value::Str("wss://fstream.binancefuture.com/ws".into()));
-        m.insert("delivery".to_string(), Value::Str("wss://dstream.binancefuture.com/ws".into()));
+        m.insert("inverse".to_string(), Value::Str("wss://dstream.binancefuture.com/ws".into()));
         m.insert("ws-api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("spot".to_string(), Value::Str("wss://ws-api.testnet.binance.vision/ws-api/v3".into()));
         m.insert("future".to_string(), Value::Str("wss://testnet.binancefuture.com/ws-fapi/v1".into()));
-        m.insert("delivery".to_string(), Value::Str("wss://testnet.binancefuture.com/ws-dapi/v1".into()));
+        m.insert("inverse".to_string(), Value::Str("wss://testnet.binancefuture.com/ws-dapi/v1".into()));
     m
 }));
     m
@@ -483,12 +485,12 @@ impl BinanceCore {
         m.insert("spot".to_string(), Value::Str("wss://demo-stream.binance.com/ws".into()));
         m.insert("margin".to_string(), Value::Str("wss://demo-stream.binance.com/ws".into()));
         m.insert("future".to_string(), Value::Str("wss://fstream.binancefuture.com/ws".into()));
-        m.insert("delivery".to_string(), Value::Str("wss://dstream.binancefuture.com/ws".into()));
+        m.insert("inverse".to_string(), Value::Str("wss://dstream.binancefuture.com/ws".into()));
         m.insert("ws-api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("spot".to_string(), Value::Str("wss://demo-ws-api.binance.com/ws-api/v3".into()));
         m.insert("future".to_string(), Value::Str("wss://testnet.binancefuture.com/ws-fapi/v1".into()));
-        m.insert("delivery".to_string(), Value::Str("wss://testnet.binancefuture.com/ws-dapi/v1".into()));
+        m.insert("inverse".to_string(), Value::Str("wss://testnet.binancefuture.com/ws-dapi/v1".into()));
     m
 }));
     m
@@ -502,7 +504,7 @@ impl BinanceCore {
         m.insert("spot".to_string(), Value::Str("wss://stream.binance.com:9443/ws".into()));
         m.insert("margin".to_string(), Value::Str("wss://stream.binance.com:9443/ws".into()));
         m.insert("future".to_string(), Value::Str("wss://fstream.binance.com/ws".into()));
-        m.insert("delivery".to_string(), Value::Str("wss://dstream.binance.com/ws".into()));
+        m.insert("inverse".to_string(), Value::Str("wss://dstream.binance.com/ws".into()));
         m.insert("stock".to_string(), Value::Str("wss://nbstream.binance.com/equity/ws".into()));
         m.insert("option".to_string(), Value::Str("wss://fstream.binance.com/public/ws".into()));
         m.insert("optionMarket".to_string(), Value::Str("wss://fstream.binance.com/market/ws".into()));
@@ -511,7 +513,7 @@ impl BinanceCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("spot".to_string(), Value::Str("wss://ws-api.binance.com:443/ws-api/v3".into()));
         m.insert("future".to_string(), Value::Str("wss://ws-fapi.binance.com/ws-fapi/v1".into()));
-        m.insert("delivery".to_string(), Value::Str("wss://ws-dapi.binance.com/ws-dapi/v1".into()));
+        m.insert("inverse".to_string(), Value::Str("wss://ws-dapi.binance.com/ws-dapi/v1".into()));
     m
 }));
         m.insert("papi".to_string(), Value::Str("wss://fstream.binance.com/pm/ws".into()));
@@ -535,7 +537,7 @@ impl BinanceCore {
         m.insert("spot".to_string(), Value::Int(50));
         m.insert("margin".to_string(), Value::Int(50));
         m.insert("future".to_string(), Value::Int(50));
-        m.insert("delivery".to_string(), Value::Int(50));
+        m.insert("inverse".to_string(), Value::Int(50));
         m.insert("stock".to_string(), Value::Int(50));
         m.insert("option".to_string(), Value::Int(50));
         m.insert("optionMarket".to_string(), Value::Int(50));
@@ -546,7 +548,7 @@ impl BinanceCore {
         m.insert("spot".to_string(), Value::Int(200));
         m.insert("margin".to_string(), Value::Int(200));
         m.insert("future".to_string(), Value::Int(200));
-        m.insert("delivery".to_string(), Value::Int(200));
+        m.insert("inverse".to_string(), Value::Int(200));
         m.insert("stock".to_string(), Value::Int(200));
         m.insert("option".to_string(), Value::Int(200));
         m.insert("optionMarket".to_string(), Value::Int(200));
@@ -1299,7 +1301,7 @@ impl BinanceCore {
         if (firstMarket.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             type_var = Value::Str("option".into());
         }  else if (firstMarket.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            type_var = (if (firstMarket.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { Value::Str("future".into()) } else { Value::Str("delivery".into()) });
+            type_var = (if (firstMarket.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { Value::Str("future".into()) } else { Value::Str("inverse".into()) });
         }
         let mut name: Value = Value::Str("depth".into());
         let mut streamHash: Value = Value::Str("multipleOrderbook".into());
@@ -1398,7 +1400,7 @@ impl BinanceCore {
         if (firstMarket.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             type_var = Value::Str("option".into());
         }  else if (firstMarket.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            type_var = (if (firstMarket.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { Value::Str("future".into()) } else { Value::Str("delivery".into()) });
+            type_var = (if (firstMarket.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { Value::Str("future".into()) } else { Value::Str("inverse".into()) });
         }
         let mut name: Value = Value::Str("depth".into());
         let mut streamHash: Value = Value::Str("multipleOrderbook".into());
@@ -1899,7 +1901,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         if (isOption.as_bool() == Some(true)) {
             type_var = Value::Str("option".into());
         }  else if (firstMarket.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            type_var = (if (firstMarket.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { Value::Str("future".into()) } else { Value::Str("delivery".into()) });
+            type_var = (if (firstMarket.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { Value::Str("future".into()) } else { Value::Str("inverse".into()) });
         }
         let mut messageHashes: Value = Value::from(vec![]);
         let mut subParams: Value = Value::from(vec![]);
@@ -2010,7 +2012,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         if (isOption.as_bool() == Some(true)) {
             type_var = Value::Str("option".into());
         }  else if (firstMarket.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            type_var = (if (firstMarket.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { Value::Str("future".into()) } else { Value::Str("delivery".into()) });
+            type_var = (if (firstMarket.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { Value::Str("future".into()) } else { Value::Str("inverse".into()) });
         }
         let mut subMessageHashes: Value = Value::from(vec![]);
         let mut subParams: Value = Value::from(vec![]);
@@ -2205,7 +2207,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         //         "Q": "0.00000000"
         //     }
         //
-        // private watchMyTrades future/delivery
+        // private watchMyTrades linear/inverse
         //
         //     {
         //         "s": "BTCUSDT",
@@ -2463,7 +2465,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             type_var = Value::Str("option".into());
             wsUrlType = Value::Str("optionMarket".into()); // eOptions klines are served from /market/ws
         }  else if (firstMarket.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            type_var = (if (firstMarket.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { Value::Str("future".into()) } else { Value::Str("delivery".into()) });
+            type_var = (if (firstMarket.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { Value::Str("future".into()) } else { Value::Str("inverse".into()) });
             wsUrlType = type_var.clone();
         }
         let mut isSpot: bool = type_var.as_str() == Some("spot");
@@ -2565,7 +2567,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             type_var = Value::Str("option".into());
             wsUrlType = Value::Str("optionMarket".into()); // eOptions klines are served from /market/ws
         }  else if (firstMarket.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            type_var = (if (firstMarket.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { Value::Str("future".into()) } else { Value::Str("delivery".into()) });
+            type_var = (if (firstMarket.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { Value::Str("future".into()) } else { Value::Str("inverse".into()) });
             wsUrlType = type_var.clone();
         }
         let mut isSpot: bool = type_var.as_str() == Some("spot");
@@ -3295,7 +3297,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         }  else if is_true(&self.parent.is_linear(marketType.clone(), &[subType.clone()])) {
             rawMarketType = Value::Str("future".into());
         }  else if is_true(&self.parent.is_inverse(marketType.clone(), &[subType])) {
-            rawMarketType = Value::Str("delivery".into());
+            rawMarketType = Value::Str("inverse".into());
         }  else if (marketType.as_str() == Some("spot")) {
             rawMarketType = marketType.clone();
         }  else {
@@ -3840,8 +3842,6 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             crate::exchange_stubs::ws_await_flight(&client.future(&[messageHash.clone()])).await;
             return Value::Null;
         }
-        client.future(&[messageHash.clone()]); // created ahead of the request below, so concurrent callers can find it
-        add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &marketType, Value::Bool(true));
         let mut requestId: Value = self.request_id(url.clone());
         let mut requestHash: Value = to_string_val(&requestId);
         let mut message: Value = Value::Map({
@@ -3861,6 +3861,10 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 m.insert("subscription".to_string(), marketType.clone());
             m
         });
+        // created right before the request, after the signing above: concurrent callers find it, and in
+        // the threaded ports the ack can not arrive between this future and the request one watch () adds
+        client.future(&[messageHash.clone()]);
+        add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &marketType, Value::Bool(true));
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             self.watch(url, requestHash.clone(), &[message.clone(), requestHash.clone(), subscription]).await;
             client.resolve(&[marketType.clone(), messageHash.clone()]);
@@ -4145,7 +4149,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     response = self.parent.papi_post_listen_key(&[paramsOmitted.clone()]).await;
                 }  else if (type_var.as_str() == Some("future")) {
                     response = self.parent.fapi_private_post_listen_key(&[paramsOmitted.clone()]).await;
-                }  else if (type_var.as_str() == Some("delivery")) {
+                }  else if (type_var.as_str() == Some("inverse")) {
                     response = self.parent.dapi_private_post_listen_key(&[paramsOmitted.clone()]).await;
                 }  else if (type_var.as_str() == Some("option")) {
                     response = self.parent.eapi_private_post_listen_key(&[paramsOmitted.clone()]).await;
@@ -4219,7 +4223,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if is_true(&self.parent.is_linear(type_var.clone(), &[subType.clone()])) {
                 type_var = Value::Str("future".into());
             }  else if is_true(&self.parent.is_inverse(type_var.clone(), &[subType])) {
-                type_var = Value::Str("delivery".into());
+                type_var = Value::Str("inverse".into());
             }
         }
         // For margin, token renewal is handled by renewListenToken method
@@ -4253,7 +4257,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }  else if (type_var.as_str() == Some("future")) {
                 let __ws_arg_16 = self.extend(request.clone(), &[paramsOmitted.clone()]);
                 self.parent.fapi_private_put_listen_key(&[__ws_arg_16]).await;
-            }  else if (type_var.as_str() == Some("delivery")) {
+            }  else if (type_var.as_str() == Some("inverse")) {
                 let __ws_arg_17 = self.extend(request.clone(), &[paramsOmitted.clone()]);
                 self.parent.dapi_private_put_listen_key(&[__ws_arg_17]).await;
             }  else if (type_var.as_str() == Some("option")) {
@@ -4409,7 +4413,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
  * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/account-requests#account-information-user_data
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/websocket-api
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string|undefined} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot'
+ * @param {string|undefined} [params.type] 'spot', 'margin', 'swap', 'future', 'savings' or 'funding', use params.subType 'inverse' for COIN-M
  * @param {string|undefined} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
  * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
  * @param {string|undefined} [params.method] method to use. Can be account.balance, account.status, v2/account.balance or v2/account.status
@@ -4424,7 +4428,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             self.load_markets(&[]).await;
         }
         let mut type_var: Value = self.get_market_type(Value::Str("fetchBalanceWs".into()), Value::Null, &[params.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        if (type_var.as_str() != Some("spot")) && (type_var.as_str() != Some("future")) && (type_var.as_str() != Some("delivery")) {
+        if (type_var.as_str() != Some("spot")) && (type_var.as_str() != Some("future")) && (type_var.as_str() != Some("inverse")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchBalanceWs only supports spot or swap markets".into()))));
         }
         let mut url: Value = self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "ws-api"), type_var, &[]);
@@ -4601,7 +4605,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             // we shouldn't rely on the defaultType
             type_var = Value::Str("future".into());
         }
-        if (type_var.as_str() != Some("future")) && (type_var.as_str() != Some("delivery")) {
+        if (type_var.as_str() != Some("future")) && (type_var.as_str() != Some("inverse")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchPositionsWs only supports swap markets".into()))));
         }
         let mut url: Value = self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "ws-api"), type_var, &[]);
@@ -4778,7 +4782,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         //         ]
         //     }
         //
-        // future/delivery
+        // linear/inverse
         //
         //     {
         //         "e": "ACCOUNT_UPDATE",            // Event Type
@@ -4886,7 +4890,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut __for_first_78: bool = true;
             while { if !__for_first_78 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_78 = false; i.as_f64().unwrap_or(f64::NAN) < ((subscriptions.len() as i64) as f64) } {
             let mut subscription: Value = subscriptions.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            if (subscription.as_str() == Some("spot")) || (subscription.as_str() == Some("margin")) || (subscription.as_str() == Some("future")) || (subscription.as_str() == Some("delivery")) || (subscription.as_str() == Some("option")) {
+            if (subscription.as_str() == Some("spot")) || (subscription.as_str() == Some("margin")) || (subscription.as_str() == Some("future")) || (subscription.as_str() == Some("inverse")) || (subscription.as_str() == Some("option")) {
                 accountType = subscription;
                 break;
             }
@@ -4919,7 +4923,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             if is_true(&self.parent.is_linear(type_var.clone(), &[subType.clone()])) {
                 type_var = Value::Str("future".into());
             }  else if is_true(&self.parent.is_inverse(type_var.clone(), &[subType.clone()])) {
-                type_var = Value::Str("delivery".into());
+                type_var = Value::Str("inverse".into());
             }
         }
         return Value::from(vec![type_var, subType, paramsSubType]);
@@ -4942,7 +4946,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         if is_true(&self.parent.is_linear(type_var.clone(), &[subType.clone()])) {
             type_var = Value::Str("future".into());
         }  else if is_true(&self.parent.is_inverse(type_var.clone(), &[subType])) {
-            type_var = Value::Str("delivery".into());
+            type_var = Value::Str("inverse".into());
         }
         return type_var.as_str().map(str::to_owned);
 }
@@ -4976,7 +4980,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }
         let mut market: Value = self.market(symbol.clone());
         let mut marketType: Value = self.get_market_type(Value::Str("createOrderWs".into()), market.clone(), &[params.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        if (marketType.as_str() != Some("spot")) && (marketType.as_str() != Some("future")) && (marketType.as_str() != Some("delivery")) {
+        if (marketType.as_str() != Some("spot")) && (marketType.as_str() != Some("future")) && (marketType.as_str() != Some("inverse")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrderWs only supports spot or swap markets".into()))));
         }
         let mut url: Value = self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "ws-api"), marketType, &[]);
@@ -5168,7 +5172,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }
         let mut market: Value = self.market(symbol.clone());
         let mut marketType: Value = self.get_market_type(Value::Str("editOrderWs".into()), market, &[params.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        if (marketType.as_str() != Some("spot")) && (marketType.as_str() != Some("future")) && (marketType.as_str() != Some("delivery")) {
+        if (marketType.as_str() != Some("spot")) && (marketType.as_str() != Some("future")) && (marketType.as_str() != Some("inverse")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" editOrderWs only supports spot or swap markets".into()))));
         }
         let mut url: Value = self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "ws-api"), marketType.clone(), &[]);
@@ -5177,7 +5181,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }
         let mut requestId: Value = self.request_id(url.clone());
         let mut messageHash: Value = to_string_val(&requestId);
-        let mut isSwap: bool = (marketType.as_str() == Some("future")) || (marketType.as_str() == Some("delivery"));
+        let mut isSwap: bool = (marketType.as_str() == Some("future")) || (marketType.as_str() == Some("inverse"));
         let mut payload: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -5492,7 +5496,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }
         let mut market: Value = self.market(symbol.clone());
         let mut type_var: Value = self.get_market_type(Value::Str("fetchOrderWs".into()), market, &[params.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        if (type_var.as_str() != Some("spot")) && (type_var.as_str() != Some("future")) && (type_var.as_str() != Some("delivery")) {
+        if (type_var.as_str() != Some("spot")) && (type_var.as_str() != Some("future")) && (type_var.as_str() != Some("inverse")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderWs only supports spot or swap markets".into()))));
         }
         let mut url: Value = self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "ws-api"), type_var, &[]);
@@ -6485,10 +6489,10 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         // spot and margin have no positions - whatever still RESOLVES to spot
         // or margin after the helper falls through to the derivatives stream
         // matching the subType. requests a defaultSubType already rewrote
-        // arrive here as future or delivery and pass untouched, which lands on
+        // arrive here as future or inverse and pass untouched, which lands on
         // the same stream the old raw-type ordering produced in every case
         if (type_var.as_str() == Some("spot")) || (type_var.as_str() == Some("margin")) {
-            type_var = (if (subType.as_str() == Some("inverse")) { Value::Str("delivery".into()) } else { Value::Str("future".into()) });
+            type_var = (if (subType.as_str() == Some("inverse")) { Value::Str("inverse".into()) } else { Value::Str("future".into()) });
         }
         // 'option' stays as 'option', don't redirect to 'future' - the helper's
         // guard finally makes this comment true

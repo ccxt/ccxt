@@ -97,12 +97,12 @@ func (this *Deepcoin) Describe() any {
 			"fetchOrderBook":                       true,
 			"fetchOrders":                          false,
 			"fetchOrderTrades":                     true,
-			"fetchPosition":                        true,
+			"fetchPosition":                        false,
 			"fetchPositionHistory":                 false,
 			"fetchPositionMode":                    false,
 			"fetchPositions":                       true,
 			"fetchPositionsForSymbol":              true,
-			"fetchPositionsHistory":                true,
+			"fetchPositionsHistory":                false,
 			"fetchPremiumIndexOHLCV":               false,
 			"fetchStatus":                          false,
 			"fetchTicker":                          false,
@@ -4246,16 +4246,13 @@ func (this *Deepcoin) closePositionBody(ch chan AsyncResult[any], symbol string,
 	return nil
 }
 func (this *Deepcoin) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var requestPath string = path
 	if method == "GET" {
 		var query string = this.Urlencode(params)
@@ -4263,12 +4260,12 @@ func (this *Deepcoin) Sign(path string, optionalArgs ...any) any {
 			requestPath += "?" + query
 		}
 	}
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *apiUrl + "/" + requestPath
-	if api == "private" {
+	if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		var timestamp int64 = this.Milliseconds()
 		var dateTime *string = this.Iso8601(timestamp)
@@ -4283,7 +4280,7 @@ func (this *Deepcoin) Sign(path string, optionalArgs ...any) any {
 			if method != "GET" {
 				return this.Json(params)
 			}
-			return body
+			return nil
 		}()
 		if method != "GET" {
 			privateHeaders["Content-Type"] = "application/json"
@@ -4301,8 +4298,8 @@ func (this *Deepcoin) Sign(path string, optionalArgs ...any) any {
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    nil,
+		"headers": nil,
 	}
 }
 func (this *Deepcoin) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {

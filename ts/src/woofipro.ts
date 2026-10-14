@@ -3492,7 +3492,7 @@ export default class woofipro extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: string, section = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, section: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
         const version = section[0];
         const access = section[1];
         const pathWithParams = this.implodeParams (path, params);
@@ -3561,8 +3561,8 @@ export default class woofipro extends Exchange {
             const signature = eddsa (this.encode (auth), this.base58ToBinary (secret), ed25519);
             requestHeaders['orderly-signature'] = this.urlencodeBase64 (this.base64ToBinary (signature));
         }
-        const bodyResult = (requestBody === undefined) ? body : requestBody;
-        const headersResult = (requestHeaders === undefined) ? headers : requestHeaders;
+        const bodyResult = requestBody;
+        const headersResult = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 

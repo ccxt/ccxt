@@ -2497,14 +2497,14 @@ class coinbase extends Exchange {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
-         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/accounts/list-accounts
+         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/accounts/list-$accounts
          * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/accounts
          * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/get-futures-balance-summary
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->v3] default false, set true to use v3 api endpoint
          * @param {string} [$params->type] "spot" (default) or "swap" or "future"
-         * @param {int} [$params->limit] default 250, maximum number of accounts to return
+         * @param {int} [$params->limit] default 250, maximum number of $accounts to return
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         if ($this->markets === null) {
@@ -2521,6 +2521,22 @@ class coinbase extends Exchange {
         } elseif (($isV3 === true) || ($method === 'v3PrivateGetBrokerageAccounts')) {
             $request['limit'] = 250;
             $response = $this->v3PrivateGetBrokerageAccounts($this->extend($request, $paramsMarketType));
+            // an explicit params.cursor means the caller pages manually
+            if ($this->safe_string($paramsMarketType, 'cursor') === null) {
+                $accounts = $this->safe_list($response, 'accounts', array());
+                $page = $response;
+                $cursor = $this->safe_string($page, 'cursor');
+                while ($this->safe_bool($page, 'has_next', false) && ($cursor !== null) && ($cursor !== '')) {
+                    $request['cursor'] = $cursor;
+                    $page = $this->v3PrivateGetBrokerageAccounts($this->extend($request, $paramsMarketType));
+                    $accounts = $this->array_concat($accounts, $this->safe_list($page, 'accounts', array()));
+                    $nextCursor = $this->safe_string($page, 'cursor');
+                    $cursor = ($nextCursor === $cursor) ? null : $nextCursor;
+                }
+                $response['accounts'] = $accounts;
+                $response['has_next'] = $this->safe_bool($page, 'has_next', false);
+                $response['cursor'] = $this->safe_string($page, 'cursor');
+            }
         } else {
             $request['limit'] = 250;
             $response = $this->v2PrivateGetAccounts($this->extend($request, $paramsMarketType));
@@ -5318,7 +5334,7 @@ class coinbase extends Exchange {
         return $this->milliseconds() - $timeDifference;
     }
 
-    public function sign(string $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array(), $method = 'GET', $params = array()): array {
         $requestBody = null;
         $requestHeaders = null;
         $version = $this->safe_string($api, 0);
@@ -5422,8 +5438,8 @@ class coinbase extends Exchange {
                 }
             }
         }
-        $bodyResolved = ($requestBody === null) ? $body : $requestBody;
-        $headersResolved = ($requestHeaders === null) ? $headers : $requestHeaders;
+        $bodyResolved = $requestBody;
+        $headersResolved = $requestHeaders;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 

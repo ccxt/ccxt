@@ -2500,7 +2500,7 @@ class coinbaseinternational extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function sign(string $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array(), $method = 'GET', $params = array()): array {
         $version = $this->safe_string($api, 0);
         $signed = $this->safe_string($api, 1) === 'private';
         $fullPath = '/' . $version . '/' . $this->implode_params($path, $params);
@@ -2521,7 +2521,7 @@ class coinbaseinternational extends Exchange {
         if ($hasSignedBody) {
             $signedBody = $this->json($query);
         }
-        $requestBody = $body;
+        $requestBody = null;
         if ($hasSignedBody) {
             $requestBody = $signedBody;
         }
@@ -2539,7 +2539,7 @@ class coinbaseinternational extends Exchange {
                 'CB-ACCESS-KEY' => $this->apiKey,
             );
         }
-        $requestHeaders = $headers;
+        $requestHeaders = null;
         if ($signed) {
             $requestHeaders = $signedHeaders;
         }

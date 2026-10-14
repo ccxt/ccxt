@@ -4126,17 +4126,14 @@ func (this *Toobit) ParsePosition(position any, optionalArgs ...any) any {
 	})
 }
 func (this *Toobit) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
-	var baseApiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var baseApiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -4146,7 +4143,7 @@ func (this *Toobit) Sign(path string, optionalArgs ...any) any {
 	var isDelete bool = (method == "DELETE")
 	var extraQuery map[string]any = map[string]any{}
 	var query any = this.Omit(params, this.ExtractParams(path))
-	if api != "private" {
+	if apiName == nil || *apiName != "private" {
 		// Public endpoints
 		if !isPost {
 			if len(ObjectKeys(query)) > 0 {
@@ -4173,12 +4170,12 @@ func (this *Toobit) Sign(path string, optionalArgs ...any) any {
 		} else {
 			queryString = this.Urlencode(queryExtended)
 		}
-		var payloadBody any = body
+		var payloadBody any = nil
 		if isPost || isDelete {
 			payloadBody = privateBody
 		}
 		var payload any = queryString
-		if !IsEqual(payloadBody, nil) {
+		if payloadBody != nil {
 			payload = Add(payloadBody, payload)
 		}
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "hex")
@@ -4194,7 +4191,7 @@ func (this *Toobit) Sign(path string, optionalArgs ...any) any {
 			"X-BB-API-PLATFORM": this.SafeString(this.Options, "brokerId", "177321641268789"),
 			"Content-Type":      "application/x-www-form-urlencoded",
 		}
-		var requestBody any = body
+		var requestBody any = nil
 		if isPost || isDelete {
 			requestBody = privateBody
 		}
@@ -4208,8 +4205,8 @@ func (this *Toobit) Sign(path string, optionalArgs ...any) any {
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    nil,
+		"headers": nil,
 	}
 }
 func (this *Toobit) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {

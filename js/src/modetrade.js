@@ -3035,7 +3035,7 @@ export default class modetrade extends Exchange {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, section = ['public'], method = 'GET', params = {}) {
         const version = section[0];
         const access = section[1];
         const pathWithParams = this.implodeParams(path, params);
@@ -3099,7 +3099,7 @@ export default class modetrade extends Exchange {
                     auth += '?' + this.rawencode(paramsSigned);
                 }
                 signedHeaders['content-type'] = 'application/x-www-form-urlencoded';
-                signedBody = (method === 'DELETE') ? '' : body;
+                signedBody = (method === 'DELETE') ? '' : undefined;
             }
             let secret = this.secret;
             if (secret.indexOf('ed25519:') >= 0) {
@@ -3110,7 +3110,7 @@ export default class modetrade extends Exchange {
             signedHeaders['orderly-signature'] = this.urlencodeBase64(this.base64ToBinary(signature));
             return { 'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if ((response === undefined) || (response === null)) {

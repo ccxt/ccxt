@@ -8589,7 +8589,7 @@ public partial class gate : Exchange
         return ((Int64)((object)((this.milliseconds() - timeDifference)))!);
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -8694,8 +8694,8 @@ public partial class gate : Exchange
                 query = this.omit(query, "query");
                 bodyJson = this.json(query);
             }
-            object bodySigned = ((bodyJson == null)) ? body : bodyJson;
-            object bodyPayload = ((bodySigned == null)) ? "" : bodySigned;
+            string? bodySigned = bodyJson;
+            string? bodyPayload = ((bodySigned == null)) ? "" : bodySigned;
             string bodySignature = ((string)this.hash(this.encode(bodyPayload), sha512));
             Int64 nonce = this.nonce();
             Int64? timestamp = this.parseToInt(((double)nonce / 1000));
@@ -8712,8 +8712,8 @@ public partial class gate : Exchange
                 { "Content-Type", "application/json" },
             };
         }
-        object bodyResolved = ((bodyJson == null)) ? body : bodyJson;
-        object headersResolved = ((signedHeaders == null)) ? headers : signedHeaders;
+        string? bodyResolved = bodyJson;
+        Dictionary<string, object> headersResolved = signedHeaders;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
@@ -8831,8 +8831,8 @@ public partial class gate : Exchange
 
     /**
      * @method
-     * @name gate#fetchOpenInterest
-     * @description Retrieves the open interest of a currency
+     * @name gate#fetchOpenInterestHistory
+     * @description Retrieves the open interest history of a currency
      * @see https://www.gate.com/docs/developers/apiv4/en/#futures-statistics
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} timeframe "5m", "15m", "30m", "1h", "4h", "1d"
@@ -8861,7 +8861,7 @@ public partial class gate : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) != true))
         {
-            throw new BadRequest ((this.id + " fetchOpenInterest() supports swap markets only")) ;
+            throw new BadRequest ((this.id + " fetchOpenInterestHistory() supports swap markets only")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "contract", (market.ContainsKey("id") ? market["id"] : null) },

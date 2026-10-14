@@ -291,7 +291,7 @@ func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig m
 	this.Accounts = make([]any, 0)
 
 	this.initializeProperties(extendedProperties)
-	this.AfterConstruct()
+	this.AfterConstruct(userConfig)
 
 	this.streaming = this.SafeDict(extendedProperties, "streaming", map[string]any{}).(map[string]any)
 	this.transformApiNew(this.Api)
@@ -592,7 +592,7 @@ func (this *BaseExchange) callEndpoint(endpoint2 any, parameters any) <-chan Asy
 					cost = parsed
 				}
 			}
-			ch <- <-this.Fetch2Async(path, api, method, parameters, map[string]any{}, nil, map[string]any{"cost": cost})
+			ch <- <-this.Fetch2Async(path, api, method, parameters, map[string]any{"cost": cost})
 		} else {
 			ch <- AsyncResult[any]{}
 		}
@@ -1028,10 +1028,7 @@ func (this *BaseExchange) transformApiNew(api Dict, paths ...string) {
 					path = strings.ToLower(string(path[0])) + path[1:]
 				}
 
-				apiObj := any(paths)
-				if len(paths) == 1 {
-					apiObj = paths[0]
-				}
+				apiObj := append([]string{}, paths...)
 
 				this.TransformedApi[path] = map[string]any{
 					"method": strings.ToUpper(key),

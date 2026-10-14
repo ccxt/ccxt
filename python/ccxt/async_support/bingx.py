@@ -6771,7 +6771,7 @@ class bingx(Exchange, ImplicitAPI):
             })
         return tiers
 
-    def sign(self, path: str, section='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, section: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         type = section[0]
         version = section[1]
         access = section[2]
@@ -6827,8 +6827,8 @@ class bingx(Exchange, ImplicitAPI):
             else:
                 query = self.urlencode(parsedParams, True)
                 url += '?' + query + '&' + 'signature=' + signature
-        bodyResult = requestBody if (requestBody is not None) else body
-        headersResult = requestHeaders if (requestHeaders is not None) else headers
+        bodyResult = requestBody
+        headersResult = requestHeaders
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
 
     def nonce(self) -> float:

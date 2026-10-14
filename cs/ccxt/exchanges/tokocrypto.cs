@@ -1678,7 +1678,7 @@ public partial class tokocrypto : Exchange
      * @see https://www.tokocrypto.com/apidocs/#account-information-signed
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot'
+     * @param {string} [params.type] 'spot', 'margin', 'swap', 'future', 'savings' or 'funding'
      * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
      * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
@@ -2892,23 +2892,24 @@ public partial class tokocrypto : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        if (!(inOp(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), api)))
+        object apiName = getValue(api, 0);
+        if (!(inOp(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), apiName)))
         {
-            throw new NotSupported ((((this.id + " does not have a testnet/sandbox URL for ") + (api)) + " endpoints")) ;
+            throw new NotSupported ((((this.id + " does not have a testnet/sandbox URL for ") + (apiName)) + " endpoints")) ;
         }
-        string? baseApiUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), api);
+        string? baseApiUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), apiName);
         if ((baseApiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string url = baseApiUrl;
         url = url + ("/" + path);
-        if ((api is "wapi"))
+        if ((apiName is "wapi"))
         {
             url = url + ".html";
         }
@@ -2922,7 +2923,7 @@ public partial class tokocrypto : Exchange
                     { "X-MBX-APIKEY", this.apiKey },
                     { "Content-Type", "application/x-www-form-urlencoded" },
                 };
-                object bodyStream = ((method != "GET")) ? this.urlencode(parameters) : body;
+                string? bodyStream = ((method != "GET")) ? this.urlencode(parameters) : null;
                 return new Dictionary<string, object>() {
                     { "url", url },
                     { "method", method },
@@ -2933,7 +2934,7 @@ public partial class tokocrypto : Exchange
             {
                 throw new AuthenticationError ((this.id + " userDataStream endpoint requires `apiKey` credential")) ;
             }
-        } else if (((api is "private")) || ((api is "sapi") && (path != "system/status")) || (isEqual(api, "sapiV3")) || ((api is "wapi") && (path != "systemStatus")) || ((api is "dapiPrivate")) || (isEqual(api, "dapiPrivateV2")) || ((api is "fapiPrivate")) || (isEqual(api, "fapiPrivateV2")))
+        } else if (((apiName is "private")) || ((apiName is "sapi") && (path != "system/status")) || (isEqual(apiName, "sapiV3")) || ((apiName is "wapi") && (path != "systemStatus")) || ((apiName is "dapiPrivate")) || (isEqual(apiName, "dapiPrivateV2")) || ((apiName is "fapiPrivate")) || (isEqual(apiName, "fapiPrivateV2")))
         {
             this.checkRequiredCredentials();
             string? query = null;
@@ -2950,7 +2951,7 @@ public partial class tokocrypto : Exchange
             {
                 extendedParams["recvWindow"] = recvWindow;
             }
-            if (((api is "sapi")) && ((path == "asset/dust")))
+            if (((apiName is "sapi")) && ((path == "asset/dust")))
             {
                 query = this.urlencodeWithArrayRepeat(extendedParams);
             } else if (((path == "batchOrders")) || (path.IndexOf("sub-account", StringComparison.Ordinal) >= 0) || ((path == "capital/withdraw/apply")) || (path.IndexOf("staking", StringComparison.Ordinal) >= 0))
@@ -2965,11 +2966,11 @@ public partial class tokocrypto : Exchange
             Dictionary<string, object> headersSigned = new Dictionary<string, object>() {
                 { "X-MBX-APIKEY", this.apiKey },
             };
-            bool queryInUrl = ((method == "GET")) || ((method == "DELETE")) || ((api is "wapi"));
-            object bodySigned = query;
+            bool queryInUrl = ((method == "GET")) || ((method == "DELETE")) || ((apiName is "wapi"));
+            string? bodySigned = query;
             if (queryInUrl)
             {
-                bodySigned = body;
+                bodySigned = null;
             }
             if (queryInUrl)
             {
@@ -2994,8 +2995,8 @@ public partial class tokocrypto : Exchange
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", null },
+            { "headers", null },
         };
     }
 

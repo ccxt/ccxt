@@ -62,7 +62,7 @@ use function abs, array_change_key_case, array_filter, array_is_list, array_key_
     stripos, strlen, strpos, strtolower, strtotime, strtoupper, strtr, strval, substr, sys_get_temp_dir,
     time, trim, unpack, urldecode, urlencode, usleep, usort, var_export;
 
-$version = '4.5.85';
+$version = '4.5.88';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -81,10 +81,10 @@ const PAD_WITH_ZERO = 6;
 
 class BaseExchange {
 
-    const VERSION = '4.5.85';
+    const VERSION = '4.5.88';
 
     // this is updated by build/vss.js
-    public static $ccxt_version = '4.5.85';
+    public static $ccxt_version = '4.5.88';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -1334,11 +1334,7 @@ class BaseExchange {
             }
         }
 
-        $this->after_construct();
-
-        if ($this->safe_bool($options, 'sandbox') || $this->safe_bool($options, 'testnet')) {
-            $this->set_sandbox_mode(true);
-        }
+        $this->after_construct($options);
     }
 
     public function init_throttler() {
@@ -4004,7 +4000,7 @@ class BaseExchange {
         $this->options['enableDemoTrading'] = $enable;
     }
 
-    public function sign(string $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()) {
         return array( 'url' => null, 'method' => null, 'headers' => null, 'body' => null );
     }
 
@@ -4384,7 +4380,7 @@ class BaseExchange {
         return $timestamp;
     }
 
-    public function after_construct() {
+    public function after_construct(array $userConfig = array()) {
         // networks
         $this->create_networks_by_id_object();
         $this->features_generator();
@@ -4398,6 +4394,10 @@ class BaseExchange {
         $isSandbox = $this->safe_bool_2($this->options, 'sandbox', 'testnet', false);
         if ($isSandbox === true) {
             $this->set_sandbox_mode($isSandbox);
+        }
+        // compatibility for sandbox/testnet options in userConfig
+        if (($this->safe_bool($userConfig, 'sandbox', false)) || ($this->safe_bool($userConfig, 'testnet', false))) {
+            $this->set_sandbox_mode(true);
         }
     }
 
@@ -6750,7 +6750,7 @@ class BaseExchange {
         return $results;
     }
 
-    public function fetch2(string $path, mixed $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, array $config = array()) {
+    public function fetch2(string $path, array $api = array('public'), $method = 'GET', $params = array(), array $config = array()) {
         if ($this->enableRateLimit) {
             $cost = $this->calculate_rate_limiter_cost($api, $method, $path, $params, $config);
             $this->throttle($cost);
@@ -6769,7 +6769,7 @@ class BaseExchange {
             }
             try {
                 $this->set_last_rest_request_timestamp();
-                $request = $this->sign($path, $api, $method, $paramsMaxRetriesOnFailureDelay, $headers, $body);
+                $request = $this->sign($path, $api, $method, $paramsMaxRetriesOnFailureDelay);
                 if ($fetchData !== null) {
                     $fetchData['request'] = $request;
                 }
@@ -6805,8 +6805,8 @@ class BaseExchange {
         return null; // this line is never reached, but exists for c# value return requirement
     }
 
-    public function request(string $path, mixed $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, array $config = array()) {
-        return $this->fetch2($path, $api, $method, $params, $headers, $body, $config);
+    public function request(string $path, array $api = array('public'), $method = 'GET', $params = array(), array $config = array()) {
+        return $this->fetch2($path, $api, $method, $params, $config);
     }
 
     public function load_accounts($reload = false, $params = array()) {
@@ -7340,7 +7340,7 @@ class BaseExchange {
         return null;
     }
 
-    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
+    public function calculate_rate_limiter_cost(array $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
         return $this->safe_value($config, 'cost', 1);
     }
 

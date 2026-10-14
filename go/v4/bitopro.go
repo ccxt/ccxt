@@ -2492,39 +2492,31 @@ func (this *Bitopro) fetchDepositWithdrawFeesBody(ch chan AsyncResult[any], opti
 	return nil
 }
 func (this *Bitopro) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var headers map[string]any = GetArgMap(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var url string = "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var requestHeaders map[string]any = func() map[string]any {
-		if headers == nil {
-			return map[string]any{}
-		}
-		return headers
-	}()
-	var isSignedBody bool = (api == "private") && ((method == "POST") || (method == "PUT"))
+	var requestHeaders map[string]any = map[string]any{}
+	var isSignedBody bool = (apiName != nil && *apiName == "private") && ((method == "POST") || (method == "PUT"))
 	var signedBody string = this.Json(params)
-	var requestBody any = body
+	var requestBody *string = nil
 	if isSignedBody {
-		requestBody = signedBody
+		requestBody = SafeStringPtr(signedBody)
 	}
-	AddElementToObject(requestHeaders, "X-BITOPRO-API", "ccxt")
-	if api == "private" {
+	requestHeaders["X-BITOPRO-API"] = "ccxt"
+	if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		if (method == "POST") || (method == "PUT") {
 			var payload string = this.StringToBase64(signedBody)
 			var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha384)
-			AddElementToObject(requestHeaders, "X-BITOPRO-APIKEY", this.ApiKey)
-			AddElementToObject(requestHeaders, "X-BITOPRO-PAYLOAD", payload)
-			AddElementToObject(requestHeaders, "X-BITOPRO-SIGNATURE", signature)
+			requestHeaders["X-BITOPRO-APIKEY"] = this.ApiKey
+			requestHeaders["X-BITOPRO-PAYLOAD"] = payload
+			requestHeaders["X-BITOPRO-SIGNATURE"] = signature
 		} else if (method == "GET") || (method == "DELETE") {
 			if len(ObjectKeys(query)) > 0 {
 				url += "?" + this.Urlencode(query)
@@ -2536,11 +2528,11 @@ func (this *Bitopro) Sign(path string, optionalArgs ...any) any {
 			var data string = this.Json(rawData)
 			var payload string = this.StringToBase64(data)
 			var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha384)
-			AddElementToObject(requestHeaders, "X-BITOPRO-APIKEY", this.ApiKey)
-			AddElementToObject(requestHeaders, "X-BITOPRO-PAYLOAD", payload)
-			AddElementToObject(requestHeaders, "X-BITOPRO-SIGNATURE", signature)
+			requestHeaders["X-BITOPRO-APIKEY"] = this.ApiKey
+			requestHeaders["X-BITOPRO-PAYLOAD"] = payload
+			requestHeaders["X-BITOPRO-SIGNATURE"] = signature
 		}
-	} else if (api == "public") && (method == "GET") {
+	} else if (apiName != nil && *apiName == "public") && (method == "GET") {
 		if len(ObjectKeys(query)) > 0 {
 			url += "?" + this.Urlencode(query)
 		}

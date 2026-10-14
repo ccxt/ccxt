@@ -3051,47 +3051,35 @@ func (this *Alpaca) ParseBalance(response any) map[string]any {
 	return this.SafeBalance(result).(map[string]any)
 }
 func (this *Alpaca) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	var endpoint string = "/" + this.ImplodeParams(path, params)
 	var baseApiUrl *string = this.SafeString(this.Urls["api"], GetValue(api, 0))
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var headersValue any = map[string]any{}
-	if headers != nil {
-		headersValue = headers
-	}
+	var headersValue map[string]any = map[string]any{}
 	if GetValue(api, 1) == "private" {
 		this.CheckRequiredCredentials()
-		AddElementToObject(headersValue, "APCA-API-KEY-ID", this.ApiKey)
-		AddElementToObject(headersValue, "APCA-API-SECRET-KEY", this.Secret)
+		headersValue["APCA-API-KEY-ID"] = this.ApiKey
+		headersValue["APCA-API-SECRET-KEY"] = this.Secret
 	}
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var bodyJson any = nil
+	var bodyJson *string = nil
 	if len(ObjectKeys(query)) > 0 {
 		if (method == "GET") || (method == "DELETE") {
 			endpoint += "?" + this.Urlencode(query)
 		} else {
-			bodyJson = this.Json(query)
-			AddElementToObject(headersValue, "Content-Type", "application/json")
+			bodyJson = SafeStringPtr(this.Json(query))
+			headersValue["Content-Type"] = "application/json"
 		}
 	}
 	var url string = this.ImplodeHostname(baseApiUrl) + endpoint
-	var bodyResolved any = func() any {
-		if bodyJson == nil {
-			return body
-		}
-		return bodyJson
-	}()
+	var bodyResolved *string = bodyJson
 	return map[string]any{
 		"url":     url,
 		"method":  method,

@@ -2704,16 +2704,12 @@ func (this *Hollaex) fetchDepositWithdrawFeesBody(ch chan AsyncResult[any], opti
 	return nil
 }
 func (this *Hollaex) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var requestPath string = "/" + this.Version + "/" + this.ImplodeParams(path, params)
 	if (method == "GET") || (method == "DELETE") {
@@ -2728,7 +2724,7 @@ func (this *Hollaex) Sign(path string, optionalArgs ...any) any {
 	var url string = *apiUrl + requestPath
 	var requestBody any = nil
 	var requestHeaders any = nil
-	if api == "private" {
+	if GetValue(api, 0) == "private" {
 		this.CheckRequiredCredentials()
 		var defaultExpires *int64 = this.SafeInteger2(this.Options, "api-expires", "expires", this.ParseToInt(Divide(this.Timeout, 1000)))
 		var expires any = this.Sum(this.Seconds(), defaultExpires)
@@ -2748,18 +2744,8 @@ func (this *Hollaex) Sign(path string, optionalArgs ...any) any {
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 		AddElementToObject(requestHeaders, "api-signature", signature)
 	}
-	var bodyResult any = func() any {
-		if requestBody == nil {
-			return body
-		}
-		return requestBody
-	}()
-	var headersResult any = func() any {
-		if requestHeaders == nil {
-			return headers
-		}
-		return requestHeaders
-	}()
+	var bodyResult any = requestBody
+	var headersResult any = requestHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,

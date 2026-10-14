@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var bybit = require('./bybit.js');
+var bybiteu$1 = require('./abstract/bybiteu.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class bybiteu extends bybit["default"] {
+class bybiteu extends bybiteu$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bybiteu',

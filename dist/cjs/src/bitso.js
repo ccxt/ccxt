@@ -1938,9 +1938,9 @@ class bitso extends bitso$1["default"] {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let requestHeaders = headers;
-        let requestBody = body;
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        let requestHeaders = undefined;
+        let requestBody = undefined;
         let endpoint = '/' + this.version + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         if (method === 'GET' || method === 'DELETE') {
@@ -1953,7 +1953,7 @@ class bitso extends bitso$1["default"] {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         const url = apiUrl + endpoint;
-        if (api === 'private') {
+        if (api[0] === 'private') {
             this.checkRequiredCredentials();
             // bitso rejects a nonce that is not higher than the previous one (error 104)
             const nonce = this.incrementingNonce().toString();

@@ -195,6 +195,7 @@ type ICoreExchange interface {
 	CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	Sum(args ...any) any
 	NumberToString(num any) *string
+	Base16ToBinary(str any) []byte
 	ParseToNumeric(value any) any
 	LoadMarketsAsync(params ...any) <-chan AsyncResult[any]
 	SetMarkets(markets any, optionalArgs ...any) any

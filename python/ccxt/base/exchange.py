@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.85'
+__version__ = '4.5.88'
 
 # -----------------------------------------------------------------------------
 
@@ -392,10 +392,7 @@ class BaseExchange(object):
             else:
                 setattr(self, key, settings[key])
 
-        self.after_construct()
-
-        if self.safe_bool(config, 'sandbox') or self.safe_bool(config, 'testnet'):
-            self.set_sandbox_mode(True)
+        self.after_construct(config)
 
         # convert all properties from underscore notation foo_bar to camelcase notation fooBar
         cls = type(self)
@@ -3533,7 +3530,7 @@ class BaseExchange(object):
             self.urls = newUrls
         self.options['enableDemoTrading'] = enable
 
-    def sign(self, path: str, api: object = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None):
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}):
         return {'url': None, 'method': None, 'headers': None, 'body': None}
 
     def fetch_accounts(self, params: dict = {}):
@@ -3825,7 +3822,7 @@ class BaseExchange(object):
             return None
         return timestamp
 
-    def after_construct(self):
+    def after_construct(self, userConfig: dict = {}):
         # networks
         self.create_networks_by_id_object()
         self.features_generator()
@@ -3838,6 +3835,9 @@ class BaseExchange(object):
         isSandbox = self.safe_bool_2(self.options, 'sandbox', 'testnet', False)
         if isSandbox is True:
             self.set_sandbox_mode(isSandbox)
+        # compatibility for sandbox/testnet options in userConfig
+        if (self.safe_bool(userConfig, 'sandbox', False)) or (self.safe_bool(userConfig, 'testnet', False)):
+            self.set_sandbox_mode(True)
 
     def init_rest_rate_limiter(self):
         if self.rateLimit is None or (self.id is not None and self.rateLimit == -1):
@@ -5783,7 +5783,7 @@ class BaseExchange(object):
             return self.index_by(results, key)
         return results
 
-    def fetch2(self, path: str, api: object = 'public', method='GET', params: dict = {}, headers: object = None, body: object = None, config: dict = {}):
+    def fetch2(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, config: dict = {}):
         if self.enableRateLimit:
             cost = self.calculate_rate_limiter_cost(api, method, path, params, config)
             self.throttle(cost)
@@ -5800,7 +5800,7 @@ class BaseExchange(object):
                 fetchData = {'request': None, 'response': {'body': None}, 'error': None}
             try:
                 self.set_last_rest_request_timestamp()
-                request = self.sign(path, api, method, paramsMaxRetriesOnFailureDelay, headers, body)
+                request = self.sign(path, api, method, paramsMaxRetriesOnFailureDelay)
                 if fetchData is not None:
                     fetchData['request'] = request
                 self.set_last_request(request)
@@ -5826,8 +5826,8 @@ class BaseExchange(object):
                     raise e
         return None  # this line is never reached, but exists for c# value return requirement
 
-    def request(self, path: str, api: object = 'public', method='GET', params: dict = {}, headers: object = None, body: object = None, config: dict = {}):
-        return self.fetch2(path, api, method, params, headers, body, config)
+    def request(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, config: dict = {}):
+        return self.fetch2(path, api, method, params, config)
 
     def load_accounts(self, reload=False, params: dict = {}):
         if reload:
@@ -6251,7 +6251,7 @@ class BaseExchange(object):
         # throw new NotSupported (this.id + ' handleErrors() not implemented yet');
         return None
 
-    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config: dict = {}):
+    def calculate_rate_limiter_cost(self, api: list[str], method: object, path: object, params: object, config: dict = {}):
         return self.safe_value(config, 'cost', 1)
 
     def fetch_spot_tickers(self, symbols: Strings = None, params: dict = {}):

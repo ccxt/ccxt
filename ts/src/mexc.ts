@@ -2357,7 +2357,7 @@ export default class mexc extends Exchange {
         }
         const market = this.market (symbol);
         if (market['spot'] !== true) {
-            throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
+            throw new NotSupported (this.id + ' createMarketSellOrderWithCost() supports spot orders only');
         }
         const req: Dict = {
             'cost': cost,
@@ -6351,9 +6351,9 @@ export default class mexc extends Exchange {
         return this.milliseconds () - this.safeInteger (this.options, 'timeDifference', 0);
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        let requestHeaders: NullableDict = headers;
-        let requestBody: Str = body;
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+        let requestHeaders: NullableDict = undefined;
+        let requestBody: Str = undefined;
         const section = this.safeString (api, 0);
         const access = this.safeString (api, 1);
         const pathValue = this.implodeParams (path, params);

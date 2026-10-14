@@ -92,12 +92,12 @@ class deepcoin extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => false,
                 'fetchOrderTrades' => true,
-                'fetchPosition' => true,
+                'fetchPosition' => false,
                 'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => true,
                 'fetchPositionsForSymbol' => true,
-                'fetchPositionsHistory' => true,
+                'fetchPositionsHistory' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => false,
                 'fetchTicker' => false,
@@ -3066,7 +3066,8 @@ class deepcoin extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $requestPath = $path;
         if ($method === 'GET') {
             $query = $this->urlencode($params);
@@ -3074,12 +3075,12 @@ class deepcoin extends Exchange {
                 $requestPath .= '?' . $query;
             }
         }
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $apiUrl . '/' . $requestPath;
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             $timestamp = $this->milliseconds();
             $dateTime = $this->iso8601($timestamp);
@@ -3090,7 +3091,7 @@ class deepcoin extends Exchange {
                 'DC-ACCESS-PASSPHRASE' => $this->password,
                 'appid' => '200103',
             );
-            $requestBody = ($method !== 'GET') ? $this->json($params) : $body;
+            $requestBody = ($method !== 'GET') ? $this->json($params) : null;
             if ($method !== 'GET') {
                 $privateHeaders['Content-Type'] = 'application/json';
                 $payload .= $requestBody;
@@ -3099,7 +3100,7 @@ class deepcoin extends Exchange {
             $privateHeaders['DC-ACCESS-SIGN'] = $signature;
             return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $privateHeaders );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
