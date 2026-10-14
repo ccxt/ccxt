@@ -2989,7 +2989,7 @@ public class Delta extends DeltaApi
         String marketId = this.safeString(depositAddress, "asset_symbol");
         String networkId = this.safeString(depositAddress, "network");
         String code = this.safeCurrencyCode(marketId, currency);
-        this.checkAddress(address);
+        this.checkAddress(address, (String) null, (String) null);
         return new HashMap<String, Object>() {{
             put( "info", depositAddress );
             put( "currency", code );

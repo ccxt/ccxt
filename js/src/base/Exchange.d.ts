@@ -324,8 +324,6 @@ export declare class BaseExchange {
     getCcxtVersion(): string;
     throttle(cost?: Num): any;
     initThrottler(): void;
-    defineRestApiEndpoint(methodName: any, uppercaseMethod: any, lowercaseMethod: any, camelcaseMethod: any, path: any, paths: any, config?: {}): void;
-    defineRestApi(api: any, methodName: any, paths?: string[]): void;
     log(...args: any[]): void;
     loadProxyModules(): Promise<any>;
     setProxyAgents(httpProxy: any, httpsProxy: any, socksProxy: any): any;
@@ -584,7 +582,7 @@ export declare class BaseExchange {
     checkProxySettings(url?: Str, method?: Str, headers?: any, body?: any): Str[];
     checkWsProxySettings(): Str[];
     checkConflictingProxies(proxyAgentSet: any, proxyUrlSet: any): void;
-    checkAddress(address?: Str): Str;
+    checkAddress(address?: Str, code?: Str, tag?: Str): Str;
     findMessageHashes(client: any, element: string): string[];
     filterByLimit(array: any[], limit?: Int, key?: IndexType, fromStart?: boolean): any[];
     filterBySinceLimit(array: object[] | undefined, since?: Int, limit?: Int, key?: IndexType, tail?: boolean): any[];
@@ -656,7 +654,7 @@ export declare class BaseExchange {
     unWatchFundingRates(symbols?: Strings, params?: Dict): Promise<any>;
     watchFundingRatesForSymbols(symbols: string[], params?: Dict): Promise<FundingRates>;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: Dict): Promise<TransferEntry>;
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
     createDepositAddress(code: string, params?: Dict): Promise<DepositAddress>;
     setLeverage(leverage: int, symbol?: Str, params?: Dict): Promise<{}>;
     fetchLeverage(symbol: string, params?: Dict): Promise<Leverage>;
@@ -680,7 +678,7 @@ export declare class BaseExchange {
     isEmptyString(value: any): boolean;
     safeNumberOmitZero(obj: object, key: NullableIndexType, defaultValue?: Num): Num;
     safeIntegerOmitZero(obj: object, key: NullableIndexType, defaultValue?: Int): Int;
-    afterConstruct(): void;
+    afterConstruct(userConfig?: Dict): void;
     initRestRateLimiter(): void;
     featuresGenerator(): void;
     featuresMapper(initialFeatures: Dict, marketType: Str, subType?: Str): any;
@@ -716,11 +714,12 @@ export declare class BaseExchange {
             ARBONE: string;
             ARBNOVA: string;
         };
+        withdrawTagRequiredCurrencies: string[];
     };
     safeLedgerEntry(entry: object, currency?: Currency): LedgerEntry;
     safeCurrencyStructure(currency: Dict): CurrencyInterface;
     safeMarketStructure(market?: NullableDict): Market;
-    setMarkets(markets: any, currencies?: undefined): Dictionary<Market>;
+    setMarkets(markets: any, currencies?: any): Dictionary<Market>;
     setMarketsFromExchange(sourceExchange: any): this;
     getDescribeForExtendedWsExchange(currentRestInstance: any, parentRestInstance: any, wsBaseDescribe: Dictionary<any>): any;
     safeBalance(balance: Dict): Balances;
@@ -968,7 +967,6 @@ export declare class BaseExchange {
     market(symbol: Str): MarketInterface;
     createExpiredOptionMarket(symbol: string): MarketInterface;
     isLeveragedCurrency(currencyCode: any, checkBaseCoin?: Bool, existingCurrencies?: NullableDict): boolean;
-    handleWithdrawTagAndParams(tag: any, params: Dict): [Str, Dict];
     costToPrecision(symbol: Str, cost: any): Str;
     priceToPrecision(symbol: Str, price: any): Str;
     amountToPrecision(symbol: Str, amount: any): Str;
@@ -1071,7 +1069,7 @@ export declare class BaseExchange {
     fetchTransfer(id: string, code?: Str, params?: Dict): Promise<TransferEntry>;
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<TransferEntry[]>;
     unWatchOHLCV(symbol: string, timeframe?: string, params?: Dict): Promise<any>;
-    withdrawWs(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
+    withdrawWs(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
     unWatchMyTrades(symbol?: Str, params?: Dict): Promise<any>;
     fetchOrdersByStatusWs(status: string, symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     unWatchBidsAsks(symbols?: Strings, params?: Dict): Promise<any>;

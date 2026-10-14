@@ -4085,6 +4085,8 @@ class weex(Exchange, ImplicitAPI):
         message = self.safe_string(response, 'msg')
         if message is not None:
             errorCode = self.safe_string(response, 'code')
+            if errorCode == '200' and message.lower() == 'success':
+                return None
             feedback = self.id + ' ' + body
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)

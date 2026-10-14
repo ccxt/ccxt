@@ -717,7 +717,7 @@ class bingx extends Exchange {
                         'trailing' => true,
                         'leverage' => false,
                         'marketBuyRequiresPrice' => false,
-                        'marketBuyByCost' => false,
+                        'marketBuyByCost' => true,
                         'selfTradePrevention' => false,
                         'iceberg' => false,
                     ),
@@ -770,6 +770,9 @@ class bingx extends Exchange {
                 'defaultForInverse' => array(
                     'extends' => 'defaultForLinear',
                     'sandbox' => false,
+                    'createOrder' => array(
+                        'marketBuyByCost' => false,
+                    ),
                     'createOrders' => null,
                     'fetchOHLCV' => array(
                         'limit' => 1000,
@@ -3084,7 +3087,7 @@ class bingx extends Exchange {
 
     public function create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array()): array {
         /**
-         * create a spot market order by providing the $symbol, $side and $cost
+         * create a spot or linear swap market order by providing the $symbol, $side and $cost
          * @param {string} $symbol unified $symbol of the market to create an order in
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $cost how much you want to trade in units of the quote currency
@@ -3097,7 +3100,7 @@ class bingx extends Exchange {
 
     public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()): array {
         /**
-         * create a spot market buy order by providing the $symbol and $cost
+         * create a spot or linear swap market buy order by providing the $symbol and $cost
          * @param {string} $symbol unified $symbol of the market to create an order in
          * @param {float} $cost how much you want to trade in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3109,7 +3112,7 @@ class bingx extends Exchange {
 
     public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array()): array {
         /**
-         * create a spot market sell order by providing the $symbol and $cost
+         * create a spot or linear swap market sell order by providing the $symbol and $cost
          * @param {string} $symbol unified $symbol of the market to create an order in
          * @param {float} $cost how much you want to trade in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3139,8 +3142,8 @@ class bingx extends Exchange {
          */
         $market = $this->market($symbol);
         $cost = $this->safe_string_2($params, 'cost', 'quoteOrderQty');
-        if (($market['contract'] === true) && ($cost !== null)) {
-            throw new NotSupported($this->id . ' createOrder() with cost or quoteOrderQty is not supported for contract markets');
+        if (($market['inverse'] === true) && ($cost !== null)) {
+            throw new NotSupported($this->id . ' createOrder() with cost or quoteOrderQty is not supported for inverse swap markets');
         }
         list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('createOrder', $market, $params);
         $typeValue = strtoupper($type);
@@ -3245,6 +3248,7 @@ class bingx extends Exchange {
             $trailingAmount = $this->safe_string($paramsPostOnly, 'trailingAmount');
             $trailingPercent = $this->safe_string_2($paramsPostOnly, 'trailingPercent', 'priceRate');
             $trailingType = $this->safe_string($paramsPostOnly, 'trailingType', 'TRAILING_STOP_MARKET');
+            $trailingTriggerPrice = $this->safe_string_2($paramsPostOnly, 'trailingTriggerPrice', 'activationPrice');
             $isTrailingAmountOrder = $trailingAmount !== null;
             $isTrailingPercentOrder = $trailingPercent !== null;
             $isTrailing = $isTrailingAmountOrder || $isTrailingPercentOrder;
@@ -3298,8 +3302,14 @@ class bingx extends Exchange {
                     $requestTrailingPercent = Precise::string_div($trailingPercent, '100');
                     $request['priceRate'] = $this->parse_to_numeric($requestTrailingPercent);
                 }
+                if ($trailingTriggerPrice !== null) {
+                    $request['activationPrice'] = $this->parse_to_numeric($this->price_to_precision($symbol, $trailingTriggerPrice));
+                }
             }
             if ($hasStopLoss || $hasTakeProfit) {
+                if ($cost !== null) {
+                    throw new InvalidOrder($this->id . ' createOrder() does not support attached stopLoss or takeProfit on a market order by cost');
+                }
                 $stringifiedAmount = $this->number_to_string($amount);
                 if ($hasStopLoss) {
                     $slTriggerPrice = $this->safe_string_2($stopLossDict, 'triggerPrice', 'stopPrice');
@@ -3358,7 +3368,9 @@ class bingx extends Exchange {
             }
             $request['positionSide'] = $positionSide;
             $closePosition = $this->safe_bool($paramsOrder, 'closePosition', false);
-            if ($closePosition !== true) {
+            if ($cost !== null) {
+                $request['quoteOrderQty'] = $this->parse_to_numeric($this->cost_to_precision($symbol, $cost));
+            } elseif ($closePosition !== true) {
                 $amountReq = $amount;
                 if ($market['inverse'] !== true) {
                     $amountReq = $this->parse_to_numeric($this->amount_to_precision($symbol, $amount));
@@ -3366,7 +3378,7 @@ class bingx extends Exchange {
                 $request['quantity'] = $amountReq; // precision not available for inverse contracts
             }
         }
-        $paramsRequest = $this->omit($paramsOrder, array( 'hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'clientOrderId' ));
+        $paramsRequest = $this->omit($paramsOrder, array( 'hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'trailingTriggerPrice', 'activationPrice', 'clientOrderId', 'cost', 'quoteOrderQty' ));
         return $this->extend($request, $paramsRequest);
     }
 
@@ -3392,10 +3404,11 @@ class bingx extends Exchange {
          * @param {float} [$params->triggerPrice] triggerPrice at which the attached take profit / stop loss order will be triggered
          * @param {float} [$params->stopLossPrice] stop loss trigger $price, a spot order is placed and parsed back with triggerPrice
          * @param {float} [$params->takeProfitPrice] take profit trigger $price, a spot order is placed and parsed back with triggerPrice
-         * @param {float} [$params->cost] *spot only* the quote quantity that can be used as an alternative for the $amount
-         * @param {float} [$params->quoteOrderQty] *spot only* the quote quantity, an alternative to $params->cost
+         * @param {float} [$params->cost] *spot and linear swap only* the quote quantity that can be used as an alternative for the $amount
+         * @param {float} [$params->quoteOrderQty] *spot and linear swap only* the quote quantity, an alternative to $params->cost
          * @param {float} [$params->trailingAmount] *swap only* the quote $amount to trail away from the current $market $price
          * @param {float} [$params->trailingPercent] *swap only* the percent to trail away from the current $market $price
+         * @param {float} [$params->trailingTriggerPrice] *swap only* the $price to activate a trailing order at
          * @param {array} [$params->takeProfit] *$takeProfit object in $params* containing the triggerPrice at which the attached take profit order will be triggered
          * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
          * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the triggerPrice at which the attached stop loss order will be triggered
@@ -5700,8 +5713,8 @@ class bingx extends Exchange {
         $timestamp = $this->safe_integer_2($transaction, 'insertTime', 'timestamp');
         $datetime = $this->iso8601($timestamp);
         if ($timestamp === null) {
-            $datetime = $this->safe_string($transaction, 'applyTime');
-            $timestamp = $this->parse8601($datetime);
+            $timestamp = $this->parse8601($this->safe_string($transaction, 'applyTime'));
+            $datetime = $this->iso8601($timestamp);
         }
         $network = $this->safe_string($transaction, 'network');
         $currencyId = $this->safe_string($transaction, 'coin');
@@ -5711,10 +5724,15 @@ class bingx extends Exchange {
                 $code = str_replace($network, '', $code);
             }
         }
+        // deposit records carry insertTime and no transferType, withdrawal records say 1 (on-chain) or 2 (internal)
         $rawType = $this->safe_string($transaction, 'transferType');
         $type = 'withdrawal';
-        if ($rawType === '0') {
+        if (($rawType === '0') || (is_array($transaction) && array_key_exists('insertTime' ?? '', $transaction))) {
             $type = 'deposit';
+        }
+        $internal = null;
+        if ($rawType !== null) {
+            $internal = ($rawType === '2');
         }
         return array(
             'info' => $transaction,
@@ -5724,7 +5742,7 @@ class bingx extends Exchange {
             'currency' => $code,
             'network' => $this->network_id_to_code($network, $code),
             'amount' => $this->safe_number($transaction, 'amount'),
-            'status' => $this->parse_transaction_status($this->safe_string($transaction, 'status')),
+            'status' => $this->parse_transaction_status($this->safe_string($transaction, 'status'), $type),
             'timestamp' => $timestamp,
             'datetime' => $datetime,
             'address' => $address,
@@ -5740,11 +5758,24 @@ class bingx extends Exchange {
                 'cost' => $this->safe_number($transaction, 'transactionFee'),
                 'rate' => null,
             ),
-            'internal' => null,
+            'internal' => $internal,
         );
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status, ?string $type = null) {
+        $statusesByType = array(
+            'deposit' => array(
+                '0' => 'pending',
+                '6' => 'pending', // chain uploaded, not yet credited
+                '1' => 'ok',
+            ),
+            'withdrawal' => array(
+                '4' => 'pending', // under review
+                '5' => 'failed',
+                '6' => 'ok',
+            ),
+        );
+        $directional = $this->safe_dict($statusesByType, $type, array());
         $statuses = array(
             '0' => 'pending',
             '1' => 'ok',
@@ -5761,7 +5792,8 @@ class bingx extends Exchange {
             '5' => 'rejected',
             '6' => 'ok',
         );
-        return $this->safe_string($statuses, $status, $status);
+        $fallback = $this->safe_string($statuses, $status, $status);
+        return $this->safe_string($directional, $status, $fallback);
     }
 
     public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()) {
@@ -6257,7 +6289,7 @@ class bingx extends Exchange {
         return $depositWithdrawFees;
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
+    public function withdraw(string $code, float $amount, string $address, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -6266,13 +6298,13 @@ class bingx extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} [$tag]
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @param {int} [$params->walletType] 1 fund (funding) account, 2 standard account, 3 perpetual account, 15 spot account
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->check_address($address);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
+        $this->check_address($address, $code, $tagWithdrawTag);
         if ($this->markets === null) {
             $this->load_markets();
         }

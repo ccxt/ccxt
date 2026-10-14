@@ -1839,7 +1839,7 @@ class coinsph(Exchange, ImplicitAPI):
             'tierBased': None,
         }
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal to coins_ph account
 
@@ -1848,15 +1848,16 @@ class coinsph(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: not used by withdraw()
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
+        tag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
         options = self.safe_dict(self.options, 'withdraw')
         warning = self.safe_bool(options, 'warning', True)
         if warning is True:
             raise InvalidAddress(self.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = False to make a withdrawal to your coins_ph account")
-        networkCode = self.safe_string(params, 'network')
+        networkCode = self.safe_string(paramsWithdrawTag, 'network')
         networkId = None if (networkCode is None) else self.network_code_to_id(networkCode, code)
         if networkId is None:
             raise BadRequest(self.id + ' withdraw() require network parameter')
@@ -1871,7 +1872,7 @@ class coinsph(Exchange, ImplicitAPI):
         }
         if tag is not None:
             request['withdrawOrderId'] = tag
-        paramsOmitted = self.omit(params, 'network')
+        paramsOmitted = self.omit(paramsWithdrawTag, 'network')
         response = self.privatePostOpenapiWalletV1WithdrawApply(self.extend(request, paramsOmitted))
         return self.parse_transaction(response, currency)
 

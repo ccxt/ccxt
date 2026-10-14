@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.pacifica import ImplicitAPI
 import math
-from ccxt.base.types import Balances, Currency, FundingHistory, Int, LedgerEntry, Leverage, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, TradingFeeInterface, Transaction, FundingRateHistory, TransferEntry
+from ccxt.base.types import Balances, Currency, FundingHistory, Int, LedgerEntry, Leverage, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, TradingFeeInterface, TradingFees, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -117,7 +117,7 @@ class pacifica(Exchange, ImplicitAPI):
                 'fetchTime': None,
                 'fetchTrades': True,
                 'fetchTradingFee': True,
-                'fetchTradingFees': False,
+                'fetchTradingFees': True,
                 'fetchTransfer': False,
                 'fetchTransfers': False,
                 'fetchWithdrawal': False,
@@ -2719,7 +2719,7 @@ class pacifica(Exchange, ImplicitAPI):
         # }
         return response
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal(only support native USDC)
 
@@ -2728,8 +2728,8 @@ class pacifica(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: validated but not sent, funds go to the account wallet
-        :param str tag: not used by withdraw()
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :param int [params.expiryWindow]: time to live in milliseconds
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
@@ -2788,6 +2788,31 @@ class pacifica(Exchange, ImplicitAPI):
         # }
         data = self.safe_dict(response, 'data', {})
         return self.parse_trading_fee(data, market)
+
+    async def fetch_trading_fees(self, params: dict = {}) -> TradingFees:
+        """
+        fetch the trading fees for multiple markets, the account fee level applies to every market
+
+        https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-info
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.account]: will default to walletAddress if not provided
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
+        """
+        if self.markets is None:
+            await self.load_markets()
+        userAddress, paramsOriginAndSingleAddress = self.handle_origin_and_single_address('fetchTradingFees', params)
+        request = {
+            'account': userAddress,
+        }
+        response = await self.publicGetAccount(self.extend(request, paramsOriginAndSingleAddress))
+        data = self.safe_dict(response, 'data', {})
+        result = {}
+        symbols = self.symbols
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            result[symbol] = self.parse_trading_fee(data, self.market(symbol))
+        return result
 
     def parse_trading_fee(self, fee: dict, market: Market = None) -> TradingFeeInterface:
         #
@@ -3147,7 +3172,7 @@ class pacifica(Exchange, ImplicitAPI):
         marketId = self.safe_string(income, 'symbol')
         marketResolved = self.safe_market(marketId, market)
         symbol = marketResolved['symbol']
-        amount = self.safe_string(income, 'amount')
+        amount = self.safe_string(income, 'payout')
         code = self.safe_currency_code('USDC')
         rate = self.safe_number(income, 'rate')
         return {
@@ -3169,8 +3194,8 @@ class pacifica(Exchange, ImplicitAPI):
 
         :param str code: unified currency code
         :param float amount: amount to transfer
-        :param str fromAccount: account to transfer from *spot, swap*
-        :param str toAccount: account to transfer to *swap, spot or address*
+        :param str fromAccount: not used, funds are always sent from the account wallet, the origin address
+        :param str toAccount: the address of the subaccount or main account to transfer to
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.expiryWindow]: time to live in milliseconds
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
@@ -3234,7 +3259,7 @@ class pacifica(Exchange, ImplicitAPI):
 
     async def create_sub_account(self, name: str, params: dict = {}):
         """
-        creates a sub-account under the main account
+        creates a sub-account under the main account, privateKey must be the main account key, the exchange rejects agent-signed requests(an agent_wallet header with a main-key signature is accepted)
 
         https://docs.pacifica.fi/api-documentation/api/rest-api/subaccounts/create-subaccount
 
@@ -3297,6 +3322,15 @@ class pacifica(Exchange, ImplicitAPI):
         return response
 
     async def bind_agent_wallet(self, agentAddress: str, params: dict = {}) -> dict:
+        """
+        binds an agent wallet that can sign trading actions for the account
+
+        https://docs.pacifica.fi/api-documentation/api/signing/api-agent-keys
+
+        :param str agentAddress: the public key of the agent wallet
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: the api result
+        """
         operationType = 'bind_agent_wallet'
         sigPayload = {
             'agent_wallet': agentAddress,
@@ -3305,12 +3339,23 @@ class pacifica(Exchange, ImplicitAPI):
         return await self.privatePostAgentBind(self.extend(request, params))
 
     async def create_api_key(self, params: dict = {}) -> dict:
+        """
+        creates an api key for the account
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: the api result
+        """
         operationType = 'create_api_key'
         sigPayload = {}
         request = self.post_action_request(operationType, sigPayload, params)
         return await self.privatePostAccountApiKeysCreate(self.extend(request, params))
 
     async def revoke_api_key(self, apiKey: str, params: dict = {}) -> dict:
+        """
+        revokes an api key of the account
+        :param str apiKey: the api key to revoke
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: the api result
+        """
         operationType = 'revoke_api_key'
         sigPayload = {
             'api_key': apiKey,
@@ -3319,12 +3364,27 @@ class pacifica(Exchange, ImplicitAPI):
         return await self.privatePostAccountApiKeysRevoke(self.extend(request, params))
 
     async def fetch_api_keys(self, params: dict = {}) -> dict:
+        """
+        fetches the api keys of the account
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: the api result
+        """
         operationType = 'list_api_keys'
         sigPayload = {}
         request = self.post_action_request(operationType, sigPayload, params)
         return await self.privatePostAccountApiKeys(self.extend(request, params))
 
     async def approve_builder_code(self, builderCode: str, maxFeeRate: str, params: dict = {}) -> dict:
+        """
+        approves a builder code to charge fees on the account orders
+
+        https://docs.pacifica.fi/programs/builder-program
+
+        :param str builderCode: the builder code to approve
+        :param str maxFeeRate: the maximum fee rate the builder may charge
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: the api result
+        """
         operationType = 'approve_builder_code'
         sigPayload = {
             'builder_code': builderCode,
@@ -3334,12 +3394,29 @@ class pacifica(Exchange, ImplicitAPI):
         return await self.privatePostAccountBuilderCodesApprove(self.extend(request, params))
 
     async def fetch_builder_approvals(self, address: str) -> list[dict]:
+        """
+        fetches the builder codes approved by an account
+
+        https://docs.pacifica.fi/programs/builder-program
+
+        :param str address: the account address
+        :returns dict[]: the api result
+        """
         request = {
             'account': address,
         }
         return await self.publicGetAccountBuilderCodesApprovals(self.extend(request))
 
     async def revoke_builder_code(self, builderCode: str, params: dict = {}) -> dict:
+        """
+        revokes a previously approved builder code
+
+        https://docs.pacifica.fi/programs/builder-program
+
+        :param str builderCode: the builder code to revoke
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: the api result
+        """
         operationType = 'revoke_builder_code'
         sigPayload = {
             'builder_code': builderCode,

@@ -2138,11 +2138,12 @@ export default class dydx extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
+        const [ tag, paramsWithdrawTag ] = this.handleParamString (params, 'tag');
         if (code !== 'USDC') {
             throw new NotSupported (this.id + ' withdraw() only support USDC');
         }
@@ -2150,7 +2151,7 @@ export default class dydx extends Exchange {
             await this.loadMarkets ();
         }
         this.checkAddress (address);
-        const subaccountId = this.safeInteger (params, 'subaccountId');
+        const subaccountId = this.safeInteger (paramsWithdrawTag, 'subaccountId');
         if (subaccountId === undefined) {
             throw new ArgumentsRequired (this.id + ' withdraw requires subaccountId.');
         }

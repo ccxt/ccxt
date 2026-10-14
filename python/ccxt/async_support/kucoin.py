@@ -673,6 +673,7 @@ class kucoin(Exchange, ImplicitAPI):
                     '405': NotSupported,
                     '415': NotSupported,
                     '429': RateLimitExceeded,
+                    '429000': RateLimitExceeded,  # {"code":"429000","msg":"Too many requests. System-level rate limit exceeded."}
                     '500': ExchangeNotAvailable,  # Internal Server Error -- We had a problem with our server. Try again later.
                     '503': ExchangeNotAvailable,
                     '101030': PermissionDenied,  # {"code":"101030","msg":"You haven't yet enabled the margin trading"}
@@ -930,7 +931,7 @@ class kucoin(Exchange, ImplicitAPI):
                 'uta': None,
                 'version': 'v1',
                 'symbolSeparator': '-',
-                'fetchMyTradesMethod': 'private_get_fills',
+                'fetchMyTradesMethod': 'privateGetFills',
                 'timeDifference': 0,  # the difference between system clock and exchange clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'fetchCurrencies': {
@@ -4939,7 +4940,7 @@ class kucoin(Exchange, ImplicitAPI):
             request['clientOid'] = clientOrderId
         else:
             if id is None:
-                raise ArgumentsRequired(self.id + ' fetchOrder() requires an id argument or clientOrderId parameter')
+                raise ArgumentsRequired(self.id + ' cancelOrder() requires an id argument or clientOrderId parameter')
             request['orderId'] = id
         if self.markets is None:
             await self.load_markets()
@@ -6456,13 +6457,13 @@ class kucoin(Exchange, ImplicitAPI):
                 response = await self.privateGetHfMarginFills(self.extend(request, paramsRequest))
             else:
                 response = await self.privateGetHfFills(self.extend(request, paramsRequest))
-        elif method == 'private_get_fills':
+        elif (method == 'privateGetFills') or (method == 'private_get_fills'):
             # does not return trades earlier than 2019-02-18T00:00:00Z
             if since is not None:
                 # only returns trades up to one week after the since param
                 request['startAt'] = since
             response = await self.privateGetFills(self.extend(request, paramsRequest))
-        elif method == 'private_get_limit_fills':
+        elif (method == 'privateGetLimitFills') or (method == 'private_get_limit_fills'):
             # does not return trades earlier than 2019-02-18T00:00:00Z
             # takes no params
             # only returns first 1000 trades (not only "in the last 24 hours" as stated in the docs)
@@ -7188,7 +7189,7 @@ class kucoin(Exchange, ImplicitAPI):
             'tierBased': True,
         }
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -7197,14 +7198,14 @@ class kucoin(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
         if self.markets is None:
             await self.load_markets()
-        self.check_address(address)
+        self.check_address(address, code, tagWithdrawTag)
         currency = self.currency(code)
         request = {
             'currency': currency['id'],

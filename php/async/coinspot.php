@@ -239,7 +239,7 @@ class coinspot extends Exchange {
                 'DRK' => 'DASH',
             ),
             'options' => array(
-                'fetchBalance' => 'private_post_my_balances',
+                'fetchBalance' => 'privatePostMyBalances',
             ),
             'features' => array(
                 'spot' => array(
@@ -342,7 +342,7 @@ class coinspot extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $method = $this->safe_string($this->options, 'fetchBalance', 'private_post_my_balances');
+        $method = $this->safe_string($this->options, 'fetchBalance', 'privatePostMyBalances');
         $response = null;
         if (($method === 'private_post_ro_my_balances') || ($method === 'privatePostRoMyBalances')) {
             $response = Async\await($this->privatePostRoMyBalances($params));

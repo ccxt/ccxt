@@ -2353,8 +2353,8 @@ class blofin extends blofin$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw, the withdrawal fee is not included and must be reserved on top
      * @param {string} address the address to withdraw to, or a UID / email / phone number for an internal transfer
-     * @param {string} tag additional identifier (memo / payment id) required by certain networks
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.network] the unified network code for on-chain withdrawals, mapped to the exchange's chain name
      * @param {string} [params.dest] 'onchain' (default) or 'internal' for an internal transfer
      * @param {string} [params.addrType] address type, 1: wallet address, 2: UID, 3: email, 4: mobile phone
@@ -2362,7 +2362,7 @@ class blofin extends blofin$1["default"] {
      * @param {string} [params.clientId] a client-supplied id of up to 32 case-sensitive alphanumerics
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
+    async withdraw(code, amount, address, params = {}) {
         // LIVE API vs DOCS quirks, verified against the venue 2026-09-14:
         // - addrType is documented optional but the live venue rejects
         //   on-chain withdrawals without it: 152001 "Parameter addrType
@@ -2375,7 +2375,7 @@ class blofin extends blofin$1["default"] {
         //   error table documents the message as "Parameter {} error"
         let tagValue = undefined;
         let query = undefined;
-        [tagValue, query] = this.handleWithdrawTagAndParams(tag, params);
+        [tagValue, query] = this.handleParamString(params, 'tag');
         await this.loadMarkets();
         const currency = this.currency(code);
         const request = {
@@ -2387,7 +2387,7 @@ class blofin extends blofin$1["default"] {
         request['dest'] = dest;
         query = this.omit(query, 'dest');
         if (dest === 'onchain') {
-            this.checkAddress(address);
+            this.checkAddress(address, code, tagValue);
             // the doc's Request Parameters table marks addrType "Required:
             // No", but the live venue rejects on-chain withdrawals without
             // it (152001 "Parameter addrType cannot be empty") - default to

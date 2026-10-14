@@ -2219,7 +2219,7 @@ class blofin(Exchange, ImplicitAPI):
         reference = id if (id is not None) else clientId
         raise ExchangeError(self.id + ' fetchWithdrawal() could not find withdrawal ' + reference)
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -2228,8 +2228,8 @@ class blofin(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw, the withdrawal fee is not included and must be reserved on top
         :param str address: the address to withdraw to, or a UID / email / phone number for an internal transfer
-        :param str tag: additional identifier(memo / payment id) required by certain networks
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :param str [params.network]: the unified network code for on-chain withdrawals, mapped to the exchange's chain name
         :param str [params.dest]: 'onchain'(default) or 'internal' for an internal transfer
         :param str [params.addrType]: address type, 1: wallet address, 2: UID, 3: email, 4: mobile phone
@@ -2249,7 +2249,7 @@ class blofin(Exchange, ImplicitAPI):
         #   error table documents the message as "Parameter {} error"
         tagValue = None
         query = None
-        tagValue, query = self.handle_withdraw_tag_and_params(tag, params)
+        tagValue, query = self.handle_param_string(params, 'tag')
         self.load_markets()
         currency = self.currency(code)
         request = {
@@ -2261,7 +2261,7 @@ class blofin(Exchange, ImplicitAPI):
         request['dest'] = dest
         query = self.omit(query, 'dest')
         if dest == 'onchain':
-            self.check_address(address)
+            self.check_address(address, code, tagValue)
             # the doc's Request Parameters table marks addrType "Required:
             # No", but the live venue rejects on-chain withdrawals without
             # it (152001 "Parameter addrType cannot be empty") - default to

@@ -1447,8 +1447,8 @@ func (this *Bitflyer) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs 
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Bitflyer) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
@@ -1459,9 +1459,7 @@ func (this *Bitflyer) WithdrawAsync(code string, amount any, address any, option
 func (this *Bitflyer) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckAddress(address)
 	if this.Markets == nil {
@@ -1539,11 +1537,11 @@ func (this *Bitflyer) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs .
 		request["count"] = limit // default 100
 	}
 
-	listEp1425 := <-this.PrivateGetGetcoinins(this.Extend(request, params))
-	if listEp1425.Err != nil {
-		panic(listEp1425.Err)
+	listEp1423 := <-this.PrivateGetGetcoinins(this.Extend(request, params))
+	if listEp1423.Err != nil {
+		panic(listEp1423.Err)
 	}
-	var response []any = listEp1425.Value
+	var response []any = listEp1423.Value
 
 	//
 	//     [
@@ -1606,11 +1604,11 @@ func (this *Bitflyer) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArg
 		request["count"] = limit // default 100
 	}
 
-	listEp1485 := <-this.PrivateGetGetcoinouts(this.Extend(request, params))
-	if listEp1485.Err != nil {
-		panic(listEp1485.Err)
+	listEp1483 := <-this.PrivateGetGetcoinouts(this.Extend(request, params))
+	if listEp1483.Err != nil {
+		panic(listEp1483.Err)
 	}
-	var response []any = listEp1485.Value
+	var response []any = listEp1483.Value
 
 	//
 	//     [
@@ -2252,8 +2250,8 @@ func (this *Bitflyer) FetchPositions(options ...FetchPositionsOptions) ([]Positi
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Bitflyer) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
@@ -2263,7 +2261,7 @@ func (this *Bitflyer) Withdraw(code string, amount float64, address string, opti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

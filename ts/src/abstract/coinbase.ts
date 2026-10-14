@@ -8,105 +8,297 @@
 import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    v2PublicGetCurrencies (params?: {}): Promise<Dict>;
-    v2PublicGetCurrenciesCrypto (params?: {}): Promise<Dict>;
-    v2PublicGetTime (params?: {}): Promise<Dict>;
-    v2PublicGetExchangeRates (params?: {}): Promise<Dict>;
-    v2PublicGetUsersUserId (params?: {}): Promise<Dict>;
-    v2PublicGetPricesSymbolBuy (params?: {}): Promise<Dict>;
-    v2PublicGetPricesSymbolSell (params?: {}): Promise<Dict>;
-    v2PublicGetPricesSymbolSpot (params?: {}): Promise<Dict>;
-    v2PrivateGetAccounts (params?: {}): Promise<Dict>;
-    v2PrivateGetAccountsAccountId (params?: {}): Promise<Dict>;
-    v2PrivateGetAccountsAccountIdAddresses (params?: {}): Promise<Dict>;
-    v2PrivateGetAccountsAccountIdAddressesAddressId (params?: {}): Promise<Dict>;
-    v2PrivateGetAccountsAccountIdAddressesAddressIdTransactions (params?: {}): Promise<Dict>;
-    v2PrivateGetAccountsAccountIdTransactions (params?: {}): Promise<Dict>;
-    v2PrivateGetAccountsAccountIdTransactionsTransactionId (params?: {}): Promise<Dict>;
-    v2PrivateGetAccountsAccountIdBuys (params?: {}): Promise<Dict>;
-    v2PrivateGetAccountsAccountIdBuysBuyId (params?: {}): Promise<Dict>;
-    v2PrivateGetAccountsAccountIdSells (params?: {}): Promise<Dict>;
-    v2PrivateGetAccountsAccountIdSellsSellId (params?: {}): Promise<Dict>;
-    v2PrivateGetAccountsAccountIdDeposits (params?: {}): Promise<Dict>;
-    v2PrivateGetAccountsAccountIdDepositsDepositId (params?: {}): Promise<Dict>;
-    v2PrivateGetAccountsAccountIdWithdrawals (params?: {}): Promise<Dict>;
-    v2PrivateGetAccountsAccountIdWithdrawalsWithdrawalId (params?: {}): Promise<Dict>;
-    v2PrivateGetPaymentMethods (params?: {}): Promise<Dict>;
-    v2PrivateGetPaymentMethodsPaymentMethodId (params?: {}): Promise<Dict>;
-    v2PrivateGetUser (params?: {}): Promise<Dict>;
-    v2PrivateGetUserAuth (params?: {}): Promise<Dict>;
-    v2PrivateGetSubscriptionsCoinbaseOne (params?: {}): Promise<Dict>;
-    v2PrivatePostAccounts (params?: {}): Promise<Dict>;
-    v2PrivatePostAccountsAccountIdPrimary (params?: {}): Promise<Dict>;
-    v2PrivatePostAccountsAccountIdAddresses (params?: {}): Promise<Dict>;
-    v2PrivatePostAccountsAccountIdTransactions (params?: {}): Promise<Dict>;
-    v2PrivatePostAccountsAccountIdTransactionsTransactionIdComplete (params?: {}): Promise<Dict>;
-    v2PrivatePostAccountsAccountIdTransactionsTransactionIdResend (params?: {}): Promise<Dict>;
-    v2PrivatePostAccountsAccountIdBuys (params?: {}): Promise<Dict>;
-    v2PrivatePostAccountsAccountIdBuysBuyIdCommit (params?: {}): Promise<Dict>;
-    v2PrivatePostAccountsAccountIdSells (params?: {}): Promise<Dict>;
-    v2PrivatePostAccountsAccountIdSellsSellIdCommit (params?: {}): Promise<Dict>;
-    v2PrivatePostAccountsAccountIdDeposits (params?: {}): Promise<Dict>;
-    v2PrivatePostAccountsAccountIdDepositsDepositIdCommit (params?: {}): Promise<Dict>;
-    v2PrivatePostAccountsAccountIdWithdrawals (params?: {}): Promise<Dict>;
-    v2PrivatePostAccountsAccountIdWithdrawalsWithdrawalIdCommit (params?: {}): Promise<Dict>;
-    v2PrivatePutAccountsAccountId (params?: {}): Promise<Dict>;
-    v2PrivatePutUser (params?: {}): Promise<Dict>;
-    v2PrivateDeleteAccountsId (params?: {}): Promise<Dict>;
-    v2PrivateDeleteAccountsAccountIdTransactionsTransactionId (params?: {}): Promise<Dict>;
-    v3PublicGetBrokerageTime (params?: {}): Promise<Dict>;
-    v3PublicGetBrokerageMarketProductBook (params?: {}): Promise<Dict>;
-    v3PublicGetBrokerageMarketProducts (params?: {}): Promise<Dict>;
-    v3PublicGetBrokerageMarketProductsProductId (params?: {}): Promise<Dict>;
-    v3PublicGetBrokerageMarketProductsProductIdCandles (params?: {}): Promise<Dict>;
-    v3PublicGetBrokerageMarketProductsProductIdTicker (params?: {}): Promise<Dict>;
-    v3PrivateGetBrokerageAccounts (params?: {}): Promise<Dict>;
-    v3PrivateGetBrokerageAccountsAccountUuid (params?: {}): Promise<Dict>;
-    v3PrivateGetBrokerageOrdersHistoricalBatch (params?: {}): Promise<Dict>;
-    v3PrivateGetBrokerageOrdersHistoricalFills (params?: {}): Promise<Dict>;
-    v3PrivateGetBrokerageOrdersHistoricalOrderId (params?: {}): Promise<Dict>;
-    v3PrivateGetBrokerageProducts (params?: {}): Promise<Dict>;
-    v3PrivateGetBrokerageProductsProductId (params?: {}): Promise<Dict>;
-    v3PrivateGetBrokerageProductsProductIdCandles (params?: {}): Promise<Dict>;
-    v3PrivateGetBrokerageProductsProductIdTicker (params?: {}): Promise<Dict>;
-    v3PrivateGetBrokerageBestBidAsk (params?: {}): Promise<Dict>;
-    v3PrivateGetBrokerageProductBook (params?: {}): Promise<Dict>;
-    v3PrivateGetBrokerageTransactionSummary (params?: {}): Promise<Dict>;
-    v3PrivateGetBrokeragePortfolios (params?: {}): Promise<Dict>;
-    v3PrivateGetBrokeragePortfoliosPortfolioUuid (params?: {}): Promise<Dict>;
-    v3PrivateGetBrokerageConvertTradeTradeId (params?: {}): Promise<Dict>;
-    v3PrivateGetBrokerageCfmBalanceSummary (params?: {}): Promise<Dict>;
-    v3PrivateGetBrokerageCfmPositions (params?: {}): Promise<Dict>;
-    v3PrivateGetBrokerageCfmPositionsProductId (params?: {}): Promise<Dict>;
-    v3PrivateGetBrokerageCfmSweeps (params?: {}): Promise<Dict>;
-    v3PrivateGetBrokerageCfmIntradayCurrentMarginWindow (params?: {}): Promise<Dict>;
-    v3PrivateGetBrokerageCfmIntradayMarginSetting (params?: {}): Promise<Dict>;
-    v3PrivateGetBrokerageIntxBalancesPortfolioUuid (params?: {}): Promise<Dict>;
-    v3PrivateGetBrokerageIntxPortfolioPortfolioUuid (params?: {}): Promise<Dict>;
-    v3PrivateGetBrokerageIntxPositionsPortfolioUuid (params?: {}): Promise<Dict>;
-    v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol (params?: {}): Promise<Dict>;
-    v3PrivateGetBrokeragePaymentMethods (params?: {}): Promise<Dict>;
-    v3PrivateGetBrokeragePaymentMethodsPaymentMethodId (params?: {}): Promise<Dict>;
-    v3PrivateGetBrokerageKeyPermissions (params?: {}): Promise<Dict>;
-    v3PrivatePostBrokerageOrders (params?: {}): Promise<Dict>;
-    v3PrivatePostBrokerageOrdersBatchCancel (params?: {}): Promise<Dict>;
-    v3PrivatePostBrokerageOrdersEdit (params?: {}): Promise<Dict>;
-    v3PrivatePostBrokerageOrdersEditPreview (params?: {}): Promise<Dict>;
-    v3PrivatePostBrokerageOrdersPreview (params?: {}): Promise<Dict>;
-    v3PrivatePostBrokeragePortfolios (params?: {}): Promise<Dict>;
-    v3PrivatePostBrokeragePortfoliosMoveFunds (params?: {}): Promise<Dict>;
-    v3PrivatePostBrokerageConvertQuote (params?: {}): Promise<Dict>;
-    v3PrivatePostBrokerageConvertTradeTradeId (params?: {}): Promise<Dict>;
-    v3PrivatePostBrokerageCfmSweepsSchedule (params?: {}): Promise<Dict>;
-    v3PrivatePostBrokerageCfmIntradayMarginSetting (params?: {}): Promise<Dict>;
-    v3PrivatePostBrokerageIntxAllocate (params?: {}): Promise<Dict>;
-    v3PrivatePostBrokerageIntxMultiAssetCollateral (params?: {}): Promise<Dict>;
-    v3PrivatePostBrokerageOrdersClosePosition (params?: {}): Promise<Dict>;
-    v3PrivatePutBrokeragePortfoliosPortfolioUuid (params?: {}): Promise<Dict>;
-    v3PrivateDeleteBrokeragePortfoliosPortfolioUuid (params?: {}): Promise<Dict>;
-    v3PrivateDeleteBrokerageCfmSweeps (params?: {}): Promise<Dict>;
+abstract class Exchange extends _Exchange {
+    v2PublicGetCurrencies (params = {}): Promise<Dict> {
+        return this.request ("currencies", ["v2","public"], 'GET', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PublicGetCurrenciesCrypto (params = {}): Promise<Dict> {
+        return this.request ("currencies/crypto", ["v2","public"], 'GET', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PublicGetTime (params = {}): Promise<Dict> {
+        return this.request ("time", ["v2","public"], 'GET', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PublicGetExchangeRates (params = {}): Promise<Dict> {
+        return this.request ("exchange-rates", ["v2","public"], 'GET', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PublicGetUsersUserId (params = {}): Promise<Dict> {
+        return this.request ("users/{user_id}", ["v2","public"], 'GET', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PublicGetPricesSymbolBuy (params = {}): Promise<Dict> {
+        return this.request ("prices/{symbol}/buy", ["v2","public"], 'GET', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PublicGetPricesSymbolSell (params = {}): Promise<Dict> {
+        return this.request ("prices/{symbol}/sell", ["v2","public"], 'GET', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PublicGetPricesSymbolSpot (params = {}): Promise<Dict> {
+        return this.request ("prices/{symbol}/spot", ["v2","public"], 'GET', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PrivateGetAccounts (params = {}): Promise<Dict> {
+        return this.request ("accounts", ["v2","private"], 'GET', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PrivateGetAccountsAccountId (params = {}): Promise<Dict> {
+        return this.request ("accounts/{account_id}", ["v2","private"], 'GET', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PrivateGetAccountsAccountIdAddresses (params = {}): Promise<Dict> {
+        return this.request ("accounts/{account_id}/addresses", ["v2","private"], 'GET', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PrivateGetAccountsAccountIdAddressesAddressId (params = {}): Promise<Dict> {
+        return this.request ("accounts/{account_id}/addresses/{address_id}", ["v2","private"], 'GET', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PrivateGetAccountsAccountIdAddressesAddressIdTransactions (params = {}): Promise<Dict> {
+        return this.request ("accounts/{account_id}/addresses/{address_id}/transactions", ["v2","private"], 'GET', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PrivateGetAccountsAccountIdTransactions (params = {}): Promise<Dict> {
+        return this.request ("accounts/{account_id}/transactions", ["v2","private"], 'GET', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PrivateGetAccountsAccountIdTransactionsTransactionId (params = {}): Promise<Dict> {
+        return this.request ("accounts/{account_id}/transactions/{transaction_id}", ["v2","private"], 'GET', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PrivateGetAccountsAccountIdBuys (params = {}): Promise<Dict> {
+        return this.request ("accounts/{account_id}/buys", ["v2","private"], 'GET', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PrivateGetAccountsAccountIdBuysBuyId (params = {}): Promise<Dict> {
+        return this.request ("accounts/{account_id}/buys/{buy_id}", ["v2","private"], 'GET', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PrivateGetAccountsAccountIdSells (params = {}): Promise<Dict> {
+        return this.request ("accounts/{account_id}/sells", ["v2","private"], 'GET', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PrivateGetAccountsAccountIdSellsSellId (params = {}): Promise<Dict> {
+        return this.request ("accounts/{account_id}/sells/{sell_id}", ["v2","private"], 'GET', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PrivateGetAccountsAccountIdDeposits (params = {}): Promise<Dict> {
+        return this.request ("accounts/{account_id}/deposits", ["v2","private"], 'GET', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PrivateGetAccountsAccountIdDepositsDepositId (params = {}): Promise<Dict> {
+        return this.request ("accounts/{account_id}/deposits/{deposit_id}", ["v2","private"], 'GET', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PrivateGetAccountsAccountIdWithdrawals (params = {}): Promise<Dict> {
+        return this.request ("accounts/{account_id}/withdrawals", ["v2","private"], 'GET', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PrivateGetAccountsAccountIdWithdrawalsWithdrawalId (params = {}): Promise<Dict> {
+        return this.request ("accounts/{account_id}/withdrawals/{withdrawal_id}", ["v2","private"], 'GET', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PrivateGetPaymentMethods (params = {}): Promise<Dict> {
+        return this.request ("payment-methods", ["v2","private"], 'GET', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PrivateGetPaymentMethodsPaymentMethodId (params = {}): Promise<Dict> {
+        return this.request ("payment-methods/{payment_method_id}", ["v2","private"], 'GET', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PrivateGetUser (params = {}): Promise<Dict> {
+        return this.request ("user", ["v2","private"], 'GET', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PrivateGetUserAuth (params = {}): Promise<Dict> {
+        return this.request ("user/auth", ["v2","private"], 'GET', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PrivateGetSubscriptionsCoinbaseOne (params = {}): Promise<Dict> {
+        return this.request ("subscriptions/coinbase-one", ["v2","private"], 'GET', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PrivatePostAccounts (params = {}): Promise<Dict> {
+        return this.request ("accounts", ["v2","private"], 'POST', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PrivatePostAccountsAccountIdPrimary (params = {}): Promise<Dict> {
+        return this.request ("accounts/{account_id}/primary", ["v2","private"], 'POST', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PrivatePostAccountsAccountIdAddresses (params = {}): Promise<Dict> {
+        return this.request ("accounts/{account_id}/addresses", ["v2","private"], 'POST', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PrivatePostAccountsAccountIdTransactions (params = {}): Promise<Dict> {
+        return this.request ("accounts/{account_id}/transactions", ["v2","private"], 'POST', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PrivatePostAccountsAccountIdTransactionsTransactionIdComplete (params = {}): Promise<Dict> {
+        return this.request ("accounts/{account_id}/transactions/{transaction_id}/complete", ["v2","private"], 'POST', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PrivatePostAccountsAccountIdTransactionsTransactionIdResend (params = {}): Promise<Dict> {
+        return this.request ("accounts/{account_id}/transactions/{transaction_id}/resend", ["v2","private"], 'POST', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PrivatePostAccountsAccountIdBuys (params = {}): Promise<Dict> {
+        return this.request ("accounts/{account_id}/buys", ["v2","private"], 'POST', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PrivatePostAccountsAccountIdBuysBuyIdCommit (params = {}): Promise<Dict> {
+        return this.request ("accounts/{account_id}/buys/{buy_id}/commit", ["v2","private"], 'POST', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PrivatePostAccountsAccountIdSells (params = {}): Promise<Dict> {
+        return this.request ("accounts/{account_id}/sells", ["v2","private"], 'POST', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PrivatePostAccountsAccountIdSellsSellIdCommit (params = {}): Promise<Dict> {
+        return this.request ("accounts/{account_id}/sells/{sell_id}/commit", ["v2","private"], 'POST', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PrivatePostAccountsAccountIdDeposits (params = {}): Promise<Dict> {
+        return this.request ("accounts/{account_id}/deposits", ["v2","private"], 'POST', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PrivatePostAccountsAccountIdDepositsDepositIdCommit (params = {}): Promise<Dict> {
+        return this.request ("accounts/{account_id}/deposits/{deposit_id}/commit", ["v2","private"], 'POST', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PrivatePostAccountsAccountIdWithdrawals (params = {}): Promise<Dict> {
+        return this.request ("accounts/{account_id}/withdrawals", ["v2","private"], 'POST', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PrivatePostAccountsAccountIdWithdrawalsWithdrawalIdCommit (params = {}): Promise<Dict> {
+        return this.request ("accounts/{account_id}/withdrawals/{withdrawal_id}/commit", ["v2","private"], 'POST', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PrivatePutAccountsAccountId (params = {}): Promise<Dict> {
+        return this.request ("accounts/{account_id}", ["v2","private"], 'PUT', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PrivatePutUser (params = {}): Promise<Dict> {
+        return this.request ("user", ["v2","private"], 'PUT', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PrivateDeleteAccountsId (params = {}): Promise<Dict> {
+        return this.request ("accounts/{id}", ["v2","private"], 'DELETE', params, undefined, undefined, {"cost":10.6});
+    }
+    v2PrivateDeleteAccountsAccountIdTransactionsTransactionId (params = {}): Promise<Dict> {
+        return this.request ("accounts/{account_id}/transactions/{transaction_id}", ["v2","private"], 'DELETE', params, undefined, undefined, {"cost":10.6});
+    }
+    v3PublicGetBrokerageTime (params = {}): Promise<Dict> {
+        return this.request ("brokerage/time", ["v3","public"], 'GET', params, undefined, undefined, {"cost":3});
+    }
+    v3PublicGetBrokerageMarketProductBook (params = {}): Promise<Dict> {
+        return this.request ("brokerage/market/product_book", ["v3","public"], 'GET', params, undefined, undefined, {"cost":3});
+    }
+    v3PublicGetBrokerageMarketProducts (params = {}): Promise<Dict> {
+        return this.request ("brokerage/market/products", ["v3","public"], 'GET', params, undefined, undefined, {"cost":3});
+    }
+    v3PublicGetBrokerageMarketProductsProductId (params = {}): Promise<Dict> {
+        return this.request ("brokerage/market/products/{product_id}", ["v3","public"], 'GET', params, undefined, undefined, {"cost":3});
+    }
+    v3PublicGetBrokerageMarketProductsProductIdCandles (params = {}): Promise<Dict> {
+        return this.request ("brokerage/market/products/{product_id}/candles", ["v3","public"], 'GET', params, undefined, undefined, {"cost":3});
+    }
+    v3PublicGetBrokerageMarketProductsProductIdTicker (params = {}): Promise<Dict> {
+        return this.request ("brokerage/market/products/{product_id}/ticker", ["v3","public"], 'GET', params, undefined, undefined, {"cost":3});
+    }
+    v3PrivateGetBrokerageAccounts (params = {}): Promise<Dict> {
+        return this.request ("brokerage/accounts", ["v3","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v3PrivateGetBrokerageAccountsAccountUuid (params = {}): Promise<Dict> {
+        return this.request ("brokerage/accounts/{account_uuid}", ["v3","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v3PrivateGetBrokerageOrdersHistoricalBatch (params = {}): Promise<Dict> {
+        return this.request ("brokerage/orders/historical/batch", ["v3","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v3PrivateGetBrokerageOrdersHistoricalFills (params = {}): Promise<Dict> {
+        return this.request ("brokerage/orders/historical/fills", ["v3","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v3PrivateGetBrokerageOrdersHistoricalOrderId (params = {}): Promise<Dict> {
+        return this.request ("brokerage/orders/historical/{order_id}", ["v3","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v3PrivateGetBrokerageProducts (params = {}): Promise<Dict> {
+        return this.request ("brokerage/products", ["v3","private"], 'GET', params, undefined, undefined, {"cost":3});
+    }
+    v3PrivateGetBrokerageProductsProductId (params = {}): Promise<Dict> {
+        return this.request ("brokerage/products/{product_id}", ["v3","private"], 'GET', params, undefined, undefined, {"cost":3});
+    }
+    v3PrivateGetBrokerageProductsProductIdCandles (params = {}): Promise<Dict> {
+        return this.request ("brokerage/products/{product_id}/candles", ["v3","private"], 'GET', params, undefined, undefined, {"cost":3});
+    }
+    v3PrivateGetBrokerageProductsProductIdTicker (params = {}): Promise<Dict> {
+        return this.request ("brokerage/products/{product_id}/ticker", ["v3","private"], 'GET', params, undefined, undefined, {"cost":3});
+    }
+    v3PrivateGetBrokerageBestBidAsk (params = {}): Promise<Dict> {
+        return this.request ("brokerage/best_bid_ask", ["v3","private"], 'GET', params, undefined, undefined, {"cost":3});
+    }
+    v3PrivateGetBrokerageProductBook (params = {}): Promise<Dict> {
+        return this.request ("brokerage/product_book", ["v3","private"], 'GET', params, undefined, undefined, {"cost":3});
+    }
+    v3PrivateGetBrokerageTransactionSummary (params = {}): Promise<Dict> {
+        return this.request ("brokerage/transaction_summary", ["v3","private"], 'GET', params, undefined, undefined, {"cost":3});
+    }
+    v3PrivateGetBrokeragePortfolios (params = {}): Promise<Dict> {
+        return this.request ("brokerage/portfolios", ["v3","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v3PrivateGetBrokeragePortfoliosPortfolioUuid (params = {}): Promise<Dict> {
+        return this.request ("brokerage/portfolios/{portfolio_uuid}", ["v3","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v3PrivateGetBrokerageConvertTradeTradeId (params = {}): Promise<Dict> {
+        return this.request ("brokerage/convert/trade/{trade_id}", ["v3","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v3PrivateGetBrokerageCfmBalanceSummary (params = {}): Promise<Dict> {
+        return this.request ("brokerage/cfm/balance_summary", ["v3","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v3PrivateGetBrokerageCfmPositions (params = {}): Promise<Dict> {
+        return this.request ("brokerage/cfm/positions", ["v3","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v3PrivateGetBrokerageCfmPositionsProductId (params = {}): Promise<Dict> {
+        return this.request ("brokerage/cfm/positions/{product_id}", ["v3","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v3PrivateGetBrokerageCfmSweeps (params = {}): Promise<Dict> {
+        return this.request ("brokerage/cfm/sweeps", ["v3","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v3PrivateGetBrokerageCfmIntradayCurrentMarginWindow (params = {}): Promise<Dict> {
+        return this.request ("brokerage/cfm/intraday/current_margin_window", ["v3","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v3PrivateGetBrokerageCfmIntradayMarginSetting (params = {}): Promise<Dict> {
+        return this.request ("brokerage/cfm/intraday/margin_setting", ["v3","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v3PrivateGetBrokerageIntxBalancesPortfolioUuid (params = {}): Promise<Dict> {
+        return this.request ("brokerage/intx/balances/{portfolio_uuid}", ["v3","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v3PrivateGetBrokerageIntxPortfolioPortfolioUuid (params = {}): Promise<Dict> {
+        return this.request ("brokerage/intx/portfolio/{portfolio_uuid}", ["v3","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v3PrivateGetBrokerageIntxPositionsPortfolioUuid (params = {}): Promise<Dict> {
+        return this.request ("brokerage/intx/positions/{portfolio_uuid}", ["v3","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol (params = {}): Promise<Dict> {
+        return this.request ("brokerage/intx/positions/{portfolio_uuid}/{symbol}", ["v3","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v3PrivateGetBrokeragePaymentMethods (params = {}): Promise<Dict> {
+        return this.request ("brokerage/payment_methods", ["v3","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v3PrivateGetBrokeragePaymentMethodsPaymentMethodId (params = {}): Promise<Dict> {
+        return this.request ("brokerage/payment_methods/{payment_method_id}", ["v3","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v3PrivateGetBrokerageKeyPermissions (params = {}): Promise<Dict> {
+        return this.request ("brokerage/key_permissions", ["v3","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v3PrivatePostBrokerageOrders (params = {}): Promise<Dict> {
+        return this.request ("brokerage/orders", ["v3","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v3PrivatePostBrokerageOrdersBatchCancel (params = {}): Promise<Dict> {
+        return this.request ("brokerage/orders/batch_cancel", ["v3","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v3PrivatePostBrokerageOrdersEdit (params = {}): Promise<Dict> {
+        return this.request ("brokerage/orders/edit", ["v3","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v3PrivatePostBrokerageOrdersEditPreview (params = {}): Promise<Dict> {
+        return this.request ("brokerage/orders/edit_preview", ["v3","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v3PrivatePostBrokerageOrdersPreview (params = {}): Promise<Dict> {
+        return this.request ("brokerage/orders/preview", ["v3","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v3PrivatePostBrokeragePortfolios (params = {}): Promise<Dict> {
+        return this.request ("brokerage/portfolios", ["v3","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v3PrivatePostBrokeragePortfoliosMoveFunds (params = {}): Promise<Dict> {
+        return this.request ("brokerage/portfolios/move_funds", ["v3","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v3PrivatePostBrokerageConvertQuote (params = {}): Promise<Dict> {
+        return this.request ("brokerage/convert/quote", ["v3","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v3PrivatePostBrokerageConvertTradeTradeId (params = {}): Promise<Dict> {
+        return this.request ("brokerage/convert/trade/{trade_id}", ["v3","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v3PrivatePostBrokerageCfmSweepsSchedule (params = {}): Promise<Dict> {
+        return this.request ("brokerage/cfm/sweeps/schedule", ["v3","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v3PrivatePostBrokerageCfmIntradayMarginSetting (params = {}): Promise<Dict> {
+        return this.request ("brokerage/cfm/intraday/margin_setting", ["v3","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v3PrivatePostBrokerageIntxAllocate (params = {}): Promise<Dict> {
+        return this.request ("brokerage/intx/allocate", ["v3","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v3PrivatePostBrokerageIntxMultiAssetCollateral (params = {}): Promise<Dict> {
+        return this.request ("brokerage/intx/multi_asset_collateral", ["v3","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v3PrivatePostBrokerageOrdersClosePosition (params = {}): Promise<Dict> {
+        return this.request ("brokerage/orders/close_position", ["v3","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v3PrivatePutBrokeragePortfoliosPortfolioUuid (params = {}): Promise<Dict> {
+        return this.request ("brokerage/portfolios/{portfolio_uuid}", ["v3","private"], 'PUT', params, undefined, undefined, {"cost":1});
+    }
+    v3PrivateDeleteBrokeragePortfoliosPortfolioUuid (params = {}): Promise<Dict> {
+        return this.request ("brokerage/portfolios/{portfolio_uuid}", ["v3","private"], 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    v3PrivateDeleteBrokerageCfmSweeps (params = {}): Promise<Dict> {
+        return this.request ("brokerage/cfm/sweeps", ["v3","private"], 'DELETE', params, undefined, undefined, {"cost":1});
+    }
 }
-abstract class Exchange extends _Exchange {}
-
 export default Exchange

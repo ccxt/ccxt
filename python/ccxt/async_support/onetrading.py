@@ -38,7 +38,7 @@ class onetrading(Exchange, ImplicitAPI):
                 'spot': True,
                 'margin': False,
                 'swap': True,
-                'future': False,
+                'future': True,
                 'option': False,
                 'addMargin': False,
                 'borrowCrossMargin': False,
@@ -545,6 +545,25 @@ class onetrading(Exchange, ImplicitAPI):
         #      "state": "ACTIVE"
         #  }
         #
+        #  {
+        #      "base": { "code": "BTC", "precision": 8 },
+        #      "quote": { "code": "USD", "precision": 8 },
+        #      "amount_precision": 5,
+        #      "market_precision": 2,
+        #      "min_size": "10.0",
+        #      "min_price": "1000",
+        #      "max_price": "10000000",
+        #      "id": "BTC_USD_P",
+        #      "price_collar_percentage": "10",
+        #      "type": "DATED_FUTURE", // or EQUITY_FUTURE
+        #      "state": "ACTIVE",
+        #      "funding_period": 240,
+        #      "market_offset": 0,
+        #      "funding_schedule": { "type": "FIXED_INTERVAL", "period_minutes": 240 },
+        #      "contract_expiry_date": "2031-04-20",
+        #      "contract_duration": "5Y"
+        #  }
+        #
         baseAsset = self.safe_dict(market, 'base', {})
         quoteAsset = self.safe_dict(market, 'quote', {})
         baseId = self.safe_string(baseAsset, 'code')
@@ -557,31 +576,44 @@ class onetrading(Exchange, ImplicitAPI):
         state = self.safe_string(market, 'state')
         type = self.safe_string(market, 'type')
         isPerp = type == 'PERP'
+        isFuture = (type == 'DATED_FUTURE') or (type == 'EQUITY_FUTURE')
+        isContract = isPerp or isFuture
+        expiry = None
+        expiryDate = self.safe_string(market, 'contract_expiry_date')
+        if expiryDate is not None:
+            expiry = self.parse8601(expiryDate + 'T00:00:00Z')
         symbol = base + '/' + quote
-        if isPerp:
+        if isContract:
             symbol = symbol + ':' + quote
+            if isFuture and (expiry is not None):
+                symbol = symbol + '-' + self.yymmdd(expiry)
+        marketType = 'spot'
+        if isPerp:
+            marketType = 'swap'
+        elif isFuture:
+            marketType = 'future'
         return self.safe_market_structure({
             'id': id,
             'symbol': symbol,
             'base': base,
             'quote': quote,
-            'settle': quote if isPerp else None,
+            'settle': quote if isContract else None,
             'baseId': baseId,
             'quoteId': quoteId,
-            'settleId': quoteId if isPerp else None,
-            'type': 'swap' if isPerp else 'spot',
-            'spot': not isPerp,
+            'settleId': quoteId if isContract else None,
+            'type': marketType,
+            'spot': not isContract,
             'margin': False,
             'swap': isPerp,
-            'future': False,
+            'future': isFuture,
             'option': False,
-            'active': (state == 'ACTIVE'),
-            'contract': isPerp,
-            'linear': True if isPerp else None,
-            'inverse': False if isPerp else None,
-            'contractSize': self.parse_number('1') if isPerp else None,
-            'expiry': None,
-            'expiryDatetime': None,
+            'active': (state == 'ACTIVE') or (state == 'POST_ONLY'),  # POST_ONLY markets accept maker orders and reject taker orders — deliberately flagged tradeable rather than hidden, ccxt has no partial-trading flag
+            'contract': isContract,
+            'linear': True if isContract else None,
+            'inverse': False if isContract else None,
+            'contractSize': self.parse_number('1') if isContract else None,
+            'expiry': expiry,
+            'expiryDatetime': self.iso8601(expiry),
             'strike': None,
             'optionType': None,
             'precision': {

@@ -39,7 +39,7 @@ class htx(Exchange, ImplicitAPI):
             'countries': ['CN'],
             'rateLimit': 100,
             'userAgent': self.userAgents['chrome100'],
-            'certified': True,
+            'certified': False,
             'version': 'v1',
             'hostname': 'api.huobi.pro',  # api.testnet.huobi.pro
             'pro': True,
@@ -1975,6 +1975,13 @@ class htx(Exchange, ImplicitAPI):
         close = self.safe_string(ticker, 'close')
         baseVolume = self.safe_string(ticker, 'amount')
         quoteVolume = self.safe_string(ticker, 'vol')
+        marketResolved = self.safe_dict(self.markets, symbol, market)
+        if self.safe_bool(marketResolved, 'contract') is True:
+            # contract tickers count 'vol' in contracts
+            if self.safe_bool(marketResolved, 'linear') is True:
+                quoteVolume = self.safe_string(ticker, 'trade_turnover')
+            else:
+                quoteVolume = Precise.string_mul(quoteVolume, self.safe_string(marketResolved, 'contractSize'))
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -6295,7 +6302,7 @@ class htx(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
 
         https://www.htx.com/en-us/opend/newApiPages/?id=7ec4cc41-7773-11ed-9966-0242ac110003
@@ -6304,14 +6311,14 @@ class htx(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagValue, paramsTag = self.handle_withdraw_tag_and_params(tag, params)
+        tagValue, paramsTag = self.handle_param_string(params, 'tag')
         if self.markets is None:
             await self.load_markets()
-        self.check_address(address)
+        self.check_address(address, code, tagValue)
         currency = self.currency(code)
         request = {
             'address': address,  # only supports existing addresses in your withdraw address list
@@ -7779,7 +7786,7 @@ class htx(Exchange, ImplicitAPI):
             elif marketType == 'swap':
                 response = await self.contractPrivatePostSwapApiV1SwapAccountPositionInfo(self.extend(request, query))
             else:
-                raise NotSupported(self.id + ' setLeverage() not support self market type')
+                raise NotSupported(self.id + ' fetchPosition() not support self market type')
             #
             # future, swap
             #

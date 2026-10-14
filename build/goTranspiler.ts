@@ -4542,6 +4542,13 @@ class NewTranspiler {
         // 'kucoinfutures'
     ]);
 
+    async destroy () {
+        if (this.piscina) {
+            await this.piscina.destroy ();
+            this.piscina = undefined;
+        }
+    }
+
     constructor(isWs: boolean = false) {
 
         this.setupTranspiler();
@@ -4746,6 +4753,8 @@ class NewTranspiler {
                 // channel-returning async methods carry the suffix so the plain name is
                 // free for the typed sync method emitted into the same core file
                 "asyncMethodSuffix": GO_ASYNC_SUFFIX,
+                // implicit endpoints are emitted unsuffixed by the Go api generator
+                "asyncSuffixExemptPaths": [ "(^|/)ts/src/abstract/" ],
                 // required OrderType/OrderSide params of the unified order methods print `string` on the
                 // base, every override and go/v4/exchange_interface.go (audit: no override nil-compares them)
                 "unifiedStringParams": GO_UNIFIED_STRING_PARAMS,
@@ -4911,7 +4920,7 @@ class NewTranspiler {
     }
 
     isDictionary(type: string): boolean {
-        return (type === 'Object') || (type === 'Dictionary<any>') || (type === 'unknown') || (type === 'Dict') || ((type.startsWith('{')) && (type.endsWith('}')));
+        return (type === 'Object') || (type === 'Dictionary<any>') || (type === 'unknown') || (type === 'Dict') || (type === 'ExchangeOptions') || ((type.startsWith('{')) && (type.endsWith('}')));
     }
 
     isStringType(type: string) {
@@ -5006,6 +5015,8 @@ class NewTranspiler {
             // expanding it to `Dict | undefined` like TS 4.9 did
             'NullableDict': 'map[string]any',
             'Market': 'MarketInterface',
+            'DefaultType': 'string',
+            'DefaultSubType': 'string',
         };
 
         if (wrappedType === undefined || wrappedType === 'Undefined') {
@@ -5284,7 +5295,7 @@ class NewTranspiler {
         }
 
         // handle the typescript type Dict
-        if (unwrappedType === 'Dict' || unwrappedType === 'map[string]any') {
+        if (unwrappedType === 'Dict' || unwrappedType === 'ExchangeOptions' || unwrappedType === 'map[string]any') {
             return `res.(map[string]any)`;
         }
 
@@ -8802,39 +8813,43 @@ async function runMain () {
     // instead of paying a second process boot + cold pool. Omit the flag for REST-only.
     const restAndWs = process.argv.includes ('--rest-and-ws');
     const transpiler = new NewTranspiler (ws);
-    if (baseClassOnly) {
-        transpiler.transpileBaseMethods (TS_BASE_FILE)
-        transpiler.transpilePredictionBaseMethods ()
-    } else if (restAndWs) {
-        // reproduces, in order, exactly what the two CI commands do:
-        //   goTranspiler.ts --force            -> transpileEverything (...)
-        //   goTranspiler.ts --ws --force       -> transpileWS (force) [+ prediction ws]
-        await transpiler.transpileEverything (force, false, examples, prediction);
-        // goTypeOptions is a MODULE-LEVEL accumulator that safeOptionsStructFile() dumps
-        // wholesale into exchange_wrapper_structs.go. The ws stage must only emit the ws
-        // structs, which held automatically while each stage was its own process. Reusing
-        // the process would otherwise append every REST struct to go/v4/pro/ (measured:
-        // 1460 -> 7135 lines). Same class of latent bug as the `exchanges` clobber above.
-        resetPerStageAccumulators ();
-        await transpiler.transpileWS (force);
-        if (!inputExchanges.length) {
-            // full ws builds also transpile the prediction ws exchanges
-            await transpiler.transpileWS (force, true);
-        }
-    } else if (ws) {
-        if (prediction) {
-            await transpiler.transpileWS (force, true);
-        } else {
+    try {
+        if (baseClassOnly) {
+            transpiler.transpileBaseMethods (TS_BASE_FILE)
+            transpiler.transpilePredictionBaseMethods ()
+        } else if (restAndWs) {
+            // reproduces, in order, exactly what the two CI commands do:
+            //   goTranspiler.ts --force            -> transpileEverything (...)
+            //   goTranspiler.ts --ws --force       -> transpileWS (force) [+ prediction ws]
+            await transpiler.transpileEverything (force, false, examples, prediction);
+            // goTypeOptions is a MODULE-LEVEL accumulator that safeOptionsStructFile() dumps
+            // wholesale into exchange_wrapper_structs.go. The ws stage must only emit the ws
+            // structs, which held automatically while each stage was its own process. Reusing
+            // the process would otherwise append every REST struct to go/v4/pro/ (measured:
+            // 1460 -> 7135 lines). Same class of latent bug as the `exchanges` clobber above.
+            resetPerStageAccumulators ();
             await transpiler.transpileWS (force);
             if (!inputExchanges.length) {
                 // full ws builds also transpile the prediction ws exchanges
                 await transpiler.transpileWS (force, true);
             }
+        } else if (ws) {
+            if (prediction) {
+                await transpiler.transpileWS (force, true);
+            } else {
+                await transpiler.transpileWS (force);
+                if (!inputExchanges.length) {
+                    // full ws builds also transpile the prediction ws exchanges
+                    await transpiler.transpileWS (force, true);
+                }
+            }
+        } else if (test || baseTestsOnly) {
+            await transpiler.transpileTests ();
+        } else {
+            await transpiler.transpileEverything (force, false, examples, prediction);
         }
-    } else if (test || baseTestsOnly) {
-        await transpiler.transpileTests ();
-    } else {
-        await transpiler.transpileEverything (force, false, examples, prediction);
+    } finally {
+        await transpiler.destroy ();
     }
 }
 

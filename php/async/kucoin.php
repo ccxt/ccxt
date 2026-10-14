@@ -661,6 +661,7 @@ class kucoin extends Exchange {
                     '405' => '\\ccxt\\NotSupported',
                     '415' => '\\ccxt\\NotSupported',
                     '429' => '\\ccxt\\RateLimitExceeded',
+                    '429000' => '\\ccxt\\RateLimitExceeded', // {"code":"429000","msg":"Too many requests. System-level rate limit exceeded."}
                     '500' => '\\ccxt\\ExchangeNotAvailable', // Internal Server Error -- We had a problem with our server. Try again later.
                     '503' => '\\ccxt\\ExchangeNotAvailable',
                     '101030' => '\\ccxt\\PermissionDenied', // {"code":"101030","msg":"You haven't yet enabled the margin trading"}
@@ -918,7 +919,7 @@ class kucoin extends Exchange {
                 'uta' => null,
                 'version' => 'v1',
                 'symbolSeparator' => '-',
-                'fetchMyTradesMethod' => 'private_get_fills',
+                'fetchMyTradesMethod' => 'privateGetFills',
                 'timeDifference' => 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'fetchCurrencies' => array(
@@ -5353,7 +5354,7 @@ class kucoin extends Exchange {
             $request['clientOid'] = $clientOrderId;
         } else {
             if ($id === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrder() requires an id argument or clientOrderId parameter');
+                throw new ArgumentsRequired($this->id . ' cancelOrder() requires an id argument or clientOrderId parameter');
             }
             $request['orderId'] = $id;
         }
@@ -7073,14 +7074,14 @@ class kucoin extends Exchange {
             } else {
                 $response = Async\await($this->privateGetHfFills($this->extend($request, $paramsRequest)));
             }
-        } elseif ($method === 'private_get_fills') {
+        } elseif (($method === 'privateGetFills') || ($method === 'private_get_fills')) {
             // does not return trades earlier than 2019-02-18T00:00:00Z
             if ($since !== null) {
                 // only returns trades up to one week after the since param
                 $request['startAt'] = $since;
             }
             $response = Async\await($this->privateGetFills($this->extend($request, $paramsRequest)));
-        } elseif ($method === 'private_get_limit_fills') {
+        } elseif (($method === 'privateGetLimitFills') || ($method === 'private_get_limit_fills')) {
             // does not return trades earlier than 2019-02-18T00:00:00Z
             // takes no params
             // only returns first 1000 trades (not only "in the last 24 hours" as stated in the docs)
@@ -7864,11 +7865,11 @@ class kucoin extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal
          *
@@ -7877,15 +7878,15 @@ class kucoin extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $this->check_address($address);
+        $this->check_address($address, $code, $tagWithdrawTag);
         $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],

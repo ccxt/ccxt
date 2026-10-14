@@ -105,12 +105,12 @@ class deepcoin(Exchange, ImplicitAPI):
                 'fetchOrderBook': True,
                 'fetchOrders': False,
                 'fetchOrderTrades': True,
-                'fetchPosition': True,
+                'fetchPosition': False,
                 'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': True,
                 'fetchPositionsForSymbol': True,
-                'fetchPositionsHistory': True,
+                'fetchPositionsHistory': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': False,
                 'fetchTicker': False,
@@ -586,7 +586,7 @@ class deepcoin(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    def set_markets(self, markets: object, currencies=None):
+    def set_markets(self, markets: object, currencies: object = None):
         result = super(deepcoin, self).set_markets(markets, currencies)
         symbols = list(result.keys())
         for i in range(0, len(symbols)):

@@ -1375,12 +1375,12 @@ class btcmarkets extends btcmarkets$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
+    async withdraw(code, amount, address, params = {}) {
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -1390,7 +1390,7 @@ class btcmarkets extends btcmarkets$1["default"] {
             'amount': this.currencyToPrecision(code, amount),
         };
         if (code !== 'AUD') {
-            this.checkAddress(address);
+            this.checkAddress(address, code, tagWithdrawTag);
             request['toAddress'] = address;
         }
         if (tagWithdrawTag !== undefined) {

@@ -982,13 +982,15 @@ export default class bitbank extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const tagAndParams = this.handleWithdrawTagAndParams(tag, params);
+    async withdraw(code, amount, address, params = {}) {
+        const tagAndParams = this.handleParamString(params, 'tag');
+        const tagWithdrawTag = tagAndParams[0];
         const paramsWithdrawTag = tagAndParams[1];
+        this.checkAddress(address, code, tagWithdrawTag);
         if (!('uuid' in paramsWithdrawTag)) {
             throw new ExchangeError(this.id + ' uuid is required for withdrawal');
         }

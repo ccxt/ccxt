@@ -2642,21 +2642,25 @@ func (this *Kucoin) HandleBidAsks(bookSide any, bidAsks []any) {
 }
 func (this *Kucoin) HandleOrderBookSubscription(client any, message map[string]any, subscription map[string]any) {
 	var limit *int64 = this.SafeInteger(subscription, "limit")
-	var symbols []any = ccxt.SafeListTyped(subscription, "symbols")
+	var symbols any = this.SafeList(subscription, "symbols")
 	if symbols == nil {
-		var symbol *string = this.SafeString(subscription, "symbol")
-		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
-	} else {
-		for i := 0; i < len(symbols); i++ {
-			var symbol any = func() any {
-				if i >= 0 && i < len(symbols) {
-					return ccxt.DerefScalar(symbols[i])
-				}
-				return nil
-			}()
-			ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
-		}
+		symbols = []any{this.SafeString(subscription, "symbol")}
 	}
+	var limits any = this.SafeDict(this.Options, "orderBookLimits", map[string]any{})
+	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
+		var symbol any = ccxt.GetValue(symbols, i)
+		var storedLimit *int64 = this.SafeInteger(limits, symbol)
+		// reuse the existing book so user-held references keep updating; rebuild only if depth changed
+		if !(ccxt.InOp(this.Orderbooks, symbol)) || (storedLimit != limit && (storedLimit == nil || limit == nil || *storedLimit != *limit)) {
+			ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
+		} else {
+			var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+			ccxt.AddElementToObject(orderbook, "nonce", nil)
+			orderbook.(ccxt.OrderBookInterface).SetCache([]any{})
+		}
+		ccxt.AddElementToObject(limits, symbol, limit)
+	}
+	this.Options.Store("orderBookLimits", limits)
 }
 func (this *Kucoin) HandleSubscriptionStatus(client any, message any) {
 	//

@@ -1,6 +1,6 @@
 import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     sapiGetCopyTradingFuturesUserStatus(params?: {}): Promise<Dict>;
     sapiGetCopyTradingFuturesLeadSymbol(params?: {}): Promise<Dict>;
     sapiGetSystemStatus(params?: {}): Promise<Dict>;
@@ -826,7 +826,5 @@ interface Exchange {
     papiDeleteMarginOrderList(params?: {}): Promise<Dict>;
     papiDeleteListenKey(params?: {}): Promise<Dict>;
     papiV2GetUmAccount(params?: {}): Promise<Dict>;
-}
-declare abstract class Exchange extends _Exchange {
 }
 export default Exchange;

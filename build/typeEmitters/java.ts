@@ -276,7 +276,7 @@ function scalarFor (tsType: string, fieldName: string): Scalar | undefined {
         }
         return { 'javaType': 'Double', 'accessor': 'safeFloat' };
     }
-    if (t === 'Str' || t === 'string' || t === 'OrderSide' || t === 'OrderType' || t === 'MarketType' || t === 'SubType') {
+    if (t === 'Str' || t === 'string' || t === 'OrderSide' || t === 'OrderType' || t === 'MarketType' || t === 'SubType' || t === 'DefaultType' || t === 'DefaultSubType') {
         return { 'javaType': 'String', 'accessor': 'safeString' };
     }
     if (t === 'Bool' || t === 'boolean') {
@@ -814,6 +814,46 @@ function requiredClasses (repoRoot: string): string[] {
     return names.map ((n) => n.slice (1, -1));
 }
 
+// string-literal union aliases emitted as Java enums carrying the TS literal via getValue()
+const STRING_ENUMS = [ 'DefaultType', 'DefaultSubType' ];
+
+function renderStringEnum (name: string, members: string[]): string {
+    const literals = members.map ((m) => m.trim ()).filter ((m) => m.startsWith ("'")).map ((m) => m.slice (1, -1));
+    const constants = literals.map ((v) => '    ' + v.replace (/[^A-Za-z0-9]/g, '_').toUpperCase () + '("' + v + '")');
+    return [
+        'package io.github.ccxt.types;',
+        '',
+        'public enum ' + name + ' {',
+        constants.join (',\n') + ';',
+        '',
+        '    private final String value;',
+        '',
+        '    ' + name + '(String value) {',
+        '        this.value = value;',
+        '    }',
+        '',
+        '    public String getValue() {',
+        '        return this.value;',
+        '    }',
+        '',
+        '    @Override',
+        '    public String toString() {',
+        '        return this.value;',
+        '    }',
+        '',
+        '    public static ' + name + ' fromValue(String value) {',
+        '        for (' + name + ' item : values()) {',
+        '            if (item.value.equals(value)) {',
+        '                return item;',
+        '            }',
+        '        }',
+        '        return null;',
+        '    }',
+        '}',
+        '',
+    ].join ('\n');
+}
+
 function emit (ir: TypesIR, repoRoot: string): EmitterOutput[] {
     const directory = path.join (repoRoot, TYPES_DIR);
     if (!fs.existsSync (directory)) {
@@ -918,10 +958,24 @@ function emit (ir: TypesIR, repoRoot: string): EmitterOutput[] {
             'changed': existing === undefined ? [ className + ' (new)' ] : (contents === existing.text ? [] : [ className ]),
         });
     }
+    for (let i = 0; i < STRING_ENUMS.length; i++) {
+        const name = STRING_ENUMS[i];
+        const declaration = ir.byName[name];
+        if (declaration === undefined || declaration.kind !== 'alias' || declaration.unionMembers.length === 0) {
+            continue;
+        }
+        const relative = path.join (TYPES_DIR, name + '.java');
+        const absolute = path.join (repoRoot, relative);
+        const contents = ensureGeneratedBanner (renderStringEnum (name, declaration.unionMembers), '//');
+        const before = fs.existsSync (absolute) ? fs.readFileSync (absolute, 'utf8') : undefined;
+        emitted[name] = true;
+        outputs.push ({ 'path': relative, 'contents': contents, 'changed': before === undefined ? [ name + ' (new)' ] : (before === contents ? [] : [ name ]) });
+    }
     // Delete any .java under types/ that is not owned by types.ts (or the hand-written
     // keep list). Banner is not required — a stale file without a banner is still deleted
     // if it has no TS counterpart. TypeHelper + SKIPPED (OrderBook, Balances, Network*) stay.
-    const allowed: Record<string, boolean> = { 'TypeHelper': true };
+    // Pair: hand-written generic tuple used by generated exchange code, no types.ts counterpart.
+    const allowed: Record<string, boolean> = { 'TypeHelper': true, 'Pair': true };
     for (let i = 0; i < Object.keys (VIEW_BASES).length; i++) {
         allowed[Object.keys (VIEW_BASES)[i]] = true;
     }

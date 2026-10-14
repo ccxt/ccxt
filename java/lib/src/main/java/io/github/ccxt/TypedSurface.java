@@ -81,7 +81,7 @@ public interface TypedSurface {
     CompletableFuture<FundingRates> fetchFundingRates(List<String> symbols, Map<String, Object> params);
     CompletableFuture<FundingRates> fetchFundingIntervals(List<String> symbols, Map<String, Object> params);
     CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> params);
-    CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> params);
+    CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> params);
     CompletableFuture<DepositAddress> createDepositAddress(String code, Map<String, Object> params);
     CompletableFuture<Leverage> fetchLeverage(String symbol, Map<String, Object> params);
     CompletableFuture<Leverages> fetchLeverages(List<String> symbols, Map<String, Object> params);
@@ -237,7 +237,7 @@ public interface TypedSurface {
     CompletableFuture<List<Transaction>> fetchDepositsWs(String code, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<List<Transaction>> fetchWithdrawalsWs(String code, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<TradingFees> fetchTradingFeesWs(Map<String, Object> params);
-    CompletableFuture<Transaction> withdrawWs(String code, Object amount, Object address, String tag, Map<String, Object> params);
+    CompletableFuture<Transaction> withdrawWs(String code, Object amount, Object address, Map<String, Object> params);
     CompletableFuture<List<Order>> fetchOrdersByStatusWs(Object status, String symbol, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<List<Position>> fetchPositionsForSymbolWs(String symbol, Map<String, Object> params);
     CompletableFuture<Position> watchPosition(String symbol, Map<String, Object> params);
@@ -363,11 +363,9 @@ public interface TypedSurface {
     default CompletableFuture<TransferEntry> transferAsync(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> params) { return this.transfer(code, amount, fromAccount, toAccount, (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<TransferEntry> transferAsync(String code, Double amount, String fromAccount, String toAccount) { return transferAsync(code, amount, fromAccount, toAccount, new HashMap<String, Object>()); }
 
-    default Transaction withdraw(String code, Double amount, String address) { return Helpers.joinUnwrapped(this.withdraw(code, amount, address, (String) null, new HashMap<String, Object>())); }
-    default Transaction withdraw(String code, Double amount, String address, String tag) { return Helpers.joinUnwrapped(this.withdraw(code, amount, address, tag, new HashMap<String, Object>())); }
-    default CompletableFuture<Transaction> withdrawAsync(String code, Double amount, String address, String tag, Map<String, Object> params) { return this.withdraw(code, amount, address, tag, (params != null ? params : new HashMap<String, Object>())); }
-    default CompletableFuture<Transaction> withdrawAsync(String code, Double amount, String address) { return withdrawAsync(code, amount, address, (String) null, new HashMap<String, Object>()); }
-    default CompletableFuture<Transaction> withdrawAsync(String code, Double amount, String address, String tag) { return withdrawAsync(code, amount, address, tag, new HashMap<String, Object>()); }
+    default Transaction withdraw(String code, Double amount, String address) { return Helpers.joinUnwrapped(this.withdraw(code, amount, address, new HashMap<String, Object>())); }
+    default CompletableFuture<Transaction> withdrawAsync(String code, Double amount, String address, Map<String, Object> params) { return this.withdraw(code, amount, address, (params != null ? params : new HashMap<String, Object>())); }
+    default CompletableFuture<Transaction> withdrawAsync(String code, Double amount, String address) { return withdrawAsync(code, amount, address, new HashMap<String, Object>()); }
 
     default DepositAddress createDepositAddress(String code) { return Helpers.joinUnwrapped(this.createDepositAddress(code, new HashMap<String, Object>())); }
     default CompletableFuture<DepositAddress> createDepositAddressAsync(String code, Map<String, Object> params) { return this.createDepositAddress(code, (params != null ? params : new HashMap<String, Object>())); }
@@ -1167,11 +1165,9 @@ public interface TypedSurface {
 
     default CompletableFuture<TradingFees> fetchTradingFeesWsAsync(Map<String, Object> params) { return this.fetchTradingFeesWs((params != null ? params : new HashMap<String, Object>())); }
 
-    default Transaction withdrawWs(String code, Double amount, String address) { return Helpers.joinUnwrapped(this.withdrawWs(code, amount, address, (String) null, new HashMap<String, Object>())); }
-    default Transaction withdrawWs(String code, Double amount, String address, String tag) { return Helpers.joinUnwrapped(this.withdrawWs(code, amount, address, tag, new HashMap<String, Object>())); }
-    default CompletableFuture<Transaction> withdrawWsAsync(String code, Double amount, String address, String tag, Map<String, Object> params) { return this.withdrawWs(code, amount, address, tag, (params != null ? params : new HashMap<String, Object>())); }
-    default CompletableFuture<Transaction> withdrawWsAsync(String code, Double amount, String address) { return withdrawWsAsync(code, amount, address, (String) null, new HashMap<String, Object>()); }
-    default CompletableFuture<Transaction> withdrawWsAsync(String code, Double amount, String address, String tag) { return withdrawWsAsync(code, amount, address, tag, new HashMap<String, Object>()); }
+    default Transaction withdrawWs(String code, Double amount, String address) { return Helpers.joinUnwrapped(this.withdrawWs(code, amount, address, new HashMap<String, Object>())); }
+    default CompletableFuture<Transaction> withdrawWsAsync(String code, Double amount, String address, Map<String, Object> params) { return this.withdrawWs(code, amount, address, (params != null ? params : new HashMap<String, Object>())); }
+    default CompletableFuture<Transaction> withdrawWsAsync(String code, Double amount, String address) { return withdrawWsAsync(code, amount, address, new HashMap<String, Object>()); }
 
     default List<Order> fetchOrdersByStatusWs(String status) { return Helpers.joinUnwrapped(this.fetchOrdersByStatusWs(status, (String) null, (Long) null, (Long) null, new HashMap<String, Object>())); }
     default List<Order> fetchOrdersByStatusWs(String status, String symbol) { return Helpers.joinUnwrapped(this.fetchOrdersByStatusWs(status, symbol, (Long) null, (Long) null, new HashMap<String, Object>())); }

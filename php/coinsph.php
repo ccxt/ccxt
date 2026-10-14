@@ -1922,7 +1922,7 @@ class coinsph extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
+    public function withdraw(string $code, float $amount, string $address, $params = array()): array {
         /**
          * make a withdrawal to coins_ph account
          *
@@ -1931,16 +1931,17 @@ class coinsph extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address not used by withdraw ()
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination $tag, required for currencies in $options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
+        list($tag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
         $options = $this->safe_dict($this->options, 'withdraw');
         $warning = $this->safe_bool($options, 'warning', true);
         if ($warning === true) {
             throw new InvalidAddress($this->id . " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account");
         }
-        $networkCode = $this->safe_string($params, 'network');
+        $networkCode = $this->safe_string($paramsWithdrawTag, 'network');
         $networkId = ($networkCode === null) ? null : $this->network_code_to_id($networkCode, $code);
         if ($networkId === null) {
             throw new BadRequest($this->id . ' withdraw() require network parameter');
@@ -1958,7 +1959,7 @@ class coinsph extends Exchange {
         if ($tag !== null) {
             $request['withdrawOrderId'] = $tag;
         }
-        $paramsOmitted = $this->omit($params, 'network');
+        $paramsOmitted = $this->omit($paramsWithdrawTag, 'network');
         $response = $this->privatePostOpenapiWalletV1WithdrawApply($this->extend($request, $paramsOmitted));
         return $this->parse_transaction($response, $currency);
     }

@@ -537,7 +537,7 @@ func (this *Coinspot) Describe() any {
 			"DRK": "DASH",
 		},
 		"options": map[string]any{
-			"fetchBalance": "private_post_my_balances",
+			"fetchBalance": "privatePostMyBalances",
 		},
 		"features": map[string]any{
 			"spot": map[string]any{
@@ -650,7 +650,7 @@ func (this *Coinspot) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ..
 			panic(r.Err)
 		}
 	}
-	var method *string = this.SafeString(this.Options, "fetchBalance", "private_post_my_balances")
+	var method *string = this.SafeString(this.Options, "fetchBalance", "privatePostMyBalances")
 	var response map[string]any = nil
 	if (method != nil && *method == "private_post_ro_my_balances") || (method != nil && *method == "privatePostRoMyBalances") {
 

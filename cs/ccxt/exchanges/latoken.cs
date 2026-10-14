@@ -338,6 +338,7 @@ public partial class latoken : Exchange
                     { "INTERNAL_ERROR", typeof(ExchangeError) },
                     { "SERVICE_UNAVAILABLE", typeof(ExchangeNotAvailable) },
                     { "NOT_AUTHORIZED", typeof(AuthenticationError) },
+                    { "UNAUTHORIZED", typeof(AuthenticationError) },
                     { "FORBIDDEN", typeof(PermissionDenied) },
                     { "BAD_REQUEST", typeof(BadRequest) },
                     { "NOT_FOUND", typeof(ExchangeError) },
@@ -360,6 +361,7 @@ public partial class latoken : Exchange
                 } },
                 { "broad", new Dictionary<string, object>() {
                     { "invalid API key, signature or digest", typeof(AuthenticationError) },
+                    { "Invalid API key specified", typeof(AuthenticationError) },
                     { "The API key was revoked", typeof(AuthenticationError) },
                     { "request expired or bad", typeof(InvalidNonce) },
                     { "For input string", typeof(BadRequest) },
@@ -696,7 +698,10 @@ public partial class latoken : Exchange
         {
             await this.loadMarkets();
         }
-        List<object> response = await this.privateGetAuthAccount(parameters);
+        string? defaultType = this.safeString2(this.options, "fetchBalance", "defaultType", "spot");
+        string? type = this.safeString(parameters, "type", defaultType);
+        object paramsOmitted = this.omit(parameters, "type");
+        List<object> response = await this.privateGetAuthAccount(paramsOmitted);
         //
         //     [
         //         {
@@ -725,8 +730,6 @@ public partial class latoken : Exchange
             { "datetime", null },
         };
         object maxTimestamp = null;
-        string? defaultType = this.safeString2(this.options, "fetchBalance", "defaultType", "spot");
-        string? type = this.safeString(parameters, "type", defaultType);
         IDictionary<string, object> types = this.safeDict(this.options, "types", new Dictionary<string, object>() {});
         string? accountType = this.safeString(types, type, type);
         Dictionary<string, object> balancesByType = this.groupBy(response, "type");
@@ -844,7 +847,7 @@ public partial class latoken : Exchange
     {
         //
         //    {
-        //        "symbol": "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //        "symbol": "BTC/USDT",
         //        "baseCurrency": "92151d82-df98-4d88-9a4d-284fa9eca49f",
         //        "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
         //        "volume24h": "165723597.189022176000000000",
@@ -859,14 +862,30 @@ public partial class latoken : Exchange
         //        "bestBidQuantity": "0.6520232",
         //        "bestAsk": "25779.17",
         //        "bestAskQuantity": "0.4956043",
-        //        "updateTimestamp": "1693965231406"
+        //        "updateTimestamp": 1693965231406
         //    }
         //
-        string? marketId = this.safeString(ticker, "symbol");
+        // the "symbol" field carries the currency tags, which differ from the
+        // unified symbol whenever commonCurrencies renames a code, so resolve
+        // the market from the currency ids like parseTrade and parseOrder do
+        string? baseId = this.safeString(ticker, "baseCurrency");
+        string? quoteId = this.safeString(ticker, "quoteCurrency");
+        string? bs = this.safeCurrencyCode(baseId);
+        string? quote = this.safeCurrencyCode(quoteId);
+        string? symbol = null;
+        object marketResolved = market;
+        if (((bs != null)) && ((quote != null)))
+        {
+            symbol = ((bs + "/") + quote);
+            if (((this.markets != null)) && ((this.markets != null && symbol != null && this.markets.ContainsKey(symbol))))
+            {
+                marketResolved = this.market(symbol);
+            }
+        }
         string? last = this.safeString(ticker, "lastPrice");
         Int64? timestamp = this.safeIntegerOmitZero(ticker, "updateTimestamp"); // sometimes latoken provided '0' ts from /ticker endpoint
         return this.safeTicker(new Dictionary<string, object>() {
-            { "symbol", this.safeSymbol(marketId, market) },
+            { "symbol", symbol },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "low", null },
@@ -886,7 +905,7 @@ public partial class latoken : Exchange
             { "baseVolume", this.safeString(ticker, "amount24h") },
             { "quoteVolume", this.safeString(ticker, "volume24h") },
             { "info", ticker },
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -913,7 +932,7 @@ public partial class latoken : Exchange
         Dictionary<string, object> response = await this.publicGetTickerBaseQuote(this.extend(request, parameters));
         //
         //    {
-        //        "symbol": "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //        "symbol": "BTC/USDT",
         //        "baseCurrency": "92151d82-df98-4d88-9a4d-284fa9eca49f",
         //        "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
         //        "volume24h": "165723597.189022176000000000",
@@ -928,7 +947,7 @@ public partial class latoken : Exchange
         //        "bestBidQuantity": "0.6520232",
         //        "bestAsk": "25779.17",
         //        "bestAskQuantity": "0.4956043",
-        //        "updateTimestamp": "1693965231406"
+        //        "updateTimestamp": 1693965231406
         //    }
         //
         return this.parseTicker(response, market);
@@ -954,7 +973,7 @@ public partial class latoken : Exchange
         //
         //    [
         //        {
-        //            "symbol": "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //            "symbol": "BTC/USDT",
         //            "baseCurrency": "92151d82-df98-4d88-9a4d-284fa9eca49f",
         //            "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
         //            "volume24h": "165723597.189022176000000000",
@@ -969,7 +988,7 @@ public partial class latoken : Exchange
         //            "bestBidQuantity": "0.6520232",
         //            "bestAsk": "25779.17",
         //            "bestAskQuantity": "0.4956043",
-        //            "updateTimestamp": "1693965231406"
+        //            "updateTimestamp": 1693965231406
         //        }
         //    ]
         //
@@ -1416,7 +1435,7 @@ public partial class latoken : Exchange
         }
         List<object> response = null;
         bool? isTrigger = this.safeBool2(parameters, "trigger", "stop");
-        object paramsOmitted = this.omit(parameters, "stop");
+        object paramsOmitted = this.omit(parameters, new List<object>() {"stop", "trigger"});
         // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -2136,9 +2155,8 @@ public partial class latoken : Exchange
             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
         }
-        object error = this.safeValue(response, "error");
-        string? errorMessage = this.safeString(error, "message");
-        if (((error != null)) || ((errorMessage != null)))
+        string? error = this.safeString(response, "error");
+        if ((error != null))
         {
             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), error, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), body, feedback);

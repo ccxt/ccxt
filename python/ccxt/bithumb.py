@@ -907,16 +907,7 @@ class bithumb(Exchange, ImplicitAPI):
         marketId = self.safe_string(ticker, 'market')
         symbol = self.safe_symbol(marketId, market)
         close = self.safe_string_2(ticker, 'closing_price', 'trade_price')
-        change = self.safe_string_2(ticker, 'signed_change_price', 'change_price')
-        percentage = self.safe_string_2(ticker, 'signed_change_rate', 'change_rate')
         open = self.safe_string(ticker, 'opening_price')
-        nonZeroOpen = self.omit_zero(open)
-        if (marketId is not None) and (nonZeroOpen is not None) and (close is not None):
-            computedChange = Precise.string_sub(close, open)
-            # Some v2 payloads return signed_change_price as 0 while open/last imply a non-zero move.
-            if (change is not None) and Precise.string_eq(change, '0') and not Precise.string_eq(computedChange, '0'):
-                change = computedChange
-                percentage = None
         high = self.safe_string_2(ticker, 'max_price', 'high_price')
         low = self.safe_string_2(ticker, 'min_price', 'low_price')
         # Some generation 2 ticker payloads can contain inconsistent high/low versus last.
@@ -939,8 +930,9 @@ class bithumb(Exchange, ImplicitAPI):
             'close': close,
             'last': close,
             'previousClose': self.safe_string(ticker, 'prev_closing_price'),
-            'change': change,
-            'percentage': percentage,
+            # Exchange changes use previousClose; safeTicker derives unified changes from open.
+            'change': None,
+            'percentage': None,
             'average': None,
             'baseVolume': self.safe_string_2(ticker, 'units_traded_24H', 'acc_trade_volume_24h'),
             'quoteVolume': self.safe_string_2(ticker, 'acc_trade_value_24H', 'acc_trade_price_24h'),
@@ -2494,7 +2486,7 @@ class bithumb(Exchange, ImplicitAPI):
         }
         return self.cancel_order((order['id']), order['symbol'], self.extend(request, params))
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -2505,8 +2497,8 @@ class bithumb(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag: the secondary withdrawal destination address
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :param int [params.generation]: if you want to use the API generation 1 or 2, default is 2
         :param str [params.network]: the blockchain network to withdraw on, for example BTC or DASH
         :param str [params.destination]: secondary address destination for specific currencies, can alternatively use the tag argument
@@ -2524,8 +2516,8 @@ class bithumb(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         generation, paramsGeneration = self.handle_option_integer_and_params(params, 'withdraw', 'generation', 2)
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, paramsGeneration)
-        self.check_address(address)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(paramsGeneration, 'tag')
+        self.check_address(address, code, tagWithdrawTag)
         network = self.safe_string_2(paramsWithdrawTag, 'network', 'net_type')
         paramsNetwork = self.omit(paramsWithdrawTag, 'network')
         currency = self.currency(code)
@@ -2539,7 +2531,7 @@ class bithumb(Exchange, ImplicitAPI):
         if requiresDestination:
             destination = self.safe_string_2(paramsNetwork, 'destination', 'secondary_address')
             if (tagWithdrawTag is None) and (destination is None):
-                raise ArgumentsRequired(self.id + ' ' + code + ' withdraw() requires a tag argument or an extra destination param')
+                raise ArgumentsRequired(self.id + ' ' + code + ' withdraw() requires a tag or an extra destination param')
             elif tagWithdrawTag is not None:
                 destinationRequest = tagWithdrawTag
             else:

@@ -3423,7 +3423,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
+    public function withdraw(string $code, float $amount, string $address, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -3432,11 +3432,12 @@ class kraken extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to, not required can be '' or null/none/null
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        $tagAndParams = $this->handle_withdraw_tag_and_params($tag, $params);
+        $tagAndParams = $this->handle_param_string($params, 'tag');
+        $tagWithdrawTag = $tagAndParams[0];
         $paramsWithdrawTag = $tagAndParams[1];
         if (is_array($paramsWithdrawTag) && array_key_exists('key' ?? '', $paramsWithdrawTag)) {
             $this->load_markets();
@@ -3448,7 +3449,7 @@ class kraken extends Exchange {
             );
             if ($address !== null && $address !== '') {
                 $request['address'] = $address;
-                $this->check_address($address);
+                $this->check_address($address, $code, $tagWithdrawTag);
             }
             $response = $this->privatePostWithdraw($this->extend($request, $paramsWithdrawTag));
             //

@@ -4634,6 +4634,9 @@ class weex extends Exchange {
         $message = $this->safe_string($response, 'msg');
         if ($message !== null) {
             $errorCode = $this->safe_string($response, 'code');
+            if ($errorCode === '200' && strtolower($message) === 'success') {
+                return null;
+            }
             $feedback = $this->id . ' ' . $body;
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);

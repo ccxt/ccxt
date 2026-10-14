@@ -4037,7 +4037,7 @@ class gate(Exchange, ImplicitAPI):
         response = self.privateWalletGetWithdrawals(self.extend(requestUntil, paramsUntil))
         return self.parse_transactions(response, currency)
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -4046,12 +4046,12 @@ class gate(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
-        self.check_address(address)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
+        self.check_address(address, code, tagWithdrawTag)
         if self.markets is None:
             self.load_markets()
         currency = self.currency(code)
@@ -6905,7 +6905,7 @@ class gate(Exchange, ImplicitAPI):
 
     def fetch_open_interest_history(self, symbol: str, timeframe='5m', since: Int = None, limit: Int = None, params: dict = {}):
         """
-        Retrieves the open interest of a currency
+        Retrieves the open interest history of a currency
 
         https://www.gate.com/docs/developers/apiv4/en/#futures-statistics
 
@@ -6924,7 +6924,7 @@ class gate(Exchange, ImplicitAPI):
             return self.fetch_paginated_call_deterministic('fetchOpenInterestHistory', symbol, since, limit, timeframe, paramsPaginate, 100)
         market = self.market(symbol)
         if market['swap'] is not True:
-            raise BadRequest(self.id + ' fetchOpenInterest() supports swap markets only')
+            raise BadRequest(self.id + ' fetchOpenInterestHistory() supports swap markets only')
         request = {
             'contract': market['id'],
             'settle': market['settleId'],

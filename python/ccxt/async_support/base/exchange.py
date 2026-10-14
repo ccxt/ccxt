@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.85'
+__version__ = '4.5.88'
 
 # -----------------------------------------------------------------------------
 
@@ -822,7 +822,7 @@ class BaseExchange(SyncExchange):
     async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}):
         raise NotSupported(self.id + ' transfer() is not supported yet')
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}):
+    async def withdraw(self, code: str, amount: float, address: str, params: dict = {}):
         raise NotSupported(self.id + ' withdraw() is not supported yet')
 
     async def create_deposit_address(self, code: str, params: dict = {}):
@@ -1681,14 +1681,14 @@ class BaseExchange(SyncExchange):
         """
         raise NotSupported(self.id + ' unWatchOHLCV () is not supported yet')
 
-    async def withdraw_ws(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}):
+    async def withdraw_ws(self, code: str, amount: float, address: str, params: dict = {}):
         """
         make a withdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the bitvavo api endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         raise NotSupported(self.id + ' withdrawWs () is not supported yet')

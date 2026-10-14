@@ -1515,12 +1515,13 @@ export default class backpack extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} params.network the network to withdraw on (mandatory)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
+    async withdraw(code, amount, address, params = {}) {
+        const [tag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -1533,7 +1534,7 @@ export default class backpack extends Exchange {
         if (tag !== undefined) {
             request['clientId'] = tag; // memo or tag
         }
-        const [networkCode, query] = this.handleNetworkCodeAndParams(params);
+        const [networkCode, query] = this.handleNetworkCodeAndParams(paramsWithdrawTag);
         const networkId = this.networkCodeToId(networkCode, this.safeString(currency, 'code'));
         if (networkId === undefined) {
             throw new BadRequest(this.id + ' withdraw() requires a network parameter');

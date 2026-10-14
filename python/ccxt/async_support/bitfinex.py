@@ -2703,7 +2703,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -2712,17 +2712,18 @@ class bitfinex(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
+        tag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
         self.check_address(address)
         if self.markets is None:
             await self.load_markets()
         currency = self.currency(code)
         # if not provided explicitly we will try to match using the currency name
-        network = self.safe_string(params, 'network', code)
-        paramsOmitted = self.omit(params, 'network')
+        network = self.safe_string(paramsWithdrawTag, 'network', code)
+        paramsOmitted = self.omit(paramsWithdrawTag, 'network')
         currencyNetworks = self.safe_dict(currency, 'networks', {})
         currencyNetwork = self.safe_dict(currencyNetworks, network)
         networkId = self.safe_string(currencyNetwork, 'id')

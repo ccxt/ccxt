@@ -133,6 +133,7 @@ func (this *Hibachi) Describe() any {
 				"private": "https://api.hibachi.xyz",
 			},
 			"www": "https://www.hibachi.xyz/",
+			"doc": "https://api-doc.hibachi.xyz/",
 			"referral": map[string]any{
 				"url": "https://hibachi.xyz/r/ZBL2YFWIHU",
 			},
@@ -1637,8 +1638,8 @@ func (this *Hibachi) EncodeWithdrawMessage(amount any, maxFees any, address stri
  * @param {string} code unified currency code, only support USDT
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Hibachi) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
@@ -1649,9 +1650,7 @@ func (this *Hibachi) WithdrawAsync(code string, amount any, address any, optiona
 func (this *Hibachi) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var withdrawAddress string = Slice(address, int64(-40), nil)
 	// Get the withdraw fees
@@ -1964,11 +1963,11 @@ func (this *Hibachi) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs 
 		"accountId": this.GetAccountId(),
 	}
 
-	listEp1862 := <-this.PrivateGetTradeOrders(this.Extend(request, params))
-	if listEp1862.Err != nil {
-		panic(listEp1862.Err)
+	listEp1861 := <-this.PrivateGetTradeOrders(this.Extend(request, params))
+	if listEp1861.Err != nil {
+		panic(listEp1861.Err)
 	}
-	var response []any = listEp1862.Value
+	var response []any = listEp1861.Value
 
 	// [
 	//     {
@@ -3603,8 +3602,8 @@ func (this *Hibachi) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order
  * @param {string} code unified currency code, only support USDT
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Hibachi) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
@@ -3614,7 +3613,7 @@ func (this *Hibachi) Withdraw(code string, amount float64, address string, optio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

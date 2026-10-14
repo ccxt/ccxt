@@ -12,6 +12,13 @@ export type OrderSide = 'buy' | 'sell' | string;
 export type OrderType = 'limit' | 'market' | string;
 export type MarketType = 'spot' | 'margin' | 'swap' | 'future' | 'option' | 'delivery' | 'index' | 'prediction';
 export type SubType = 'linear' | 'inverse' | undefined;
+export type DefaultType = 'spot' | 'margin' | 'option' | 'swap' | 'future';
+export type DefaultSubType = 'linear' | 'inverse';
+
+export interface ExchangeOptions extends Dictionary<any> {
+    defaultType?: DefaultType;
+    defaultSubType?: DefaultSubType;
+}
 
 export interface Dictionary<T> {
     [key: string]: T;
@@ -1078,7 +1085,7 @@ interface BaseConstructorArgs {
     verbose?: boolean;
     sandbox?: boolean; // redundant with testnet but kept for backward compatibility
     testnet?: boolean;
-    options?: Dict;
+    options?: ExchangeOptions;
     enableRateLimit?: boolean;
     httpsProxy?: string;
     socksProxy?: string;

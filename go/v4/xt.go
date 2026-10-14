@@ -2687,6 +2687,19 @@ func (this *Xt) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	if percentage != nil {
 		percentage = Precise.StringMul(percentage, "100")
 	}
+	var baseVolume *string = this.SafeString2(ticker, "a", "q")
+	var quoteVolume *string = this.SafeString(ticker, "v")
+	var contractSize *string = this.SafeString(marketResolved, "contractSize")
+	if (marketResolved["contract"] == true) && (contractSize != nil) {
+		// 'a' counts contracts, 'v' is in the settle currency
+		var contractVolume *string = Precise.StringMul(baseVolume, contractSize)
+		if marketResolved["inverse"] == true {
+			baseVolume = quoteVolume
+			quoteVolume = contractVolume
+		} else {
+			baseVolume = contractVolume
+		}
+	}
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
@@ -2705,8 +2718,8 @@ func (this *Xt) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"change":        this.SafeNumber(ticker, "cv"),
 		"percentage":    this.ParseNumber(percentage),
 		"average":       nil,
-		"baseVolume":    this.SafeNumber2(ticker, "a", "q"),
-		"quoteVolume":   this.SafeNumber(ticker, "v"),
+		"baseVolume":    baseVolume,
+		"quoteVolume":   quoteVolume,
 		"info":          ticker,
 	}, marketResolved)
 }
@@ -3363,11 +3376,11 @@ func (this *Xt) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any], symbo
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes256315 map[string]any = r1.Value
-	if retRes256315 == nil {
+	var retRes257615 map[string]any = r1.Value
+	if retRes257615 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes256315}
+		ch <- AsyncResult[any]{Value: retRes257615}
 	}
 	return nil
 }
@@ -3432,11 +3445,11 @@ func (this *Xt) createOrderBody(ch chan AsyncResult[map[string]any], symbol stri
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes260719 map[string]any = r1.Value
-		if retRes260719 == nil {
+		var retRes262019 map[string]any = r1.Value
+		if retRes262019 == nil {
 			ch <- AsyncResult[map[string]any]{Value: nil}
 		} else {
-			ch <- AsyncResult[map[string]any]{Value: retRes260719}
+			ch <- AsyncResult[map[string]any]{Value: retRes262019}
 		}
 		return nil
 	} else {
@@ -3445,11 +3458,11 @@ func (this *Xt) createOrderBody(ch chan AsyncResult[map[string]any], symbol stri
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes260919 map[string]any = r2.Value
-		if retRes260919 == nil {
+		var retRes262219 map[string]any = r2.Value
+		if retRes262219 == nil {
 			ch <- AsyncResult[map[string]any]{Value: nil}
 		} else {
-			ch <- AsyncResult[map[string]any]{Value: retRes260919}
+			ch <- AsyncResult[map[string]any]{Value: retRes262219}
 		}
 		return nil
 	}
@@ -4684,11 +4697,11 @@ func (this *Xt) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...an
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes352515 []any = r.Value
-	if retRes352515 == nil {
+	var retRes353815 []any = r.Value
+	if retRes353815 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes352515}
+		ch <- AsyncResult[any]{Value: retRes353815}
 	}
 	return nil
 }
@@ -4732,11 +4745,11 @@ func (this *Xt) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs ...
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes354715 []any = r.Value
-	if retRes354715 == nil {
+	var retRes356015 []any = r.Value
+	if retRes356015 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes354715}
+		ch <- AsyncResult[any]{Value: retRes356015}
 	}
 	return nil
 }
@@ -4780,11 +4793,11 @@ func (this *Xt) fetchCanceledOrdersBody(ch chan AsyncResult[[]any], optionalArgs
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes356915 []any = r.Value
-	if retRes356915 == nil {
+	var retRes358215 []any = r.Value
+	if retRes358215 == nil {
 		ch <- AsyncResult[[]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]any]{Value: retRes356915}
+		ch <- AsyncResult[[]any]{Value: retRes358215}
 	}
 	return nil
 }
@@ -5811,7 +5824,6 @@ func (this *Xt) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs ...a
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} [tag]
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
  */
@@ -5823,11 +5835,8 @@ func (this *Xt) WithdrawAsync(code string, amount any, address any, optionalArgs
 func (this *Xt) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	this.CheckAddress(address)
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -5836,9 +5845,10 @@ func (this *Xt) withdrawBody(ch chan EndpointResult[map[string]any], code string
 		}
 	}
 	var currency map[string]any = this.Currency(code)
-	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	var tagWithdrawTag *string = SafeStringPtr(tagWithdrawTagparamsWithdrawTagVariable[0])
+	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
+	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
+	this.CheckAddress(address, code, tagWithdrawTag)
 	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(paramsWithdrawTag)
 	var networkCode *string = SafeStringPtr(networkCodeparamsNetworkCodeVariable[0])
 	var paramsNetworkCode map[string]any = MapTyped(networkCodeparamsNetworkCodeVariable[1])
@@ -5850,7 +5860,7 @@ func (this *Xt) withdrawBody(ch chan EndpointResult[map[string]any], code string
 		"amount":   this.CurrencyToPrecision(code, amount),
 		"address":  address,
 	}
-	if tagWithdrawTag != nil {
+	if !IsEqual(tagWithdrawTag, nil) {
 		request["memo"] = tagWithdrawTag
 	}
 
@@ -6078,11 +6088,11 @@ func (this *Xt) addMarginBody(ch chan AsyncResult[map[string]any], symbol string
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes451515 map[string]any = MapTyped(r.Value)
-	if retRes451515 == nil {
+	var retRes452715 map[string]any = MapTyped(r.Value)
+	if retRes452715 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes451515}
+		ch <- AsyncResult[map[string]any]{Value: retRes452715}
 	}
 	return nil
 }
@@ -6113,11 +6123,11 @@ func (this *Xt) reduceMarginBody(ch chan EndpointResult[map[string]any], symbol 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes453015 map[string]any = MapTyped(r.Value)
-	if retRes453015 == nil {
+	var retRes454215 map[string]any = MapTyped(r.Value)
+	if retRes454215 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes453015, Raw: retRes453015}
+		ch <- EndpointResult[map[string]any]{Value: retRes454215, Raw: retRes454215}
 	}
 	return nil
 }
@@ -6476,11 +6486,11 @@ func (this *Xt) fetchFundingRateHistoryBody(ch chan AsyncResult[any], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes477719 []any = ListTyped(r1.Value)
-		if retRes477719 == nil {
+		var retRes478919 []any = ListTyped(r1.Value)
+		if retRes478919 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes477719}
+			ch <- AsyncResult[any]{Value: retRes478919}
 		}
 		return nil
 	}
@@ -6567,6 +6577,7 @@ func (this *Xt) fetchFundingRateHistoryBody(ch chan AsyncResult[any], optionalAr
  * @see https://doc.xt.com/docs/futures/MarketData/get-funding-rate-information
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *Xt) FetchFundingIntervalAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
@@ -6584,11 +6595,11 @@ func (this *Xt) fetchFundingIntervalBody(ch chan AsyncResult[map[string]any], sy
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes484815 map[string]any = r.Value
-	if retRes484815 == nil {
+	var retRes486115 map[string]any = r.Value
+	if retRes486115 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes484815}
+		ch <- AsyncResult[map[string]any]{Value: retRes486115}
 	}
 	return nil
 }
@@ -8741,7 +8752,6 @@ func (this *Xt) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transact
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} [tag]
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
  */
@@ -8752,7 +8762,7 @@ func (this *Xt) Withdraw(code string, amount float64, address string, options ..
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
@@ -8868,6 +8878,7 @@ func (this *Xt) FetchFundingRateHistory(options ...FetchFundingRateHistoryOption
  * @see https://doc.xt.com/docs/futures/MarketData/get-funding-rate-information
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *Xt) FetchFundingInterval(symbol string, options ...FetchFundingIntervalOptions) (FundingRate, error) {

@@ -466,7 +466,7 @@ func (this *ExchangeTyped) Withdraw(code string, amount float64, address string,
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.Exchange.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.Exchange.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
@@ -1741,7 +1741,7 @@ func (this *ExchangeTyped) WithdrawWs(code string, amount float64, address strin
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.Exchange.WithdrawWsAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.Exchange.WithdrawWsAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
@@ -3820,7 +3820,7 @@ func (this *BaseExchangeTyped) Withdraw(code string, amount float64, address str
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.BaseExchange.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.BaseExchange.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
@@ -5095,7 +5095,7 @@ func (this *BaseExchangeTyped) WithdrawWs(code string, amount float64, address s
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.BaseExchange.WithdrawWsAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.BaseExchange.WithdrawWsAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

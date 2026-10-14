@@ -2292,7 +2292,11 @@ func (this *Paradex) ParseOrder(order any, optionalArgs ...any) Order {
 	_ = market
 	var timestamp *int64 = this.SafeInteger(order, "created_at")
 	var orderId *string = this.SafeString(order, "id")
-	var clientOrderId any = this.OmitZero(this.SafeString(order, "client_id"))
+	// a client id is free text, omitZero would drop every non-numeric one in php
+	var clientOrderId *string = this.SafeString(order, "client_id")
+	if clientOrderId != nil && *clientOrderId == "" {
+		clientOrderId = nil
+	}
 	var marketId *string = this.SafeString(order, "market")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])
@@ -2829,7 +2833,7 @@ func (this *Paradex) createOrdersBody(ch chan AsyncResult[any], orders any, opti
 	if r3.Err != nil {
 		panic(r3.Err)
 	}
-	var response map[string]any = r3.Value
+	var response map[string]any = MapTyped(r3.Raw)
 	//
 	// {
 	//     "errors": [
@@ -3240,11 +3244,11 @@ func (this *Paradex) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...a
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes226019 []any = ListTyped(r2.Value)
-		if retRes226019 == nil {
+		var retRes226419 []any = ListTyped(r2.Value)
+		if retRes226419 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes226019}
+			ch <- AsyncResult[any]{Value: retRes226419}
 		}
 		return nil
 	}
@@ -3520,11 +3524,11 @@ func (this *Paradex) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ..
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes244419 []any = ListTyped(r2.Value)
-		if retRes244419 == nil {
+		var retRes244819 []any = ListTyped(r2.Value)
+		if retRes244819 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes244419}
+			ch <- AsyncResult[any]{Value: retRes244819}
 		}
 		return nil
 	}
@@ -3676,9 +3680,11 @@ func (this *Paradex) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs .
 	//                 "realized_pnl": "0",
 	//                 "unrealized_pnl": "-2.39677214",
 	//                 "unrealized_funding_pnl": "-0.11214013",
+	//                 "leverage": "5",
 	//                 "cost": "648.39960537",
 	//                 "cost_usd": "648.529",
 	//                 "cached_funding_index": "35202.1002351",
+	//                 "created_at": 1718947571560,
 	//                 "last_updated_at": 1718950074249,
 	//                 "last_fill_id": "1718947571560201703986670001",
 	//                 "seq_no": 1718950074249176253,
@@ -3705,9 +3711,11 @@ func (this *Paradex) ParsePosition(position any, optionalArgs ...any) any {
 	//         "realized_pnl": "0",
 	//         "unrealized_pnl": "-2.39677214",
 	//         "unrealized_funding_pnl": "-0.11214013",
+	//         "leverage": "5",
 	//         "cost": "648.39960537",
 	//         "cost_usd": "648.529",
 	//         "cached_funding_index": "35202.1002351",
+	//         "created_at": 1718947571560,
 	//         "last_updated_at": 1718950074249,
 	//         "last_fill_id": "1718947571560201703986670001",
 	//         "seq_no": 1718950074249176253,
@@ -3720,35 +3728,36 @@ func (this *Paradex) ParsePosition(position any, optionalArgs ...any) any {
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	var side *string = this.SafeStringLower(position, "side")
-	var quantity *string = this.SafeString(position, "size")
-	if side == nil || *side != "long" {
-		quantity = Precise.StringMul("-1", quantity)
-	}
-	var timestamp *int64 = this.SafeInteger(position, "time")
+	// side carries the direction, the unified contracts is a magnitude whether or not size is signed
+	var quantity *string = Precise.StringAbs(this.SafeString(position, "size"))
+	var timestamp *int64 = this.SafeInteger(position, "created_at")
 	var liquidationPrice *float64
 	if derefNum, isNum := this.ParseNumber(this.OmitZero(this.SafeString(position, "liquidation_price"))).(float64); isNum {
 		liquidationPrice = &derefNum
 	}
+	// cost_usd is signed by side, the unified notional is a magnitude
+	var notionalString *string = Precise.StringAbs(this.SafeString(position, "cost_usd"))
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          this.SafeString(position, "id"),
 		"symbol":                      symbol,
 		"entryPrice":                  this.SafeNumber(position, "average_entry_price"),
 		"markPrice":                   nil,
-		"notional":                    nil,
-		"collateral":                  this.SafeNumber(position, "cost"),
+		"notional":                    this.ParseNumber(notionalString),
+		"collateral":                  nil,
 		"unrealizedPnl":               this.SafeNumber(position, "unrealized_pnl"),
 		"side":                        side,
 		"contracts":                   this.ParseNumber(quantity),
 		"contractSize":                nil,
 		"timestamp":                   timestamp,
 		"datetime":                    this.Iso8601(timestamp),
+		"lastUpdateTimestamp":         this.SafeInteger(position, "last_updated_at"),
 		"hedged":                      nil,
 		"maintenanceMargin":           nil,
 		"maintenanceMarginPercentage": nil,
 		"initialMargin":               nil,
 		"initialMarginPercentage":     nil,
-		"leverage":                    nil,
+		"leverage":                    this.SafeNumber(position, "leverage"),
 		"liquidationPrice":            liquidationPrice,
 		"marginRatio":                 nil,
 		"marginMode":                  nil,
@@ -3900,11 +3909,11 @@ func (this *Paradex) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ..
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes269819 []any = ListTyped(r2.Value)
-		if retRes269819 == nil {
+		var retRes270719 []any = ListTyped(r2.Value)
+		if retRes270719 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes269819}
+			ch <- AsyncResult[any]{Value: retRes270719}
 		}
 		return nil
 	}
@@ -4009,11 +4018,11 @@ func (this *Paradex) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes276119 []any = ListTyped(r2.Value)
-		if retRes276119 == nil {
+		var retRes277019 []any = ListTyped(r2.Value)
+		if retRes277019 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes276119}
+			ch <- AsyncResult[any]{Value: retRes277019}
 		}
 		return nil
 	}
@@ -4118,11 +4127,11 @@ func (this *Paradex) fetchTransfersBody(ch chan AsyncResult[any], optionalArgs .
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes282419 []any = ListTyped(r2.Value)
-		if retRes282419 == nil {
+		var retRes283319 []any = ListTyped(r2.Value)
+		if retRes283319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes282419}
+			ch <- AsyncResult[any]{Value: retRes283319}
 		}
 		return nil
 	}
@@ -4809,11 +4818,11 @@ func (this *Paradex) fetchFundingHistoryBody(ch chan AsyncResult[any], optionalA
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes332419 []any = ListTyped(r2.Value)
-		if retRes332419 == nil {
+		var retRes333319 []any = ListTyped(r2.Value)
+		if retRes333319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes332419}
+			ch <- AsyncResult[any]{Value: retRes333319}
 		}
 		return nil
 	}

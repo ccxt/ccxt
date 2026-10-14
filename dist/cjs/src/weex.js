@@ -4395,6 +4395,9 @@ class weex extends weex$1["default"] {
         const message = this.safeString(response, 'msg');
         if (message !== undefined) {
             const errorCode = this.safeString(response, 'code');
+            if (errorCode === '200' && message.toLowerCase() === 'success') {
+                return undefined;
+            }
             const feedback = this.id + ' ' + body;
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);

@@ -2983,7 +2983,7 @@ func (this *Weex) createSpotOrderBody(ch chan EndpointResult[map[string]any], sy
 	//         "transactTime": 1775608924724
 	//     }
 	//
-	if response == nil {
+	if IsEqual(response, nil) {
 		panic(NullResponse(this.Id + " parseOrder() returned empty response"))
 	}
 
@@ -6082,6 +6082,9 @@ func (this *Weex) HandleErrors(code any, reason any, url any, method any, header
 	var message *string = this.SafeString(response, "msg")
 	if message != nil {
 		var errorCode *string = this.SafeString(response, "code")
+		if (errorCode != nil && *errorCode == "200") && (strings.ToLower(*message) == "success") {
+			return nil
+		}
 		var feedback string = this.Id + " " + body
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)

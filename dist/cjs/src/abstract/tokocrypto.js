@@ -6,6 +6,111 @@ var Exchange$1 = require('../base/Exchange.js');
 
 // ----------------------------------------------------------------------------
 class Exchange extends Exchange$1["default"] {
+    binanceGetPing(params = {}) {
+        return this.request("ping", "binance", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    binanceGetTime(params = {}) {
+        return this.request("time", "binance", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    binanceGetDepth(params = {}) {
+        return this.request("depth", "binance", 'GET', params, undefined, undefined, { "cost": 1, "byLimit": [[100, 1], [500, 5], [1000, 10], [5000, 50]] });
+    }
+    binanceGetTrades(params = {}) {
+        return this.request("trades", "binance", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    binanceGetAggTrades(params = {}) {
+        return this.request("aggTrades", "binance", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    binanceGetHistoricalTrades(params = {}) {
+        return this.request("historicalTrades", "binance", 'GET', params, undefined, undefined, { "cost": 5 });
+    }
+    binanceGetKlines(params = {}) {
+        return this.request("klines", "binance", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    binanceGetTicker24hr(params = {}) {
+        return this.request("ticker/24hr", "binance", 'GET', params, undefined, undefined, { "cost": 1, "noSymbol": 40 });
+    }
+    binanceGetTickerPrice(params = {}) {
+        return this.request("ticker/price", "binance", 'GET', params, undefined, undefined, { "cost": 1, "noSymbol": 2 });
+    }
+    binanceGetTickerBookTicker(params = {}) {
+        return this.request("ticker/bookTicker", "binance", 'GET', params, undefined, undefined, { "cost": 1, "noSymbol": 2 });
+    }
+    binanceGetExchangeInfo(params = {}) {
+        return this.request("exchangeInfo", "binance", 'GET', params, undefined, undefined, { "cost": 10 });
+    }
+    binanceGetExecutionRules(params = {}) {
+        return this.request("executionRules", "binance", 'GET', params, undefined, undefined, { "cost": 2, "noSymbol": 40 });
+    }
+    binancePutUserDataStream(params = {}) {
+        return this.request("userDataStream", "binance", 'PUT', params, undefined, undefined, { "cost": 1 });
+    }
+    binancePostUserDataStream(params = {}) {
+        return this.request("userDataStream", "binance", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    binanceDeleteUserDataStream(params = {}) {
+        return this.request("userDataStream", "binance", 'DELETE', params, undefined, undefined, { "cost": 1 });
+    }
+    publicGetOpenV1CommonTime(params = {}) {
+        return this.request("open/v1/common/time", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    publicGetOpenV1CommonSymbols(params = {}) {
+        return this.request("open/v1/common/symbols", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    publicGetOpenV1MarketDepth(params = {}) {
+        return this.request("open/v1/market/depth", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    publicGetOpenV1MarketTrades(params = {}) {
+        return this.request("open/v1/market/trades", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    publicGetOpenV1MarketAggTrades(params = {}) {
+        return this.request("open/v1/market/agg-trades", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    publicGetOpenV1MarketKlines(params = {}) {
+        return this.request("open/v1/market/klines", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    privateGetOpenV1OrdersDetail(params = {}) {
+        return this.request("open/v1/orders/detail", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    privateGetOpenV1Orders(params = {}) {
+        return this.request("open/v1/orders", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    privateGetOpenV1AccountSpot(params = {}) {
+        return this.request("open/v1/account/spot", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    privateGetOpenV1AccountSpotAsset(params = {}) {
+        return this.request("open/v1/account/spot/asset", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    privateGetOpenV1OrdersTrades(params = {}) {
+        return this.request("open/v1/orders/trades", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    privateGetOpenV1Withdraws(params = {}) {
+        return this.request("open/v1/withdraws", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    privateGetOpenV1Deposits(params = {}) {
+        return this.request("open/v1/deposits", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    privateGetOpenV1DepositsAddress(params = {}) {
+        return this.request("open/v1/deposits/address", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostOpenV1Orders(params = {}) {
+        return this.request("open/v1/orders", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostOpenV1OrdersCancel(params = {}) {
+        return this.request("open/v1/orders/cancel", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostOpenV1OrdersOco(params = {}) {
+        return this.request("open/v1/orders/oco", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostOpenV1Withdraws(params = {}) {
+        return this.request("open/v1/withdraws", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostOpenV1UserDataStream(params = {}) {
+        return this.request("open/v1/user-data-stream", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
+    privatePostOpenV1UserListenToken(params = {}) {
+        return this.request("open/v1/user-listen-token", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+    }
 }
 
 exports["default"] = Exchange;

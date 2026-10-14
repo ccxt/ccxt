@@ -25,6 +25,20 @@
         "integratorTakerFee": 1000
     },
     "methods": {
+        "cancelAllOrdersAfter": [
+            {
+                "description": "cancel the timer",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/sendTx",
+                "input": [
+                    0
+                ],
+                "output": {
+                    "tx_type": 16,
+                    "tx_info": "{\"AccountIndex\":715085,\"ApiKeyIndex\":30,\"TimeInForce\":2,\"Time\":0,\"ExpiredAt\":1790953839269,\"Nonce\":1790953240269,\"Sig\":\"U9vHSNfy1kIslF+n2rhTFTSYkbCbzcoPYNqIAEix2PcF9e3YbFgjTj8o/kGk0DJzKEGCkf5xSviLoQ28YS8OfFKpP1gGwgkLHCweZhKj+RA=\",\"L2TxAttributes\":{\"4\":1}}"
+                }
+            }
+        ],
         "cancelAllOrders": [
             {
                 "description": "single market by symbol",

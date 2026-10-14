@@ -1442,8 +1442,8 @@ func (this *Blockchaincom) ParseTransaction(transaction any, optionalArgs ...any
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Blockchaincom) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
@@ -1454,9 +1454,7 @@ func (this *Blockchaincom) WithdrawAsync(code string, amount any, address any, o
 func (this *Blockchaincom) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1538,11 +1536,11 @@ func (this *Blockchaincom) fetchWithdrawalsBody(ch chan AsyncResult[any], option
 		currency = this.Currency(code)
 	}
 
-	listEp1434 := <-this.PrivateGetWithdrawals(this.Extend(request, params))
-	if listEp1434.Err != nil {
-		panic(listEp1434.Err)
+	listEp1432 := <-this.PrivateGetWithdrawals(this.Extend(request, params))
+	if listEp1432.Err != nil {
+		panic(listEp1432.Err)
 	}
-	var response []any = listEp1434.Value
+	var response []any = listEp1432.Value
 
 	ch <- AsyncResult[any]{Value: this.ParseTransactions(response, currency, since, limit)}
 	return nil
@@ -1634,11 +1632,11 @@ func (this *Blockchaincom) fetchDepositsBody(ch chan AsyncResult[any], optionalA
 		currency = this.Currency(code)
 	}
 
-	listEp1516 := <-this.PrivateGetDeposits(this.Extend(request, params))
-	if listEp1516.Err != nil {
-		panic(listEp1516.Err)
+	listEp1514 := <-this.PrivateGetDeposits(this.Extend(request, params))
+	if listEp1514.Err != nil {
+		panic(listEp1514.Err)
 	}
-	var response []any = listEp1516.Value
+	var response []any = listEp1514.Value
 
 	ch <- AsyncResult[any]{Value: this.ParseTransactions(response, currency, since, limit)}
 	return nil
@@ -2285,8 +2283,8 @@ func (this *Blockchaincom) FetchDepositAddress(code string, options ...FetchDepo
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Blockchaincom) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
@@ -2296,7 +2294,7 @@ func (this *Blockchaincom) Withdraw(code string, amount float64, address string,
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

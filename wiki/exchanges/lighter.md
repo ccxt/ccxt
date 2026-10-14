@@ -558,15 +558,15 @@ make a withdrawal
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | the amount to withdraw |
 | address | <code>string</code> | Yes | the address to withdraw to |
-| tag | <code>string</code> | No |  |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
 | params.accountIndex | <code>string</code> | No | account index |
 | params.apiKeyIndex | <code>string</code> | No | api key index |
 | params.routeType | <code>int</code> | No | wallet type, 0: perp, 1: spot, default is 0 |
 
 
 ```javascript
-lighter.withdraw (code, amount, address, tag?, params?)
+lighter.withdraw (code, amount, address, params?)
 ```
 
 
