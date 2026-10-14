@@ -3469,7 +3469,8 @@ export default class paradex extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, this.safeString (market, 'symbol'), since, limit) as FundingRateHistory[];
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        const apiName = api[0];
         let version = this.version;
         let pathValue: any = path;
         if (path.indexOf ('v2/') === 0) {
@@ -3484,11 +3485,11 @@ export default class paradex extends Exchange {
         }
         let url = this.implodeHostname (baseApiUrl) + '/' + this.implodeParams (pathValue, params);
         const query: Dict = this.omit (params, this.extractParams (pathValue));
-        if (api === 'public') {
+        if (apiName === 'public') {
             if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
-        } else if (api === 'private') {
+        } else if (apiName === 'private') {
             const privateHeaders: Dict = {
                 'Accept': 'application/json',
                 'PARADEX-PARTNER': this.safeString (this.options, 'broker', 'CCXT'),

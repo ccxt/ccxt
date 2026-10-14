@@ -2435,7 +2435,8 @@ class Transpiler {
                         let nullable = false
                         let endpart = ''
                         if (secondPart.length === 2) {
-                            const trimmed = secondPart[1].trim ()
+                            // php-cs-fixer wants long array syntax for list defaults: `[ 'public' ]` -> `array('public')`
+                            const trimmed = secondPart[1].trim ().replace (/^\[\s*(.*?)\s*\]$/, 'array($1)')
                             nullable = trimmed === 'undefined'
                             endpart = ' = ' + trimmed
                         }
@@ -2522,7 +2523,8 @@ class Transpiler {
                         const annotation = parts[1].trim ()
                         const defaultIndex = annotation.indexOf (' = ')
                         const typeExpression = (defaultIndex === -1) ? annotation : annotation.slice (0, defaultIndex)
-                        const defaultExpression = (defaultIndex === -1) ? '' : annotation.slice (defaultIndex)
+                        // PEP8 E201/E202: list/dict defaults carry ts bracket padding (`[ 'public' ]`)
+                        const defaultExpression = (defaultIndex === -1) ? '' : annotation.slice (defaultIndex).replace (/([\[{]) +/g, '$1').replace (/ +([\]}])/g, '$1')
                         const rawType = unwrapLists (typeExpression.trim ())
                         return variable + ': ' + rawType + defaultExpression
                     } else {
