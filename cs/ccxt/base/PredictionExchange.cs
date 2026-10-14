@@ -79,7 +79,7 @@ public partial class PredictionExchange : BaseExchange
         return ((bool)((object)(this.safeBool(this.has, "prediction", false)))!);
     }
 
-    public virtual List<object> parseSearchQueries(IDictionary<string, object>? parameters = null)
+    public virtual List<object> parseSearchQueries(object parameters = null)
     {
         // accepts either `query` (a single search string) or `queries` (a list of strings)
         parameters ??= new Dictionary<string, object>();
@@ -91,7 +91,7 @@ public partial class PredictionExchange : BaseExchange
         return this.safeList(parameters, "queries", new List<object>() {});
     }
 
-    public virtual object requireEventQuery(IDictionary<string, object>? parameters = null)
+    public virtual object requireEventQuery(object parameters = null)
     {
         // fetchEvents must be scoped by at least one selector — an unfiltered call would page the
         // entire exchange. require one of query / queries / tags / eventId / slug, or one of the
@@ -124,7 +124,7 @@ public partial class PredictionExchange : BaseExchange
         throw new ArgumentsRequired ((((this.id + " fetchEvents() requires at least one of query, queries, tags, eventId, slug") + extraNames) + " to scope the search")) ;
     }
 
-    public virtual object applyEventFetchParams(object events, IDictionary<string, object>? parameters = null, object queries = null)
+    public virtual object applyEventFetchParams(object events, object parameters = null, object queries = null)
     {
         // applies the unified fetchEvents options client-side (eventId/slug/status/searchIn/sort/limit)
         // so exchanges whose API can't filter natively still support them consistently.
@@ -551,7 +551,7 @@ public partial class PredictionExchange : BaseExchange
         return ((IDictionary<string, object>)((object)(outcomeObjValue)));
     }
 
-    public virtual string? safeOutcomeSymbol(string outcomeIdOrSymbol, object outcomeObj = null)
+    public virtual string? safeOutcomeSymbol(object outcomeIdOrSymbol, object outcomeObj = null)
     {
         IDictionary<string, object> outcomeObjValue = this.safeOutcome(outcomeIdOrSymbol, outcomeObj);
         return ((string?)((object)((outcomeObjValue != null && outcomeObjValue.ContainsKey("outcome") ? outcomeObjValue["outcome"] : null))));
@@ -649,7 +649,7 @@ public partial class PredictionExchange : BaseExchange
         return ((eventPart + "_") + marketPart);
     }
 
-    public virtual string? slugToOutcomeSymbol(string eventSlug, string marketSlug, string outcome)
+    public virtual string? slugToOutcomeSymbol(object eventSlug, object marketSlug, object outcome)
     {
         // build on slugToMarketSymbol so the outcome handle stays consistent with the market symbol
         // — both event-qualified or both not — otherwise a qualified market + unqualified outcome mismatch.
@@ -820,7 +820,7 @@ public partial class PredictionExchange : BaseExchange
         this.populateOutcomes();
     }
 
-    public async virtual Task<object> loadOutcomes(object outcomes = null, bool? reload = null, IDictionary<string, object>? parameters = null)
+    public async virtual Task<object> loadOutcomes(object outcomes = null, bool? reload = null, object parameters = null)
     {
         // outcome-addressed methods call this first, mirroring loadMarkets(). two modes:
         // - an `outcomes` list (scoped): sync-filter the cache and resolve ONLY the misses through
@@ -1476,7 +1476,7 @@ public partial class PredictionExchange : BaseExchange
         throw new NotSupported ((this.id + " fetchSettlements() is not supported yet")) ;
     }
 
-    public virtual Dictionary<string, object> safePredictionOrder(IDictionary<string, object> outcomeOrder, object outcomeObj = null)
+    public virtual Dictionary<string, object> safePredictionOrder(object outcomeOrder, object outcomeObj = null)
     {
         // build the prediction order directly (do NOT delegate to the crypto safeOrder, which injects
         // ~a dozen derivatives fields — stopPrice/triggerPrice/reduceOnly noise — the prediction type
@@ -1634,7 +1634,7 @@ public partial class PredictionExchange : BaseExchange
         return ((Dictionary<string, object>)((object)(result)));
     }
 
-    public virtual Dictionary<string, object> safePredictionTrade(IDictionary<string, object> trade, object outcomeObj = null)
+    public virtual Dictionary<string, object> safePredictionTrade(object trade, object outcomeObj = null)
     {
         // build the prediction trade directly (no crypto safeTrade, which leaks fields the type omits)
         string? price = this.safeString(trade, "price");
@@ -1672,7 +1672,7 @@ public partial class PredictionExchange : BaseExchange
         return ((Dictionary<string, object>)((object)(result)));
     }
 
-    public virtual Dictionary<string, object> safePredictionTicker(IDictionary<string, object> ticker, object outcomeObj = null)
+    public virtual Dictionary<string, object> safePredictionTicker(object ticker, object outcomeObj = null)
     {
         // build the prediction ticker directly (no crypto safeTicker, which injects vwap/previousClose/
         // indexPrice/markPrice the type omits). derive change/percentage/average only from open+close —
@@ -1729,7 +1729,7 @@ public partial class PredictionExchange : BaseExchange
         return ((Dictionary<string, object>)((object)(result)));
     }
 
-    public virtual Dictionary<string, object> safePredictionPosition(IDictionary<string, object> position)
+    public virtual Dictionary<string, object> safePredictionPosition(object position)
     {
         // build the prediction position directly (no crypto safePosition, which carries the whole
         // leverage/marginMode/liquidation block the prediction type omits)
@@ -1768,7 +1768,7 @@ public partial class PredictionExchange : BaseExchange
         return ((Dictionary<string, object>)((object)(result)));
     }
 
-    public virtual object safePredictionOrderBook(IDictionary<string, object> orderbook, object outcomeObj = null)
+    public virtual object safePredictionOrderBook(object orderbook, object outcomeObj = null)
     {
         // normalize a parsed order book to the prediction shape: replace the unified
         // `symbol` with the `outcome` handle and attach the outcome identity fields
@@ -1820,7 +1820,7 @@ public partial class PredictionExchange : BaseExchange
      * @param {object} [params] extra fields to merge into every parsed trade
      * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
      */
-    public virtual IList<object> parsePredictionTrades(object trades, object outcomeObj = null, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
+    public virtual IList<object> parsePredictionTrades(object trades, object outcomeObj = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         // prediction-market analogue of the base parseTrades: the base aggregator post-filters
         // by the market's `symbol` key, but prediction structures carry an `outcome` handle
@@ -1852,7 +1852,7 @@ public partial class PredictionExchange : BaseExchange
      * @param {object} [params] extra fields to merge into every parsed order
      * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public virtual IList<object> parsePredictionOrders(object orders, object outcomeObj = null, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
+    public virtual IList<object> parsePredictionOrders(object orders, object outcomeObj = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         // prediction-market analogue of the base parseOrders — see parsePredictionTrades
         parameters ??= new Dictionary<string, object>();
@@ -1878,7 +1878,7 @@ public partial class PredictionExchange : BaseExchange
      * @param {object} [params] extra fields to merge into every parsed position
      * @returns {object[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public virtual List<object> parsePredictionPositions(object positions, IDictionary<string, object>? parameters = null)
+    public virtual List<object> parsePredictionPositions(object positions, object parameters = null)
     {
         // prediction-market analogue of the base parsePositions, which resolves its `symbols`
         // argument through marketSymbols() and would throw BadSymbol on outcome handles.
@@ -1952,7 +1952,7 @@ public partial class PredictionExchange : BaseExchange
         return ((string?)((object)(hex)));
     }
 
-    public virtual string? padHexAddress(string address)
+    public virtual string? padHexAddress(object address)
     {
         if ((address == null))
         {
@@ -2007,14 +2007,14 @@ public partial class PredictionExchange : BaseExchange
         return ((this.intToBase16(add(247, lengthOfLength)) + lengthHex) + (concatenated));
     }
 
-    public virtual string? intToRlpHex(Int64? value)
+    public virtual string? intToRlpHex(object value)
     {
         if ((value == null))
         {
             throw new ArgumentsRequired ((this.id + " intToRlpHex() requires a value argument")) ;
         }
         // an integer as its minimal big-endian byte hex; 0 is the empty byte string
-        if ((value == 0))
+        if (isEqual(value, 0))
         {
             return "";
         }
@@ -2023,7 +2023,7 @@ public partial class PredictionExchange : BaseExchange
         return hex;
     }
 
-    public virtual string? hexToRlpBytes(string hexValue)
+    public virtual string? hexToRlpBytes(object hexValue)
     {
         // a hex value (e.g. an RPC result) as minimal big-endian byte hex; leading zero bytes
         // are stripped and 0 becomes the empty byte string (RLP integer encoding)
