@@ -264,7 +264,7 @@ export default class cex extends Exchange {
                 'networks': {
                     'BTC': 'bitcoin',
                     'ERC20': 'ERC20',
-                    'BSC20': 'binancesmartchain',
+                    'BEP20': 'binancesmartchain',
                     'DOGE': 'dogecoin',
                     'ALGO': 'algorand',
                     'XLM': 'stellar',

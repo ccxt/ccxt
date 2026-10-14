@@ -4325,6 +4325,7 @@ export class BaseExchange {
                 'ETH': 'ERC20',
                 'TRX': 'TRC20',
                 'BSC': 'BEP20',
+                'BSC20': 'BEP20',
                 'CRONOS': 'CRC20',
                 'ARB': 'ARBITRUM',
                 'ARBONE': 'ARBITRUM',
