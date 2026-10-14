@@ -3585,12 +3585,12 @@ class predictfun(PredictionExchange, ImplicitAPI):
         # unique when two identical orders are signed within the same millisecond
         return self.milliseconds()
 
-    def sign(self, path: str, api: object = 'predictfun', method='GET', params: dict = {}, headers: object = None, body: object = None):
+    def sign(self, path: str, api: list[str] = ['predictfun'], method='GET', params: dict = {}, headers: object = None, body: object = None):
         """
  @ignore
         builds the request URL and attaches the API key header required by every endpoint
         :param str path: the endpoint path
-        :param string|str[] [api]: the API group and access level
+        :param str[] [api]: the API group and access level
         :param str [method]: HTTP method
         :param dict [params]: request parameters
         :param dict [headers]: request headers
@@ -3604,7 +3604,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         apiKey = self.apiKey
         if (apiKey is None) and not sandboxMode:
             raise AuthenticationError(self.id + ' sign() requires the "apiKey" credential for all endpoints')
-        apiGroup = api if isinstance(api, str) else api[0]
+        apiGroup = api[0]
         baseUrls = self.urls['api']
         baseUrl = self.safe_string(baseUrls, apiGroup, baseUrls['predictfun'])
         url = baseUrl + '/' + self.implode_params(path, params)

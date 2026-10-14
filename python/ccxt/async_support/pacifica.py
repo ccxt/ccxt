@@ -3465,13 +3465,14 @@ class pacifica(Exchange, ImplicitAPI):
                 raise ExchangeError(feedback)  # unknown message
         return None
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         requestBody = body
         isTestnet = self.isSandboxModeEnabled
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        baseApiUrl = self.safe_string(self.urls[urlKey], api)
+        apiName = api[0]
+        baseApiUrl = self.safe_string(self.urls[urlKey], apiName)
         if baseApiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         host = self.implode_hostname(baseApiUrl)
@@ -3490,7 +3491,7 @@ class pacifica(Exchange, ImplicitAPI):
             headersValue['PF-API-KEY'] = self.options['apiKey']
         return {'url': url, 'method': method, 'body': requestBody, 'headers': headersValue}
 
-    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config: dict = {}):
+    def calculate_rate_limiter_cost(self, api: list[str], method: object, path: object, params: object, config: dict = {}):
         cost = self.safe_string(config, 'cost', '1')
         costNumber = self.parse_number(cost)
         # 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET

@@ -1863,7 +1863,7 @@ class bitso(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         requestHeaders = headers
         requestBody = body
         endpoint = '/' + self.version + '/' + self.implode_params(path, params)
@@ -1875,7 +1875,7 @@ class bitso(Exchange, ImplicitAPI):
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + endpoint
-        if api == 'private':
+        if api[0] == 'private':
             self.check_required_credentials()
             # bitso rejects a nonce that is not higher than the previous one (error 104)
             nonce = str(self.incrementing_nonce())

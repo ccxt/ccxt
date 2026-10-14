@@ -2914,23 +2914,24 @@ class bitfinex(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        apiName = api[0]
         request = '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        if api == 'v1':
-            request = api + request
+        if apiName == 'v1':
+            request = apiName + request
         else:
             request = self.version + request
-        apiUrl = self.safe_string(self.urls['api'], api)
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + '/' + request
         requestBody = None
         requestHeaders = None
-        if api == 'public':
+        if apiName == 'public':
             if len(query) > 0:
                 url += '?' + self.urlencode(query)
-        if api == 'private':
+        if apiName == 'private':
             self.check_required_credentials()
             # bitfinex rejects a nonce that is not greater than the previous one for the key (error 10114)
             nonce = str(self.incrementing_nonce())

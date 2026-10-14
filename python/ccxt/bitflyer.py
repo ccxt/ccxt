@@ -1176,11 +1176,12 @@ class bitflyer(Exchange, ImplicitAPI):
             'interval': None,
         }
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        apiName = api[0]
         bodySigned = None
         headersSigned = None
         request = '/' + self.version + '/'
-        if api == 'private':
+        if apiName == 'private':
             request += 'me/'
         request += path
         if method == 'GET':
@@ -1191,7 +1192,7 @@ class bitflyer(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         baseUrl = self.implode_hostname(apiUrl)
         url = baseUrl + request
-        if api == 'private':
+        if apiName == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())
             content = [nonce, method, request]
