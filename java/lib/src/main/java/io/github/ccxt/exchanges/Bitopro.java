@@ -2189,10 +2189,11 @@ public class Bitopro extends BitoproApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String url = ("/" + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         Object requestHeaders = (((java.util.Objects.equals(headers, null)))) ? new HashMap<String, Object>() {{}} : headers;
-        Boolean isSignedBody = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private")) && ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PUT")));
+        Boolean isSignedBody = (java.util.Objects.equals(apiName, "private")) && ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PUT")));
         String signedBody = this.json(parameters);
         String requestBody = body;
         if (Boolean.TRUE.equals(isSignedBody))
@@ -2200,7 +2201,7 @@ public class Bitopro extends BitoproApi
             requestBody = signedBody;
         }
         ((Map<String, Object>)requestHeaders).put("X-BITOPRO-API", "ccxt");
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PUT"))
@@ -2227,7 +2228,7 @@ public class Bitopro extends BitoproApi
                 ((Map<String, Object>)requestHeaders).put("X-BITOPRO-PAYLOAD", payload);
                 ((Map<String, Object>)requestHeaders).put("X-BITOPRO-SIGNATURE", signature);
             }
-        } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public") && java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
+        } else if (java.util.Objects.equals(apiName, "public") && java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
             if (Helpers.objectKeys(query).size() > 0)
             {

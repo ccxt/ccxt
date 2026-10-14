@@ -1236,14 +1236,15 @@ public class Mercado extends MercadoApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = (apiUrl + "/");
         Object query = this.omit(parameters, this.extractParams(path));
-        Boolean isPublic = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "v4Public")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "v4PublicNet"));
+        Boolean isPublic = (java.util.Objects.equals(apiName, "public")) || (java.util.Objects.equals(apiName, "v4Public")) || (java.util.Objects.equals(apiName, "v4PublicNet"));
         String privateBody = null;
         Map<String, Object> privateHeaders = null;
         if (Boolean.TRUE.equals(isPublic))

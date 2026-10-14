@@ -2630,7 +2630,7 @@ func (this *Bitso) Nonce() any {
 	return this.Milliseconds()
 }
 func (this *Bitso) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -2654,7 +2654,7 @@ func (this *Bitso) Sign(path string, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *apiUrl + endpoint
-	if api == "private" {
+	if GetValue(api, 0) == "private" {
 		this.CheckRequiredCredentials()
 		// bitso rejects a nonce that is not higher than the previous one (error 104)
 		var nonce string = ToString(this.IncrementingNonce())

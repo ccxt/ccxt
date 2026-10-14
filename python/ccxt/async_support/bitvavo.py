@@ -2526,7 +2526,8 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_withdraw_fees(response, codes, 'symbol')
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        apiName = api[0]
         requestHeaders = headers
         requestBody = body
         query = self.omit(params, self.extract_params(path))
@@ -2535,7 +2536,7 @@ class bitvavo(Exchange, ImplicitAPI):
         if getOrDelete:
             if len(query) > 0:
                 url += '?' + self.urlencode(query)
-        if api == 'private':
+        if apiName == 'private':
             self.check_required_credentials()
             payload = ''
             if not getOrDelete:
@@ -2554,7 +2555,7 @@ class bitvavo(Exchange, ImplicitAPI):
             }
             if not getOrDelete:
                 requestHeaders['Content-Type'] = 'application/json'
-        apiUrl = self.safe_string(self.urls['api'], api)
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         fullUrl = apiUrl + url
@@ -2577,7 +2578,7 @@ class bitvavo(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)  # unknown message
         return None
 
-    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config: dict = {}):
+    def calculate_rate_limiter_cost(self, api: list[str], method: object, path: object, params: object, config: dict = {}):
         if ('noMarket' in config) and not ('market' in params):
             return config['noMarket']
         return self.safe_value(config, 'cost', 1)

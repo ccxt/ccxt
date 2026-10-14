@@ -4401,8 +4401,8 @@ public class Cryptocom extends CryptocomApi
     {
         Object requestHeaders = headers;
         String requestBody = body;
-        String type = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 0);
-        String access = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 1);
+        String type = this.safeString(api, 0);
+        String access = this.safeString(api, 1);
         String apiUrl = this.safeString(this.urls.get("api"), type);
         if (java.util.Objects.equals(apiUrl, null))
         {

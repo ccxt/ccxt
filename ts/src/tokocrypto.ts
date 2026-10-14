@@ -2669,17 +2669,18 @@ export default class tokocrypto extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    override sign (path: string, api = 'public', method: any = 'GET', params: Dict = {}): Dict {
-        if (!(api in this.urls['api']['rest'])) {
-            throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
+    override sign (path: string, api: string[] = [ 'public' ], method: any = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
+        if (!(apiName in this.urls['api']['rest'])) {
+            throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + apiName + ' endpoints');
         }
-        const baseApiUrl = this.safeString (this.urls['api']['rest'], api);
+        const baseApiUrl = this.safeString (this.urls['api']['rest'], apiName);
         if (baseApiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
         let url: string = baseApiUrl;
         url += '/' + path;
-        if (api === 'wapi') {
+        if (apiName === 'wapi') {
             url += '.html';
         }
         const userDataStream = (path === 'userDataStream') || (path === 'listenKey');
@@ -2695,7 +2696,7 @@ export default class tokocrypto extends Exchange {
             } else {
                 throw new AuthenticationError (this.id + ' userDataStream endpoint requires `apiKey` credential');
             }
-        } else if ((api === 'private') || (api === 'sapi' && path !== 'system/status') || (api === 'sapiV3') || (api === 'wapi' && path !== 'systemStatus') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2')) {
+        } else if ((apiName === 'private') || (apiName === 'sapi' && path !== 'system/status') || (apiName === 'sapiV3') || (apiName === 'wapi' && path !== 'systemStatus') || (apiName === 'dapiPrivate') || (apiName === 'dapiPrivateV2') || (apiName === 'fapiPrivate') || (apiName === 'fapiPrivateV2')) {
             this.checkRequiredCredentials ();
             let query: Str = undefined;
             const defaultRecvWindow = this.safeInteger (this.options, 'recvWindow');
@@ -2709,7 +2710,7 @@ export default class tokocrypto extends Exchange {
             if (recvWindow !== undefined) {
                 extendedParams['recvWindow'] = recvWindow;
             }
-            if ((api === 'sapi') && (path === 'asset/dust')) {
+            if ((apiName === 'sapi') && (path === 'asset/dust')) {
                 query = this.urlencodeWithArrayRepeat (extendedParams);
             } else if ((path === 'batchOrders') || (path.indexOf ('sub-account') >= 0) || (path === 'capital/withdraw/apply') || (path.indexOf ('staking') >= 0)) {
                 query = this.rawencode (extendedParams);
@@ -2721,7 +2722,7 @@ export default class tokocrypto extends Exchange {
             const headersSigned: NullableDict = {
                 'X-MBX-APIKEY': this.apiKey,
             };
-            const queryInUrl = (method === 'GET') || (method === 'DELETE') || (api === 'wapi');
+            const queryInUrl = (method === 'GET') || (method === 'DELETE') || (apiName === 'wapi');
             let bodySigned: Str = query;
             if (queryInUrl) {
                 bodySigned = undefined;
@@ -2814,7 +2815,7 @@ export default class tokocrypto extends Exchange {
         return undefined;
     }
 
-    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config: Dict = {}) {
+    override calculateRateLimiterCost (api: string[], method: any, path: any, params: any, config: Dict = {}) {
         if (('noCoin' in config) && !('coin' in params)) {
             return config['noCoin'];
         } else if (('noSymbol' in config) && !('symbol' in params)) {

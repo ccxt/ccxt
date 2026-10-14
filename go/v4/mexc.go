@@ -2996,7 +2996,7 @@ func (this *Mexc) createMarketSellOrderWithCostBody(ch chan AsyncResult[any], sy
 	}
 	var market map[string]any = this.Market(symbol)
 	if market["spot"] != true {
-		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot orders only"))
+		panic(NotSupported(this.Id + " createMarketSellOrderWithCost() supports spot orders only"))
 	}
 	var req map[string]any = map[string]any{
 		"cost": cost,
@@ -8239,7 +8239,7 @@ func (this *Mexc) Nonce() any {
 	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 func (this *Mexc) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method

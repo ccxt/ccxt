@@ -3267,7 +3267,8 @@ class paradex(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, self.safe_string(market, 'symbol'), since, limit)
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        apiName = api[0]
         version = self.version
         pathValue = path
         if path.find('v2/') == 0:
@@ -3279,10 +3280,10 @@ class paradex(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = self.implode_hostname(baseApiUrl) + '/' + self.implode_params(pathValue, params)
         query = self.omit(params, self.extract_params(pathValue))
-        if api == 'public':
+        if apiName == 'public':
             if len(query) > 0:
                 url += '?' + self.urlencode(query)
-        elif api == 'private':
+        elif apiName == 'private':
             privateHeaders = {
                 'Accept': 'application/json',
                 'PARADEX-PARTNER': self.safe_string(self.options, 'broker', 'CCXT'),

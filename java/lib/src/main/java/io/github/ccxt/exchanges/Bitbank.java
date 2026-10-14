@@ -1283,8 +1283,9 @@ public class Bitbank extends BitbankApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Object query = this.omit(parameters, this.extractParams(path));
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -1292,7 +1293,7 @@ public class Bitbank extends BitbankApi
         String url = (this.implodeHostname(apiUrl) + "/");
         String requestBody = null;
         Map<String, Object> requestHeaders = null;
-        if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "markets")))
+        if ((java.util.Objects.equals(apiName, "public")) || (java.util.Objects.equals(apiName, "markets")))
         {
             url = (url + this.implodeParams(path, parameters));
             if (Helpers.objectKeys(query).size() > 0)

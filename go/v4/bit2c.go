@@ -271,7 +271,7 @@ func (this *Bit2c) Describe() any {
 		},
 		"options": map[string]any{
 			"fetchTrades": map[string]any{
-				"method": "public_get_exchanges_pair_trades",
+				"method": "publicGetExchangesPairTrades",
 			},
 		},
 		"features": map[string]any{
@@ -634,7 +634,7 @@ func (this *Bit2c) fetchTradesBody(ch chan AsyncResult[any], symbol any, optiona
 	}
 	var market map[string]any = this.Market(symbol)
 	var optionValue *string = this.SafeString(this.Options, "fetchTradesMethod") // kept here for backward compatibility #29154
-	var method any = this.HandleOption("fetchTrades", "method", optionValue)     // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
+	var method any = this.HandleOption("fetchTrades", "method", optionValue)     // publicGetExchangesPairTrades or publicGetExchangesPairLasttrades
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -645,7 +645,7 @@ func (this *Bit2c) fetchTradesBody(ch chan AsyncResult[any], symbol any, optiona
 		request["limit"] = limit // max 100000
 	}
 	var responseList []any = []any{}
-	if IsEqual(method, "public_get_exchanges_pair_trades") {
+	if (IsEqual(method, "publicGetExchangesPairTrades")) || (IsEqual(method, "public_get_exchanges_pair_trades")) {
 
 		r1 := <-this.PublicGetExchangesPairTrades(this.Extend(request, params))
 		if r1.Err != nil {
@@ -1415,7 +1415,7 @@ func (this *Bit2c) Nonce() any {
 	return this.Milliseconds()
 }
 func (this *Bit2c) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -1432,7 +1432,7 @@ func (this *Bit2c) Sign(path string, optionalArgs ...any) any {
 	var url string = *apiUrl + "/" + this.ImplodeParams(path, params)
 	var requestBody any = nil
 	var requestHeaders any = nil
-	if api == "public" {
+	if GetValue(api, 0) == "public" {
 		url += ".json"
 	} else {
 		this.CheckRequiredCredentials()

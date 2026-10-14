@@ -1182,15 +1182,16 @@ export default class cryptomus extends Exchange {
         };
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
         const endpoint = this.implodeParams (path, params);
         const paramsOmitted: Dict = this.omit (params, this.extractParams (path));
-        const apiUrl = this.safeString (this.urls['api'], api);
+        const apiName = api[0];
+        const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
         let url = apiUrl + '/' + endpoint;
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials ();
             let jsonParams = '';
             const privateHeaders: Dict = {

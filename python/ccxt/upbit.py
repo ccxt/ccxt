@@ -2276,8 +2276,9 @@ class upbit(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        baseApiUrl = self.safe_string(self.urls['api'], api)
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        apiName = api[0]
+        baseApiUrl = self.safe_string(self.urls['api'], apiName)
         if baseApiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = self.implode_params(baseApiUrl, {
@@ -2288,12 +2289,12 @@ class upbit(Exchange, ImplicitAPI):
         if method != 'POST':
             if len(query) > 0:
                 url += '?' + self.urlencode(query)
-        hasBody = (api == 'private') and (method != 'GET') and (method != 'DELETE')
+        hasBody = (apiName == 'private') and (method != 'GET') and (method != 'DELETE')
         requestBody = body
         if hasBody:
             requestBody = self.json(params)
         privateHeaders = None
-        if api == 'private':
+        if apiName == 'private':
             self.check_required_credentials()
             privateHeaders = {}
             nonce = self.uuid()
@@ -2313,7 +2314,7 @@ class upbit(Exchange, ImplicitAPI):
                 request['query_hash_alg'] = 'SHA512'
             token = self.jwt(request, self.encode(self.secret), 'sha256')
             privateHeaders['Authorization'] = 'Bearer ' + token
-        requestHeaders = privateHeaders if (api == 'private') else headers
+        requestHeaders = privateHeaders if (apiName == 'private') else headers
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

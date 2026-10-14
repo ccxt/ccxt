@@ -3967,14 +3967,15 @@ class deribit extends deribit$1["default"] {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let request = '/' + 'api/' + this.version + '/' + api + '/' + path;
-        if (api === 'public') {
+    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const apiName = api[0];
+        let request = '/' + 'api/' + this.version + '/' + apiName + '/' + path;
+        if (apiName === 'public') {
             if (Object.keys(params).length > 0) {
                 request += '?' + this.urlencode(params);
             }
         }
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             const nonce = this.nonce().toString();
             const timestamp = this.milliseconds().toString();

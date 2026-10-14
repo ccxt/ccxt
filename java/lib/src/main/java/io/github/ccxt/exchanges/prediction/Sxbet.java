@@ -3348,7 +3348,7 @@ public class Sxbet extends SxbetApi
      * @name sxbet#sign
      * @description builds the request url and attaches the x-sx-api-key header; every private v3 route authenticates with the apiKey credential, so its absence fails fast instead of surfacing a raw 401
      * @param {string} path the endpoint path
-     * @param {string|string[]} api the api group and access level
+     * @param {string[]} api the api group and access level
      * @param {string} method the http method
      * @param {object} params the request parameters
      * @param {object} [headers] request headers
@@ -3357,8 +3357,8 @@ public class Sxbet extends SxbetApi
      */
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, Object body)
     {
-        Object apiGroup = (((java.util.Objects.requireNonNullElse(api, "sxbet") instanceof String))) ? java.util.Objects.requireNonNullElse(api, "sxbet") : Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "sxbet"), 0);
-        Object accessLevel = (((java.util.Objects.requireNonNullElse(api, "sxbet") instanceof String))) ? "public" : Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "sxbet"), 1);
+        Object apiGroup = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String accessLevel = this.safeString(api, 1, "public");
         if ((java.util.Objects.equals(accessLevel, "private")) && (java.util.Objects.equals(this.apiKey, null)))
         {
             throw new AuthenticationError((((this.id + " ") + path) + " is a private endpoint and requires the apiKey credential (the x-sx-api-key header)")) ;

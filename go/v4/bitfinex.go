@@ -4160,7 +4160,7 @@ func (this *Bitfinex) Nonce() any {
 	return this.Milliseconds()
 }
 func (this *Bitfinex) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -4170,31 +4170,32 @@ func (this *Bitfinex) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
-	var request any = "/" + this.ImplodeParams(path, params)
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var request string = "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	if api == "v1" {
-		request = Add(api, request)
+	if apiName != nil && *apiName == "v1" {
+		request = *apiName + request
 	} else {
-		request = Add(this.Version, request)
+		request = this.Version + request
 	}
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = Add(*apiUrl+"/", request)
+	var url string = *apiUrl + "/" + request
 	var requestBody any = nil
 	var requestHeaders any = nil
-	if api == "public" {
+	if apiName != nil && *apiName == "public" {
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?"+this.Urlencode(query))
+			url += "?" + this.Urlencode(query)
 		}
 	}
-	if api == "private" {
+	if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		// bitfinex rejects a nonce that is not greater than the previous one for the key (error 10114)
 		var nonce string = ToString(this.IncrementingNonce())
 		requestBody = this.Json(query)
-		var auth *string = SafeStringPtr(Add(Add(Add("/api/", request), nonce), requestBody))
+		var auth *string = SafeStringPtr(Add("/api/"+request+nonce, requestBody))
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha384)
 		requestHeaders = map[string]any{
 			"bfx-nonce":     nonce,
@@ -4409,11 +4410,11 @@ func (this *Bitfinex) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes323219 []any = ListTyped(r1.Value)
-		if retRes323219 == nil {
+		var retRes323319 []any = ListTyped(r1.Value)
+		if retRes323319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes323219}
+			ch <- AsyncResult[any]{Value: retRes323319}
 		}
 		return nil
 	}
@@ -4593,11 +4594,11 @@ func (this *Bitfinex) fetchFundingRateHistoryBody(ch chan AsyncResult[any], opti
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes335019 []any = ListTyped(r1.Value)
-		if retRes335019 == nil {
+		var retRes335119 []any = ListTyped(r1.Value)
+		if retRes335119 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes335019}
+			ch <- AsyncResult[any]{Value: retRes335119}
 		}
 		return nil
 	}
@@ -4957,11 +4958,11 @@ func (this *Bitfinex) fetchOpenInterestHistoryBody(ch chan AsyncResult[any], sym
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes362819 []any = ListTyped(r1.Value)
-		if retRes362819 == nil {
+		var retRes362919 []any = ListTyped(r1.Value)
+		if retRes362919 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes362819}
+			ch <- AsyncResult[any]{Value: retRes362919}
 		}
 		return nil
 	}
@@ -5136,11 +5137,11 @@ func (this *Bitfinex) fetchLiquidationsBody(ch chan AsyncResult[any], symbol str
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes376619 []any = ListTyped(r1.Value)
-		if retRes376619 == nil {
+		var retRes376719 []any = ListTyped(r1.Value)
+		if retRes376719 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes376619}
+			ch <- AsyncResult[any]{Value: retRes376719}
 		}
 		return nil
 	}
@@ -5154,11 +5155,11 @@ func (this *Bitfinex) fetchLiquidationsBody(ch chan AsyncResult[any], symbol str
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, paramsPaginate)
 
-	listEp4894 := <-this.PublicGetLiquidationsHist(this.Extend(requestUntil, paramsUntil))
-	if listEp4894.Err != nil {
-		panic(listEp4894.Err)
+	listEp4895 := <-this.PublicGetLiquidationsHist(this.Extend(requestUntil, paramsUntil))
+	if listEp4895.Err != nil {
+		panic(listEp4895.Err)
 	}
-	var response []any = listEp4894.Value
+	var response []any = listEp4895.Value
 
 	//
 	//     [

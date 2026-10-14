@@ -1913,8 +1913,8 @@ export default class binance extends Exchange {
      * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    sign(path, api = 'sapi', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const apiGroup = typeof api === 'string' ? api : api[0];
+    sign(path, api = ['sapi'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const apiGroup = api[0];
         const baseUrls = this.urls['api'];
         const baseUrl = this.safeString(baseUrls, apiGroup, baseUrls['sapi']);
         let url = baseUrl + '/' + this.implodeParams(path, params);

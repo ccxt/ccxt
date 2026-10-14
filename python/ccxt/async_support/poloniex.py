@@ -3671,10 +3671,11 @@ class poloniex(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        apiName = api[0]
         isArray = isinstance(params, list)
         url = self.urls['api']['spot']
-        if self.in_array(api, ['swapPublic', 'swapPrivate']):
+        if self.in_array(apiName, ['swapPublic', 'swapPrivate']):
             url = self.urls['api']['swap']
         if method == 'GET' and ('symbol' in params):
             params['symbol'] = self.encode_uri_component(params['symbol'])  # handle symbols like 索拉拉/USDT'
@@ -3682,7 +3683,7 @@ class poloniex(Exchange, ImplicitAPI):
         implodedPath = self.implode_params(path, params)
         bodyJson = None
         signedHeaders = None
-        if api == 'public' or api == 'swapPublic':
+        if apiName == 'public' or apiName == 'swapPublic':
             url += '/' + implodedPath
             if len(query) > 0:
                 url += '?' + self.urlencode(query)

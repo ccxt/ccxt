@@ -3229,8 +3229,9 @@ export default class toobit extends Exchange {
             'percentage': undefined,
         });
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const baseApiUrl = this.safeString(this.urls['api'], api);
+    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const apiName = api[0];
+        const baseApiUrl = this.safeString(this.urls['api'], apiName);
         if (baseApiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
@@ -3240,7 +3241,7 @@ export default class toobit extends Exchange {
         const isDelete = method === 'DELETE';
         const extraQuery = {};
         const query = this.omit(params, this.extractParams(path));
-        if (api !== 'private') {
+        if (apiName !== 'private') {
             // Public endpoints
             if (!isPost) {
                 if (Object.keys(query).length > 0) {

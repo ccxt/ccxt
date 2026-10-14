@@ -2292,7 +2292,11 @@ func (this *Paradex) ParseOrder(order any, optionalArgs ...any) Order {
 	_ = market
 	var timestamp *int64 = this.SafeInteger(order, "created_at")
 	var orderId *string = this.SafeString(order, "id")
-	var clientOrderId any = this.OmitZero(this.SafeString(order, "client_id"))
+	// a client id is free text, omitZero would drop every non-numeric one in php
+	var clientOrderId *string = this.SafeString(order, "client_id")
+	if clientOrderId != nil && *clientOrderId == "" {
+		clientOrderId = nil
+	}
 	var marketId *string = this.SafeString(order, "market")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])
@@ -3240,11 +3244,11 @@ func (this *Paradex) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...a
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes226019 []any = ListTyped(r2.Value)
-		if retRes226019 == nil {
+		var retRes226419 []any = ListTyped(r2.Value)
+		if retRes226419 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes226019}
+			ch <- AsyncResult[any]{Value: retRes226419}
 		}
 		return nil
 	}
@@ -3520,11 +3524,11 @@ func (this *Paradex) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ..
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes244419 []any = ListTyped(r2.Value)
-		if retRes244419 == nil {
+		var retRes244819 []any = ListTyped(r2.Value)
+		if retRes244819 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes244419}
+			ch <- AsyncResult[any]{Value: retRes244819}
 		}
 		return nil
 	}
@@ -3905,11 +3909,11 @@ func (this *Paradex) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ..
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes270319 []any = ListTyped(r2.Value)
-		if retRes270319 == nil {
+		var retRes270719 []any = ListTyped(r2.Value)
+		if retRes270719 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes270319}
+			ch <- AsyncResult[any]{Value: retRes270719}
 		}
 		return nil
 	}
@@ -4014,11 +4018,11 @@ func (this *Paradex) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes276619 []any = ListTyped(r2.Value)
-		if retRes276619 == nil {
+		var retRes277019 []any = ListTyped(r2.Value)
+		if retRes277019 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes276619}
+			ch <- AsyncResult[any]{Value: retRes277019}
 		}
 		return nil
 	}
@@ -4123,11 +4127,11 @@ func (this *Paradex) fetchTransfersBody(ch chan AsyncResult[any], optionalArgs .
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes282919 []any = ListTyped(r2.Value)
-		if retRes282919 == nil {
+		var retRes283319 []any = ListTyped(r2.Value)
+		if retRes283319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes282919}
+			ch <- AsyncResult[any]{Value: retRes283319}
 		}
 		return nil
 	}
@@ -4814,11 +4818,11 @@ func (this *Paradex) fetchFundingHistoryBody(ch chan AsyncResult[any], optionalA
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes332919 []any = ListTyped(r2.Value)
-		if retRes332919 == nil {
+		var retRes333319 []any = ListTyped(r2.Value)
+		if retRes333319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes332919}
+			ch <- AsyncResult[any]{Value: retRes333319}
 		}
 		return nil
 	}
@@ -5002,7 +5006,7 @@ func (this *Paradex) fetchFundingRateHistoryBody(ch chan AsyncResult[any], optio
 	return nil
 }
 func (this *Paradex) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -5012,6 +5016,7 @@ func (this *Paradex) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var version any = this.Version
 	var pathValue string = path
 	if strings.Index(path, "v2/") == 0 {
@@ -5026,11 +5031,11 @@ func (this *Paradex) Sign(path string, optionalArgs ...any) any {
 	}
 	var url string = this.ImplodeHostname(baseApiUrl) + "/" + this.ImplodeParams(pathValue, params)
 	var query any = this.Omit(params, this.ExtractParams(pathValue))
-	if api == "public" {
+	if apiName != nil && *apiName == "public" {
 		if len(ObjectKeys(query)) > 0 {
 			url += "?" + this.Urlencode(query)
 		}
-	} else if api == "private" {
+	} else if apiName != nil && *apiName == "private" {
 		var privateHeaders map[string]any = map[string]any{
 			"Accept":          "application/json",
 			"PARADEX-PARTNER": this.SafeString(this.Options, "broker", "CCXT"),

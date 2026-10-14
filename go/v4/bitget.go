@@ -16382,8 +16382,8 @@ func (this *Bitget) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
-	var signed bool = IsEqual(GetValue(api, 0), "private")
-	var endpoint any = GetValue(api, 1)
+	var signed bool = (GetValue(api, 0) == "private")
+	var endpoint *string = SafeStringPtr(GetValue(api, 1))
 	var pathPart string = "/api"
 	var request string = "/" + this.ImplodeParams(path, params)
 	var payload string = pathPart + request

@@ -7,292 +7,292 @@ var Exchange$1 = require('../base/Exchange.js');
 // ----------------------------------------------------------------------------
 class Exchange extends Exchange$1["default"] {
     brokerPrivateGetV1AccountsAccountIdTokenizationRequests(params = {}) {
-        return this.request("v1/accounts/{account_id}/tokenization/requests", ["broker", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v1/accounts/{account_id}/tokenization/requests', ['broker', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     brokerPrivateGetV1AccountsAccountIdTokenizationRequestsTokenizationRequestId(params = {}) {
-        return this.request("v1/accounts/{account_id}/tokenization/requests/{tokenization_request_id}", ["broker", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v1/accounts/{account_id}/tokenization/requests/{tokenization_request_id}', ['broker', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     brokerPrivateGetV1AccountsAccountIdTokenizationRequestsByClientRequestId(params = {}) {
-        return this.request("v1/accounts/{account_id}/tokenization/requests:by_client_request_id", ["broker", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v1/accounts/{account_id}/tokenization/requests:by_client_request_id', ['broker', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     brokerPrivateGetV1AccountsAccountIdTokenizationRequestsByIssuerRequestId(params = {}) {
-        return this.request("v1/accounts/{account_id}/tokenization/requests:by_issuer_request_id", ["broker", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v1/accounts/{account_id}/tokenization/requests:by_issuer_request_id', ['broker', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     brokerPrivateGetV1FpslAnalyticsAccountIdLoans(params = {}) {
-        return this.request("v1/fpsl/analytics/{account_id}/loans", ["broker", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v1/fpsl/analytics/{account_id}/loans', ['broker', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     brokerPrivateGetV1Ipos(params = {}) {
-        return this.request("v1/ipos", ["broker", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v1/ipos', ['broker', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     brokerPrivateGetV1IposOfferingReference(params = {}) {
-        return this.request("v1/ipos/{offering_reference}", ["broker", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v1/ipos/{offering_reference}', ['broker', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     brokerPrivateGetV1WalletsTravelRuleVasps(params = {}) {
-        return this.request("v1/wallets/travel-rule/vasps", ["broker", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v1/wallets/travel-rule/vasps', ['broker', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     brokerPrivateGetV1beta1Acats(params = {}) {
-        return this.request("v1beta1/acats", ["broker", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v1beta1/acats', ['broker', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     brokerPrivateGetV1beta1AcatsContrabrokers(params = {}) {
-        return this.request("v1beta1/acats/contrabrokers", ["broker", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v1beta1/acats/contrabrokers', ['broker', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     brokerPrivateGetV1beta1AcatsAccountId(params = {}) {
-        return this.request("v1beta1/acats/{account_id}", ["broker", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v1beta1/acats/{account_id}', ['broker', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     brokerPrivateGetV1beta1AcatsAccountIdAcatsId(params = {}) {
-        return this.request("v1beta1/acats/{account_id}/{acats_id}", ["broker", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v1beta1/acats/{account_id}/{acats_id}', ['broker', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     brokerPrivateGetV1beta1AcatsAccountIdAcatsIdAssets(params = {}) {
-        return this.request("v1beta1/acats/{account_id}/{acats_id}/assets", ["broker", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v1beta1/acats/{account_id}/{acats_id}/assets', ['broker', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     brokerPrivatePostV1beta1AcatsAccountId(params = {}) {
-        return this.request("v1beta1/acats/{account_id}", ["broker", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('v1beta1/acats/{account_id}', ['broker', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     brokerPrivatePatchV1AccountsAccountIdWalletsWhitelistsWhitelistedAddressIdTravelRuleInfo(params = {}) {
-        return this.request("v1/accounts/{account_id}/wallets/whitelists/{whitelisted_address_id}/travel-rule-info", ["broker", "private"], 'PATCH', params, undefined, undefined, { "cost": 1 });
+        return this.request('v1/accounts/{account_id}/wallets/whitelists/{whitelisted_address_id}/travel-rule-info', ['broker', 'private'], 'PATCH', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivateGetV2Account(params = {}) {
-        return this.request("v2/account", ["trader", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/account', ['trader', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivateGetV2Orders(params = {}) {
-        return this.request("v2/orders", ["trader", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/orders', ['trader', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivateGetV2OrdersOrderId(params = {}) {
-        return this.request("v2/orders/{order_id}", ["trader", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/orders/{order_id}', ['trader', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivateGetV2Positions(params = {}) {
-        return this.request("v2/positions", ["trader", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/positions', ['trader', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivateGetV2PositionsSymbolOrAssetId(params = {}) {
-        return this.request("v2/positions/{symbol_or_asset_id}", ["trader", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/positions/{symbol_or_asset_id}', ['trader', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivateGetV2AccountPortfolioHistory(params = {}) {
-        return this.request("v2/account/portfolio/history", ["trader", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/account/portfolio/history', ['trader', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivateGetV2Watchlists(params = {}) {
-        return this.request("v2/watchlists", ["trader", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/watchlists', ['trader', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivateGetV2WatchlistsWatchlistId(params = {}) {
-        return this.request("v2/watchlists/{watchlist_id}", ["trader", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/watchlists/{watchlist_id}', ['trader', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivateGetV2WatchlistsByName(params = {}) {
-        return this.request("v2/watchlists:by_name", ["trader", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/watchlists:by_name', ['trader', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivateGetV2AccountConfigurations(params = {}) {
-        return this.request("v2/account/configurations", ["trader", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/account/configurations', ['trader', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivateGetV2AccountActivities(params = {}) {
-        return this.request("v2/account/activities", ["trader", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/account/activities', ['trader', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivateGetV2AccountActivitiesActivityType(params = {}) {
-        return this.request("v2/account/activities/{activity_type}", ["trader", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/account/activities/{activity_type}', ['trader', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivateGetV2Calendar(params = {}) {
-        return this.request("v2/calendar", ["trader", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/calendar', ['trader', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivateGetV2Clock(params = {}) {
-        return this.request("v2/clock", ["trader", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/clock', ['trader', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivateGetV2Assets(params = {}) {
-        return this.request("v2/assets", ["trader", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/assets', ['trader', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivateGetV2AssetsSymbolOrAssetId(params = {}) {
-        return this.request("v2/assets/{symbol_or_asset_id}", ["trader", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/assets/{symbol_or_asset_id}', ['trader', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivateGetV2CorporateActionsAnnouncementsId(params = {}) {
-        return this.request("v2/corporate_actions/announcements/{id}", ["trader", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/corporate_actions/announcements/{id}', ['trader', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivateGetV2CorporateActionsAnnouncements(params = {}) {
-        return this.request("v2/corporate_actions/announcements", ["trader", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/corporate_actions/announcements', ['trader', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivateGetV2Wallets(params = {}) {
-        return this.request("v2/wallets", ["trader", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/wallets', ['trader', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivateGetV2WalletsTransfers(params = {}) {
-        return this.request("v2/wallets/transfers", ["trader", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/wallets/transfers', ['trader', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivateGetV1Locates(params = {}) {
-        return this.request("v1/locates", ["trader", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v1/locates', ['trader', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivateGetV1LocatesLocateId(params = {}) {
-        return this.request("v1/locates/{locate_id}", ["trader", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v1/locates/{locate_id}', ['trader', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivateGetV1LocatesQuotes(params = {}) {
-        return this.request("v1/locates/quotes", ["trader", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v1/locates/quotes', ['trader', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivateGetV2TokenizationRequests(params = {}) {
-        return this.request("v2/tokenization/requests", ["trader", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/tokenization/requests', ['trader', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivateGetV2TokenizationRequestsTokenizationRequestId(params = {}) {
-        return this.request("v2/tokenization/requests/{tokenization_request_id}", ["trader", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/tokenization/requests/{tokenization_request_id}', ['trader', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivateGetV2TokenizationRequestsByClientRequestId(params = {}) {
-        return this.request("v2/tokenization/requests:by_client_request_id", ["trader", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/tokenization/requests:by_client_request_id', ['trader', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivateGetV2WalletsTravelRuleVasps(params = {}) {
-        return this.request("v2/wallets/travel-rule/vasps", ["trader", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/wallets/travel-rule/vasps', ['trader', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivatePostV2Orders(params = {}) {
-        return this.request("v2/orders", ["trader", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/orders', ['trader', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivatePostV2Watchlists(params = {}) {
-        return this.request("v2/watchlists", ["trader", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/watchlists', ['trader', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivatePostV2WatchlistsWatchlistId(params = {}) {
-        return this.request("v2/watchlists/{watchlist_id}", ["trader", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/watchlists/{watchlist_id}', ['trader', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivatePostV2WatchlistsByName(params = {}) {
-        return this.request("v2/watchlists:by_name", ["trader", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/watchlists:by_name', ['trader', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivatePostV2WalletsTransfers(params = {}) {
-        return this.request("v2/wallets/transfers", ["trader", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/wallets/transfers', ['trader', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivatePostV1Locates(params = {}) {
-        return this.request("v1/locates", ["trader", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('v1/locates', ['trader', 'private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivatePutV2OrdersOrderId(params = {}) {
-        return this.request("v2/orders/{order_id}", ["trader", "private"], 'PUT', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/orders/{order_id}', ['trader', 'private'], 'PUT', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivatePutV2WatchlistsWatchlistId(params = {}) {
-        return this.request("v2/watchlists/{watchlist_id}", ["trader", "private"], 'PUT', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/watchlists/{watchlist_id}', ['trader', 'private'], 'PUT', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivatePutV2WatchlistsByName(params = {}) {
-        return this.request("v2/watchlists:by_name", ["trader", "private"], 'PUT', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/watchlists:by_name', ['trader', 'private'], 'PUT', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivatePatchV2OrdersOrderId(params = {}) {
-        return this.request("v2/orders/{order_id}", ["trader", "private"], 'PATCH', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/orders/{order_id}', ['trader', 'private'], 'PATCH', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivatePatchV2AccountConfigurations(params = {}) {
-        return this.request("v2/account/configurations", ["trader", "private"], 'PATCH', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/account/configurations', ['trader', 'private'], 'PATCH', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivatePatchV2WalletsWhitelistsWhitelistedAddressIdTravelRuleInfo(params = {}) {
-        return this.request("v2/wallets/whitelists/{whitelisted_address_id}/travel-rule-info", ["trader", "private"], 'PATCH', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/wallets/whitelists/{whitelisted_address_id}/travel-rule-info', ['trader', 'private'], 'PATCH', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivateDeleteV2Orders(params = {}) {
-        return this.request("v2/orders", ["trader", "private"], 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/orders', ['trader', 'private'], 'DELETE', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivateDeleteV2OrdersOrderId(params = {}) {
-        return this.request("v2/orders/{order_id}", ["trader", "private"], 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/orders/{order_id}', ['trader', 'private'], 'DELETE', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivateDeleteV2Positions(params = {}) {
-        return this.request("v2/positions", ["trader", "private"], 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/positions', ['trader', 'private'], 'DELETE', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivateDeleteV2PositionsSymbolOrAssetId(params = {}) {
-        return this.request("v2/positions/{symbol_or_asset_id}", ["trader", "private"], 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/positions/{symbol_or_asset_id}', ['trader', 'private'], 'DELETE', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivateDeleteV2WatchlistsWatchlistId(params = {}) {
-        return this.request("v2/watchlists/{watchlist_id}", ["trader", "private"], 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/watchlists/{watchlist_id}', ['trader', 'private'], 'DELETE', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivateDeleteV2WatchlistsByName(params = {}) {
-        return this.request("v2/watchlists:by_name", ["trader", "private"], 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/watchlists:by_name', ['trader', 'private'], 'DELETE', params, undefined, undefined, { 'cost': 1 });
     }
     traderPrivateDeleteV2WatchlistsWatchlistIdSymbol(params = {}) {
-        return this.request("v2/watchlists/{watchlist_id}/{symbol}", ["trader", "private"], 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/watchlists/{watchlist_id}/{symbol}', ['trader', 'private'], 'DELETE', params, undefined, undefined, { 'cost': 1 });
     }
     marketPublicGetV1beta3CryptoLocBars(params = {}) {
-        return this.request("v1beta3/crypto/{loc}/bars", ["market", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v1beta3/crypto/{loc}/bars', ['market', 'public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     marketPublicGetV1beta3CryptoLocLatestBars(params = {}) {
-        return this.request("v1beta3/crypto/{loc}/latest/bars", ["market", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v1beta3/crypto/{loc}/latest/bars', ['market', 'public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     marketPublicGetV1beta3CryptoLocLatestOrderbooks(params = {}) {
-        return this.request("v1beta3/crypto/{loc}/latest/orderbooks", ["market", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v1beta3/crypto/{loc}/latest/orderbooks', ['market', 'public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     marketPublicGetV1beta3CryptoLocLatestQuotes(params = {}) {
-        return this.request("v1beta3/crypto/{loc}/latest/quotes", ["market", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v1beta3/crypto/{loc}/latest/quotes', ['market', 'public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     marketPublicGetV1beta3CryptoLocLatestTrades(params = {}) {
-        return this.request("v1beta3/crypto/{loc}/latest/trades", ["market", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v1beta3/crypto/{loc}/latest/trades', ['market', 'public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     marketPublicGetV1beta3CryptoLocQuotes(params = {}) {
-        return this.request("v1beta3/crypto/{loc}/quotes", ["market", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v1beta3/crypto/{loc}/quotes', ['market', 'public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     marketPublicGetV1beta3CryptoLocSnapshots(params = {}) {
-        return this.request("v1beta3/crypto/{loc}/snapshots", ["market", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v1beta3/crypto/{loc}/snapshots', ['market', 'public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     marketPublicGetV1beta3CryptoLocTrades(params = {}) {
-        return this.request("v1beta3/crypto/{loc}/trades", ["market", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v1beta3/crypto/{loc}/trades', ['market', 'public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     marketPrivateGetV1beta1CorporateActions(params = {}) {
-        return this.request("v1beta1/corporate-actions", ["market", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v1beta1/corporate-actions', ['market', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     marketPrivateGetV1beta1FixedIncomeLatestPrices(params = {}) {
-        return this.request("v1beta1/fixed_income/latest/prices", ["market", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v1beta1/fixed_income/latest/prices', ['market', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     marketPrivateGetV1beta1FixedIncomeLatestQuotes(params = {}) {
-        return this.request("v1beta1/fixed_income/latest/quotes", ["market", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v1beta1/fixed_income/latest/quotes', ['market', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     marketPrivateGetV1beta1ForexLatestRates(params = {}) {
-        return this.request("v1beta1/forex/latest/rates", ["market", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v1beta1/forex/latest/rates', ['market', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     marketPrivateGetV1beta1ForexRates(params = {}) {
-        return this.request("v1beta1/forex/rates", ["market", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v1beta1/forex/rates', ['market', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     marketPrivateGetV1beta1LogosSymbol(params = {}) {
-        return this.request("v1beta1/logos/{symbol}", ["market", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v1beta1/logos/{symbol}', ['market', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     marketPrivateGetV1beta1News(params = {}) {
-        return this.request("v1beta1/news", ["market", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v1beta1/news', ['market', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     marketPrivateGetV1beta1ScreenerStocksMostActives(params = {}) {
-        return this.request("v1beta1/screener/stocks/most-actives", ["market", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v1beta1/screener/stocks/most-actives', ['market', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     marketPrivateGetV1beta1ScreenerMarketTypeMovers(params = {}) {
-        return this.request("v1beta1/screener/{market_type}/movers", ["market", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v1beta1/screener/{market_type}/movers', ['market', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     marketPrivateGetV2StocksAuctions(params = {}) {
-        return this.request("v2/stocks/auctions", ["market", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/stocks/auctions', ['market', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     marketPrivateGetV2StocksBars(params = {}) {
-        return this.request("v2/stocks/bars", ["market", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/stocks/bars', ['market', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     marketPrivateGetV2StocksBarsLatest(params = {}) {
-        return this.request("v2/stocks/bars/latest", ["market", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/stocks/bars/latest', ['market', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     marketPrivateGetV2StocksMetaConditionsTicktype(params = {}) {
-        return this.request("v2/stocks/meta/conditions/{ticktype}", ["market", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/stocks/meta/conditions/{ticktype}', ['market', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     marketPrivateGetV2StocksMetaExchanges(params = {}) {
-        return this.request("v2/stocks/meta/exchanges", ["market", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/stocks/meta/exchanges', ['market', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     marketPrivateGetV2StocksQuotes(params = {}) {
-        return this.request("v2/stocks/quotes", ["market", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/stocks/quotes', ['market', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     marketPrivateGetV2StocksQuotesLatest(params = {}) {
-        return this.request("v2/stocks/quotes/latest", ["market", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/stocks/quotes/latest', ['market', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     marketPrivateGetV2StocksSnapshots(params = {}) {
-        return this.request("v2/stocks/snapshots", ["market", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/stocks/snapshots', ['market', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     marketPrivateGetV2StocksTrades(params = {}) {
-        return this.request("v2/stocks/trades", ["market", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/stocks/trades', ['market', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     marketPrivateGetV2StocksTradesLatest(params = {}) {
-        return this.request("v2/stocks/trades/latest", ["market", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/stocks/trades/latest', ['market', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     marketPrivateGetV2StocksSymbolAuctions(params = {}) {
-        return this.request("v2/stocks/{symbol}/auctions", ["market", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/stocks/{symbol}/auctions', ['market', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     marketPrivateGetV2StocksSymbolBars(params = {}) {
-        return this.request("v2/stocks/{symbol}/bars", ["market", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/stocks/{symbol}/bars', ['market', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     marketPrivateGetV2StocksSymbolBarsLatest(params = {}) {
-        return this.request("v2/stocks/{symbol}/bars/latest", ["market", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/stocks/{symbol}/bars/latest', ['market', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     marketPrivateGetV2StocksSymbolQuotes(params = {}) {
-        return this.request("v2/stocks/{symbol}/quotes", ["market", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/stocks/{symbol}/quotes', ['market', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     marketPrivateGetV2StocksSymbolQuotesLatest(params = {}) {
-        return this.request("v2/stocks/{symbol}/quotes/latest", ["market", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/stocks/{symbol}/quotes/latest', ['market', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     marketPrivateGetV2StocksSymbolSnapshot(params = {}) {
-        return this.request("v2/stocks/{symbol}/snapshot", ["market", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/stocks/{symbol}/snapshot', ['market', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     marketPrivateGetV2StocksSymbolTrades(params = {}) {
-        return this.request("v2/stocks/{symbol}/trades", ["market", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/stocks/{symbol}/trades', ['market', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     marketPrivateGetV2StocksSymbolTradesLatest(params = {}) {
-        return this.request("v2/stocks/{symbol}/trades/latest", ["market", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v2/stocks/{symbol}/trades/latest', ['market', 'private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
 }
 

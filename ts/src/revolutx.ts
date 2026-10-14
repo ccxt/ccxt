@@ -212,21 +212,22 @@ export default class revolutx extends Exchange {
         });
     }
 
-    override sign (path: string, api: any = 'public', method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
         let requestHeaders: NullableDict = undefined;
         let requestBody: Str = undefined;
         const implodedPath = this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         const queryKeys = Object.keys (query);
         const queryLength = queryKeys.length;
-        const baseApiUrl = this.safeString (this.urls['api'], api);
+        const apiName = api[0];
+        const baseApiUrl = this.safeString (this.urls['api'], apiName);
         if (baseApiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
         const baseUrl: string = baseApiUrl;
         let url = baseUrl + '/' + implodedPath;
         let queryString = '';
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ().toString ();
             if (method === 'GET') {

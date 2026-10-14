@@ -810,21 +810,22 @@ class zaif(Exchange, ImplicitAPI):
         nonce = float(num)
         return format(nonce, '.8f')
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        apiName = api[0]
         baseApiUrl = self.safe_string(self.urls['api'], 'rest')
         if baseApiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         baseUrl = baseApiUrl
         url = baseUrl + '/'
-        if api == 'public':
+        if apiName == 'public':
             url += 'api/' + self.version + '/' + self.implode_params(path, params)
-        elif api == 'fapi':
+        elif apiName == 'fapi':
             url += 'fapi/' + self.version + '/' + self.implode_params(path, params)
         else:
             self.check_required_credentials()
-            if api == 'ecapi':
+            if apiName == 'ecapi':
                 url += 'ecapi'
-            elif api == 'tlapi':
+            elif apiName == 'tlapi':
                 url += 'tlapi'
             else:
                 url += 'tapi'

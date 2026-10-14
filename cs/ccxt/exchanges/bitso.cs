@@ -2165,7 +2165,7 @@ public partial class bitso : Exchange
 
     public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object requestHeaders = headers;
@@ -2185,7 +2185,7 @@ public partial class bitso : Exchange
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string url = (apiUrl + endpoint);
-        if ((api is "private"))
+        if (isEqual(getValue(api, 0), "private"))
         {
             this.checkRequiredCredentials();
             // bitso rejects a nonce that is not higher than the previous one (error 104)

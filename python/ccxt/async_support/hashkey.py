@@ -4281,13 +4281,14 @@ class hashkey(Exchange, ImplicitAPI):
             'tierBased': True,
         }
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        apiUrl = self.safe_string(self.urls['api'], api)
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        apiName = api[0]
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + '/' + path
         query = None
-        if api == 'private':
+        if apiName == 'private':
             self.check_required_credentials()
             timestamp = self.milliseconds()
             additionalParams = {

@@ -288,7 +288,7 @@ public class Bit2c extends Bit2cApi
             }} );
             put( "options", new HashMap<String, Object>() {{
                 put( "fetchTrades", new HashMap<String, Object>() {{
-                    put( "method", "public_get_exchanges_pair_trades" );
+                    put( "method", "publicGetExchangesPairTrades" );
                 }} );
             }} );
             put( "features", new HashMap<String, Object>() {{
@@ -596,7 +596,7 @@ public class Bit2c extends Bit2cApi
             }
             Map<String, Object> market = this.market(symbol);
             String optionValue = this.safeString(this.options, "fetchTradesMethod"); // kept here for backward compatibility #29154
-            Object method = this.handleOption("fetchTrades", "method", optionValue); // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
+            Object method = this.handleOption("fetchTrades", "method", optionValue); // publicGetExchangesPairTrades or publicGetExchangesPairLasttrades
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", market.get("id") );
             }};
@@ -609,7 +609,7 @@ public class Bit2c extends Bit2cApi
                 request.put("limit", limit); // max 100000
             }
             List<Object> responseList = new ArrayList<Object>(Arrays.asList());
-            if (java.util.Objects.equals(method, "public_get_exchanges_pair_trades"))
+            if ((java.util.Objects.equals(method, "publicGetExchangesPairTrades")) || (java.util.Objects.equals(method, "public_get_exchanges_pair_trades")))
             {
                 Object response = (this.publicGetExchangesPairTrades(this.extend(request, parameters))).join();
                 //
@@ -1271,7 +1271,7 @@ public class Bit2c extends Bit2cApi
         String url = ((apiUrl + "/") + this.implodeParams(path, parameters));
         String requestBody = null;
         Map<String, Object> requestHeaders = null;
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
+        if (java.util.Objects.equals((api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)), "public"))
         {
             url = (url + ".json");
         } else

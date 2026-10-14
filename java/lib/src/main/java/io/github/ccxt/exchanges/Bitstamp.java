@@ -3496,7 +3496,7 @@ public class Bitstamp extends BitstampApi
             String name = this.getCurrencyName(code);
             // the per-currency implicit methods (privatePostBtcAddress etc.) all route
             // through request(), called here directly to avoid dynamic dispatch
-            Object response = (this.request((name + "_address/"), "private", "POST", parameters, (Object) null, (Object) null, new HashMap<String, Object>() {{}})).join();
+            Object response = (this.request((name + "_address/"), new ArrayList<Object>(Arrays.asList("private")), "POST", parameters, (Object) null, (Object) null, new HashMap<String, Object>() {{}})).join();
             String address = this.safeString(response, "address");
             String tag = this.safeString2(response, "memo_id", "destination_tag");
             this.checkAddress(address, (String) null, (String) null);
@@ -3563,7 +3563,7 @@ public class Bitstamp extends BitstampApi
                 request.put("address", address);
                 // the per-currency implicit methods (privatePostBtcWithdrawal etc.) all
                 // route through request(), called here directly to avoid dynamic dispatch
-                response = (this.request((name + "_withdrawal/"), "private", "POST", this.extend(request, paramsWithdrawTag), (Object) null, (Object) null, new HashMap<String, Object>() {{}})).join();
+                response = (this.request((name + "_withdrawal/"), new ArrayList<Object>(Arrays.asList("private")), "POST", this.extend(request, paramsWithdrawTag), (Object) null, (Object) null, new HashMap<String, Object>() {{}})).join();
             } else
             {
                 currency = this.currency((String) (code));
@@ -3667,7 +3667,8 @@ public class Bitstamp extends BitstampApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -3676,7 +3677,7 @@ public class Bitstamp extends BitstampApi
         url = (url + (this.version + "/"));
         url = (url + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
-        Boolean isPrivatePost = (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public")) && (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"));
+        Boolean isPrivatePost = (!java.util.Objects.equals(apiName, "public")) && (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"));
         // an empty POST triggers an API0020 error, so empty requests send a dummy object
         // https://github.com/ccxt/ccxt/issues/6846
         String emptyPostBody = this.urlencode(new HashMap<String, Object>() {{
@@ -3693,7 +3694,7 @@ public class Bitstamp extends BitstampApi
             requestBody = postBody;
         }
         Map<String, Object> privateHeaders = null;
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
+        if (java.util.Objects.equals(apiName, "public"))
         {
             if (Helpers.objectKeys(query).size() > 0)
             {
@@ -3727,7 +3728,7 @@ public class Bitstamp extends BitstampApi
             String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             privateHeaders.put("X-Auth-Signature", signature);
         }
-        Object requestHeaders = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public")))) ? headers : privateHeaders;
+        Object requestHeaders = (((java.util.Objects.equals(apiName, "public")))) ? headers : privateHeaders;
         {
             HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
             h2kMap2.put("url", url);

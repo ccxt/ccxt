@@ -1796,7 +1796,8 @@ class latoken(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        apiName = api[0]
         requestHeaders = headers
         requestBody = body
         request = '/' + self.version + '/' + self.implode_params(path, params)
@@ -1806,7 +1807,7 @@ class latoken(Exchange, ImplicitAPI):
         if method == 'GET':
             if len(query) > 0:
                 requestString += '?' + urlencodedQuery
-        if api == 'private':
+        if apiName == 'private':
             self.check_required_credentials()
             auth = method + request + urlencodedQuery
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512)

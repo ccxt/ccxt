@@ -3269,12 +3269,13 @@ export default class grvt extends Exchange {
         this.options['requestId'] = requestId;
         return requestId;
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
         let requestHeaders = headers;
         let requestBody = body;
         let requestPath = path;
         const query = this.omit(params, this.extractParams(requestPath));
-        const apiUrl = this.safeString(this.urls['api'], api);
+        const apiName = api[0];
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
@@ -3303,7 +3304,7 @@ export default class grvt extends Exchange {
                 requestBody = this.json(params);
             }
         }
-        const isPrivate = api.startsWith('private');
+        const isPrivate = apiName.startsWith('private');
         if (isPrivate === true) {
             this.checkRequiredCredentials();
             if (queryString !== '') {

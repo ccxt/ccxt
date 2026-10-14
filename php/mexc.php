@@ -2349,7 +2349,7 @@ class mexc extends Exchange {
         }
         $market = $this->market($symbol);
         if ($market['spot'] !== true) {
-            throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
+            throw new NotSupported($this->id . ' createMarketSellOrderWithCost() supports spot orders only');
         }
         $req = array(
             'cost' => $cost,
@@ -6333,7 +6333,7 @@ class mexc extends Exchange {
         return $this->milliseconds() - $this->safe_integer($this->options, 'timeDifference', 0);
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $requestHeaders = $headers;
         $requestBody = $body;
         $section = $this->safe_string($api, 0);

@@ -213,7 +213,7 @@ export default class bit2c extends Exchange {
             },
             'options': {
                 'fetchTrades': {
-                    'method': 'public_get_exchanges_pair_trades',
+                    'method': 'publicGetExchangesPairTrades',
                 },
             },
             'features': {
@@ -486,7 +486,7 @@ export default class bit2c extends Exchange {
         }
         const market = this.market (symbol);
         const optionValue = this.safeString (this.options, 'fetchTradesMethod'); // kept here for backward compatibility #29154
-        const method = this.handleOption ('fetchTrades', 'method', optionValue); // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
+        const method = this.handleOption ('fetchTrades', 'method', optionValue); // publicGetExchangesPairTrades or publicGetExchangesPairLasttrades
         const request: Dict = {
             'pair': market['id'],
         };
@@ -497,7 +497,7 @@ export default class bit2c extends Exchange {
             request['limit'] = limit; // max 100000
         }
         let responseList: Dict[] = [];
-        if (method === 'public_get_exchanges_pair_trades') {
+        if ((method === 'publicGetExchangesPairTrades') || (method === 'public_get_exchanges_pair_trades')) {
             const response = await this.publicGetExchangesPairTrades (this.extend (request, params));
             //
             //     [
@@ -1054,7 +1054,7 @@ export default class bit2c extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
         const apiUrl = this.safeString (this.urls['api'], 'rest');
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
@@ -1062,7 +1062,7 @@ export default class bit2c extends Exchange {
         let url = apiUrl + '/' + this.implodeParams (path, params);
         let requestBody: Str = undefined;
         let requestHeaders: NullableDict = undefined;
-        if (api === 'public') {
+        if (api[0] === 'public') {
             url += '.json';
         } else {
             this.checkRequiredCredentials ();

@@ -4067,9 +4067,10 @@ public partial class blofin : Exchange
 
     public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        object apiName = getValue(api, 0);
         object request = ((("/api/" + this.version) + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         object apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest");
@@ -4079,13 +4080,13 @@ public partial class blofin : Exchange
         }
         object url = add(apiUrl, request);
         // const type = this.getPathAuthenticationType (path);
-        if ((api is "public"))
+        if ((apiName is "public"))
         {
             if (!this.isEmpty(query))
             {
                 url = add(url, ("?" + this.urlencode(query)));
             }
-        } else if ((api is "private"))
+        } else if ((apiName is "private"))
         {
             this.checkRequiredCredentials();
             string timestamp = this.milliseconds().ToString();

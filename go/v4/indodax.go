@@ -2004,7 +2004,7 @@ func (this *Indodax) fetchDepositAddressesBody(ch chan AsyncResult[any], optiona
 	return nil
 }
 func (this *Indodax) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -2014,14 +2014,15 @@ func (this *Indodax) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url any = apiUrl
 	var privateBody any = nil
 	var privateHeaders any = nil
-	var isPublic bool = (api == "public")
+	var isPublic bool = (apiName != nil && *apiName == "public")
 	if isPublic {
 		var query any = this.Omit(params, this.ExtractParams(path))
 		var requestPath string = "/" + this.ImplodeParams(path, params)

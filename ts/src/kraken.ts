@@ -3693,14 +3693,15 @@ export default class kraken extends Exchange {
         };
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}): Dict {
-        let url = '/' + this.version + '/' + api + '/' + path;
-        if (api === 'public') {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
+        let url = '/' + this.version + '/' + apiName + '/' + path;
+        if (apiName === 'public') {
             if (Object.keys (params).length > 0) {
                 // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
                 url += '?' + this.urlencodeNested (params);
             }
-        } else if (api === 'private') {
+        } else if (apiName === 'private') {
             const price = this.safeString (params, 'price');
             let isTriggerPercent = false;
             if (price !== undefined) {
@@ -3734,7 +3735,7 @@ export default class kraken extends Exchange {
             } else {
                 headersSigned['Content-Type'] = 'application/x-www-form-urlencoded';
             }
-            const baseApiUrl = this.safeString (this.urls['api'], api);
+            const baseApiUrl = this.safeString (this.urls['api'], apiName);
             if (baseApiUrl === undefined) {
                 throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
             }
@@ -3743,7 +3744,7 @@ export default class kraken extends Exchange {
         } else {
             url = '/' + path;
         }
-        const apiUrl = this.safeString (this.urls['api'], api);
+        const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }

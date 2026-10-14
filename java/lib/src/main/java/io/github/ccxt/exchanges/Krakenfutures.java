@@ -4409,12 +4409,13 @@ public class Krakenfutures extends KrakenfuturesApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Map<String, Object> apiVersions = (Map<String, Object>) this.safeDict(this.options.get("versions"), java.util.Objects.requireNonNullElse(api, "public"), new HashMap<String, Object>() {{}});
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        Map<String, Object> apiVersions = (Map<String, Object>) this.safeDict(this.options.get("versions"), apiName, new HashMap<String, Object>() {{}});
         Map<String, Object> methodVersions = (Map<String, Object>) this.safeDict(apiVersions, java.util.Objects.requireNonNullElse(method, "GET"), new HashMap<String, Object>() {{}});
         String defaultVersion = this.safeString(methodVersions, path, this.version);
         String version = this.safeString(parameters, "version", defaultVersion);
         Object paramsOmitted = this.omit(parameters, "version");
-        Map<String, Object> apiAccess = (Map<String, Object>) this.safeDict(this.options.get("access"), java.util.Objects.requireNonNullElse(api, "public"), new HashMap<String, Object>() {{}});
+        Map<String, Object> apiAccess = (Map<String, Object>) this.safeDict(this.options.get("access"), apiName, new HashMap<String, Object>() {{}});
         Map<String, Object> methodAccess = (Map<String, Object>) this.safeDict(apiAccess, java.util.Objects.requireNonNullElse(method, "GET"), new HashMap<String, Object>() {{}});
         String access = this.safeString(methodAccess, path, "public");
         String endpoint = ((version + "/") + this.implodeParams(path, paramsOmitted));
@@ -4435,7 +4436,7 @@ public class Krakenfutures extends KrakenfuturesApi
             }
             query = (query + ("?" + postData));
         }
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -4443,13 +4444,13 @@ public class Krakenfutures extends KrakenfuturesApi
         String url = (apiUrl + query);
         String requestBody = (((java.util.Objects.equals(path, "batchorder")))) ? postData : body;
         Map<String, Object> privateHeaders = null;
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private") || java.util.Objects.equals(access, "private"))
+        if (java.util.Objects.equals(apiName, "private") || java.util.Objects.equals(access, "private"))
         {
             this.checkRequiredCredentials(true);
             String auth = (postData + "/api/");
-            if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+            if (!java.util.Objects.equals(apiName, "private"))
             {
-                auth = (auth + (java.util.Objects.requireNonNullElse(api, "public") + "/"));
+                auth = (auth + (apiName + "/"));
             }
             auth = (auth + endpoint); // 1
             Object hash = this.hash(this.encode(auth), sha256(), "binary"); // 2

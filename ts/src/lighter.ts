@@ -971,6 +971,16 @@ export default class lighter extends Exchange {
         const [ groupingType, paramsGroupingType ] = this.handleOptionIntegerAndParams (params, method, 'groupingType', 3); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         const orderRequests = this.createOrderRequest (symbol, type, side, amount, price, paramsGroupingType);
         const totalOrderRequests = orderRequests.length;
+        if (totalOrderRequests > 1) {
+            // the signer replaces a -1 expiry with now + 28 days reading the clock once per leg, and rejects
+            // a group whose legs differ ("OrderExpiry is invalid"), so resolve the default once for all legs
+            const groupOrderExpiry = this.sum (this.milliseconds (), 2419200000); // 28 days
+            for (let i = 0; i < totalOrderRequests; i++) {
+                if (this.safeInteger (orderRequests[i], 'order_expiry') === -1) {
+                    orderRequests[i]['order_expiry'] = groupOrderExpiry;
+                }
+            }
+        }
         let order: NullableDict = undefined;
         if (totalOrderRequests > 0) {
             order = orderRequests[0];
@@ -3398,23 +3408,24 @@ export default class lighter extends Exchange {
         };
     }
 
-    override sign (path: string, api: any = 'public', method = 'GET', params = {}) {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params = {}) {
+        const apiName = api[0];
         let url: Str = undefined;
-        if (api === 'root') {
+        if (apiName === 'root') {
             const baseApiUrl = this.safeString (this.urls['api'], 'public');
             if (baseApiUrl === undefined) {
                 throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
             }
             url = this.implodeHostname (baseApiUrl);
         } else {
-            const baseApiUrl2 = this.safeString (this.urls['api'], api);
+            const baseApiUrl2 = this.safeString (this.urls['api'], apiName);
             if (baseApiUrl2 === undefined) {
                 throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
             }
             url = this.implodeHostname (baseApiUrl2) + '/api/' + this.version + '/' + path;
         }
         let authHeaders: NullableDict = undefined;
-        if (api === 'private') {
+        if (apiName === 'private') {
             authHeaders = {
                 'Authorization': this.createAuth (params),
             };
@@ -3428,7 +3439,7 @@ export default class lighter extends Exchange {
             }
             url += '?' + this.rawencode (params);
         }
-        if (api === 'private') {
+        if (apiName === 'private') {
             return { 'url': url, 'method': method, 'body': undefined, 'headers': authHeaders };
         }
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };

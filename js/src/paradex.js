@@ -1585,7 +1585,11 @@ export default class paradex extends Exchange {
         //
         const timestamp = this.safeInteger(order, 'created_at');
         const orderId = this.safeString(order, 'id');
-        const clientOrderId = this.omitZero(this.safeString(order, 'client_id'));
+        // a client id is free text, omitZero would drop every non-numeric one in php
+        let clientOrderId = this.safeString(order, 'client_id');
+        if (clientOrderId === '') {
+            clientOrderId = undefined;
+        }
         const marketId = this.safeString(order, 'market');
         const marketResolved = this.safeMarket(marketId, market);
         const symbol = marketResolved['symbol'];
@@ -3409,7 +3413,8 @@ export default class paradex extends Exchange {
         const sorted = this.sortBy(rates, 'timestamp');
         return this.filterBySymbolSinceLimit(sorted, this.safeString(market, 'symbol'), since, limit);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const apiName = api[0];
         let version = this.version;
         let pathValue = path;
         if (path.indexOf('v2/') === 0) {
@@ -3424,12 +3429,12 @@ export default class paradex extends Exchange {
         }
         let url = this.implodeHostname(baseApiUrl) + '/' + this.implodeParams(pathValue, params);
         const query = this.omit(params, this.extractParams(pathValue));
-        if (api === 'public') {
+        if (apiName === 'public') {
             if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
-        else if (api === 'private') {
+        else if (apiName === 'private') {
             const privateHeaders = {
                 'Accept': 'application/json',
                 'PARADEX-PARTNER': this.safeString(this.options, 'broker', 'CCXT'),

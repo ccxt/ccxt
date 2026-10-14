@@ -1692,8 +1692,9 @@ export default class luno extends Exchange {
         result['withdraw']['percentage'] = false;
         return this.assignDefaultDepositWithdrawFees(result, currency);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const apiUrl = this.safeString(this.urls['api'], api);
+    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const apiName = api[0];
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
@@ -1703,7 +1704,7 @@ export default class luno extends Exchange {
         if (Object.keys(query).length > 0) {
             url += '?' + this.urlencode(query);
         }
-        if ((api === 'private') || (api === 'exchangePrivate')) {
+        if ((apiName === 'private') || (apiName === 'exchangePrivate')) {
             this.checkRequiredCredentials();
             const auth = this.stringToBase64(this.apiKey + ':' + this.secret);
             requestHeaders = {

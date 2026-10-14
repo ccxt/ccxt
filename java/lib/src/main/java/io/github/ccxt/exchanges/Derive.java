@@ -4607,14 +4607,13 @@ public class Derive extends DeriveApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the L1 address to withdraw to
-     * @param {string} [tag] not used by derive.withdraw
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.max_fee_usd] the maximum accepted fee in usd, default 1, or 10 with force_batch
      * @param {bool} [params.force_batch] pay the higher fee to have the withdrawal batch proven immediately
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Object tag, Object parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -4690,10 +4689,6 @@ public class Derive extends DeriveApi
             return transaction;
         }).thenApply(Transaction::new);
 
-    }
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
-    {
-        return this.withdraw(code, amount, address, (Object) (parameters), new HashMap<String, Object>() {{}});
     }
 
     /**
@@ -4991,7 +4986,8 @@ public class Derive extends DeriveApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -5002,7 +4998,7 @@ public class Derive extends DeriveApi
             Map<String, Object> postHeaders = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );
             }};
-            if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+            if (java.util.Objects.equals(apiName, "private"))
             {
                 String now = this.numberToString(this.nonce());
                 String signature = this.signMessage(now, this.privateKey);

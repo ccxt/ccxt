@@ -2839,6 +2839,24 @@ public partial class coinbase : Exchange
         {
             request["limit"] = 250;
             response = await this.v3PrivateGetBrokerageAccounts(this.extend(request, paramsMarketType));
+            // an explicit params.cursor means the caller pages manually
+            if ((this.safeString(paramsMarketType, "cursor") == null))
+            {
+                List<object> accounts = this.safeList(response, "accounts", new List<object>() {});
+                Dictionary<string, object> page = response;
+                string? cursor = this.safeString(page, "cursor");
+                while ((this.safeBool(page, "has_next", false) == true) && ((cursor != null)) && (cursor != ""))
+                {
+                    request["cursor"] = cursor;
+                    page = await this.v3PrivateGetBrokerageAccounts(this.extend(request, paramsMarketType));
+                    accounts = this.arrayConcat(accounts, this.safeList(page, "accounts", new List<object>() {}));
+                    string? nextCursor = this.safeString(page, "cursor");
+                    cursor = ((nextCursor == cursor)) ? null : nextCursor;
+                }
+                response["accounts"] = accounts;
+                response["has_next"] = this.safeBool(page, "has_next", false);
+                response["cursor"] = this.safeString(page, "cursor");
+            }
         } else
         {
             request["limit"] = 250;

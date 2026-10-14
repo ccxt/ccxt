@@ -3836,8 +3836,8 @@ export default class myriad extends Exchange {
      * @param {string} [body] the request body
      * @returns {object} a dict with url, method, body and headers
      */
-    sign(path, api = 'myriad', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const apiGroup = typeof api === 'string' ? api : api[0];
+    sign(path, api = ['myriad'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const apiGroup = api[0];
         const baseUrls = this.urls['api'];
         const baseUrl = this.safeString(baseUrls, apiGroup, baseUrls['myriad']);
         let url = baseUrl + '/' + this.implodeParams(path, params);

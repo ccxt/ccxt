@@ -3081,10 +3081,7 @@ export default class nado extends Exchange {
     }
     sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         let requestBody = undefined;
-        let endpoint = api[0];
-        if (typeof api === 'string') {
-            endpoint = api;
-        }
+        const endpoint = api[0];
         const baseApiUrl = this.safeString(this.urls['api'], endpoint);
         if (baseApiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');

@@ -1482,7 +1482,7 @@ func (this *Bitbank) Nonce() any {
 	return this.Milliseconds()
 }
 func (this *Bitbank) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -1492,15 +1492,16 @@ func (this *Bitbank) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url any = this.ImplodeHostname(apiUrl) + "/"
 	var requestBody any = nil
 	var requestHeaders any = nil
-	if (api == "public") || (api == "markets") {
+	if (apiName != nil && *apiName == "public") || (apiName != nil && *apiName == "markets") {
 		url = Add(url, this.ImplodeParams(path, params))
 		if len(ObjectKeys(query)) > 0 {
 			url = Add(url, "?"+this.Urlencode(query))

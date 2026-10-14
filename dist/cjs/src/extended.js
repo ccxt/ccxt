@@ -3505,7 +3505,7 @@ class extended extends extended$1["default"] {
         }
         return undefined;
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
         let requestHeaders = headers;
         let requestBody = body;
         const version = this.safeString(api, 0);

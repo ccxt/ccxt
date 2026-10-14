@@ -6788,7 +6788,8 @@ export default class okx extends Exchange {
         const transfers = this.safeList(response, 'data', []);
         return this.parseTransfers(transfers, currency, since, limit, params);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const apiName = api[0];
         const isArray = Array.isArray(params);
         const request = '/api/' + this.version + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
@@ -6801,12 +6802,12 @@ export default class okx extends Exchange {
         let hasJsonBody = false;
         let jsonBody = undefined;
         // const type = this.getPathAuthenticationType (path);
-        if (api === 'public') {
+        if (apiName === 'public') {
             if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
-        else if (api === 'private') {
+        else if (apiName === 'private') {
             this.checkRequiredCredentials();
             // inject id in implicit api call
             if (method === 'POST' && (path === 'trade/batch-orders' || path === 'trade/order-algo' || path === 'trade/order')) {
@@ -6862,7 +6863,7 @@ export default class okx extends Exchange {
         if (hasJsonBody) {
             requestBody = jsonBody;
         }
-        const requestHeaders = (api === 'private') ? privateHeaders : headers;
+        const requestHeaders = (apiName === 'private') ? privateHeaders : headers;
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
     parseFundingRate(contract, market = undefined) {

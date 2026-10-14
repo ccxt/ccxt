@@ -1763,7 +1763,7 @@ export default class bitvavo extends Exchange {
             request['operatorId'] = this.parseToInt(operatorId);
         }
         else {
-            throw new ArgumentsRequired(this.id + ' canceAllOrders() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890');
+            throw new ArgumentsRequired(this.id + ' cancelAllOrders() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890');
         }
         const response = await this.privateDeleteOrders(this.extend(request, paramsOperatorId));
         //
@@ -2643,7 +2643,8 @@ export default class bitvavo extends Exchange {
         //
         return this.parseDepositWithdrawFees(response, codes, 'symbol');
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const apiName = api[0];
         let requestHeaders = headers;
         let requestBody = body;
         const query = this.omit(params, this.extractParams(path));
@@ -2654,7 +2655,7 @@ export default class bitvavo extends Exchange {
                 url += '?' + this.urlencode(query);
             }
         }
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             let payload = '';
             if (!getOrDelete) {
@@ -2677,7 +2678,7 @@ export default class bitvavo extends Exchange {
                 requestHeaders['Content-Type'] = 'application/json';
             }
         }
-        const apiUrl = this.safeString(this.urls['api'], api);
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }

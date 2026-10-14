@@ -2230,8 +2230,8 @@ export default class hyperliquid extends Exchange {
         }
         return normalized.toLowerCase();
     }
-    sign(path, api = 'public', method = 'POST', params = {}, headers = undefined, body = undefined) {
-        const apiGroup = Array.isArray(api) ? api[0] : api;
+    sign(path, api = ['public'], method = 'POST', params = {}, headers = undefined, body = undefined) {
+        const apiGroup = api[0];
         const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         let baseUrl;
         if (sandboxMode === true) {

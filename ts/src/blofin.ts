@@ -3522,7 +3522,8 @@ export default class blofin extends Exchange {
         return undefined;
     }
 
-    override sign (path: string, api = 'public', method: any = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: any = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
         let request = '/api/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         const apiUrl = this.safeString (this.urls['api'], 'rest');
@@ -3531,11 +3532,11 @@ export default class blofin extends Exchange {
         }
         let url = apiUrl + request;
         // const type = this.getPathAuthenticationType (path);
-        if (api === 'public') {
+        if (apiName === 'public') {
             if (!this.isEmpty (query)) {
                 url += '?' + this.urlencode (query);
             }
-        } else if (api === 'private') {
+        } else if (apiName === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ().toString ();
             const signedHeaders: Dict = {

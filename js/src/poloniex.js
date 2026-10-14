@@ -3820,10 +3820,11 @@ export default class poloniex extends Exchange {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const apiName = api[0];
         const isArray = Array.isArray(params);
         let url = this.urls['api']['spot'];
-        if (this.inArray(api, ['swapPublic', 'swapPrivate'])) {
+        if (this.inArray(apiName, ['swapPublic', 'swapPrivate'])) {
             url = this.urls['api']['swap'];
         }
         if (method === 'GET' && ('symbol' in params)) {
@@ -3833,7 +3834,7 @@ export default class poloniex extends Exchange {
         const implodedPath = this.implodeParams(path, params);
         let bodyJson = undefined;
         let signedHeaders = undefined;
-        if (api === 'public' || api === 'swapPublic') {
+        if (apiName === 'public' || apiName === 'swapPublic') {
             url += '/' + implodedPath;
             if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);

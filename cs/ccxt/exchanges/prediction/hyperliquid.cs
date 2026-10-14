@@ -2585,10 +2585,10 @@ public partial class hyperliquid : PredictionExchange
 
     public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "POST";
         parameters ??= new Dictionary<string, object>();
-        object apiGroup = ((api is IList<object>) || (api.GetType().IsGenericType && api.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? getValue(api, 0) : api;
+        object apiGroup = getValue(api, 0);
         bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         object baseUrl = null;
         if ((sandboxMode == true))

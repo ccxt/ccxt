@@ -1277,7 +1277,8 @@ class coinone extends coinone$1["default"] {
         }
         return result;
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const apiName = api[0];
         const request = this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         const apiUrl = this.safeString(this.urls['api'], 'rest');
@@ -1285,22 +1286,22 @@ class coinone extends coinone$1["default"] {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         let url = apiUrl + '/';
-        const isPublic = (api === 'public') || (api === 'v2Public');
-        if (api === 'v2Public') {
+        const isPublic = (apiName === 'public') || (apiName === 'v2Public');
+        if (apiName === 'v2Public') {
             const apiUrl2 = this.safeString(this.urls['api'], 'v2Public');
             if (apiUrl2 === undefined) {
                 throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
             }
             url = apiUrl2 + '/';
         }
-        else if (api === 'v2Private') {
+        else if (apiName === 'v2Private') {
             const apiUrl3 = this.safeString(this.urls['api'], 'v2Private');
             if (apiUrl3 === undefined) {
                 throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
             }
             url = apiUrl3 + '/';
         }
-        else if (api === 'v2_1Private') {
+        else if (apiName === 'v2_1Private') {
             const apiUrl4 = this.safeString(this.urls['api'], 'v2_1Private');
             if (apiUrl4 === undefined) {
                 throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
@@ -1320,7 +1321,7 @@ class coinone extends coinone$1["default"] {
             url += request;
             // the v2.1 api requires a uuid nonce, the older apis use a numeric one
             let nonce = undefined;
-            if (api === 'v2_1Private') {
+            if (apiName === 'v2_1Private') {
                 nonce = this.uuid();
             }
             else {

@@ -3211,20 +3211,21 @@ class limitless extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, mixed $api = 'limitless', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
+    public function sign(string $path, array $api = array('limitless'), $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
         /**
          * @ignore
          * builds the request URL and attaches the lmts authentication $headers for private endpoints
          * @param {string} $path the endpoint $path
-         * @param {string|string[]} [$api] the $api group and $access level
+         * @param {string[]} [$api] the $api group and $access level
          * @param {string} [$method] HTTP $method
          * @param {array} [$params] request parameters
          * @param {array} [$headers] request $headers
          * @param {array} [$body] request $body
          * @return {array} a dictionary with $url, $method, $body and $headers
          */
-        $apiGroup = gettype($api) === 'string' ? $api : $api[0];
-        $access = gettype($api) === 'string' ? 'public' : $api[1];
+        $apiGroup = $api[0];
+        $apiLength = count($api);
+        $access = ($apiLength > 1) ? $api[1] : 'public';
         $baseUrls = $this->urls['api'];
         $baseUrl = $this->safe_string($baseUrls, $apiGroup, $baseUrls['limitless']);
         $url = '/' . $this->implode_params($path, $params);

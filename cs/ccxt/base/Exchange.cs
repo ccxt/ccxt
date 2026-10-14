@@ -123,7 +123,7 @@ public partial class BaseExchange
                     var completePaths = pathParts.Select(x => char.ToUpper(x[0]) + x.Substring(1)).ToList();
                     var path = string.Join("", completePaths);
                     path = char.ToLower(path[0]) + path.Substring(1); // lowercase first letter
-                    var apiObj = paths.Count > 1 ? (object)paths : paths[0];
+                    var apiObj = new List<string>(paths);
                     this.transformedApi[path] = new dict {
                             { "method", key.ToUpper() },
                             { "path",   endpoint },

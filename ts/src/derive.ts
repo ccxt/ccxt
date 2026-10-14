@@ -3982,14 +3982,13 @@ export default class derive extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the L1 address to withdraw to
-     * @param {string} [tag] not used by derive.withdraw
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.max_fee_usd] the maximum accepted fee in usd, default 1, or 10 with force_batch
      * @param {bool} [params.force_batch] pay the higher fee to have the withdrawal batch proven immediately
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4321,8 +4320,9 @@ export default class derive extends Exchange {
         return this.milliseconds () - this.safeInteger (this.options, 'timeDifference', 0);
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}): Dict {
-        const apiUrl = this.safeString (this.urls['api'], api);
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
+        const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
@@ -4331,7 +4331,7 @@ export default class derive extends Exchange {
             const postHeaders: Dict = {
                 'Content-Type': 'application/json',
             };
-            if (api === 'private') {
+            if (apiName === 'private') {
                 const now = this.numberToString (this.nonce ());
                 const signature = this.signMessage (now, this.privateKey);
                 let deriveWalletAddress = this.safeString (this.options, 'deriveWalletAddress');

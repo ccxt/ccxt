@@ -1999,7 +1999,7 @@ class binance extends Exchange {
         return null;
     }
 
-    public function sign(string $path, mixed $api = 'sapi', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
+    public function sign(string $path, array $api = array('sapi'), $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
         /**
          * @ignore
          * builds the request URL and attaches the standard binance SAPI HMAC-SHA256 $signature — every prediction endpoint is signed
@@ -2011,7 +2011,7 @@ class binance extends Exchange {
          * @param {array} [$body] request $body
          * @return {array} a dictionary with $url, $method, $body and $headers
          */
-        $apiGroup = gettype($api) === 'string' ? $api : $api[0];
+        $apiGroup = $api[0];
         $baseUrls = $this->urls['api'];
         $baseUrl = $this->safe_string($baseUrls, $apiGroup, $baseUrls['sapi']);
         $url = $baseUrl . '/' . $this->implode_params($path, $params);

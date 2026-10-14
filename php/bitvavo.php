@@ -1778,7 +1778,7 @@ class bitvavo extends Exchange {
         if ($operatorId !== null) {
             $request['operatorId'] = $this->parse_to_int($operatorId);
         } else {
-            throw new ArgumentsRequired($this->id . ' canceAllOrders() requires an operatorId in params or options, eg => exchange.options[\'operatorId\'] = 1234567890');
+            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires an operatorId in params or options, eg => exchange.options[\'operatorId\'] = 1234567890');
         }
         $response = $this->privateDeleteOrders($this->extend($request, $paramsOperatorId));
         //
@@ -2680,7 +2680,8 @@ class bitvavo extends Exchange {
         return $this->parse_deposit_withdraw_fees($response, $codes, 'symbol');
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $apiName = $api[0];
         $requestHeaders = $headers;
         $requestBody = $body;
         $query = $this->omit($params, $this->extract_params($path));
@@ -2691,7 +2692,7 @@ class bitvavo extends Exchange {
                 $url .= '?' . $this->urlencode($query);
             }
         }
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             $payload = '';
             if (!$getOrDelete) {
@@ -2714,7 +2715,7 @@ class bitvavo extends Exchange {
                 $requestHeaders['Content-Type'] = 'application/json';
             }
         }
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
@@ -2742,7 +2743,7 @@ class bitvavo extends Exchange {
         return null;
     }
 
-    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
+    public function calculate_rate_limiter_cost(array $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
         if ((is_array($config) && array_key_exists('noMarket' ?? '', $config)) && !(is_array($params) && array_key_exists('market' ?? '', $params))) {
             return $config['noMarket'];
         }

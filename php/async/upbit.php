@@ -2547,8 +2547,9 @@ class upbit extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $baseApiUrl = $this->safe_string($this->urls['api'], $api);
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $apiName = $api[0];
+        $baseApiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($baseApiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
@@ -2562,13 +2563,13 @@ class upbit extends Exchange {
                 $url .= '?' . $this->urlencode($query);
             }
         }
-        $hasBody = ($api === 'private') && ($method !== 'GET') && ($method !== 'DELETE');
+        $hasBody = ($apiName === 'private') && ($method !== 'GET') && ($method !== 'DELETE');
         $requestBody = $body;
         if ($hasBody) {
             $requestBody = $this->json($params);
         }
         $privateHeaders = null;
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             $privateHeaders = array();
             $nonce = $this->uuid();
@@ -2592,7 +2593,7 @@ class upbit extends Exchange {
             $token = $this->jwt($request, $this->encode($this->secret), 'sha256');
             $privateHeaders['Authorization'] = 'Bearer ' . $token;
         }
-        $requestHeaders = ($api === 'private') ? $privateHeaders : $headers;
+        $requestHeaders = ($apiName === 'private') ? $privateHeaders : $headers;
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 

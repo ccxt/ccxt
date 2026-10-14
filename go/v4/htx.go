@@ -10293,7 +10293,7 @@ func (this *Htx) Nonce() any {
 	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 func (this *Htx) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -10314,15 +10314,17 @@ func (this *Htx) Sign(path string, optionalArgs ...any) any {
 	} else {
 		query = this.Omit(params, this.ExtractParams(path))
 	}
-	if IsString(api) {
+	var apiLength int = GetArrayLength(api)
+	if apiLength == 1 {
 		// signing implementation for the old endpoints
-		if (api == "public") || (api == "private") {
+		var apiName *string = SafeStringPtr(GetValue(api, 0))
+		if (apiName != nil && *apiName == "public") || (apiName != nil && *apiName == "private") {
 			url += this.Version
-		} else if (api == "v2Public") || (api == "v2Private") {
+		} else if (apiName != nil && *apiName == "v2Public") || (apiName != nil && *apiName == "v2Private") {
 			url += "v2"
 		}
 		url += "/" + this.ImplodeParams(path, params)
-		if (api == "private") || (api == "v2Private") {
+		if (apiName != nil && *apiName == "private") || (apiName != nil && *apiName == "v2Private") {
 			this.CheckRequiredCredentials()
 			var timestamp string = this.Ymdhms(this.Nonce(), "T")
 			var request map[string]any = map[string]any{
@@ -10365,7 +10367,7 @@ func (this *Htx) Sign(path string, optionalArgs ...any) any {
 				url += "?" + this.Urlencode(query)
 			}
 		}
-		var baseApiUrl *string = this.SafeString(this.Urls["api"], api)
+		var baseApiUrl *string = this.SafeString(this.Urls["api"], apiName)
 		if baseApiUrl == nil {
 			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 		}
@@ -11082,7 +11084,7 @@ func (this *Htx) fetchPositionBody(ch chan AsyncResult[any], symbol any, optiona
 			}
 			response = r3.Raw
 		} else {
-			panic(NotSupported(this.Id + " setLeverage() not support this market type"))
+			panic(NotSupported(this.Id + " fetchPosition() not support this market type"))
 		}
 	}
 	var data any = this.SafeValue(response, "data")
@@ -11224,11 +11226,11 @@ func (this *Htx) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...any) 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes854319 []any = ListTyped(r1.Value)
-		if retRes854319 == nil {
+		var retRes854519 []any = ListTyped(r1.Value)
+		if retRes854519 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes854319}
+			ch <- AsyncResult[any]{Value: retRes854519}
 		}
 		return nil
 	}

@@ -10,124 +10,164 @@ import { Exchange as _Exchange } from '../base/Exchange.js';
 
 abstract class Exchange extends _Exchange {
     exchangeGetMarkets (params = {}): Promise<Dict> {
-        return this.request ("markets", "exchange", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('markets', [ 'exchange' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     exchangePrivateGetCandles (params = {}): Promise<Dict> {
-        return this.request ("candles", "exchangePrivate", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('candles', [ 'exchangePrivate' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     exchangePrivateGetMove (params = {}): Promise<Dict> {
-        return this.request ("move", "exchangePrivate", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('move', [ 'exchangePrivate' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     exchangePrivateGetMoveListMoves (params = {}): Promise<Dict> {
-        return this.request ("move/list_moves", "exchangePrivate", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('move/list_moves', [ 'exchangePrivate' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     exchangePrivateGetTransfers (params = {}): Promise<Dict> {
-        return this.request ("transfers", "exchangePrivate", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('transfers', [ 'exchangePrivate' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     exchangePrivatePostConvert (params = {}): Promise<Dict> {
-        return this.request ("convert", "exchangePrivate", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('convert', [ 'exchangePrivate' ], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
+
     exchangePrivatePostMove (params = {}): Promise<Dict> {
-        return this.request ("move", "exchangePrivate", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('move', [ 'exchangePrivate' ], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
+
     publicGetOrderbook (params = {}): Promise<Dict> {
-        return this.request ("orderbook", "public", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('orderbook', [ 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     publicGetOrderbookTop (params = {}): Promise<Dict> {
-        return this.request ("orderbook_top", "public", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('orderbook_top', [ 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     publicGetTicker (params = {}): Promise<Dict> {
-        return this.request ("ticker", "public", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('ticker', [ 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     publicGetTickers (params = {}): Promise<Dict> {
-        return this.request ("tickers", "public", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('tickers', [ 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     publicGetTrades (params = {}): Promise<Dict> {
-        return this.request ("trades", "public", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('trades', [ 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     privateGetAccountsIdPending (params = {}): Promise<Dict> {
-        return this.request ("accounts/{id}/pending", "private", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('accounts/{id}/pending', [ 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     privateGetAccountsIdTransactions (params = {}): Promise<Dict> {
-        return this.request ("accounts/{id}/transactions", "private", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('accounts/{id}/transactions', [ 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     privateGetBalance (params = {}): Promise<Dict> {
-        return this.request ("balance", "private", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('balance', [ 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     privateGetBeneficiaries (params = {}): Promise<Dict> {
-        return this.request ("beneficiaries", "private", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('beneficiaries', [ 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     privateGetSendNetworks (params = {}): Promise<Dict> {
-        return this.request ("send/networks", "private", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('send/networks', [ 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     privateGetFeeInfo (params = {}): Promise<Dict> {
-        return this.request ("fee_info", "private", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('fee_info', [ 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     privateGetFundingAddress (params = {}): Promise<Dict> {
-        return this.request ("funding_address", "private", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('funding_address', [ 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     privateGetListorders (params = {}): Promise<Dict> {
-        return this.request ("listorders", "private", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('listorders', [ 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     privateGetListtrades (params = {}): Promise<Dict> {
-        return this.request ("listtrades", "private", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('listtrades', [ 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     privateGetSendFee (params = {}): Promise<Dict> {
-        return this.request ("send_fee", "private", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('send_fee', [ 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     privateGetOrdersId (params = {}): Promise<Dict> {
-        return this.request ("orders/{id}", "private", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('orders/{id}', [ 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     privateGetWithdrawals (params = {}): Promise<Dict> {
-        return this.request ("withdrawals", "private", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('withdrawals', [ 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     privateGetWithdrawalsId (params = {}): Promise<Dict> {
-        return this.request ("withdrawals/{id}", "private", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('withdrawals/{id}', [ 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     privateGetTransfers (params = {}): Promise<Dict> {
-        return this.request ("transfers", "private", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('transfers', [ 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     privateGetUsersLinked (params = {}): Promise<Dict> {
-        return this.request ("users/linked", "private", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('users/linked', [ 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
+
     privatePostAccounts (params = {}): Promise<Dict> {
-        return this.request ("accounts", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('accounts', [ 'private' ], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
+
     privatePostAddressValidate (params = {}): Promise<Dict> {
-        return this.request ("address/validate", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('address/validate', [ 'private' ], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
+
     privatePostPostorder (params = {}): Promise<Dict> {
-        return this.request ("postorder", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('postorder', [ 'private' ], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
+
     privatePostMarketorder (params = {}): Promise<Dict> {
-        return this.request ("marketorder", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('marketorder', [ 'private' ], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
+
     privatePostStoporder (params = {}): Promise<Dict> {
-        return this.request ("stoporder", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('stoporder', [ 'private' ], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
+
     privatePostFundingAddress (params = {}): Promise<Dict> {
-        return this.request ("funding_address", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('funding_address', [ 'private' ], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
+
     privatePostWithdrawals (params = {}): Promise<Dict> {
-        return this.request ("withdrawals", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('withdrawals', [ 'private' ], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
+
     privatePostSend (params = {}): Promise<Dict> {
-        return this.request ("send", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('send', [ 'private' ], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
+
     privatePostOauth2Grant (params = {}): Promise<Dict> {
-        return this.request ("oauth2/grant", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('oauth2/grant', [ 'private' ], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
+
     privatePostBeneficiaries (params = {}): Promise<Dict> {
-        return this.request ("beneficiaries", "private", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('beneficiaries', [ 'private' ], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
+
     privatePutAccountsIdName (params = {}): Promise<Dict> {
-        return this.request ("accounts/{id}/name", "private", 'PUT', params, undefined, undefined, {"cost":1});
+        return this.request ('accounts/{id}/name', [ 'private' ], 'PUT', params, undefined, undefined, { 'cost': 1 });
     }
+
     privateDeleteWithdrawalsId (params = {}): Promise<Dict> {
-        return this.request ("withdrawals/{id}", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+        return this.request ('withdrawals/{id}', [ 'private' ], 'DELETE', params, undefined, undefined, { 'cost': 1 });
     }
+
     privateDeleteBeneficiariesId (params = {}): Promise<Dict> {
-        return this.request ("beneficiaries/{id}", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+        return this.request ('beneficiaries/{id}', [ 'private' ], 'DELETE', params, undefined, undefined, { 'cost': 1 });
     }
 }
-export default Exchange
+
+export default Exchange;

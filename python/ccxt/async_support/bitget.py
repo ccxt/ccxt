@@ -11442,7 +11442,7 @@ class bitget(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' nonce() requires a numeric options["timeDifference"]')
         return self.milliseconds() - timeDifference
 
-    def sign(self, path: str, api: object = [], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = [], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         signed = api[0] == 'private'
         endpoint = api[1]
         pathPart = '/api'

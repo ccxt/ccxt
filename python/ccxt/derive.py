@@ -3773,7 +3773,7 @@ class derive(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal to an L1 address, the payout defaults to the owner wallet and a session key may only pay out to the owner wallet or a whitelisted recipient
 
@@ -3782,7 +3782,6 @@ class derive(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the L1 address to withdraw to
-        :param str [tag]: not used by derive.withdraw
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.max_fee_usd]: the maximum accepted fee in usd, default 1, or 10 with force_batch
         :param bool [params.force_batch]: pay the higher fee to have the withdrawal batch proven immediately
@@ -4093,8 +4092,9 @@ class derive(Exchange, ImplicitAPI):
         # signs the auth timestamp and feeds incrementingNonce (), which nonceString () extends to the nanosecond-scale action nonce; must be unique per wallet (error 11017) while staying a valid date (error 11018)
         return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        apiUrl = self.safe_string(self.urls['api'], api)
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        apiName = api[0]
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + '/' + path
@@ -4102,7 +4102,7 @@ class derive(Exchange, ImplicitAPI):
             postHeaders = {
                 'Content-Type': 'application/json',
             }
-            if api == 'private':
+            if apiName == 'private':
                 now = self.number_to_string(self.nonce())
                 signature = self.sign_message(now, self.privateKey)
                 deriveWalletAddress = self.safe_string(self.options, 'deriveWalletAddress')

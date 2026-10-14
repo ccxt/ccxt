@@ -861,17 +861,18 @@ class btcbox extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $apiName = $api[0];
         $apiUrl = $this->safe_string($this->urls['api'], 'rest');
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $apiUrl . '/' . $this->version . '/' . $path;
-        if ($api === 'public') {
+        if ($apiName === 'public') {
             if (count($params) > 0) {
                 $url .= '?' . $this->urlencode($params);
             }
-        } elseif ($api === 'webApi') {
+        } elseif ($apiName === 'webApi') {
             $url = $this->urls['www'] . '/' . $path;
         } else {
             $this->check_required_credentials();
@@ -910,11 +911,11 @@ class btcbox extends Exchange {
         throw new ExchangeError($feedback); // unknown message
     }
 
-    public function request(string $path, $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, array $config = array()) {
+    public function request(string $path, array $api = array('public'), $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, array $config = array()) {
         return Async\async(self::do_request(...))($path, $api, $method, $params, $headers, $body, $config);
     }
 
-    private function do_request(string $path, $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, array $config = array()) {
+    private function do_request(string $path, array $api = array('public'), $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, array $config = array()) {
         $response = $this->do_fetch2($path, $api, $method, $params, $headers, $body, $config);
         if (gettype($response) === 'string') {
             // sometimes the exchange returns whitespace prepended to json

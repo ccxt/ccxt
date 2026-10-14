@@ -1250,11 +1250,12 @@ export default class bitflyer extends Exchange {
         } as FundingRate;
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
         let bodySigned: Str = undefined;
         let headersSigned: NullableDict = undefined;
         let request = '/' + this.version + '/';
-        if (api === 'private') {
+        if (apiName === 'private') {
             request += 'me/';
         }
         request += path;
@@ -1269,7 +1270,7 @@ export default class bitflyer extends Exchange {
         }
         const baseUrl = this.implodeHostname (apiUrl);
         const url = baseUrl + request;
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
             const content = [ nonce, method, request ];

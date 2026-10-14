@@ -2636,7 +2636,7 @@ impl KucoinCore {
         m.insert("uta".to_string(), Value::Null);
         m.insert("version".to_string(), Value::Str("v1".into()));
         m.insert("symbolSeparator".to_string(), Value::Str("-".into()));
-        m.insert("fetchMyTradesMethod".to_string(), Value::Str("private_get_fills".into()));
+        m.insert("fetchMyTradesMethod".to_string(), Value::Str("privateGetFills".into()));
         m.insert("timeDifference".to_string(), Value::Int(0));
         m.insert("adjustForTimeDifference".to_string(), Value::Bool(false));
         m.insert("fetchCurrencies".to_string(), Value::Map({
@@ -9414,7 +9414,7 @@ impl KucoinCore {
                 let __ws_arg_82 = self.extend(request.clone(), &[paramsRequest.clone()]);
                 response = self.private_get_hf_fills(&[__ws_arg_82]).await;
             }
-        }  else if (method.as_deref() == Some("private_get_fills")) {
+        }  else if (method.as_deref() == Some("privateGetFills")) || (method.as_deref() == Some("private_get_fills")) {
             // does not return trades earlier than 2019-02-18T00:00:00Z
             if (since != Value::Null) {
                 // only returns trades up to one week after the since param
@@ -9422,7 +9422,7 @@ impl KucoinCore {
             }
             let __ws_arg_83 = self.extend(request.clone(), &[paramsRequest.clone()]);
             response = self.private_get_fills(&[__ws_arg_83]).await;
-        }  else if (method.as_deref() == Some("private_get_limit_fills")) {
+        }  else if (method.as_deref() == Some("privateGetLimitFills")) || (method.as_deref() == Some("private_get_limit_fills")) {
             // does not return trades earlier than 2019-02-18T00:00:00Z
             // takes no params
             // only returns first 1000 trades (not only "in the last 24 hours" as stated in the docs)

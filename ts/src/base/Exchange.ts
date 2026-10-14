@@ -235,7 +235,7 @@ export class BaseExchange {
     [key: string]: any;
 
     // this is updated by vss.js when building
-    static ccxtVersion = '4.5.87';
+    static ccxtVersion = '4.5.88';
 
     options: Dict;
 
@@ -3697,7 +3697,7 @@ export class BaseExchange {
         this.options['enableDemoTrading'] = enable;
     }
 
-    sign (path: string, api: any = 'public', method = 'GET', params: Dict = {}): Dict {
+    sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
         return { 'url': undefined, 'method': undefined, 'headers': undefined, 'body': undefined };
     }
 
@@ -6478,7 +6478,7 @@ export class BaseExchange {
         return results;
     }
 
-    async fetch2 (path: string, api: any = 'public', method = 'GET', params: Dict = {}, config: Dict = {}): Promise<any> {
+    async fetch2 (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, config: Dict = {}): Promise<any> {
         if (this.enableRateLimit) {
             const cost = this.calculateRateLimiterCost (api, method, path, params, config);
             await this.throttle (cost);
@@ -6533,7 +6533,7 @@ export class BaseExchange {
         return undefined; // this line is never reached, but exists for c# value return requirement
     }
 
-    async request (path: string, api: any = 'public', method = 'GET', params: Dict = {}, config: Dict = {}): Promise<any> {
+    async request (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, config: Dict = {}): Promise<any> {
         return await this.fetch2 (path, api, method, params, config);
     }
 
@@ -7107,7 +7107,7 @@ export class BaseExchange {
         return undefined;
     }
 
-    calculateRateLimiterCost (api: any, method: any, path: any, params: any, config: Dict = {}) {
+    calculateRateLimiterCost (api: string[], method: any, path: any, params: any, config: Dict = {}) {
         return this.safeValue (config, 'cost', 1);
     }
 

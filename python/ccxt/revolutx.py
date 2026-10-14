@@ -218,20 +218,21 @@ class revolutx(Exchange, ImplicitAPI):
             },
         })
 
-    def sign(self, path: str, api: object = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         requestHeaders = None
         requestBody = None
         implodedPath = self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         queryKeys = list(query.keys())
         queryLength = len(queryKeys)
-        baseApiUrl = self.safe_string(self.urls['api'], api)
+        apiName = api[0]
+        baseApiUrl = self.safe_string(self.urls['api'], apiName)
         if baseApiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         baseUrl = baseApiUrl
         url = baseUrl + '/' + implodedPath
         queryString = ''
-        if api == 'private':
+        if apiName == 'private':
             self.check_required_credentials()
             timestamp = str(self.milliseconds())
             if method == 'GET':

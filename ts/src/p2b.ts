@@ -1352,8 +1352,9 @@ export default class p2b extends Exchange {
         }, marketResolved);
     }
 
-    override sign (path: string, api: any = 'public', method = 'GET', params: Dict = {}): Dict {
-        const baseApiUrl = this.safeString (this.urls['api'], api);
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
+        const baseApiUrl = this.safeString (this.urls['api'], apiName);
         if (baseApiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
@@ -1365,7 +1366,7 @@ export default class p2b extends Exchange {
                 url += '?' + this.urlencode (paramsOmitted);
             }
         }
-        if (api === 'private') {
+        if (apiName === 'private') {
             paramsOmitted['request'] = '/api/v2/' + path;
             // p2b rejects a repeated nonce within 10 seconds (error 1016) — a dedup window, not a server-time check, so the counter drifting ahead of the clock under bursts is harmless
             // the nonce deliberately stays on the second-resolution base nonce: the venue documents second-scale (int32-range) nonce values and millisecond nonces are unverified against the live API

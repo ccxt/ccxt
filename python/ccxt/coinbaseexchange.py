@@ -2054,7 +2054,8 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        apiName = api[0]
         requestHeaders = headers
         requestBody = body
         request = '/' + self.implode_params(path, params)
@@ -2062,11 +2063,11 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         if method == 'GET':
             if len(query) > 0:
                 request += '?' + self.urlencode(query)
-        apiUrl = self.safe_string(self.urls['api'], api)
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = self.implode_hostname(apiUrl) + request
-        if api == 'private':
+        if apiName == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())
             payload = ''
@@ -2101,7 +2102,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' ' + body)
         return None
 
-    def request(self, path: str, api='public', method='GET', params: dict = {}, headers: object = None, body: object = None, config: dict = {}):
+    def request(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: object = None, body: object = None, config: dict = {}):
         response = self.fetch2(path, api, method, params, headers, body, config)
         if not isinstance(response, str):
             if 'message' in response:

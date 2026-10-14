@@ -378,7 +378,7 @@ class bittrade extends Exchange {
                 ),
                 // https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStates' => array(
-                    'method' => 'private_get_order_orders', // 'private_get_order_history' // https://github.com/ccxt/ccxt/pull/5392
+                    'method' => 'privateGetOrderOrders', // 'privateGetOrderHistory' // https://github.com/ccxt/ccxt/pull/5392
                 ),
                 'fetchOpenOrders' => array(
                     'method' => 'fetch_open_orders_v1', // 'fetch_open_orders_v2' // https://github.com/ccxt/ccxt/issues/5388
@@ -1267,7 +1267,7 @@ class bittrade extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        $method = $this->handle_option('fetchOrdersByStates', 'method', 'private_get_order_orders');
+        $method = $this->handle_option('fetchOrdersByStates', 'method', 'privateGetOrderOrders');
         $response = null;
         if (($method === 'private_get_order_history') || ($method === 'privateGetOrderHistory')) {
             $response = $this->privateGetOrderHistory($this->extend($request, $params));
@@ -2053,20 +2053,21 @@ class bittrade extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $apiName = $api[0];
         $requestHeaders = null;
         $requestBody = null;
         $url = '/';
-        if ($api === 'market') {
+        if ($apiName === 'market') {
             $url .= 'market';
-        } elseif (($api === 'public') || ($api === 'private')) {
+        } elseif (($apiName === 'public') || ($apiName === 'private')) {
             $url .= $this->version;
-        } elseif (($api === 'v2Public') || ($api === 'v2Private')) {
+        } elseif (($apiName === 'v2Public') || ($apiName === 'v2Private')) {
             $url .= 'v2';
         }
         $url .= '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
-        if ($api === 'private' || $api === 'v2Private') {
+        if ($apiName === 'private' || $apiName === 'v2Private') {
             $this->check_required_credentials();
             $timestamp = $this->ymdhms($this->milliseconds(), 'T');
             $request = array(
@@ -2102,7 +2103,7 @@ class bittrade extends Exchange {
                 $url .= '?' . $this->urlencode($params);
             }
         }
-        $baseApiUrl = $this->safe_string($this->urls['api'], $api);
+        $baseApiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($baseApiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }

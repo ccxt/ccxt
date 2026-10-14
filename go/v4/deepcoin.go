@@ -4246,7 +4246,7 @@ func (this *Deepcoin) closePositionBody(ch chan AsyncResult[any], symbol string,
 	return nil
 }
 func (this *Deepcoin) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -4256,6 +4256,7 @@ func (this *Deepcoin) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var requestPath string = path
 	if method == "GET" {
 		var query string = this.Urlencode(params)
@@ -4263,12 +4264,12 @@ func (this *Deepcoin) Sign(path string, optionalArgs ...any) any {
 			requestPath += "?" + query
 		}
 	}
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *apiUrl + "/" + requestPath
-	if api == "private" {
+	if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		var timestamp int64 = this.Milliseconds()
 		var dateTime *string = this.Iso8601(timestamp)

@@ -7,343 +7,343 @@ var Exchange$1 = require('../base/Exchange.js');
 // ----------------------------------------------------------------------------
 class Exchange extends Exchange$1["default"] {
     v2PublicGetReferenceCurrencies(params = {}) {
-        return this.request("reference/currencies", "v2Public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('reference/currencies', ['v2Public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v2PublicGetMarketStatus(params = {}) {
-        return this.request("market-status", "v2Public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('market-status', ['v2Public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v2PrivateGetAccountLedger(params = {}) {
-        return this.request("account/ledger", "v2Private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/ledger', ['v2Private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v2PrivateGetAccountWithdrawQuota(params = {}) {
-        return this.request("account/withdraw/quota", "v2Private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/withdraw/quota', ['v2Private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v2PrivateGetAccountWithdrawAddress(params = {}) {
-        return this.request("account/withdraw/address", "v2Private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/withdraw/address', ['v2Private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v2PrivateGetAccountDepositAddress(params = {}) {
-        return this.request("account/deposit/address", "v2Private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/deposit/address', ['v2Private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v2PrivateGetAccountRepayment(params = {}) {
-        return this.request("account/repayment", "v2Private", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('account/repayment', ['v2Private'], 'GET', params, undefined, undefined, { 'cost': 5 });
     }
     v2PrivateGetReferenceTransactFeeRate(params = {}) {
-        return this.request("reference/transact-fee-rate", "v2Private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('reference/transact-fee-rate', ['v2Private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v2PrivateGetAccountAssetValuation(params = {}) {
-        return this.request("account/asset-valuation", "v2Private", 'GET', params, undefined, undefined, { "cost": 0.2 });
+        return this.request('account/asset-valuation', ['v2Private'], 'GET', params, undefined, undefined, { 'cost': 0.2 });
     }
     v2PrivateGetPointAccount(params = {}) {
-        return this.request("point/account", "v2Private", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('point/account', ['v2Private'], 'GET', params, undefined, undefined, { 'cost': 5 });
     }
     v2PrivateGetSubUserUserList(params = {}) {
-        return this.request("sub-user/user-list", "v2Private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('sub-user/user-list', ['v2Private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v2PrivateGetSubUserUserState(params = {}) {
-        return this.request("sub-user/user-state", "v2Private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('sub-user/user-state', ['v2Private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v2PrivateGetSubUserAccountList(params = {}) {
-        return this.request("sub-user/account-list", "v2Private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('sub-user/account-list', ['v2Private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v2PrivateGetSubUserDepositAddress(params = {}) {
-        return this.request("sub-user/deposit-address", "v2Private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('sub-user/deposit-address', ['v2Private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v2PrivateGetSubUserQueryDeposit(params = {}) {
-        return this.request("sub-user/query-deposit", "v2Private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('sub-user/query-deposit', ['v2Private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v2PrivateGetUserApiKey(params = {}) {
-        return this.request("user/api-key", "v2Private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('user/api-key', ['v2Private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v2PrivateGetUserUid(params = {}) {
-        return this.request("user/uid", "v2Private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('user/uid', ['v2Private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v2PrivateGetAlgoOrdersOpening(params = {}) {
-        return this.request("algo-orders/opening", "v2Private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('algo-orders/opening', ['v2Private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v2PrivateGetAlgoOrdersHistory(params = {}) {
-        return this.request("algo-orders/history", "v2Private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('algo-orders/history', ['v2Private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v2PrivateGetAlgoOrdersSpecific(params = {}) {
-        return this.request("algo-orders/specific", "v2Private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('algo-orders/specific', ['v2Private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v2PrivateGetC2cOffers(params = {}) {
-        return this.request("c2c/offers", "v2Private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('c2c/offers', ['v2Private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v2PrivateGetC2cOffer(params = {}) {
-        return this.request("c2c/offer", "v2Private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('c2c/offer', ['v2Private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v2PrivateGetC2cTransactions(params = {}) {
-        return this.request("c2c/transactions", "v2Private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('c2c/transactions', ['v2Private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v2PrivateGetC2cRepayment(params = {}) {
-        return this.request("c2c/repayment", "v2Private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('c2c/repayment', ['v2Private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v2PrivateGetC2cAccount(params = {}) {
-        return this.request("c2c/account", "v2Private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('c2c/account', ['v2Private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v2PrivateGetEtpReference(params = {}) {
-        return this.request("etp/reference", "v2Private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('etp/reference', ['v2Private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v2PrivateGetEtpTransactions(params = {}) {
-        return this.request("etp/transactions", "v2Private", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('etp/transactions', ['v2Private'], 'GET', params, undefined, undefined, { 'cost': 5 });
     }
     v2PrivateGetEtpTransaction(params = {}) {
-        return this.request("etp/transaction", "v2Private", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('etp/transaction', ['v2Private'], 'GET', params, undefined, undefined, { 'cost': 5 });
     }
     v2PrivateGetEtpRebalance(params = {}) {
-        return this.request("etp/rebalance", "v2Private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('etp/rebalance', ['v2Private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v2PrivateGetEtpLimit(params = {}) {
-        return this.request("etp/limit", "v2Private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('etp/limit', ['v2Private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     v2PrivatePostAccountTransfer(params = {}) {
-        return this.request("account/transfer", "v2Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/transfer', ['v2Private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v2PrivatePostAccountRepayment(params = {}) {
-        return this.request("account/repayment", "v2Private", 'POST', params, undefined, undefined, { "cost": 5 });
+        return this.request('account/repayment', ['v2Private'], 'POST', params, undefined, undefined, { 'cost': 5 });
     }
     v2PrivatePostPointTransfer(params = {}) {
-        return this.request("point/transfer", "v2Private", 'POST', params, undefined, undefined, { "cost": 5 });
+        return this.request('point/transfer', ['v2Private'], 'POST', params, undefined, undefined, { 'cost': 5 });
     }
     v2PrivatePostSubUserManagement(params = {}) {
-        return this.request("sub-user/management", "v2Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('sub-user/management', ['v2Private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v2PrivatePostSubUserCreation(params = {}) {
-        return this.request("sub-user/creation", "v2Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('sub-user/creation', ['v2Private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v2PrivatePostSubUserTradableMarket(params = {}) {
-        return this.request("sub-user/tradable-market", "v2Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('sub-user/tradable-market', ['v2Private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v2PrivatePostSubUserTransferability(params = {}) {
-        return this.request("sub-user/transferability", "v2Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('sub-user/transferability', ['v2Private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v2PrivatePostSubUserApiKeyGeneration(params = {}) {
-        return this.request("sub-user/api-key-generation", "v2Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('sub-user/api-key-generation', ['v2Private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v2PrivatePostSubUserApiKeyModification(params = {}) {
-        return this.request("sub-user/api-key-modification", "v2Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('sub-user/api-key-modification', ['v2Private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v2PrivatePostSubUserApiKeyDeletion(params = {}) {
-        return this.request("sub-user/api-key-deletion", "v2Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('sub-user/api-key-deletion', ['v2Private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v2PrivatePostSubUserDeductMode(params = {}) {
-        return this.request("sub-user/deduct-mode", "v2Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('sub-user/deduct-mode', ['v2Private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v2PrivatePostAlgoOrders(params = {}) {
-        return this.request("algo-orders", "v2Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('algo-orders', ['v2Private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v2PrivatePostAlgoOrdersCancelAllAfter(params = {}) {
-        return this.request("algo-orders/cancel-all-after", "v2Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('algo-orders/cancel-all-after', ['v2Private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v2PrivatePostAlgoOrdersCancellation(params = {}) {
-        return this.request("algo-orders/cancellation", "v2Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('algo-orders/cancellation', ['v2Private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v2PrivatePostC2cOffer(params = {}) {
-        return this.request("c2c/offer", "v2Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('c2c/offer', ['v2Private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v2PrivatePostC2cCancellation(params = {}) {
-        return this.request("c2c/cancellation", "v2Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('c2c/cancellation', ['v2Private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v2PrivatePostC2cCancelAll(params = {}) {
-        return this.request("c2c/cancel-all", "v2Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('c2c/cancel-all', ['v2Private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v2PrivatePostC2cRepayment(params = {}) {
-        return this.request("c2c/repayment", "v2Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('c2c/repayment', ['v2Private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v2PrivatePostC2cTransfer(params = {}) {
-        return this.request("c2c/transfer", "v2Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('c2c/transfer', ['v2Private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     v2PrivatePostEtpCreation(params = {}) {
-        return this.request("etp/creation", "v2Private", 'POST', params, undefined, undefined, { "cost": 5 });
+        return this.request('etp/creation', ['v2Private'], 'POST', params, undefined, undefined, { 'cost': 5 });
     }
     v2PrivatePostEtpRedemption(params = {}) {
-        return this.request("etp/redemption", "v2Private", 'POST', params, undefined, undefined, { "cost": 5 });
+        return this.request('etp/redemption', ['v2Private'], 'POST', params, undefined, undefined, { 'cost': 5 });
     }
     v2PrivatePostEtpTransactIdCancel(params = {}) {
-        return this.request("etp/{transactId}/cancel", "v2Private", 'POST', params, undefined, undefined, { "cost": 10 });
+        return this.request('etp/{transactId}/cancel', ['v2Private'], 'POST', params, undefined, undefined, { 'cost': 10 });
     }
     v2PrivatePostEtpBatchCancel(params = {}) {
-        return this.request("etp/batch-cancel", "v2Private", 'POST', params, undefined, undefined, { "cost": 50 });
+        return this.request('etp/batch-cancel', ['v2Private'], 'POST', params, undefined, undefined, { 'cost': 50 });
     }
     marketGetHistoryKline(params = {}) {
-        return this.request("history/kline", "market", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('history/kline', ['market'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     marketGetDetailMerged(params = {}) {
-        return this.request("detail/merged", "market", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('detail/merged', ['market'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     marketGetDepth(params = {}) {
-        return this.request("depth", "market", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('depth', ['market'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     marketGetTrade(params = {}) {
-        return this.request("trade", "market", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('trade', ['market'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     marketGetHistoryTrade(params = {}) {
-        return this.request("history/trade", "market", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('history/trade', ['market'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     marketGetDetail(params = {}) {
-        return this.request("detail", "market", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('detail', ['market'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     marketGetTickers(params = {}) {
-        return this.request("tickers", "market", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('tickers', ['market'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     marketGetEtp(params = {}) {
-        return this.request("etp", "market", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('etp', ['market'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     publicGetCommonSymbols(params = {}) {
-        return this.request("common/symbols", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('common/symbols', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     publicGetCommonCurrencys(params = {}) {
-        return this.request("common/currencys", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('common/currencys', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     publicGetCommonTimestamp(params = {}) {
-        return this.request("common/timestamp", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('common/timestamp', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     publicGetCommonExchange(params = {}) {
-        return this.request("common/exchange", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('common/exchange', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     publicGetSettingsCurrencys(params = {}) {
-        return this.request("settings/currencys", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('settings/currencys', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     publicGetRetailMaintainTime(params = {}) {
-        return this.request("retail/maintain/time", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('retail/maintain/time', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     privateGetAccountAccounts(params = {}) {
-        return this.request("account/accounts", "private", 'GET', params, undefined, undefined, { "cost": 0.2 });
+        return this.request('account/accounts', ['private'], 'GET', params, undefined, undefined, { 'cost': 0.2 });
     }
     privateGetAccountAccountsIdBalance(params = {}) {
-        return this.request("account/accounts/{id}/balance", "private", 'GET', params, undefined, undefined, { "cost": 0.2 });
+        return this.request('account/accounts/{id}/balance', ['private'], 'GET', params, undefined, undefined, { 'cost': 0.2 });
     }
     privateGetAccountAccountsSubUid(params = {}) {
-        return this.request("account/accounts/{sub-uid}", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/accounts/{sub-uid}', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     privateGetAccountHistory(params = {}) {
-        return this.request("account/history", "private", 'GET', params, undefined, undefined, { "cost": 4 });
+        return this.request('account/history', ['private'], 'GET', params, undefined, undefined, { 'cost': 4 });
     }
     privateGetCrossMarginLoanInfo(params = {}) {
-        return this.request("cross-margin/loan-info", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('cross-margin/loan-info', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     privateGetMarginLoanInfo(params = {}) {
-        return this.request("margin/loan-info", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('margin/loan-info', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     privateGetFeeFeeRateGet(params = {}) {
-        return this.request("fee/fee-rate/get", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('fee/fee-rate/get', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     privateGetOrderOpenOrders(params = {}) {
-        return this.request("order/openOrders", "private", 'GET', params, undefined, undefined, { "cost": 0.4 });
+        return this.request('order/openOrders', ['private'], 'GET', params, undefined, undefined, { 'cost': 0.4 });
     }
     privateGetOrderOrders(params = {}) {
-        return this.request("order/orders", "private", 'GET', params, undefined, undefined, { "cost": 0.4 });
+        return this.request('order/orders', ['private'], 'GET', params, undefined, undefined, { 'cost': 0.4 });
     }
     privateGetOrderOrdersId(params = {}) {
-        return this.request("order/orders/{id}", "private", 'GET', params, undefined, undefined, { "cost": 0.4 });
+        return this.request('order/orders/{id}', ['private'], 'GET', params, undefined, undefined, { 'cost': 0.4 });
     }
     privateGetOrderOrdersIdMatchresults(params = {}) {
-        return this.request("order/orders/{id}/matchresults", "private", 'GET', params, undefined, undefined, { "cost": 0.4 });
+        return this.request('order/orders/{id}/matchresults', ['private'], 'GET', params, undefined, undefined, { 'cost': 0.4 });
     }
     privateGetOrderOrdersGetClientOrder(params = {}) {
-        return this.request("order/orders/getClientOrder", "private", 'GET', params, undefined, undefined, { "cost": 0.4 });
+        return this.request('order/orders/getClientOrder', ['private'], 'GET', params, undefined, undefined, { 'cost': 0.4 });
     }
     privateGetOrderHistory(params = {}) {
-        return this.request("order/history", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/history', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     privateGetOrderMatchresults(params = {}) {
-        return this.request("order/matchresults", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/matchresults', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     privateGetQueryDepositWithdraw(params = {}) {
-        return this.request("query/deposit-withdraw", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('query/deposit-withdraw', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     privateGetMarginLoanOrders(params = {}) {
-        return this.request("margin/loan-orders", "private", 'GET', params, undefined, undefined, { "cost": 0.2 });
+        return this.request('margin/loan-orders', ['private'], 'GET', params, undefined, undefined, { 'cost': 0.2 });
     }
     privateGetMarginAccountsBalance(params = {}) {
-        return this.request("margin/accounts/balance", "private", 'GET', params, undefined, undefined, { "cost": 0.2 });
+        return this.request('margin/accounts/balance', ['private'], 'GET', params, undefined, undefined, { 'cost': 0.2 });
     }
     privateGetCrossMarginLoanOrders(params = {}) {
-        return this.request("cross-margin/loan-orders", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('cross-margin/loan-orders', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     privateGetCrossMarginAccountsBalance(params = {}) {
-        return this.request("cross-margin/accounts/balance", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('cross-margin/accounts/balance', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     privateGetPointsActions(params = {}) {
-        return this.request("points/actions", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('points/actions', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     privateGetPointsOrders(params = {}) {
-        return this.request("points/orders", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('points/orders', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     privateGetSubuserAggregateBalance(params = {}) {
-        return this.request("subuser/aggregate-balance", "private", 'GET', params, undefined, undefined, { "cost": 10 });
+        return this.request('subuser/aggregate-balance', ['private'], 'GET', params, undefined, undefined, { 'cost': 10 });
     }
     privateGetStableCoinExchangeRate(params = {}) {
-        return this.request("stable-coin/exchange_rate", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('stable-coin/exchange_rate', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     privateGetStableCoinQuote(params = {}) {
-        return this.request("stable-coin/quote", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('stable-coin/quote', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     privateGetRetailOrderList(params = {}) {
-        return this.request("retail/order/list", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('retail/order/list', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostAccountTransfer(params = {}) {
-        return this.request("account/transfer", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/transfer', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostFuturesTransfer(params = {}) {
-        return this.request("futures/transfer", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('futures/transfer', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostOrderBatchOrders(params = {}) {
-        return this.request("order/batch-orders", "private", 'POST', params, undefined, undefined, { "cost": 0.4 });
+        return this.request('order/batch-orders', ['private'], 'POST', params, undefined, undefined, { 'cost': 0.4 });
     }
     privatePostOrderOrdersPlace(params = {}) {
-        return this.request("order/orders/place", "private", 'POST', params, undefined, undefined, { "cost": 0.2 });
+        return this.request('order/orders/place', ['private'], 'POST', params, undefined, undefined, { 'cost': 0.2 });
     }
     privatePostOrderOrdersSubmitCancelClientOrder(params = {}) {
-        return this.request("order/orders/submitCancelClientOrder", "private", 'POST', params, undefined, undefined, { "cost": 0.2 });
+        return this.request('order/orders/submitCancelClientOrder', ['private'], 'POST', params, undefined, undefined, { 'cost': 0.2 });
     }
     privatePostOrderOrdersBatchCancelOpenOrders(params = {}) {
-        return this.request("order/orders/batchCancelOpenOrders", "private", 'POST', params, undefined, undefined, { "cost": 0.4 });
+        return this.request('order/orders/batchCancelOpenOrders', ['private'], 'POST', params, undefined, undefined, { 'cost': 0.4 });
     }
     privatePostOrderOrdersIdSubmitcancel(params = {}) {
-        return this.request("order/orders/{id}/submitcancel", "private", 'POST', params, undefined, undefined, { "cost": 0.2 });
+        return this.request('order/orders/{id}/submitcancel', ['private'], 'POST', params, undefined, undefined, { 'cost': 0.2 });
     }
     privatePostOrderOrdersBatchcancel(params = {}) {
-        return this.request("order/orders/batchcancel", "private", 'POST', params, undefined, undefined, { "cost": 0.4 });
+        return this.request('order/orders/batchcancel', ['private'], 'POST', params, undefined, undefined, { 'cost': 0.4 });
     }
     privatePostDwWithdrawApiCreate(params = {}) {
-        return this.request("dw/withdraw/api/create", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('dw/withdraw/api/create', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostDwWithdrawVirtualIdCancel(params = {}) {
-        return this.request("dw/withdraw-virtual/{id}/cancel", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('dw/withdraw-virtual/{id}/cancel', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostDwTransferInMargin(params = {}) {
-        return this.request("dw/transfer-in/margin", "private", 'POST', params, undefined, undefined, { "cost": 10 });
+        return this.request('dw/transfer-in/margin', ['private'], 'POST', params, undefined, undefined, { 'cost': 10 });
     }
     privatePostDwTransferOutMargin(params = {}) {
-        return this.request("dw/transfer-out/margin", "private", 'POST', params, undefined, undefined, { "cost": 10 });
+        return this.request('dw/transfer-out/margin', ['private'], 'POST', params, undefined, undefined, { 'cost': 10 });
     }
     privatePostMarginOrders(params = {}) {
-        return this.request("margin/orders", "private", 'POST', params, undefined, undefined, { "cost": 10 });
+        return this.request('margin/orders', ['private'], 'POST', params, undefined, undefined, { 'cost': 10 });
     }
     privatePostMarginOrdersIdRepay(params = {}) {
-        return this.request("margin/orders/{id}/repay", "private", 'POST', params, undefined, undefined, { "cost": 10 });
+        return this.request('margin/orders/{id}/repay', ['private'], 'POST', params, undefined, undefined, { 'cost': 10 });
     }
     privatePostCrossMarginTransferIn(params = {}) {
-        return this.request("cross-margin/transfer-in", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('cross-margin/transfer-in', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostCrossMarginTransferOut(params = {}) {
-        return this.request("cross-margin/transfer-out", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('cross-margin/transfer-out', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostCrossMarginOrders(params = {}) {
-        return this.request("cross-margin/orders", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('cross-margin/orders', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostCrossMarginOrdersIdRepay(params = {}) {
-        return this.request("cross-margin/orders/{id}/repay", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('cross-margin/orders/{id}/repay', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostStableCoinExchange(params = {}) {
-        return this.request("stable-coin/exchange", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('stable-coin/exchange', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostSubuserTransfer(params = {}) {
-        return this.request("subuser/transfer", "private", 'POST', params, undefined, undefined, { "cost": 10 });
+        return this.request('subuser/transfer', ['private'], 'POST', params, undefined, undefined, { 'cost': 10 });
     }
     privatePostRetailOrderPlace(params = {}) {
-        return this.request("retail/order/place", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('retail/order/place', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
 }
 

@@ -1156,17 +1156,18 @@ public partial class mercado : Exchange
 
     public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        object apiName = getValue(api, 0);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string url = (apiUrl + "/");
         object query = this.omit(parameters, this.extractParams(path));
-        bool isPublic = ((api is "public")) || (isEqual(api, "v4Public")) || (isEqual(api, "v4PublicNet"));
+        bool isPublic = ((apiName is "public")) || (isEqual(apiName, "v4Public")) || (isEqual(apiName, "v4PublicNet"));
         string? privateBody = null;
         Dictionary<string, object> privateHeaders = null;
         if (isPublic)

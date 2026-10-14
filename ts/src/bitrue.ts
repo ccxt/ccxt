@@ -3259,7 +3259,7 @@ export default class bitrue extends Exchange {
         return this.parseMarginModification (response, market);
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
         let requestBody: Str = undefined;
         let requestHeaders: NullableDict = undefined;
         const type = this.safeString (api, 0);
@@ -3408,7 +3408,7 @@ export default class bitrue extends Exchange {
         return undefined;
     }
 
-    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config: Dict = {}) {
+    override calculateRateLimiterCost (api: string[], method: any, path: any, params: any, config: Dict = {}) {
         if (('noSymbol' in config) && !('symbol' in params)) {
             return config['noSymbol'];
         } else if (('byLimit' in config) && ('limit' in params)) {

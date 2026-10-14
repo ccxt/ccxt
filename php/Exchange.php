@@ -62,7 +62,7 @@ use function abs, array_change_key_case, array_filter, array_is_list, array_key_
     stripos, strlen, strpos, strtolower, strtotime, strtoupper, strtr, strval, substr, sys_get_temp_dir,
     time, trim, unpack, urldecode, urlencode, usleep, usort, var_export;
 
-$version = '4.5.87';
+$version = '4.5.88';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -81,10 +81,10 @@ const PAD_WITH_ZERO = 6;
 
 class BaseExchange {
 
-    const VERSION = '4.5.87';
+    const VERSION = '4.5.88';
 
     // this is updated by build/vss.js
-    public static $ccxt_version = '4.5.87';
+    public static $ccxt_version = '4.5.88';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -4000,7 +4000,7 @@ class BaseExchange {
         $this->options['enableDemoTrading'] = $enable;
     }
 
-    public function sign(string $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         return array( 'url' => null, 'method' => null, 'headers' => null, 'body' => null );
     }
 
@@ -6750,7 +6750,7 @@ class BaseExchange {
         return $results;
     }
 
-    public function fetch2(string $path, mixed $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, array $config = array()) {
+    public function fetch2(string $path, array $api = array('public'), $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, array $config = array()) {
         if ($this->enableRateLimit) {
             $cost = $this->calculate_rate_limiter_cost($api, $method, $path, $params, $config);
             $this->throttle($cost);
@@ -6805,7 +6805,7 @@ class BaseExchange {
         return null; // this line is never reached, but exists for c# value return requirement
     }
 
-    public function request(string $path, mixed $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, array $config = array()) {
+    public function request(string $path, array $api = array('public'), $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, array $config = array()) {
         return $this->fetch2($path, $api, $method, $params, $headers, $body, $config);
     }
 
@@ -7340,7 +7340,7 @@ class BaseExchange {
         return null;
     }
 
-    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
+    public function calculate_rate_limiter_cost(array $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
         return $this->safe_value($config, 'cost', 1);
     }
 

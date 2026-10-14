@@ -211,7 +211,7 @@ class bit2c extends bit2c$1["default"] {
             },
             'options': {
                 'fetchTrades': {
-                    'method': 'public_get_exchanges_pair_trades',
+                    'method': 'publicGetExchangesPairTrades',
                 },
             },
             'features': {
@@ -478,7 +478,7 @@ class bit2c extends bit2c$1["default"] {
         }
         const market = this.market(symbol);
         const optionValue = this.safeString(this.options, 'fetchTradesMethod'); // kept here for backward compatibility #29154
-        const method = this.handleOption('fetchTrades', 'method', optionValue); // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
+        const method = this.handleOption('fetchTrades', 'method', optionValue); // publicGetExchangesPairTrades or publicGetExchangesPairLasttrades
         const request = {
             'pair': market['id'],
         };
@@ -489,7 +489,7 @@ class bit2c extends bit2c$1["default"] {
             request['limit'] = limit; // max 100000
         }
         let responseList = [];
-        if (method === 'public_get_exchanges_pair_trades') {
+        if ((method === 'publicGetExchangesPairTrades') || (method === 'public_get_exchanges_pair_trades')) {
             const response = await this.publicGetExchangesPairTrades(this.extend(request, params));
             //
             //     [
@@ -1045,7 +1045,7 @@ class bit2c extends bit2c$1["default"] {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const apiUrl = this.safeString(this.urls['api'], 'rest');
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
@@ -1053,7 +1053,7 @@ class bit2c extends bit2c$1["default"] {
         let url = apiUrl + '/' + this.implodeParams(path, params);
         let requestBody = undefined;
         let requestHeaders = undefined;
-        if (api === 'public') {
+        if (api[0] === 'public') {
             url += '.json';
         }
         else {

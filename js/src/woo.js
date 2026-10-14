@@ -3462,7 +3462,7 @@ export default class woo extends Exchange {
     nonce() {
         return this.milliseconds() - this.safeInteger(this.options, 'timeDifference', 0);
     }
-    sign(path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, section = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
         let requestHeaders = undefined;
         let requestBody = undefined;
         const version = this.safeString(section, 0);

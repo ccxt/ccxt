@@ -3313,11 +3313,12 @@ export default class bithumb extends Exchange {
         return result;
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
         let requestHeaders: NullableDict = undefined;
         let requestBody: Str = undefined;
         const endpoint = '/' + this.implodeParams (path, params);
-        const apiUrl = this.safeString (this.urls['api'], api);
+        const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
@@ -3326,7 +3327,7 @@ export default class bithumb extends Exchange {
         const queryKeys = Object.keys (query);
         const queryKeysLength = queryKeys.length;
         const hasQuery = (queryKeysLength > 0);
-        if (api === 'public') {
+        if (apiName === 'public') {
             requestHeaders = {
                 'OPEN-API-PARTNER': 'CCXT',
             };

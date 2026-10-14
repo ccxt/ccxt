@@ -4085,18 +4085,19 @@ public partial class kraken : Exchange
 
     public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string url = ((((("/" + this.version) + "/") + (api)) + "/") + path);
-        if ((api is "public"))
+        object apiName = getValue(api, 0);
+        string url = ((((("/" + this.version) + "/") + (apiName)) + "/") + path);
+        if ((apiName is "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
                 // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
                 url = url + ("?" + this.urlencodeNested(parameters));
             }
-        } else if ((api is "private"))
+        } else if ((apiName is "private"))
         {
             string? price = this.safeString(parameters, "price");
             bool isTriggerPercent = false;
@@ -4140,7 +4141,7 @@ public partial class kraken : Exchange
             {
                 headersSigned["Content-Type"] = "application/x-www-form-urlencoded";
             }
-            string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+            string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
             if ((baseApiUrl == null))
             {
                 throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -4156,7 +4157,7 @@ public partial class kraken : Exchange
         {
             url = ("/" + path);
         }
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;

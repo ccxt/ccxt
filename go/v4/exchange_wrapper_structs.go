@@ -962,7 +962,7 @@ func WithFetchWebEndpointEndRegex(endRegex string) FetchWebEndpointOptions {
 }
 
 type Fetch2OptionsStruct struct {
-	Api     *any
+	Api     *[]string
 	Method  *string
 	Params  *map[string]any
 	Headers *any
@@ -971,7 +971,7 @@ type Fetch2OptionsStruct struct {
 
 type Fetch2Options func(opts *Fetch2OptionsStruct)
 
-func WithFetch2Api(api any) Fetch2Options {
+func WithFetch2Api(api []string) Fetch2Options {
 	return func(opts *Fetch2OptionsStruct) {
 		opts.Api = &api
 	}

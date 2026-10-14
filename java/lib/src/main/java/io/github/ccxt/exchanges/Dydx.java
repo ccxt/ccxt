@@ -2970,7 +2970,7 @@ public class Dydx extends DydxApi
         Map<String, Object> requestHeaders = null;
         String requestBody = null;
         String pathWithParams = (String) this.implodeParams(path, parameters);
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(section, "public"));
+        String apiUrl = this.safeString(this.urls.get("api"), (section == null || 0 >= ((List<?>)section).size() ? null : ((List<?>)section).get(0)));
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;

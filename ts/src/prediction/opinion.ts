@@ -2175,14 +2175,14 @@ export default class opinion extends Exchange {
      * @name opinion#sign
      * @description builds the request url and attaches the apikey/EIP-712 authentication headers for private endpoints
      * @param {string} path the endpoint path
-     * @param {string|string[]} api the api group and access level
+     * @param {string[]} api the api group and access level
      * @param {string} method the http method
      * @param {object} params the request parameters
      * @returns {object} a dict with url, method, body and headers
      */
-    override sign (path: string, api: any = 'opinion', method = 'GET', params: Dict = {}) {
-        const apiGroup: string = typeof api === 'string' ? api : api[0];
-        const access: string = typeof api === 'string' ? 'public' : api[1];
+    override sign (path: string, api: string[] = [ 'opinion' ], method = 'GET', params: Dict = {}) {
+        const apiGroup = api[0];
+        const access = this.safeString (api, 1, 'public');
         const baseUrls = this.urls['api'] as Dict;
         const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['opinion'] as string);
         let url = baseUrl + '/' + this.implodeParams (path, params);

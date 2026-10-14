@@ -1276,6 +1276,19 @@ public class Lighter extends LighterApi
             Map<String, Object> paramsGroupingType = (Map<String, Object>) ((List<Object>) groupingTypeparamsGroupingTypeVariable).get(1); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
             List<Object> orderRequests = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, paramsGroupingType);
             Integer totalOrderRequests = ((List<?>)orderRequests).size();
+            if ((totalOrderRequests != null && totalOrderRequests > 1))
+            {
+                // the signer replaces a -1 expiry with now + 28 days reading the clock once per leg, and rejects
+                // a group whose legs differ ("OrderExpiry is invalid"), so resolve the default once for all legs
+                Object groupOrderExpiry = this.sum(this.milliseconds(), 2419200000L); // 28 days
+                for (var i = 0; (totalOrderRequests != null && i < totalOrderRequests); i++)
+                {
+                    if (java.util.Objects.equals(this.safeInteger((orderRequests == null || i < 0 || i >= orderRequests.size() ? null : orderRequests.get(i)), "order_expiry"), -1L))
+                    {
+                        Helpers.addElementToObject((orderRequests == null || i < 0 || i >= orderRequests.size() ? null : orderRequests.get(i)), "order_expiry", groupOrderExpiry);
+                    }
+                }
+            }
             Object order = null;
             if ((totalOrderRequests != null && totalOrderRequests > 0))
             {
@@ -4146,8 +4159,9 @@ public class Lighter extends LighterApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, Object body)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Object url = null;
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "root"))
+        if (java.util.Objects.equals(apiName, "root"))
         {
             String baseApiUrl = this.safeString(this.urls.get("api"), "public");
             if (java.util.Objects.equals(baseApiUrl, null))
@@ -4157,7 +4171,7 @@ public class Lighter extends LighterApi
             url = this.implodeHostname(baseApiUrl);
         } else
         {
-            String baseApiUrl2 = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+            String baseApiUrl2 = this.safeString(this.urls.get("api"), apiName);
             if (java.util.Objects.equals(baseApiUrl2, null))
             {
                 throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -4165,7 +4179,7 @@ public class Lighter extends LighterApi
             url = ((((this.implodeHostname(baseApiUrl2) + "/api/") + this.version) + "/") + path);
         }
         Map<String, Object> authHeaders = null;
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        if (java.util.Objects.equals(apiName, "private"))
         {
             authHeaders = new HashMap<String, Object>() {{
                 put( "Authorization", Lighter.this.createAuth(Helpers.toMapArg(parameters)) );
@@ -4189,7 +4203,7 @@ public class Lighter extends LighterApi
             }
             url = (url + ("?" + this.rawencode(parameters)));
         }
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        if (java.util.Objects.equals(apiName, "private"))
         {
             {
                 HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();

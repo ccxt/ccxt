@@ -4912,7 +4912,7 @@ func (this *Kraken) ParseTransfer(transfer any, optionalArgs ...any) map[string]
 	}
 }
 func (this *Kraken) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -4922,13 +4922,14 @@ func (this *Kraken) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
-	var url any = Add(Add(Add("/"+this.Version+"/", api), "/"), path)
-	if api == "public" {
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var url string = "/" + this.Version + "/" + *apiName + "/" + path
+	if apiName != nil && *apiName == "public" {
 		if len(ObjectKeys(params)) > 0 {
 			// rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
-			url = Add(url, "?"+this.UrlencodeNested(params))
+			url += "?" + this.UrlencodeNested(params)
 		}
-	} else if api == "private" {
+	} else if apiName != nil && *apiName == "private" {
 		var price *string = this.SafeString(params, "price")
 		var isTriggerPercent bool = false
 		if price != nil {
@@ -4971,11 +4972,11 @@ func (this *Kraken) Sign(path string, optionalArgs ...any) any {
 		} else {
 			headersSigned["Content-Type"] = "application/x-www-form-urlencoded"
 		}
-		var baseApiUrl *string = this.SafeString(this.Urls["api"], api)
+		var baseApiUrl *string = this.SafeString(this.Urls["api"], apiName)
 		if baseApiUrl == nil {
 			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 		}
-		var urlSigned *string = SafeStringPtr(Add(baseApiUrl, url))
+		var urlSigned string = *baseApiUrl + url
 		return map[string]any{
 			"url":     urlSigned,
 			"method":  method,
@@ -4985,12 +4986,12 @@ func (this *Kraken) Sign(path string, optionalArgs ...any) any {
 	} else {
 		url = "/" + path
 	}
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	return map[string]any{
-		"url":     Add(apiUrl, url),
+		"url":     *apiUrl + url,
 		"method":  method,
 		"body":    body,
 		"headers": headers,

@@ -621,7 +621,7 @@ public class Bittrade extends BittradeApi
                     put( "ALGO", "algo" );
                 }} );
                 put( "fetchOrdersByStates", new HashMap<String, Object>() {{
-                    put( "method", "private_get_order_orders" );
+                    put( "method", "privateGetOrderOrders" );
                 }} );
                 put( "fetchOpenOrders", new HashMap<String, Object>() {{
                     put( "method", "fetch_open_orders_v1" );
@@ -1664,7 +1664,7 @@ public class Bittrade extends BittradeApi
                 market = this.market(symbol);
                 request.put("symbol", market.get("id"));
             }
-            Object method = this.handleOption("fetchOrdersByStates", "method", "private_get_order_orders");
+            Object method = this.handleOption("fetchOrdersByStates", "method", "privateGetOrderOrders");
             Map<String, Object> response = null;
             if ((java.util.Objects.equals(method, "private_get_order_history")) || (java.util.Objects.equals(method, "privateGetOrderHistory")))
             {
@@ -2621,22 +2621,23 @@ public class Bittrade extends BittradeApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Map<String, Object> requestHeaders = null;
         String requestBody = null;
         Object url = "/";
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "market"))
+        if (java.util.Objects.equals(apiName, "market"))
         {
             url = (url + "market");
-        } else if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private")))
+        } else if ((java.util.Objects.equals(apiName, "public")) || (java.util.Objects.equals(apiName, "private")))
         {
             url = Helpers.add(url, this.version);
-        } else if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "v2Public")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "v2Private")))
+        } else if ((java.util.Objects.equals(apiName, "v2Public")) || (java.util.Objects.equals(apiName, "v2Private")))
         {
             url = (url + "v2");
         }
         url = (url + ("/" + this.implodeParams(path, parameters)));
         Object query = this.omit(parameters, this.extractParams(path));
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "v2Private"))
+        if (java.util.Objects.equals(apiName, "private") || java.util.Objects.equals(apiName, "v2Private"))
         {
             this.checkRequiredCredentials(true);
             String timestamp = this.ymdhms(this.milliseconds(), "T");
@@ -2680,7 +2681,7 @@ public class Bittrade extends BittradeApi
                 url = (url + ("?" + this.urlencode(parameters)));
             }
         }
-        String baseApiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String baseApiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(baseApiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;

@@ -6,7 +6,7 @@ import type { Balances, Dict, Int, NullableDict, Leverage, MarginModification, M
  */
 export default class mudrex extends Exchange {
     describe(): any;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     /**

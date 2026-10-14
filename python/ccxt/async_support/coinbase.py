@@ -5028,7 +5028,7 @@ class coinbase(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' nonce() requires a numeric options["timeDifference"]')
         return self.milliseconds() - timeDifference
 
-    def sign(self, path: str, api: object = [], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = [], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         requestBody = None
         requestHeaders = None
         version = self.safe_string(api, 0)

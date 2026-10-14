@@ -8,100 +8,100 @@
 import { Exchange as _Exchange } from '../base/Exchange.js';
 class Exchange extends _Exchange {
     publicGetV3Symbols(params = {}) {
-        return this.request("v3/symbols", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v3/symbols', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     publicGetV3HistoryFunding(params = {}) {
-        return this.request("v3/history-funding", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v3/history-funding', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     publicGetV3Ticker(params = {}) {
-        return this.request("v3/ticker", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v3/ticker', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     publicGetV3Klines(params = {}) {
-        return this.request("v3/klines", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v3/klines', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     publicGetV3Trades(params = {}) {
-        return this.request("v3/trades", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v3/trades', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     publicGetV3Depth(params = {}) {
-        return this.request("v3/depth", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v3/depth', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     publicGetV3Time(params = {}) {
-        return this.request("v3/time", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v3/time', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     publicGetV3DataAllTickerInfo(params = {}) {
-        return this.request("v3/data/all-ticker-info", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v3/data/all-ticker-info', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     privateGetV3Account(params = {}) {
-        return this.request("v3/account", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v3/account', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     privateGetV3AccountBalance(params = {}) {
-        return this.request("v3/account-balance", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v3/account-balance', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     privateGetV3Fills(params = {}) {
-        return this.request("v3/fills", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v3/fills', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     privateGetV3OrderFills(params = {}) {
-        return this.request("v3/order-fills", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v3/order-fills', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     privateGetV3Order(params = {}) {
-        return this.request("v3/order", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v3/order', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     privateGetV3HistoryOrders(params = {}) {
-        return this.request("v3/history-orders", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v3/history-orders', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     privateGetV3OrderByClientOrderId(params = {}) {
-        return this.request("v3/order-by-client-order-id", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v3/order-by-client-order-id', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     privateGetV3Funding(params = {}) {
-        return this.request("v3/funding", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v3/funding', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     privateGetV3HistoricalPnl(params = {}) {
-        return this.request("v3/historical-pnl", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v3/historical-pnl', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     privateGetV3OpenOrders(params = {}) {
-        return this.request("v3/open-orders", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v3/open-orders', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     privateGetV3Transfers(params = {}) {
-        return this.request("v3/transfers", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v3/transfers', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     privateGetV3Transfer(params = {}) {
-        return this.request("v3/transfer", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v3/transfer', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     privateGetV3StockAccount(params = {}) {
-        return this.request("v3/stock/account", "private", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('v3/stock/account', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostV3DeleteOpenOrders(params = {}) {
-        return this.request("v3/delete-open-orders", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('v3/delete-open-orders', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostV3DeleteClientOrderId(params = {}) {
-        return this.request("v3/delete-client-order-id", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('v3/delete-client-order-id', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostV3DeleteOrder(params = {}) {
-        return this.request("v3/delete-order", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('v3/delete-order', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostV3Order(params = {}) {
-        return this.request("v3/order", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('v3/order', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostV3SetInitialMarginRate(params = {}) {
-        return this.request("v3/set-initial-margin-rate", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('v3/set-initial-margin-rate', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostV3TransferOut(params = {}) {
-        return this.request("v3/transfer-out", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('v3/transfer-out', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostV3ContractTransferOut(params = {}) {
-        return this.request("v3/contract-transfer-out", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('v3/contract-transfer-out', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostV3ContractTransferTo(params = {}) {
-        return this.request("v3/contract-transfer-to", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('v3/contract-transfer-to', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostV3SubmitWithdrawClaim(params = {}) {
-        return this.request("v3/submit-withdraw-claim", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('v3/submit-withdraw-claim', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostV3StockRegisterAccount(params = {}) {
-        return this.request("v3/stock/register-account", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('v3/stock/register-account', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
     privatePostV3StockGenerateApi(params = {}) {
-        return this.request("v3/stock/generate-api", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('v3/stock/generate-api', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
     }
 }
 export default Exchange;

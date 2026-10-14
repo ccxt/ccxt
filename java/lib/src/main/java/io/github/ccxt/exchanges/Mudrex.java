@@ -259,11 +259,12 @@ public class Mudrex extends MudrexApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
-        String base = this.safeString(apiUrls, java.util.Objects.requireNonNullElse(api, "public"));
+        String base = this.safeString(apiUrls, apiName);
         if (java.util.Objects.equals(base, null))
         {
-            throw new ExchangeError(((this.id + " unknown API namespace: ") + java.util.Objects.requireNonNullElse(api, "public"))) ;
+            throw new ExchangeError(((this.id + " unknown API namespace: ") + apiName)) ;
         }
         String url = ((base + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
@@ -278,7 +279,7 @@ public class Mudrex extends MudrexApi
             requestHeaders.put("Partner-Id", brokerId);
         }
         String methodUpper = ((String)java.util.Objects.requireNonNullElse(method, "GET")).toUpperCase();
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
             requestHeaders.put("X-Authentication", this.secret);

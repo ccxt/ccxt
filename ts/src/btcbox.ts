@@ -817,17 +817,18 @@ export default class btcbox extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
         const apiUrl = this.safeString (this.urls['api'], 'rest');
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
         let url = apiUrl + '/' + this.version + '/' + path;
-        if (api === 'public') {
+        if (apiName === 'public') {
             if (Object.keys (params).length > 0) {
                 url += '?' + this.urlencode (params);
             }
-        } else if (api === 'webApi') {
+        } else if (apiName === 'webApi') {
             url = this.urls['www'] + '/' + path;
         } else {
             this.checkRequiredCredentials ();
@@ -866,7 +867,7 @@ export default class btcbox extends Exchange {
         throw new ExchangeError (feedback); // unknown message
     }
 
-    override async request (path: string, api = 'public', method = 'GET', params: Dict = {}, config: Dict = {}) {
+    override async request (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, config: Dict = {}) {
         let response = await this.fetch2 (path, api, method, params, config);
         if (typeof response === 'string') {
             // sometimes the exchange returns whitespace prepended to json

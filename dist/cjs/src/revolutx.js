@@ -212,21 +212,22 @@ class revolutx extends revolutx$1["default"] {
             },
         });
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
         let requestHeaders = undefined;
         let requestBody = undefined;
         const implodedPath = this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         const queryKeys = Object.keys(query);
         const queryLength = queryKeys.length;
-        const baseApiUrl = this.safeString(this.urls['api'], api);
+        const apiName = api[0];
+        const baseApiUrl = this.safeString(this.urls['api'], apiName);
         if (baseApiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         const baseUrl = baseApiUrl;
         let url = baseUrl + '/' + implodedPath;
         let queryString = '';
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             const timestamp = this.milliseconds().toString();
             if (method === 'GET') {

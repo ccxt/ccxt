@@ -9954,8 +9954,8 @@ func (this *Gate) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var authentication any = GetValue(api, 0) // public, private
-	var typeVar any = GetValue(api, 1)        // spot, margin, future, delivery
+	var authentication *string = SafeStringPtr(GetValue(api, 0)) // public, private
+	var typeVar *string = SafeStringPtr(GetValue(api, 1))        // spot, margin, future, delivery
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var pathImploded string
 	var bodyJson any = nil
@@ -9988,16 +9988,16 @@ func (this *Gate) Sign(path string, optionalArgs ...any) any {
 	} else {
 		endPart = ("/" + pathImploded)
 	}
-	var entirePath any = Add(Add("/", typeVar), endPart)
-	if (typeVar == "subAccounts") || (typeVar == "withdrawals") {
+	var entirePath any = Add("/"+*typeVar, endPart)
+	if (typeVar != nil && *typeVar == "subAccounts") || (typeVar != nil && *typeVar == "withdrawals") {
 		entirePath = endPart
 	}
 	var url any = GetValue(GetValue(this.Urls["api"], authentication), typeVar)
 	if IsEqual(url, nil) {
-		panic(NotSupported(Add(Add(this.Id+" does not have a testnet for the ", typeVar), " market type.")))
+		panic(NotSupported(this.Id + " does not have a testnet for the " + *typeVar + " market type."))
 	}
 	url = Add(url, entirePath)
-	if authentication == "public" {
+	if authentication != nil && *authentication == "public" {
 		if len(ObjectKeys(query)) > 0 {
 			url = Add(url, "?"+this.Urlencode(query))
 		}
@@ -10006,7 +10006,7 @@ func (this *Gate) Sign(path string, optionalArgs ...any) any {
 		var queryString string = ""
 		var rawQueryString string = ""
 		var requiresURLEncoding bool = false
-		if ((typeVar == "futures") || (typeVar == "delivery")) && (method == "POST") {
+		if ((typeVar != nil && *typeVar == "futures") || (typeVar != nil && *typeVar == "delivery")) && (method == "POST") {
 			var pathParts []string = strings.Split(pathImploded, "/")
 			var secondPart *string = this.SafeString(pathParts, 1, "")
 			requiresURLEncoding = (func() int {
@@ -10256,8 +10256,8 @@ func (this *Gate) addMarginBody(ch chan AsyncResult[map[string]any], symbol stri
 
 /**
  * @method
- * @name gate#fetchOpenInterest
- * @description Retrieves the open interest of a currency
+ * @name gate#fetchOpenInterestHistory
+ * @description Retrieves the open interest history of a currency
  * @see https://www.gate.com/docs/developers/apiv4/en/#futures-statistics
  * @param {string} symbol Unified CCXT market symbol
  * @param {string} timeframe "5m", "15m", "30m", "1h", "4h", "1d"
@@ -10307,7 +10307,7 @@ func (this *Gate) fetchOpenInterestHistoryBody(ch chan AsyncResult[any], symbol 
 	}
 	var market map[string]any = this.Market(symbol)
 	if market["swap"] != true {
-		panic(BadRequest(this.Id + " fetchOpenInterest() supports swap markets only"))
+		panic(BadRequest(this.Id + " fetchOpenInterestHistory() supports swap markets only"))
 	}
 	var request map[string]any = map[string]any{
 		"contract": market["id"],
@@ -13300,6 +13300,20 @@ func (this *Gate) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]
 	var res []BorrowInterest = NewBorrowInterestArray(r.Value)
 	return res, nil
 }
+
+/**
+ * @method
+ * @name gate#fetchOpenInterestHistory
+ * @description Retrieves the open interest history of a currency
+ * @see https://www.gate.com/docs/developers/apiv4/en/#futures-statistics
+ * @param {string} symbol Unified CCXT market symbol
+ * @param {string} timeframe "5m", "15m", "30m", "1h", "4h", "1d"
+ * @param {int} [since] the time(ms) of the earliest record to retrieve as a unix timestamp
+ * @param {int} [limit] default 30
+ * @param {object} [params] exchange specific parameters
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+ */
 func (this *Gate) FetchOpenInterestHistory(symbol string, options ...FetchOpenInterestHistoryOptions) ([]OpenInterest, error) {
 
 	opts := FetchOpenInterestHistoryOptionsStruct{}

@@ -3080,10 +3080,7 @@ class nado extends nado$1["default"] {
     }
     sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         let requestBody = undefined;
-        let endpoint = api[0];
-        if (typeof api === 'string') {
-            endpoint = api;
-        }
+        const endpoint = api[0];
         const baseApiUrl = this.safeString(this.urls['api'], endpoint);
         if (baseApiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');

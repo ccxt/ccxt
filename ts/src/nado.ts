@@ -3116,12 +3116,9 @@ export default class nado extends Exchange {
         return marketId;
     }
 
-    override sign (path: string, api: any = [], method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [], method = 'GET', params: Dict = {}): Dict {
         let requestBody: Str = undefined;
-        let endpoint = api[0];
-        if (typeof api === 'string') {
-            endpoint = api;
-        }
+        const endpoint = api[0];
         const baseApiUrl = this.safeString (this.urls['api'], endpoint);
         if (baseApiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');

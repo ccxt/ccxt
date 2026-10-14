@@ -3064,8 +3064,9 @@ class toobit(Exchange, ImplicitAPI):
             'percentage': None,
         })
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        baseApiUrl = self.safe_string(self.urls['api'], api)
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        apiName = api[0]
+        baseApiUrl = self.safe_string(self.urls['api'], apiName)
         if baseApiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         baseUrl = baseApiUrl
@@ -3074,7 +3075,7 @@ class toobit(Exchange, ImplicitAPI):
         isDelete = method == 'DELETE'
         extraQuery = {}
         query = self.omit(params, self.extract_params(path))
-        if api != 'private':
+        if apiName != 'private':
             # Public endpoints
             if not isPost:
                 if len(query) > 0:

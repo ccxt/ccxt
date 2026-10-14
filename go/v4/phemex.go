@@ -5958,7 +5958,7 @@ func (this *Phemex) ParseMarketLeverageTiers(info any, optionalArgs ...any) any 
 	return tiers
 }
 func (this *Phemex) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -5968,6 +5968,7 @@ func (this *Phemex) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var requestPath string = "/" + this.ImplodeParams(path, params)
 	var url string = requestPath
@@ -5980,7 +5981,7 @@ func (this *Phemex) Sign(path string, optionalArgs ...any) any {
 	}
 	var requestBody *string = nil
 	var privateHeaders any = nil
-	if api == "private" {
+	if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		var timestamp int64 = this.Seconds()
 		var xPhemexRequestExpiry *int64 = this.SafeInteger(this.Options, "x-phemex-request-expiry", 60)
@@ -6006,18 +6007,18 @@ func (this *Phemex) Sign(path string, optionalArgs ...any) any {
 		var auth string = requestPath + queryString + expiryString + payload
 		AddElementToObject(privateHeaders, "x-phemex-request-signature", this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256))
 	}
-	var baseApiUrl *string = this.SafeString(this.Urls["api"], api)
+	var baseApiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	url = this.ImplodeHostname(baseApiUrl) + url
-	var isPrivatePost bool = (api == "private") && (method == "POST")
+	var isPrivatePost bool = (apiName != nil && *apiName == "private") && (method == "POST")
 	var bodyResolved *string = body
 	if isPrivatePost {
 		bodyResolved = requestBody
 	}
 	var requestHeaders any = func() any {
-		if api == "private" {
+		if apiName != nil && *apiName == "private" {
 			return privateHeaders
 		}
 		return headers
@@ -6429,11 +6430,11 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan AsyncResult[any], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes508719 []any = ListTyped(r1.Value)
-		if retRes508719 == nil {
+		var retRes508819 []any = ListTyped(r1.Value)
+		if retRes508819 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes508719}
+			ch <- AsyncResult[any]{Value: retRes508819}
 		}
 		return nil
 	}

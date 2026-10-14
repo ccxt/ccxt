@@ -4461,7 +4461,7 @@ func (this *Grvt) RequestId() int64 {
 	return requestId
 }
 func (this *Grvt) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -4475,7 +4475,8 @@ func (this *Grvt) Sign(path string, optionalArgs ...any) any {
 	var requestBody any = body
 	var requestPath string = path
 	var query any = this.Omit(params, this.ExtractParams(requestPath))
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -4502,7 +4503,7 @@ func (this *Grvt) Sign(path string, optionalArgs ...any) any {
 			requestBody = this.Json(params)
 		}
 	}
-	var isPrivate bool = StartsWith(api, "private")
+	var isPrivate bool = strings.HasPrefix(*apiName, "private")
 	if isPrivate == true {
 		this.CheckRequiredCredentials()
 		if queryString != "" {

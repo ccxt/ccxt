@@ -4706,7 +4706,7 @@ func (this *Pacifica) ParseIncome(income any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(income, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])
-	var amount *string = this.SafeString(income, "amount")
+	var amount *string = this.SafeString(income, "payout")
 	var code *string = this.SafeCurrencyCode("USDC")
 	var rate *float64 = this.SafeNumber(income, "rate")
 	return map[string]any{
@@ -5179,7 +5179,7 @@ func (this *Pacifica) HandleErrors(code any, reason any, url any, method any, he
 	return nil
 }
 func (this *Pacifica) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -5195,7 +5195,8 @@ func (this *Pacifica) Sign(path string, optionalArgs ...any) any {
 	if isTestnet {
 		urlKey = "test"
 	}
-	var baseApiUrl *string = this.SafeString(this.Urls[urlKey], api)
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var baseApiUrl *string = this.SafeString(this.Urls[urlKey], apiName)
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

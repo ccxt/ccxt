@@ -1557,7 +1557,7 @@ public class Kucoin extends KucoinApi
                 put( "uta", null );
                 put( "version", "v1" );
                 put( "symbolSeparator", "-" );
-                put( "fetchMyTradesMethod", "private_get_fills" );
+                put( "fetchMyTradesMethod", "privateGetFills" );
                 put( "timeDifference", 0 );
                 put( "adjustForTimeDifference", false );
                 put( "fetchCurrencies", new HashMap<String, Object>() {{
@@ -8168,7 +8168,7 @@ public class Kucoin extends KucoinApi
                 {
                     response = (this.privateGetHfFills(this.extend(request, paramsRequest))).join();
                 }
-            } else if (java.util.Objects.equals(method, "private_get_fills"))
+            } else if ((java.util.Objects.equals(method, "privateGetFills")) || (java.util.Objects.equals(method, "private_get_fills")))
             {
                 // does not return trades earlier than 2019-02-18T00:00:00Z
                 if (!java.util.Objects.equals(since, null))
@@ -8177,7 +8177,7 @@ public class Kucoin extends KucoinApi
                     request.put("startAt", since);
                 }
                 response = (this.privateGetFills(this.extend(request, paramsRequest))).join();
-            } else if (java.util.Objects.equals(method, "private_get_limit_fills"))
+            } else if ((java.util.Objects.equals(method, "privateGetLimitFills")) || (java.util.Objects.equals(method, "private_get_limit_fills")))
             {
                 // does not return trades earlier than 2019-02-18T00:00:00Z
                 // takes no params
@@ -10891,7 +10891,7 @@ public class Kucoin extends KucoinApi
     public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
     {
         Map<String, Object> versions = (Map<String, Object>) this.safeDict(this.options, "versions", new HashMap<String, Object>() {{}});
-        Map<String, Object> apiVersions = (Map<String, Object>) this.safeDict(versions, api, new HashMap<String, Object>() {{}});
+        Map<String, Object> apiVersions = (Map<String, Object>) this.safeDict(versions, (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)), new HashMap<String, Object>() {{}});
         Map<String, Object> methodVersions = (Map<String, Object>) this.safeDict(apiVersions, method, new HashMap<String, Object>() {{}});
         String defaultVersion = this.safeString(methodVersions, path, this.options.get("version"));
         String version = this.safeString(parameters, "version", defaultVersion);
@@ -13742,35 +13742,36 @@ public class Kucoin extends KucoinApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         //
         // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
         //                                ↑                 ↑
         //                                ↑                 ↑
         //
         Map<String, Object> versions = (Map<String, Object>) this.safeDict(this.options, "versions", new HashMap<String, Object>() {{}});
-        Map<String, Object> apiVersions = (Map<String, Object>) this.safeDict(versions, java.util.Objects.requireNonNullElse(api, "public"), new HashMap<String, Object>() {{}});
+        Map<String, Object> apiVersions = (Map<String, Object>) this.safeDict(versions, apiName, new HashMap<String, Object>() {{}});
         Map<String, Object> methodVersions = (Map<String, Object>) this.safeDict(apiVersions, java.util.Objects.requireNonNullElse(method, "GET"), new HashMap<String, Object>() {{}});
         String defaultVersion = this.safeString(methodVersions, path, this.options.get("version"));
         String version = this.safeString(parameters, "version", defaultVersion);
         Object paramsOmitted = this.omit(parameters, "version");
         String endpoint = ((("/api/" + version) + "/") + this.implodeParams(path, paramsOmitted));
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "utaV2"))
+        if (java.util.Objects.equals(apiName, "utaV2"))
         {
             endpoint = ("/api/ua/v2/" + this.implodeParams(path, paramsOmitted));
         }
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "webExchange"))
+        if (java.util.Objects.equals(apiName, "webExchange"))
         {
             endpoint = ("/" + this.implodeParams(path, paramsOmitted));
         }
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "earn"))
+        if (java.util.Objects.equals(apiName, "earn"))
         {
             endpoint = ("/api/v1/" + this.implodeParams(path, paramsOmitted));
         }
         Boolean isUtaPrivate = false;
-        if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "uta")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "utaPrivate")))
+        if ((java.util.Objects.equals(apiName, "uta")) || (java.util.Objects.equals(apiName, "utaPrivate")))
         {
             endpoint = ("/api/ua/v1/" + this.implodeParams(path, paramsOmitted));
-            if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "utaPrivate"))
+            if (java.util.Objects.equals(apiName, "utaPrivate"))
             {
                 isUtaPrivate = true;
             }
@@ -13783,7 +13784,7 @@ public class Kucoin extends KucoinApi
             headersBase = headers;
         }
         String bodyJson = body;
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -13806,10 +13807,10 @@ public class Kucoin extends KucoinApi
             }
         }
         Object headersResult = headersBase;
-        Boolean isFuturePrivate = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "futuresPrivate"));
-        Boolean isPrivate = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"));
-        Boolean isBroker = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "broker"));
-        Boolean isEarn = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "earn"));
+        Boolean isFuturePrivate = (java.util.Objects.equals(apiName, "futuresPrivate"));
+        Boolean isPrivate = (java.util.Objects.equals(apiName, "private"));
+        Boolean isBroker = (java.util.Objects.equals(apiName, "broker"));
+        Boolean isEarn = (java.util.Objects.equals(apiName, "earn"));
         if (Boolean.TRUE.equals(isPrivate) || Boolean.TRUE.equals(isFuturePrivate) || Boolean.TRUE.equals(isBroker) || Boolean.TRUE.equals(isEarn) || Boolean.TRUE.equals(isUtaPrivate))
         {
             this.checkRequiredCredentials(true);

@@ -427,6 +427,6 @@ export default class bithumb extends Exchange {
     fixCommaNumber(numberStr: Str): string | undefined;
     nonce(): number;
     urlencodeWithArrayBrackets(query: Dict): string;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

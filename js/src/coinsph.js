@@ -2265,15 +2265,16 @@ export default class coinsph extends Exchange {
         const urlEncodedParam = key + '=' + stringifiedArray;
         return urlEncodedParam;
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const apiUrl = this.safeString(this.urls['api'], api);
+    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const apiName = api[0];
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         const query = this.omit(params, this.extractParams(path));
         const endpoint = this.implodeParams(path, params);
         let url = apiUrl + '/' + endpoint;
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             query['timestamp'] = this.milliseconds();
             const recvWindow = this.safeInteger(query, 'recvWindow');
