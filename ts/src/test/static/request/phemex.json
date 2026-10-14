@@ -648,6 +648,41 @@
                         "method": "privateGetAccountsPositions"
                     }
                 ]
+            },
+            {
+                "description": "coin-settled positions, params.settle selects the legacy account currency",
+                "method": "fetchPositions",
+                "url": "https://api.phemex.com/accounts/accountPositions?currency=ETH",
+                "input": [
+                    null,
+                    {
+                        "settle": "ETH"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "usdc-settled positions are served by the hedged api",
+                "method": "fetchPositions",
+                "url": "https://api.phemex.com/g-accounts/accountPositions?currency=USDC",
+                "input": [
+                    null,
+                    {
+                        "settle": "USDC"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "usdc-settled symbol routes to the hedged api",
+                "method": "fetchPositions",
+                "url": "https://api.phemex.com/g-accounts/accountPositions?currency=USDC",
+                "input": [
+                    [
+                        "ETH/USDC:USDC"
+                    ]
+                ],
+                "output": null
             }
         ],
         "fetchDeposits": [
