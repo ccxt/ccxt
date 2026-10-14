@@ -115,7 +115,10 @@ class grvt extends grvt$1["default"] {
             'params': request,
             'id': this.requestId(),
         };
-        const apiPart = publicOrPrivate ? 'publicMarket' : 'privateTrading';
+        let apiPart = 'privateTrading';
+        if (publicOrPrivate) {
+            apiPart = 'publicMarket';
+        }
         return await this.watchMultiple(this.urls['api']['ws'][apiPart], messageHashes, payload, rawHashes);
     }
     requestId() {
@@ -138,9 +141,9 @@ class grvt extends grvt$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbol = this.symbol(symbol);
-        const tickers = await this.watchTickers([symbol], this.extend(params, { 'callerMethodName': 'watchTicker' }));
-        return tickers[symbol];
+        const symbolValue = this.symbol(symbol);
+        const tickers = await this.watchTickers([symbolValue], this.extend(params, { 'callerMethodName': 'watchTicker' }));
+        return tickers[symbolValue];
     }
     /**
      * @method
@@ -155,34 +158,36 @@ class grvt extends grvt$1["default"] {
         if (symbols === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' watchTickers requires a symbols argument');
         }
-        let channel = undefined;
-        [channel, params] = this.handleOptionAndParams(params, 'watchTickers', 'channel', 'v1.ticker.s');
-        let interval = 500;
-        [interval, params] = this.handleOptionAndParams(params, 'watchTickers', 'interval', interval);
+        const [channel, paramsChannel] = this.handleOptionStringAndParams(params, 'watchTickers', 'channel', 'v1.ticker.s');
+        const interval = 500;
+        const [intervalOption, paramsInterval] = this.handleOptionIntegerAndParams(paramsChannel, 'watchTickers', 'interval', interval);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        const symbolsNormalized = this.marketSymbols(symbols);
         const rawHashes = [];
         const messageHashes = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market(symbol);
             const marketId = market['id'];
-            rawHashes.push(marketId + '@' + interval.toString());
+            rawHashes.push(marketId + '@' + intervalOption.toString());
             messageHashes.push('ticker::' + market['symbol']);
         }
         const request = {
             'stream': channel,
             'selectors': rawHashes,
         };
-        const ticker = await this.subscribeMultiple(messageHashes, this.extend(params, request), rawHashes);
+        const ticker = await this.subscribeMultiple(messageHashes, this.extend(paramsInterval, request), rawHashes);
         if (this.newUpdates) {
             const tickers = {};
-            tickers[ticker['symbol']] = ticker;
+            const tickerSymbol = this.safeString(ticker, 'symbol');
+            if (tickerSymbol !== undefined) {
+                tickers[tickerSymbol] = ticker;
+            }
             return tickers;
         }
-        return this.filterByArray(this.tickers, 'symbol', symbols);
+        return this.filterByArray(this.tickers, 'symbol', symbolsNormalized);
     }
     handleTicker(client, message) {
         //
@@ -305,11 +310,11 @@ class grvt extends grvt$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        const symbolsNormalized = this.marketSymbols(symbols);
         const rawHashes = [];
         const messageHashes = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market(symbol);
             const marketId = market['id'];
             const limitRaw = this.safeInteger(params, 'limit', 50); // 50, 200, 500, 1000
@@ -321,12 +326,13 @@ class grvt extends grvt$1["default"] {
             'selectors': rawHashes,
         };
         const trades = await this.subscribeMultiple(messageHashes, this.extend(params, request), rawHashes);
+        const first = this.safeDict(trades, 0);
+        const tradeSymbol = this.safeString(first, 'symbol');
+        let limitResolved = limit;
         if (this.newUpdates) {
-            const first = this.safeDict(trades, 0);
-            const tradeSymbol = this.safeString(first, 'symbol');
-            limit = trades.getLimit(tradeSymbol, limit);
+            limitResolved = trades.getLimit(tradeSymbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
     }
     handleTrades(client, message) {
         //
@@ -386,10 +392,10 @@ class grvt extends grvt$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbol = this.symbol(symbol);
+        const symbolValue = this.symbol(symbol);
         params['callerMethodName'] = 'watchOHLCV';
-        const result = await this.watchOHLCVForSymbols([[symbol, timeframe]], since, limit, params);
-        return result[symbol][timeframe];
+        const result = await this.watchOHLCVForSymbols([[symbolValue, timeframe]], since, limit, params);
+        return result[symbolValue][timeframe];
     }
     /**
      * @method
@@ -409,7 +415,7 @@ class grvt extends grvt$1["default"] {
         const rawHashes = [];
         const messageHashes = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
-            const data = symbolsAndTimeframes[i];
+            const data = this.safeList(symbolsAndTimeframes, i);
             const symbolString = this.safeString(data, 0);
             const market = this.market(symbolString);
             const marketId = market['id'];
@@ -423,10 +429,11 @@ class grvt extends grvt$1["default"] {
             'selectors': rawHashes,
         };
         const [symbol, timeframe, stored] = await this.subscribeMultiple(messageHashes, this.extend(params, request), rawHashes);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = stored.getLimit(symbol, limit);
+            limitResolved = stored.getLimit(symbol, limit);
         }
-        const filtered = this.filterBySinceLimit(stored, since, limit, 0, true);
+        const filtered = this.filterBySinceLimit(stored, since, limitResolved, 0, true);
         return this.createOHLCVObject(symbol, timeframe, filtered);
     }
     handleOHLCV(client, message) {
@@ -490,8 +497,8 @@ class grvt extends grvt$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbol = this.symbol(symbol);
-        return await this.watchOrderBookForSymbols([symbol], limit, params);
+        const symbolValue = this.symbol(symbol);
+        return await this.watchOrderBookForSymbols([symbolValue], limit, params);
     }
     /**
      * @method
@@ -508,24 +515,32 @@ class grvt extends grvt$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let channel = undefined;
-        [channel, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'channel', 'v1.book.d');
+        const [channel, paramsChannel] = this.handleOptionStringAndParams(params, 'watchOrderBook', 'channel', 'v1.book.d');
         const isSnapshot = channel === 'v1.book.s';
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
             throw new errors.ArgumentsRequired(this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
-        if (limit === undefined) {
-            [limit, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'limit', 100);
+        const [limitOption, paramsLimitOption] = this.handleOptionIntegerAndParams(paramsChannel, 'watchOrderBook', 'limit', 100);
+        let limitResolved = limitOption;
+        let paramsLimit = paramsLimitOption;
+        if (limit !== undefined) {
+            limitResolved = limit;
+            paramsLimit = paramsChannel;
         }
-        let interval = 500;
-        [interval, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'interval', interval);
-        symbols = this.marketSymbols(symbols);
-        const extraPart = isSnapshot ? (interval.toString() + '-' + limit.toString()) : interval.toString();
+        const [interval, paramsInterval] = this.handleOptionIntegerAndParams(paramsLimit, 'watchOrderBook', 'interval', 500);
+        const symbolsNormalized = this.marketSymbols(symbols);
+        let extraPart = undefined;
+        if (isSnapshot) {
+            extraPart = interval.toString() + '-' + limitResolved.toString();
+        }
+        else {
+            extraPart = interval.toString();
+        }
         const rawHashes = [];
         const messageHashes = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market(symbol);
             const marketId = market['id'];
             rawHashes.push(marketId + '@' + extraPart);
@@ -535,7 +550,7 @@ class grvt extends grvt$1["default"] {
             'stream': channel,
             'selectors': rawHashes,
         };
-        const orderbook = await this.subscribeMultiple(messageHashes, this.extend(request, params), rawHashes);
+        const orderbook = await this.subscribeMultiple(messageHashes, this.extend(request, paramsInterval), rawHashes);
         return orderbook.limit();
     }
     handleOrderBook(client, message) {
@@ -664,10 +679,11 @@ class grvt extends grvt$1["default"] {
             'selectors': rawHashes,
         };
         const trades = await this.subscribeMultiple(messageHashes, this.extend(request, params), messageHashes, false);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+            limitResolved = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
     }
     handleMyTrade(client, message) {
         //
@@ -735,12 +751,12 @@ class grvt extends grvt$1["default"] {
             await this.loadMarkets();
         }
         const subAccountId = this.getSubAccountId(params);
-        symbols = this.marketSymbols(symbols);
+        const symbolsNormalized = this.marketSymbols(symbols);
         const rawHashes = [];
         const messageHashes = [];
-        if (symbols !== undefined) {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
+        if (symbolsNormalized !== undefined) {
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const symbol = symbolsNormalized[i];
                 const market = this.market(symbol);
                 rawHashes.push(subAccountId + '-' + market['id']);
                 messageHashes.push('positions::' + market['symbol']);
@@ -758,7 +774,7 @@ class grvt extends grvt$1["default"] {
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit(this.positions, symbolsNormalized, since, limit, true);
     }
     handlePosition(client, message) {
         //
@@ -838,10 +854,11 @@ class grvt extends grvt$1["default"] {
             'selectors': rawHashes,
         };
         const orders = await this.subscribeMultiple(messageHashes, this.extend(request, params), rawHashes, false);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit(symbol, limit);
+            limitResolved = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limitResolved, true);
     }
     handleOrder(client, message) {
         //

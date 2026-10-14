@@ -81,7 +81,7 @@ export default class paymium extends Exchange {
      * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
      */
     fetchDepositAddresses(codes?: Strings, params?: Dict): Promise<DepositAddress[]>;
-    parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
+    parseDepositAddress(depositAddress: Dict, currency?: Currency): DepositAddress;
     /**
      * @method
      * @name paymium#createOrder
@@ -122,6 +122,7 @@ export default class paymium extends Exchange {
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: Dict): Promise<TransferEntry>;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     parseTransferStatus(status: Str): Str;
-    sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    nonce(): number;
+    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

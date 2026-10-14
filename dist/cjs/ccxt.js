@@ -28,7 +28,6 @@ var bitfinex = require('./src/bitfinex.js');
 var bitflyer = require('./src/bitflyer.js');
 var bitget = require('./src/bitget.js');
 var bithumb = require('./src/bithumb.js');
-var bitmex = require('./src/bitmex.js');
 var bitopro = require('./src/bitopro.js');
 var bitrue = require('./src/bitrue.js');
 var bitso = require('./src/bitso.js');
@@ -52,7 +51,6 @@ var coinbase = require('./src/coinbase.js');
 var coinbaseexchange = require('./src/coinbaseexchange.js');
 var coinbaseinternational = require('./src/coinbaseinternational.js');
 var coincheck = require('./src/coincheck.js');
-var coinex = require('./src/coinex.js');
 var coinmate = require('./src/coinmate.js');
 var coinone = require('./src/coinone.js');
 var coinsph = require('./src/coinsph.js');
@@ -128,7 +126,6 @@ var bingx$1 = require('./src/pro/bingx.js');
 var bitfinex$1 = require('./src/pro/bitfinex.js');
 var bitget$1 = require('./src/pro/bitget.js');
 var bithumb$1 = require('./src/pro/bithumb.js');
-var bitmex$1 = require('./src/pro/bitmex.js');
 var bitopro$1 = require('./src/pro/bitopro.js');
 var bitrue$1 = require('./src/pro/bitrue.js');
 var bitstamp$1 = require('./src/pro/bitstamp.js');
@@ -146,7 +143,6 @@ var coinbase$1 = require('./src/pro/coinbase.js');
 var coinbaseexchange$1 = require('./src/pro/coinbaseexchange.js');
 var coinbaseinternational$1 = require('./src/pro/coinbaseinternational.js');
 var coincheck$1 = require('./src/pro/coincheck.js');
-var coinex$1 = require('./src/pro/coinex.js');
 var coinone$1 = require('./src/pro/coinone.js');
 var cryptocom$1 = require('./src/pro/cryptocom.js');
 var deepcoin$1 = require('./src/pro/deepcoin.js');
@@ -200,10 +196,11 @@ var myriad = require('./src/prediction/myriad.js');
 var opinion = require('./src/prediction/opinion.js');
 var polymarket = require('./src/prediction/polymarket.js');
 var predictfun = require('./src/prediction/predictfun.js');
+var sxbet = require('./src/prediction/sxbet.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.82';
+const version = '4.5.88';
 const exchanges = {
     'alpaca': alpaca["default"],
     'apex': apex["default"],
@@ -223,7 +220,6 @@ const exchanges = {
     'bitflyer': bitflyer["default"],
     'bitget': bitget["default"],
     'bithumb': bithumb["default"],
-    'bitmex': bitmex["default"],
     'bitopro': bitopro["default"],
     'bitrue': bitrue["default"],
     'bitso': bitso["default"],
@@ -247,7 +243,6 @@ const exchanges = {
     'coinbaseexchange': coinbaseexchange["default"],
     'coinbaseinternational': coinbaseinternational["default"],
     'coincheck': coincheck["default"],
-    'coinex': coinex["default"],
     'coinmate': coinmate["default"],
     'coinone': coinone["default"],
     'coinsph': coinsph["default"],
@@ -325,7 +320,6 @@ const pro = {
     'bitfinex': bitfinex$1["default"],
     'bitget': bitget$1["default"],
     'bithumb': bithumb$1["default"],
-    'bitmex': bitmex$1["default"],
     'bitopro': bitopro$1["default"],
     'bitrue': bitrue$1["default"],
     'bitstamp': bitstamp$1["default"],
@@ -343,7 +337,6 @@ const pro = {
     'coinbaseexchange': coinbaseexchange$1["default"],
     'coinbaseinternational': coinbaseinternational$1["default"],
     'coincheck': coincheck$1["default"],
-    'coinex': coinex$1["default"],
     'coinone': coinone$1["default"],
     'cryptocom': cryptocom$1["default"],
     'deepcoin': deepcoin$1["default"],
@@ -402,6 +395,7 @@ const prediction = {
     'opinion': opinion["default"],
     'polymarket': polymarket["default"],
     'predictfun': predictfun["default"],
+    'sxbet': sxbet["default"],
 };
 prediction.exchanges = Object.keys(prediction);
 // the namespace's `Exchange` alias must be the prediction base, not the crypto Exchange —
@@ -477,7 +471,6 @@ exports.bitfinex = bitfinex["default"];
 exports.bitflyer = bitflyer["default"];
 exports.bitget = bitget["default"];
 exports.bithumb = bithumb["default"];
-exports.bitmex = bitmex["default"];
 exports.bitopro = bitopro["default"];
 exports.bitrue = bitrue["default"];
 exports.bitso = bitso["default"];
@@ -501,7 +494,6 @@ exports.coinbase = coinbase["default"];
 exports.coinbaseexchange = coinbaseexchange["default"];
 exports.coinbaseinternational = coinbaseinternational["default"];
 exports.coincheck = coincheck["default"];
-exports.coinex = coinex["default"];
 exports.coinmate = coinmate["default"];
 exports.coinone = coinone["default"];
 exports.coinsph = coinsph["default"];

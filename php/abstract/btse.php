@@ -44,7 +44,7 @@ abstract class btse extends \ccxt\Exchange {
         return $this->request('spot/api/v3.3/trades', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
     /**
-     * @return array<string, mixed>|list<mixed>
+     * @return array<string, mixed>
      */
     public function public_get_spot_api_v3_3_time($params = array()) {
         return $this->request('spot/api/v3.3/time', 'public', 'GET', $params, null, null, array("cost" => 5));
@@ -812,7 +812,7 @@ abstract class btse extends \ccxt\Exchange {
         return $this->request('spot/api/v3.3/trades', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
     /**
-     * @return array<string, mixed>|list<mixed>
+     * @return array<string, mixed>
      */
     public function publicGetSpotApiV33Time($params = array()) {
         return $this->request('spot/api/v3.3/time', 'public', 'GET', $params, null, null, array("cost" => 5));

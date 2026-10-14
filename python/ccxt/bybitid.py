@@ -5,6 +5,7 @@
 
 from ccxt.bybit import bybit
 from ccxt.abstract.bybitid import ImplicitAPI
+from ccxt.base.errors import PermissionDenied
 
 
 class bybitid(bybit, ImplicitAPI):
@@ -28,5 +29,8 @@ class bybitid(bybit, ImplicitAPI):
                 ],
                 'fees': 'https://help.bybit.com/hc/en-us/articles/360039261154',
                 'referral': None,
+            },
+            'httpExceptions': {
+                '403': PermissionDenied,  # error:The Amazon CloudFront distribution is configured to block access from your country
             },
         })

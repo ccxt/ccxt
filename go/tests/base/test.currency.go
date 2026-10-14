@@ -17,7 +17,7 @@ func TestCurrency(exchange ccxt.ICoreExchange, skippedProperties any, method any
 	var emptyAllowedFor []any = []any{"name", "fee"}
 	// todo: info key needs to be added in base, when exchange does not have fetchCurrencies
 	var isNative bool = (!IsEqual(GetValue(exchange.GetHas(), "fetchCurrencies"), nil)) && (!IsEqual(GetValue(exchange.GetHas(), "fetchCurrencies"), false)) && (!IsEqual(GetValue(exchange.GetHas(), "fetchCurrencies"), "emulated"))
-	var currencyType any = exchange.SafeString(entry, "type")
+	var currencyType any = ccxt.DerefScalar(exchange.SafeString(entry, "type"))
 	if isNative == true {
 		format["info"] = map[string]any{}
 		// todo: 'name': 'Bitcoin', // uppercase string, base currency, 2 or more letters
@@ -99,12 +99,12 @@ func TestCurrency(exchange ccxt.ICoreExchange, skippedProperties any, method any
 		AssertGreaterOrEqual(exchange, skippedProperties, method, depositLimits, "min", "0")
 		AssertGreaterOrEqual(exchange, skippedProperties, method, depositLimits, "max", "0")
 		// max should be more than min (withdrawal limits)
-		var minStringWithdrawal any = exchange.SafeString(withdrawLimits, "min")
+		var minStringWithdrawal any = ccxt.DerefScalar(exchange.SafeString(withdrawLimits, "min"))
 		if minStringWithdrawal != nil {
 			AssertGreaterOrEqual(exchange, skippedProperties, method, withdrawLimits, "max", minStringWithdrawal)
 		}
 		// max should be more than min (deposit limits)
-		var minStringDeposit any = exchange.SafeString(depositLimits, "min")
+		var minStringDeposit any = ccxt.DerefScalar(exchange.SafeString(depositLimits, "min"))
 		if minStringDeposit != nil {
 			AssertGreaterOrEqual(exchange, skippedProperties, method, depositLimits, "max", minStringDeposit)
 		}

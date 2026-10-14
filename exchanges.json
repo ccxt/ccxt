@@ -18,7 +18,6 @@
         "bitflyer",
         "bitget",
         "bithumb",
-        "bitmex",
         "bitopro",
         "bitrue",
         "bitso",
@@ -42,7 +41,6 @@
         "coinbaseexchange",
         "coinbaseinternational",
         "coincheck",
-        "coinex",
         "coinmate",
         "coinone",
         "coinsph",
@@ -120,7 +118,6 @@
         "bitfinex",
         "bitget",
         "bithumb",
-        "bitmex",
         "bitopro",
         "bitrue",
         "bitstamp",
@@ -138,7 +135,6 @@
         "coinbaseexchange",
         "coinbaseinternational",
         "coincheck",
-        "coinex",
         "coinone",
         "cryptocom",
         "deepcoin",
@@ -193,7 +189,8 @@
         "myriad",
         "opinion",
         "polymarket",
-        "predictfun"
+        "predictfun",
+        "sxbet"
     ],
     "predictionWs": []
 }

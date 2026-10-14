@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.82'
+__version__ = '4.5.88'
 
 # -----------------------------------------------------------------------------
 
@@ -82,7 +82,6 @@ from ccxt.async_support.bitfinex import bitfinex                                
 from ccxt.async_support.bitflyer import bitflyer                                # noqa: F401
 from ccxt.async_support.bitget import bitget                                    # noqa: F401
 from ccxt.async_support.bithumb import bithumb                                  # noqa: F401
-from ccxt.async_support.bitmex import bitmex                                    # noqa: F401
 from ccxt.async_support.bitopro import bitopro                                  # noqa: F401
 from ccxt.async_support.bitrue import bitrue                                    # noqa: F401
 from ccxt.async_support.bitso import bitso                                      # noqa: F401
@@ -106,7 +105,6 @@ from ccxt.async_support.coinbase import coinbase                                
 from ccxt.async_support.coinbaseexchange import coinbaseexchange                # noqa: F401
 from ccxt.async_support.coinbaseinternational import coinbaseinternational      # noqa: F401
 from ccxt.async_support.coincheck import coincheck                              # noqa: F401
-from ccxt.async_support.coinex import coinex                                    # noqa: F401
 from ccxt.async_support.coinmate import coinmate                                # noqa: F401
 from ccxt.async_support.coinone import coinone                                  # noqa: F401
 from ccxt.async_support.coinsph import coinsph                                  # noqa: F401
@@ -189,7 +187,6 @@ exchanges = [
     'bitflyer',
     'bitget',
     'bithumb',
-    'bitmex',
     'bitopro',
     'bitrue',
     'bitso',
@@ -213,7 +210,6 @@ exchanges = [
     'coinbaseexchange',
     'coinbaseinternational',
     'coincheck',
-    'coinex',
     'coinmate',
     'coinone',
     'coinsph',

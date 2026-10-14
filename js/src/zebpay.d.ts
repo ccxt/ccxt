@@ -74,7 +74,7 @@ export default class zebpay extends Exchange {
      * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-order-book
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#get-order-book
      * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
@@ -109,9 +109,11 @@ export default class zebpay extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch. Swap: 1–1000, omit for 1000
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch (inclusive). Swap: requires since
      * @param {int} [params.endtime] the latest time in ms to fetch orders for
+     * @param {string} [params.priceType] *swap only* LTP (default) or MARK_PRICE
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
@@ -248,7 +250,7 @@ export default class zebpay extends Exchange {
      * @param {string} [params.positionId] client order id of the order
      * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    closePosition(symbol: string, side?: OrderSide, params?: Dict): Promise<Order>;
+    closePosition(symbol: string, side?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name zebpay#fetchLeverages
@@ -338,7 +340,7 @@ export default class zebpay extends Exchange {
         liquidationPrice: Num;
         markPrice: undefined;
         collateral: undefined;
-        marginType: string;
+        marginMode: string;
         side: Str;
         percentage: undefined;
     };
@@ -346,6 +348,6 @@ export default class zebpay extends Exchange {
     parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     parseMarginModification(info: Dict, market?: Market): MarginModification;
-    sign(path: any, api?: any, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: any, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

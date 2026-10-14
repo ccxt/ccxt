@@ -3,12 +3,12 @@
         "info": {
             "symbol": "BTC",
             "name": "Bitcoin",
-            "decimals": "8",
+            "decimals": 8,
             "depositFee": "0",
-            "depositConfirmations": "2",
+            "depositConfirmations": 2,
             "depositStatus": "OK",
-            "withdrawalFee": "0.000019",
-            "withdrawalMinAmount": "0.000019",
+            "withdrawalFee": "0.000017",
+            "withdrawalMinAmount": "0.000017",
             "withdrawalStatus": "OK",
             "networks": [
                 "BTC"
@@ -24,19 +24,19 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.000019,
+        "fee": 0.000017,
         "fees": {},
         "networks": {
             "BTC": {
                 "info": {
                     "symbol": "BTC",
                     "name": "Bitcoin",
-                    "decimals": "8",
+                    "decimals": 8,
                     "depositFee": "0",
-                    "depositConfirmations": "2",
+                    "depositConfirmations": 2,
                     "depositStatus": "OK",
-                    "withdrawalFee": "0.000019",
-                    "withdrawalMinAmount": "0.000019",
+                    "withdrawalFee": "0.000017",
+                    "withdrawalMinAmount": "0.000017",
                     "withdrawalStatus": "OK",
                     "networks": [
                         "BTC"
@@ -48,11 +48,11 @@
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.000019,
+                "fee": 0.000017,
                 "precision": 1e-8,
                 "limits": {
                     "withdraw": {
-                        "min": 0.000019,
+                        "min": 0.000017,
                         "max": null
                     }
                 }
@@ -68,7 +68,7 @@
                 "max": null
             },
             "withdraw": {
-                "min": 0.000019,
+                "min": 0.000017,
                 "max": null
             }
         }
@@ -521,11 +521,11 @@
         "info": {
             "symbol": "USDC",
             "name": "USD Coin",
-            "decimals": "6",
+            "decimals": 6,
             "depositFee": "0",
-            "depositConfirmations": "32",
+            "depositConfirmations": 32,
             "depositStatus": "OK",
-            "withdrawalFee": "1.2",
+            "withdrawalFee": "1.1",
             "withdrawalMinAmount": "1.2",
             "withdrawalStatus": "OK",
             "networks": [
@@ -542,18 +542,18 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 1.2,
+        "fee": 1.1,
         "fees": {},
         "networks": {
             "ERC20": {
                 "info": {
                     "symbol": "USDC",
                     "name": "USD Coin",
-                    "decimals": "6",
+                    "decimals": 6,
                     "depositFee": "0",
-                    "depositConfirmations": "32",
+                    "depositConfirmations": 32,
                     "depositStatus": "OK",
-                    "withdrawalFee": "1.2",
+                    "withdrawalFee": "1.1",
                     "withdrawalMinAmount": "1.2",
                     "withdrawalStatus": "OK",
                     "networks": [
@@ -566,7 +566,7 @@
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 1.2,
+                "fee": 1.1,
                 "precision": 0.000001,
                 "limits": {
                     "withdraw": {

@@ -1,9 +1,10 @@
 import bittradeRest from '../bittrade.js';
 import type { Int, OrderBook, Trade, Ticker, OHLCV, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class bittrade extends bittradeRest {
     describe(): any;
-    requestId(): any;
+    requestId(): string;
     /**
      * @method
      * @name bittrade#watchTicker
@@ -50,7 +51,7 @@ export default class bittrade extends bittradeRest {
      */
     watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     handleOrderBookSnapshot(client: Client, message: Dict, subscription: Dict): void;
-    watchOrderBookSnapshot(client: Client, message: Dict, subscription: Dict): Promise<any>;
+    watchOrderBookSnapshot(client: Client, message: Dict, subscription: Dict): Promise<WsOrderBook | undefined>;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
     handleOrderBookMessage(client: Client, message: Dict, orderbook: any): any;

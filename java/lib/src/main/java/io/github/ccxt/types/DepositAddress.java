@@ -10,6 +10,7 @@ public final class DepositAddress extends TypedMap {
     public String network;
     public String address;
     public String tag;
+    public String note;
     public Map<String, Object> info;
 
     @SuppressWarnings("unchecked")
@@ -20,6 +21,7 @@ public final class DepositAddress extends TypedMap {
         this.network = TypeHelper.safeString(data, "network");
         this.address = TypeHelper.safeString(data, "address");
         this.tag = TypeHelper.safeString(data, "tag");
+        this.note = TypeHelper.safeString(data, "note");
         this.info = TypeHelper.getInfo(data);
     }
 }

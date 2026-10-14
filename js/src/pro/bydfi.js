@@ -101,9 +101,9 @@ export default class bydfi extends bydfiRest {
         };
         const unsubscribe = this.safeBool(params, 'unsubscribe', false);
         let method = 'SUBSCRIBE';
+        const paramsOmitted = (unsubscribe === true) ? this.omit(params, 'unsubscribe') : params;
         if (unsubscribe === true) {
             method = 'UNSUBSCRIBE';
-            params = this.omit(params, 'unsubscribe');
             subscriptionParams['unsubscribe'] = true;
             subscriptionParams['messageHashes'] = messageHashes;
         }
@@ -112,7 +112,7 @@ export default class bydfi extends bydfiRest {
             'method': method,
             'params': channels,
         };
-        return await this.watchMultiple(url, messageHashes, this.deepExtend(message, params), messageHashes, this.extend(subscriptionParams, subscription));
+        return await this.watchMultiple(url, messageHashes, this.deepExtend(message, paramsOmitted), messageHashes, this.extend(subscriptionParams, subscription));
     }
     async watchPrivate(messageHashes, params = {}) {
         this.checkRequiredCredentials();
@@ -121,6 +121,7 @@ export default class bydfi extends bydfiRest {
         const client = this.client(url);
         const privateSubscription = this.safeValue(client.subscriptions, subHash);
         const subscription = {};
+        let paramsLogin = undefined;
         if (privateSubscription === undefined) {
             const id = this.requestId();
             const timestamp = this.milliseconds().toString();
@@ -135,10 +136,11 @@ export default class bydfi extends bydfiRest {
                     'sign': signature,
                 },
             };
-            params = this.deepExtend(request, params);
+            paramsLogin = this.deepExtend(request, params);
             subscription['id'] = id;
         }
-        return await this.watchMultiple(url, messageHashes, params, ['private'], subscription);
+        const paramsResolved = (paramsLogin !== undefined) ? paramsLogin : params;
+        return await this.watchMultiple(url, messageHashes, paramsResolved, ['private'], subscription);
     }
     /**
      * @method
@@ -185,25 +187,25 @@ export default class bydfi extends bydfiRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols, undefined, true);
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, true);
         const messageHashes = [];
         const messageHash = 'ticker::';
         const channels = [];
         const channel = '@ticker';
-        if (symbols === undefined) {
+        if (symbolsNormalized === undefined) {
             messageHashes.push(messageHash + 'all');
             channels.push('!ticker@arr');
         }
         else {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const symbol = symbolsNormalized[i];
                 const marketId = this.marketId(symbol);
                 messageHashes.push(messageHash + symbol);
                 channels.push(marketId + channel);
             }
         }
         await this.watchPublic(messageHashes, channels, params);
-        return this.filterByArray(this.tickers, 'symbol', symbols);
+        return this.filterByArray(this.tickers, 'symbol', symbolsNormalized);
     }
     /**
      * @method
@@ -216,7 +218,7 @@ export default class bydfi extends bydfiRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchTickers(symbols = undefined, params = {}) {
-        symbols = this.marketSymbols(symbols, undefined, true);
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, true);
         const messageHashes = [];
         const messageHash = 'unsubscribe::ticker::';
         const channels = [];
@@ -224,7 +226,7 @@ export default class bydfi extends bydfiRest {
         const subscription = {
             'topic': 'ticker',
         };
-        if (symbols === undefined) {
+        if (symbolsNormalized === undefined) {
             // all tickers and tickers for specific symbols are different channels
             // we need to unsubscribe from all ticker channels
             const subHashes = this.getMessageHashesForTickersUnsubscription();
@@ -245,16 +247,16 @@ export default class bydfi extends bydfiRest {
             channels.push('!ticker@arr');
         }
         else {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const symbol = symbolsNormalized[i];
                 const marketId = this.marketId(symbol);
                 messageHashes.push(messageHash + symbol);
                 channels.push(marketId + channel);
             }
-            subscription['symbols'] = symbols;
+            subscription['symbols'] = symbolsNormalized;
         }
-        params = this.extend(params, { 'unsubscribe': true });
-        return await this.watchPublic(messageHashes, channels, params, subscription);
+        const paramsExtended = this.extend(params, { 'unsubscribe': true });
+        return await this.watchPublic(messageHashes, channels, paramsExtended, subscription);
     }
     getMessageHashesForTickersUnsubscription() {
         const url = this.urls['api']['ws']['public'];
@@ -339,7 +341,7 @@ export default class bydfi extends bydfiRest {
         const channels = [];
         const messageHashes = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
-            const symbolAndTimeframe = symbolsAndTimeframes[i];
+            const symbolAndTimeframe = this.safeList(symbolsAndTimeframes, i);
             const marketId = this.safeString(symbolAndTimeframe, 0);
             const market = this.market(marketId);
             const tf = this.safeString(symbolAndTimeframe, 1);
@@ -349,10 +351,11 @@ export default class bydfi extends bydfiRest {
             messageHashes.push('ohlcv::' + market['symbol'] + '::' + interval);
         }
         const [symbol, timeframe, candles] = await this.watchPublic(messageHashes, channels, params);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = candles.getLimit(symbol, limit);
+            limitResolved = candles.getLimit(symbol, limit);
         }
-        const filtered = this.filterBySinceLimit(candles, since, limit, 0, true);
+        const filtered = this.filterBySinceLimit(candles, since, limitResolved, 0, true);
         return this.createOHLCVObject(symbol, timeframe, filtered);
     }
     /**
@@ -373,7 +376,7 @@ export default class bydfi extends bydfiRest {
         const channels = [];
         const messageHashes = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
-            const symbolAndTimeframe = symbolsAndTimeframes[i];
+            const symbolAndTimeframe = this.safeList(symbolsAndTimeframes, i);
             const marketId = this.safeString(symbolAndTimeframe, 0);
             const market = this.market(marketId);
             const tf = this.safeString(symbolAndTimeframe, 1);
@@ -381,12 +384,12 @@ export default class bydfi extends bydfiRest {
             channels.push(market['id'] + '@kline_' + interval);
             messageHashes.push('unsubscribe::ohlcv::' + market['symbol'] + '::' + interval);
         }
-        params = this.extend(params, { 'unsubscribe': true });
+        const paramsExtended = this.extend(params, { 'unsubscribe': true });
         const subscription = {
             'topic': 'ohlcv',
             'symbolsAndTimeframes': symbolsAndTimeframes,
         };
-        return await this.watchPublic(messageHashes, channels, params, subscription);
+        return await this.watchPublic(messageHashes, channels, paramsExtended, subscription);
     }
     handleOHLCV(client, message) {
         //
@@ -462,24 +465,24 @@ export default class bydfi extends bydfiRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols, undefined, false);
-        let depth = '100';
-        [depth, params] = this.handleOptionAndParams(params, 'watchOrderBookForSymbols', 'depth', depth);
-        let frequency = '100ms';
-        [frequency, params] = this.handleOptionAndParams(params, 'watchOrderBookForSymbols', 'frequency', frequency);
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
+        const depth = '100';
+        const [depthOption, paramsDepth] = this.handleOptionStringAndParams(params, 'watchOrderBookForSymbols', 'depth', depth);
+        const frequency = '100ms';
+        const [frequencyOption, paramsFrequency] = this.handleOptionStringAndParams(paramsDepth, 'watchOrderBookForSymbols', 'frequency', frequency);
         let channelSuffix = '';
-        if (frequency === '100ms') {
+        if (frequencyOption === '100ms') {
             channelSuffix = '@100ms';
         }
         const channels = [];
         const messageHashes = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market(symbol);
-            channels.push(market['id'] + '@depth' + depth + channelSuffix);
+            channels.push(market['id'] + '@depth' + depthOption + channelSuffix);
             messageHashes.push('orderbook::' + symbol);
         }
-        const orderbook = await this.watchPublic(messageHashes, channels, params);
+        const orderbook = await this.watchPublic(messageHashes, channels, paramsFrequency);
         return orderbook.limit();
     }
     /**
@@ -496,29 +499,29 @@ export default class bydfi extends bydfiRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols, undefined, false);
-        let depth = '100';
-        [depth, params] = this.handleOptionAndParams(params, 'watchOrderBookForSymbols', 'depth', depth);
-        let frequency = '100ms';
-        [frequency, params] = this.handleOptionAndParams(params, 'watchOrderBookForSymbols', 'frequency', frequency);
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
+        const depth = '100';
+        const [depthOption, paramsDepth] = this.handleOptionStringAndParams(params, 'watchOrderBookForSymbols', 'depth', depth);
+        const frequency = '100ms';
+        const [frequencyOption, paramsFrequency] = this.handleOptionStringAndParams(paramsDepth, 'watchOrderBookForSymbols', 'frequency', frequency);
         let channelSuffix = '';
-        if (frequency === '100ms') {
+        if (frequencyOption === '100ms') {
             channelSuffix = '@100ms';
         }
         const channels = [];
         const messageHashes = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market(symbol);
-            channels.push(market['id'] + '@depth' + depth + channelSuffix);
+            channels.push(market['id'] + '@depth' + depthOption + channelSuffix);
             messageHashes.push('unsubscribe::orderbook::' + symbol);
         }
         const subscription = {
             'topic': 'orderbook',
-            'symbols': symbols,
+            'symbols': symbolsNormalized,
         };
-        params = this.extend(params, { 'unsubscribe': true });
-        return await this.watchPublic(messageHashes, channels, params, subscription);
+        const paramsExtended = this.extend(paramsFrequency, { 'unsubscribe': true });
+        return await this.watchPublic(messageHashes, channels, paramsExtended, subscription);
     }
     handleOrderBook(client, message) {
         //
@@ -576,24 +579,25 @@ export default class bydfi extends bydfiRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols, undefined, true);
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, true);
         const messageHashes = [];
-        if (symbols === undefined) {
+        if (symbolsNormalized === undefined) {
             messageHashes.push('orders');
         }
         else {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const symbol = symbolsNormalized[i];
                 messageHashes.push('orders::' + symbol);
             }
         }
         const orders = await this.watchPrivate(messageHashes, params);
+        const first = this.safeDict(orders, 0);
+        const tradeSymbol = this.safeString(first, 'symbol');
+        let limitResolved = limit;
         if (this.newUpdates) {
-            const first = this.safeDict(orders, 0);
-            const tradeSymbol = this.safeString(first, 'symbol');
-            limit = orders.getLimit(tradeSymbol, limit);
+            limitResolved = orders.getLimit(tradeSymbol, limit);
         }
-        return this.filterBySinceLimit(orders, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(orders, since, limitResolved, 'timestamp', true);
     }
     handleOrder(client, message) {
         //
@@ -667,7 +671,7 @@ export default class bydfi extends bydfiRest {
         //     }
         //
         const marketId = this.safeString(order, 's');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         const rawStatus = this.safeString(order, 'st');
         const rawType = this.safeString(order, 't');
         let fee = undefined;
@@ -675,7 +679,7 @@ export default class bydfi extends bydfiRest {
         if (feeCost !== undefined) {
             fee = {
                 'cost': Precise.stringAbs(feeCost),
-                'currency': market['quote'],
+                'currency': marketResolved['quote'],
             };
         }
         return this.safeOrder({
@@ -687,7 +691,7 @@ export default class bydfi extends bydfiRest {
             'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': undefined,
             'status': this.parseOrderStatus(rawStatus),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': this.parseOrderType(rawType),
             'timeInForce': undefined,
             'postOnly': undefined,
@@ -704,7 +708,7 @@ export default class bydfi extends bydfiRest {
             'trades': undefined,
             'fee': fee,
             'average': this.omitZero(this.safeString(order, 'ap')),
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -721,15 +725,15 @@ export default class bydfi extends bydfiRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols, undefined, true);
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, true);
         const messageHashes = [];
         const messageHash = 'positions';
-        if (symbols === undefined) {
+        if (symbolsNormalized === undefined) {
             messageHashes.push(messageHash);
         }
         else {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const symbol = symbolsNormalized[i];
                 messageHashes.push(messageHash + '::' + symbol);
             }
         }
@@ -737,7 +741,7 @@ export default class bydfi extends bydfiRest {
         if (this.newUpdates) {
             return positions;
         }
-        return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit(this.positions, symbolsNormalized, since, limit, true);
     }
     handlePositions(client, message) {
         //
@@ -822,13 +826,13 @@ export default class bydfi extends bydfiRest {
         //     }
         //
         const marketId = this.safeString(position, 's');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         const rawPositionSide = this.safeString(position, 'S');
         const positionMode = this.safeString(position, 'pt');
         return this.safePosition({
             'info': position,
             'id': this.safeString(position, 'id'),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'entryPrice': this.parseNumber(this.safeString(position, 'ap')),
             'markPrice': undefined,
             'lastPrice': undefined,
@@ -959,7 +963,7 @@ export default class bydfi extends bydfiRest {
                 'datetime': this.iso8601(timestamp),
             };
             for (let i = 0; i < balances.length; i++) {
-                const balance = balances[i];
+                const balance = this.safeDict(balances, i);
                 const currencyId = this.safeString(balance, 'a');
                 const code = this.safeCurrencyCode(currencyId);
                 const account = this.account();

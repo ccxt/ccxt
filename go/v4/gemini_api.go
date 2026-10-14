@@ -8,576 +8,576 @@
 package ccxt
 
 // WebExchangeGet returns a channel that yields a JSON scalar.
-func (this *Gemini) WebExchangeGet(args ...any) <-chan any {
-	return this.Fetch2Async("", "webExchange", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) WebExchangeGet(args ...any) <-chan EndpointResult[string] {
+	return Fetch2Result[string](this, "", "webExchange", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // WebGetRestApi returns a channel that yields a JSON scalar.
-func (this *Gemini) WebGetRestApi(args ...any) <-chan any {
-	return this.Fetch2Async("rest-api", "web", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) WebGetRestApi(args ...any) <-chan EndpointResult[string] {
+	return Fetch2Result[string](this, "rest-api", "web", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetV1Symbols returns a channel that yields a JSON array.
-func (this *Gemini) PublicGetV1Symbols(args ...any) <-chan any {
-	return this.Fetch2Async("v1/symbols", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Gemini) PublicGetV1Symbols(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/symbols", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetV1SymbolsDetailsSymbol returns a channel that yields a JSON object.
-func (this *Gemini) PublicGetV1SymbolsDetailsSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("v1/symbols/details/{symbol}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Gemini) PublicGetV1SymbolsDetailsSymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/symbols/details/{symbol}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetV1NetworkToken returns a channel that yields a JSON object.
-func (this *Gemini) PublicGetV1NetworkToken(args ...any) <-chan any {
-	return this.Fetch2Async("v1/network/{token}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Gemini) PublicGetV1NetworkToken(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/network/{token}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetV1StakingRates returns a channel that yields a JSON object.
-func (this *Gemini) PublicGetV1StakingRates(args ...any) <-chan any {
-	return this.Fetch2Async("v1/staking/rates", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Gemini) PublicGetV1StakingRates(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/staking/rates", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetV1PubtickerSymbol returns a channel that yields a JSON object.
-func (this *Gemini) PublicGetV1PubtickerSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("v1/pubticker/{symbol}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Gemini) PublicGetV1PubtickerSymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/pubticker/{symbol}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetV1Feepromos returns a channel that yields a JSON object.
-func (this *Gemini) PublicGetV1Feepromos(args ...any) <-chan any {
-	return this.Fetch2Async("v1/feepromos", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Gemini) PublicGetV1Feepromos(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/feepromos", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetV2TickerSymbol returns a channel that yields a JSON object.
-func (this *Gemini) PublicGetV2TickerSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("v2/ticker/{symbol}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Gemini) PublicGetV2TickerSymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v2/ticker/{symbol}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetV2CandlesSymbolTimeframe returns a channel that yields a JSON array.
-func (this *Gemini) PublicGetV2CandlesSymbolTimeframe(args ...any) <-chan any {
-	return this.Fetch2Async("v2/candles/{symbol}/{timeframe}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Gemini) PublicGetV2CandlesSymbolTimeframe(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v2/candles/{symbol}/{timeframe}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetV1TradesSymbol returns a channel that yields a JSON array.
-func (this *Gemini) PublicGetV1TradesSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("v1/trades/{symbol}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Gemini) PublicGetV1TradesSymbol(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/trades/{symbol}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetV1AuctionSymbol returns a channel that yields a JSON object.
-func (this *Gemini) PublicGetV1AuctionSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("v1/auction/{symbol}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Gemini) PublicGetV1AuctionSymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/auction/{symbol}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetV1AuctionSymbolHistory returns a channel that yields a JSON array.
-func (this *Gemini) PublicGetV1AuctionSymbolHistory(args ...any) <-chan any {
-	return this.Fetch2Async("v1/auction/{symbol}/history", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Gemini) PublicGetV1AuctionSymbolHistory(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/auction/{symbol}/history", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetV1Pricefeed returns a channel that yields a JSON array.
-func (this *Gemini) PublicGetV1Pricefeed(args ...any) <-chan any {
-	return this.Fetch2Async("v1/pricefeed", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Gemini) PublicGetV1Pricefeed(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/pricefeed", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetV1FundingamountSymbol returns a channel that yields a JSON object.
-func (this *Gemini) PublicGetV1FundingamountSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("v1/fundingamount/{symbol}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Gemini) PublicGetV1FundingamountSymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/fundingamount/{symbol}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetV1FundingamountreportRecordsXlsx returns a channel that yields a JSON scalar.
-func (this *Gemini) PublicGetV1FundingamountreportRecordsXlsx(args ...any) <-chan any {
-	return this.Fetch2Async("v1/fundingamountreport/records.xlsx", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Gemini) PublicGetV1FundingamountreportRecordsXlsx(args ...any) <-chan EndpointResult[string] {
+	return Fetch2Result[string](this, "v1/fundingamountreport/records.xlsx", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetV1BookSymbol returns a channel that yields a JSON object.
-func (this *Gemini) PublicGetV1BookSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("v1/book/{symbol}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Gemini) PublicGetV1BookSymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/book/{symbol}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetV1EarnRates returns a channel that yields a JSON object.
-func (this *Gemini) PublicGetV1EarnRates(args ...any) <-chan any {
-	return this.Fetch2Async("v1/earn/rates", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Gemini) PublicGetV1EarnRates(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/earn/rates", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetV2DerivativesCandlesSymbolTimeFrame returns a channel that yields a JSON array.
-func (this *Gemini) PublicGetV2DerivativesCandlesSymbolTimeFrame(args ...any) <-chan any {
-	return this.Fetch2Async("v2/derivatives/candles/{symbol}/{time_frame}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Gemini) PublicGetV2DerivativesCandlesSymbolTimeFrame(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v2/derivatives/candles/{symbol}/{time_frame}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetV2FxrateSymbolTimestamp returns a channel that yields a JSON object.
-func (this *Gemini) PublicGetV2FxrateSymbolTimestamp(args ...any) <-chan any {
-	return this.Fetch2Async("v2/fxrate/{symbol}/{timestamp}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Gemini) PublicGetV2FxrateSymbolTimestamp(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v2/fxrate/{symbol}/{timestamp}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetV1RiskstatsSymbol returns a channel that yields a JSON object.
-func (this *Gemini) PublicGetV1RiskstatsSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("v1/riskstats/{symbol}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Gemini) PublicGetV1RiskstatsSymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/riskstats/{symbol}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetV1PredictionMarketsEvents returns a channel that yields a JSON object.
-func (this *Gemini) PublicGetV1PredictionMarketsEvents(args ...any) <-chan any {
-	return this.Fetch2Async("v1/prediction-markets/events", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Gemini) PublicGetV1PredictionMarketsEvents(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/prediction-markets/events", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetV1PredictionMarketsEventsEventTicker returns a channel that yields a JSON object.
-func (this *Gemini) PublicGetV1PredictionMarketsEventsEventTicker(args ...any) <-chan any {
-	return this.Fetch2Async("v1/prediction-markets/events/{eventTicker}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Gemini) PublicGetV1PredictionMarketsEventsEventTicker(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/prediction-markets/events/{eventTicker}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetV1PredictionMarketsEventsEventTickerStrike returns a channel that yields a JSON object.
-func (this *Gemini) PublicGetV1PredictionMarketsEventsEventTickerStrike(args ...any) <-chan any {
-	return this.Fetch2Async("v1/prediction-markets/events/{eventTicker}/strike", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Gemini) PublicGetV1PredictionMarketsEventsEventTickerStrike(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/prediction-markets/events/{eventTicker}/strike", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetV1PredictionMarketsEventsNewlyListed returns a channel that yields a JSON object.
-func (this *Gemini) PublicGetV1PredictionMarketsEventsNewlyListed(args ...any) <-chan any {
-	return this.Fetch2Async("v1/prediction-markets/events/newly-listed", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Gemini) PublicGetV1PredictionMarketsEventsNewlyListed(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/prediction-markets/events/newly-listed", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetV1PredictionMarketsEventsRecentlySettled returns a channel that yields a JSON object.
-func (this *Gemini) PublicGetV1PredictionMarketsEventsRecentlySettled(args ...any) <-chan any {
-	return this.Fetch2Async("v1/prediction-markets/events/recently-settled", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Gemini) PublicGetV1PredictionMarketsEventsRecentlySettled(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/prediction-markets/events/recently-settled", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetV1PredictionMarketsEventsUpcoming returns a channel that yields a JSON object.
-func (this *Gemini) PublicGetV1PredictionMarketsEventsUpcoming(args ...any) <-chan any {
-	return this.Fetch2Async("v1/prediction-markets/events/upcoming", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Gemini) PublicGetV1PredictionMarketsEventsUpcoming(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/prediction-markets/events/upcoming", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetV1PredictionMarketsCategories returns a channel that yields a JSON object.
-func (this *Gemini) PublicGetV1PredictionMarketsCategories(args ...any) <-chan any {
-	return this.Fetch2Async("v1/prediction-markets/categories", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Gemini) PublicGetV1PredictionMarketsCategories(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/prediction-markets/categories", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetV1PredictionMarketsVolumeDate returns a channel that yields a JSON array.
-func (this *Gemini) PublicGetV1PredictionMarketsVolumeDate(args ...any) <-chan any {
-	return this.Fetch2Async("v1/prediction-markets/volume/{date}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Gemini) PublicGetV1PredictionMarketsVolumeDate(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/prediction-markets/volume/{date}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetV1PredictionMarketsVolumeDateHourly returns a channel that yields a JSON array.
-func (this *Gemini) PublicGetV1PredictionMarketsVolumeDateHourly(args ...any) <-chan any {
-	return this.Fetch2Async("v1/prediction-markets/volume/{date}/hourly", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Gemini) PublicGetV1PredictionMarketsVolumeDateHourly(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/prediction-markets/volume/{date}/hourly", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetV1PredictionMarketsTerms returns a channel that yields a JSON object.
-func (this *Gemini) PublicGetV1PredictionMarketsTerms(args ...any) <-chan any {
-	return this.Fetch2Async("v1/prediction-markets/terms", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Gemini) PublicGetV1PredictionMarketsTerms(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/prediction-markets/terms", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetV1PredictionMarketsMakerRebateRates returns a channel that yields a JSON object.
-func (this *Gemini) PublicGetV1PredictionMarketsMakerRebateRates(args ...any) <-chan any {
-	return this.Fetch2Async("v1/prediction-markets/maker-rebate/rates", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Gemini) PublicGetV1PredictionMarketsMakerRebateRates(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/prediction-markets/maker-rebate/rates", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetV1PredictionMarketsLiquidityRewardsConfig returns a channel that yields a JSON object.
-func (this *Gemini) PublicGetV1PredictionMarketsLiquidityRewardsConfig(args ...any) <-chan any {
-	return this.Fetch2Async("v1/prediction-markets/liquidity-rewards/config", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Gemini) PublicGetV1PredictionMarketsLiquidityRewardsConfig(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/prediction-markets/liquidity-rewards/config", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetV1PredictionMarketsLiquidityRewardsEvents returns a channel that yields a JSON object.
-func (this *Gemini) PublicGetV1PredictionMarketsLiquidityRewardsEvents(args ...any) <-chan any {
-	return this.Fetch2Async("v1/prediction-markets/liquidity-rewards/events", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Gemini) PublicGetV1PredictionMarketsLiquidityRewardsEvents(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/prediction-markets/liquidity-rewards/events", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetV1PerpetualsFundingpaymentreportRecordsXlsx returns a channel that yields a JSON scalar.
-func (this *Gemini) PrivateGetV1PerpetualsFundingpaymentreportRecordsXlsx(args ...any) <-chan any {
-	return this.Fetch2Async("v1/perpetuals/fundingpaymentreport/records.xlsx", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivateGetV1PerpetualsFundingpaymentreportRecordsXlsx(args ...any) <-chan EndpointResult[string] {
+	return Fetch2Result[string](this, "v1/perpetuals/fundingpaymentreport/records.xlsx", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV1PredictionMarketsTermsStatus returns a channel that yields a JSON object.
-func (this *Gemini) PrivateGetV1PredictionMarketsTermsStatus(args ...any) <-chan any {
-	return this.Fetch2Async("v1/prediction-markets/terms/status", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivateGetV1PredictionMarketsTermsStatus(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/prediction-markets/terms/status", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV1PredictionMarketsMakerRebateSummaryTotal returns a channel that yields a JSON object.
-func (this *Gemini) PrivateGetV1PredictionMarketsMakerRebateSummaryTotal(args ...any) <-chan any {
-	return this.Fetch2Async("v1/prediction-markets/maker-rebate/summary/total", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivateGetV1PredictionMarketsMakerRebateSummaryTotal(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/prediction-markets/maker-rebate/summary/total", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV1PredictionMarketsLiquidityRewardsSummaryDaily returns a channel that yields a JSON object.
-func (this *Gemini) PrivateGetV1PredictionMarketsLiquidityRewardsSummaryDaily(args ...any) <-chan any {
-	return this.Fetch2Async("v1/prediction-markets/liquidity-rewards/summary/daily", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivateGetV1PredictionMarketsLiquidityRewardsSummaryDaily(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/prediction-markets/liquidity-rewards/summary/daily", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV1PredictionMarketsLiquidityRewardsSummaryTotal returns a channel that yields a JSON object.
-func (this *Gemini) PrivateGetV1PredictionMarketsLiquidityRewardsSummaryTotal(args ...any) <-chan any {
-	return this.Fetch2Async("v1/prediction-markets/liquidity-rewards/summary/total", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivateGetV1PredictionMarketsLiquidityRewardsSummaryTotal(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/prediction-markets/liquidity-rewards/summary/total", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV2NetworkToken returns a channel that yields a JSON object.
-func (this *Gemini) PrivateGetV2NetworkToken(args ...any) <-chan any {
-	return this.Fetch2Async("v2/network/{token}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivateGetV2NetworkToken(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v2/network/{token}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV2NetworksNetworkAssets returns a channel that yields a JSON object.
-func (this *Gemini) PrivateGetV2NetworksNetworkAssets(args ...any) <-chan any {
-	return this.Fetch2Async("v2/networks/{network}/assets", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivateGetV2NetworksNetworkAssets(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v2/networks/{network}/assets", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1StakingUnstake returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1StakingUnstake(args ...any) <-chan any {
-	return this.Fetch2Async("v1/staking/unstake", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1StakingUnstake(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/staking/unstake", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1StakingStake returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1StakingStake(args ...any) <-chan any {
-	return this.Fetch2Async("v1/staking/stake", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1StakingStake(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/staking/stake", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1StakingRewards returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1StakingRewards(args ...any) <-chan any {
-	return this.Fetch2Async("v1/staking/rewards", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1StakingRewards(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/staking/rewards", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1StakingHistory returns a channel that yields a JSON array.
-func (this *Gemini) PrivatePostV1StakingHistory(args ...any) <-chan any {
-	return this.Fetch2Async("v1/staking/history", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1StakingHistory(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/staking/history", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1OrderNew returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1OrderNew(args ...any) <-chan any {
-	return this.Fetch2Async("v1/order/new", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1OrderNew(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/order/new", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1OrderCancel returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1OrderCancel(args ...any) <-chan any {
-	return this.Fetch2Async("v1/order/cancel", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1OrderCancel(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/order/cancel", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1WrapSymbol returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1WrapSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("v1/wrap/{symbol}", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1WrapSymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/wrap/{symbol}", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1OrderCancelSession returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1OrderCancelSession(args ...any) <-chan any {
-	return this.Fetch2Async("v1/order/cancel/session", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1OrderCancelSession(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/order/cancel/session", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1OrderCancelAll returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1OrderCancelAll(args ...any) <-chan any {
-	return this.Fetch2Async("v1/order/cancel/all", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1OrderCancelAll(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/order/cancel/all", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1OrderStatus returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1OrderStatus(args ...any) <-chan any {
-	return this.Fetch2Async("v1/order/status", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1OrderStatus(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/order/status", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1Orders returns a channel that yields a JSON array.
-func (this *Gemini) PrivatePostV1Orders(args ...any) <-chan any {
-	return this.Fetch2Async("v1/orders", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1Orders(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/orders", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1Mytrades returns a channel that yields a JSON array.
-func (this *Gemini) PrivatePostV1Mytrades(args ...any) <-chan any {
-	return this.Fetch2Async("v1/mytrades", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1Mytrades(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/mytrades", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1Notionalvolume returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1Notionalvolume(args ...any) <-chan any {
-	return this.Fetch2Async("v1/notionalvolume", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1Notionalvolume(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/notionalvolume", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1Tradevolume returns a channel that yields a JSON array.
-func (this *Gemini) PrivatePostV1Tradevolume(args ...any) <-chan any {
-	return this.Fetch2Async("v1/tradevolume", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1Tradevolume(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/tradevolume", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1ClearingNew returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1ClearingNew(args ...any) <-chan any {
-	return this.Fetch2Async("v1/clearing/new", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1ClearingNew(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/clearing/new", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1ClearingStatus returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1ClearingStatus(args ...any) <-chan any {
-	return this.Fetch2Async("v1/clearing/status", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1ClearingStatus(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/clearing/status", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1ClearingCancel returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1ClearingCancel(args ...any) <-chan any {
-	return this.Fetch2Async("v1/clearing/cancel", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1ClearingCancel(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/clearing/cancel", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1ClearingConfirm returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1ClearingConfirm(args ...any) <-chan any {
-	return this.Fetch2Async("v1/clearing/confirm", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1ClearingConfirm(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/clearing/confirm", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1Balances returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1Balances(args ...any) <-chan any {
-	return this.Fetch2Async("v1/balances", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1Balances(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/balances", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1BalancesStaking returns a channel that yields a JSON array.
-func (this *Gemini) PrivatePostV1BalancesStaking(args ...any) <-chan any {
-	return this.Fetch2Async("v1/balances/staking", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1BalancesStaking(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/balances/staking", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1NotionalbalancesCurrency returns a channel that yields a JSON array.
-func (this *Gemini) PrivatePostV1NotionalbalancesCurrency(args ...any) <-chan any {
-	return this.Fetch2Async("v1/notionalbalances/{currency}", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1NotionalbalancesCurrency(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/notionalbalances/{currency}", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1Transfers returns a channel that yields a JSON array.
-func (this *Gemini) PrivatePostV1Transfers(args ...any) <-chan any {
-	return this.Fetch2Async("v1/transfers", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1Transfers(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/transfers", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1AddressesNetwork returns a channel that yields a JSON array.
-func (this *Gemini) PrivatePostV1AddressesNetwork(args ...any) <-chan any {
-	return this.Fetch2Async("v1/addresses/{network}", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1AddressesNetwork(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/addresses/{network}", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1DepositNetworkNewAddress returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1DepositNetworkNewAddress(args ...any) <-chan any {
-	return this.Fetch2Async("v1/deposit/{network}/newAddress", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1DepositNetworkNewAddress(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/deposit/{network}/newAddress", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1DepositCurrencyNewAddress returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1DepositCurrencyNewAddress(args ...any) <-chan any {
-	return this.Fetch2Async("v1/deposit/{currency}/newAddress", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1DepositCurrencyNewAddress(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/deposit/{currency}/newAddress", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1WithdrawCurrency returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1WithdrawCurrency(args ...any) <-chan any {
-	return this.Fetch2Async("v1/withdraw/{currency}", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1WithdrawCurrency(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/withdraw/{currency}", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1AccountTransferCurrency returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1AccountTransferCurrency(args ...any) <-chan any {
-	return this.Fetch2Async("v1/account/transfer/{currency}", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1AccountTransferCurrency(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/account/transfer/{currency}", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1PaymentsAddbank returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1PaymentsAddbank(args ...any) <-chan any {
-	return this.Fetch2Async("v1/payments/addbank", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1PaymentsAddbank(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/payments/addbank", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1PaymentsMethods returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1PaymentsMethods(args ...any) <-chan any {
-	return this.Fetch2Async("v1/payments/methods", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1PaymentsMethods(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/payments/methods", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1PaymentsSenWithdraw returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1PaymentsSenWithdraw(args ...any) <-chan any {
-	return this.Fetch2Async("v1/payments/sen/withdraw", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1PaymentsSenWithdraw(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/payments/sen/withdraw", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1BalancesEarn returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1BalancesEarn(args ...any) <-chan any {
-	return this.Fetch2Async("v1/balances/earn", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1BalancesEarn(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/balances/earn", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1EarnInterest returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1EarnInterest(args ...any) <-chan any {
-	return this.Fetch2Async("v1/earn/interest", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1EarnInterest(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/earn/interest", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1EarnHistory returns a channel that yields a JSON array.
-func (this *Gemini) PrivatePostV1EarnHistory(args ...any) <-chan any {
-	return this.Fetch2Async("v1/earn/history", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1EarnHistory(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/earn/history", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1ApprovedAddressesNetworkRequest returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1ApprovedAddressesNetworkRequest(args ...any) <-chan any {
-	return this.Fetch2Async("v1/approvedAddresses/{network}/request", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1ApprovedAddressesNetworkRequest(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/approvedAddresses/{network}/request", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1ApprovedAddressesAccountNetwork returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1ApprovedAddressesAccountNetwork(args ...any) <-chan any {
-	return this.Fetch2Async("v1/approvedAddresses/account/{network}", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1ApprovedAddressesAccountNetwork(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/approvedAddresses/account/{network}", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1ApprovedAddressesNetworkRemove returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1ApprovedAddressesNetworkRemove(args ...any) <-chan any {
-	return this.Fetch2Async("v1/approvedAddresses/{network}/remove", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1ApprovedAddressesNetworkRemove(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/approvedAddresses/{network}/remove", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1Account returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1Account(args ...any) <-chan any {
-	return this.Fetch2Async("v1/account", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1Account(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/account", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1AccountCreate returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1AccountCreate(args ...any) <-chan any {
-	return this.Fetch2Async("v1/account/create", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1AccountCreate(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/account/create", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1AccountList returns a channel that yields a JSON array.
-func (this *Gemini) PrivatePostV1AccountList(args ...any) <-chan any {
-	return this.Fetch2Async("v1/account/list", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1AccountList(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/account/list", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1Heartbeat returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1Heartbeat(args ...any) <-chan any {
-	return this.Fetch2Async("v1/heartbeat", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1Heartbeat(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/heartbeat", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1Roles returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1Roles(args ...any) <-chan any {
-	return this.Fetch2Async("v1/roles", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1Roles(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/roles", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1Custodyaccountfees returns a channel that yields a JSON array.
-func (this *Gemini) PrivatePostV1Custodyaccountfees(args ...any) <-chan any {
-	return this.Fetch2Async("v1/custodyaccountfees", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1Custodyaccountfees(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/custodyaccountfees", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1WithdrawCurrencyCodeLowerCaseFeeEstimate returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1WithdrawCurrencyCodeLowerCaseFeeEstimate(args ...any) <-chan any {
-	return this.Fetch2Async("v1/withdraw/{currencyCodeLowerCase}/feeEstimate", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1WithdrawCurrencyCodeLowerCaseFeeEstimate(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/withdraw/{currencyCodeLowerCase}/feeEstimate", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1PaymentsAddbankCad returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1PaymentsAddbankCad(args ...any) <-chan any {
-	return this.Fetch2Async("v1/payments/addbank/cad", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1PaymentsAddbankCad(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/payments/addbank/cad", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1Transactions returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1Transactions(args ...any) <-chan any {
-	return this.Fetch2Async("v1/transactions", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1Transactions(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/transactions", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1MarginAccount returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1MarginAccount(args ...any) <-chan any {
-	return this.Fetch2Async("v1/margin/account", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1MarginAccount(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/margin/account", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1MarginRates returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1MarginRates(args ...any) <-chan any {
-	return this.Fetch2Async("v1/margin/rates", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1MarginRates(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/margin/rates", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1MarginOrderPreview returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1MarginOrderPreview(args ...any) <-chan any {
-	return this.Fetch2Async("v1/margin/order/preview", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1MarginOrderPreview(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/margin/order/preview", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1ClearingList returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1ClearingList(args ...any) <-chan any {
-	return this.Fetch2Async("v1/clearing/list", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1ClearingList(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/clearing/list", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1ClearingBrokerList returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1ClearingBrokerList(args ...any) <-chan any {
-	return this.Fetch2Async("v1/clearing/broker/list", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1ClearingBrokerList(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/clearing/broker/list", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1ClearingBrokerNew returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1ClearingBrokerNew(args ...any) <-chan any {
-	return this.Fetch2Async("v1/clearing/broker/new", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1ClearingBrokerNew(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/clearing/broker/new", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1ClearingTrades returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1ClearingTrades(args ...any) <-chan any {
-	return this.Fetch2Async("v1/clearing/trades", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1ClearingTrades(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/clearing/trades", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1InstantQuote returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1InstantQuote(args ...any) <-chan any {
-	return this.Fetch2Async("v1/instant/quote", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1InstantQuote(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/instant/quote", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1InstantExecute returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1InstantExecute(args ...any) <-chan any {
-	return this.Fetch2Async("v1/instant/execute", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1InstantExecute(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/instant/execute", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1AccountRename returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1AccountRename(args ...any) <-chan any {
-	return this.Fetch2Async("v1/account/rename", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1AccountRename(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/account/rename", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1OauthRevokeByToken returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1OauthRevokeByToken(args ...any) <-chan any {
-	return this.Fetch2Async("v1/oauth/revokeByToken", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1OauthRevokeByToken(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/oauth/revokeByToken", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1Margin returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1Margin(args ...any) <-chan any {
-	return this.Fetch2Async("v1/margin", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1Margin(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/margin", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1PerpetualsFundingPayment returns a channel that yields a JSON array.
-func (this *Gemini) PrivatePostV1PerpetualsFundingPayment(args ...any) <-chan any {
-	return this.Fetch2Async("v1/perpetuals/fundingPayment", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1PerpetualsFundingPayment(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/perpetuals/fundingPayment", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1PerpetualsFundingpaymentreportRecordsJson returns a channel that yields a JSON array.
-func (this *Gemini) PrivatePostV1PerpetualsFundingpaymentreportRecordsJson(args ...any) <-chan any {
-	return this.Fetch2Async("v1/perpetuals/fundingpaymentreport/records.json", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1PerpetualsFundingpaymentreportRecordsJson(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/perpetuals/fundingpaymentreport/records.json", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1Positions returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1Positions(args ...any) <-chan any {
-	return this.Fetch2Async("v1/positions", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1Positions(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/positions", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1PredictionMarketsOrder returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1PredictionMarketsOrder(args ...any) <-chan any {
-	return this.Fetch2Async("v1/prediction-markets/order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1PredictionMarketsOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/prediction-markets/order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1PredictionMarketsOrderBatch returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1PredictionMarketsOrderBatch(args ...any) <-chan any {
-	return this.Fetch2Async("v1/prediction-markets/order/batch", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1PredictionMarketsOrderBatch(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/prediction-markets/order/batch", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1PredictionMarketsOrderCancel returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1PredictionMarketsOrderCancel(args ...any) <-chan any {
-	return this.Fetch2Async("v1/prediction-markets/order/cancel", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1PredictionMarketsOrderCancel(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/prediction-markets/order/cancel", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1PredictionMarketsOrderBatchCancel returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1PredictionMarketsOrderBatchCancel(args ...any) <-chan any {
-	return this.Fetch2Async("v1/prediction-markets/order/batch/cancel", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1PredictionMarketsOrderBatchCancel(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/prediction-markets/order/batch/cancel", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1PredictionMarketsOrdersActive returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1PredictionMarketsOrdersActive(args ...any) <-chan any {
-	return this.Fetch2Async("v1/prediction-markets/orders/active", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1PredictionMarketsOrdersActive(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/prediction-markets/orders/active", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1PredictionMarketsOrdersHistory returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1PredictionMarketsOrdersHistory(args ...any) <-chan any {
-	return this.Fetch2Async("v1/prediction-markets/orders/history", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1PredictionMarketsOrdersHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/prediction-markets/orders/history", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1PredictionMarketsPositions returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1PredictionMarketsPositions(args ...any) <-chan any {
-	return this.Fetch2Async("v1/prediction-markets/positions", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1PredictionMarketsPositions(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/prediction-markets/positions", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1PredictionMarketsPositionsSettled returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1PredictionMarketsPositionsSettled(args ...any) <-chan any {
-	return this.Fetch2Async("v1/prediction-markets/positions/settled", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1PredictionMarketsPositionsSettled(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/prediction-markets/positions/settled", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1PredictionMarketsMetricsVolume returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1PredictionMarketsMetricsVolume(args ...any) <-chan any {
-	return this.Fetch2Async("v1/prediction-markets/metrics/volume", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1PredictionMarketsMetricsVolume(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/prediction-markets/metrics/volume", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1PredictionMarketsTermsAccept returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1PredictionMarketsTermsAccept(args ...any) <-chan any {
-	return this.Fetch2Async("v1/prediction-markets/terms/accept", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1PredictionMarketsTermsAccept(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/prediction-markets/terms/accept", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1PredictionMarketsMakerRebatePayouts returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1PredictionMarketsMakerRebatePayouts(args ...any) <-chan any {
-	return this.Fetch2Async("v1/prediction-markets/maker-rebate/payouts", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV1PredictionMarketsMakerRebatePayouts(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/prediction-markets/maker-rebate/payouts", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV2Transfers returns a channel that yields a JSON array.
-func (this *Gemini) PrivatePostV2Transfers(args ...any) <-chan any {
-	return this.Fetch2Async("v2/transfers", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV2Transfers(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v2/transfers", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV2WithdrawNetworkTicker returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV2WithdrawNetworkTicker(args ...any) <-chan any {
-	return this.Fetch2Async("v2/withdraw/{network}/{ticker}", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV2WithdrawNetworkTicker(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v2/withdraw/{network}/{ticker}", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV2WithdrawNetworkTickerFeeEstimate returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV2WithdrawNetworkTickerFeeEstimate(args ...any) <-chan any {
-	return this.Fetch2Async("v2/withdraw/{network}/{ticker}/feeEstimate", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Gemini) PrivatePostV2WithdrawNetworkTickerFeeEstimate(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v2/withdraw/{network}/{ticker}/feeEstimate", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }

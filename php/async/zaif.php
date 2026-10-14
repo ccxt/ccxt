@@ -280,6 +280,9 @@ class zaif extends Exchange {
         list($baseId, $quoteId) = explode('/', $name);
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $symbol = $base . '/' . $quote;
         return $this->safe_market_structure(array(
             'id' => $id,
@@ -768,16 +771,22 @@ class zaif extends Exchange {
             $market = $this->market($symbol);
             $request['currency_pair'] = $market['id'];
         }
+        if ($since !== null) {
+            $request['since'] = $this->parse_to_int($since / 1000);
+        }
+        if ($limit !== null) {
+            $request['count'] = min($limit, 1000);
+        }
         $response = Async\await($this->privatePostTradeHistory($this->extend($request, $params)));
         $data = $this->safe_dict($response, 'return', array());
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          *
          * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id41
@@ -786,12 +795,12 @@ class zaif extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->check_address($address);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
+        $this->check_address($address, $code, $tagWithdrawTag);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -806,10 +815,10 @@ class zaif extends Exchange {
             // 'message': 'Hi!', // XEM and others
             // 'opt_fee': 0.003, // BTC and MONA only
         );
-        if ($tag !== null) {
-            $request['message'] = $tag;
+        if ($tagWithdrawTag !== null) {
+            $request['message'] = $tagWithdrawTag;
         }
-        $result = Async\await($this->privatePostWithdraw($this->extend($request, $params)));
+        $result = Async\await($this->privatePostWithdraw($this->extend($request, $paramsWithdrawTag)));
         //
         //     {
         //         "success": 1,
@@ -844,13 +853,13 @@ class zaif extends Exchange {
         //         }
         //     }
         //
-        $currency = $this->safe_currency(null, $currency);
+        $currencyResolved = $this->safe_currency(null, $currency);
         $fee = null;
         $feeCost = $this->safe_number($transaction, 'fee');
         if ($feeCost !== null) {
             $fee = array(
                 'cost' => $feeCost,
-                'currency' => $currency['code'],
+                'currency' => $currencyResolved['code'],
             );
         }
         return array(
@@ -864,7 +873,7 @@ class zaif extends Exchange {
             'addressTo' => null,
             'amount' => null,
             'type' => null,
-            'currency' => $currency['code'],
+            'currency' => $currencyResolved['code'],
             'status' => null,
             'updated' => null,
             'tagFrom' => null,
@@ -883,8 +892,13 @@ class zaif extends Exchange {
         return sprintf('%.8f', $nonce);
     }
 
-    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $url = $this->urls['api']['rest'] . '/';
+    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $baseApiUrl = $this->safe_string($this->urls['api'], 'rest');
+        if ($baseApiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $baseUrl = $baseApiUrl;
+        $url = $baseUrl . '/';
         if ($api === 'public') {
             $url .= 'api/' . $this->version . '/' . $this->implode_params($path, $params);
         } elseif ($api === 'fapi') {
@@ -899,15 +913,16 @@ class zaif extends Exchange {
                 $url .= 'tapi';
             }
             $nonce = $this->custom_nonce();
-            $body = $this->urlencode($this->extend(array(
+            $bodyEncoded = $this->urlencode($this->extend(array(
                 'method' => $path,
                 'nonce' => $nonce,
             ), $params));
-            $headers = array(
+            $headersSigned = array(
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Key' => $this->apiKey,
-                'Sign' => $this->hmac($this->encode($body), $this->encode($this->secret), 'sha512'),
+                'Sign' => $this->hmac($this->encode($bodyEncoded), $this->encode($this->secret), 'sha512'),
             );
+            return array( 'url' => $url, 'method' => $method, 'body' => $bodyEncoded, 'headers' => $headersSigned );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

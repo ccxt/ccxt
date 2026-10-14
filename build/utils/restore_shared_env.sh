@@ -17,6 +17,7 @@ done < "$FILE_NAME"
 VAR1=${values[0]}
 VAR2=${values[1]}
 VAR3=${values[2]}
+VAR4=${values[3]}
 
 # # Print variables
 # echo "VAR1=$VAR1"
@@ -26,3 +27,4 @@ VAR3=${values[2]}
 echo "important_modified=$VAR1" >> $GITHUB_ENV
 echo "rest_files=$VAR2" >> $GITHUB_ENV
 echo "ws_files=$VAR3" >> $GITHUB_ENV
+echo "prediction_files=$VAR4" >> $GITHUB_ENV

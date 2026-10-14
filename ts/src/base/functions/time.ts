@@ -71,7 +71,7 @@ for (let i = 0; i < 1000; i++) {
     iso8601ThreeDigits.push ((i < 10) ? ('00' + i) : ((i < 100) ? ('0' + i) : ('' + i)));
 }
 
-const iso8601 = (timestamp) => {
+const iso8601 = (timestamp): string | undefined => {
     let _timestampNumber = undefined;
     if (typeof timestamp === 'number') {
         _timestampNumber = Math.floor (timestamp);
@@ -165,7 +165,7 @@ const mdy = (timestamp, infix = '-') => {
     d = d < 10 ? ('0' + d) : d.toString ();
     return m + infix + d + infix + Y;
 };
-const ymd = (timestamp, infix, fullYear = true) => {
+const ymd = (timestamp, infix, fullYear = true): string => {
     infix = infix || '';
     const date = new Date (timestamp);
     const intYear = date.getUTCFullYear ();
@@ -177,9 +177,9 @@ const ymd = (timestamp, infix, fullYear = true) => {
     d = d < 10 ? ('0' + d) : d.toString ();
     return Y + infix + m + infix + d;
 };
-const yymmdd = (timestamp, infix = '') => ymd (timestamp, infix, false);
-const yyyymmdd = (timestamp, infix = '-') => ymd (timestamp, infix, true);
-const ymdhms = (timestamp, infix = ' ') => {
+const yymmdd = (timestamp, infix = ''): string => ymd (timestamp, infix, false);
+const yyyymmdd = (timestamp, infix = '-'): string => ymd (timestamp, infix, true);
+const ymdhms = (timestamp, infix = ' '): string => {
     const date = new Date (timestamp);
     const Y = date.getUTCFullYear ();
     let m = date.getUTCMonth () + 1;

@@ -8,63 +8,171 @@
 import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    publicGetFeeschedules (params?: {}): Promise<Dict>;
-    publicGetInstruments (params?: {}): Promise<Dict>;
-    publicGetInstrumentsStatus (params?: {}): Promise<Dict>;
-    publicGetInstrumentsSymbolStatus (params?: {}): Promise<Dict>;
-    publicGetOrderbook (params?: {}): Promise<Dict>;
-    publicGetTickers (params?: {}): Promise<Dict>;
-    publicGetTickersSymbol (params?: {}): Promise<Dict>;
-    publicGetHistory (params?: {}): Promise<Dict>;
-    publicGetHistoricalfundingrates (params?: {}): Promise<Dict>;
-    privateGetFeeschedulesVolumes (params?: {}): Promise<Dict>;
-    privateGetOpenpositions (params?: {}): Promise<Dict>;
-    privateGetNotifications (params?: {}): Promise<Dict>;
-    privateGetAccounts (params?: {}): Promise<Dict>;
-    privateGetOpenorders (params?: {}): Promise<Dict>;
-    privateGetRecentorders (params?: {}): Promise<Dict>;
-    privateGetFills (params?: {}): Promise<Dict>;
-    privateGetTransfers (params?: {}): Promise<Dict>;
-    privateGetLeveragepreferences (params?: {}): Promise<Dict>;
-    privateGetPnlpreferences (params?: {}): Promise<Dict>;
-    privateGetAssignmentprogramCurrent (params?: {}): Promise<Dict>;
-    privateGetAssignmentprogramHistory (params?: {}): Promise<Dict>;
-    privateGetOrdersStatus (params?: {}): Promise<Dict>;
-    privateGetUnwindqueue (params?: {}): Promise<Dict>;
-    privateGetSelfTradeStrategy (params?: {}): Promise<Dict>;
-    privateGetSubaccounts (params?: {}): Promise<Dict>;
-    privateGetSubaccountUidTradingEnabled (params?: {}): Promise<Dict>;
-    privateGetRfqAssignmentMaxLeverage (params?: {}): Promise<Dict>;
-    privatePostSendorder (params?: {}): Promise<Dict>;
-    privatePostEditorder (params?: {}): Promise<Dict>;
-    privatePostCancelorder (params?: {}): Promise<Dict>;
-    privatePostTransfer (params?: {}): Promise<Dict>;
-    privatePostTransferSubaccount (params?: {}): Promise<Dict>;
-    privatePostBatchorder (params?: {}): Promise<Dict>;
-    privatePostCancelallorders (params?: {}): Promise<Dict>;
-    privatePostCancelallordersafter (params?: {}): Promise<Dict>;
-    privatePostWithdrawal (params?: {}): Promise<Dict>;
-    privatePostAssignmentprogramAdd (params?: {}): Promise<Dict>;
-    privatePostAssignmentprogramDelete (params?: {}): Promise<Dict>;
-    privatePutLeveragepreferences (params?: {}): Promise<Dict>;
-    privatePutPnlpreferences (params?: {}): Promise<Dict>;
-    privatePutSelfTradeStrategy (params?: {}): Promise<Dict>;
-    privatePutSubaccountUidTradingEnabled (params?: {}): Promise<Dict>;
-    privatePutRfqAssignmentMaxLeverage (params?: {}): Promise<Dict>;
-    privateDeleteRfqAssignmentMaxLeverage (params?: {}): Promise<Dict>;
-    chartsGetPriceTypeSymbolInterval (params?: {}): Promise<Dict>;
-    chartsGetAnalyticsLiquidityPool (params?: {}): Promise<Dict>;
-    historyGetOrders (params?: {}): Promise<Dict>;
-    historyGetExecutions (params?: {}): Promise<Dict>;
-    historyGetTriggers (params?: {}): Promise<Dict>;
-    historyGetAccountlogcsv (params?: {}): Promise<string>;
-    historyGetAccountLog (params?: {}): Promise<Dict>;
-    historyGetMarketSymbolOrders (params?: {}): Promise<Dict>;
-    historyGetMarketSymbolExecutions (params?: {}): Promise<Dict>;
-    historyGetMarketSymbolPrice (params?: {}): Promise<Dict>;
-    historyGetPositions (params?: {}): Promise<Dict>;
+abstract class Exchange extends _Exchange {
+    publicGetFeeschedules (params = {}): Promise<Dict> {
+        return this.request ("feeschedules", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicGetInstruments (params = {}): Promise<Dict> {
+        return this.request ("instruments", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicGetInstrumentsStatus (params = {}): Promise<Dict> {
+        return this.request ("instruments/status", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicGetInstrumentsSymbolStatus (params = {}): Promise<Dict> {
+        return this.request ("instruments/{symbol}/status", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicGetOrderbook (params = {}): Promise<Dict> {
+        return this.request ("orderbook", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicGetTickers (params = {}): Promise<Dict> {
+        return this.request ("tickers", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicGetTickersSymbol (params = {}): Promise<Dict> {
+        return this.request ("tickers/{symbol}", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicGetHistory (params = {}): Promise<Dict> {
+        return this.request ("history", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicGetHistoricalfundingrates (params = {}): Promise<Dict> {
+        return this.request ("historicalfundingrates", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetFeeschedulesVolumes (params = {}): Promise<Dict> {
+        return this.request ("feeschedules/volumes", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetOpenpositions (params = {}): Promise<Dict> {
+        return this.request ("openpositions", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetNotifications (params = {}): Promise<Dict> {
+        return this.request ("notifications", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetAccounts (params = {}): Promise<Dict> {
+        return this.request ("accounts", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetOpenorders (params = {}): Promise<Dict> {
+        return this.request ("openorders", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetRecentorders (params = {}): Promise<Dict> {
+        return this.request ("recentorders", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetFills (params = {}): Promise<Dict> {
+        return this.request ("fills", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetTransfers (params = {}): Promise<Dict> {
+        return this.request ("transfers", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetLeveragepreferences (params = {}): Promise<Dict> {
+        return this.request ("leveragepreferences", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetPnlpreferences (params = {}): Promise<Dict> {
+        return this.request ("pnlpreferences", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetAssignmentprogramCurrent (params = {}): Promise<Dict> {
+        return this.request ("assignmentprogram/current", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetAssignmentprogramHistory (params = {}): Promise<Dict> {
+        return this.request ("assignmentprogram/history", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetOrdersStatus (params = {}): Promise<Dict> {
+        return this.request ("orders/status", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetUnwindqueue (params = {}): Promise<Dict> {
+        return this.request ("unwindqueue", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetSelfTradeStrategy (params = {}): Promise<Dict> {
+        return this.request ("self-trade-strategy", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetSubaccounts (params = {}): Promise<Dict> {
+        return this.request ("subaccounts", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetSubaccountUidTradingEnabled (params = {}): Promise<Dict> {
+        return this.request ("subaccount/{uid}/trading-enabled", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetRfqAssignmentMaxLeverage (params = {}): Promise<Dict> {
+        return this.request ("rfq-assignment/max-leverage", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privatePostSendorder (params = {}): Promise<Dict> {
+        return this.request ("sendorder", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostEditorder (params = {}): Promise<Dict> {
+        return this.request ("editorder", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostCancelorder (params = {}): Promise<Dict> {
+        return this.request ("cancelorder", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostTransfer (params = {}): Promise<Dict> {
+        return this.request ("transfer", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostTransferSubaccount (params = {}): Promise<Dict> {
+        return this.request ("transfer/subaccount", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostBatchorder (params = {}): Promise<Dict> {
+        return this.request ("batchorder", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostCancelallorders (params = {}): Promise<Dict> {
+        return this.request ("cancelallorders", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostCancelallordersafter (params = {}): Promise<Dict> {
+        return this.request ("cancelallordersafter", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostWithdrawal (params = {}): Promise<Dict> {
+        return this.request ("withdrawal", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostAssignmentprogramAdd (params = {}): Promise<Dict> {
+        return this.request ("assignmentprogram/add", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostAssignmentprogramDelete (params = {}): Promise<Dict> {
+        return this.request ("assignmentprogram/delete", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePutLeveragepreferences (params = {}): Promise<Dict> {
+        return this.request ("leveragepreferences", "private", 'PUT', params, undefined, undefined, {"cost":1});
+    }
+    privatePutPnlpreferences (params = {}): Promise<Dict> {
+        return this.request ("pnlpreferences", "private", 'PUT', params, undefined, undefined, {"cost":1});
+    }
+    privatePutSelfTradeStrategy (params = {}): Promise<Dict> {
+        return this.request ("self-trade-strategy", "private", 'PUT', params, undefined, undefined, {"cost":1});
+    }
+    privatePutSubaccountUidTradingEnabled (params = {}): Promise<Dict> {
+        return this.request ("subaccount/{uid}/trading-enabled", "private", 'PUT', params, undefined, undefined, {"cost":1});
+    }
+    privatePutRfqAssignmentMaxLeverage (params = {}): Promise<Dict> {
+        return this.request ("rfq-assignment/max-leverage", "private", 'PUT', params, undefined, undefined, {"cost":1});
+    }
+    privateDeleteRfqAssignmentMaxLeverage (params = {}): Promise<Dict> {
+        return this.request ("rfq-assignment/max-leverage", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    chartsGetPriceTypeSymbolInterval (params = {}): Promise<Dict> {
+        return this.request ("{price_type}/{symbol}/{interval}", "charts", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    chartsGetAnalyticsLiquidityPool (params = {}): Promise<Dict> {
+        return this.request ("analytics/liquidity-pool", "charts", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    historyGetOrders (params = {}): Promise<Dict> {
+        return this.request ("orders", "history", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    historyGetExecutions (params = {}): Promise<Dict> {
+        return this.request ("executions", "history", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    historyGetTriggers (params = {}): Promise<Dict> {
+        return this.request ("triggers", "history", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    historyGetAccountlogcsv (params = {}): Promise<string> {
+        return this.request ("accountlogcsv", "history", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    historyGetAccountLog (params = {}): Promise<Dict> {
+        return this.request ("account-log", "history", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    historyGetMarketSymbolOrders (params = {}): Promise<Dict> {
+        return this.request ("market/{symbol}/orders", "history", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    historyGetMarketSymbolExecutions (params = {}): Promise<Dict> {
+        return this.request ("market/{symbol}/executions", "history", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    historyGetMarketSymbolPrice (params = {}): Promise<Dict> {
+        return this.request ("market/{symbol}/price", "history", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    historyGetPositions (params = {}): Promise<Dict> {
+        return this.request ("positions", "history", 'GET', params, undefined, undefined, {"cost":1});
+    }
 }
-abstract class Exchange extends _Exchange {}
-
 export default Exchange

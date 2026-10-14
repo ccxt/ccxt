@@ -53,6 +53,8 @@ pub use test_fetchHistory::testFetchHistory;
 pub use test_filterBy::testFilterBy;
 #[path = "test.groupBy.rs"] pub mod test_groupBy;
 pub use test_groupBy::testGroupBy;
+#[path = "test.handleHttpStatusCode.rs"] pub mod test_handleHttpStatusCode;
+pub use test_handleHttpStatusCode::testHandleHttpStatusCode;
 #[path = "test.handleMethods.rs"] pub mod test_handleMethods;
 pub use test_handleMethods::testHandleMethods;
 #[path = "test.implodeParams.rs"] pub mod test_implodeParams;

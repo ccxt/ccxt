@@ -109,10 +109,11 @@ export default class p2b extends p2bRest {
         ];
         const messageHash = 'kline::' + market['symbol'];
         const ohlcv = await this.subscribe('kline.subscribe', messageHash, request, params);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = ohlcv.getLimit(symbol, limit);
+            limitResolved = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
     }
     /**
      * @method
@@ -130,15 +131,14 @@ export default class p2b extends p2bRest {
             await this.loadMarkets();
         }
         const watchTickerOptions = this.safeDict(this.options, 'watchTicker');
-        let name = this.safeString(watchTickerOptions, 'name', 'state'); // or price
-        [name, params] = this.handleOptionAndParams(params, 'watchTicker', 'name', name);
+        const name = this.safeString(watchTickerOptions, 'name', 'state'); // or price
+        const [nameOption, paramsName] = this.handleOptionStringAndParams(params, 'watchTicker', 'name', name);
         const market = this.market(symbol);
-        symbol = market['symbol'];
         this.options['tickerSubs'][market['id']] = true; // we need to re-subscribe to all tickers upon watching a new ticker
         const tickerSubs = this.options['tickerSubs'];
         const request = Object.keys(tickerSubs);
-        const messageHash = name + '::' + market['symbol'];
-        return await this.subscribe(name + '.subscribe', messageHash, request, params);
+        const messageHash = nameOption + '::' + market['symbol'];
+        return await this.subscribe(nameOption + '.subscribe', messageHash, request, paramsName);
     }
     /**
      * @method
@@ -155,25 +155,25 @@ export default class p2b extends p2bRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols, undefined, false);
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
         const watchTickerOptions = this.safeDict(this.options, 'watchTicker');
-        let name = this.safeString(watchTickerOptions, 'name', 'state'); // or price
-        [name, params] = this.handleOptionAndParams(params, 'watchTickers', 'name', name);
+        const name = this.safeString(watchTickerOptions, 'name', 'state'); // or price
+        const [nameOption, paramsName] = this.handleOptionStringAndParams(params, 'watchTickers', 'name', name);
         const messageHashes = [];
         const args = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const market = this.market(symbols[i]);
-            messageHashes.push(name + '::' + market['symbol']);
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const market = this.market(symbolsNormalized[i]);
+            messageHashes.push(nameOption + '::' + market['symbol']);
             args.push(market['id']);
         }
         const url = this.urls['api']['ws'];
         const request = {
-            'method': name + '.subscribe',
+            'method': nameOption + '.subscribe',
             'params': args,
             'id': this.milliseconds(),
         };
-        await this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes);
-        return this.filterByArray(this.tickers, 'symbol', symbols);
+        await this.watchMultiple(url, messageHashes, this.extend(request, paramsName), messageHashes);
+        return this.filterByArray(this.tickers, 'symbol', symbolsNormalized);
     }
     /**
      * @method
@@ -204,14 +204,14 @@ export default class p2b extends p2bRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols, undefined, false, true, true);
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, false, true, true);
         const messageHashes = [];
-        if (symbols !== undefined) {
-            for (let i = 0; i < symbols.length; i++) {
-                messageHashes.push('deals::' + symbols[i]);
+        if (symbolsNormalized !== undefined) {
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                messageHashes.push('deals::' + symbolsNormalized[i]);
             }
         }
-        const marketIds = this.marketIds(symbols);
+        const marketIds = this.marketIds(symbolsNormalized);
         const url = this.urls['api']['ws'];
         const subscribe = {
             'method': 'deals.subscribe',
@@ -220,12 +220,13 @@ export default class p2b extends p2bRest {
         };
         const query = this.extend(subscribe, params);
         const trades = await this.watchMultiple(url, messageHashes, query, messageHashes);
+        const first = this.safeDict(trades, 0);
+        const tradeSymbol = this.safeString(first, 'symbol');
+        let limitResolved = limit;
         if (this.newUpdates) {
-            const first = this.safeDict(trades, 0);
-            const tradeSymbol = this.safeString(first, 'symbol');
-            limit = trades.getLimit(tradeSymbol, limit);
+            limitResolved = trades.getLimit(tradeSymbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
     }
     /**
      * @method
@@ -246,12 +247,10 @@ export default class p2b extends p2bRest {
         const name = 'depth.subscribe';
         const messageHash = 'orderbook::' + market['symbol'];
         const interval = this.safeString(params, 'interval', '0.001');
-        if (limit === undefined) {
-            limit = 100;
-        }
+        const limitResolved = (limit === undefined) ? 100 : limit;
         const request = [
             market['id'],
-            limit,
+            limitResolved,
             interval,
         ];
         const orderbook = await this.subscribe(name, messageHash, request, params);
@@ -286,7 +285,6 @@ export default class p2b extends p2bRest {
         const timeframes = this.safeDict(this.options, 'timeframes', {});
         const timeframe = this.findTimeframe(channel, timeframes);
         const symbol = this.safeString(market, 'symbol');
-        const messageHash = channel + '::' + symbol;
         const parsed = this.parseOHLCV(data, market);
         this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
         let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
@@ -297,7 +295,10 @@ export default class p2b extends p2bRest {
                 this.ohlcvs[symbol][timeframe] = stored;
             }
             stored.append(parsed);
-            client.resolve(stored, messageHash);
+            if (channel !== undefined) {
+                const messageHash = channel + '::' + symbol;
+                client.resolve(stored, messageHash);
+            }
         }
         return message;
     }
@@ -395,8 +396,10 @@ export default class p2b extends p2bRest {
         }
         const symbol = ticker['symbol'];
         this.tickers[symbol] = ticker;
-        const messageHash = messageHashStart + '::' + symbol;
-        client.resolve(ticker, messageHash);
+        if (messageHashStart !== undefined) {
+            const messageHash = messageHashStart + '::' + symbol;
+            client.resolve(ticker, messageHash);
+        }
         return message;
     }
     handleOrderBook(client, message) {

@@ -8,108 +8,306 @@
 import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    publicGetApiV3Time (params?: {}): Promise<Dict>;
-    publicGetApiV3Coins (params?: {}): Promise<List>;
-    publicGetApiV3ExchangeInfo (params?: {}): Promise<Dict>;
-    publicGetApiV3Ping (params?: {}): Promise<Dict>;
-    publicGetApiV3ApiTradingSymbols (params?: {}): Promise<List>;
-    publicGetApiV3MarketTickerPrice (params?: {}): Promise<List>;
-    publicGetApiV3MarketTicker24hr (params?: {}): Promise<Dict | List>;
-    publicGetApiV3MarketTrades (params?: {}): Promise<List>;
-    publicGetApiV3MarketKlines (params?: {}): Promise<List>;
-    publicGetApiV3MarketDepth (params?: {}): Promise<Dict>;
-    publicGetApiV3MarketTickerBookTicker (params?: {}): Promise<List>;
-    privateGetApiV3Account (params?: {}): Promise<Dict>;
-    privateGetApiV3AccountTransferRecords (params?: {}): Promise<List>;
-    privateGetApiV3Order (params?: {}): Promise<Dict>;
-    privateGetApiV3OpenOrders (params?: {}): Promise<List>;
-    privateGetApiV3AllOrders (params?: {}): Promise<List>;
-    privateGetApiV3MyTrades (params?: {}): Promise<List>;
-    privateGetApiV3RebateAffiliateGetAffiliateUIDs (params?: {}): Promise<Dict>;
-    privateGetApiV3RebateAffiliateGetChannelUserTradeAndAsset (params?: {}): Promise<Dict>;
-    privateGetApiV3RebateAffiliateGetAffiliateCommission (params?: {}): Promise<Dict>;
-    privateGetApiV3RebateAffiliateGetInternalWithdrawalStatus (params?: {}): Promise<Dict>;
-    privateGetApiV3RebateAffiliateQuerySubChannelTransactions (params?: {}): Promise<Dict>;
-    privateGetApiV3AgencyVerifyReferrals (params?: {}): Promise<List>;
-    privateGetApiV3AgencyGetAssert (params?: {}): Promise<Dict>;
-    privateGetApiV3AgencyGetDealData (params?: {}): Promise<Dict>;
-    privateGetApiV3ApiReferralCheckUserEligibility (params?: {}): Promise<Dict>;
-    privateGetApiV3ApiReferralRebateRecentRecord (params?: {}): Promise<Dict>;
-    privateGetApiV3ApiReferralRebateRatio (params?: {}): Promise<Dict>;
-    privateGetApiV3ContentArticlesDetail (params?: {}): Promise<Dict>;
-    privateGetApiV3ContentArticlesList (params?: {}): Promise<Dict>;
-    privateGetApiV3ContentArticlesListByCoin (params?: {}): Promise<Dict>;
-    privateGetApiV3ContentBannersLatest (params?: {}): Promise<Dict>;
-    privatePostApiV3AccountBills (params?: {}): Promise<List>;
-    privatePostApiV3AccountFundingBills (params?: {}): Promise<Dict>;
-    privatePostApiV3Order (params?: {}): Promise<Dict>;
-    privatePostApiV3OrderBatch (params?: {}): Promise<Dict>;
-    privatePostApiV3RebateAffiliateInternalWithdrawal (params?: {}): Promise<string>;
-    privatePostApiV3TaxIncome (params?: {}): Promise<List>;
-    privateDeleteApiV3Order (params?: {}): Promise<Dict>;
-    privateDeleteApiV3OpenOrders (params?: {}): Promise<List>;
-    privateDeleteApiV3OrderBatch (params?: {}): Promise<Dict>;
-    contractGetCapiV3MarketTime (params?: {}): Promise<Dict>;
-    contractGetCapiV3MarketExchangeInfo (params?: {}): Promise<Dict>;
-    contractGetCapiV3MarketDepth (params?: {}): Promise<Dict>;
-    contractGetCapiV3MarketTicker24hr (params?: {}): Promise<List>;
-    contractGetCapiV3MarketTickerBookTicker (params?: {}): Promise<List>;
-    contractGetCapiV3MarketTrades (params?: {}): Promise<List>;
-    contractGetCapiV3MarketKlines (params?: {}): Promise<List>;
-    contractGetCapiV3MarketIndexPriceKlines (params?: {}): Promise<List>;
-    contractGetCapiV3MarketMarkPriceKlines (params?: {}): Promise<List>;
-    contractGetCapiV3MarketHistoryKlines (params?: {}): Promise<List>;
-    contractGetCapiV3MarketSymbolPrice (params?: {}): Promise<Dict>;
-    contractGetCapiV3MarketOpenInterest (params?: {}): Promise<Dict>;
-    contractGetCapiV3MarketPremiumIndex (params?: {}): Promise<List>;
-    contractGetCapiV3MarketFundingRate (params?: {}): Promise<List>;
-    contractGetCapiV3MarketApiTradingSymbols (params?: {}): Promise<List>;
-    contractPrivateGetCapiV3AccountBalance (params?: {}): Promise<List>;
-    contractPrivateGetCapiV3AccountCommissionRate (params?: {}): Promise<Dict>;
-    contractPrivateGetCapiV3AccountAccountConfig (params?: {}): Promise<Dict>;
-    contractPrivateGetCapiV3AccountSymbolConfig (params?: {}): Promise<List>;
-    contractPrivateGetCapiV3AccountPositionAllPosition (params?: {}): Promise<List>;
-    contractPrivateGetCapiV3AccountPositionSinglePosition (params?: {}): Promise<List>;
-    contractPrivateGetCapiV3Order (params?: {}): Promise<Dict>;
-    contractPrivateGetCapiV3OpenOrders (params?: {}): Promise<List>;
-    contractPrivateGetCapiV3OrderHistory (params?: {}): Promise<List>;
-    contractPrivateGetCapiV3UserTrades (params?: {}): Promise<List>;
-    contractPrivateGetCapiV3OpenAlgoOrders (params?: {}): Promise<List>;
-    contractPrivateGetCapiV3AllAlgoOrders (params?: {}): Promise<Dict>;
-    contractPrivateGetCapiV3SimBalance (params?: {}): Promise<List>;
-    contractPrivateGetCapiV3SimPositionAllPosition (params?: {}): Promise<List>;
-    contractPrivateGetCapiV3SimOrderHistory (params?: {}): Promise<List>;
-    contractPrivateGetCapiV3CopyFollowerHistoryOrders (params?: {}): Promise<Dict>;
-    contractPrivateGetCapiV3CopyFollowerMyTraders (params?: {}): Promise<Dict>;
-    contractPrivateGetCapiV3CopyFollowerOpenOrders (params?: {}): Promise<List>;
-    contractPrivateGetCapiV3CopyFollowerSettings (params?: {}): Promise<List>;
-    contractPrivateGetCapiV3CopyTraderHistoryOrders (params?: {}): Promise<Dict>;
-    contractPrivateGetCapiV3CopyTraderOpenOrders (params?: {}): Promise<List>;
-    contractPrivateGetCapiV3CopyTraderPairs (params?: {}): Promise<List>;
-    contractPrivateGetCapiV3TrailingOpenOrders (params?: {}): Promise<List>;
-    contractPrivateGetCapiV3TrailingHistoryOrders (params?: {}): Promise<List>;
-    contractPrivatePostCapiV3AccountIncome (params?: {}): Promise<Dict>;
-    contractPrivatePostCapiV3AccountMarginType (params?: {}): Promise<Dict>;
-    contractPrivatePostCapiV3AccountLeverage (params?: {}): Promise<Dict>;
-    contractPrivatePostCapiV3AccountPositionMargin (params?: {}): Promise<Dict>;
-    contractPrivatePostCapiV3AccountModifyAutoAppendMargin (params?: {}): Promise<Dict>;
-    contractPrivatePostCapiV3Order (params?: {}): Promise<Dict>;
-    contractPrivatePostCapiV3BatchOrders (params?: {}): Promise<List>;
-    contractPrivatePostCapiV3ClosePositions (params?: {}): Promise<List>;
-    contractPrivatePostCapiV3AlgoOrder (params?: {}): Promise<Dict>;
-    contractPrivatePostCapiV3PlaceTpSlOrder (params?: {}): Promise<List>;
-    contractPrivatePostCapiV3ModifyTpSlOrder (params?: {}): Promise<Dict>;
-    contractPrivatePostCapiV3SimOrder (params?: {}): Promise<Dict>;
-    contractPrivatePostCapiV3CopyFollowerClosePos (params?: {}): Promise<Dict>;
-    contractPrivatePostCapiV3CopyFollowerSettings (params?: {}): Promise<Dict>;
-    contractPrivatePostCapiV3CopyFollowerStopCopy (params?: {}): Promise<Dict>;
-    contractPrivateDeleteCapiV3Order (params?: {}): Promise<Dict>;
-    contractPrivateDeleteCapiV3BatchOrders (params?: {}): Promise<Dict>;
-    contractPrivateDeleteCapiV3AllOpenOrders (params?: {}): Promise<List>;
-    contractPrivateDeleteCapiV3AlgoOrder (params?: {}): Promise<Dict>;
-    contractPrivateDeleteCapiV3AlgoOpenOrders (params?: {}): Promise<List>;
+abstract class Exchange extends _Exchange {
+    publicGetApiV3Time (params = {}): Promise<Dict> {
+        return this.request ("api/v3/time", "public", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    publicGetApiV3Coins (params = {}): Promise<List> {
+        return this.request ("api/v3/coins", "public", 'GET', params, undefined, undefined, {"cost":25});
+    }
+    publicGetApiV3ExchangeInfo (params = {}): Promise<Dict> {
+        return this.request ("api/v3/exchangeInfo", "public", 'GET', params, undefined, undefined, {"cost":100});
+    }
+    publicGetApiV3Ping (params = {}): Promise<Dict> {
+        return this.request ("api/v3/ping", "public", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    publicGetApiV3ApiTradingSymbols (params = {}): Promise<List> {
+        return this.request ("api/v3/apiTradingSymbols", "public", 'GET', params, undefined, undefined, {"cost":25});
+    }
+    publicGetApiV3MarketTickerPrice (params = {}): Promise<List> {
+        return this.request ("api/v3/market/ticker/price", "public", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    publicGetApiV3MarketTicker24hr (params = {}): Promise<Dict | List> {
+        return this.request ("api/v3/market/ticker/24hr", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    publicGetApiV3MarketTrades (params = {}): Promise<List> {
+        return this.request ("api/v3/market/trades", "public", 'GET', params, undefined, undefined, {"cost":125});
+    }
+    publicGetApiV3MarketKlines (params = {}): Promise<List> {
+        return this.request ("api/v3/market/klines", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    publicGetApiV3MarketDepth (params = {}): Promise<Dict> {
+        return this.request ("api/v3/market/depth", "public", 'GET', params, undefined, undefined, {"cost":25});
+    }
+    publicGetApiV3MarketTickerBookTicker (params = {}): Promise<List> {
+        return this.request ("api/v3/market/ticker/bookTicker", "public", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    privateGetApiV3Account (params = {}): Promise<Dict> {
+        return this.request ("api/v3/account/", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    privateGetApiV3AccountTransferRecords (params = {}): Promise<List> {
+        return this.request ("api/v3/account/transferRecords", "private", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    privateGetApiV3Order (params = {}): Promise<Dict> {
+        return this.request ("api/v3/order", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    privateGetApiV3OpenOrders (params = {}): Promise<List> {
+        return this.request ("api/v3/openOrders", "private", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    privateGetApiV3AllOrders (params = {}): Promise<List> {
+        return this.request ("api/v3/allOrders", "private", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    privateGetApiV3MyTrades (params = {}): Promise<List> {
+        return this.request ("api/v3/myTrades", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    privateGetApiV3RebateAffiliateGetAffiliateUIDs (params = {}): Promise<Dict> {
+        return this.request ("api/v3/rebate/affiliate/getAffiliateUIDs", "private", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    privateGetApiV3RebateAffiliateGetChannelUserTradeAndAsset (params = {}): Promise<Dict> {
+        return this.request ("api/v3/rebate/affiliate/getChannelUserTradeAndAsset", "private", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    privateGetApiV3RebateAffiliateGetAffiliateCommission (params = {}): Promise<Dict> {
+        return this.request ("api/v3/rebate/affiliate/getAffiliateCommission", "private", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    privateGetApiV3RebateAffiliateGetInternalWithdrawalStatus (params = {}): Promise<Dict> {
+        return this.request ("api/v3/rebate/affiliate/getInternalWithdrawalStatus", "private", 'GET', params, undefined, undefined, {"cost":100});
+    }
+    privateGetApiV3RebateAffiliateQuerySubChannelTransactions (params = {}): Promise<Dict> {
+        return this.request ("api/v3/rebate/affiliate/querySubChannelTransactions", "private", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    privateGetApiV3AgencyVerifyReferrals (params = {}): Promise<List> {
+        return this.request ("api/v3/agency/verifyReferrals", "private", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    privateGetApiV3AgencyGetAssert (params = {}): Promise<Dict> {
+        return this.request ("api/v3/agency/getAssert", "private", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    privateGetApiV3AgencyGetDealData (params = {}): Promise<Dict> {
+        return this.request ("api/v3/agency/getDealData", "private", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    privateGetApiV3ApiReferralCheckUserEligibility (params = {}): Promise<Dict> {
+        return this.request ("api/v3/apiReferral/checkUserEligibility", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    privateGetApiV3ApiReferralRebateRecentRecord (params = {}): Promise<Dict> {
+        return this.request ("api/v3/apiReferral/rebate/recentRecord", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    privateGetApiV3ApiReferralRebateRatio (params = {}): Promise<Dict> {
+        return this.request ("api/v3/apiReferral/rebateRatio", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    privateGetApiV3ContentArticlesDetail (params = {}): Promise<Dict> {
+        return this.request ("api/v3/content/articles/detail", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetApiV3ContentArticlesList (params = {}): Promise<Dict> {
+        return this.request ("api/v3/content/articles/list", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetApiV3ContentArticlesListByCoin (params = {}): Promise<Dict> {
+        return this.request ("api/v3/content/articles/listByCoin", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetApiV3ContentBannersLatest (params = {}): Promise<Dict> {
+        return this.request ("api/v3/content/banners/latest", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privatePostApiV3AccountBills (params = {}): Promise<List> {
+        return this.request ("api/v3/account/bills", "private", 'POST', params, undefined, undefined, {"cost":5});
+    }
+    privatePostApiV3AccountFundingBills (params = {}): Promise<Dict> {
+        return this.request ("api/v3/account/fundingBills", "private", 'POST', params, undefined, undefined, {"cost":5});
+    }
+    privatePostApiV3Order (params = {}): Promise<Dict> {
+        return this.request ("api/v3/order", "private", 'POST', params, undefined, undefined, {"cost":5});
+    }
+    privatePostApiV3OrderBatch (params = {}): Promise<Dict> {
+        return this.request ("api/v3/order/batch", "private", 'POST', params, undefined, undefined, {"cost":50});
+    }
+    privatePostApiV3RebateAffiliateInternalWithdrawal (params = {}): Promise<string> {
+        return this.request ("api/v3/rebate/affiliate/internalWithdrawal", "private", 'POST', params, undefined, undefined, {"cost":100});
+    }
+    privatePostApiV3TaxIncome (params = {}): Promise<List> {
+        return this.request ("api/v3/tax/income", "private", 'POST', params, undefined, undefined, {"cost":5});
+    }
+    privateDeleteApiV3Order (params = {}): Promise<Dict> {
+        return this.request ("api/v3/order", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    privateDeleteApiV3OpenOrders (params = {}): Promise<List> {
+        return this.request ("api/v3/openOrders", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    privateDeleteApiV3OrderBatch (params = {}): Promise<Dict> {
+        return this.request ("api/v3/order/batch", "private", 'DELETE', params, undefined, undefined, {"cost":10});
+    }
+    contractGetCapiV3MarketTime (params = {}): Promise<Dict> {
+        return this.request ("capi/v3/market/time", "contract", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    contractGetCapiV3MarketExchangeInfo (params = {}): Promise<Dict> {
+        return this.request ("capi/v3/market/exchangeInfo", "contract", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    contractGetCapiV3MarketDepth (params = {}): Promise<Dict> {
+        return this.request ("capi/v3/market/depth", "contract", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    contractGetCapiV3MarketTicker24hr (params = {}): Promise<List> {
+        return this.request ("capi/v3/market/ticker/24hr", "contract", 'GET', params, undefined, undefined, {"cost":200});
+    }
+    contractGetCapiV3MarketTickerBookTicker (params = {}): Promise<List> {
+        return this.request ("capi/v3/market/ticker/bookTicker", "contract", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    contractGetCapiV3MarketTrades (params = {}): Promise<List> {
+        return this.request ("capi/v3/market/trades", "contract", 'GET', params, undefined, undefined, {"cost":25});
+    }
+    contractGetCapiV3MarketKlines (params = {}): Promise<List> {
+        return this.request ("capi/v3/market/klines", "contract", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    contractGetCapiV3MarketIndexPriceKlines (params = {}): Promise<List> {
+        return this.request ("capi/v3/market/indexPriceKlines", "contract", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    contractGetCapiV3MarketMarkPriceKlines (params = {}): Promise<List> {
+        return this.request ("capi/v3/market/markPriceKlines", "contract", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    contractGetCapiV3MarketHistoryKlines (params = {}): Promise<List> {
+        return this.request ("capi/v3/market/historyKlines", "contract", 'GET', params, undefined, undefined, {"cost":25});
+    }
+    contractGetCapiV3MarketSymbolPrice (params = {}): Promise<Dict> {
+        return this.request ("capi/v3/market/symbolPrice", "contract", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    contractGetCapiV3MarketOpenInterest (params = {}): Promise<Dict> {
+        return this.request ("capi/v3/market/openInterest", "contract", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    contractGetCapiV3MarketPremiumIndex (params = {}): Promise<List> {
+        return this.request ("capi/v3/market/premiumIndex", "contract", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    contractGetCapiV3MarketFundingRate (params = {}): Promise<List> {
+        return this.request ("capi/v3/market/fundingRate", "contract", 'GET', params, undefined, undefined, {"cost":25});
+    }
+    contractGetCapiV3MarketApiTradingSymbols (params = {}): Promise<List> {
+        return this.request ("capi/v3/market/apiTradingSymbols", "contract", 'GET', params, undefined, undefined, {"cost":25});
+    }
+    contractPrivateGetCapiV3AccountBalance (params = {}): Promise<List> {
+        return this.request ("capi/v3/account/balance", "contractPrivate", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    contractPrivateGetCapiV3AccountCommissionRate (params = {}): Promise<Dict> {
+        return this.request ("capi/v3/account/commissionRate", "contractPrivate", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    contractPrivateGetCapiV3AccountAccountConfig (params = {}): Promise<Dict> {
+        return this.request ("capi/v3/account/accountConfig", "contractPrivate", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    contractPrivateGetCapiV3AccountSymbolConfig (params = {}): Promise<List> {
+        return this.request ("capi/v3/account/symbolConfig", "contractPrivate", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    contractPrivateGetCapiV3AccountPositionAllPosition (params = {}): Promise<List> {
+        return this.request ("capi/v3/account/position/allPosition", "contractPrivate", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    contractPrivateGetCapiV3AccountPositionSinglePosition (params = {}): Promise<List> {
+        return this.request ("capi/v3/account/position/singlePosition", "contractPrivate", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    contractPrivateGetCapiV3Order (params = {}): Promise<Dict> {
+        return this.request ("capi/v3/order", "contractPrivate", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    contractPrivateGetCapiV3OpenOrders (params = {}): Promise<List> {
+        return this.request ("capi/v3/openOrders", "contractPrivate", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    contractPrivateGetCapiV3OrderHistory (params = {}): Promise<List> {
+        return this.request ("capi/v3/order/history", "contractPrivate", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    contractPrivateGetCapiV3UserTrades (params = {}): Promise<List> {
+        return this.request ("capi/v3/userTrades", "contractPrivate", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    contractPrivateGetCapiV3OpenAlgoOrders (params = {}): Promise<List> {
+        return this.request ("capi/v3/openAlgoOrders", "contractPrivate", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    contractPrivateGetCapiV3AllAlgoOrders (params = {}): Promise<Dict> {
+        return this.request ("capi/v3/allAlgoOrders", "contractPrivate", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    contractPrivateGetCapiV3SimBalance (params = {}): Promise<List> {
+        return this.request ("capi/v3/sim/balance", "contractPrivate", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    contractPrivateGetCapiV3SimPositionAllPosition (params = {}): Promise<List> {
+        return this.request ("capi/v3/sim/position/allPosition", "contractPrivate", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    contractPrivateGetCapiV3SimOrderHistory (params = {}): Promise<List> {
+        return this.request ("capi/v3/sim/order/history", "contractPrivate", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    contractPrivateGetCapiV3CopyFollowerHistoryOrders (params = {}): Promise<Dict> {
+        return this.request ("capi/v3/copy/follower/historyOrders", "contractPrivate", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    contractPrivateGetCapiV3CopyFollowerMyTraders (params = {}): Promise<Dict> {
+        return this.request ("capi/v3/copy/follower/myTraders", "contractPrivate", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    contractPrivateGetCapiV3CopyFollowerOpenOrders (params = {}): Promise<List> {
+        return this.request ("capi/v3/copy/follower/openOrders", "contractPrivate", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    contractPrivateGetCapiV3CopyFollowerSettings (params = {}): Promise<List> {
+        return this.request ("capi/v3/copy/follower/settings", "contractPrivate", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    contractPrivateGetCapiV3CopyTraderHistoryOrders (params = {}): Promise<Dict> {
+        return this.request ("capi/v3/copy/trader/historyOrders", "contractPrivate", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    contractPrivateGetCapiV3CopyTraderOpenOrders (params = {}): Promise<List> {
+        return this.request ("capi/v3/copy/trader/openOrders", "contractPrivate", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    contractPrivateGetCapiV3CopyTraderPairs (params = {}): Promise<List> {
+        return this.request ("capi/v3/copy/trader/pairs", "contractPrivate", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    contractPrivateGetCapiV3TrailingOpenOrders (params = {}): Promise<List> {
+        return this.request ("capi/v3/trailing/openOrders", "contractPrivate", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    contractPrivateGetCapiV3TrailingHistoryOrders (params = {}): Promise<List> {
+        return this.request ("capi/v3/trailing/historyOrders", "contractPrivate", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    contractPrivatePostCapiV3AccountIncome (params = {}): Promise<Dict> {
+        return this.request ("capi/v3/account/income", "contractPrivate", 'POST', params, undefined, undefined, {"cost":5});
+    }
+    contractPrivatePostCapiV3AccountMarginType (params = {}): Promise<Dict> {
+        return this.request ("capi/v3/account/marginType", "contractPrivate", 'POST', params, undefined, undefined, {"cost":50});
+    }
+    contractPrivatePostCapiV3AccountLeverage (params = {}): Promise<Dict> {
+        return this.request ("capi/v3/account/leverage", "contractPrivate", 'POST', params, undefined, undefined, {"cost":20});
+    }
+    contractPrivatePostCapiV3AccountPositionMargin (params = {}): Promise<Dict> {
+        return this.request ("capi/v3/account/positionMargin", "contractPrivate", 'POST', params, undefined, undefined, {"cost":30});
+    }
+    contractPrivatePostCapiV3AccountModifyAutoAppendMargin (params = {}): Promise<Dict> {
+        return this.request ("capi/v3/account/modifyAutoAppendMargin", "contractPrivate", 'POST', params, undefined, undefined, {"cost":30});
+    }
+    contractPrivatePostCapiV3Order (params = {}): Promise<Dict> {
+        return this.request ("capi/v3/order", "contractPrivate", 'POST', params, undefined, undefined, {"cost":5});
+    }
+    contractPrivatePostCapiV3BatchOrders (params = {}): Promise<List> {
+        return this.request ("capi/v3/batchOrders", "contractPrivate", 'POST', params, undefined, undefined, {"cost":10});
+    }
+    contractPrivatePostCapiV3ClosePositions (params = {}): Promise<List> {
+        return this.request ("capi/v3/closePositions", "contractPrivate", 'POST', params, undefined, undefined, {"cost":50});
+    }
+    contractPrivatePostCapiV3AlgoOrder (params = {}): Promise<Dict> {
+        return this.request ("capi/v3/algoOrder", "contractPrivate", 'POST', params, undefined, undefined, {"cost":5});
+    }
+    contractPrivatePostCapiV3PlaceTpSlOrder (params = {}): Promise<List> {
+        return this.request ("capi/v3/placeTpSlOrder", "contractPrivate", 'POST', params, undefined, undefined, {"cost":5});
+    }
+    contractPrivatePostCapiV3ModifyTpSlOrder (params = {}): Promise<Dict> {
+        return this.request ("capi/v3/modifyTpSlOrder", "contractPrivate", 'POST', params, undefined, undefined, {"cost":5});
+    }
+    contractPrivatePostCapiV3SimOrder (params = {}): Promise<Dict> {
+        return this.request ("capi/v3/sim/order", "contractPrivate", 'POST', params, undefined, undefined, {"cost":5});
+    }
+    contractPrivatePostCapiV3CopyFollowerClosePos (params = {}): Promise<Dict> {
+        return this.request ("capi/v3/copy/follower/closePos", "contractPrivate", 'POST', params, undefined, undefined, {"cost":50});
+    }
+    contractPrivatePostCapiV3CopyFollowerSettings (params = {}): Promise<Dict> {
+        return this.request ("capi/v3/copy/follower/settings", "contractPrivate", 'POST', params, undefined, undefined, {"cost":10});
+    }
+    contractPrivatePostCapiV3CopyFollowerStopCopy (params = {}): Promise<Dict> {
+        return this.request ("capi/v3/copy/follower/stopCopy", "contractPrivate", 'POST', params, undefined, undefined, {"cost":10});
+    }
+    contractPrivateDeleteCapiV3Order (params = {}): Promise<Dict> {
+        return this.request ("capi/v3/order", "contractPrivate", 'DELETE', params, undefined, undefined, {"cost":3});
+    }
+    contractPrivateDeleteCapiV3BatchOrders (params = {}): Promise<Dict> {
+        return this.request ("capi/v3/batchOrders", "contractPrivate", 'DELETE', params, undefined, undefined, {"cost":10});
+    }
+    contractPrivateDeleteCapiV3AllOpenOrders (params = {}): Promise<List> {
+        return this.request ("capi/v3/allOpenOrders", "contractPrivate", 'DELETE', params, undefined, undefined, {"cost":10});
+    }
+    contractPrivateDeleteCapiV3AlgoOrder (params = {}): Promise<Dict> {
+        return this.request ("capi/v3/algoOrder", "contractPrivate", 'DELETE', params, undefined, undefined, {"cost":3});
+    }
+    contractPrivateDeleteCapiV3AlgoOpenOrders (params = {}): Promise<List> {
+        return this.request ("capi/v3/algoOpenOrders", "contractPrivate", 'DELETE', params, undefined, undefined, {"cost":10});
+    }
 }
-abstract class Exchange extends _Exchange {}
-
 export default Exchange

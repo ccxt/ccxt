@@ -554,6 +554,7 @@ create a trade order
 | params.marginMode | <code>string</code> | No | 'cross' or 'isolated', the default is 'cross' |
 | params.rpiTakerAccess | <code>bool</code> | No | true to let a taker order match against retail price improvement liquidity |
 | params.rpiPxRound | <code>bool</code> | No | *rpi orders only* true to round the price outward to the nearest placeable non-crossing level |
+| params.selfTradePrevention | <code>string</code> | No | set unified value for stp, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH, other values are forwarded as-is, NONE is not supported, not supported for algo orders, and EXPIRE_BOTH is not supported for fok orders |
 
 
 ```javascript
@@ -996,12 +997,12 @@ make a withdrawal
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | the amount to withdraw |
 | address | <code>string</code> | Yes | the address to withdraw to |
-| tag | <code>string</code> | Yes |  |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
 
 
 ```javascript
-okx.withdraw (code, amount, address, tag, params?)
+okx.withdraw (code, amount, address, params?)
 ```
 
 
@@ -1709,23 +1710,24 @@ okx.fetchOpenInterests (symbols, params?)
 <a name="fetchOpenInterestHistory" id="fetchopeninteresthistory"></a>
 
 ### fetchOpenInterestHistory{docsify-ignore}
-Retrieves the open interest history of a currency
+Retrieves the open interest history of a swap or future market, or of a currency when a currency code is given
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
 **Returns**: An array of [open interest structures](https://docs.ccxt.com/?id=open-interest-structure)
 
 **See**
 
-- https://www.okx.com/docs-v5/en/#rest-api-trading-data-get-contracts-open-interest-and-volume
-- https://www.okx.com/docs-v5/en/#rest-api-trading-data-get-options-open-interest-and-volume
+- https://www.okx.com/docs-v5/en/#trading-statistics-rest-api-get-contract-open-interest-history
+- https://www.okx.com/docs-v5/en/#trading-statistics-rest-api-get-contracts-open-interest-and-volume
+- https://www.okx.com/docs-v5/en/#trading-statistics-rest-api-get-options-open-interest-and-volume
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | Unified CCXT currency code or unified symbol |
+| symbol | <code>string</code> | Yes | unified symbol of a swap or future market for the history of that instrument, otherwise a unified currency code, or the symbol of a spot or option market, for the aggregate over all contracts of the currency |
 | timeframe | <code>string</code> | Yes | "5m", "1h", or "1d" for option only "1d" or "8h" |
 | since | <code>int</code> | No | The time in ms of the earliest record to retrieve as a unix timestamp |
-| limit | <code>int</code> | No | Not used by okx, but parsed internally by CCXT |
+| limit | <code>int</code> | No | the maximum number of records to retrieve, at most 100 for a swap or future market; not used by the currency aggregate |
 | params | <code>object</code> | No | Exchange specific parameters |
 | params.until | <code>int</code> | No | The time in ms of the latest record to retrieve as a unix timestamp |
 

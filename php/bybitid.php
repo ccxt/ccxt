@@ -29,6 +29,9 @@ class bybitid extends bybit {
                 'fees' => 'https://help.bybit.com/hc/en-us/articles/360039261154',
                 'referral' => null,
             ),
+            'httpExceptions' => array(
+                '403' => '\\ccxt\\PermissionDenied', // error:The Amazon CloudFront distribution is configured to block access from your country
+            ),
         ));
     }
 }

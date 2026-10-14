@@ -75,7 +75,7 @@ fn main() {
     for frame in 0..frames {
         apply_frame(&book, base, tick, per, frame);
         // read top-of-book each frame (like a resolution/BBO check)
-        let bside = ccxt::get_value(&book, &Value::Str("bids".to_string()));
+        let bside = ccxt::get_value(&book, &Value::Str("bids".to_string().into()));
         let top = ccxt::get_value(&ccxt::get_value(&bside, &Value::Int(0)), &Value::Int(0));
         std::hint::black_box(top);
     }
@@ -99,8 +99,8 @@ fn main() {
 // Apply `per` deltas to each side: a rolling mix of near-top updates, a fresh
 // insert, and a delete (size 0) — the shape a live depth stream produces.
 fn apply_frame(book: &Value, base: f64, tick: f64, per: usize, frame: usize) {
-    let mut bside = ccxt::get_value(book, &Value::Str("bids".to_string()));
-    let mut aside = ccxt::get_value(book, &Value::Str("asks".to_string()));
+    let mut bside = ccxt::get_value(book, &Value::Str("bids".to_string().into()));
+    let mut aside = ccxt::get_value(book, &Value::Str("asks".to_string().into()));
     for k in 0..per {
         // update an existing near-top level
         let bp = base - (k as f64) * tick;

@@ -13,7 +13,39 @@ package ccxt
 // are required for those flows: Append() and ToArray().  Everything else can be
 // added later if/when the need arises.
 
-import "sync"
+import (
+	"fmt"
+	"sync"
+)
+
+// ArrayCacheInterface is the value a ws list stream resolves: one of the caches, or a plain list.
+type ArrayCacheInterface interface {
+	ToArray() []any
+	GetLimit(symbol any, limit any) *int64
+}
+
+// ListCache carries a plain resolved list; GetLimit answers the caller's limit like NoopLimit.
+type ListCache []any
+
+func (l ListCache) ToArray() []any                        { return []any(l) }
+func (l ListCache) GetLimit(symbol any, limit any) *int64 { return Int64PtrTyped(limit) }
+
+// AsArrayCache types a received ws list: caches pass through, a list becomes ListCache, absent stays nil.
+func AsArrayCache(v any) ArrayCacheInterface {
+	v = derefScalar(v)
+	switch c := v.(type) {
+	case nil:
+		return nil
+	case ArrayCacheInterface:
+		return c
+	case []any:
+		return ListCache(c)
+	}
+	if list, ok := castToSlice(v); ok {
+		return ListCache(list)
+	}
+	panic(fmt.Sprintf("AsArrayCache: a ws list stream resolved %T", v))
+}
 
 type Appender interface{ Append(any) }
 
@@ -46,7 +78,9 @@ func (c *BaseCache) Clear() {
 // `m[field].(string)` assertion silently misses them and the update is appended
 // as a duplicate row instead of being merged in.
 func cacheKeyOf(m map[string]any, field string) string {
+	// a typed-nil *string id is absent, not the key "<nil>" shared by every id-less row
 	v, ok := m[field]
+	v = derefScalar(v)
 	if !ok || v == nil {
 		return ""
 	}
@@ -110,7 +144,7 @@ type ArrayCache struct {
 
 func NewArrayCache(MaxSize any) *ArrayCache {
 	size := 0
-	switch v := MaxSize.(type) {
+	switch v := derefScalar(MaxSize).(type) {
 	case int:
 		size = v
 	case int64:
@@ -319,18 +353,8 @@ func (c *ArrayCache) ToArray() []any {
 	return out
 }
 
-// The function returns any so the transpiled code that works with
-// loosely-typed limits continues to compile.
-func (c *ArrayCache) GetLimit(symbol any, limit any) any {
-	// if limit != nil {
-	// 	return limit
-	// }
-	// if symbolStr, ok := symbol.(string); ok && symbolStr != "" {
-	// 	if byId, exists := c.Hashmap[symbolStr]; exists {
-	// 		return len(byId)
-	// 	}
-	// }
-	// return len(c.ToArray())
+// GetLimit mirrors Cache.ts getLimit (symbol: Str, limit: Int): Int - an absent result is a nil pointer.
+func (c *ArrayCache) GetLimit(symbol any, limit any) *int64 {
 	var newUpdatesValue any = nil
 
 	// a typed nil pointer is not == nil, so both arguments must be normalized
@@ -349,11 +373,11 @@ func (c *ArrayCache) GetLimit(symbol any, limit any) any {
 	}
 
 	if newUpdatesValue == nil {
-		return limit
+		return Int64PtrTyped(limit)
 	} else if limit != nil {
-		return MathMin(newUpdatesValue, limit)
+		return Int64PtrTyped(MathMin(newUpdatesValue, limit))
 	} else {
-		return newUpdatesValue
+		return Int64PtrTyped(newUpdatesValue)
 	}
 }
 
@@ -370,7 +394,7 @@ func (c *ArrayCache) Remove(symbol string) {
 	delete(c.clearUpdatesBySymbol, symbol)
 
 	// Filter out items with this symbol from Data
-	var filteredData []any
+	filteredData := make([]any, 0, len(c.Data))
 	for _, item := range c.Data {
 		if m, ok := item.(map[string]any); ok {
 			if s, ok := m["symbol"].(string); ok && s == symbol {
@@ -395,7 +419,7 @@ type ArrayCacheByTimestamp struct {
 
 func NewArrayCacheByTimestamp(MaxSize any) *ArrayCacheByTimestamp {
 	size := 0
-	switch v := MaxSize.(type) {
+	switch v := derefScalar(MaxSize).(type) {
 	case int:
 		size = v
 	case int64:
@@ -512,12 +536,12 @@ func (c *ArrayCacheByTimestamp) ToArray() []any {
 
 // GetLimit for timestamp cache ignores symbol because entries are not
 // symbol-segmented.  It mirrors the same precedence order as ArrayCache.
-func (c *ArrayCacheByTimestamp) GetLimit(symbol any, limit any) any {
+func (c *ArrayCacheByTimestamp) GetLimit(symbol any, limit any) *int64 {
 	c.clearUpdates = true
-	if limit == nil {
-		return c.newUpdates
+	if derefScalar(limit) == nil {
+		return Int64PtrTyped(c.newUpdates)
 	}
-	return MathMin(c.newUpdates, limit)
+	return Int64PtrTyped(MathMin(c.newUpdates, limit))
 }
 
 // Remove removes all items with the given symbol from the timestamp cache
@@ -526,7 +550,7 @@ func (c *ArrayCacheByTimestamp) Remove(symbol string) {
 	defer c.Mu.Unlock()
 
 	// Filter out items with this symbol from Data
-	var filteredData []any
+	filteredData := make([]any, 0, len(c.Data))
 	for _, item := range c.Data {
 		if m, ok := item.(map[string]any); ok {
 			if s, ok := m["symbol"].(string); ok && s == symbol {
@@ -551,7 +575,7 @@ func NewArrayCacheBySymbolById(optionalArgs ...any) *ArrayCacheBySymbolById {
 }
 
 // GetLimit for nested caches delegates to the inner ArrayCache.
-func (c *ArrayCacheBySymbolById) GetLimit(symbol any, limit any) any {
+func (c *ArrayCacheBySymbolById) GetLimit(symbol any, limit any) *int64 {
 	return c.ArrayCache.GetLimit(symbol, limit)
 }
 
@@ -571,7 +595,7 @@ func NewArrayCacheByOutcomeById(optionalArgs ...any) *ArrayCacheByOutcomeById {
 	return cache
 }
 
-func (c *ArrayCacheByOutcomeById) GetLimit(symbol any, limit any) any {
+func (c *ArrayCacheByOutcomeById) GetLimit(symbol any, limit any) *int64 {
 	return c.ArrayCache.GetLimit(symbol, limit)
 }
 
@@ -659,7 +683,7 @@ func (c *ArrayCacheBySymbolBySide) Append(item any) {
 	c.trackAppendLocked(symbol, side)
 }
 
-func (c *ArrayCacheBySymbolBySide) GetLimit(symbol any, limit any) any {
+func (c *ArrayCacheBySymbolBySide) GetLimit(symbol any, limit any) *int64 {
 	return c.ArrayCache.GetLimit(symbol, limit)
 }
 

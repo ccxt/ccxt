@@ -134,7 +134,7 @@ class coincheck extends \ccxt\async\coincheck {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $market['symbol'];
         $messageHash = 'trade:' . $market['symbol'];
         $url = $this->urls['api']['ws'];
         $request = array(
@@ -143,10 +143,11 @@ class coincheck extends \ccxt\async\coincheck {
         );
         $message = $this->extend($request, $params);
         $trades = Async\await($this->watch($url, $messageHash, $message, $messageHash));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($symbol, $limit);
+            $limitResolved = $trades->getLimit($symbolValue, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
     public function handle_trades(Client $client, array $message) {

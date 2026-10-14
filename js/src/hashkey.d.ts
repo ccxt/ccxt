@@ -137,7 +137,7 @@ export default class hashkey extends Exchange {
      * @returns {object} a dictionary of lastprices structures
      */
     fetchLastPrices(symbols?: Strings, params?: Dict): Promise<LastPrices>;
-    parseLastPrice(entry: any, market?: Market): LastPrice;
+    parseLastPrice(entry: Dict, market?: Market): LastPrice;
     /**
      * @method
      * @name hashkey#fetchBalance
@@ -162,7 +162,7 @@ export default class hashkey extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     fetchDepositAddress(code: string, params?: Dict): Promise<DepositAddress>;
-    parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
+    parseDepositAddress(depositAddress: Dict, currency?: Currency): DepositAddress;
     /**
      * @method
      * @name hashkey#fetchDeposits
@@ -198,14 +198,14 @@ export default class hashkey extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.network] network for withdraw
      * @param {string} [params.clientOrderId] client order id
      * @param {string} [params.platform] the platform to withdraw to (hashkey, HashKey HK)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseTransactionStatus(status: Str): Str;
     /**
@@ -234,7 +234,7 @@ export default class hashkey extends Exchange {
      */
     fetchAccounts(params?: Dict): Promise<Account[]>;
     parseAccount(account: Dict): Account;
-    parseAccountType(type: any): string;
+    parseAccountType(type: Str): Str;
     encodeAccountType(type: any): number;
     encodeFlowType(type: any): number;
     /**
@@ -477,7 +477,7 @@ export default class hashkey extends Exchange {
      */
     fetchCanceledAndClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     checkTypeParam(methodName: string, params: Dict): void;
-    handleTriggerOptionAndParams(params: object, methodName: string, defaultValue?: Bool): [Bool, object];
+    handleTriggerOptionAndParams(params: object, methodName: string, defaultValue?: Bool): [Bool, Dict];
     parseOrder(order: Dict, market?: Market): Order;
     parseOrderSideAndReduceOnly(unparsed: any): any[];
     parseOrderStatus(status: Str): Str;
@@ -492,7 +492,7 @@ export default class hashkey extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
+    fetchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
     /**
      * @method
      * @name hashkey#fetchFundingRates
@@ -634,7 +634,7 @@ export default class hashkey extends Exchange {
      */
     fetchTradingFees(params?: Dict): Promise<TradingFees>;
     parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
-    sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     customUrlencode(params?: Dict): Str;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

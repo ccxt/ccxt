@@ -7,8 +7,8 @@ import (
 	ccxt "github.com/ccxt/ccxt/go/v4"
 )
 
-func TestThrottlerPerformanceHelper(exchange ccxt.IExchange, numRequests interface{}) <-chan interface{} {
-	ch := make(chan interface{})
+func TestThrottlerPerformanceHelper(exchange ccxt.IExchange, numRequests interface{}) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any])
 	go func() interface{} {
 		defer close(ch)
 		defer ReturnPanicError(ch)
@@ -16,8 +16,7 @@ func TestThrottlerPerformanceHelper(exchange ccxt.IExchange, numRequests interfa
 		for i := 0; IsLessThan(i, numRequests); i++ {
 			// Use the throttler directly without making any API calls
 
-			retRes108 := (<-exchange.Throttle(1))
-			PanicOnError(retRes108) // cost of 1
+			<-exchange.Throttle(1) // cost of 1
 			var mockResult map[string]interface{} = map[string]interface{}{
 				"id":        "mock",
 				"timestamp": time.Now().UnixMilli(),
@@ -27,7 +26,7 @@ func TestThrottlerPerformanceHelper(exchange ccxt.IExchange, numRequests interfa
 		}
 		var totalTime interface{} = time.Since(startTime.(time.Time)).Milliseconds()
 
-		ch <- totalTime
+		ch <- ccxt.AsyncResult[any]{Value: totalTime}
 		return nil
 
 	}()
@@ -41,22 +40,19 @@ func TestThrottlerPerformance() {
 		"rateLimiterAlgorithm": "rollingWindow",
 	})
 
-	rollingWindowTime := (<-TestThrottlerPerformanceHelper(exchange1, 100))
-	PanicOnError(rollingWindowTime)
+	rollingWindowTime := PanicOnError(<-TestThrottlerPerformanceHelper(exchange1, 100))
 	exchange2 := ccxt.CreateExchange("binance", map[string]interface{}{
 		"enableRateLimit":      true,
 		"rateLimiterAlgorithm": "leakyBucket",
 	})
 
-	leakyBucketTime := (<-TestThrottlerPerformanceHelper(exchange2, 20))
-	PanicOnError(leakyBucketTime)
+	leakyBucketTime := PanicOnError(<-TestThrottlerPerformanceHelper(exchange2, 20))
 	exchange3 := ccxt.CreateExchange("binance", map[string]interface{}{
 		"enableRateLimit":   true,
 		"rollingWindowSize": 0,
 	})
 
-	rollingWindow0Time := (<-TestThrottlerPerformanceHelper(exchange3, 20))
-	PanicOnError(rollingWindow0Time)
+	rollingWindow0Time := PanicOnError(<-TestThrottlerPerformanceHelper(exchange3, 20))
 	var rollingWindowTimeString interface{} = ToString(rollingWindowTime)
 	var leakyBucketTimeString interface{} = ToString(leakyBucketTime)
 	var rollingWindow0TimeString interface{} = ToString(rollingWindow0Time)

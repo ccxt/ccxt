@@ -1,13 +1,13 @@
 import { List, Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     publicGetSpotApiV33MarketSummary(params?: {}): Promise<List>;
     publicGetSpotApiV33Ohlcv(params?: {}): Promise<List>;
     publicGetSpotApiV33Price(params?: {}): Promise<Dict | List>;
     publicGetSpotApiV33Orderbook(params?: {}): Promise<Dict | List>;
     publicGetSpotApiV33OrderbookL2(params?: {}): Promise<Dict | List>;
     publicGetSpotApiV33Trades(params?: {}): Promise<List>;
-    publicGetSpotApiV33Time(params?: {}): Promise<Dict | List>;
+    publicGetSpotApiV33Time(params?: {}): Promise<Dict>;
     publicGetFuturesApiV23MarketSummary(params?: {}): Promise<List>;
     publicGetFuturesApiV23Ohlcv(params?: {}): Promise<List>;
     publicGetFuturesApiV23Price(params?: {}): Promise<Dict | List>;
@@ -129,7 +129,5 @@ interface Exchange {
     privateDeleteFuturesApiV3TradeOrders(params?: {}): Promise<List>;
     privateDeleteFuturesApiV3TradePositions(params?: {}): Promise<Dict | List>;
     privateDeletePublicApiWalletV1UserCryptoAddress(params?: {}): Promise<Dict | List>;
-}
-declare abstract class Exchange extends _Exchange {
 }
 export default Exchange;

@@ -60,9 +60,10 @@ function toSnakeCase(s: string): string {
 
 // ── output paths ─────────────────────────────────────────────────────────────
 const RUST_BASE              = './rust/ccxt-base/src';
-const BASE_METHODS_FILE      = `${RUST_BASE}/exchange_generated.rs`;
-const PREDICTION_BASE_FILE   = `${RUST_BASE}/prediction_exchange_generated.rs`;
-const ERRORS_FILE            = `${RUST_BASE}/exchange_errors.rs`;
+const RUST_CORE              = './rust/ccxt-common/src';
+const BASE_METHODS_FILE      = `${RUST_CORE}/exchange_generated.rs`;
+const PREDICTION_BASE_FILE   = `${RUST_CORE}/prediction_exchange_generated.rs`;
+const ERRORS_FILE            = `${RUST_CORE}/exchange_errors.rs`;
 const EXCHANGES_FOLDER       = `${RUST_BASE}/exchanges`;
 // The transpiled per-venue WS exchanges live in their own crate (`ccxt-pro`)
 // so each `rustc` invocation stays under the CI runner's memory ceiling. The
@@ -73,6 +74,12 @@ const EXCHANGES_WS_FOLDER    = `${RUST_PRO_BASE}/pro`;
 // Prediction venues live in their own module so ids that also exist as a
 // regular exchange (e.g. `hyperliquid`) don't clobber each other.
 const PREDICTION_EXCHANGES_FOLDER = `${RUST_BASE}/prediction`;
+
+// Cargo feature that gates a transpiled Core in ccxt-base. Shared with
+// build/generateRustWrappers.ts, which emits the matching [features] entries.
+export function rustFeatureName (id: string, prediction = false): string {
+    return prediction ? `prediction-${id}` : id;
+}
 const BASE_TESTS_FOLDER      = './rust/tests/base';
 const BASE_TESTS_WS_FOLDER   = './rust/tests/base_ws';
 const GENERATED_TESTS_FOLDER = './rust/tests/exchange';
@@ -2842,8 +2849,8 @@ export class RustTranspilerBuilder {
         const abstractPath = `./ts/src/abstract/${className}.ts`;
         if (!fs.existsSync(abstractPath)) return content;
         const abstractSrc = fs.readFileSync(abstractPath, 'utf8');
-        // Interface method decls look like:
-        //   traderPrivateGetV2Clock (params?: {}): Promise<implicitReturnType>;
+        // Generated method heads look like:
+        //   traderPrivateGetV2Clock (params = {}): Promise<Dict> {
         // The name class must allow `_`: versioned endpoints carry an
         // underscore in the identifier (coinone's `v2_1PrivatePostOrderLimit`).
         // Without it the capture stops at `v2`, the full snake name never
@@ -2851,7 +2858,7 @@ export class RustTranspilerBuilder {
         // bare arg never gets folded into the `&[Value]` slice the generated
         // `<id>_api.rs` method expects (E0308: expected `&[Value]`, found `Value`).
         const names = new Set<string>();
-        const re = /^\s*([a-zA-Z][a-zA-Z0-9_]*)\s*\([^)]*\):\s*Promise/gm;
+        const re = /^\s*([a-zA-Z][a-zA-Z0-9_]*)\s*\([^)]*\):\s*Promise<[^>]*>\s*\{/gm;
         let m: RegExpExecArray | null;
         while ((m = re.exec(abstractSrc)) !== null) {
             names.add(toSnakeCase(m[1]));
@@ -5028,12 +5035,18 @@ export class RustTranspilerBuilder {
         while ((om = ownRx.exec(content)) !== null) own.add(om[1]);
         if (this._rustBoolReturnMethods === null) {
             const cached = { bool: new Set<string>(), optionBool: new Set<string>(), src: [] as string[] };
-            for (const file of [BASE_METHODS_FILE, `${RUST_BASE}/exchange_stubs.rs`, `${RUST_BASE}/exchange.rs`]) {
+            for (const file of [BASE_METHODS_FILE, `${RUST_CORE}/exchange_stubs.rs`, `${RUST_CORE}/exchange.rs`]) {
                 try {
                     const src = fs.readFileSync(file, 'utf8');
                     cached.src.push(src);
                     collect(src, cached.bool, cached.optionBool, new Set<string>());
-                } catch (_) { /* base not generated yet */ }
+                } catch (e: any) {
+                    if (file === BASE_METHODS_FILE && e.code === 'ENOENT') {
+                        /* base not generated yet */
+                    } else {
+                        throw e;
+                    }
+                }
             }
             this._rustBoolReturnMethods = cached;
         }
@@ -7062,10 +7075,10 @@ export class RustTranspilerBuilder {
         if (this._discoveredVariadicsCache) return this._discoveredVariadicsCache;
         const out: Record<string, number> = {};
         const baseFiles = [
-            './rust/ccxt-base/src/exchange_generated.rs',
-            './rust/ccxt-base/src/exchange_stubs.rs',
+            './rust/ccxt-common/src/exchange_generated.rs',
+            './rust/ccxt-common/src/exchange_stubs.rs',
             // ExchangeRuntime dispatchers + super_* shims (review #1).
-            './rust/ccxt-base/src/exchange.rs',
+            './rust/ccxt-common/src/exchange.rs',
         ];
         for (const f of baseFiles) {
             const m = this.extractVariadicsFromFile(f);
@@ -7091,7 +7104,7 @@ export class RustTranspilerBuilder {
         const id = exchangeId.toLowerCase();
         if (!this._predictionVariadicsCache) {
             this._predictionVariadicsCache = this.extractVariadicsFromFile(
-                './rust/ccxt-base/src/prediction_exchange_generated.rs',
+                './rust/ccxt-common/src/prediction_exchange_generated.rs',
             );
         }
         return {
@@ -7227,6 +7240,12 @@ export class RustTranspilerBuilder {
             handle_margin_mode_and_params: 1,
             handle_option_and_params: 3,
             handle_option_and_params2: 4,
+            handle_option_string_and_params: 3,
+            handle_option_string_and_params2: 4,
+            handle_option_bool_and_params: 3,
+            handle_option_bool_and_params2: 4,
+            handle_option_integer_and_params: 3,
+            handle_option_integer_and_params2: 4,
             binary_concat: 1,
             hmac:          3,
             ecdsa:         3,
@@ -7460,7 +7479,7 @@ export class RustTranspilerBuilder {
         // optional `pub` — `ExchangeBase` trait methods are emitted as
         // `async fn` (trait methods can't be `pub`), so a `pub`-only regex would
         // miss every base async method and drop the `.await` at call sites.
-        for (const file of [BASE_METHODS_FILE, `${RUST_BASE}/exchange_stubs.rs`, `${RUST_BASE}/exchange.rs`]) {
+        for (const file of [BASE_METHODS_FILE, `${RUST_CORE}/exchange_stubs.rs`, `${RUST_CORE}/exchange.rs`]) {
             try {
                 const src = fs.readFileSync(file, 'utf8');
                 const re = /\b(?:pub )?async fn ([a-z_][a-z0-9_]*)\(/g;
@@ -7472,7 +7491,13 @@ export class RustTranspilerBuilder {
                 // async methods; call sites need their `.await`.
                 const futRe = /\b(?:pub\s+)?fn\s+([a-z_][a-z0-9_]*)\s*(?:<[^>]*>)?\s*\(([^)]*)\)\s*->\s*(?:impl ::std::future::Future|::std::pin::Pin<Box<dyn ::std::future::Future)/g;
                 while ((m = futRe.exec(src)) !== null) s.add(m[1]);
-            } catch (_) { /* base not generated yet — fall back to empty */ }
+            } catch (e: any) {
+                if (file === BASE_METHODS_FILE && e.code === 'ENOENT') {
+                    /* base not generated yet — fall back to empty */
+                } else {
+                    throw e;
+                }
+            }
         }
         return s;
     }
@@ -7490,13 +7515,19 @@ export class RustTranspilerBuilder {
     allBaseMethodNames(): Set<string> {
         if (this._allBaseMethodNames) return this._allBaseMethodNames;
         const s = new Set<string>();
-        for (const file of [BASE_METHODS_FILE, `${RUST_BASE}/exchange_stubs.rs`, `${RUST_BASE}/exchange.rs`]) {
+        for (const file of [BASE_METHODS_FILE, `${RUST_CORE}/exchange_stubs.rs`, `${RUST_CORE}/exchange.rs`]) {
             try {
                 const src = fs.readFileSync(file, 'utf8');
                 const re = /\b(?:pub\s+)?(?:async\s+)?fn\s+([a-z_][a-z0-9_]*)\s*[(<]/g;
                 let m: RegExpExecArray | null;
                 while ((m = re.exec(src)) !== null) s.add(m[1]);
-            } catch (_) { /* base not generated yet */ }
+            } catch (e: any) {
+                if (file === BASE_METHODS_FILE && e.code === 'ENOENT') {
+                    /* base not generated yet */
+                } else {
+                    throw e;
+                }
+            }
         }
         for (const n of Object.keys(this.traitMethodSignatures())) s.add(n);
         this._allBaseMethodNames = s;
@@ -8458,7 +8489,7 @@ ${arms.join('\n')}
             const predAsync: string[] = isPrediction
                 ? Object.keys({
                     ...this.extractAsyncFnNames(`./rust/ccxt-base/src/prediction/${className}_api.rs`),
-                    ...this.extractAsyncFnNames('./rust/ccxt-base/src/prediction_exchange_generated.rs'),
+                    ...this.extractAsyncFnNames('./rust/ccxt-common/src/prediction_exchange_generated.rs'),
                   })
                 : [];
             let currentSet = new Set([...asyncSnake, ...this.asyncBaseMethods(), ...predAsync, 'call_method', 'call_dynamic', 'call_dynamic_checked', 'fetch', 'load_markets', 'throttle']);
@@ -8810,7 +8841,9 @@ impl ${coreName} {
     pub fn init(&mut self) {
         let described = ${coreName}::describe(self);
         self.exchange.initialize_properties(described);
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self);
+        // compatibility for sandbox/testnet options in userConfig
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -9142,10 +9175,11 @@ impl std::ops::DerefMut for ${coreName} {
                 '// Re-export the hand-written pro infra (cache / order_book /',
                 '// ws_client and their public items) from the base crate so the',
                 "// venue files' `crate::pro::*` paths resolve. The venue modules",
-                '// themselves live in this crate.',
+                '// themselves live in this crate, one per `<id>` cargo feature',
+                '// (see the generated [features] block in ccxt-pro/Cargo.toml).',
                 'pub use ccxt_base::pro::*;',
                 '',
-                ...venues.map(n => `pub mod ${n};`),
+                ...venues.map(n => `#[cfg(feature = "${n}")]\npub mod ${n};`),
             ];
             const wsContent = [
                 ...this.createGeneratedHeader(),
@@ -9183,12 +9217,16 @@ impl std::ops::DerefMut for ${coreName} {
                 lines.push(`pub mod ${sibling};`);
             }
         }
-        // WS per-exchange files are still WIP — gate them behind the
-        // `transpiled-ws` feature so the default build (REST + hand-
-        // written pro::cache / order_book) keeps compiling.
-        const isProFolder = folder.endsWith('/pro');
-        const gate = isProFolder ? '#[cfg(feature = "transpiled-ws")]\n' : '';
+        // Every Core sits behind its own cargo feature so a consumer that
+        // asks for `features = ["binance"]` compiles one venue, not 200+.
+        // REST features are the bare id; prediction Cores share ids with REST
+        // venues (binance, hyperliquid, …) so theirs carry a `prediction-`
+        // prefix. The feature lists themselves are emitted into each crate's
+        // Cargo.toml by build/generateRustWrappers.ts (rustFeatureName is the
+        // shared naming rule).
+        const isPredictionFolder = folder === PREDICTION_EXCHANGES_FOLDER;
         for (const n of baseNames) {
+            const gate = `#[cfg(feature = "${rustFeatureName(n, isPredictionFolder)}")]\n`;
             lines.push(`${gate}pub mod ${n};`);
             if (fs.existsSync(`${folder}/${n}_api.rs`)) {
                 lines.push(`${gate}pub mod ${n}_api;`);
@@ -9772,18 +9810,14 @@ impl std::ops::DerefMut for ${coreName} {
             // its own Rust module. We emit our own run_all() in
             // writeBaseTestsModFile instead.
             if (testName === 'tests.init') continue;
+            // BaseCore exposes checkAddress only through the variadic &[Value] entry
+            if (testName === 'test.checkAddress') continue;
             const tsFile = `${baseFolder}/${testName}.ts`;
             const tsContent = fs.readFileSync(tsFile).toString();
             // `test.cryptography` is marked NO_AUTO_TRANSPILE (it's
             // hand-transpiled per-language, cf. Go's transpileCryptoTests)
             // but the Rust base-test pipeline handles it fine — include it.
             if (tsContent.includes('// NO_AUTO_TRANSPILE') && testName !== 'test.cryptography') continue;
-            // the Rust base has no handleHttpStatusCode yet — its HTTP layer
-            // classifies statuses inline (ccxt-base/src/exchange.rs), so the
-            // contract that test pins does not exist on the Rust side; skip it
-            // here (the tests.init call is dropped automatically) until the
-            // method lands on BaseCore
-            if (testName === 'test.handleHttpStatusCode') continue;
 
             const outFile = `${outDir}/${testName}.rs`;
             log.magenta('Transpiling from', (tsFile as any).yellow);
@@ -9805,8 +9839,8 @@ impl std::ops::DerefMut for ${coreName} {
                 content = this.rewriteDynamicThrows(content);
                 content = this.normalizeJwtCalls(content);
                 content = this.wrapBoolValueArgs(content);
-                content = this.stripCatchBlocks(content);
-                content = this.unwrapCatchUnwind(content);
+                // catch_unwind keeps the catch body, so a test can assert that a call throws
+                content = this.rewriteTryCatchAsync(content);
                 content = this.rewriteNamespaceCalls(content, 'Math',    'crate::runtime::Math',    true);
                 content = this.rewriteNamespaceCalls(content, 'Precise', 'crate::precise::Precise', true);
                 // `Precise::stringDiv(a, b, precision)` (3 args) →
@@ -11577,12 +11611,17 @@ impl std::ops::DerefMut for ${coreName} {
         });
 
         if (!baseOnly) {
-            await this.transpileDerivedExchangeFiles(tsFolder, options, '.ts', force, false);
-            // Prediction-market exchanges (ts/src/prediction/*.ts → prediction Cores).
-            await this.transpileDerivedExchangeFiles('./ts/src/prediction', options, '.ts', force, false, true);
+            const predictionOnly = process.argv.includes('--prediction');
+            if (!predictionOnly) {
+                await this.transpileDerivedExchangeFiles(tsFolder, options, '.ts', force, false);
+            }
+            if (predictionOnly || exchanges.length === 0) {
+                // Prediction-market exchanges (ts/src/prediction/*.ts → prediction Cores).
+                await this.transpileDerivedExchangeFiles('./ts/src/prediction', options, '.ts', force, false, true);
+            }
         }
 
-        if (child || transpilingSingle || baseOnly) return;
+        if (child || exchanges.length > 0 || baseOnly) return;
 
         this.transpileErrorHierarchy();
         this.transpileTests();
@@ -11632,10 +11671,20 @@ if (isMainEntry(import.meta.url)) {
     const baseOnly  = process.argv.includes('--baseClass') || process.argv.includes('--baseOnly');
     const testsOnly = process.argv.includes('--tests') || process.argv.includes('--test');
     const testsMain = process.argv.includes('--testsMain') || process.argv.includes('--testMain');
+    const modFiles  = process.argv.includes('--modFiles');
 
     const t = new RustTranspilerBuilder();
 
-    if (baseOnly) {
+    if (modFiles) {
+        for (const folder of [ EXCHANGES_FOLDER, EXCHANGES_WS_FOLDER, PREDICTION_EXCHANGES_FOLDER ]) {
+            if (!fs.existsSync(folder)) continue;
+            const onDisk = fs.readdirSync(folder)
+                .filter(f => f.endsWith('.rs') && f !== 'mod.rs')
+                .map(f => basename(f, '.rs'))
+                .sort();
+            t.writeModFile(folder, onDisk);
+        }
+    } else if (baseOnly) {
         t.transpileBaseMethods('./ts/src/base/Exchange.ts');
         t.transpileErrorHierarchy();
     } else if (ws) {
