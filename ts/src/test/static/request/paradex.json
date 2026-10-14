@@ -680,6 +680,34 @@
                 "url": "https://api.prod.paradex.trade/v1/markets/summary?market=ALL",
                 "input": []
             }
+        ],
+        "fetchIndexOHLCV": [
+            {
+                "description": "index ohlcv is requested as the underlying price kind",
+                "method": "fetchIndexOHLCV",
+                "url": "https://api.prod.paradex.trade/v1/markets/klines?resolution=1&symbol=BTC-USD-PERP&price_kind=underlying&start_at=1790600000000&end_at=1790606059999",
+                "input": [
+                    "BTC/USD:USDC",
+                    "1m",
+                    1790600000000,
+                    100
+                ],
+                "output": null
+            }
+        ],
+        "fetchMarkOHLCV": [
+            {
+                "description": "mark ohlcv",
+                "method": "fetchMarkOHLCV",
+                "url": "https://api.prod.paradex.trade/v1/markets/klines?resolution=1&symbol=BTC-USD-PERP&price_kind=mark&start_at=1790600000000&end_at=1790606059999",
+                "input": [
+                    "BTC/USD:USDC",
+                    "1m",
+                    1790600000000,
+                    100
+                ],
+                "output": null
+            }
         ]
     }
 }
