@@ -3747,10 +3747,14 @@ class testMainClass {
         // setMarginMode without a leverage keeps the current one instead of resetting it to 1x
         setFetchResponse (exchange, { 'configs': [ { 'market': 'BTC-USD-PERP', 'leverage': 7, 'margin_type': 'CROSS' } ] });
         const marginArgs = [ 'cross', 'BTC/USD:USDC' ];
-        if (!isSync ()) {
-            await callExchangeMethodDynamically (exchange, 'setMarginMode', marginArgs);
-        } else {
-            callExchangeMethodDynamicallySync (exchange, 'setMarginMode', marginArgs);
+        try {
+            if (!isSync ()) {
+                await callExchangeMethodDynamically (exchange, 'setMarginMode', marginArgs);
+            } else {
+                callExchangeMethodDynamicallySync (exchange, 'setMarginMode', marginArgs);
+            }
+        } catch (e) {
+            assert (false, 'paradex - setMarginMode failed on a mocked response: ' + exceptionMessage (e));
         }
         setFetchResponse (exchange, undefined);
         const marginRequest = jsonParse (exchange.last_request_body);
