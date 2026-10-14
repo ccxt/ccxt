@@ -1848,10 +1848,11 @@ public partial class luno : Exchange
 
     public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        object apiName = getValue(api, 0);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -1863,7 +1864,7 @@ public partial class luno : Exchange
         {
             url = url + ("?" + this.urlencode(query));
         }
-        if (((api is "private")) || ((api is "exchangePrivate")))
+        if (((apiName is "private")) || ((apiName is "exchangePrivate")))
         {
             this.checkRequiredCredentials();
             string auth = this.stringToBase64(((this.apiKey + ":") + this.secret));

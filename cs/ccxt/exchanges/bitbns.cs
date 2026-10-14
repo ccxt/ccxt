@@ -1429,23 +1429,24 @@ public partial class bitbns : Exchange
 
     public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
-        api ??= "www";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object urls = this.urls;
-        if (!(inOp(getValue(urls, "api"), api)))
+        object apiName = getValue(api, 0);
+        if (!(inOp(getValue(urls, "api"), apiName)))
         {
-            throw new ExchangeError ((((this.id + " does not have a testnet/sandbox URL for ") + (api)) + " endpoints")) ;
+            throw new ExchangeError ((((this.id + " does not have a testnet/sandbox URL for ") + (apiName)) + " endpoints")) ;
         }
-        if (!(api is "www"))
+        if (!(apiName is "www"))
         {
             this.checkRequiredCredentials();
         }
         Dictionary<string, object> apiKeyHeaders = new Dictionary<string, object>() {
             { "X-BITBNS-APIKEY", this.apiKey },
         };
-        object requestHeaders = (!(api is "www")) ? apiKeyHeaders : headers;
-        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        object requestHeaders = (!(apiName is "www")) ? apiKeyHeaders : headers;
+        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((baseApiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;

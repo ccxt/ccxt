@@ -4023,9 +4023,10 @@ public partial class paradex : Exchange
 
     public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        object apiName = getValue(api, 0);
         object version = this.version;
         object pathValue = path;
         if ((path.IndexOf("v2/", StringComparison.Ordinal) == 0))
@@ -4043,13 +4044,13 @@ public partial class paradex : Exchange
         }
         string url = ((this.implodeHostname(baseApiUrl) + "/") + this.implodeParams(pathValue, parameters));
         object query = this.omit(parameters, this.extractParams(pathValue));
-        if ((api is "public"))
+        if ((apiName is "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
                 url = url + ("?" + this.urlencode(query));
             }
-        } else if ((api is "private"))
+        } else if ((apiName is "private"))
         {
             Dictionary<string, object> privateHeaders = new Dictionary<string, object>() {
                 { "Accept", "application/json" },

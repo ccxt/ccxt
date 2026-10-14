@@ -10514,7 +10514,7 @@ public partial class kucoin : Exchange
     {
         config ??= new Dictionary<string, object>();
         IDictionary<string, object> versions = this.safeDict(this.options, "versions", new Dictionary<string, object>() {});
-        IDictionary<string, object> apiVersions = this.safeDict(versions, api, new Dictionary<string, object>() {});
+        IDictionary<string, object> apiVersions = this.safeDict(versions, getValue(api, 0), new Dictionary<string, object>() {});
         IDictionary<string, object> methodVersions = this.safeDict(apiVersions, method, new Dictionary<string, object>() {});
         string? defaultVersion = this.safeString(methodVersions, path, (this.options.ContainsKey("version") ? this.options["version"] : null));
         string? version = this.safeString(parameters, "version", defaultVersion);
@@ -13222,38 +13222,39 @@ public partial class kucoin : Exchange
 
     public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
+        api ??= new List<object>();
+        method ??= "GET";
+        parameters ??= new Dictionary<string, object>();
+        object apiName = getValue(api, 0);
         //
         // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
         //                                ↑                 ↑
         //                                ↑                 ↑
         //
-        api ??= "public";
-        method ??= "GET";
-        parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> versions = this.safeDict(this.options, "versions", new Dictionary<string, object>() {});
-        IDictionary<string, object> apiVersions = this.safeDict(versions, api, new Dictionary<string, object>() {});
+        IDictionary<string, object> apiVersions = this.safeDict(versions, apiName, new Dictionary<string, object>() {});
         IDictionary<string, object> methodVersions = this.safeDict(apiVersions, method, new Dictionary<string, object>() {});
         string? defaultVersion = this.safeString(methodVersions, path, (this.options.ContainsKey("version") ? this.options["version"] : null));
         string? version = this.safeString(parameters, "version", defaultVersion);
         object paramsOmitted = this.omit(parameters, "version");
         string endpoint = ((("/api/" + version) + "/") + this.implodeParams(path, paramsOmitted));
-        if (isEqual(api, "utaV2"))
+        if (isEqual(apiName, "utaV2"))
         {
             endpoint = ("/api/ua/v2/" + this.implodeParams(path, paramsOmitted));
         }
-        if ((api is "webExchange"))
+        if ((apiName is "webExchange"))
         {
             endpoint = ("/" + this.implodeParams(path, paramsOmitted));
         }
-        if ((api is "earn"))
+        if ((apiName is "earn"))
         {
             endpoint = ("/api/v1/" + this.implodeParams(path, paramsOmitted));
         }
         bool isUtaPrivate = false;
-        if (((api is "uta")) || ((api is "utaPrivate")))
+        if (((apiName is "uta")) || ((apiName is "utaPrivate")))
         {
             endpoint = ("/api/ua/v1/" + this.implodeParams(path, paramsOmitted));
-            if ((api is "utaPrivate"))
+            if ((apiName is "utaPrivate"))
             {
                 isUtaPrivate = true;
             }
@@ -13266,7 +13267,7 @@ public partial class kucoin : Exchange
             headersBase = headers;
         }
         object bodyJson = body;
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -13289,10 +13290,10 @@ public partial class kucoin : Exchange
             }
         }
         object headersResult = headersBase;
-        bool isFuturePrivate = ((api is "futuresPrivate"));
-        bool isPrivate = ((api is "private"));
-        bool isBroker = ((api is "broker"));
-        bool isEarn = ((api is "earn"));
+        bool isFuturePrivate = ((apiName is "futuresPrivate"));
+        bool isPrivate = ((apiName is "private"));
+        bool isBroker = ((apiName is "broker"));
+        bool isEarn = ((apiName is "earn"));
         if (isPrivate || isFuturePrivate || isBroker || isEarn || isUtaPrivate)
         {
             this.checkRequiredCredentials();
