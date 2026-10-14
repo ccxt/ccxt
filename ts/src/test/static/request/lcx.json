@@ -51,6 +51,138 @@
                 ],
                 "output": null
             }
+        ],
+        "createOrder": [
+            {
+                "description": "limit buy with postOnly and clientOrderId",
+                "method": "createOrder",
+                "url": "https://exchange-api.lcx.com/api/create",
+                "input": [
+                    "LCX/EUR",
+                    "limit",
+                    "buy",
+                    100,
+                    0.05,
+                    {
+                        "postOnly": true,
+                        "clientOrderId": "7c3e3e96-1227-424f-b062-56bad5d6f2d0"
+                    }
+                ],
+                "output": "{\"Pair\":\"LCX/EUR\",\"Amount\":100,\"OrderType\":\"LIMIT\",\"Side\":\"BUY\",\"Price\":0.05,\"PostOnly\":true,\"ClientOrderId\":\"7c3e3e96-1227-424f-b062-56bad5d6f2d0\"}"
+            },
+            {
+                "description": "market sell",
+                "method": "createOrder",
+                "url": "https://exchange-api.lcx.com/api/create",
+                "input": [
+                    "LCX/EUR",
+                    "market",
+                    "sell",
+                    100
+                ],
+                "output": "{\"Pair\":\"LCX/EUR\",\"Amount\":100,\"OrderType\":\"MARKET\",\"Side\":\"SELL\"}"
+            }
+        ],
+        "editOrder": [
+            {
+                "description": "edit limit order",
+                "method": "editOrder",
+                "url": "https://exchange-api.lcx.com/api/modify",
+                "input": [
+                    "9f898d18-0980-4fb3-b18c-eeb39fc20324",
+                    "LCX/EUR",
+                    "limit",
+                    "buy",
+                    120,
+                    0.051
+                ],
+                "output": "{\"OrderId\":\"9f898d18-0980-4fb3-b18c-eeb39fc20324\",\"Amount\":120,\"Price\":0.051}"
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancel order",
+                "method": "cancelOrder",
+                "url": "https://exchange-api.lcx.com/api/cancel?orderId=e8737c4a-3804-461c-9e67-4fe0af5aeb06",
+                "input": [
+                    "e8737c4a-3804-461c-9e67-4fe0af5aeb06"
+                ]
+            }
+        ],
+        "cancelOrders": [
+            {
+                "description": "cancel multiple orders",
+                "method": "cancelOrders",
+                "url": "https://exchange-api.lcx.com/api/cancel-all?orderIds=70aba300-0990-481d-ad76-7bd499f473ab&orderIds=ecaf000a-8f4c-459a-b105-784c0e0436df",
+                "input": [
+                    [
+                        "70aba300-0990-481d-ad76-7bd499f473ab",
+                        "ecaf000a-8f4c-459a-b105-784c0e0436df"
+                    ]
+                ]
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetch order by id",
+                "method": "fetchOrder",
+                "url": "https://exchange-api.lcx.com/api/order?OrderId=e8737c4a-3804-461c-9e67-4fe0af5aeb06",
+                "input": [
+                    "e8737c4a-3804-461c-9e67-4fe0af5aeb06"
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "open orders for a symbol",
+                "method": "fetchOpenOrders",
+                "url": "https://exchange-api.lcx.com/api/open?offset=1&pair=LCX%2FEUR",
+                "input": [
+                    "LCX/EUR"
+                ]
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "closed orders with since",
+                "method": "fetchClosedOrders",
+                "url": "https://exchange-api.lcx.com/api/orderHistory?offset=1&pair=LCX%2FEUR&fromDate=1760000000&toDate=1767776000&orderStatus=CLOSED",
+                "input": [
+                    "LCX/EUR",
+                    1760000000000
+                ]
+            }
+        ],
+        "fetchCanceledOrders": [
+            {
+                "description": "canceled orders",
+                "method": "fetchCanceledOrders",
+                "url": "https://exchange-api.lcx.com/api/orderHistory?offset=1&orderStatus=CANCEL",
+                "input": []
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "my trades with since and until",
+                "method": "fetchMyTrades",
+                "url": "https://exchange-api.lcx.com/api/uHistory?offset=1&pair=LCX%2FEUR&fromDate=1760000000&toDate=1762000000",
+                "input": [
+                    "LCX/EUR",
+                    1760000000000,
+                    null,
+                    {
+                        "until": 1762000000000
+                    }
+                ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "balance",
+                "method": "fetchBalance",
+                "url": "https://exchange-api.lcx.com/api/balances",
+                "input": []
+            }
         ]
     }
 }

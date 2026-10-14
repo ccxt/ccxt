@@ -1023,7 +1023,8 @@ export default class lcx extends Exchange {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async cancelOrders (ids: string[], symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
-        if (ids.length > 25) {
+        const numIds = ids.length;
+        if (numIds > 25) {
             throw new BadRequest (this.id + ' cancelOrders() accepts at most 25 order ids per request');
         }
         await this.loadMarkets ();
