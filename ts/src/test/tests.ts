@@ -3759,8 +3759,13 @@ class testMainClass {
 
     async paradexOrderNotSent (exchange: any, type: string, price: any, params: Dict) {
         let notSent = false;
+        const args = [ 'BTC/USD:USDC', type, 'buy', 1, price, params ];
         try {
-            await exchange.createOrder ('BTC/USD:USDC', type, 'buy', 1, price, params);
+            if (!isSync ()) {
+                await callExchangeMethodDynamically (exchange, 'createOrder', args);
+            } else {
+                callExchangeMethodDynamicallySync (exchange, 'createOrder', args);
+            }
         } catch (e) {
             // refused locally, or failed on the offline proxy after being sent
             const lastRequest = jsonParse (exchange.last_request_body);
