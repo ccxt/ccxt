@@ -397,7 +397,7 @@ class bittrade(Exchange, ImplicitAPI):
                 },
                 # https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStates': {
-                    'method': 'private_get_order_orders',  # 'private_get_order_history' // https://github.com/ccxt/ccxt/pull/5392
+                    'method': 'privateGetOrderOrders',  # 'privateGetOrderHistory' // https://github.com/ccxt/ccxt/pull/5392
                 },
                 'fetchOpenOrders': {
                     'method': 'fetch_open_orders_v1',  # 'fetch_open_orders_v2' // https://github.com/ccxt/ccxt/issues/5388
@@ -1218,7 +1218,7 @@ class bittrade(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        method = self.handle_option('fetchOrdersByStates', 'method', 'private_get_order_orders')
+        method = self.handle_option('fetchOrdersByStates', 'method', 'privateGetOrderOrders')
         response = None
         if (method == 'private_get_order_history') or (method == 'privateGetOrderHistory'):
             response = self.privateGetOrderHistory(self.extend(request, params))

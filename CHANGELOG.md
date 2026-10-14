@@ -1,3 +1,34 @@
+<a id="v4.5.88"></a>
+# [v4.5.88](https://github.com/ccxt/ccxt/releases/tag/v4.5.88) - 2026-10-14
+
+## What's Changed
+* fix(tests): per-process temp file for the php dynamic mock class by [@yzh-pelle](https://github.com/yzh-pelle) in [#30747](https://github.com/ccxt/ccxt/pull/30747)
+* refactor(base): generate implicit api methods statically, remove defineRestApi by [@carlotestor](https://github.com/carlotestor) in [#30832](https://github.com/ccxt/ccxt/pull/30832)
+* refactor(binance)!: remove legacy 'delivery' market type, use unified subType inverse by [@carlotestor](https://github.com/carlotestor) in [#30822](https://github.com/ccxt/ccxt/pull/30822)
+* chore(deps-dev): bump handlebars from 4.7.9 to 4.7.10 by [@dependabot](https://github.com/dependabot)[bot] in [#30827](https://github.com/ccxt/ccxt/pull/30827)
+* refactor: sandbox global prop uniform by [@ttodua](https://github.com/ttodua) in [#30830](https://github.com/ccxt/ccxt/pull/30830)
+* chore(deps): bump rustls from 0.23.40 to 0.23.45 in /rust by [@dependabot](https://github.com/dependabot)[bot] in [#30825](https://github.com/ccxt/ccxt/pull/30825)
+* fix(derive, apex, deepcoin): set has flags to false for unimplemented methods by [@mikeua](https://github.com/mikeua) in [#30819](https://github.com/ccxt/ccxt/pull/30819)
+* feat(paradex): SBE binary market data over websockets by [@amayvs](https://github.com/amayvs) in [#30840](https://github.com/ccxt/ccxt/pull/30840)
+* chore(deps): bump sharp from 0.35.4 to 0.35.5 in /examples/ts/nextjs-page-router by [@dependabot](https://github.com/dependabot)[bot] in [#30826](https://github.com/ccxt/ccxt/pull/30826)
+* fix(pacifica): use the funding payout as the funding history amount by [@rayBastard](https://github.com/rayBastard) in [#30809](https://github.com/ccxt/ccxt/pull/30809)
+* fix: wrong method names in error messages (htx, kucoin, gate, bitvavo, mexc) by [@mikeua](https://github.com/mikeua) in [#30769](https://github.com/ccxt/ccxt/pull/30769)
+* feat(derive): migrate to api v3 by [@yzh-pelle](https://github.com/yzh-pelle) in [#30733](https://github.com/ccxt/ccxt/pull/30733)
+* fix(coinbase): follow v3 account cursor in fetchBalance by [@carlotestor](https://github.com/carlotestor) in [#30772](https://github.com/ccxt/ccxt/pull/30772)
+* fix(derive): align withdraw signature with the base class by [@carlosmiei](https://github.com/carlosmiei) in [#30845](https://github.com/ccxt/ccxt/pull/30845)
+* fix(lighter): resolve the grouped-order expiry once for every leg by [@carlosmiei](https://github.com/carlosmiei) in [#30847](https://github.com/ccxt/ccxt/pull/30847)
+* docs: drop snake_case implicit method names from TypeScript docs by [@carlotestor](https://github.com/carlotestor) in [#30849](https://github.com/ccxt/ccxt/pull/30849)
+* chore: revert version due to failed release by [@carlosmiei](https://github.com/carlosmiei) in [#30850](https://github.com/ccxt/ccxt/pull/30850)
+
+## New Contributors
+* [@mikeua](https://github.com/mikeua) made their first contribution in [#30819](https://github.com/ccxt/ccxt/pull/30819)
+* [@amayvs](https://github.com/amayvs) made their first contribution in [#30840](https://github.com/ccxt/ccxt/pull/30840)
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.87...v4.5.88
+
+[Changes][v4.5.88]
+
+
 <a id="v4.5.87"></a>
 # [v4.5.87](https://github.com/ccxt/ccxt/releases/tag/v4.5.87) - 2026-10-13
 
@@ -14545,6 +14576,7 @@
 [Changes][4.3.22]
 
 
+[v4.5.88]: https://github.com/ccxt/ccxt/compare/v4.5.87...v4.5.88
 [v4.5.87]: https://github.com/ccxt/ccxt/compare/v4.5.86...v4.5.87
 [v4.5.86]: https://github.com/ccxt/ccxt/compare/v4.5.85...v4.5.86
 [v4.5.85]: https://github.com/ccxt/ccxt/compare/v4.5.84...v4.5.85

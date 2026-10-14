@@ -961,6 +961,16 @@ class lighter extends Exchange {
         list($groupingType, $paramsGroupingType) = $this->handle_option_integer_and_params($params, $method, 'groupingType', 3); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         $orderRequests = $this->create_order_request($symbol, $type, $side, $amount, $price, $paramsGroupingType);
         $totalOrderRequests = count($orderRequests);
+        if ($totalOrderRequests > 1) {
+            // the signer replaces a -1 expiry with now + 28 days reading the clock once per leg, and rejects
+            // a group whose legs differ ("OrderExpiry is invalid"), so resolve the default once for all legs
+            $groupOrderExpiry = $this->sum($this->milliseconds(), 2419200000); // 28 days
+            for ($i = 0; $i < $totalOrderRequests; $i++) {
+                if ($this->safe_integer($orderRequests[$i], 'order_expiry') === -1) {
+                    $orderRequests[$i]['order_expiry'] = $groupOrderExpiry;
+                }
+            }
+        }
         $order = null;
         if ($totalOrderRequests > 0) {
             $order = $orderRequests[0];

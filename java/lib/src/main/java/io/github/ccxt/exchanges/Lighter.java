@@ -1276,6 +1276,19 @@ public class Lighter extends LighterApi
             Map<String, Object> paramsGroupingType = (Map<String, Object>) ((List<Object>) groupingTypeparamsGroupingTypeVariable).get(1); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
             List<Object> orderRequests = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, paramsGroupingType);
             Integer totalOrderRequests = ((List<?>)orderRequests).size();
+            if ((totalOrderRequests != null && totalOrderRequests > 1))
+            {
+                // the signer replaces a -1 expiry with now + 28 days reading the clock once per leg, and rejects
+                // a group whose legs differ ("OrderExpiry is invalid"), so resolve the default once for all legs
+                Object groupOrderExpiry = this.sum(this.milliseconds(), 2419200000L); // 28 days
+                for (var i = 0; (totalOrderRequests != null && i < totalOrderRequests); i++)
+                {
+                    if (java.util.Objects.equals(this.safeInteger((orderRequests == null || i < 0 || i >= orderRequests.size() ? null : orderRequests.get(i)), "order_expiry"), -1L))
+                    {
+                        Helpers.addElementToObject((orderRequests == null || i < 0 || i >= orderRequests.size() ? null : orderRequests.get(i)), "order_expiry", groupOrderExpiry);
+                    }
+                }
+            }
             Object order = null;
             if ((totalOrderRequests != null && totalOrderRequests > 0))
             {

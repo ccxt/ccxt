@@ -1762,7 +1762,7 @@ class bitvavo extends bitvavo$1["default"] {
             request['operatorId'] = this.parseToInt(operatorId);
         }
         else {
-            throw new errors.ArgumentsRequired(this.id + ' canceAllOrders() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890');
+            throw new errors.ArgumentsRequired(this.id + ' cancelAllOrders() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890');
         }
         const response = await this.privateDeleteOrders(this.extend(request, paramsOperatorId));
         //

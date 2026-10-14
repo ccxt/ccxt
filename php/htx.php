@@ -8346,7 +8346,7 @@ class htx extends Exchange {
             } elseif ($marketType === 'swap') {
                 $response = $this->contractPrivatePostSwapApiV1SwapAccountPositionInfo($this->extend($request, $query));
             } else {
-                throw new NotSupported($this->id . ' setLeverage() not support this market type');
+                throw new NotSupported($this->id . ' fetchPosition() not support this market type');
             }
             //
             // future, swap

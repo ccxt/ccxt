@@ -11082,7 +11082,7 @@ func (this *Htx) fetchPositionBody(ch chan AsyncResult[any], symbol any, optiona
 			}
 			response = r3.Raw
 		} else {
-			panic(NotSupported(this.Id + " setLeverage() not support this market type"))
+			panic(NotSupported(this.Id + " fetchPosition() not support this market type"))
 		}
 	}
 	var data any = this.SafeValue(response, "data")

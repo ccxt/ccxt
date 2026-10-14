@@ -841,7 +841,7 @@ impl CoinspotCore {
 }));
         m.insert("options".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("fetchBalance".to_string(), Value::Str("private_post_my_balances".into()));
+        m.insert("fetchBalance".to_string(), Value::Str("privatePostMyBalances".into()));
     m
 }));
         m.insert("features".to_string(), Value::Map({
@@ -980,7 +980,7 @@ impl CoinspotCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut method: Option<String> = self.safe_string_k(self.options.clone(), "fetchBalance", &[Value::Str("private_post_my_balances".into())]).as_str().map(str::to_owned);
+        let mut method: Option<String> = self.safe_string_k(self.options.clone(), "fetchBalance", &[Value::Str("privatePostMyBalances".into())]).as_str().map(str::to_owned);
         let mut response: Value = Value::Null;
         if (method.as_deref() == Some("private_post_ro_my_balances")) || (method.as_deref() == Some("privatePostRoMyBalances")) {
             response = self.private_post_ro_my_balances(&[params.clone()]).await;
