@@ -216,7 +216,7 @@ class bit2c(Exchange, ImplicitAPI):
             },
             'options': {
                 'fetchTrades': {
-                    'method': 'public_get_exchanges_pair_trades',
+                    'method': 'publicGetExchangesPairTrades',
                 },
             },
             'features': {
@@ -473,7 +473,7 @@ class bit2c(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         optionValue = self.safe_string(self.options, 'fetchTradesMethod')  # kept here for backward compatibility #29154
-        method = self.handle_option('fetchTrades', 'method', optionValue)  # public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
+        method = self.handle_option('fetchTrades', 'method', optionValue)  # publicGetExchangesPairTrades or publicGetExchangesPairLasttrades
         request = {
             'pair': market['id'],
         }
@@ -482,7 +482,7 @@ class bit2c(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit  # max 100000
         responseList = []
-        if method == 'public_get_exchanges_pair_trades':
+        if (method == 'publicGetExchangesPairTrades') or (method == 'public_get_exchanges_pair_trades'):
             response = self.publicGetExchangesPairTrades(self.extend(request, params))
             #
             #     [

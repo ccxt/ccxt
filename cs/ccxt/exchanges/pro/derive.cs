@@ -945,7 +945,7 @@ public partial class derive : ccxt.derive
                 { "subaccount_id", subaccountId },
             };
             Dictionary<string, object> snapshotParams = this.extend(snapshotRequest, paramsDeriveSubaccountId);
-            object snapshot = ccxt.BaseExchange.FromBalances(await this.FetchBalance(snapshotParams));
+            Dictionary<string, object> snapshot = ccxt.BaseExchange.FromBalances(await this.FetchBalance(snapshotParams));
             Dictionary<string, object> emptyBalance = new Dictionary<string, object>() {}; // hoisted: an inline literal on the right side of a property assignment derails the rust transpiler
             Dictionary<string, object> seeded = this.extend(snapshot, emptyBalance); // the extra extend keeps the csharp assignment dictionary-typed (CS0266 otherwise)
             this.balance[subaccountIdKey] = seeded;
@@ -1012,11 +1012,11 @@ public partial class derive : ccxt.derive
                 { "subaccount_id", subaccountId },
             };
             Dictionary<string, object> snapshotParams = this.extend(snapshotRequest, paramsDeriveSubaccountId);
-            object positionsSnapshot = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(null, snapshotParams));
+            List<object> positionsSnapshot = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(null, snapshotParams));
             ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)getValue(this.positions, subaccountIdKey));
-            for (int i = 0; i < getArrayLength(positionsSnapshot); i++)
+            for (int i = 0; i < (positionsSnapshot?.Count ?? 0); i++)
             {
-                cache.append(getValue(positionsSnapshot, i));
+                cache.append(positionsSnapshot[i]);
             }
             loadedSnapshots[(string)subaccountIdKey] = true;
             this.options["loadedPositionsSnapshots"] = loadedSnapshots;

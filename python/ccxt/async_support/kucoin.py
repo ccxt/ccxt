@@ -931,7 +931,7 @@ class kucoin(Exchange, ImplicitAPI):
                 'uta': None,
                 'version': 'v1',
                 'symbolSeparator': '-',
-                'fetchMyTradesMethod': 'private_get_fills',
+                'fetchMyTradesMethod': 'privateGetFills',
                 'timeDifference': 0,  # the difference between system clock and exchange clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'fetchCurrencies': {
@@ -6457,13 +6457,13 @@ class kucoin(Exchange, ImplicitAPI):
                 response = await self.privateGetHfMarginFills(self.extend(request, paramsRequest))
             else:
                 response = await self.privateGetHfFills(self.extend(request, paramsRequest))
-        elif method == 'private_get_fills':
+        elif (method == 'privateGetFills') or (method == 'private_get_fills'):
             # does not return trades earlier than 2019-02-18T00:00:00Z
             if since is not None:
                 # only returns trades up to one week after the since param
                 request['startAt'] = since
             response = await self.privateGetFills(self.extend(request, paramsRequest))
-        elif method == 'private_get_limit_fills':
+        elif (method == 'privateGetLimitFills') or (method == 'private_get_limit_fills'):
             # does not return trades earlier than 2019-02-18T00:00:00Z
             # takes no params
             # only returns first 1000 trades (not only "in the last 24 hours" as stated in the docs)

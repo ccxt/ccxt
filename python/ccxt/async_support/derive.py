@@ -3774,7 +3774,7 @@ class derive(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal to an L1 address, the payout defaults to the owner wallet and a session key may only pay out to the owner wallet or a whitelisted recipient
 
@@ -3783,7 +3783,6 @@ class derive(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the L1 address to withdraw to
-        :param str [tag]: not used by derive.withdraw
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.max_fee_usd]: the maximum accepted fee in usd, default 1, or 10 with force_batch
         :param bool [params.force_batch]: pay the higher fee to have the withdrawal batch proven immediately

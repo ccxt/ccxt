@@ -191819,7 +191819,7 @@ class bit2c extends _abstract_bit2c_js__rspack_import_0/* ["default"] */.A {
             },
             'options': {
                 'fetchTrades': {
-                    'method': 'public_get_exchanges_pair_trades'
+                    'method': 'publicGetExchangesPairTrades'
                 }
             },
             'features': {
@@ -192085,7 +192085,7 @@ class bit2c extends _abstract_bit2c_js__rspack_import_0/* ["default"] */.A {
         }
         const market = this.market(symbol);
         const optionValue = this.safeString(this.options, 'fetchTradesMethod'); // kept here for backward compatibility #29154
-        const method = this.handleOption('fetchTrades', 'method', optionValue); // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
+        const method = this.handleOption('fetchTrades', 'method', optionValue); // publicGetExchangesPairTrades or publicGetExchangesPairLasttrades
         const request = {
             'pair': market['id']
         };
@@ -192096,7 +192096,7 @@ class bit2c extends _abstract_bit2c_js__rspack_import_0/* ["default"] */.A {
             request['limit'] = limit; // max 100000
         }
         let responseList = [];
-        if (method === 'public_get_exchanges_pair_trades') {
+        if (method === 'publicGetExchangesPairTrades' || method === 'public_get_exchanges_pair_trades') {
             const response = await this.publicGetExchangesPairTrades(this.extend(request, params));
             //
             //     [
@@ -232861,7 +232861,7 @@ class bittrade extends _abstract_bittrade_js__rspack_import_0/* ["default"] */.A
                 },
                 // https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStates': {
-                    'method': 'private_get_order_orders'
+                    'method': 'privateGetOrderOrders'
                 },
                 'fetchOpenOrders': {
                     'method': 'fetch_open_orders_v1'
@@ -233742,7 +233742,7 @@ class bittrade extends _abstract_bittrade_js__rspack_import_0/* ["default"] */.A
             market = this.market(symbol);
             request['symbol'] = market['id'];
         }
-        const method = this.handleOption('fetchOrdersByStates', 'method', 'private_get_order_orders');
+        const method = this.handleOption('fetchOrdersByStates', 'method', 'privateGetOrderOrders');
         let response = undefined;
         if (method === 'private_get_order_history' || method === 'privateGetOrderHistory') {
             response = await this.privateGetOrderHistory(this.extend(request, params));
@@ -287515,7 +287515,7 @@ class coinspot extends _abstract_coinspot_js__rspack_import_0/* ["default"] */.A
                 'DRK': 'DASH'
             },
             'options': {
-                'fetchBalance': 'private_post_my_balances'
+                'fetchBalance': 'privatePostMyBalances'
             },
             'features': {
                 'spot': {
@@ -287613,7 +287613,7 @@ class coinspot extends _abstract_coinspot_js__rspack_import_0/* ["default"] */.A
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const method = this.safeString(this.options, 'fetchBalance', 'private_post_my_balances');
+        const method = this.safeString(this.options, 'fetchBalance', 'privatePostMyBalances');
         let response = undefined;
         if (method === 'private_post_ro_my_balances' || method === 'privatePostRoMyBalances') {
             response = await this.privatePostRoMyBalances(params);
@@ -381978,7 +381978,7 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
                 'uta': undefined,
                 'version': 'v1',
                 'symbolSeparator': '-',
-                'fetchMyTradesMethod': 'private_get_fills',
+                'fetchMyTradesMethod': 'privateGetFills',
                 'timeDifference': 0,
                 'adjustForTimeDifference': false,
                 'fetchCurrencies': {
@@ -387864,14 +387864,14 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
             } else {
                 response = await this.privateGetHfFills(this.extend(request, paramsRequest));
             }
-        } else if (method === 'private_get_fills') {
+        } else if (method === 'privateGetFills' || method === 'private_get_fills') {
             // does not return trades earlier than 2019-02-18T00:00:00Z
             if (since !== undefined) {
                 // only returns trades up to one week after the since param
                 request['startAt'] = since;
             }
             response = await this.privateGetFills(this.extend(request, paramsRequest));
-        } else if (method === 'private_get_limit_fills') {
+        } else if (method === 'privateGetLimitFills' || method === 'private_get_limit_fills') {
             // does not return trades earlier than 2019-02-18T00:00:00Z
             // takes no params
             // only returns first 1000 trades (not only "in the last 24 hours" as stated in the docs)
@@ -399568,6 +399568,16 @@ class lighter extends _abstract_lighter_js__rspack_import_0/* ["default"] */.A {
         const [groupingType, paramsGroupingType] = this.handleOptionIntegerAndParams(params, method, 'groupingType', 3); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         const orderRequests = this.createOrderRequest(symbol, type, side, amount, price, paramsGroupingType);
         const totalOrderRequests = orderRequests.length;
+        if (totalOrderRequests > 1) {
+            // the signer replaces a -1 expiry with now + 28 days reading the clock once per leg, and rejects
+            // a group whose legs differ ("OrderExpiry is invalid"), so resolve the default once for all legs
+            const groupOrderExpiry = this.sum(this.milliseconds(), 2419200000); // 28 days
+            for(let i = 0; i < totalOrderRequests; i++){
+                if (this.safeInteger(orderRequests[i], 'order_expiry') === -1) {
+                    orderRequests[i]['order_expiry'] = groupOrderExpiry;
+                }
+            }
+        }
         let order = undefined;
         if (totalOrderRequests > 0) {
             order = orderRequests[0];
@@ -645493,7 +645503,7 @@ SOFTWARE.
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.87';
+const version = '4.5.88';
 //-----------------------------------------------------------------------------
 
 
