@@ -83,6 +83,16 @@ fn helperTestInitSandbox() {
     helperTestSandboxState(exchange4.clone_self(), Value::Bool(true));
     exchange4.set_sandbox_mode(Value::Bool(false));
     helperTestSandboxState(exchange4.clone_self(), Value::Bool(false));
+    //
+    // CASE C: passed 'sandbox' within userConfig
+    //
+    add_element_to_object(get_value_mut(&mut opts, &Value::Str("options".into())), &Value::Str("sandbox".into()), Value::Bool(false));
+    // @ts-expect-error
+    if let Value::Dict(__d) = &mut opts { std::sync::Arc::make_mut(__d).insert("sandbox".into(), Value::Bool(true)); }
+    let mut exchange5 = crate::tests_support::make_exchange(opts.clone());
+    helperTestSandboxState(exchange5.clone_self(), Value::Bool(true));
+    exchange5.set_sandbox_mode(Value::Bool(false));
+    helperTestSandboxState(exchange5.clone_self(), Value::Bool(false));
 }
 fn helperTestInitMarket() {
     // ############# markets ############# //
