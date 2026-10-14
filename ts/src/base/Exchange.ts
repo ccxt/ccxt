@@ -4325,13 +4325,12 @@ export class BaseExchange {
 
     getDefaultOptions () {
         return {
-            'defaultNetworkCodeReplacements': {
-                'ETH': { 'primary': 'ETH', 'secondary': 'ERC20', 'default': 'secondary' },
-                'CRO': { 'primary': 'CRONOS', 'secondary': 'CRC20', 'default': 'secondary' },
-                'TRX': { 'primary': 'TRX', 'secondary': 'TRC20', 'default': 'secondary' },
-                'BTC': { 'primary': 'BTC', 'secondary': 'BRC20', 'default': 'primary' },
-            },
-            'backwardSupportedNetworkCodes': {
+            // alias -> unified network code; aliases are accepted as input but never returned
+            'networkAliases': {
+                'ETH': 'ERC20',
+                'TRX': 'TRC20',
+                'BSC': 'BEP20',
+                'CRONOS': 'CRC20',
                 'ARB': 'ARBITRUM',
                 'ARBONE': 'ARBITRUM',
                 'ARBNOVA': 'ARBITRUM_NOVA',
@@ -5861,53 +5860,17 @@ export class BaseExchange {
         };
     }
 
-    prioritizedNetworkAliases (networkCode: Str = undefined, currencyCode: Str = undefined, allowDefault = false): Strings {
+    unifiedNetworkCode (networkCode: string): string {
         /**
          * @method
-         * @name Exchange#prioritizedNetworkAliases
-         * @description returns the chain pair [preferred, alternative] for the given networkCode & currency, e.g:
-         *   ---------------------------------
-         *   | input          | output       |
-         *   --------------------------------|
-         *   | ETH & USDC     | ERC20, ETH   |
-         *   | ERC20 & USDC   | ERC20, ETH   |
-         *   | ETH & ETH      | ETH, ERC20   |
-         *   | ERC20 & ETH    | ETH, ERC20   |
-         *   | ERC20          | ERC20, ETH   |
-         *   | ETH            | ERC20, ETH   |
-         *   ---------------------------------
-         * @param {string} networkCode unified network-code
-         * @param {string} currencyCode unified currency-code
-         * @param {boolean} allowDefault when currencyCode is undefined, order by replacement's "default" instead of by user input
-         * @returns {string[]} [preferredChain, alternativeChain]
+         * @name Exchange#unifiedNetworkCode
+         * @description maps a network alias to its single unified network code, e.g. ETH -> ERC20, TRX -> TRC20, BSC -> BEP20
+         * @param {string} networkCode unified network code or one of its aliases
+         * @returns {string} unified network code
          */
-        if (networkCode === undefined) {
-            return undefined;
-        }
-        const replacements = this.safeDict (this.options, 'defaultNetworkCodeReplacements', {});
-        const keys = Object.keys (replacements);
-        for (let i = 0; i < keys.length; i++) {
-            const baseCoin = keys[i];
-            const entry = replacements[baseCoin];
-            const primary = entry['primary'];
-            const secondary = entry['secondary'];
-            if (networkCode !== primary && networkCode !== secondary) {
-                continue;
-            }
-            // pick which form goes first in the returned pair
-            let preferPrimary = false;
-            if (currencyCode === baseCoin) {
-                preferPrimary = true; // mainnet currency uses primary chain
-            } else if (currencyCode !== undefined) {
-                preferPrimary = false; // any other (token) currency uses secondary chain
-            } else if (allowDefault) {
-                preferPrimary = (entry['default'] === 'primary');
-            } else {
-                preferPrimary = (networkCode === primary); // keep user input first
-            }
-            return (preferPrimary) ? [ primary, secondary ] : [ secondary, primary ];
-        }
-        return [ networkCode, networkCode ];
+        const aliases = this.safeDict (this.options, 'networkAliases', {});
+        const unifiedCode = this.safeString (aliases, networkCode);
+        return (unifiedCode === undefined) ? networkCode : unifiedCode;
     }
 
     networkCodeToId (networkCode: Str, currencyCode: Str = undefined): Str {
@@ -5915,7 +5878,7 @@ export class BaseExchange {
          * @ignore
          * @method
          * @name exchange#networkCodeToId
-         * @description tries to convert the provided networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
+         * @description tries to convert the provided networkCode (a unified network code or one of its aliases) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
          * @param {string} networkCode unified network code
          * @param {string} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {string|undefined} exchange-specific network id
@@ -5923,14 +5886,20 @@ export class BaseExchange {
         if (networkCode === undefined) {
             return undefined;
         }
+        const unifiedCode = this.unifiedNetworkCode (networkCode);
         const networkIdsByCodes = this.safeDict (this.options, 'networks', {});
-        // try the preferred form first, fall back to its alternative (e.g. when only 'ETH' or only 'ERC20' is defined)
-        const chainPair = this.prioritizedNetworkAliases (networkCode, currencyCode, false);
-        const preferredChain = (chainPair === undefined) ? networkCode : chainPair[0];
-        const alternativeChain = (chainPair === undefined) ? networkCode : chainPair[1];
-        const networkId = this.safeString2 (networkIdsByCodes, preferredChain, alternativeChain);
+        const networkId = this.safeString (networkIdsByCodes, unifiedCode);
         if (networkId !== undefined) {
             return networkId;
+        }
+        // options.networks may still be keyed by an alias of the unified code
+        const aliases = this.safeDict (this.options, 'networkAliases', {});
+        const aliasKeys = Object.keys (aliases);
+        for (let i = 0; i < aliasKeys.length; i++) {
+            const alias = aliasKeys[i];
+            if ((aliases[alias] === unifiedCode) && (alias in networkIdsByCodes)) {
+                return networkIdsByCodes[alias];
+            }
         }
         // fall back to scanning loaded currencies
         let currenciesToCheck: (string | Dict | undefined)[] = [];
@@ -5941,14 +5910,9 @@ export class BaseExchange {
         }
         for (let i = 0; i < currenciesToCheck.length; i++) {
             const networks = this.safeDict (currenciesToCheck[i], 'networks', {});
-            if (networkCode in networks) {
-                return this.safeString (networks[networkCode], 'id');
+            if (unifiedCode in networks) {
+                return this.safeString (networks[unifiedCode], 'id');
             }
-        }
-        // before returning the original input, try to match if it's backward-maintained networkCode
-        const oldCodes = this.safeDict (this.options, 'backwardSupportedNetworkCodes', {});
-        if (networkCode in oldCodes) {
-            return this.networkCodeToId (oldCodes[networkCode], currencyCode);
         }
         return networkCode;
     }
@@ -5967,22 +5931,9 @@ export class BaseExchange {
             return undefined;
         }
         const networkCodesByIds = this.safeDict (this.options, 'networksById', {});
-        const networkCode = this.safeString (networkCodesByIds, networkId, networkId);
-        const chainPair = this.prioritizedNetworkAliases (networkCode, currencyCode, true);
-        if (chainPair === undefined) {
-            return networkCode;
-        }
-        const preferredChain = chainPair[0];
-        const alternativeChain = chainPair[1];
-        // when the exchange explicitly defines both forms in options.networks (e.g. BTC + BRC20),
-        // it disambiguates them — trust the direct id→code inversion instead of guessing
-        if (currencyCode === undefined) {
-            const networkIdsByCodes = this.safeDict (this.options, 'networks', {});
-            if ((preferredChain in networkIdsByCodes) && (alternativeChain in networkIdsByCodes)) {
-                return networkCode;
-            }
-        }
-        return preferredChain;
+        const mappedCode = this.safeString (networkCodesByIds, networkId);
+        const networkCode = (mappedCode === undefined) ? networkId : mappedCode;
+        return this.unifiedNetworkCode (networkCode);
     }
 
     handleNetworkCodeAndParams (params: Dict): [Str, Dict] {
