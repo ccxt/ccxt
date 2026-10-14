@@ -25,6 +25,17 @@ const ROOT = path.join (path.dirname (fileURLToPath (import.meta.url)), '..');
 
 type ReturnTypes = { [method: string]: string };
 
+// TS literal with array-bracket-spacing 'always' (matches eslint.config.mjs).
+const tsLiteral = (value: any): string => {
+    if (Array.isArray (value)) {
+        return value.length ? '[ ' + value.map (tsLiteral).join (', ') + ' ]' : '[]';
+    }
+    if (value !== null && typeof value === 'object') {
+        return '{' + Object.entries (value).map (([ k, v ]) => JSON.stringify (k) + ':' + tsLiteral (v)).join (',') + '}';
+    }
+    return JSON.stringify (value);
+};
+
 const capitalize = (s: string): string => {
     return s.length ? (s.charAt (0).toUpperCase () + s.slice (1)) : s;
 };
@@ -682,8 +693,8 @@ function generateImplicitMethodNames(id: string, api: string, paths: string[] = 
                 storedContext[id].push ({
                     endpoint,
                     paths,
-                    tsPath: JSON.stringify (paths),
-                    tsConfig: JSON.stringify (config),
+                    tsPath: tsLiteral (paths),
+                    tsConfig: tsLiteral (config),
                     phpPath: 'array(' + paths.map (x => `'${x}'`).join (', ') + ')',
                     pyPath: '[' + paths.map (x => `'${x}'`).join (', ') + ']',
                     phpConfig: phpConfig,
