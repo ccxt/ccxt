@@ -1244,7 +1244,7 @@ export default class bitfinex extends Exchange {
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     override async fetchL3OrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
-        const paramsWithPrecision = this.extend ({'precision': 'R0'}, params);
+        const paramsWithPrecision = this.extend ({ 'precision': 'R0' }, params);
         return this.fetchOrderBookHelper ('R0', symbol, limit, paramsWithPrecision);
     }
 
