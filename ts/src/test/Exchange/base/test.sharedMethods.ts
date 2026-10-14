@@ -302,8 +302,8 @@ function assertUnifiedNetworkCode (exchange: Exchange, skippedProperties: object
         return;
     }
     const logText = logTemplate (exchange, method, entry);
-    const aliases = exchange.networkAliases;
-    assert (!(networkCode in aliases), 'network code ' + networkCode + ' is an alias, expected the unified code ' + exchange.safeString (aliases, networkCode) + logText);
+    const unifiedCode = exchange.unifiedNetworkCode (networkCode);
+    assert (unifiedCode === networkCode, 'network code ' + networkCode + ' is an alias, expected the unified code ' + unifiedCode + logText);
 }
 
 function assertNonEqual (exchange: Exchange, skippedProperties: object, method: string, entry: object, key: string | number, compareTo: string, allowNull: boolean = true) {
