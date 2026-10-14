@@ -1371,7 +1371,8 @@ export default class polymarket extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], errorId, feedback);
             throw new InvalidOrder (feedback);
         }
-        return first;
+        const created = this.safeDict (orders, 0);
+        return created as Order;
     }
 
     /**
@@ -1452,7 +1453,8 @@ export default class polymarket extends Exchange {
      */
     override async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         const orders = await this.cancelOrders ([ id ], symbol, params);
-        return this.safeValue (orders, 0) as Order;
+        const canceled = this.safeDict (orders, 0);
+        return canceled as Order;
     }
 
     /**
@@ -1850,7 +1852,8 @@ export default class polymarket extends Exchange {
      */
     override async fetchPosition (symbol: string, params = {}): Promise<Position> {
         const positions = await this.fetchPositions ([ symbol ], params);
-        return this.safeValue (positions, 0) as Position;
+        const position = this.safeDict (positions, 0);
+        return position as Position;
     }
 
     override parsePosition (position: Dict, market: Market = undefined): Position {
@@ -2509,7 +2512,8 @@ export default class polymarket extends Exchange {
         const request: Dict = {
             'marginMode': marginMode,
         };
-        return await this.setLeverage (leverage, symbol, this.extend (request, paramsOmitted));
+        const leverageInt: int = this.parseToInt (leverage);
+        return await this.setLeverage (leverageInt, symbol, this.extend (request, paramsOmitted));
     }
 
     /**
