@@ -3,7 +3,7 @@ import Exchange from './abstract/blockchaincom.js';
 import { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Int, List, Market, Num, NullableDict, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, Fee, FeeString, Bool, Endpoint } from './base/types.js';
+import type { Balances, Currency, Dict, Int, List, Market, Num, NullableDict, Order, OrderBook, OrderBookL3, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, Fee, FeeString, Bool, Endpoint } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -436,7 +436,7 @@ export default class blockchaincom extends Exchange {
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
-        return await this.fetchL3OrderBook (symbol, limit, params);
+        return await this.fetchL2OrderBook (symbol, limit, params);
     }
 
     /**
@@ -449,7 +449,7 @@ export default class blockchaincom extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async fetchL3OrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
+    override async fetchL3OrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBookL3> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -461,10 +461,10 @@ export default class blockchaincom extends Exchange {
             request['depth'] = limit;
         }
         const response = await this.publicGetL3Symbol (this.extend (request, params));
-        return this.parseOrderBook (response, market['symbol'], undefined, 'bids', 'asks', 'px', 'qty');
+        return this.parseOrderBookL3 (response, market['symbol'], undefined, 'bids', 'asks', 'px', 'qty') as OrderBookL3;
     }
 
-    override async fetchL2OrderBook (symbol: string, limit: Int = undefined, params: Dict = {}) {
+    override async fetchL2OrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -476,7 +476,7 @@ export default class blockchaincom extends Exchange {
             request['depth'] = limit;
         }
         const response = await this.publicGetL2Symbol (this.extend (request, params));
-        return this.parseOrderBook (response, market['symbol'], undefined, 'bids', 'asks', 'px', 'qty');
+        return this.parseOrderBook (response, market['symbol'], undefined, 'bids', 'asks', 'px', 'qty') as OrderBook;
     }
 
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
