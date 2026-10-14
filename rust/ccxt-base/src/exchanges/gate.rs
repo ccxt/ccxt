@@ -9598,8 +9598,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut authentication: Value = get_value(&api, &Value::Int(0)); // public, private
-        let mut type_var: Value = get_value(&api, &Value::Int(1)); // spot, margin, future, delivery
+        let __api_empty = Vec::new();
+        let api = api.as_array().unwrap_or(&__api_empty);
+        let mut authentication: Value = api.get(0).cloned().unwrap_or(Value::Null); // public, private
+        let mut type_var: Value = api.get(1).cloned().unwrap_or(Value::Null); // spot, margin, future, delivery
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut pathImploded: Value = Value::Null;
         let mut bodyJson: Value = Value::Null;
@@ -9639,13 +9641,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }  else {
             endPart = (Value::Str(format!("{}{}", Value::Str("/".into()), pathImploded).into()));
         }
-        let mut entirePath: Value = Value::Str(format!("{}{}", add(&Value::Str("/".into()), &type_var), endPart).into());
+        let mut entirePath: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), type_var).into()), endPart).into());
         if (type_var.as_str() == Some("subAccounts")) || (type_var.as_str() == Some("withdrawals")) {
             entirePath = endPart;
         }
         let mut url: Value = get_value(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &authentication), &type_var);
         if (url == Value::Null) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" does not have a testnet for the ".into())).into()), &type_var), Value::Str(" market type.".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" does not have a testnet for the ".into())).into()), type_var).into()), Value::Str(" market type.".into()))));
         }
         url = add(&url, &entirePath);
         if (authentication.as_str() == Some("public")) {

@@ -1496,7 +1496,7 @@ impl CoinspotCore {
 }
 
     pub fn sign(&mut self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1504,15 +1504,18 @@ impl CoinspotCore {
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
+        let __api_empty = Vec::new();
+        let api = api.as_array().unwrap_or(&__api_empty);
         let mut requestHeaders: Value = headers;
         let mut requestBody: Value = body;
-        let mut isVersionedApi: bool = matches!(&api, Value::Arr(_));
-        let mut version: Value = (if isVersionedApi { get_value(&api, &Value::Int(0)) } else { Value::Null });
-        let mut accessType: Value = (if isVersionedApi { get_value(&api, &Value::Int(1)) } else { api.clone() });
+        let mut apiLength: f64 = ((api.len() as i64) as f64);
+        let mut isVersionedApi: bool = apiLength > ((1i64) as f64);
+        let mut version: Value = (if isVersionedApi { api.get(0).cloned().unwrap_or(Value::Null) } else { Value::Null });
+        let mut accessType: Value = (if isVersionedApi { api.get(1).cloned().unwrap_or(Value::Null) } else { api.get(0).cloned().unwrap_or(Value::Null) });
         let mut endpoint: Value = Value::Str(format!("{}{}", Value::Str("/".into()), self.implode_params(path, params.clone())).into());
         let mut fullPath: Value = endpoint.clone();
         if (version != Value::Null) {
-            fullPath = Value::Str(format!("{}{}", add(&Value::Str("/".into()), &version), endpoint).into());
+            fullPath = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), version).into()), endpoint).into());
         }
         let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), accessType.clone(), &[]);
         if (apiUrl == Value::Null) {

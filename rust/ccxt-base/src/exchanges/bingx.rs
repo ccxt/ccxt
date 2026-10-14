@@ -8538,7 +8538,7 @@ impl BingxCore {
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut section = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut section = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -8546,9 +8546,11 @@ impl BingxCore {
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut type_var: Value = get_value(&section, &Value::Int(0));
-        let mut version: Value = get_value(&section, &Value::Int(1));
-        let mut access: Value = get_value(&section, &Value::Int(2));
+        let __section_empty = Vec::new();
+        let section = section.as_array().unwrap_or(&__section_empty);
+        let mut type_var: Value = section.get(0).cloned().unwrap_or(Value::Null);
+        let mut version: Value = section.get(1).cloned().unwrap_or(Value::Null);
+        let mut access: Value = section.get(2).cloned().unwrap_or(Value::Null);
         let mut isSandbox: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
         let mut url: Value = self.implode_hostname(get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &type_var));
         if (isSandbox.as_bool() == Some(true)) && (url == Value::Null) {
@@ -8563,8 +8565,8 @@ impl BingxCore {
             }  else {
                 type_var = Value::Str("api/asset".into());
             }
-            version = get_value(&section, &Value::Int(2));
-            access = get_value(&section, &Value::Int(3));
+            version = section.get(2).cloned().unwrap_or(Value::Null);
+            access = section.get(3).cloned().unwrap_or(Value::Null);
         }
         let mut flatAccountPaths: Value = Value::from(vec![Value::Str("account/apiPermissions".into()), Value::Str("account/apiRestrictions".into())]);
         if !(self.in_array(pathValue.clone(), flatAccountPaths).as_bool() == Some(true)) {
