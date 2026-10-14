@@ -3303,12 +3303,13 @@ export default class grvt extends Exchange {
         return requestId;
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let requestHeaders: NullableDict = headers;
         let requestBody: Str = body;
         let requestPath: any = path;
         const query = this.omit (params, this.extractParams (requestPath));
-        const apiUrl = this.safeString (this.urls['api'], api);
+        const apiName = api[0];
+        const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
@@ -3335,7 +3336,7 @@ export default class grvt extends Exchange {
                 requestBody = this.json (params);
             }
         }
-        const isPrivate = api.startsWith ('private');
+        const isPrivate = apiName.startsWith ('private');
         if (isPrivate === true) {
             this.checkRequiredCredentials ();
             if (queryString !== '') {

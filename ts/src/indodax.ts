@@ -1521,15 +1521,16 @@ export default class indodax extends Exchange {
         return result as DepositAddress[];
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        const apiUrl = this.safeString (this.urls['api'], api);
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        const apiName = api[0];
+        const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
         let url = apiUrl;
         let privateBody: Str = undefined;
         let privateHeaders: NullableDict = undefined;
-        const isPublic = (api === 'public');
+        const isPublic = (apiName === 'public');
         if (isPublic) {
             const query = this.omit (params, this.extractParams (path));
             const requestPath = '/' + this.implodeParams (path, params);

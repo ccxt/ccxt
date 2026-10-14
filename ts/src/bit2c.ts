@@ -1054,7 +1054,7 @@ export default class bit2c extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const apiUrl = this.safeString (this.urls['api'], 'rest');
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
@@ -1062,7 +1062,7 @@ export default class bit2c extends Exchange {
         let url = apiUrl + '/' + this.implodeParams (path, params);
         let requestBody: Str = undefined;
         let requestHeaders: NullableDict = undefined;
-        if (api === 'public') {
+        if (api[0] === 'public') {
             url += '.json';
         } else {
             this.checkRequiredCredentials ();

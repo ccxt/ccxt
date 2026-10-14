@@ -3076,7 +3076,7 @@ export default class lbank extends Exchange {
         return result;
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let query = this.omit (params, this.extractParams (path));
         const apiUrl = this.safeString (this.urls['api'], 'rest');
         if (apiUrl === undefined) {
