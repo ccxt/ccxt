@@ -69,7 +69,7 @@
             },
             {
                 "description": "swap l3",
-                "method": "fetchOrderBook",
+                "method": "fetchL3OrderBook",
                 "url": "https://api-pub.bitfinex.com/v2/book/tBTCF0:USTF0/R0",
                 "input": [
                     "BTC/USDT:USDT"
