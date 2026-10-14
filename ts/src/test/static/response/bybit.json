@@ -1201,7 +1201,7 @@
                   }
                 }
               },
-              "ETH": {
+              "ERC20": {
                 "info": {
                   "chainType": "Ethereum",
                   "confirmation": "6",
