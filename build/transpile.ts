@@ -2435,8 +2435,8 @@ class Transpiler {
                         let nullable = false
                         let endpart = ''
                         if (secondPart.length === 2) {
-                            // list/dict defaults carry ts bracket padding (`[ 'public' ]`), php-cs-fixer rejects it
-                            const trimmed = secondPart[1].trim ().replace (/([\[{]) +/g, '$1').replace (/ +([\]}])/g, '$1')
+                            // php-cs-fixer wants long array syntax for list defaults: `[ 'public' ]` -> `array('public')`
+                            const trimmed = secondPart[1].trim ().replace (/^\[\s*(.*?)\s*\]$/, 'array($1)')
                             nullable = trimmed === 'undefined'
                             endpart = ' = ' + trimmed
                         }
