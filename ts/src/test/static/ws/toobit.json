@@ -85,7 +85,7 @@
                             "maintenanceMarginPercentage": null,
                             "collateral": null,
                             "initialMargin": null,
-                            "initialMarginPercentage": null,
+                            "initialMarginPercentage": 0.3333333333333333,
                             "leverage": "3.0",
                             "marginRatio": null
                         }
@@ -169,7 +169,7 @@
                             "maintenanceMarginPercentage": null,
                             "collateral": null,
                             "initialMargin": null,
-                            "initialMarginPercentage": null,
+                            "initialMarginPercentage": 0.3333333333333333,
                             "leverage": "3.0",
                             "marginRatio": null
                         }
