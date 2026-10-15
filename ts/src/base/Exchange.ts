@@ -6356,7 +6356,7 @@ export class BaseExchange {
             }
             // 3. initialMargin <-> initialMarginPercentage <-> leverage / notional
             const hasValidNotional = (notionalString !== undefined) && Precise.stringGt (notionalString, '0');
-            const hasNegativeCollateral = (collateralString !== undefined) && Precise.stringLe (collateralString, '0');
+            const hasNegativeCollateral = (collateralString !== undefined) && Precise.stringLt (collateralString, '0');
             let initialMarginPercentageString = this.safeString (position, 'initialMarginPercentage');
             const leverageString = this.safeString (position, 'leverage');
             const hasLeverage = (leverageString !== undefined) && Precise.stringGt (leverageString, '0');
