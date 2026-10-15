@@ -18,6 +18,7 @@
                         "endTime": 1721961000000
                     }
                 ],
+                "lastRequestUrl": "https://open-api.bingx.com/openApi/swap/v2/quote/fundingRate?endTime=1721953799999&limit=2&symbol=BTC-USDT&timestamp=1709992987329",
                 "httpResponse": {
                     "code": 0,
                     "data": [
@@ -72,6 +73,7 @@
                         "untill": 1721961000000
                     }
                 ],
+                "lastRequestUrl": "https://open-api.bingx.com/openApi/swap/v2/quote/fundingRate?endTime=1721953799999&limit=2&symbol=BTC-USDT&timestamp=1709992987329",
                 "httpResponse": {
                     "code": 0,
                     "data": [
