@@ -2568,6 +2568,242 @@
                     "symbol": "BTC/USDT:USDT"
                 }
             }
+        ],
+        "watchBalance": [
+            {
+                "description": "account snapshot, metadata-only duplicate that must not resolve, balance change, then a new currency",
+                "input": [],
+                "url": "wss://ws.okx.com:443/ws/v5/private",
+                "messages": [
+                    {
+                        "event": "login",
+                        "code": "0",
+                        "msg": ""
+                    },
+                    {
+                        "event": "subscribe",
+                        "arg": {
+                            "channel": "account"
+                        }
+                    },
+                    {
+                        "arg": {
+                            "channel": "account"
+                        },
+                        "eventType": "snapshot",
+                        "data": [
+                            {
+                                "uTime": "1752243427000",
+                                "details": [
+                                    {
+                                        "ccy": "BTC",
+                                        "eq": "1",
+                                        "availEq": "0.75"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "arg": {
+                            "channel": "account"
+                        },
+                        "eventType": "update",
+                        "data": [
+                            {
+                                "uTime": "1752243428000",
+                                "details": [
+                                    {
+                                        "ccy": "BTC",
+                                        "eq": "1",
+                                        "availEq": "0.75",
+                                        "coinUsdPrice": "100001"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "arg": {
+                            "channel": "account"
+                        },
+                        "eventType": "update",
+                        "data": [
+                            {
+                                "uTime": "1752243429000",
+                                "details": [
+                                    {
+                                        "ccy": "BTC",
+                                        "eq": "1.25",
+                                        "availEq": "1"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "arg": {
+                            "channel": "account"
+                        },
+                        "eventType": "update",
+                        "data": [
+                            {
+                                "uTime": "1752243430000",
+                                "details": [
+                                    {
+                                        "ccy": "ETH",
+                                        "eq": "2",
+                                        "availEq": "1.5"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "login",
+                        "args": [
+                            {
+                                "apiKey": "key",
+                                "passphrase": "password",
+                                "timestamp": "0",
+                                "sign": "sign"
+                            }
+                        ]
+                    },
+                    {
+                        "op": "subscribe",
+                        "args": [
+                            {
+                                "channel": "account"
+                            }
+                        ]
+                    }
+                ],
+                "sentSkipKeys": [
+                    "timestamp",
+                    "sign"
+                ],
+                "parsedResponses": [
+                    {
+                        "info": {
+                            "arg": {
+                                "channel": "account"
+                            },
+                            "eventType": "snapshot",
+                            "data": [
+                                {
+                                    "uTime": "1752243427000",
+                                    "details": [
+                                        {
+                                            "ccy": "BTC",
+                                            "eq": "1",
+                                            "availEq": "0.75"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        "BTC": {
+                            "free": 0.75,
+                            "used": 0.25,
+                            "total": 1
+                        },
+                        "timestamp": 1752243427000,
+                        "datetime": "2025-07-11T14:17:07.000Z",
+                        "free": {
+                            "BTC": 0.75
+                        },
+                        "used": {
+                            "BTC": 0.25
+                        },
+                        "total": {
+                            "BTC": 1
+                        }
+                    },
+                    {
+                        "info": {
+                            "arg": {
+                                "channel": "account"
+                            },
+                            "eventType": "update",
+                            "data": [
+                                {
+                                    "uTime": "1752243429000",
+                                    "details": [
+                                        {
+                                            "ccy": "BTC",
+                                            "eq": "1.25",
+                                            "availEq": "1"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        "BTC": {
+                            "free": 1,
+                            "used": 0.25,
+                            "total": 1.25
+                        },
+                        "timestamp": 1752243429000,
+                        "datetime": "2025-07-11T14:17:09.000Z",
+                        "free": {
+                            "BTC": 1
+                        },
+                        "used": {
+                            "BTC": 0.25
+                        },
+                        "total": {
+                            "BTC": 1.25
+                        }
+                    },
+                    {
+                        "info": {
+                            "arg": {
+                                "channel": "account"
+                            },
+                            "eventType": "update",
+                            "data": [
+                                {
+                                    "uTime": "1752243430000",
+                                    "details": [
+                                        {
+                                            "ccy": "ETH",
+                                            "eq": "2",
+                                            "availEq": "1.5"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        "BTC": {
+                            "free": 1,
+                            "used": 0.25,
+                            "total": 1.25
+                        },
+                        "timestamp": 1752243430000,
+                        "datetime": "2025-07-11T14:17:10.000Z",
+                        "free": {
+                            "BTC": 1,
+                            "ETH": 1.5
+                        },
+                        "used": {
+                            "BTC": 0.25,
+                            "ETH": 0.5
+                        },
+                        "total": {
+                            "BTC": 1.25,
+                            "ETH": 2
+                        },
+                        "ETH": {
+                            "free": 1.5,
+                            "used": 0.5,
+                            "total": 2
+                        }
+                    }
+                ]
+            }
         ]
     }
 }

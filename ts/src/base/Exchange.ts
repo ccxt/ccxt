@@ -4723,7 +4723,7 @@ export class BaseExchange {
         return superWithRestDescribe;
     }
 
-    isBalanceChanged (cachedBalance: Balances, balance: Balances): boolean {
+    isBalanceChanged (cachedBalance: Dict, balance: Dict): boolean {
         /**
          * @ignore
          * @method
