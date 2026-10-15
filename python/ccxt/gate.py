@@ -6417,7 +6417,7 @@ class gate(Exchange, ImplicitAPI):
             tiers.append({
                 'tier': self.sum(i, 1),
                 'symbol': self.safe_string(market, 'symbol'),
-                'currency': self.safe_string(market, 'base'),
+                'currency': self.safe_string(market, 'settle'),
                 'minNotional': minNotional,
                 'maxNotional': maxNotional,
                 'maintenanceMarginRate': self.safe_number(item, 'maintenance_rate'),
