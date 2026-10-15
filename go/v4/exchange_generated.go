@@ -5379,11 +5379,11 @@ func (this *BaseExchange) fetchTransactionFeeBody(ch chan EndpointResult[map[str
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes667715 map[string]any = MapTyped(r.Value)
-	if retRes667715 == nil {
+	var retRes667115 map[string]any = MapTyped(r.Value)
+	if retRes667115 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes667715, Raw: retRes667715}
+		ch <- EndpointResult[map[string]any]{Value: retRes667115, Raw: retRes667115}
 	}
 	return nil
 }
@@ -11409,11 +11409,11 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan EndpointResult[
 		panic(r.Err)
 	}
 	listRecv10929, _ := r.Value.([]any)
-	var retRes1010415 []any = listRecv10929
-	if retRes1010415 == nil {
+	var retRes1009815 []any = listRecv10929
+	if retRes1009815 == nil {
 		ch <- EndpointResult[[]any]{}
 	} else {
-		ch <- EndpointResult[[]any]{Value: retRes1010415, Raw: retRes1010415}
+		ch <- EndpointResult[[]any]{Value: retRes1009815, Raw: retRes1009815}
 	}
 	return nil
 }
