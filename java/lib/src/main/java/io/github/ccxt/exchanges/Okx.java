@@ -9437,8 +9437,8 @@ public class Okx extends OkxApi
             }
             Map<String, Object> market = this.market(symbol);
             String type = (((java.util.Objects.equals(market.get("spot"), true)))) ? "MARGIN" : this.convertToInstrumentType(market.get("type"));
-            String uly = this.safeString(market.get("info"), "uly");
-            if ((java.util.Objects.equals(uly, null)) || (java.util.Objects.equals(uly, "")))
+            String instFamily = this.safeString(market.get("info"), "instFamily");
+            if ((java.util.Objects.equals(instFamily, null)) || (java.util.Objects.equals(instFamily, "")))
             {
                 if (!java.util.Objects.equals(type, "MARGIN"))
                 {
@@ -9453,7 +9453,7 @@ public class Okx extends OkxApi
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("instType", type);
             request.put("tdMode", marginMode);
-            request.put("uly", uly);
+            request.put("instFamily", instFamily);
             if (java.util.Objects.equals(type, "MARGIN"))
             {
                 request.put("instId", market.get("id"));
