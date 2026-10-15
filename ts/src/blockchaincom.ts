@@ -436,7 +436,7 @@ export default class blockchaincom extends Exchange {
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
-        return await this.fetchL2OrderBook (symbol, limit, params);
+        return await this.fetchL2OrderBook (symbol as string, limit, params);
     }
 
     /**

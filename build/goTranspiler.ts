@@ -7209,6 +7209,7 @@ ${caseStatements.join('\n')}
         const rows: [string, string, (expr: string) => boolean, boolean][] = [
             [ 'BaseExchange', 'Account', (expr: string) => expr.indexOf ('map[string]any{') === 0, false ],
             [ 'BaseExchange', 'ParseOrderBook', (expr: string) => expr.indexOf ('map[string]any{') === 0, false ],
+            [ 'BaseExchange', 'ParseOrderBookL3', (expr: string) => expr.indexOf ('map[string]any{') === 0, false ],
             // every return path is a map: the argument is defaulted and the option-market producer is wrapped
             [ 'BaseExchange', 'Market',
               (expr: string) => (expr.indexOf ('GetValue(') === 0) || (expr === 'market') || (expr.indexOf ('this.DerivedExchange.CreateExpiredOptionMarket(') === 0),
