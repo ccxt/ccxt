@@ -9073,11 +9073,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 /*
  * @method
  * @name gate#fetchLeverageTiers
- * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
- * @see https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts
- * @see https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts-2
+ * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes, automatically paginating through all contracts
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-risk-limit-tiers
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-risk-limit-tiers-2
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.type] 'swap' or 'future'
+ * @param {string} [params.settle] settlement currency, default 'usdt' for swaps and 'btc' for futures
+ * @param {int} [params.limit] number of contracts per request, between 1 and 100, default 100
+ * @param {int} [params.offset] starting contract offset, default 0
+ * @param {string} [params.contract] exchange-specific contract id to fetch tiers for a single contract
  * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
  */
     pub async fn fetch_leverage_tiers(&mut self, optional_args: &[Value]) -> Value {
@@ -9098,17 +9103,44 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (type_var.as_str() != Some("future")) && (type_var.as_str() != Some("swap")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverageTiers only supports swap and future".into()))));
         }
-        let mut response: Value = Value::Null;
-        if (type_var.as_str() == Some("swap")) {
-            let __ws_arg_81 = self.extend(request.clone(), &[requestParams.clone()]);
-            response = self.public_futures_get_settle_contracts(&[__ws_arg_81]).await;
-        }  else if (type_var.as_str() == Some("future")) {
-            let __ws_arg_82 = self.extend(request, &[requestParams]);
-            response = self.public_delivery_get_settle_contracts(&[__ws_arg_82]).await;
-        }  else {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverageTiers() not support this market type".into()))));
+        let mut limit: Value = crate::runtime::Math::max(&Value::Int(1), &crate::runtime::Math::min(&self.safe_integer_k(requestParams.clone(), "limit", &[Value::Int(100)]), &Value::Int(100)));
+        let mut offset: Value = self.safe_integer_k(requestParams.clone(), "offset", &[Value::Int(0)]);
+        let mut contract: Value = self.safe_string_k(requestParams.clone(), "contract", &[Value::Str("".into())]);
+        let mut paramsOmitted: Value = self.omit(requestParams, Value::from(vec![Value::Str("limit".into()), Value::Str("offset".into())]), &[]);
+        add_element_to_object(&mut request, &Value::Str("limit".into()), limit.clone());
+        let mut tiers: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
+        loop {
+            add_element_to_object(&mut request, &Value::Str("offset".into()), offset.clone());
+            let mut response: Value = Value::Null;
+            if (type_var.as_str() == Some("swap")) {
+                let __ws_arg_81 = self.extend(request.clone(), &[paramsOmitted.clone()]);
+                response = self.public_futures_get_settle_risk_limit_tiers(&[__ws_arg_81]).await;
+            }  else {
+                let __ws_arg_82 = self.extend(request.clone(), &[paramsOmitted.clone()]);
+                response = self.public_delivery_get_settle_risk_limit_tiers(&[__ws_arg_82]).await;
+            }
+            // Each page contains all tiers for up to limit contracts, not limit rows.
+            let mut grouped: Value = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            });
+            if (contract.as_str() != Some("")) {
+                add_element_to_object(&mut grouped, &contract, response.clone());
+            }  else {
+                grouped = self.group_by(response, Value::Str("contract".into()), &[]);
+            }
+            tiers = self.extend(tiers.clone(), &[grouped.clone()]);
+            let mut contracts: Value = object_keys(&grouped);
+            let mut numContracts: f64 = ((contracts.len() as i64) as f64);
+            if (contract.as_str() != Some("")) || (numContracts < limit.as_f64().unwrap_or(f64::NAN)) {
+                break;
+            }
+            offset = self.sum(&[offset.clone(), limit.clone()]);
         }
-        return self.parse_leverage_tiers(response, &[symbols, Value::Str("name".into())]);
+        return self.parse_leverage_tiers(tiers, &[symbols]);
 
     Value::Null
 }
