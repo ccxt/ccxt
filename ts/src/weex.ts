@@ -3828,6 +3828,10 @@ export default class weex extends Exchange {
             collateralString = (unrealizePnl !== undefined) ? Precise.stringAdd (isolatedMargin, unrealizePnl) : isolatedMargin;
         }
         const initialMarginString = this.omitZero (this.safeString2 (position, 'marginSize', 'isolatedMargin'));
+        let marginString: Str = undefined;
+        if (marginMode === 'isolated') {
+            marginString = isolatedMargin;
+        }
         return this.safePosition ({
             'symbol': marketResolved['symbol'],
             'id': this.safeString2 (position, 'id', 'positionId'),
@@ -3840,7 +3844,7 @@ export default class weex extends Exchange {
             'leverage': this.safeNumber (position, 'leverage'),
             'unrealizedPnl': this.parseNumber (unrealizePnl),
             'realizedPnl': undefined,
-            'margin': ((marginMode === 'isolated') ? this.parseNumber (isolatedMargin) : undefined),
+            'margin': this.parseNumber (marginString),
             'collateral': this.parseNumber (collateralString),
             'entryPrice': this.parseNumber (entryPrice),
             'markPrice': undefined,

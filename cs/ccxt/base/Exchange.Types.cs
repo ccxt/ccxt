@@ -1454,7 +1454,6 @@ public struct Position
     public double? unrealizedPnl;
 
     public double? realizedPnl;
-    public double? margin;
     public double? collateral;
     public double? entryPrice;
     public double? markPrice;
@@ -1476,6 +1475,7 @@ public struct Position
     public bool? isolated;
     public double? exitPrice;
 
+    public double? margin;
     public Position(object position)
     {
         symbol = Exchange.SafeString(position, "symbol");
@@ -1490,7 +1490,6 @@ public struct Position
         leverage = Exchange.SafeFloat(position, "leverage");
         unrealizedPnl = Exchange.SafeFloat(position, "unrealizedPnl");
         realizedPnl = Exchange.SafeFloat(position, "realizedPnl");
-        margin = Exchange.SafeFloat(position, "margin");
         collateral = Exchange.SafeFloat(position, "collateral");
         entryPrice = Exchange.SafeFloat(position, "entryPrice");
         markPrice = Exchange.SafeFloat(position, "markPrice");
@@ -1509,6 +1508,7 @@ public struct Position
         stopLossPrice = Exchange.SafeFloat(position, "stopLossPrice");
         isolated = Exchange.SafeValue(position, "isolated") != null ? (bool)Exchange.SafeValue(position, "isolated") : null;
         exitPrice = Exchange.SafeFloat(position, "exitPrice");
+        margin = Exchange.SafeFloat(position, "margin");
     }
 
 }
