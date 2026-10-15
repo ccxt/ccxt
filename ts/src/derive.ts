@@ -3174,6 +3174,8 @@ export default class derive extends Exchange {
         const markPrice = this.safeString (position, 'mark_price');
         const timestamp = this.safeInteger (position, 'creation_timestamp');
         const unrealisedPnl = this.safeString (position, 'unrealized_pnl');
+        const initialMarginString = Precise.stringAbs (this.safeString (position, 'initial_margin'));
+        const maintenanceMarginString = Precise.stringAbs (this.safeString (position, 'maintenance_margin'));
         size = Precise.stringAbs (size);
         const notional = Precise.stringMul (size, markPrice);
         return this.safePosition ({
@@ -3183,11 +3185,11 @@ export default class derive extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastUpdateTimestamp': undefined,
-            'initialMargin': this.safeNumber (position, 'initial_margin'),
+            'initialMargin': this.parseNumber (initialMarginString),
             'initialMarginPercentage': undefined,
-            'maintenanceMargin': this.safeNumber (position, 'maintenance_margin'),
+            'maintenanceMargin': this.parseNumber (maintenanceMarginString),
             'maintenanceMarginPercentage': undefined,
-            'entryPrice': undefined,
+            'entryPrice': this.safeNumber2 (position, 'average_price', 'average_price_excl_fees'),
             'notional': this.parseNumber (notional),
             'leverage': this.safeNumber (position, 'leverage'),
             'unrealizedPnl': this.parseNumber (unrealisedPnl),

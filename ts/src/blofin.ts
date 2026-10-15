@@ -2984,7 +2984,7 @@ export default class blofin extends Exchange {
         let collateralString: Str = undefined;
         if (marginMode === 'cross') {
             initialMarginString = this.safeString (position, 'initialMargin');
-            collateralString = Precise.stringAdd (initialMarginString, unrealizedPnlString);
+            collateralString = (unrealizedPnlString !== undefined) ? Precise.stringAdd (initialMarginString, unrealizedPnlString) : initialMarginString;
         } else if (marginMode === 'isolated') {
             initialMarginPercentage = Precise.stringDiv ('1', leverageString);
             const isolatedMarginString = this.omitZero (this.safeString2 (position, 'margin', 'initialMargin'));
@@ -3004,7 +3004,19 @@ export default class blofin extends Exchange {
         }
         const rounder = '0.00005'; // round to closest 0.01%
         const maintenanceMarginPercentage = (maintenanceMarginPercentageString !== undefined) ? this.parseNumber (Precise.stringDiv (Precise.stringAdd (maintenanceMarginPercentageString, rounder), '1', 4)) : undefined;
-        const liquidationPrice = this.safeNumber (position, 'liquidationPrice');
+        let liquidationPriceString = this.omitZero (this.safeString (position, 'liquidationPrice'));
+        if ((liquidationPriceString === undefined) && (marginMode === 'isolated') && (initialMarginString !== undefined) && (entryPriceString !== undefined) && (contractsAbs !== undefined) && Precise.stringGt (contractsAbs, '0') && (contractSizeString !== undefined) && (maintenanceMarginPercentage !== undefined)) {
+            const takerFeeRate = this.safeString (marketResolved, 'taker', '0.0006');
+            const mmpWithFee = Precise.stringAdd (this.numberToString (maintenanceMarginPercentage), takerFeeRate);
+            const totalSize = Precise.stringMul (contractsAbs, contractSizeString);
+            const marginPerUnit = Precise.stringDiv (initialMarginString, totalSize);
+            const num = (side === 'long') ? Precise.stringSub (entryPriceString, marginPerUnit) : Precise.stringAdd (entryPriceString, marginPerUnit);
+            const denom = (side === 'long') ? Precise.stringSub ('1', mmpWithFee) : Precise.stringAdd ('1', mmpWithFee);
+            if ((denom !== undefined) && Precise.stringGt (denom, '0')) {
+                liquidationPriceString = Precise.stringDiv (num, denom);
+            }
+        }
+        const liquidationPrice = ((liquidationPriceString !== undefined) && Precise.stringGt (liquidationPriceString, '0')) ? this.parseNumber (liquidationPriceString) : undefined;
         const percentageString = this.safeString (position, 'unrealizedPnlRatio');
         const percentage = this.parseNumber (Precise.stringMul (percentageString, '100'));
         const timestamp = this.safeInteger (position, 'updateTime');

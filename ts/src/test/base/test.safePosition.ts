@@ -167,6 +167,24 @@ function testSafePosition () {
     assert (preciseEqualPositionStr (exchange, res10, 'leverage', '20'));
     assert (preciseEqualPositionStr (exchange, res10, 'initialMargin', '100'));
     assert (preciseEqualPositionStr (exchange, res10, 'maintenanceMarginPercentage', '0.01'));
+
+    // CASE 11 - negative collateral position must not derive initialMargin or maintenanceMargin
+    const pos11 = {
+        'marginMode': 'isolated',
+        'side': 'long',
+        'entryPrice': 74.35,
+        'liquidationPrice': 60.07,
+        'markPrice': 74.43,
+        'notional': 7.443,
+        'leverage': 5,
+        'contracts': 1,
+        'contractSize': 0.1,
+        'collateral': -3.967,
+        'unrealizedPnl': 0.008,
+    };
+    const res11 = exchange.safePosition (pos11);
+    assert (exchange.safeValue (res11, 'initialMargin') === undefined);
+    assert (exchange.safeValue (res11, 'maintenanceMargin') === undefined);
 }
 
 export default testSafePosition;

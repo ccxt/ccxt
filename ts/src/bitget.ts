@@ -9158,9 +9158,10 @@ export default class bitget extends Exchange {
         let collateral: Str = undefined;
         let initialMargin: Str = undefined;
         const unrealizedPnl = this.safeString2 (position, 'unrealizedPL', 'unrealisedPnl');
-        const rawCollateral = this.safeString2 (position, 'marginSize', 'positionBalance');
+        const rawCollateral = this.omitZero (this.safeString2 (position, 'marginSize', 'positionBalance'));
         if (marginMode === 'isolated') {
-            collateral = Precise.stringAdd (rawCollateral, unrealizedPnl);
+            collateral = (unrealizedPnl !== undefined) ? Precise.stringAdd (rawCollateral, unrealizedPnl) : rawCollateral;
+            initialMargin = rawCollateral;
         } else if (marginMode === 'crossed') {
             marginMode = 'cross';
             initialMargin = rawCollateral;
@@ -9178,7 +9179,7 @@ export default class bitget extends Exchange {
         const contractSize = this.numberToString (contractSizeNumber);
         const baseAmount = this.safeString2 (position, 'total', 'openTotalPos');
         const entryPrice = this.safeStringN (position, [ 'openPriceAvg', 'openAvgPrice', 'avgPrice' ]);
-        const maintenanceMarginPercentage = this.safeString (position, 'keepMarginRate');
+        const maintenanceMarginPercentage = this.safeString2 (position, 'keepMarginRate', 'mmr');
         const openNotional = Precise.stringMul (entryPrice, baseAmount);
         if (initialMargin === undefined) {
             initialMargin = Precise.stringDiv (openNotional, leverage);
@@ -9190,9 +9191,10 @@ export default class bitget extends Exchange {
         const markPrice = this.safeString (position, 'markPrice');
         const notional = Precise.stringMul (baseAmount, markPrice);
         const initialMarginPercentage = Precise.stringDiv (initialMargin, notional);
-        let liquidationPrice = this.parseNumber (this.omitZero (this.safeString (position, 'liquidationPrice')));
-        const calcTakerFeeRate = '0.0006';
-        const calcTakerFeeMult = '0.9994';
+        const rawLiquidationPrice = this.omitZero (this.safeString (position, 'liquidationPrice'));
+        let liquidationPrice = ((rawLiquidationPrice !== undefined) && Precise.stringGt (rawLiquidationPrice, '0')) ? this.parseNumber (rawLiquidationPrice) : undefined;
+        const calcTakerFeeRate = this.safeString (marketResolved, 'taker', '0.0006');
+        const calcTakerFeeMult = Precise.stringSub ('1', calcTakerFeeRate);
         if ((liquidationPrice === undefined) && (marginMode === 'isolated') && Precise.stringGt (baseAmount, '0')) {
             let signedMargin = Precise.stringDiv (rawCollateral, baseAmount);
             let signedMmp = maintenanceMarginPercentage;
@@ -9207,7 +9209,10 @@ export default class bitget extends Exchange {
             } else {
                 numerator = Precise.stringMul (numerator, calcTakerFeeMult);
             }
-            liquidationPrice = this.parseNumber (Precise.stringDiv (numerator, mmrMinusOne));
+            const derivedLiq = Precise.stringDiv (numerator, mmrMinusOne);
+            if ((derivedLiq !== undefined) && Precise.stringGt (derivedLiq, '0')) {
+                liquidationPrice = this.parseNumber (derivedLiq);
+            }
         }
         const feeToClose = Precise.stringMul (notional, calcTakerFeeRate);
         const maintenanceMargin = Precise.stringAdd (Precise.stringMul (maintenanceMarginPercentage, notional), feeToClose);
@@ -9238,7 +9243,7 @@ export default class bitget extends Exchange {
             'initialMargin': this.parseNumber (initialMargin),
             'initialMarginPercentage': this.parseNumber (initialMarginPercentage),
             'leverage': this.parseNumber (leverage),
-            'marginRatio': this.safeNumber2 (position, 'marginRatio', 'mmr'),
+            'marginRatio': this.safeNumber (position, 'marginRatio'),
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,
         });

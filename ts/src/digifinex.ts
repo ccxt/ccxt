@@ -4057,7 +4057,20 @@ export default class digifinex extends Exchange {
         } else if (side === 'go_short') {
             side = 'short';
         }
-        const positionMargin = this.safeNumber (position, 'margin');
+        const positionMargin = this.safeString (position, 'margin');
+        const unrealizedPnl = this.safeString (position, 'unrealized_pnl');
+        let collateralString: Str = undefined;
+        if (marginMode === 'isolated') {
+            const isolatedMargin = this.safeString2 (position, 'posi_balance', 'margin');
+            if (isolatedMargin !== undefined) {
+                collateralString = (unrealizedPnl !== undefined) ? Precise.stringAdd (isolatedMargin, unrealizedPnl) : isolatedMargin;
+            }
+        }
+        let maintenanceMarginString = this.safeString (position, 'maintain_margin');
+        const forceCloseFee = this.omitZero (this.safeString (position, 'force_close_fee'));
+        if ((maintenanceMarginString !== undefined) && (forceCloseFee !== undefined)) {
+            maintenanceMarginString = Precise.stringAdd (maintenanceMarginString, forceCloseFee);
+        }
         return this.safePosition ({
             'info': position,
             'id': undefined,
@@ -4066,7 +4079,7 @@ export default class digifinex extends Exchange {
             'marginMode': marginMode,
             'liquidationPrice': this.safeNumber (position, 'liquidation_price'),
             'entryPrice': this.safeNumber2 (position, 'avg_cost', 'entry_price'),
-            'unrealizedPnl': this.safeNumber (position, 'unrealized_pnl'),
+            'unrealizedPnl': this.parseNumber (unrealizedPnl),
             'contracts': this.safeNumber2 (position, 'position', 'avail_position'),
             'contractSize': this.safeNumber (marketResolved, 'contractSize'),
             'markPrice': this.safeNumber2 (position, 'mark_price', 'last'),
@@ -4074,10 +4087,10 @@ export default class digifinex extends Exchange {
             'hedged': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'maintenanceMargin': this.safeNumber (position, 'maintain_margin'),
+            'maintenanceMargin': this.parseNumber (maintenanceMarginString),
             'maintenanceMarginPercentage': this.safeNumber (position, 'maint_margin_ratio'),
-            'collateral': (marginMode === 'isolated') ? this.safeNumber2 (position, 'posi_balance', 'margin') : undefined,
-            'initialMargin': positionMargin,
+            'collateral': this.parseNumber (collateralString),
+            'initialMargin': this.parseNumber (positionMargin),
             'initialMarginPercentage': undefined,
             'leverage': this.safeNumber2 (position, 'leverage', 'leverage_ratio'),
             'marginRatio': this.safeNumber (position, 'margin_ratio'),

@@ -7059,32 +7059,39 @@ export default class bybit extends Exchange {
                 collateralString = Precise.stringAdd (Precise.stringAdd (Precise.stringMul (difference, size), maintenanceMarginString), unrealisedPnl);
             } else {
                 const bustPrice = this.omitZero (this.safeString (position, 'bustPrice'));
+                const closingFee = this.omitZero (this.safeString (position, 'occClosingFee'));
                 if (marketResolved['linear'] === true) {
                     // derived from the following formula:
                     //  (Entry price - Bust price) * Contracts = Collateral
                     //  (Entry price - Liq price) * Contracts = Collateral - Maintenance Margin
                     // Maintenance Margin = (Bust price - Liq price) x Contracts
-                    if (bustPrice !== undefined) {
+                    if ((maintenanceMarginString === undefined) && (bustPrice !== undefined) && !Precise.stringEq (bustPrice, liquidationPrice)) {
                         const maintenanceMarginPriceDifference = Precise.stringAbs (Precise.stringSub (liquidationPrice, bustPrice));
                         maintenanceMarginString = Precise.stringMul (maintenanceMarginPriceDifference, size);
                     }
-                    // Initial Margin = Contracts x Entry Price / Leverage
+                    // Initial Margin = Contracts x Entry Price / Leverage + Closing Fee
                     if ((entryPrice !== undefined) && (initialMarginString === undefined)) {
                         initialMarginString = Precise.stringDiv (Precise.stringMul (size, entryPrice), leverage);
+                        if (closingFee !== undefined) {
+                            initialMarginString = Precise.stringAdd (initialMarginString, closingFee);
+                        }
                     }
                 } else {
                     // Contracts * (1 / Entry price - 1 / Bust price) = Collateral
                     // Contracts * (1 / Entry price - 1 / Liq price) = Collateral - Maintenance Margin
                     // Maintenance Margin = Contracts * (1 / Liq price - 1 / Bust price)
                     // Maintenance Margin = Contracts * (Bust price - Liq price) / (Liq price x Bust price)
-                    if (bustPrice !== undefined) {
+                    if ((maintenanceMarginString === undefined) && (bustPrice !== undefined) && !Precise.stringEq (bustPrice, liquidationPrice)) {
                         const difference = Precise.stringAbs (Precise.stringSub (bustPrice, liquidationPrice));
                         const multiply = Precise.stringMul (bustPrice, liquidationPrice);
                         maintenanceMarginString = Precise.stringDiv (Precise.stringMul (size, difference), multiply);
                     }
-                    // Initial Margin = Leverage x Contracts / EntryPrice
+                    // Initial Margin = Contracts / (EntryPrice x Leverage) + Closing Fee
                     if ((entryPrice !== undefined) && (initialMarginString === undefined)) {
                         initialMarginString = Precise.stringDiv (size, Precise.stringMul (entryPrice, leverage));
+                        if (closingFee !== undefined) {
+                            initialMarginString = Precise.stringAdd (initialMarginString, closingFee);
+                        }
                     }
                 }
             }

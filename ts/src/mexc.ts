@@ -5467,13 +5467,22 @@ export default class mexc extends Exchange {
         const symbol = marketResolved['symbol'];
         const contracts = this.safeString (position, 'holdVol');
         const entryPrice = this.safeNumber (position, 'openAvgPrice');
-        const initialMargin = this.safeString (position, 'im');
+        const initialMargin = this.omitZero (this.safeString (position, 'im'));
+        const holdFee = this.omitZero (this.safeString (position, 'holdFee'));
+        const unrealizedPnl = this.safeString (position, 'unRealizedPnl');
         const rawSide = this.safeString (position, 'positionType');
         const side = (rawSide === '1') ? 'long' : 'short';
         const openType = this.safeString2 (position, 'openType', 'margin_mode');
         const marginType = (openType === '1') ? 'isolated' : 'cross';
+        let collateralString: Str = undefined;
+        if ((marginType === 'isolated') && (initialMargin !== undefined)) {
+            collateralString = (holdFee !== undefined) ? Precise.stringAdd (initialMargin, holdFee) : initialMargin;
+            if (unrealizedPnl !== undefined) {
+                collateralString = Precise.stringAdd (collateralString, unrealizedPnl);
+            }
+        }
         const leverage = this.safeNumber (position, 'leverage');
-        const liquidationPrice = this.safeNumber (position, 'liquidatePrice');
+        const liquidationPrice = this.parseNumber (this.omitZero (this.safeString (position, 'liquidatePrice')));
         const timestamp = this.safeInteger (position, 'updateTime');
         return this.safePosition ({
             'info': position,
@@ -5482,9 +5491,9 @@ export default class mexc extends Exchange {
             'contracts': this.parseNumber (contracts),
             'contractSize': this.safeNumber (marketResolved, 'contractSize'),
             'entryPrice': entryPrice,
-            'collateral': (marginType === 'isolated') ? this.parseNumber (initialMargin) : undefined,
+            'collateral': this.parseNumber (collateralString),
             'side': side,
-            'unrealizedPnl': undefined,
+            'unrealizedPnl': this.parseNumber (unrealizedPnl),
             'leverage': this.parseNumber (leverage),
             'percentage': undefined,
             'marginMode': marginType,
