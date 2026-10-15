@@ -7992,8 +7992,8 @@ class okx extends Exchange {
         }
         $market = $this->market($symbol);
         $type = ($market['spot'] === true) ? 'MARGIN' : $this->convert_to_instrument_type($market['type']);
-        $uly = $this->safe_string($market['info'], 'uly');
-        if (($uly === null) || ($uly === '')) {
+        $instFamily = $this->safe_string($market['info'], 'instFamily');
+        if (($instFamily === null) || ($instFamily === '')) {
             if ($type !== 'MARGIN') {
                 throw new BadRequest($this->id . ' fetchMarketLeverageTiers() cannot fetch leverage tiers for ' . $symbol);
             }
@@ -8004,7 +8004,7 @@ class okx extends Exchange {
         $request = array(
             'instType' => $type,
             'tdMode' => $marginMode,
-            'uly' => $uly,
+            'instFamily' => $instFamily,
         );
         if ($type === 'MARGIN') {
             $request['instId'] = $market['id'];
