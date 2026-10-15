@@ -571,6 +571,93 @@
                 }
             }
         ],
+        "fetchLeverages": [
+            {
+                "description": "fetch leverage of all markets",
+                "method": "fetchLeverages",
+                "input": [],
+                "httpResponse": {
+                    "success": true,
+                    "timestamp": 1786805505492,
+                    "data": {
+                        "rows": [
+                            {
+                                "symbol": "PERP_BTC_USDC",
+                                "leverage": 10,
+                                "margin_mode": "CROSS"
+                            },
+                            {
+                                "symbol": "PERP_LTC_USDC",
+                                "leverage": 10,
+                                "margin_mode": "ISOLATED"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "BTC/USDC:USDC": {
+                        "info": {
+                            "symbol": "PERP_BTC_USDC",
+                            "leverage": 10,
+                            "margin_mode": "CROSS"
+                        },
+                        "symbol": "BTC/USDC:USDC",
+                        "marginMode": "cross",
+                        "longLeverage": 10,
+                        "shortLeverage": 10
+                    },
+                    "LTC/USDC:USDC": {
+                        "info": {
+                            "symbol": "PERP_LTC_USDC",
+                            "leverage": 10,
+                            "margin_mode": "ISOLATED"
+                        },
+                        "symbol": "LTC/USDC:USDC",
+                        "marginMode": "isolated",
+                        "longLeverage": 10,
+                        "shortLeverage": 10
+                    }
+                }
+            }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "fetch leverage of one market",
+                "method": "fetchLeverage",
+                "input": [
+                    "LTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "timestamp": 1786805505492,
+                    "data": {
+                        "rows": [
+                            {
+                                "symbol": "PERP_BTC_USDC",
+                                "leverage": 10,
+                                "margin_mode": "CROSS"
+                            },
+                            {
+                                "symbol": "PERP_LTC_USDC",
+                                "leverage": 10,
+                                "margin_mode": "ISOLATED"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "PERP_LTC_USDC",
+                        "leverage": 10,
+                        "margin_mode": "ISOLATED"
+                    },
+                    "symbol": "LTC/USDC:USDC",
+                    "marginMode": "isolated",
+                    "longLeverage": 10,
+                    "shortLeverage": 10
+                }
+            }
+        ],
         "fetchMarginMode": [
             {
                 "description": "fetch margin mode of one market",
