@@ -56,8 +56,7 @@
                         "timestamp": 1721957400000,
                         "datetime": "2024-07-26T01:30:00.000Z"
                     }
-                ],
-                "lastRequestUrl": "https://open-api.bingx.com/openApi/swap/v2/quote/fundingRate?endTime=1721953799999&limit=2&symbol=BTC-USDT&timestamp=1709992987329"
+                ]
             },
             {
                 "description": "two-page funding cursor from untill",
@@ -111,8 +110,7 @@
                         "timestamp": 1721957400000,
                         "datetime": "2024-07-26T01:30:00.000Z"
                     }
-                ],
-                "lastRequestUrl": "https://open-api.bingx.com/openApi/swap/v2/quote/fundingRate?endTime=1721953799999&limit=2&symbol=BTC-USDT&timestamp=1709992987329"
+                ]
             }
         ],
         "fetchWithdrawals": [
