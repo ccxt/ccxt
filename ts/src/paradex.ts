@@ -367,7 +367,7 @@ export default class paradex extends Exchange {
                     '40112': PermissionDenied, // Geo IP blocked
                     '40300': PermissionDenied, // Permission denied
                     '40301': NotSupported, // SBE encoding required
-                    '42900': RateLimitExceeded, // Max subscriptions per connection reached
+                    '42900': OperationRejected, // Max subscriptions per connection, a retry does not help until a channel is unsubscribed
                     '42901': RateLimitExceeded, // Rate limited
                 },
                 'broad': {

@@ -2,7 +2,7 @@
 import assert from 'assert';
 import paradex from '../../paradex.js';
 import Client from '../../../base/ws/Client.js';
-import { AuthenticationError, BadRequest, ExchangeError, NotSupported, PermissionDenied, RateLimitExceeded } from '../../../base/errors.js';
+import { AuthenticationError, BadRequest, ExchangeError, NetworkError, NotSupported, OperationRejected, PermissionDenied, RateLimitExceeded } from '../../../base/errors.js';
 
 // native ts test, intentionally not transpiled: it stubs the hand-written ws client. Every
 // paradex request carries a json-rpc id, so an error reply rejects only the watchers of that
@@ -155,7 +155,7 @@ async function testRefusedSubscribeRejectsOnlyItsWatchers () {
     assert.strictEqual (tradesRequest['params']['channel'], 'trades.BTC-USD-PERP');
     deliver (exchange, client, errorFrame (42900, 'max subscriptions per connection reached', tradesRequest['id']));
     await sleep (1);
-    assert (trades['error'] instanceof RateLimitExceeded, 'error code 42900 must reject with RateLimitExceeded, got ' + String (trades['error']));
+    assert (trades['error'] instanceof OperationRejected, 'error code 42900 must reject with OperationRejected, got ' + String (trades['error']));
     assert (orders['settled'] !== true, 'a refused subscribe must not reject the other watchers');
     assert (!('trades.BTC-USD-PERP' in client.subscriptions), 'the refused subscribe must be dropped');
     // a retry sends the subscribe again
@@ -294,6 +294,7 @@ async function testErrorCodeMapping () {
         [ 40111, 'invalid bearer token', AuthenticationError ],
         [ 40300, 'permission denied', PermissionDenied ],
         [ 40301, 'sbe required', NotSupported ],
+        [ 42900, 'max subscriptions per connection reached', OperationRejected ],
         [ 42901, 'rate limited', RateLimitExceeded ],
         [ 12345, 'an unknown error', ExchangeError ],
     ];
@@ -308,6 +309,10 @@ async function testErrorCodeMapping () {
         await sleep (1);
         const error = trades['error'];
         assert (error instanceof errorClass, 'error code ' + code.toString () + ' must reject with ' + errorClass.name + ', got ' + String (error));
+        if (code === 42900) {
+            // the subscription cap holds until a channel is unsubscribed, a caller must not retry it as a network error
+            assert (!(error instanceof NetworkError), 'error code 42900 must not be a retryable NetworkError');
+        }
         if (errorClass === ExchangeError) {
             assert (!(error instanceof BadRequest), 'an unknown code must not be reported as BadRequest');
         }
