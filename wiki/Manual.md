@@ -8103,32 +8103,37 @@ An inverse contract will allow you to go long or short on BTC/USD by putting up 
 
 ##### Position Semantics
 
-How the fields of a position relate to each other. Let `Q = contracts * contractSize`.
+How the fields of a position relate to each other. The formulas use two size helpers:
+
+- `baseCurrencySize = contracts * contractSize` for linear contracts. This is the position size in the base currency (for example BTC on `BTC/USDT:USDT`).
+- `quoteCurrencySize = contracts * contractSize` for inverse contracts. Their `contractSize` is in the quote currency, so this is the position size in the quote currency (for example USD on `BTC/USD:BTC`).
 
 Position-local relationships hold for both `cross` and `isolated` positions. When an exchange leaves one of these fields out, `safePosition` derives it from the others:
 
-- `notional = Q * markPrice` (linear) or `Q / markPrice` (inverse). The notional is in the settlement currency.
-- `unrealizedPnl = ±(markPrice - entryPrice) * Q` (linear) or `±(1 / entryPrice - 1 / markPrice) * Q` (inverse). Use `+` for long and `-` for short.
+- `notional = baseCurrencySize * markPrice` (linear) or `quoteCurrencySize / markPrice` (inverse). The notional is in the settlement currency.
+- `unrealizedPnl = ±(markPrice - entryPrice) * baseCurrencySize` (linear) or `±(1 / entryPrice - 1 / markPrice) * quoteCurrencySize` (inverse). Use `+` for long and `-` for short.
 - `initialMargin = notional * initialMarginPercentage`. `initialMarginPercentage ≈ 1 / leverage`.
 - `maintenanceMargin = notional * maintenanceMarginPercentage`
 - `marginRatio = maintenanceMargin / collateral`
 - `percentage = unrealizedPnl / initialMargin * 100`
 
-`collateral` is the margin currently backing the position, including unrealized PnL. The margin backing the position at entry is `entryMargin = collateral - unrealizedPnl`.
+`collateral` is the margin backing the position right now. It already includes the position's unrealized profit or loss.
+
+`entryMargin` is the margin the position was opened with. To get it, take the current collateral and remove the profit or loss made since opening: `entryMargin = collateral - unrealizedPnl`. For example, if you opened with 100 USDT of margin and the position is now up 20 USDT, `collateral` is 120 and `entryMargin` is 100. If it is down 20 USDT instead, `collateral` is 80 and `entryMargin` is still 100. Some exchanges report `collateral` without unrealized PnL; in that case `entryMargin` is simply `collateral` (or `initialMargin`).
 
 A position is liquidated when its remaining collateral falls to `maintenanceMargin`. For **isolated** positions this gives:
 
 ```
-linear:  entryMargin - abs(entryPrice - liquidationPrice) * Q = maintenanceMargin
-inverse: entryMargin - abs(1 / entryPrice - 1 / liquidationPrice) * Q = maintenanceMargin
+linear:  entryMargin - abs(entryPrice - liquidationPrice) * baseCurrencySize = maintenanceMargin
+inverse: entryMargin - abs(1 / entryPrice - 1 / liquidationPrice) * quoteCurrencySize = maintenanceMargin
 ```
 
-- Equivalently, `abs(liquidationPrice - bustPrice) * Q = maintenanceMargin`. The bust price is where the remaining collateral reaches zero.
+- Equivalently, `abs(liquidationPrice - bustPrice) * baseCurrencySize = maintenanceMargin` (linear). The bust price is where the remaining collateral reaches zero.
 - When five of these values are known, `safePosition` derives the missing sixth one on isolated positions. It only does this when the result is positive.
 
 Common pitfalls:
 
-- `abs(entryPrice - liquidationPrice) * Q` is **not** the maintenance margin. It is the loss the position takes before liquidation, which equals `entryMargin - maintenanceMargin`.
+- `abs(entryPrice - liquidationPrice) * baseCurrencySize` is **not** the maintenance margin. It is the loss the position takes before liquidation, which equals `entryMargin - maintenanceMargin`.
 - The isolated equation does not apply to **cross** positions. Their `liquidationPrice` depends on the equity of the whole account and on other positions, while `collateral` and `initialMargin` often describe only this one position. On cross positions `liquidationPrice` can be far away, `0`, negative, or clamped to the smallest tick (for example `0.0001`).
 - Inverse contracts use `1 / price`, and their margins and PnL are in the base currency.
 - `contracts` is a number of contracts, not a base amount. Multiply by `contractSize` before doing any arithmetic with prices.
@@ -8222,18 +8227,20 @@ Returns
 It is the price at which `entryMargin + unrealizedPnl = collateral = maintenanceMargin`, i.e. only maintenanceMargin collateral is left. This holds for isolated positions; see [Position Semantics](#position-semantics) for cross positions and exchange caveats.
 
 ```javascript
-// Q = contracts * contractSize, entryMargin = collateral - unrealizedPnl
+// baseCurrencySize = contracts * contractSize (linear)
+// quoteCurrencySize = contracts * contractSize (inverse)
+// entryMargin = collateral - unrealizedPnl (the margin the position was opened with)
 // if long
-entryMargin - (entryPrice - liquidationPrice) * Q = maintenanceMargin
+entryMargin - (entryPrice - liquidationPrice) * baseCurrencySize = maintenanceMargin
 
 // if short
-entryMargin - (liquidationPrice - entryPrice) * Q = maintenanceMargin
+entryMargin - (liquidationPrice - entryPrice) * baseCurrencySize = maintenanceMargin
 
 // if inverse long
-entryMargin - (1/liquidationPrice - 1/entryPrice) * Q = maintenanceMargin
+entryMargin - (1/liquidationPrice - 1/entryPrice) * quoteCurrencySize = maintenanceMargin
 
 // if inverse short
-entryMargin - (1/entryPrice - 1/liquidationPrice) * Q = maintenanceMargin
+entryMargin - (1/entryPrice - 1/liquidationPrice) * quoteCurrencySize = maintenanceMargin
 ```
 
 ### Funding History
