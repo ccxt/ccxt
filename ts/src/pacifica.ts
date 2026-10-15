@@ -3156,25 +3156,34 @@ export default class pacifica extends Exchange {
         //
         const timestamp = this.safeInteger (item, 'created_at');
         const type = this.safeString (item, 'event_type');
-        const amount = this.safeString (item, 'amount');
+        const change = this.safeString (item, 'amount');
         const balance = this.safeString (item, 'balance');
+        const currencyResolved: Currency = this.safeCurrency ('USDC', currency);
+        let direction: Str = undefined;
+        let amount = change;
+        if (Precise.stringLt (amount, '0')) {
+            direction = 'out';
+            amount = Precise.stringAbs (amount);
+        } else {
+            direction = 'in';
+        }
         return this.safeLedgerEntry ({
             'info': item,
             'id': undefined,
-            'direction': undefined,
+            'direction': direction,
             'account': undefined,
             'referenceAccount': undefined,
             'referenceId': undefined,
             'type': this.parseLedgerEntryType (type),
-            'currency': undefined,
+            'currency': currencyResolved['code'],
             'amount': this.parseNumber (amount),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'before': undefined,
+            'before': this.parseNumber (Precise.stringSub (balance, change)),
             'after': this.parseNumber (balance),
             'status': undefined,
             'fee': undefined,
-        }, currency) as LedgerEntry;
+        }, currencyResolved) as LedgerEntry;
     }
 
     parseLedgerEntryType (type: Str): Str {
