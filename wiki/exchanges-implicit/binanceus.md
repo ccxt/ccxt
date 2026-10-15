@@ -1,6 +1,6 @@
 Every endpoint in `binanceus`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/binanceus) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `sapiGetCopyTradingFuturesUserStatus`); the snake_case alias (`sapi_get_copytrading_futures_userstatus`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`SapiGetCopyTradingFuturesUserStatus`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `sapiGetCopyTradingFuturesUserStatus`); Python and PHP use the snake_case form (`sapi_get_copytrading_futures_userstatus`), and Go uses the PascalCase form (`SapiGetCopyTradingFuturesUserStatus`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official binanceus API documentation:** [github.com](https://github.com/binance-us/binance-official-api-docs)
 
-> 875 implicit endpoints across 20 access groups.
+> 878 implicit endpoints across 20 access groups.
 
 ## sapi
 
@@ -584,7 +584,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `dapiPublicGetExchangeInfo` | GET | `exchangeInfo` | 1 |
 | `dapiPublicGetDepth` | GET | `depth` | 2 |
 | `dapiPublicGetTrades` | GET | `trades` | 5 |
-| `dapiPublicGetHistoricalTrades` | GET | `historicalTrades` | 20 |
+| `dapiPublicGetHistoricalTrades` | GET | `historicalTrades` | 200 |
 | `dapiPublicGetAggTrades` | GET | `aggTrades` | 20 |
 | `dapiPublicGetPremiumIndex` | GET | `premiumIndex` | 10 |
 | `dapiPublicGetFundingRate` | GET | `fundingRate` | 1 |
@@ -626,6 +626,8 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `dapiPrivateGetOpenOrder` | GET | `openOrder` | 1 |
 | `dapiPrivateGetOpenOrders` | GET | `openOrders` | 1 |
 | `dapiPrivateGetOpenAlgoOrders` | GET | `openAlgoOrders` | 1 |
+| `dapiPrivateGetAlgoOrder` | GET | `algoOrder` | 1 |
+| `dapiPrivateGetAllAlgoOrders` | GET | `allAlgoOrders` | 5 |
 | `dapiPrivateGetAllOrders` | GET | `allOrders` | 5 |
 | `dapiPrivateGetBalance` | GET | `balance` | 1 |
 | `dapiPrivateGetAccount` | GET | `account` | 5 |
@@ -659,6 +661,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `dapiPrivatePutBatchOrders` | PUT | `batchOrders` | 5 |
 | `dapiPrivateDeleteOrder` | DELETE | `order` | 1 |
 | `dapiPrivateDeleteAlgoOrder` | DELETE | `algoOrder` | 1 |
+| `dapiPrivateDeleteAlgoOpenOrders` | DELETE | `algoOpenOrders` | 1 |
 | `dapiPrivateDeleteAllOpenOrders` | DELETE | `allOpenOrders` | 1 |
 | `dapiPrivateDeleteBatchOrders` | DELETE | `batchOrders` | 5 |
 | `dapiPrivateDeleteListenKey` | DELETE | `listenKey` | 1 |
@@ -683,7 +686,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `fapiPublicGetDepth` | GET | `depth` | 2 |
 | `fapiPublicGetRpiDepth` | GET | `rpiDepth` | 20 |
 | `fapiPublicGetTrades` | GET | `trades` | 5 |
-| `fapiPublicGetHistoricalTrades` | GET | `historicalTrades` | 20 |
+| `fapiPublicGetHistoricalTrades` | GET | `historicalTrades` | 200 |
 | `fapiPublicGetAggTrades` | GET | `aggTrades` | 20 |
 | `fapiPublicGetKlines` | GET | `klines` | 1 |
 | `fapiPublicGetContinuousKlines` | GET | `continuousKlines` | 1 |

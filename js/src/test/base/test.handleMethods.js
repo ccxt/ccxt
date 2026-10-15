@@ -4,13 +4,14 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
+// AUTO_TRANSPILE_ENABLED
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
 function helperTestHandleMarketTypeAndParams() {
     const exchange = new ccxt.Exchange({
         'id': 'sampleexchange',
         'options': {
-            'defaultType': 'valueFromOptions',
+            'defaultType': 'option',
             'fetchX': {
                 'defaultType': 'valueFromMethodOptions',
             },
@@ -47,7 +48,7 @@ function helperTestHandleMarketTypeAndParams() {
     // case #5, should prevail: options
     //
     const [marketType5, params5] = exchange.handleMarketTypeAndParams('fetchY', undefined, {}, undefined);
-    assert(marketType5 === 'valueFromOptions');
+    assert(marketType5 === 'option');
     //
     // case #6, should prevail: spot (because hardcoded in base)
     //
@@ -57,25 +58,30 @@ function helperTestHandleMarketTypeAndParams() {
     // fake assertion to avoid unused vars
     assert(params1 !== undefined || params2 !== undefined || params3 !== undefined || params4 !== undefined || params5 !== undefined || params6 !== undefined);
 }
-function helperTestHandleNetworkRequest() {
+function helperTestHandleTypedOptions() {
     const exchange = new ccxt.Exchange({
         'id': 'sampleexchange',
         'options': {
-            'networks': {
-                'XYZ': 'Xyz',
-            }
+            'marginMode': 'isolated',
+            'fetchX': {
+                'uta': true,
+            },
         },
     });
-    exchange.currencies = exchange.createSafeDictionary(); // todo: initialize in C# base files
-    const currencyCode = 'ETH'; // todo: in future with complex cases
-    // no-case
-    const [request1, params1] = exchange.handleRequestNetwork({ 'network': 'XYZ' }, {}, 'chain_id', currencyCode, false);
-    assert(!('network' in params1));
-    assert('chain_id' in request1);
-    assert(request1['chain_id'] === 'Xyz');
+    const [marginMode, params1] = exchange.handleMarginModeAndParams('fetchX', {}, 'cross');
+    assert(marginMode === 'isolated');
+    const [uta, params2] = exchange.handleOptionBoolAndParams({}, 'fetchX', 'uta', false);
+    assert(uta === true);
+    const [absent, params3] = exchange.handleOptionStringAndParams({}, 'fetchX', 'absentKey', 'fallback');
+    assert(absent === 'fallback');
+    const [fromParams, params4] = exchange.handleOptionStringAndParams({ 'absentKey': 'p' }, 'fetchX', 'absentKey', 'fallback');
+    assert(fromParams === 'p');
+    assert(!('absentKey' in params4));
+    // a wrong-typed option is covered per language in language_specific (it throws only in C#, Java and Go)
+    assert(params1 !== undefined || params2 !== undefined || params3 !== undefined);
 }
 function testHandleMethods() {
     helperTestHandleMarketTypeAndParams();
-    helperTestHandleNetworkRequest();
+    helperTestHandleTypedOptions();
 }
 export default testHandleMethods;

@@ -15,11 +15,10 @@
                     "USDT",
                     5,
                     "0x883b79D31EA07AA200A4a83c50d444470A212eEE",
-                    null,
                     {
-                        "network": "ERC20"
+                      "network": "ERC20"
                     }
-                ],
+                  ],
                 "output": { "coin": "USDT", "amount": "5", "address": "0x883b79D31EA07AA200A4a83c50d444470A212eEE", "network": "ETH" }
             },
             {
@@ -30,11 +29,10 @@
                     "USDT",
                     5,
                     "TXae5onz4UzHXwHjwHWUPxrwfxNqBZ5efD",
-                    null,
                     {
-                        "network": "TRC20"
+                      "network": "TRC20"
                     }
-                ],
+                  ],
                 "output": { "coin": "USDT", "amount": "5", "address": "TXae5onz4UzHXwHjwHWUPxrwfxNqBZ5efD", "network": "TRX" }
             }
         ],
@@ -391,6 +389,94 @@
                 "method": "fetchWithdrawals",
                 "url": "https://api.poloniex.com/wallets/activity?start=1388420472&end=1699460472",
                 "input": []
+            }
+        ],
+        "createOrders": [
+            {
+                "description": "spot batch of two limit buys",
+                "method": "createOrders",
+                "url": "https://api.poloniex.com/orders/batch",
+                "input": [
+                    [
+                        {
+                            "symbol": "BTC/USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 1,
+                            "price": 20000,
+                            "params": {
+                                "clientOrderId": "batch-1"
+                            }
+                        },
+                        {
+                            "symbol": "BTC/USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 2,
+                            "price": 19000
+                        }
+                    ]
+                ],
+                "output": "[{\"symbol\":\"BTC_USDT\",\"side\":\"BUY\",\"type\":\"LIMIT\",\"quantity\":\"1\",\"price\":\"20000\",\"clientOrderId\":\"batch-1\"},{\"symbol\":\"BTC_USDT\",\"side\":\"BUY\",\"type\":\"LIMIT\",\"quantity\":\"2\",\"price\":\"19000\"}]"
+            },
+            {
+                "description": "swap batch of two limit buys with cross margin",
+                "method": "createOrders",
+                "url": "https://api.poloniex.com/v3/trade/orders",
+                "input": [
+                    [
+                        {
+                            "symbol": "BTC/USDT:USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 1,
+                            "price": 84000,
+                            "params": {
+                                "marginMode": "cross",
+                                "clientOrderId": "batch-swap-1"
+                            }
+                        },
+                        {
+                            "symbol": "BTC/USDT:USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 1,
+                            "price": 83000,
+                            "params": {
+                                "marginMode": "cross"
+                            }
+                        }
+                    ]
+                ],
+                "output": "[{\"symbol\":\"BTC_USDT_PERP\",\"side\":\"BUY\",\"mgnMode\":\"CROSS\",\"type\":\"LIMIT\",\"sz\":\"1\",\"px\":\"84000\",\"clOrdId\":\"batch-swap-1\",\"posSide\":\"BOTH\"},{\"symbol\":\"BTC_USDT_PERP\",\"side\":\"BUY\",\"mgnMode\":\"CROSS\",\"type\":\"LIMIT\",\"sz\":\"1\",\"px\":\"83000\",\"posSide\":\"BOTH\"}]"
+            }
+        ],
+        "cancelOrders": [
+            {
+                "description": "spot cancel two orders by ids",
+                "method": "cancelOrders",
+                "url": "https://api.poloniex.com/orders/cancelByIds",
+                "input": [
+                    [
+                        "123456789",
+                        "987654321"
+                    ],
+                    "BTC/USDT"
+                ],
+                "output": "{\"orderIds\":[\"123456789\",\"987654321\"]}"
+            },
+            {
+                "description": "swap cancel two orders by ids, symbol required",
+                "method": "cancelOrders",
+                "url": "https://api.poloniex.com/v3/trade/batchOrders",
+                "input": [
+                    [
+                        "613143856837730304",
+                        "613144005890699264"
+                    ],
+                    "BTC/USDT:USDT"
+                ],
+                "output": "{\"symbol\":\"BTC_USDT_PERP\",\"ordIds\":[\"613143856837730304\",\"613144005890699264\"]}"
             }
         ],
         "createOrder": [

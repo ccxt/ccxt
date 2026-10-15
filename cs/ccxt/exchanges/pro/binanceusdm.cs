@@ -12,7 +12,7 @@ public partial class binanceusdm : binance
         // eslint-disable-next-line new-cap
         var restInstance = new ccxt.binanceusdm();
         Dictionary<string, object> restDescribe = restInstance.describe();
-        object parentWsDescribe = base.describeData();
+        Dictionary<string, object> parentWsDescribe = base.describeData();
         Dictionary<string, object> extended = this.deepExtend(restDescribe, parentWsDescribe);
         return this.deepExtend(extended, new Dictionary<string, object>() {
             { "id", "binanceusdm" },

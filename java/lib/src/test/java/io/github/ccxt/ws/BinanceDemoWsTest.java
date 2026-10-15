@@ -49,7 +49,7 @@ public class BinanceDemoWsTest {
         exchange.enableDemoTrading(true);
         System.out.println("Demo trading enabled");
         System.out.println("Loading markets...");
-        exchange.loadMarkets().join();
+        exchange.loadMarkets(false, new java.util.HashMap<String, Object>()).join();
         System.out.println("Markets loaded. Starting WS tests...\n");
 
         // ── Public endpoints ──

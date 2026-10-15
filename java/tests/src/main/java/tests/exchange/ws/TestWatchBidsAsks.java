@@ -48,7 +48,7 @@ public class TestWatchBidsAsks extends BaseTest {
             Object startTime = exchange.milliseconds();
             try
             {
-                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchBidsAsks", new Object[]{argSymbols, argParams})).join();
+                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchBidsAsks", new Object[]{Helpers.toStringListArg(argSymbols), Helpers.toMapArg(argParams)})).join();
             } catch(Exception e)
             {
                 // for some exchanges, multi symbol methods might require symbols array to be present, so

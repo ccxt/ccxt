@@ -310,7 +310,7 @@ public partial class Exchange
                 if (isTrue(isGreaterThanOrEqual(index, 0)))
                 {
                     stored.reset(orderBook);
-                    this.handleDeltas(stored, arraySlice(cache, index));
+                    this.handleBookDeltas(stored, arraySlice(cache, index));
                     stored.cache.Clear();
                     client.resolve(stored, messageHash);
                     return;
@@ -324,7 +324,10 @@ public partial class Exchange
             error = e;
         }
         (client).reject(error, messageHash);
-        this.clients.TryRemove(client.url, out _);
+        // close the dropped connection, otherwise its receive and ping loops keep running
+        // (Close() sets client.error itself, so onClose skips it)
+        _ = client.Close();
+        this.CleanupClients(client, error);
         ((System.Collections.Generic.IDictionary<string, object>)this.orderbooks)[(string)symbol] = this.orderBook();
     }
 }

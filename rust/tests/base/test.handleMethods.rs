@@ -14,7 +14,7 @@ fn helperTestHandleMarketTypeAndParams() {
             m.insert("id".to_string(), Value::Str("sampleexchange".into()));
             m.insert("options".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("defaultType".to_string(), Value::Str("valueFromOptions".into()));
+        m.insert("defaultType".to_string(), Value::Str("option".into()));
         m.insert("fetchX".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("defaultType".to_string(), Value::Str("valueFromMethodOptions".into()));
@@ -81,7 +81,7 @@ fn helperTestHandleMarketTypeAndParams() {
 }), Value::Null]);
     let mut marketType5: Value = marketType5params5Variable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
     let mut params5: Value = marketType5params5Variable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(marketType5.as_str() == Some("valueFromOptions")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(marketType5.as_str() == Some("option")))));
     //
     // case #6, should prevail: spot (because hardcoded in base)
     //
@@ -96,39 +96,56 @@ fn helperTestHandleMarketTypeAndParams() {
     // fake assertion to avoid unused vars
     assert!(ccxt::runtime::is_true(&(Value::Bool((params1 != Value::Null) || (params2 != Value::Null) || (params3 != Value::Null) || (params4 != Value::Null) || (params5 != Value::Null) || (params6 != Value::Null)))));
 }
-fn helperTestHandleNetworkRequest() {
+fn helperTestHandleTypedOptions() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("id".to_string(), Value::Str("sampleexchange".into()));
             m.insert("options".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("networks".to_string(), Value::Map({
+        m.insert("marginMode".to_string(), Value::Str("isolated".into()));
+        m.insert("fetchX".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("XYZ".to_string(), Value::Str("Xyz".into()));
+        m.insert("uta".to_string(), Value::Bool(true));
     m
 }));
     m
 }));
         m
     }));
-    // (set_value on Exchange dropped)
-    let mut currencyCode: Value = Value::Str("ETH".into()); // todo: in future with complex cases
-    // no-case
-    let mut request1params1Variable = exchange.handle_request_network(Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("network".to_string(), Value::Str("XYZ".into()));
-    m
-}), Value::Map({
+    let mut marginModeparams1Variable = exchange.handle_margin_mode_and_params(Value::Str("fetchX".into()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), Value::Str("chain_id".into()), &[currencyCode.clone(), Value::Bool(false)]);
-    let mut request1: Value = request1params1Variable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-    let mut params1: Value = request1params1Variable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(matches!(&params1, Value::Dict(__d) if __d.contains_key("network"))))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(matches!(&request1, Value::Dict(__d) if __d.contains_key("chain_id"))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(request1.as_map().and_then(|__m| __m.get("chain_id")).cloned().unwrap_or(Value::Null).as_str() == Some("Xyz")))));
+}), Value::Str("cross".into())]);
+    let mut marginMode: Value = marginModeparams1Variable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+    let mut params1: Value = marginModeparams1Variable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(marginMode.as_str() == Some("isolated")))));
+    let mut utaparams2Variable = exchange.handle_option_bool_and_params(Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}), Value::Str("fetchX".into()), Value::Str("uta".into()), &[Value::Bool(false)]);
+    let mut uta: Value = utaparams2Variable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+    let mut params2: Value = utaparams2Variable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(uta.as_bool() == Some(true)))));
+    let mut absentparams3Variable = exchange.handle_option_string_and_params(Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}), Value::Str("fetchX".into()), Value::Str("absentKey".into()), &[Value::Str("fallback".into())]);
+    let mut absent: Value = absentparams3Variable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+    let mut params3: Value = absentparams3Variable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(absent.as_str() == Some("fallback")))));
+    let mut fromParamsparams4Variable = exchange.handle_option_string_and_params(Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("absentKey".to_string(), Value::Str("p".into()));
+    m
+}), Value::Str("fetchX".into()), Value::Str("absentKey".into()), &[Value::Str("fallback".into())]);
+    let mut fromParams: Value = fromParamsparams4Variable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+    let mut params4: Value = fromParamsparams4Variable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(fromParams.as_str() == Some("p")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(matches!(&params4, Value::Dict(__d) if __d.contains_key("absentKey"))))))));
+    // a wrong-typed option is covered per language in language_specific (it throws only in C#, Java and Go)
+    assert!(ccxt::runtime::is_true(&(Value::Bool((params1 != Value::Null) || (params2 != Value::Null) || (params3 != Value::Null)))));
 }
 pub fn testHandleMethods() {
     helperTestHandleMarketTypeAndParams();
-    helperTestHandleNetworkRequest();
+    helperTestHandleTypedOptions();
 }

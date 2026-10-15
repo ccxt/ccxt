@@ -1,12 +1,12 @@
 import coinbaseexchangeRest from '../coinbaseexchange.js';
-import type { Tickers, Int, Ticker, Str, Strings, OrderBook, Trade, Order, Dict, Bool, Market } from '../base/types.js';
+import type { Tickers, Int, Ticker, Str, Strings, OrderBook, Trade, Order, Dict, Bool, Market, List } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class coinbaseexchange extends coinbaseexchangeRest {
     describe(): any;
     authenticate(): {
         timestamp: number;
         key: string;
-        signature: any;
+        signature: string;
         passphrase: string;
     };
     subscribe(name: string, symbol?: Str, messageHashStart?: Str, params?: Dict): Promise<any>;
@@ -123,7 +123,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
     handleOrder(client: Client, message: Dict): void;
     parseWsOrder(order: Dict, market?: Market): Order;
     handleTicker(client: Client, message: Dict): Dict;
-    parseTicker(ticker: Dict, market?: Market): Ticker;
+    parseTicker(ticker: Dict | List, market?: Market): Ticker;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
     handleOrderBook(client: Client, message: Dict): void;

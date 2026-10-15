@@ -29,7 +29,7 @@ public class Okxus extends io.github.ccxt.exchanges.Okxus
             put( "urls", new HashMap<String, Object>() {{
                 put( "api", new HashMap<String, Object>() {{
                     put( "rest", "https://{hostname}" );
-                    put( "ws", "wss://wsus.okx.com:8443/ws/v5" );
+                    put( "ws", "wss://wsus.okx.com:443/ws/v5" );
                 }} );
                 put( "www", "https://app.okx.com" );
                 put( "doc", "https://app.okx.com/docs-v5/en/#overview" );
@@ -39,7 +39,7 @@ public class Okxus extends io.github.ccxt.exchanges.Okxus
                     put( "discount", 0.2 );
                 }} );
                 put( "test", new HashMap<String, Object>() {{
-                    put( "ws", "wss://wsuspap.okx.com:8443/ws/v5" );
+                    put( "ws", "wss://wsuspap.okx.com:443/ws/v5" );
                 }} );
             }} );
             put( "has", new HashMap<String, Object>() {{

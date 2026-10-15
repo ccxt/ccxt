@@ -255,13 +255,10 @@ class lbank extends lbank$1["default"] {
                 },
                 'networks': {
                     'ERC20': 'erc20',
-                    'ETH': 'erc20',
                     'TRC20': 'trc20',
-                    'TRX': 'trc20',
                     'OMNI': 'omni',
                     'ASA': 'asa',
                     'BEP20': 'bep20(bsc)',
-                    'BSC': 'bep20(bsc)',
                     'HT': 'heco',
                     'BNB': 'bep2',
                     'BTC': 'btc',
@@ -388,14 +385,13 @@ class lbank extends lbank$1["default"] {
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
     async fetchTime(params = {}) {
-        let type = undefined;
-        [type, params] = this.handleMarketTypeAndParams('fetchTime', undefined, params);
+        const [type, paramsMarketType] = this.handleMarketTypeAndParams('fetchTime', undefined, params);
         let response;
         if (type === 'swap') {
-            response = await this.contractPublicGetCfdOpenApiV1PubGetTime(params);
+            response = await this.contractPublicGetCfdOpenApiV1PubGetTime(paramsMarketType);
         }
         else {
-            response = await this.spotPublicGetTimestamp(params);
+            response = await this.spotPublicGetTimestamp(paramsMarketType);
         }
         //
         // spot
@@ -472,7 +468,7 @@ class lbank extends lbank$1["default"] {
         const networksRaw = rawCurrency;
         const networks = {};
         for (let j = 0; j < networksRaw.length; j++) {
-            const networkEntry = networksRaw[j];
+            const networkEntry = this.safeDict(networksRaw, j);
             let networkId = this.safeString(networkEntry, 'chain');
             if (networkId === undefined) {
                 networkId = this.safeString(networkEntry, 'assetCode'); // use type as fallback if networkId is not present
@@ -569,6 +565,9 @@ class lbank extends lbank$1["default"] {
             const quoteId = parts[1];
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const symbol = base + '/' + quote;
             result.push({
                 'id': marketId,
@@ -665,6 +664,9 @@ class lbank extends lbank$1["default"] {
             const quoteId = settleId;
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const settle = this.safeCurrencyCode(settleId);
             const symbol = base + '/' + quote + ':' + settle;
             result.push({
@@ -762,8 +764,8 @@ class lbank extends lbank$1["default"] {
         const marketId = this.safeString(ticker, 'symbol');
         const symbol = this.safeSymbol(marketId, market);
         const tickerData = this.safeDict(ticker, 'ticker', {});
-        market = this.safeMarket(marketId, market);
-        const data = (market['contract'] === true) ? ticker : tickerData;
+        const marketResolved = this.safeMarket(marketId, market);
+        const data = (marketResolved['contract'] === true) ? ticker : tickerData;
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -785,7 +787,7 @@ class lbank extends lbank$1["default"] {
             'baseVolume': this.safeString2(data, 'vol', 'volume'),
             'quoteVolume': this.safeString(data, 'turnover'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -803,7 +805,8 @@ class lbank extends lbank$1["default"] {
         const market = this.market(symbol);
         if (market['swap'] === true) {
             const responseForSwap = await this.fetchTickers([market['symbol']], params);
-            return this.safeValue(responseForSwap, market['symbol']);
+            const swapTicker = this.safeDict(responseForSwap, market['symbol']);
+            return swapTicker;
         }
         const request = {
             'symbol': market['id'],
@@ -849,24 +852,23 @@ class lbank extends lbank$1["default"] {
             await this.loadMarkets();
         }
         let market = undefined;
-        if (symbols !== undefined) {
-            symbols = this.marketSymbols(symbols);
-            const symbolsLength = symbols.length;
+        const symbolsNormalized = this.marketSymbols(symbols);
+        if (symbolsNormalized !== undefined) {
+            const symbolsLength = symbolsNormalized.length;
             if (symbolsLength > 0) {
-                market = this.market(symbols[0]);
+                market = this.market(symbolsNormalized[0]);
             }
         }
         const request = {};
-        let type = undefined;
-        [type, params] = this.handleMarketTypeAndParams('fetchTickers', market, params);
+        const [type, paramsMarketType] = this.handleMarketTypeAndParams('fetchTickers', market, params);
         let response;
         if (type === 'swap') {
             request['productGroup'] = 'SwapU';
-            response = await this.contractPublicGetCfdOpenApiV1PubMarketData(this.extend(request, params));
+            response = await this.contractPublicGetCfdOpenApiV1PubMarketData(this.extend(request, paramsMarketType));
         }
         else {
             request['symbol'] = 'all';
-            response = await this.spotPublicGetTicker24hr(this.extend(request, params));
+            response = await this.spotPublicGetTicker24hr(this.extend(request, paramsMarketType));
         }
         //
         // spot
@@ -914,7 +916,7 @@ class lbank extends lbank$1["default"] {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        return this.parseTickers(data, symbols);
+        return this.parseTickers(data, symbolsNormalized);
     }
     /**
      * @method
@@ -932,22 +934,19 @@ class lbank extends lbank$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (limit === undefined) {
-            limit = 60;
-        }
+        const limitResolved = (limit === undefined) ? 60 : limit;
         const request = {
             'symbol': market['id'],
         };
-        let type = undefined;
-        [type, params] = this.handleMarketTypeAndParams('fetchOrderBook', market, params);
+        const [type, paramsMarketType] = this.handleMarketTypeAndParams('fetchOrderBook', market, params);
         let response;
         if (type === 'swap') {
-            request['depth'] = limit;
-            response = await this.contractPublicGetCfdOpenApiV1PubMarketOrder(this.extend(request, params));
+            request['depth'] = limitResolved;
+            response = await this.contractPublicGetCfdOpenApiV1PubMarketOrder(this.extend(request, paramsMarketType));
         }
         else {
-            request['size'] = limit;
-            response = await this.spotPublicGetDepth(this.extend(request, params));
+            request['size'] = limitResolved;
+            response = await this.spotPublicGetDepth(this.extend(request, paramsMarketType));
         }
         //
         // spot
@@ -1140,13 +1139,13 @@ class lbank extends lbank$1["default"] {
         const options = this.safeDict(this.options, 'fetchTrades', {});
         const defaultMethod = this.safeString(options, 'method', 'spotPublicGetTrades');
         const method = this.safeString(params, 'method', defaultMethod);
-        params = this.omit(params, 'method');
+        const paramsOmitted = this.omit(params, 'method');
         let response;
         if (method === 'spotPublicGetSupplementTrades') {
-            response = await this.spotPublicGetSupplementTrades(this.extend(request, params));
+            response = await this.spotPublicGetSupplementTrades(this.extend(request, paramsOmitted));
         }
         else {
-            response = await this.spotPublicGetTrades(this.extend(request, params));
+            response = await this.spotPublicGetTrades(this.extend(request, paramsOmitted));
         }
         //
         //      {
@@ -1205,18 +1204,11 @@ class lbank extends lbank$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (limit === undefined) {
-            limit = 100;
-        }
-        else {
-            limit = Math.min(limit, 2000);
-        }
-        if (since === undefined) {
-            const duration = this.parseTimeframe(timeframe);
-            since = this.milliseconds() - (duration * 1000 * limit);
-        }
-        const parsedSince = this.parseToInt(since / 1000);
-        const parsedLimit = Math.min(limit + 1, 2000); // max 2000;
+        const limitResolved = (limit === undefined) ? 100 : Math.min(limit, 2000);
+        const duration = this.parseTimeframe(timeframe);
+        const sinceResolved = (since === undefined) ? (this.milliseconds() - (duration * 1000 * limitResolved)) : since;
+        const parsedSince = this.parseToInt(sinceResolved / 1000);
+        const parsedLimit = Math.min(limitResolved + 1, 2000); // max 2000;
         const request = {
             'symbol': market['id'],
             'type': this.safeString(this.timeframes, timeframe, timeframe),
@@ -1246,7 +1238,7 @@ class lbank extends lbank$1["default"] {
         //   ]
         // ]
         //
-        return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
+        return this.parseOHLCVs(ohlcvs, market, timeframe, sinceResolved, limitResolved);
     }
     parseBalance(response) {
         //
@@ -1332,7 +1324,7 @@ class lbank extends lbank$1["default"] {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
         };
-        const data = this.safeValue(response, 'data');
+        const data = this.safeDict(response, 'data');
         // from spotPrivatePostUserInfo
         const toBtc = this.safeValue(data, 'toBtc');
         if (toBtc !== undefined) {
@@ -1355,7 +1347,7 @@ class lbank extends lbank$1["default"] {
         const balances = this.safeList(data, 'balances');
         if (balances !== undefined) {
             for (let i = 0; i < balances.length; i++) {
-                const item = balances[i];
+                const item = this.safeDict(balances, i);
                 const currencyId = this.safeString(item, 'asset');
                 const codeInner = this.safeCurrencyCode(currencyId);
                 const account = this.account();
@@ -1371,7 +1363,7 @@ class lbank extends lbank$1["default"] {
         const isArray = Array.isArray(data);
         if (isArray === true) {
             for (let i = 0; i < data.length; i++) {
-                const item = data[i];
+                const item = this.safeDict(data, i);
                 const currencyId = this.safeString(item, 'coin');
                 const codeInner = this.safeCurrencyCode(currencyId);
                 const account = this.account();
@@ -1447,7 +1439,8 @@ class lbank extends lbank$1["default"] {
         }
         const market = this.market(symbol);
         const responseForSwap = await this.fetchFundingRates([market['symbol']], params);
-        return this.safeValue(responseForSwap, market['symbol']);
+        const fundingRate = this.safeDict(responseForSwap, market['symbol']);
+        return fundingRate;
     }
     /**
      * @method
@@ -1462,7 +1455,7 @@ class lbank extends lbank$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        const symbolsNormalized = this.marketSymbols(symbols);
         const request = {
             'productGroup': 'SwapU',
         };
@@ -1491,7 +1484,7 @@ class lbank extends lbank$1["default"] {
         //     "success": True,
         // }
         const data = this.safeList(response, 'data', []);
-        return this.parseFundingRates(data, symbols);
+        return this.parseFundingRates(data, symbolsNormalized);
     }
     /**
      * @method
@@ -1588,7 +1581,8 @@ class lbank extends lbank$1["default"] {
     async fetchTradingFee(symbol, params = {}) {
         const market = this.market(symbol);
         const result = await this.fetchTradingFees(this.extend(params, { 'category': market['id'] }));
-        return this.safeDict(result, symbol);
+        const fee = this.safeDict(result, symbol);
+        return fee;
     }
     /**
      * @method
@@ -1657,7 +1651,7 @@ class lbank extends lbank$1["default"] {
         const clientOrderId = this.safeString2(params, 'custom_id', 'clientOrderId');
         const postOnly = this.safeBool(params, 'postOnly', false);
         const timeInForce = this.safeStringUpper(params, 'timeInForce');
-        params = this.omit(params, ['custom_id', 'clientOrderId', 'timeInForce', 'postOnly']);
+        let paramsRequest = this.omit(params, ['custom_id', 'clientOrderId', 'timeInForce', 'postOnly']);
         const request = {
             'symbol': market['id'],
         };
@@ -1690,9 +1684,9 @@ class lbank extends lbank$1["default"] {
                 request['type'] = side + '_' + 'market';
                 let quoteAmount = undefined;
                 let createMarketBuyOrderRequiresPrice = true;
-                [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-                const cost = this.safeNumber(params, 'cost');
-                params = this.omit(params, 'cost');
+                [createMarketBuyOrderRequiresPrice, paramsRequest] = this.handleOptionBoolAndParams(paramsRequest, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                const cost = this.safeNumber(paramsRequest, 'cost');
+                paramsRequest = this.omit(paramsRequest, 'cost');
                 if (cost !== undefined) {
                     quoteAmount = this.costToPrecision(symbol, cost);
                 }
@@ -1719,14 +1713,14 @@ class lbank extends lbank$1["default"] {
         }
         const options = this.safeDict(this.options, 'createOrder', {});
         const defaultMethod = this.safeString(options, 'method', 'spotPrivatePostSupplementCreateOrder');
-        const method = this.safeString(params, 'method', defaultMethod);
-        params = this.omit(params, 'method');
+        const method = this.safeString(paramsRequest, 'method', defaultMethod);
+        const paramsOmitted = this.omit(paramsRequest, 'method');
         let response;
         if (method === 'spotPrivatePostCreateOrder') {
-            response = await this.spotPrivatePostCreateOrder(this.extend(request, params));
+            response = await this.spotPrivatePostCreateOrder(this.extend(request, paramsOmitted));
         }
         else {
-            response = await this.spotPrivatePostSupplementCreateOrder(this.extend(request, params));
+            response = await this.spotPrivatePostSupplementCreateOrder(this.extend(request, paramsOmitted));
         }
         //
         //      {
@@ -1849,7 +1843,7 @@ class lbank extends lbank$1["default"] {
         const timestamp = this.safeInteger2(order, 'time', 'create_time');
         const rawStatus = this.safeString(order, 'status');
         const marketId = this.safeString(order, 'symbol');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         let timeInForce = undefined;
         let postOnly = false;
         let type = 'limit';
@@ -1884,7 +1878,7 @@ class lbank extends lbank$1["default"] {
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
             'status': this.parseOrderStatus(rawStatus),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
@@ -1899,7 +1893,7 @@ class lbank extends lbank$1["default"] {
             'fee': undefined,
             'info': order,
             'average': undefined,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -2031,8 +2025,8 @@ class lbank extends lbank$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        since = this.safeValue(params, 'start_date', since);
-        params = this.omit(params, 'start_date');
+        const sinceValue = this.safeValue(params, 'start_date', since);
+        const paramsOmitted = this.omit(params, 'start_date');
         const request = {
             'symbol': market['id'],
             // 'start_date' Start time yyyy-mm-dd, the maximum is today, the default is yesterday
@@ -2045,11 +2039,11 @@ class lbank extends lbank$1["default"] {
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        if (since !== undefined) {
-            request['start_date'] = this.ymd(since, '-'); // max query 2 days ago
-            request['end_date'] = this.ymd(since + 86400000, '-'); // will cover 2 days
+        if (sinceValue !== undefined) {
+            request['start_date'] = this.ymd(sinceValue, '-'); // max query 2 days ago
+            request['end_date'] = this.ymd(sinceValue + 86400000, '-'); // will cover 2 days
         }
-        const response = await this.spotPrivatePostTransactionHistory(this.extend(request, params));
+        const response = await this.spotPrivatePostTransactionHistory(this.extend(request, paramsOmitted));
         //
         //      {
         //          "result":true,
@@ -2071,7 +2065,7 @@ class lbank extends lbank$1["default"] {
         //      }
         //
         const trades = this.safeList(response, 'data', []);
-        return this.parseTrades(trades, market, since, limit);
+        return this.parseTrades(trades, market, sinceValue, limit);
     }
     /**
      * @method
@@ -2094,13 +2088,11 @@ class lbank extends lbank$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (limit === undefined) {
-            limit = 100;
-        }
+        const limitResolved = (limit === undefined) ? 100 : limit;
         const request = {
             'symbol': market['id'],
             'current_page': 1,
-            'page_length': limit,
+            'page_length': limitResolved,
             // 'status'  -1: Cancelled, 0: Unfilled, 1: Partially filled, 2: Completely filled, 3: Partially filled and cancelled, 4: Cancellation is being processed
         };
         const response = await this.spotPrivatePostSupplementOrdersInfoHistory(this.extend(request, params));
@@ -2133,7 +2125,7 @@ class lbank extends lbank$1["default"] {
         //
         const result = this.safeDict(response, 'data', {});
         const orders = this.safeList(result, 'orders', []);
-        return this.parseOrders(orders, market, since, limit);
+        return this.parseOrders(orders, market, since, limitResolved);
     }
     /**
      * @method
@@ -2154,13 +2146,11 @@ class lbank extends lbank$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (limit === undefined) {
-            limit = 100;
-        }
+        const limitResolved = (limit === undefined) ? 100 : limit;
         const request = {
             'symbol': market['id'],
             'current_page': 1,
-            'page_length': limit,
+            'page_length': limitResolved,
         };
         const response = await this.spotPrivatePostSupplementOrdersInfoNoDeal(this.extend(request, params));
         //
@@ -2192,7 +2182,7 @@ class lbank extends lbank$1["default"] {
         //
         const result = this.safeDict(response, 'data', {});
         const orders = this.safeList(result, 'orders', []);
-        return this.parseOrders(orders, market, since, limit);
+        return this.parseOrders(orders, market, since, limitResolved);
     }
     /**
      * @method
@@ -2212,7 +2202,7 @@ class lbank extends lbank$1["default"] {
             await this.loadMarkets();
         }
         const clientOrderId = this.safeString2(params, 'origClientOrderId', 'clientOrderId');
-        params = this.omit(params, ['origClientOrderId', 'clientOrderId']);
+        const paramsOmitted = this.omit(params, ['origClientOrderId', 'clientOrderId']);
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -2221,7 +2211,7 @@ class lbank extends lbank$1["default"] {
         if (clientOrderId !== undefined) {
             request['origClientOrderId'] = clientOrderId;
         }
-        const response = await this.spotPrivatePostSupplementCancelOrder(this.extend(request, params));
+        const response = await this.spotPrivatePostSupplementCancelOrder(this.extend(request, paramsOmitted));
         //
         //   {
         //      "result":true,
@@ -2283,9 +2273,9 @@ class lbank extends lbank$1["default"] {
         const defaultNetworks = this.safeDict(this.options, 'defaultNetworks');
         const defaultNetwork = this.safeStringUpper(defaultNetworks, currencyCode);
         const networks = this.safeDict(this.options, 'networks', {});
-        let network = this.safeStringUpper(params, 'network', defaultNetwork); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString(networks, network, network); // handle ERC20>ETH alias
-        return network;
+        const networkParam = this.safeStringUpper(params, 'network', defaultNetwork); // accepts unified codes and aliases
+        const networkCode = (networkParam !== undefined) ? this.safeString(this.networkAliases, networkParam, networkParam) : undefined;
+        return this.safeString(networks, networkCode, networkCode);
     }
     /**
      * @method
@@ -2304,13 +2294,13 @@ class lbank extends lbank$1["default"] {
         const options = this.safeDict(this.options, 'fetchDepositAddress', {});
         const defaultMethod = this.safeString(options, 'method', 'fetchDepositAddressDefault');
         const method = this.safeString(params, 'method', defaultMethod);
-        params = this.omit(params, 'method');
+        const paramsOmitted = this.omit(params, 'method');
         let response;
         if (method === 'fetchDepositAddressSupplement') {
-            response = await this.fetchDepositAddressSupplement(code, params);
+            response = await this.fetchDepositAddressSupplement(code, paramsOmitted);
         }
         else {
-            response = await this.fetchDepositAddressDefault(code, params);
+            response = await this.fetchDepositAddressDefault(code, paramsOmitted);
         }
         return response;
     }
@@ -2323,11 +2313,11 @@ class lbank extends lbank$1["default"] {
             'assetCode': currency['id'],
         };
         const network = this.getNetworkCodeForCurrency(code, params);
+        const paramsOmitted = (network !== undefined) ? this.omit(params, 'network') : params;
         if (network !== undefined) {
             request['netWork'] = network; // ... yes, really lol
-            params = this.omit(params, 'network');
         }
-        const response = await this.spotPrivatePostGetDepositAddress(this.extend(request, params));
+        const response = await this.spotPrivatePostGetDepositAddress(this.extend(request, paramsOmitted));
         //
         //      {
         //          "result":true,
@@ -2363,12 +2353,15 @@ class lbank extends lbank$1["default"] {
         };
         const networks = this.safeDict(this.options, 'networks');
         let network = this.safeStringUpper(params, 'network');
+        if (network !== undefined) {
+            network = this.safeString(this.networkAliases, network, network);
+        }
         network = this.safeString(networks, network, network);
+        const paramsOmitted = (network !== undefined) ? this.omit(params, 'network') : params;
         if (network !== undefined) {
             request['networkName'] = network;
-            params = this.omit(params, 'network');
         }
-        const response = await this.spotPrivatePostSupplementGetDepositAddress(this.extend(request, params));
+        const response = await this.spotPrivatePostSupplementGetDepositAddress(this.extend(request, paramsOmitted));
         //
         //      {
         //          "result":true,
@@ -2400,18 +2393,18 @@ class lbank extends lbank$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
-        this.checkAddress(address);
+    async withdraw(code, amount, address, params = {}) {
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
+        this.checkAddress(address, code, tagWithdrawTag);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const fee = this.safeString(params, 'fee');
-        params = this.omit(params, 'fee');
+        const fee = this.safeString(paramsWithdrawTag, 'fee');
+        const paramsOmitted = this.omit(paramsWithdrawTag, 'fee');
         // The relevant coin network fee can be found by calling fetchDepositWithdrawFees (), note: if no network param is supplied then the default network will be used, this can also be found in fetchDepositWithdrawFees ().
         this.checkRequiredArgument('withdraw', fee, 'fee');
         const currency = this.currency(code);
@@ -2427,17 +2420,20 @@ class lbank extends lbank$1["default"] {
             // 'withdrawOrderId': withdrawOrderId
             // 'type': type=1 is for intra-site transfer
         };
-        if (tag !== undefined) {
-            request['memo'] = tag;
+        if (tagWithdrawTag !== undefined) {
+            request['memo'] = tagWithdrawTag;
         }
-        const network = this.safeStringUpper2(params, 'network', 'networkName');
-        params = this.omit(params, ['network', 'networkName']);
+        let network = this.safeStringUpper2(paramsOmitted, 'network', 'networkName');
+        if (network !== undefined) {
+            network = this.safeString(this.networkAliases, network, network);
+        }
+        const paramsOmitted2 = this.omit(paramsOmitted, ['network', 'networkName']);
         const networks = this.safeDict(this.options, 'networks');
         const networkId = this.safeString(networks, network, network);
         if (networkId !== undefined) {
             request['networkName'] = networkId;
         }
-        const response = await this.spotPrivatePostSupplementWithdraw(this.extend(request, params));
+        const response = await this.spotPrivatePostSupplementWithdraw(this.extend(request, paramsOmitted2));
         //
         //      {
         //          "result":true,
@@ -2691,12 +2687,12 @@ class lbank extends lbank$1["default"] {
             const options = this.safeDict(this.options, 'fetchTransactionFees', {});
             const defaultMethod = this.safeString(options, 'method', 'fetchPrivateTransactionFees');
             const method = this.safeString(params, 'method', defaultMethod);
-            params = this.omit(params, 'method');
+            const paramsOmitted = this.omit(params, 'method');
             if (method === 'fetchPublicTransactionFees') {
-                result = await this.fetchPublicTransactionFees(params);
+                result = await this.fetchPublicTransactionFees(paramsOmitted);
             }
             else {
-                result = await this.fetchPrivateTransactionFees(params);
+                result = await this.fetchPrivateTransactionFees(paramsOmitted);
             }
         }
         else {
@@ -2744,7 +2740,7 @@ class lbank extends lbank$1["default"] {
         const result = this.safeList(response, 'data', []);
         const withdrawFees = {};
         for (let i = 0; i < result.length; i++) {
-            const entry = result[i];
+            const entry = this.safeDict(result, i);
             const currencyId = this.safeString(entry, 'coin');
             const code = this.safeCurrencyCode(currencyId);
             const networkList = this.safeList(entry, 'networkList', []);
@@ -2752,7 +2748,7 @@ class lbank extends lbank$1["default"] {
                 withdrawFees[code] = {};
             }
             for (let j = 0; j < networkList.length; j++) {
-                const networkEntry = networkList[j];
+                const networkEntry = this.safeDict(networkList, j);
                 const fee = this.safeNumber(networkEntry, 'withdrawFee');
                 if (fee !== undefined) {
                     const networkCode = this.networkIdToCode(this.safeString(networkEntry, 'name'), code);
@@ -2777,13 +2773,13 @@ class lbank extends lbank$1["default"] {
             await this.loadMarkets();
         }
         const code = this.safeString2(params, 'coin', 'assetCode');
-        params = this.omit(params, ['coin', 'assetCode']);
+        const paramsOmitted = this.omit(params, ['coin', 'assetCode']);
         const request = {};
         if (code !== undefined) {
             const currency = this.currency(code);
             request['assetCode'] = currency['id'];
         }
-        const response = await this.spotPublicGetWithdrawConfigs(this.extend(request, params));
+        const response = await this.spotPublicGetWithdrawConfigs(this.extend(request, paramsOmitted));
         //
         //    {
         //        "result": "true",
@@ -2808,7 +2804,7 @@ class lbank extends lbank$1["default"] {
         const result = this.safeList(response, 'data', []);
         const withdrawFees = {};
         for (let i = 0; i < result.length; i++) {
-            const item = result[i];
+            const item = this.safeDict(result, i);
             const canWithdraw = this.safeString(item, 'canWithDraw');
             if (canWithdraw === 'true') {
                 const currencyId = this.safeString(item, 'assetCode');
@@ -2854,12 +2850,12 @@ class lbank extends lbank$1["default"] {
             const options = this.safeDict(this.options, 'fetchDepositWithdrawFees', {});
             const defaultMethod = this.safeString(options, 'method', 'fetchPrivateDepositWithdrawFees');
             const method = this.safeString(params, 'method', defaultMethod);
-            params = this.omit(params, 'method');
+            const paramsOmitted = this.omit(params, 'method');
             if (method === 'fetchPublicDepositWithdrawFees') {
-                response = await this.fetchPublicDepositWithdrawFees(codes, params);
+                response = await this.fetchPublicDepositWithdrawFees(codes, paramsOmitted);
             }
             else {
-                response = await this.fetchPrivateDepositWithdrawFees(codes, params);
+                response = await this.fetchPrivateDepositWithdrawFees(codes, paramsOmitted);
             }
         }
         else {
@@ -3030,7 +3026,7 @@ class lbank extends lbank$1["default"] {
         const code = this.safeString(currency, 'code');
         const networkList = this.safeList(fee, 'networkList', []);
         for (let j = 0; j < networkList.length; j++) {
-            const networkEntry = networkList[j];
+            const networkEntry = this.safeDict(networkList, j);
             const networkCode = this.networkIdToCode(this.safeString(networkEntry, 'name'), code);
             const withdrawFee = this.safeNumber(networkEntry, 'withdrawFee');
             const isDefault = this.safeBool(networkEntry, 'isDefault');
@@ -3057,15 +3053,23 @@ class lbank extends lbank$1["default"] {
         }
         return result;
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         let query = this.omit(params, this.extractParams(path));
-        let url = this.urls['api']['rest'] + '/' + this.version + '/' + this.implodeParams(path, params);
+        const apiUrl = this.safeString(this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + '/' + this.version + '/' + this.implodeParams(path, params);
         // Every spot endpoint ends with ".do"
         if (api[0] === 'spot') {
             url += '.do';
         }
         else {
-            url = this.urls['api']['contract'] + '/' + this.implodeParams(path, params);
+            const contractUrl = this.safeString(this.urls['api'], 'contract');
+            if (contractUrl === undefined) {
+                throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+            }
+            url = contractUrl + '/' + this.implodeParams(path, params);
         }
         if (api[1] === 'public') {
             if (Object.keys(query).length > 0) {
@@ -3115,15 +3119,16 @@ class lbank extends lbank$1["default"] {
                 sign = this.hmac(this.encode(uppercaseHash), this.encode(this.secret), sha2_js.sha256);
             }
             query['sign'] = sign;
-            body = this.urlencode(this.keysort(query));
-            headers = {
+            const bodySigned = this.urlencode(this.keysort(query));
+            const headersSigned = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'timestamp': timestamp,
                 'signature_method': signatureMethod,
                 'echostr': echostr,
             };
+            return { 'url': url, 'method': method, 'body': bodySigned, 'headers': headersSigned };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     convertSecretToPem(secret) {
         const lineLength = 64;

@@ -183,14 +183,14 @@
                             "type": "limit",
                             "side": "buy",
                             "amount": 1,
-                            "price": "25000"
+                            "price": 25000
                         },
                         {
                             "symbol": "BTC/USDT:USDT",
                             "type": "limit",
                             "side": "buy",
                             "amount": 1,
-                            "price": "27000"
+                            "price": 27000
                         }
                     ]
                 ],

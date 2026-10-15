@@ -9,12 +9,15 @@ use Exception; // a common import
 use ccxt\async\abstract\derive as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
+use ccxt\BadRequest;
 use ccxt\InvalidOrder;
 use ccxt\Precise;
 use React\Async;
 use React\Promise;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TRUNCATE;
+use const ccxt\DECIMAL_PLACES;
 use const ccxt\TICK_SIZE;
 
 class derive extends Exchange {
@@ -23,7 +26,7 @@ class derive extends Exchange {
             'id' => 'derive',
             'name' => 'Derive',
             'countries' => array(),
-            'version' => 'v1',
+            'version' => 'v3',
             'rateLimit' => 50,
             'certified' => false,
             'pro' => true,
@@ -50,16 +53,24 @@ class derive extends Exchange {
                 'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createOrders' => false,
-                'createReduceOnlyOrder' => false,
-                'createStopOrder' => false,
-                'createTriggerOrder' => false,
+                'createOrderWithTakeProfitAndStopLoss' => false,
+                'createPostOnlyOrder' => true,
+                'createReduceOnlyOrder' => true,
+                'createStopLimitOrder' => true,
+                'createStopLossOrder' => true,
+                'createStopMarketOrder' => false,
+                'createStopOrder' => true,
+                'createTakeProfitOrder' => true,
+                'createTrailingAmountOrder' => false,
+                'createTrailingPercentOrder' => false,
+                'createTriggerOrder' => true,
                 'editOrder' => true,
-                'fetchAccounts' => false,
+                'fetchAccounts' => true,
                 'fetchBalance' => true,
-                'fetchBorrowInterest' => false,
+                'fetchBorrowInterest' => true,
                 'fetchBorrowRateHistories' => false,
-                'fetchBorrowRateHistory' => false,
-                'fetchCanceledAndClosedOrders' => false,
+                'fetchBorrowRateHistory' => true,
+                'fetchCanceledAndClosedOrders' => true,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchCrossBorrowRate' => false,
@@ -68,16 +79,17 @@ class derive extends Exchange {
                 'fetchDepositAddress' => false,
                 'fetchDepositAddresses' => false,
                 'fetchDeposits' => true,
-                'fetchDepositWithdrawFee' => 'emulated',
+                'fetchDepositWithdrawFee' => false,
                 'fetchDepositWithdrawFees' => false,
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
-                'fetchIndexOHLCV' => false,
+                'fetchGreeks' => true,
+                'fetchIndexOHLCV' => true,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
-                'fetchLedger' => true,
+                'fetchLedger' => false,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => false,
                 'fetchLiquidations' => false,
@@ -86,21 +98,24 @@ class derive extends Exchange {
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyLiquidations' => false,
+                'fetchMySettlementHistory' => true,
                 'fetchMyTrades' => true,
-                'fetchOHLCV' => false,
-                'fetchOpenInterest' => false,
+                'fetchOHLCV' => true,
+                'fetchOpenInterest' => true,
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenInterests' => false,
                 'fetchOpenOrders' => true,
-                'fetchOrder' => false,
+                'fetchOption' => true,
+                'fetchOrder' => true,
                 'fetchOrderBook' => false,
-                'fetchOrders' => true,
+                'fetchOrders' => false,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => true,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
+                'fetchSettlementHistory' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => false,
                 'fetchTime' => true,
@@ -108,7 +123,7 @@ class derive extends Exchange {
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
                 'fetchTransfer' => false,
-                'fetchTransfers' => false,
+                'fetchTransfers' => true,
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
@@ -118,38 +133,112 @@ class derive extends Exchange {
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
-                'transfer' => false,
-                'withdraw' => false,
+                'transfer' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array(
-                '1m' => '1m',
-                '3m' => '3m',
-                '5m' => '5m',
-                '15m' => '15m',
-                '30m' => '30m',
-                '1h' => '1h',
-                '2h' => '2h',
-                '4h' => '4h',
-                '8h' => '8h',
-                '12h' => '12h',
-                '1d' => '1d',
-                '3d' => '3d',
-                '1w' => '1w',
-                '1M' => '1M',
+                '1m' => '60',
+                '5m' => '300',
+                '15m' => '900',
+                '30m' => '1800',
+                '1h' => '3600',
+                '4h' => '14400',
+                '8h' => '28800',
+                '1d' => '86400',
+                '1w' => '604800',
+            ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => array(
+                            'last' => false,
+                            'mark' => true,
+                            'index' => false,
+                        ),
+                        'triggerDirection' => false,
+                        'stopLossPrice' => true,
+                        'takeProfitPrice' => true,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => true,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => null,
+                        'untilDays' => null,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'trigger' => true,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => null,
+                        'daysBackCanceled' => null,
+                        'untilDays' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 5000,
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'default',
+                    ),
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
             ),
             'urls' => array(
                 'logo' => 'https://github.com/user-attachments/assets/9e640700-c870-41f9-8907-fba58e120fed',
                 'api' => array(
-                    'public' => 'https://api.lyra.finance/public',
-                    'private' => 'https://api.lyra.finance/private',
+                    'public' => 'https://api.derive.xyz/v3/public',
+                    'private' => 'https://api.derive.xyz/v3/private',
                 ),
                 'test' => array(
-                    'public' => 'https://api-demo.lyra.finance/public',
-                    'private' => 'https://api-demo.lyra.finance/private',
+                    'public' => 'https://testnet.api.derive.xyz/v3/public',
+                    'private' => 'https://testnet.api.derive.xyz/v3/private',
                 ),
                 'www' => 'https://www.derive.xyz/',
-                'doc' => 'https://docs.derive.xyz/docs/',
-                'fees' => 'https://docs.derive.xyz/reference/fees-1/',
+                'doc' => 'https://docs.derive.xyz/',
+                'fees' => 'https://docs.derive.xyz/integrators/trading/trading-fees',
                 'referral' => 'https://www.derive.xyz/invite/3VB0B',
             ),
             'api' => array(
@@ -158,98 +247,67 @@ class derive extends Exchange {
                         'get_all_currencies' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'build_register_session_key_tx' => array( 'cost' => 1 ),
-                        'register_session_key' => array( 'cost' => 1 ),
-                        'deregister_session_key' => array( 'cost' => 1 ),
+                        'decode_action' => array( 'cost' => 1 ),
                         'get_wallets_from_session_key' => array( 'cost' => 1 ),
-                        'login' => array( 'cost' => 1 ),
-                        'statistics' => array( 'cost' => 1 ),
-                        'all_statistics' => array( 'cost' => 1 ),
-                        'user_statistics' => array( 'cost' => 1 ),
-                        'all_user_statistics' => array( 'cost' => 1 ),
                         'get_all_currencies' => array( 'cost' => 1 ),
                         'get_currency' => array( 'cost' => 1 ),
-                        'get_asset' => array( 'cost' => 1 ),
-                        'get_assets' => array( 'cost' => 1 ),
+                        'get_risk_universes' => array( 'cost' => 1 ),
                         'get_instrument' => array( 'cost' => 1 ),
                         'get_all_instruments' => array( 'cost' => 1 ),
-                        'get_instruments' => array( 'cost' => 1 ),
+                        'get_all_live_instruments' => array( 'cost' => 1 ),
                         'get_ticker' => array( 'cost' => 1 ),
                         'get_tickers' => array( 'cost' => 1 ),
                         'get_latest_signed_feeds' => array( 'cost' => 1 ),
                         'get_option_settlement_prices' => array( 'cost' => 1 ),
-                        'get_spot_feed_history' => array( 'cost' => 1 ),
-                        'get_spot_feed_history_candles' => array( 'cost' => 1 ),
                         'get_index_chart_data' => array( 'cost' => 1 ),
                         'get_tradingview_chart_data' => array( 'cost' => 1 ),
                         'get_funding_rate_history' => array( 'cost' => 1 ),
                         'get_trade_history' => array( 'cost' => 1 ),
-                        'get_option_settlement_history' => array( 'cost' => 1 ),
                         'get_liquidation_history' => array( 'cost' => 1 ),
                         'get_interest_rate_history' => array( 'cost' => 1 ),
-                        'get_perp_impact_twap' => array( 'cost' => 1 ),
                         'get_transaction' => array( 'cost' => 1 ),
+                        'get_onchain_action_history' => array( 'cost' => 1 ),
+                        'get_pending_deposits' => array( 'cost' => 1 ),
+                        'register_deposit_address' => array( 'cost' => 1 ),
                         'get_margin' => array( 'cost' => 1 ),
                         'margin_watch' => array( 'cost' => 1 ),
                         'order_quote' => array( 'cost' => 1 ),
-                        'validate_invite_code' => array( 'cost' => 1 ),
-                        'get_points' => array( 'cost' => 1 ),
-                        'get_all_points' => array( 'cost' => 1 ),
-                        'get_points_leaderboard' => array( 'cost' => 1 ),
-                        'get_descendant_tree' => array( 'cost' => 1 ),
-                        'get_tree_roots' => array( 'cost' => 1 ),
-                        'get_swell_percent_points' => array( 'cost' => 1 ),
-                        'get_stdrv_snapshots' => array( 'cost' => 1 ),
-                        'get_vault_assets' => array( 'cost' => 1 ),
-                        'get_etherfi_effective_balances' => array( 'cost' => 1 ),
-                        'get_kelp_effective_balances' => array( 'cost' => 1 ),
-                        'get_bridge_balances' => array( 'cost' => 1 ),
-                        'get_ethena_participants' => array( 'cost' => 1 ),
-                        'get_vault_share' => array( 'cost' => 1 ),
-                        'get_vault_statistics' => array( 'cost' => 1 ),
-                        'get_vault_balances' => array( 'cost' => 1 ),
-                        'get_vault_pools' => array( 'cost' => 1 ),
-                        'get_vault_rates' => array( 'cost' => 1 ),
-                        'estimate_integrator_points' => array( 'cost' => 1 ),
-                        'create_subaccount_debug' => array( 'cost' => 1 ),
-                        'create_account_with_secret' => array( 'cost' => 1 ),
-                        'deposit_debug' => array( 'cost' => 1 ),
+                        'get_live_auctions' => array( 'cost' => 1 ),
+                        'start_auction' => array( 'cost' => 1 ),
+                        'get_vault' => array( 'cost' => 1 ),
+                        'get_vaults' => array( 'cost' => 1 ),
+                        'get_vault_action_history' => array( 'cost' => 1 ),
+                        'get_vault_performance_history' => array( 'cost' => 1 ),
+                        'set_socialization_feed_data' => array( 'cost' => 1 ),
                         'withdraw_debug' => array( 'cost' => 1 ),
                         'send_quote_debug' => array( 'cost' => 1 ),
                         'execute_quote_debug' => array( 'cost' => 1 ),
-                        'get_invite_code' => array( 'cost' => 1 ),
-                        'register_invite' => array( 'cost' => 1 ),
                         'get_all_referral_codes' => array( 'cost' => 1 ),
                         'get_referral_performance' => array( 'cost' => 1 ),
                         'get_time' => array( 'cost' => 1 ),
                         'get_live_incidents' => array( 'cost' => 1 ),
                         'get_maker_programs' => array( 'cost' => 1 ),
                         'get_maker_program_scores' => array( 'cost' => 1 ),
-                        'get_detailed_maker_snapshot_history' => array( 'cost' => 1 ),
-                        'getRateLimits' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'post' => array(
                         'get_account' => array( 'cost' => 1 ),
-                        'create_subaccount' => array( 'cost' => 1 ),
                         'get_subaccount' => array( 'cost' => 1 ),
                         'get_subaccounts' => array( 'cost' => 1 ),
+                        'delete_subaccount' => array( 'cost' => 1 ),
                         'get_all_portfolios' => array( 'cost' => 1 ),
                         'change_subaccount_label' => array( 'cost' => 1 ),
-                        'get_notificationsv' => array( 'cost' => 1 ),
-                        'get_notifications' => array( 'cost' => 1 ),
-                        'update_notifications' => array( 'cost' => 1 ),
-                        'deposit' => array( 'cost' => 1 ),
                         'withdraw' => array( 'cost' => 1 ),
-                        'transfer_erc20' => array( 'cost' => 1 ),
-                        'transfer_position' => array( 'cost' => 1 ),
+                        'transfer_spot' => array( 'cost' => 1 ),
+                        'transfer_spot_external' => array( 'cost' => 1 ),
                         'transfer_positions' => array( 'cost' => 1 ),
+                        'reject_deposit_request' => array( 'cost' => 1 ),
+                        'update_whitelisted_recipients' => array( 'cost' => 1 ),
                         'order' => array( 'cost' => 1 ),
                         'replace' => array( 'cost' => 1 ),
                         'order_debug' => array( 'cost' => 1 ),
                         'get_order' => array( 'cost' => 1 ),
-                        'get_orders' => array( 'cost' => 1 ),
                         'get_open_orders' => array( 'cost' => 1 ),
                         'get_trigger_orders' => array( 'cost' => 1 ),
                         'get_algo_orders' => array( 'cost' => 1 ),
@@ -285,27 +343,32 @@ class derive extends Exchange {
                         'get_positions' => array( 'cost' => 1 ),
                         'get_option_settlement_history' => array( 'cost' => 1 ),
                         'get_subaccount_value_history' => array( 'cost' => 1 ),
-                        'expired_and_cancelled_history' => array( 'cost' => 1 ),
                         'get_funding_history' => array( 'cost' => 1 ),
                         'get_interest_history' => array( 'cost' => 1 ),
                         'get_erc20_transfer_history' => array( 'cost' => 1 ),
                         'get_liquidation_history' => array( 'cost' => 1 ),
                         'liquidate' => array( 'cost' => 1 ),
-                        'get_liquidator_history' => array( 'cost' => 1 ),
                         'session_keys' => array( 'cost' => 1 ),
+                        'set_session_key' => array( 'cost' => 1 ),
                         'edit_session_key' => array( 'cost' => 1 ),
-                        'change_session_key_label' => array( 'cost' => 1 ),
-                        'register_scoped_session_key' => array( 'cost' => 1 ),
                         'get_mmp_config' => array( 'cost' => 1 ),
                         'set_mmp_config' => array( 'cost' => 1 ),
                         'reset_mmp' => array( 'cost' => 1 ),
-                        'set_cancel_on_disconnect' => array( 'cost' => 1 ),
-                        'get_invite_code' => array( 'cost' => 1 ),
-                        'register_invite' => array( 'cost' => 1 ),
-                        'get_contact_info' => array( 'cost' => 1 ),
-                        'create_contact_info' => array( 'cost' => 1 ),
-                        'update_contact_info' => array( 'cost' => 1 ),
-                        'delete_contact_info' => array( 'cost' => 1 ),
+                        'create_vault' => array( 'cost' => 1 ),
+                        'update_vault_info' => array( 'cost' => 1 ),
+                        'mint_vault_shares' => array( 'cost' => 1 ),
+                        'burn_vault_shares' => array( 'cost' => 1 ),
+                        'force_burn' => array( 'cost' => 1 ),
+                        'request_vault_deposit' => array( 'cost' => 1 ),
+                        'request_vault_withdraw' => array( 'cost' => 1 ),
+                        'cancel_all_vault_requests' => array( 'cost' => 1 ),
+                        'get_vault_shares' => array( 'cost' => 1 ),
+                        'get_curated_vaults' => array( 'cost' => 1 ),
+                        'get_shareholder_vaults' => array( 'cost' => 1 ),
+                        'get_live_mint_requests' => array( 'cost' => 1 ),
+                        'get_live_burn_requests' => array( 'cost' => 1 ),
+                        'get_live_vault_requests' => array( 'cost' => 1 ),
+                        'get_vault_request_history' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -370,6 +433,7 @@ class derive extends Exchange {
                     '11026' => '\\ccxt\\BadRequest', // Transfer reject
                     '11027' => '\\ccxt\\InvalidOrder', // Subaccount undergoing liquidation
                     '11028' => '\\ccxt\\InvalidOrder', // Replaced order filled amount does not match expected state.
+                    '11029' => '\\ccxt\\InvalidOrder', // {"code":11029,"message":"Trade or transfer rejected: open interest cap would be exceeded","data":"open-interest cap exceeded for SpotBorrow on 0x... in universe 1: pre 0, post 2000000000, cap 0"}
                     '11050' => '\\ccxt\\InvalidOrder', // Trigger order was cancelled between the time worker sent order and engine processed order
                     '11051' => '\\ccxt\\InvalidOrder', // {"code":"11051","message":"Trigger price must be higher than the current price for stop orders and vice versa for take orders","data":"Trigger price 9000.0 must be < or > current price 102671.2 depending on trigger type and direction."}
                     '11052' => '\\ccxt\\InvalidOrder', // Trigger order limit exceeded (separate limit from regular orders)
@@ -408,8 +472,8 @@ class derive extends Exchange {
                     '14017' => '\\ccxt\\BadRequest', // The provided signed raw transaction contains contract address that does not match the expected contract address
                     '14018' => '\\ccxt\\BadRequest', // The provided signed raw transaction contains function params that do not match any expected function params
                     '14019' => '\\ccxt\\BadRequest', // The provided signed raw transaction contains function param values that do not match the expected values
-                    '14020' => '\\ccxt\\BadRequest', // The X-LyraWallet header does not match the requested subaccount_id or wallet
-                    '14021' => '\\ccxt\\BadRequest', // The X-LyraWallet header not provided
+                    '14020' => '\\ccxt\\BadRequest', // The X-DeriveWallet header does not match the requested subaccount_id or wallet
+                    '14021' => '\\ccxt\\BadRequest', // The X-DeriveWallet header not provided
                     '14022' => '\\ccxt\\AuthenticationError', // Subscription to a private channel failed
                     '14023' => '\\ccxt\\InvalidOrder', // {"code":"14023","message":"Signer in on-chain related request is not wallet owner or registered session key","data":"Session key does not belong to wallet"}
                     '14024' => '\\ccxt\\BadRequest', // Chain ID must match the current roll up chain id
@@ -449,8 +513,12 @@ class derive extends Exchange {
             'commonCurrencies' => array(
             ),
             'options' => array(
-                'deriveWalletAddress' => '', // a derive wallet address "0x"-prefixed hexstring
+                'deriveWalletAddress' => '', // the owner wallet "0x"-prefixed hexstring; defaults to the walletAddress credential (v3 has no separate derive wallet), override only when signing with a session key for another owner wallet
                 'id' => '0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749',
+                'timeDifference' => 0, // the difference between system clock and exchange clock
+                'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
+                'maxMarketPages' => 25,
+                'maxMarketsPerPage' => 1000,
             ),
         ));
     }
@@ -468,19 +536,65 @@ class derive extends Exchange {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
-         * @see https://docs.derive.xyz/reference/post_public-get-time
+         * @see https://docs.derive.xyz/api-reference/system/publicget_time
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
         $response = Async\await($this->publicPostGetTime($params));
         //
-        // {
-        //     "result": 1735846536758,
-        //     "id": "f1c03d21-f886-4c5a-9a9d-33dd06f180f0"
-        // }
+        //     {
+        //         "id": "8be9f582-7653-48b1-980a-6da11c130d58",
+        //         "result": 1790877292671
+        //     }
         //
         return $this->safe_integer($response, 'result');
+    }
+
+    public function fetch_accounts($params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_accounts(...))($params);
+    }
+
+    private function do_fetch_accounts($params = array()) {
+        /**
+         * fetch all the subaccounts associated with the wallet
+         *
+         * @see https://docs.derive.xyz/api-reference/subaccounts/privateget_subaccounts
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=account-structure account structures~
+         */
+        list($deriveWalletAddress, $paramsDeriveWalletAddress) = $this->handle_derive_wallet_address('fetchAccounts', $params);
+        $request = array(
+            'wallet' => $deriveWalletAddress,
+        );
+        $response = Async\await($this->privatePostGetSubaccounts($this->extend($request, $paramsDeriveWalletAddress)));
+        //
+        //     {
+        //         "id": "1c314a3a-f7f5-47bd-998a-cea5dda11c30",
+        //         "result": {
+        //             "wallet": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //             "subaccount_ids": [
+        //                 86814,
+        //                 86815,
+        //                 86820
+        //             ]
+        //         }
+        //     }
+        //
+        $result = $this->safe_dict($response, 'result', array());
+        $subaccountIds = $this->safe_list($result, 'subaccount_ids', array());
+        $accounts = array();
+        for ($i = 0; $i < count($subaccountIds); $i++) {
+            $subaccountId = $this->safe_string($subaccountIds, $i);
+            $accounts[] = array(
+                'id' => $subaccountId,
+                'type' => null,
+                'code' => null,
+                'info' => $result,
+            );
+        }
+        return $accounts;
     }
 
     public function fetch_currencies($params = array()): PromiseInterface {
@@ -491,59 +605,66 @@ class derive extends Exchange {
         /**
          * fetches all available $currencies on an exchange
          *
-         * @see https://docs.derive.xyz/reference/post_public-get-all-$currencies
+         * @see https://docs.derive.xyz/api-reference/market-data/publicget_all_currencies
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of $currencies
          */
         $tokenResponse = Async\await($this->publicGetGetAllCurrencies($params));
         //
-        //    {
-        //        "result": [
-        //            {
-        //                "currency": "SEI",
-        //                "instrument_types": [
-        //                    "perp"
-        //                ],
-        //                "protocol_asset_addresses": {
-        //                    "perp": "0x7225889B75fd34C68eA3098dAE04D50553C09840",
-        //                    "option": null,
-        //                    "spot": null,
-        //                    "underlying_erc20": null
-        //                },
-        //                "managers": [
-        //                    {
-        //                        "address": "0x28c9ddF9A3B29c2E6a561c1BC520954e5A33de5D",
-        //                        "margin_type": "SM",
-        //                        "currency": null
-        //                    }
-        //                ],
-        //                "srm_im_discount": "0",
-        //                "srm_mm_discount": "0",
-        //                "pm2_collateral_discounts": [],
-        //                "borrow_apy": "0",
-        //                "supply_apy": "0",
-        //                "total_borrow": "0",
-        //                "total_supply": "0",
-        //                "asset_cap_and_supply_per_manager": {
-        //                    "perp": {
-        //                        "SM": [
-        //                            {
-        //                                "current_open_interest": "0",
-        //                                "interest_cap": "2000000",
-        //                                "manager_currency": null
-        //                            }
-        //                        ]
-        //                    },
-        //                    "option": {},
-        //                    "erc20": {}
-        //                },
-        //                "market_type": "SRM_PERP_ONLY",
-        //                "spot_price": "0.2193542905042081",
-        //                "spot_price_24h": "0.238381655533635830"
-        //            },
-        //     "id": "7e07fe1d-0ab4-4d2b-9e22-b65ce9e232dc"
-        // }
+        //     {
+        //         "id": "b343bc1c-8417-485f-9022-e18787909856",
+        //         "result": [
+        //             {
+        //                 "currency": "BTC",
+        //                 "market_type": "ALL",
+        //                 "spot_price": "84829.66932265963",
+        //                 "spot_price_24h": "83566.69063592498",
+        //                 "managers": [
+        //                     {
+        //                         "risk_universe_id": 1,
+        //                         "risk_universe_name": "PRIME",
+        //                         "sm": 1,
+        //                         "pm": 5
+        //                     }
+        //                 ],
+        //                 "option": {
+        //                     "name": "BTC-OPTION",
+        //                     "address": "0xd0711b9eBE84b778483709CDe62BacFDBAE13623",
+        //                     "universes": [
+        //                         {
+        //                             "risk_universe_id": 1,
+        //                             "risk_universe_name": "PRIME",
+        //                             "oi": {
+        //                                 "current_open_interest": "6495.655320644765",
+        //                                 "interest_cap": "300000"
+        //                             }
+        //                         }
+        //                     ]
+        //                 },
+        //                 "perp": {
+        //                     "name": "BTC-PERP",
+        //                     "address": "0xDBa83C0C654DB1cd914FA2710bA743e925B53086",
+        //                     "universes": [
+        //                         {
+        //                             "risk_universe_id": 1,
+        //                             "risk_universe_name": "PRIME",
+        //                             "oi": {
+        //                                 "current_open_interest": "291.309220426457",
+        //                                 "interest_cap": "36000"
+        //                             },
+        //                             "srm_perp_margin_requirements": {
+        //                                 "im_perp_req": "0.066",
+        //                                 "mm_perp_req": "0.05",
+        //                                 "max_leverage": "15.15"
+        //                             }
+        //                         }
+        //                     ]
+        //                 },
+        //                 "spot": []
+        //             }
+        //         ]
+        //     }
         //
         $currencies = $this->safe_list($tokenResponse, 'result', array());
         return $this->parse_currencies($currencies);
@@ -582,61 +703,68 @@ class derive extends Exchange {
 
     private function do_fetch_markets($params = array()) {
         /**
-         * retrieves data on all markets for bybit
+         * retrieves data on all markets for derive
          *
-         * @see https://docs.derive.xyz/reference/post_public-get-all-instruments
+         * @see https://docs.derive.xyz/api-reference/market-data/publicget_all_instruments
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
+        if ($this->safe_bool($this->options, 'adjustForTimeDifference', false)) {
+            Async\await($this->load_time_difference());
+        }
         $spotMarketsPromise = $this->fetch_spot_markets($params);
         $swapMarketsPromise = $this->fetch_swap_markets($params);
         $optionMarketsPromise = $this->fetch_option_markets($params);
         list($spotMarkets, $swapMarkets, $optionMarkets) = Async\await(Promise\all(array( $spotMarketsPromise, $swapMarketsPromise, $optionMarketsPromise )));
         //
-        // {
-        //     "result": {
-        //         "instruments": [
-        //             {
-        //                 "instrument_type": "perp",
-        //                 "instrument_name": "BTC-PERP",
-        //                 "scheduled_activation": 1701840228,
-        //                 "scheduled_deactivation": 9223372036854776000,
-        //                 "is_active": true,
-        //                 "tick_size": "0.1",
-        //                 "minimum_amount": "0.01",
-        //                 "maximum_amount": "10000",
-        //                 "amount_step": "0.001",
-        //                 "mark_price_fee_rate_cap": "0",
-        //                 "maker_fee_rate": "0.00005",
-        //                 "taker_fee_rate": "0.0003",
-        //                 "base_fee": "0.1",
-        //                 "base_currency": "BTC",
-        //                 "quote_currency": "USD",
-        //                 "option_details": null,
-        //                 "perp_details": {
-        //                     "index": "BTC-USD",
-        //                     "max_rate_per_hour": "0.004",
-        //                     "min_rate_per_hour": "-0.004",
-        //                     "static_interest_rate": "0.0000125",
-        //                     "aggregate_funding": "10538.574363381759146829",
-        //                     "funding_rate": "0.0000125"
-        //                 },
-        //                 "erc20_details": null,
-        //                 "base_asset_address": "0xDBa83C0C654DB1cd914FA2710bA743e925B53086",
-        //                 "base_asset_sub_id": "0",
-        //                 "pro_rata_fraction": "0",
-        //                 "fifo_min_allocation": "0",
-        //                 "pro_rata_amount_step": "0.1"
+        //     {
+        //         "id": "dd959aa7-d878-45b8-926d-3a247376de90",
+        //         "result": {
+        //             "instruments": [
+        //                 {
+        //                     "instrument_type": "perp",
+        //                     "instrument_name": "ZEC-PERP",
+        //                     "scheduled_activation": 1780572941,
+        //                     "scheduled_deactivation": 9223372036854775807,
+        //                     "is_active": true,
+        //                     "tick_size": "0.01",
+        //                     "minimum_amount": "1",
+        //                     "maximum_amount": "100000",
+        //                     "amount_step": "0.01",
+        //                     "mark_price_fee_rate_cap": "0",
+        //                     "maker_fee_rate": "0.0001",
+        //                     "taker_fee_rate": "0.0003",
+        //                     "base_fee": "0.01",
+        //                     "base_currency": "ZEC",
+        //                     "quote_currency": "USDC",
+        //                     "option_details": null,
+        //                     "perp_details": {
+        //                         "index": "ZEC-USD",
+        //                         "max_rate_per_hour": "0.000456621005",
+        //                         "min_rate_per_hour": "-0.000456621005",
+        //                         "aggregate_funding": "26.08805211207",
+        //                         "funding_rate": "0",
+        //                         "srm_perp_margin_requirements": {
+        //                             "im_perp_req": "0.15",
+        //                             "mm_perp_req": "0.1",
+        //                             "max_leverage": "6.67"
+        //                         }
+        //                     },
+        //                     "erc20_details": null,
+        //                     "base_asset_address": "0x7bF0D72275246A434151693c0EBBD38937dFE23b",
+        //                     "base_asset_sub_id": "0",
+        //                     "pro_rata_fraction": "0",
+        //                     "fifo_min_allocation": "0",
+        //                     "pro_rata_amount_step": "1"
+        //                 }
+        //             ],
+        //             "pagination": {
+        //                 "num_pages": 15,
+        //                 "count": 15
         //             }
-        //         ],
-        //         "pagination": {
-        //             "num_pages": 1,
-        //             "count": 1
         //         }
-        //     },
-        //     "id": "a06bc0b2-8e78-4536-a21f-f785f225b5a5"
-        // }
+        //     }
         //
         $result = $this->array_concat($spotMarkets, $swapMarkets);
         $result = $this->array_concat($result, $optionMarkets);
@@ -652,10 +780,8 @@ class derive extends Exchange {
             'expired' => false,
             'instrument_type' => 'erc20',
         );
-        $response = Async\await($this->publicPostGetAllInstruments($this->extend($request, $params)));
-        $result = $this->safe_dict($response, 'result', array());
-        $data = $this->safe_list($result, 'instruments', array());
-        return $this->parse_markets($data);
+        $instruments = Async\await($this->get_markets_paginated($request, $params));
+        return $this->parse_markets($instruments);
     }
 
     public function fetch_swap_markets($params = array()): PromiseInterface {
@@ -667,10 +793,8 @@ class derive extends Exchange {
             'expired' => false,
             'instrument_type' => 'perp',
         );
-        $response = Async\await($this->publicPostGetAllInstruments($this->extend($request, $params)));
-        $result = $this->safe_dict($response, 'result', array());
-        $data = $this->safe_list($result, 'instruments', array());
-        return $this->parse_markets($data);
+        $instruments = Async\await($this->get_markets_paginated($request, $params));
+        return $this->parse_markets($instruments);
     }
 
     public function fetch_option_markets($params = array()): PromiseInterface {
@@ -682,10 +806,48 @@ class derive extends Exchange {
             'expired' => false,
             'instrument_type' => 'option',
         );
-        $response = Async\await($this->publicPostGetAllInstruments($this->extend($request, $params)));
-        $result = $this->safe_dict($response, 'result', array());
-        $data = $this->safe_list($result, 'instruments', array());
-        return $this->parse_markets($data);
+        $instruments = Async\await($this->get_markets_paginated($request, $params));
+        return $this->parse_markets($instruments);
+    }
+
+    public function get_markets_paginated(array $request, $params = array()): PromiseInterface {
+        return Async\async(self::do_get_markets_paginated(...))($request, $params);
+    }
+
+    private function do_get_markets_paginated(array $request, $params = array()) {
+        /**
+         * @ignore
+         * fetches every $page of public/get_all_instruments for the given filter and parses the instruments; v3 paginates the endpoint, options alone exceed 5000 entries
+         * @param {array} $request the base $request with the instrument_type filter
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} an array of raw instrument entries
+         */
+        $allInstruments = array();
+        $maxPages = 25;
+        $paramsOmitted = array();
+        list($maxPages, $paramsOmitted) = $this->handle_option_and_params($params, 'getMarketsPaginated', 'maxMarketPages', $maxPages);
+        $pageSize = 1000;
+        list($pageSize, $paramsOmitted) = $this->handle_option_and_params($paramsOmitted, 'getMarketsPaginated', 'maxMarketsPerPage', $pageSize);
+        $page = 1;
+        for ($i = 0; $i < $maxPages; $i++) {
+            $requestExtension = array(
+                'page' => $page,
+                'page_size' => $pageSize,
+            );
+            $requestExtended = $this->extend($this->extend($request, $requestExtension), $paramsOmitted); // nested because the csharp base defines extend with two arguments only
+            $response = Async\await($this->publicPostGetAllInstruments($requestExtended));
+            $result = $this->safe_dict($response, 'result', array());
+            $data = $this->safe_list($result, 'instruments', array());
+            $allInstruments = $this->array_concat($allInstruments, $data);
+            $pagination = $this->safe_dict($result, 'pagination', array());
+            $totalCount = $this->safe_integer($pagination, 'count', 0); // not named count: that collides with the php builtin the length mapping expands to
+            $collected = count($allInstruments);
+            if ($collected >= $totalCount) {
+                break;
+            }
+            $page += 1;
+        }
+        return $allInstruments;
     }
 
     public function parse_market(array $market): array {
@@ -701,6 +863,9 @@ class derive extends Exchange {
         $quoteId = $this->safe_string($market, 'quote_currency');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $marketId = $this->safe_string($market, 'instrument_name');
         $symbol = $base . '/' . $quote;
         $settleId = null;
@@ -729,7 +894,7 @@ class derive extends Exchange {
             $marketType = 'option';
             $optionDetails = $this->safe_dict($market, 'option_details');
             $expiry = $this->safe_timestamp($optionDetails, 'expiry');
-            $strike = $this->safe_integer($optionDetails, 'strike');
+            $strike = $this->safe_number($optionDetails, 'strike'); // strikes can be fractional, e.g. XRP-20261225-0_5-P is a 0.5 strike
             $optionLetter = $this->safe_string($optionDetails, 'option_type');
             $symbol = $base . '/' . $quote . ':' . $settle . '-' . $this->yymmdd($expiry) . '-' . $this->number_to_string($strike) . '-' . $optionLetter;
             if ($optionLetter === 'P') {
@@ -803,7 +968,7 @@ class derive extends Exchange {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
-         * @see https://docs.derive.xyz/reference/post_public-get-ticker
+         * @see https://docs.derive.xyz/api-reference/market-data/publicget_ticker
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -818,152 +983,476 @@ class derive extends Exchange {
         );
         $response = Async\await($this->publicPostGetTicker($this->extend($request, $params)));
         //
-        // spot
-        //
-        // {
-        //     "result": {
-        //         "instrument_type": "perp",
-        //         "instrument_name": "BTC-PERP",
-        //         "scheduled_activation": 1701840228,
-        //         "scheduled_deactivation": 9223372036854776000,
-        //         "is_active": true,
-        //         "tick_size": "0.1",
-        //         "minimum_amount": "0.01",
-        //         "maximum_amount": "10000",
-        //         "amount_step": "0.001",
-        //         "mark_price_fee_rate_cap": "0",
-        //         "maker_fee_rate": "0.00005",
-        //         "taker_fee_rate": "0.0003",
-        //         "base_fee": "0.1",
-        //         "base_currency": "BTC",
-        //         "quote_currency": "USD",
-        //         "option_details": null,
-        //         "perp_details": {
-        //             "index": "BTC-USD",
-        //             "max_rate_per_hour": "0.004",
-        //             "min_rate_per_hour": "-0.004",
-        //             "static_interest_rate": "0.0000125",
-        //             "aggregate_funding": "10512.580833189805742522",
-        //             "funding_rate": "-0.000022223906766867"
-        //         },
-        //         "erc20_details": null,
-        //         "base_asset_address": "0xDBa83C0C654DB1cd914FA2710bA743e925B53086",
-        //         "base_asset_sub_id": "0",
-        //         "pro_rata_fraction": "0",
-        //         "fifo_min_allocation": "0",
-        //         "pro_rata_amount_step": "0.1",
-        //         "best_ask_amount": "0.012",
-        //         "best_ask_price": "99567.9",
-        //         "best_bid_amount": "0.129",
-        //         "best_bid_price": "99554.5",
-        //         "five_percent_bid_depth": "11.208",
-        //         "five_percent_ask_depth": "11.42",
-        //         "option_pricing": null,
-        //         "index_price": "99577.2",
-        //         "mark_price": "99543.642926357933902181684970855712890625",
-        //         "stats": {
-        //             "contract_volume": "464.712",
-        //             "num_trades": "10681",
-        //             "open_interest": "72.804739389481989861",
-        //             "high": "99519.1",
-        //             "low": "97254.1",
-        //             "percent_change": "0.0128",
-        //             "usd_change": "1258.1"
-        //         },
-        //         "timestamp": 1736140984000,
-        //         "min_price": "97591.2",
-        //         "max_price": "101535.1"
-        //     },
-        //     "id": "bbd7c271-c2be-48f7-b93a-26cf6d4cb79f"
-        // }
+        //     {
+        //         "id": "45bb6856-54b7-48da-a9c1-1c3ba964888b",
+        //         "result": {
+        //             "t": 1790867526668,
+        //             "A": "0",
+        //             "a": "0",
+        //             "B": "0",
+        //             "b": "0",
+        //             "f": "0.000012500",
+        //             "option_pricing": null,
+        //             "I": "83946.3",
+        //             "M": "83938.8",
+        //             "stats": {
+        //                 "c": "16.41",
+        //                 "v": "1377350.271",
+        //                 "pr": "1377095.872",
+        //                 "n": 98,
+        //                 "oi": "0",
+        //                 "h": "84282",
+        //                 "l": "83661.8",
+        //                 "p": "0"
+        //             },
+        //             "minp": "82293.1",
+        //             "maxp": "85617.6"
+        //         }
+        //     }
         //
         $data = $this->safe_dict($response, 'result', array());
         return $this->parse_ticker($data, $market);
     }
 
-    public function parse_ticker(array $ticker, ?array $market = null): array {
+    public function fetch_open_interest(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_open_interest(...))($symbol, $params);
+    }
+
+    private function do_fetch_open_interest(string $symbol, $params = array()) {
+        /**
+         * retrieves the open interest of a contract $market
+         *
+         * @see https://docs.derive.xyz/api-reference/market-data/publicget_ticker
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the open interest for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=open-interest-structure open interest structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        if ($market['contract'] !== true) {
+            throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
+        }
+        $request = array(
+            'instrument_name' => $market['id'],
+        );
+        $response = Async\await($this->publicPostGetTicker($this->extend($request, $params)));
         //
-        // {
-        //     "instrument_type": "perp",
-        //     "instrument_name": "BTC-PERP",
-        //     "scheduled_activation": 1701840228,
-        //     "scheduled_deactivation": 9223372036854776000,
-        //     "is_active": true,
-        //     "tick_size": "0.1",
-        //     "minimum_amount": "0.01",
-        //     "maximum_amount": "10000",
-        //     "amount_step": "0.001",
-        //     "mark_price_fee_rate_cap": "0",
-        //     "maker_fee_rate": "0.00005",
-        //     "taker_fee_rate": "0.0003",
-        //     "base_fee": "0.1",
-        //     "base_currency": "BTC",
-        //     "quote_currency": "USD",
-        //     "option_details": null,
-        //     "perp_details": {
-        //         "index": "BTC-USD",
-        //         "max_rate_per_hour": "0.004",
-        //         "min_rate_per_hour": "-0.004",
-        //         "static_interest_rate": "0.0000125",
-        //         "aggregate_funding": "10512.580833189805742522",
-        //         "funding_rate": "-0.000022223906766867"
-        //     },
-        //     "erc20_details": null,
-        //     "base_asset_address": "0xDBa83C0C654DB1cd914FA2710bA743e925B53086",
-        //     "base_asset_sub_id": "0",
-        //     "pro_rata_fraction": "0",
-        //     "fifo_min_allocation": "0",
-        //     "pro_rata_amount_step": "0.1",
-        //     "best_ask_amount": "0.012",
-        //     "best_ask_price": "99567.9",
-        //     "best_bid_amount": "0.129",
-        //     "best_bid_price": "99554.5",
-        //     "five_percent_bid_depth": "11.208",
-        //     "five_percent_ask_depth": "11.42",
-        //     "option_pricing": null,
-        //     "index_price": "99577.2",
-        //     "mark_price": "99543.642926357933902181684970855712890625",
-        //     "stats": {
-        //         "contract_volume": "464.712",
-        //         "num_trades": "10681",
-        //         "open_interest": "72.804739389481989861",
-        //         "high": "99519.1",
-        //         "low": "97254.1",
-        //         "percent_change": "0.0128",
-        //         "usd_change": "1258.1"
-        //     },
-        //     "timestamp": 1736140984000,
-        //     "min_price": "97591.2",
-        //     "max_price": "101535.1"
-        // }
+        //     {
+        //         "id": "a24f964a-4c80-4389-950e-1f68b9bfb40f",
+        //         "result": {
+        //             "t": 1791026876172,
+        //             "A": "5",
+        //             "a": "84638.2",
+        //             "B": "5",
+        //             "b": "84634.2",
+        //             "f": "0.000012500",
+        //             "option_pricing": null,
+        //             "I": "84622",
+        //             "M": "84636.2",
+        //             "stats": {
+        //                 "c": "1.797",
+        //                 "v": "154163.312",
+        //                 "pr": "154178.972",
+        //                 "n": 93,
+        //                 "oi": "291.023",
+        //                 "h": "87151.3",
+        //                 "l": "84034.2",
+        //                 "p": "-0.021"
+        //             },
+        //             "minp": "82976.7",
+        //             "maxp": "86328.9"
+        //         }
+        //     }
         //
-        $marketId = $this->safe_string($ticker, 'instrument_name');
-        $timestamp = $this->safe_integer_omit_zero($ticker, 'timestamp');
-        $symbol = $this->safe_symbol($marketId, $market);
-        $stats = $this->safe_dict($ticker, 'stats');
-        $change = $this->safe_string($stats, 'percent_change');
-        return $this->safe_ticker(array(
-            'symbol' => $symbol,
+        $result = $this->safe_dict($response, 'result', array());
+        return $this->parse_open_interest($result, $market);
+    }
+
+    public function parse_open_interest(mixed $interest, ?array $market = null): array {
+        $timestamp = $this->safe_integer($interest, 't');
+        $stats = $this->safe_dict($interest, 'stats', array());
+        $amount = $this->safe_string($stats, 'oi');
+        $markPrice = $this->safe_string($interest, 'M');
+        $value = null;
+        // for options the mark is the premium, a notional derived from it would be misleading, so only the contract amount is reported there
+        if (($market !== null) && ($market['option'] !== true)) {
+            $value = Precise::string_mul($amount, $markPrice);
+        }
+        return $this->safe_open_interest(array(
+            'symbol' => $this->safe_symbol(null, $market),
+            'openInterestAmount' => $this->parse_number($amount),
+            'openInterestValue' => $this->parse_number($value),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_string($stats, 'high'),
-            'low' => $this->safe_string($stats, 'low'),
-            'bid' => $this->safe_string($ticker, 'best_bid_price'),
-            'bidVolume' => $this->safe_string($ticker, 'best_bid_amount'),
-            'ask' => $this->safe_string($ticker, 'best_ask_price'),
-            'askVolume' => $this->safe_string($ticker, 'best_ask_amount'),
+            'info' => $interest,
+        ), $market);
+    }
+
+    public function fetch_greeks(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_greeks(...))($symbol, $params);
+    }
+
+    private function do_fetch_greeks(string $symbol, $params = array()) {
+        /**
+         * fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+         *
+         * @see https://docs.derive.xyz/api-reference/market-data/publicget_ticker
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch greeks for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=greeks-structure greeks structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        if ($market['option'] !== true) {
+            throw new BadRequest($this->id . ' fetchGreeks() supports option markets only');
+        }
+        $request = array(
+            'instrument_name' => $market['id'],
+        );
+        $response = Async\await($this->publicPostGetTicker($this->extend($request, $params)));
+        //
+        //     {
+        //         "id": "b9c8e59e-aa05-4517-8412-0a119f561cfb",
+        //         "result": {
+        //             "t": 1791031771524,
+        //             "A": "0",
+        //             "a": "0",
+        //             "B": "0",
+        //             "b": "0",
+        //             "f": null,
+        //             "option_pricing": {
+        //                 "d": "-0.43348",
+        //                 "t": "-18.65575",
+        //                 "g": "0.00001213",
+        //                 "v": "346.49060",
+        //                 "i": "0.38273",
+        //                 "r": "12976.52088",
+        //                 "f": "89232",
+        //                 "m": "13312",
+        //                 "df": "0.950",
+        //                 "bi": "0",
+        //                 "ai": "0"
+        //             },
+        //             "I": "84812",
+        //             "M": "13312",
+        //             "stats": {
+        //                 "c": "0",
+        //                 "v": "0",
+        //                 "pr": "0",
+        //                 "n": 0,
+        //                 "oi": "0",
+        //                 "h": "0",
+        //                 "l": "0",
+        //                 "p": "0"
+        //             },
+        //             "minp": "10610",
+        //             "maxp": "16397"
+        //         }
+        //     }
+        //
+        $result = $this->safe_dict($response, 'result', array());
+        return $this->parse_greeks($result, $market);
+    }
+
+    public function parse_greeks(array $greeks, ?array $market = null): array {
+        $timestamp = $this->safe_integer($greeks, 't');
+        $pricing = $this->safe_dict($greeks, 'option_pricing', array());
+        return array(
+            'symbol' => $this->safe_symbol(null, $market),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'delta' => $this->safe_number($pricing, 'd'),
+            'gamma' => $this->safe_number($pricing, 'g'),
+            'theta' => $this->safe_number($pricing, 't'),
+            'vega' => $this->safe_number($pricing, 'v'),
+            'rho' => $this->safe_number($pricing, 'r'),
+            'bidSize' => $this->safe_number($greeks, 'B'),
+            'askSize' => $this->safe_number($greeks, 'A'),
+            'bidImpliedVolatility' => $this->safe_number($pricing, 'bi'),
+            'askImpliedVolatility' => $this->safe_number($pricing, 'ai'),
+            'markImpliedVolatility' => $this->safe_number($pricing, 'i'),
+            'bidPrice' => $this->safe_number($greeks, 'b'),
+            'askPrice' => $this->safe_number($greeks, 'a'),
+            'markPrice' => $this->safe_number($pricing, 'm'),
+            'lastPrice' => null,
+            'underlyingPrice' => $this->safe_number($greeks, 'I'),
+            'info' => $greeks,
+        );
+    }
+
+    public function fetch_option(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_option(...))($symbol, $params);
+    }
+
+    private function do_fetch_option(string $symbol, $params = array()) {
+        /**
+         * fetches option data that is commonly found in an option chain
+         *
+         * @see https://docs.derive.xyz/api-reference/market-data/publicget_ticker
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=option-structure option structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        if ($market['option'] !== true) {
+            throw new BadRequest($this->id . ' fetchOption() supports option markets only');
+        }
+        $request = array(
+            'instrument_name' => $market['id'],
+        );
+        $response = Async\await($this->publicPostGetTicker($this->extend($request, $params)));
+        // the response sample is listed in fetchGreeks, both methods read the same endpoint
+        $result = $this->safe_dict($response, 'result', array());
+        return $this->parse_option($result, null, $market);
+    }
+
+    public function parse_option(array $chain, ?array $currency = null, ?array $market = null): array {
+        $timestamp = $this->safe_integer($chain, 't');
+        $pricing = $this->safe_dict($chain, 'option_pricing', array());
+        $stats = $this->safe_dict($chain, 'stats', array());
+        $change = $this->safe_string($stats, 'p');
+        $percentage = null;
+        if ($change !== null) {
+            $percentage = Precise::string_mul($change, '100');
+        }
+        return array(
+            'info' => $chain,
+            'currency' => $this->safe_string($market, 'base'),
+            'symbol' => $this->safe_symbol(null, $market),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'impliedVolatility' => $this->safe_number($pricing, 'i'),
+            'openInterest' => $this->safe_number($stats, 'oi'),
+            'bidPrice' => $this->safe_number($chain, 'b'),
+            'askPrice' => $this->safe_number($chain, 'a'),
+            'midPrice' => null,
+            'markPrice' => $this->safe_number($chain, 'M'),
+            'lastPrice' => null,
+            'underlyingPrice' => $this->safe_number($chain, 'I'),
+            'change' => null,
+            'percentage' => $this->parse_number($percentage),
+            'baseVolume' => $this->safe_number($stats, 'c'),
+            'quoteVolume' => $this->safe_number($stats, 'v'),
+        );
+    }
+
+    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_settlement_history(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches historical settlement records, the venue publishes one underlying settlement price per currency and expiry rather than per option instrument, so the records carry no $symbol
+         *
+         * @see https://docs.derive.xyz/api-reference/market-data/publicget_option_settlement_prices
+         *
+         * @param {string} $symbol unified $market $symbol of any $market of the underlying currency to fetch the settlement history for
+         * @param {int} [$since] timestamp in ms of the earliest settlement to fetch
+         * @param {int} [$limit] the maximum number of $settlements to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=settlement-history-structure settlement history objects~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchSettlementHistory() requires a symbol argument to resolve the underlying currency');
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'currency' => $market['baseId'],
+        );
+        $response = Async\await($this->publicPostGetOptionSettlementPrices($this->extend($request, $params)));
+        //
+        //     {
+        //         "id": "d1847bad-5917-424b-bd9a-37262a03fd47",
+        //         "result": {
+        //             "expiries": [
+        //                 {
+        //                     "expiry_date": "20260707",
+        //                     "price": "63107.787847",
+        //                     "utc_expiry_sec": 1783411200
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        $result = $this->safe_dict($response, 'result', array());
+        $expiries = $this->safe_list($result, 'expiries', array());
+        $settlements = $this->parse_settlements($expiries, null);
+        $sorted = $this->sort_by($settlements, 'timestamp');
+        return $this->filter_by_since_limit($sorted, $since, $limit);
+    }
+
+    public function fetch_my_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_my_settlement_history(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_my_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches historical settlement records of the user
+         *
+         * @see https://docs.derive.xyz/api-reference/history/privateget_option_settlement_history
+         *
+         * @param {string} [$symbol] unified $market $symbol of the settlement history to fetch
+         * @param {int} [$since] timestamp in ms of the earliest settlement to fetch
+         * @param {int} [$limit] the maximum number of $settlements to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->subaccount_id] *required* the subaccount id
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=settlement-history-structure settlement history objects~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        list($subaccountId, $paramsDeriveSubaccountId) = $this->handle_derive_subaccount_id('fetchMySettlementHistory', $params);
+        $request = array(
+            'subaccount_id' => $subaccountId,
+        );
+        $response = Async\await($this->privatePostGetOptionSettlementHistory($this->extend($request, $paramsDeriveSubaccountId)));
+        //
+        //     {
+        //         "id": "f92af59c-33d6-4bed-b237-378250f5727b",
+        //         "result": {
+        //             "settlements": [
+        //                 {
+        //                     "amount": "0.1",
+        //                     "expiry": 1791100800,
+        //                     "instrument_name": "BTC-20261004-88000-C",
+        //                     "option_settlement_pnl": "-2.8625",
+        //                     "option_settlement_pnl_excl_fees": "-2.1",
+        //                     "settlement_price": "84975.94721521944",
+        //                     "settlement_value": "0",
+        //                     "subaccount_id": 86815
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        $result = $this->safe_dict($response, 'result', array());
+        $settlements = $this->safe_list($result, 'settlements', array());
+        $parsed = $this->parse_settlements($settlements, $market);
+        $sorted = $this->sort_by($parsed, 'timestamp');
+        $symbolResolved = ($market !== null) ? $market['symbol'] : null;
+        return $this->filter_by_symbol_since_limit($sorted, $symbolResolved, $since, $limit);
+    }
+
+    public function parse_settlement(array $settlement, ?array $market = null): array {
+        //
+        // fetchSettlementHistory
+        //
+        //     {
+        //         "expiry_date": "20260707",
+        //         "price": "63107.787847",
+        //         "utc_expiry_sec": 1783411200
+        //     }
+        //
+        // fetchMySettlementHistory
+        //
+        //     {
+        //         "amount": "0.1",
+        //         "expiry": 1791100800,
+        //         "instrument_name": "BTC-20261004-88000-C",
+        //         "option_settlement_pnl": "-2.8625",
+        //         "option_settlement_pnl_excl_fees": "-2.1",
+        //         "settlement_price": "84975.94721521944",
+        //         "settlement_value": "0",
+        //         "subaccount_id": 86815
+        //     }
+        //
+        $marketId = $this->safe_string($settlement, 'instrument_name');
+        $timestamp = $this->safe_timestamp_2($settlement, 'utc_expiry_sec', 'expiry');
+        $symbolResolved = null;
+        if ($marketId !== null) {
+            $symbolResolved = $this->safe_symbol($marketId, $market);
+        }
+        return array(
+            'info' => $settlement,
+            'symbol' => $symbolResolved,
+            'price' => $this->safe_number_2($settlement, 'price', 'settlement_price'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
+    }
+
+    public function parse_settlements(array $settlements, ?array $market = null): array {
+        $result = array();
+        for ($i = 0; $i < count($settlements); $i++) {
+            $result[] = $this->parse_settlement($settlements[$i], $market);
+        }
+        return $result;
+    }
+
+    public function parse_ticker(array $ticker, ?array $market = null): array {
+        //
+        //     v3 slim format; the payload does not carry the instrument name, so the symbol comes from the market argument
+        //
+        //     {
+        //         "t": 1790867526668,
+        //         "A": "0",
+        //         "a": "0",
+        //         "B": "0",
+        //         "b": "0",
+        //         "f": "0.000012500",
+        //         "option_pricing": null,
+        //         "I": "83946.3",
+        //         "M": "83938.8",
+        //         "stats": {
+        //             "c": "16.41",           // contract_volume_24h
+        //             "v": "1377350.271",     // notional_volume_24h
+        //             "pr": "1377095.872",    // premium_volume_24h
+        //             "n": 98,                // trade_count_24h
+        //             "oi": "0",              // open_interest
+        //             "h": "84282",           // high_24h
+        //             "l": "83661.8",         // low_24h
+        //             "p": "0"                // percent_change_24h
+        //         },
+        //         "minp": "82293.1",
+        //         "maxp": "85617.6"
+        //     }
+        //
+        $timestamp = $this->safe_integer_omit_zero($ticker, 't');
+        $stats = $this->safe_dict($ticker, 'stats');
+        $change = $this->safe_string($stats, 'p');
+        $percentage = null;
+        if ($change !== null) {
+            $percentage = Precise::string_mul($change, '100');
+        }
+        return $this->safe_ticker(array(
+            'symbol' => $this->safe_symbol(null, $market),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'high' => $this->safe_string($stats, 'h'),
+            'low' => $this->safe_string($stats, 'l'),
+            'bid' => $this->safe_string($ticker, 'b'),
+            'bidVolume' => $this->safe_string($ticker, 'B'),
+            'ask' => $this->safe_string($ticker, 'a'),
+            'askVolume' => $this->safe_string($ticker, 'A'),
             'vwap' => null,
             'open' => null,
             'close' => null,
             'last' => null,
             'previousClose' => null,
-            'change' => $change,
-            'percentage' => Precise::string_mul($change, '100'),
+            'change' => null,
+            'percentage' => $percentage,
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => null,
-            'indexPrice' => $this->safe_string($ticker, 'index_price'),
-            'markPrice' => $this->safe_string($ticker, 'mark_price'),
+            'baseVolume' => $this->safe_string($stats, 'c'),
+            'quoteVolume' => $this->safe_string($stats, 'v'),
+            'indexPrice' => $this->safe_string($ticker, 'I'),
+            'markPrice' => $this->safe_string($ticker, 'M'),
             'info' => $ticker,
         ), $market);
     }
@@ -976,17 +1465,22 @@ class derive extends Exchange {
         /**
          * get the list of most recent trades for a particular $symbol
          *
-         * @see https://docs.derive.xyz/reference/post_public-get-trade-history
+         * @see https://docs.derive.xyz/api-reference/market-data/publicget_trade_history
          *
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [$limit] the maximum amount of trades to fetch
+         * @param {int} [$limit] the maximum amount of trades to fetch; limits above ~500 cannot be filled in a single $request because the venue caps pages at 1000 raw rows (two per match), use $params->paginate instead
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch trades for
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
+        }
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchTrades', 'paginate', false);
+        if ($paginate) {
+            return Async\await($this->fetch_paginated_call_incremental('fetchTrades', $symbol, $since, $limit, $paramsPaginate, 'page', 1000));
         }
         $request = array();
         $market = null;
@@ -994,56 +1488,131 @@ class derive extends Exchange {
             $market = $this->market($symbol);
             $request['instrument_name'] = $market['id'];
         }
-        if ($limit !== null) {
-            if ($limit > 1000) {
-                $limit = 1000;
+        $limitResolved = $limit;
+        if ($limit !== null && $limit > 1000) {
+            $limitResolved = 1000;
+        }
+        if ($limitResolved !== null) {
+            // the venue lists every match twice (a maker row and a taker row) and parseTrades drops the maker duplicates, so twice the limit is requested to return close to the asked amount
+            $pageSize = $limitResolved * 2;
+            if ($pageSize > 1000) {
+                $pageSize = 1000; // default 100, max 1000
             }
-            $request['page_size'] = $limit; // default 100, max 1000
+            $request['page_size'] = $pageSize;
         }
         if ($since !== null) {
             $request['from_timestamp'] = $since;
         }
-        $until = $this->safe_integer($params, 'until');
-        $params = $this->omit($params, array( 'until' ));
+        $until = $this->safe_integer($paramsPaginate, 'until');
+        $paramsOmitted = $this->omit($paramsPaginate, array( 'until' ));
         if ($until !== null) {
             $request['to_timestamp'] = $until;
         }
-        $response = Async\await($this->publicPostGetTradeHistory($this->extend($request, $params)));
+        $response = Async\await($this->publicPostGetTradeHistory($this->extend($request, $paramsOmitted)));
         //
-        // {
-        //     "result": {
-        //         "trades": [
-        //             {
-        //                 "trade_id": "9dbc88b0-f0c4-4439-9cc1-4e6409d4eafb",
-        //                 "instrument_name": "BTC-PERP",
-        //                 "timestamp": 1736153910930,
-        //                 "trade_price": "98995.3",
-        //                 "trade_amount": "0.033",
-        //                 "mark_price": "98990.875914388161618263",
-        //                 "index_price": "99038.050611100001501184",
-        //                 "direction": "sell",
-        //                 "quote_id": null,
-        //                 "wallet": "0x88B6BB87fbFac92a34F8155aaA35c87B5b166fA9",
-        //                 "subaccount_id": 8250,
-        //                 "tx_status": "settled",
-        //                 "tx_hash": "0x020bd735b312f867f17f8cc254946d87cfe9f2c8ff3605035d8129082eb73723",
-        //                 "trade_fee": "0.980476701049890015",
-        //                 "liquidity_role": "taker",
-        //                 "realized_pnl": "-2.92952402688793509",
-        //                 "realized_pnl_excl_fees": "-1.949047325838045075"
+        //     {
+        //         "id": "ac7b1242-a8e5-4ee3-a975-c1b0cb413932",
+        //         "result": {
+        //             "trades": [
+        //                 {
+        //                     "trade_id": "28bea459-a2ff-45cc-a7e9-3d25448c859a",
+        //                     "instrument_name": "BTC-PERP",
+        //                     "timestamp": 1790792657383,
+        //                     "trade_price": "83863",
+        //                     "trade_amount": "0.0357",
+        //                     "mark_price": "83851.150918173763",
+        //                     "index_price": "83867.1716490259",
+        //                     "direction": "buy",
+        //                     "quote_id": null,
+        //                     "rfq_id": null,
+        //                     "wallet": "0xa28557a5Dbe5E22249b292fD032C5225952A6709",
+        //                     "subaccount_id": 56390,
+        //                     "batch_status": null,
+        //                     "tx_hash": "",
+        //                     "trade_fee": "0.44910870418",
+        //                     "expected_rebate": "0",
+        //                     "liquidity_role": "taker",
+        //                     "realized_pnl": "5.486968004488",
+        //                     "realized_pnl_excl_fees": "6.328028163017",
+        //                     "extra_fee": "0"
+        //                 },
+        //                 {
+        //                     "trade_id": "28bea459-a2ff-45cc-a7e9-3d25448c859a",
+        //                     "instrument_name": "BTC-PERP",
+        //                     "timestamp": 1790792657383,
+        //                     "trade_price": "83863",
+        //                     "trade_amount": "0.0357",
+        //                     "mark_price": "83851.150918173763",
+        //                     "index_price": "83867.1716490259",
+        //                     "direction": "sell",
+        //                     "quote_id": null,
+        //                     "rfq_id": null,
+        //                     "wallet": "0x1DBc86f1b1Be7a45a3161A06bDD15F7470bF9d2c",
+        //                     "subaccount_id": 62065,
+        //                     "batch_status": null,
+        //                     "tx_hash": "",
+        //                     "trade_fee": "0",
+        //                     "expected_rebate": "0.299405802787",
+        //                     "liquidity_role": "maker",
+        //                     "realized_pnl": "0",
+        //                     "realized_pnl_excl_fees": "0",
+        //                     "extra_fee": "0"
+        //                 },
+        //                 {
+        //                     "trade_id": "10a84fb1-11a5-4521-b49d-a55c9b241207",
+        //                     "instrument_name": "BTC-PERP",
+        //                     "timestamp": 1790792405993,
+        //                     "trade_price": "83932.1",
+        //                     "trade_amount": "0.0357",
+        //                     "mark_price": "83934.717310599589",
+        //                     "index_price": "83948.87303382531",
+        //                     "direction": "buy",
+        //                     "quote_id": null,
+        //                     "rfq_id": null,
+        //                     "wallet": "0xa28557a5Dbe5E22249b292fD032C5225952A6709",
+        //                     "subaccount_id": 56390,
+        //                     "batch_status": null,
+        //                     "tx_hash": "",
+        //                     "trade_fee": "0.449546215096",
+        //                     "expected_rebate": "0",
+        //                     "liquidity_role": "taker",
+        //                     "realized_pnl": "3.019660493572",
+        //                     "realized_pnl_excl_fees": "3.861158163017",
+        //                     "extra_fee": "0"
+        //                 },
+        //                 {
+        //                     "trade_id": "10a84fb1-11a5-4521-b49d-a55c9b241207",
+        //                     "instrument_name": "BTC-PERP",
+        //                     "timestamp": 1790792405993,
+        //                     "trade_price": "83932.1",
+        //                     "trade_amount": "0.0357",
+        //                     "mark_price": "83934.717310599589",
+        //                     "index_price": "83948.87303382531",
+        //                     "direction": "sell",
+        //                     "quote_id": null,
+        //                     "rfq_id": null,
+        //                     "wallet": "0x1DBc86f1b1Be7a45a3161A06bDD15F7470bF9d2c",
+        //                     "subaccount_id": 62065,
+        //                     "batch_status": null,
+        //                     "tx_hash": "",
+        //                     "trade_fee": "0",
+        //                     "expected_rebate": "0.29969747673",
+        //                     "liquidity_role": "maker",
+        //                     "realized_pnl": "0",
+        //                     "realized_pnl_excl_fees": "0",
+        //                     "extra_fee": "0"
+        //                 }
+        //             ],
+        //             "pagination": {
+        //                 "num_pages": 531087,
+        //                 "count": 2124347
         //             }
-        //         ],
-        //         "pagination": {
-        //             "num_pages": 598196,
-        //             "count": 598196
         //         }
-        //     },
-        //     "id": "b8539544-6975-4497-8163-5e51a38e4aa7"
-        // }
+        //     }
         //
         $result = $this->safe_dict($response, 'result', array());
         $data = $this->safe_list($result, 'trades', array());
-        return $this->parse_trades($data, $market, $since, $limit);
+        return $this->parse_trades($data, $market, $since, $limitResolved);
     }
 
     public function parse_trades(array $trades, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -1066,36 +1635,178 @@ class derive extends Exchange {
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
+    }
+
+    private function do_fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         *
+         * @see https://docs.derive.xyz/api-reference/market-data/publicget_tradingview_chart_data      // trade candles
+         * @see https://docs.derive.xyz/api-reference/market-data/publicget_index_chart_data           // params.price = 'index'
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch; a single $request covers at most 5000 candles from $since, use $params->paginate for wider ranges
+         * @param {int} [$limit] the maximum amount of candles to fetch, also sizes the $request window when $since is not provided
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
+         * @param {string} [$params->price] "index" to fetch candles of the index price instead of trades, their volume is null
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
+        if ($paginate) {
+            return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, 5000));
+        }
+        // todo: check active spot markets after launch of v3
+        $market = $this->market($symbol);
+        $period = $this->safe_string($this->timeframes, $timeframe, $timeframe);
+        list($priceType, $paramsPrice) = $this->handle_option_and_params($params, 'fetchOHLCV', 'price');
+        $until = $this->safe_integer($paramsPrice, 'until');
+        $paramsOmitted = $this->omit($paramsPrice, array( 'until' ));
+        $duration = $this->parse_timeframe($timeframe);
+        $end = null;
+        if ($until !== null) {
+            $end = $this->parse_to_int($until / 1000);
+        } else {
+            $end = $this->seconds();
+        }
+        $limitResolved = $limit;
+        if ($limitResolved === null) {
+            $limitResolved = ($since !== null) ? 5000 : 1000;
+        }
+        if ($limitResolved > 5000) {
+            $limitResolved = 5000; // the venue keeps only the latest 5000 buckets of the requested window
+        }
+        $start = null;
+        if ($since !== null) {
+            $start = $this->parse_to_int($since / 1000);
+            // the window is anchored at since: otherwise the venue clamp would silently drop the head of a wider range and deterministic pagination would collect the same tail on every page
+            $calculatedEnd = $limitResolved * $duration;
+            $maxEnd = $this->sum($start, $calculatedEnd);
+            if ($maxEnd < $end) {
+                $end = $maxEnd;
+            }
+        } else {
+            $start = $end - $limitResolved * $duration;
+        }
+        $request = array(
+            'period' => $period,
+            'start_timestamp' => $start,
+            'end_timestamp' => $end,
+        );
+        $response = null;
+        if ($priceType === 'index') {
+            $request['currency'] = $market['baseId'];
+            $response = Async\await($this->publicPostGetIndexChartData($this->extend($request, $paramsOmitted)));
+            //
+            //     {
+            //         "id": "310e67cd-b53c-4bb7-9ec5-886515e8fa4f",
+            //         "result": [
+            //             {
+            //                 "price": "84578.92705944818",
+            //                 "open_price": "84599.10866056278",
+            //                 "high_price": "84653.70797324124",
+            //                 "low_price": "84563.95002564388",
+            //                 "close_price": "84578.92705944818",
+            //                 "timestamp": 1791018000,
+            //                 "timestamp_bucket": 1791018000
+            //             }
+            //         ]
+            //     }
+            //
+        } else {
+            $request['instrument_name'] = $market['id'];
+            $response = Async\await($this->publicPostGetTradingviewChartData($this->extend($request, $paramsOmitted)));
+            //
+            //     {
+            //         "id": "da5c0d45-4ab1-4c78-9def-20d40deae699",
+            //         "result": [
+            //             {
+            //                 "open_price": "83628.5",
+            //                 "high_price": "83628.5",
+            //                 "low_price": "83628.5",
+            //                 "close_price": "83628.5",
+            //                 "volume_usd": "920.02165302276944",
+            //                 "volume_contracts": "0.011",
+            //                 "timestamp": 1790725320,
+            //                 "timestamp_bucket": 1790725320
+            //             }
+            //         ]
+            //     }
+            //
+        }
+        $result = $this->safe_list($response, 'result', array());
+        return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
+    }
+
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
+        return array(
+            $this->safe_timestamp($ohlcv, 'timestamp'),
+            $this->safe_number($ohlcv, 'open_price'),
+            $this->safe_number($ohlcv, 'high_price'),
+            $this->safe_number($ohlcv, 'low_price'),
+            $this->safe_number($ohlcv, 'close_price'),
+            $this->safe_number($ohlcv, 'volume_contracts'), // index candles carry no volume
+        );
+    }
+
     public function parse_trade(array $trade, ?array $market = null): array {
         //
-        // fetchTrades & fetchMyTrades
-        //
-        // {
-        //     "subaccount_id": 130837,
-        //     "instrument_name": "BTC-PERP",
-        //     "direction": "sell",
-        //     "quote_id": null,
-        //     "trade_id": "f8a30740-488c-4c2d-905d-e17057bafde1",
-        //     "timestamp": 1738065303708,
-        //     "mark_price": "102740.137375457314192317",
-        //     "index_price": "102741.553409299981533184",
-        //     "trade_price": "102700.6",
-        //     "trade_amount": "0.01",
-        //     "liquidity_role": "taker",
-        //     "realized_pnl": "0",
-        //     "realized_pnl_excl_fees": "0",
-        //     "tx_status": "settled",
-        //     "trade_fee": "1.127415534092999815",
-        //     "tx_hash": "0xc55df1f07330faf86579bd8a6385391fbe9e73089301149d8550e9d29c9ead74",
-        //     "label": "test1234",                                      // only fetchMyTrades
-        //     "order_id": "30c48194-8d48-43ac-ad00-0d5ba29eddc9",       // only fetchMyTrades
-        //     "is_transfer": false,                                     // only fetchMyTrades
-        //     "transaction_id": "e18b9426-3fa5-41bb-99d3-8b54fb4d11bb", // only fetchMyTrades
-        //     "rfq_id": null,                                           // only fetchTrades
-        //     "wallet": "0x353Bf69715DdbF7A2b0C6Deba8EAC1F1D160c123",   // only fetchTrades
-        //     "expected_rebate": "0",                                   // only fetchTrades
-        //     "extra_fee": "0",                                         // only fetchTrades
-        // }
+        //     [
+        //         {
+        //             "trade_id": "28bea459-a2ff-45cc-a7e9-3d25448c859a",
+        //             "instrument_name": "BTC-PERP",
+        //             "timestamp": 1790792657383,
+        //             "trade_price": "83863",
+        //             "trade_amount": "0.0357",
+        //             "mark_price": "83851.150918173763",
+        //             "index_price": "83867.1716490259",
+        //             "direction": "buy",
+        //             "quote_id": null,
+        //             "rfq_id": null,
+        //             "wallet": "0xa28557a5Dbe5E22249b292fD032C5225952A6709",
+        //             "subaccount_id": 56390,
+        //             "batch_status": null,
+        //             "tx_hash": "",
+        //             "trade_fee": "0.44910870418",
+        //             "expected_rebate": "0",
+        //             "liquidity_role": "taker",
+        //             "realized_pnl": "5.486968004488",
+        //             "realized_pnl_excl_fees": "6.328028163017",
+        //             "extra_fee": "0"
+        //         },
+        //         {
+        //             "subaccount_id": 86815,
+        //             "order_id": "f1ff080c-f2d1-4e0a-9dad-9ba462c6615d",
+        //             "instrument_name": "BTC-PERP",
+        //             "direction": "sell",
+        //             "label": "",
+        //             "quote_id": null,
+        //             "trade_id": "b9608468-9ebe-478c-aedf-38fa2f754f19",
+        //             "rfq_id": null,
+        //             "timestamp": 1790874586675,
+        //             "mark_price": "84367.247384690156",
+        //             "index_price": "84358.49561857211",
+        //             "trade_price": "84365.4",
+        //             "trade_amount": "0.01",
+        //             "liquidity_role": "taker",
+        //             "realized_pnl": "-0.993258849822",
+        //             "realized_pnl_excl_fees": "-0.467",
+        //             "is_transfer": false,
+        //             "batch_status": "Settled",
+        //             "trade_fee": "0.263075486855",
+        //             "expected_rebate": "0",
+        //             "tx_hash": "0x7a31fda53195c28f2e60bab189bb9e7bf0abffc55a4eceb13d5e307f70d6e892",
+        //             "op_uuid": "01a0f871-8e34-7152-aea8-0b6d06ce484e",
+        //             "extra_fee": "0"
+        //         }
+        //     ]
         //
         $marketId = $this->safe_string($trade, 'instrument_name');
         $symbol = $this->safe_symbol($marketId, $market);
@@ -1129,7 +1840,7 @@ class derive extends Exchange {
         /**
          * fetches historical funding rate prices
          *
-         * @see https://docs.derive.xyz/reference/post_public-get-funding-rate-history
+         * @see https://docs.derive.xyz/api-reference/market-data/publicget_funding_rate_history
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
          * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
@@ -1148,23 +1859,40 @@ class derive extends Exchange {
             $request['start_timestamp'] = $since;
         }
         $until = $this->safe_integer($params, 'until');
-        $params = $this->omit($params, array( 'until' ));
+        $paramsOmitted = $this->omit($params, array( 'until' ));
         if ($until !== null) {
-            $request['to_timestamp'] = $until;
+            $request['end_timestamp'] = $until; // the venue silently ignores the to_timestamp spelling other endpoints use
         }
-        $response = Async\await($this->publicPostGetFundingRateHistory($this->extend($request, $params)));
+        $response = Async\await($this->publicPostGetFundingRateHistory($this->extend($request, $paramsOmitted)));
         //
-        // {
-        //     "result": {
-        //         "funding_rate_history": [
-        //             {
-        //                 "timestamp": 1736215200000,
-        //                 "funding_rate": "-0.000020014"
-        //             }
-        //         ]
-        //     },
-        //     "id": "3200ab8d-0080-42f0-8517-c13e3d9201d8"
-        // }
+        //     {
+        //         "id": "6dcdcdd2-1523-4d48-9b45-e1f3e61b3711",
+        //         "result": {
+        //             "instrument_name": null,
+        //             "funding_rate_history": [
+        //                 {
+        //                     "timestamp": 1783461600000,
+        //                     "risk_universe_id": 1,
+        //                     "currency": "BTC",
+        //                     "open": "0.000047348",
+        //                     "high": "0.000047348",
+        //                     "low": "0.000047348",
+        //                     "close": "0.000047348",
+        //                     "funding_rate": "0.000047348"
+        //                 },
+        //                 {
+        //                     "timestamp": 1783465200000,
+        //                     "risk_universe_id": 1,
+        //                     "currency": "BTC",
+        //                     "open": "0.000012500",
+        //                     "high": "0.000049960",
+        //                     "low": "0.000012500",
+        //                     "close": "0.000049960",
+        //                     "funding_rate": "0.000049960"
+        //                 }
+        //             ]
+        //         }
+        //     }
         //
         $result = $this->safe_dict($response, 'result', array());
         $data = $this->safe_list($result, 'funding_rate_history', array());
@@ -1181,7 +1909,7 @@ class derive extends Exchange {
             );
         }
         $sorted = $this->sort_by($rates, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
+        return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
     }
 
     public function fetch_funding_rate(string $symbol, $params = array()): PromiseInterface {
@@ -1192,7 +1920,7 @@ class derive extends Exchange {
         /**
          * fetch the current funding rate
          *
-         * @see https://docs.derive.xyz/reference/post_public-get-funding-rate-history
+         * @see https://docs.derive.xyz/api-reference/market-data/publicget_funding_rate_history
          *
          * @param {string} $symbol unified market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1200,18 +1928,40 @@ class derive extends Exchange {
          */
         $response = Async\await($this->fetch_funding_rate_history($symbol, null, 1, $params));
         //
-        // [
-        //     {
-        //         "info": {
-        //             "timestamp": 1736157600000,
-        //             "funding_rate": "-0.000008872"
+        //     [
+        //         {
+        //             "info": {
+        //                 "timestamp": 1790870400000,
+        //                 "risk_universe_id": 1,
+        //                 "currency": "BTC",
+        //                 "open": "0.000012500",
+        //                 "high": "0.000012500",
+        //                 "low": "0.000012500",
+        //                 "close": "0.000012500",
+        //                 "funding_rate": "0.000012500"
+        //             },
+        //             "symbol": "BTC/USDC:USDC",
+        //             "fundingRate": 1.25e-05,
+        //             "timestamp": 1790870400000,
+        //             "datetime": "2026-10-01T16:00:00.000Z"
         //         },
-        //         "symbol": "BTC/USD:USDC",
-        //         "fundingRate": -0.000008872,
-        //         "timestamp": 1736157600000,
-        //         "datetime": "2025-01-06T10:00:00.000Z"
-        //     }
-        // ]
+        //         {
+        //             "info": {
+        //                 "timestamp": 1790874000000,
+        //                 "risk_universe_id": 1,
+        //                 "currency": "BTC",
+        //                 "open": "0.000012500",
+        //                 "high": "0.000012500",
+        //                 "low": "0.000012500",
+        //                 "close": "0.000012500",
+        //                 "funding_rate": "0.000012500"
+        //             },
+        //             "symbol": "BTC/USDC:USDC",
+        //             "fundingRate": 1.25e-05,
+        //             "timestamp": 1790874000000,
+        //             "datetime": "2026-10-01T17:00:00.000Z"
+        //         }
+        //     ]
         //
         $data = $this->safe_dict($response, 0);
         return $this->parse_funding_rate($data);
@@ -1247,7 +1997,11 @@ class derive extends Exchange {
             'bytes32', 'uint256', 'uint256', 'address', 'bytes32', 'uint256', 'address', 'address',
         ), $order), 'keccak', 'binary');
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-        $DOMAIN_SEPARATOR = ($sandboxMode === true) ? '9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105' : 'd96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b';
+        // EIP712Domain (name "Matching", version "1.0", verifyingContract 0xeB8d770ec18DB98Db922E9D83260A585b9F0DeAD) precomputed for chainId 1 (mainnet) and 11155111 (sepolia testnet)
+        $DOMAIN_SEPARATOR = 'da616dfabb88681b08e1592820a41d55ddc62d68de110e327ae99d734506fe19';
+        if ($sandboxMode === true) {
+            $DOMAIN_SEPARATOR = '24d674cd5f2b9d564691c51e9d88f649b99246a2244dd74ce27b96578d773e85';
+        }
         $binaryDomainSeparator = $this->base16_to_binary($DOMAIN_SEPARATOR);
         $prefix = $this->base16_to_binary('1901');
         return $this->hash($this->binary_concat($prefix, $binaryDomainSeparator, $accountHash), 'keccak', 'hex');
@@ -1256,6 +2010,22 @@ class derive extends Exchange {
     public function sign_order(mixed $order, string $privateKey): string {
         $hashOrder = $this->hash_order_message($order);
         return $this->sign_hash(mb_substr($hashOrder, -64), mb_substr($privateKey, -64));
+    }
+
+    public function nonce_string(): string {
+        /**
+         * @ignore
+         * returns a unique nanosecond-scale action nonce as a decimal string; v3 requires UTC timestamps in nanoseconds (~19 digits), which overflow double precision, so the millisecond timestamp from incrementingNonce is concatenated with a random 6-digit $suffix (the venue accepts string nonces)
+         * @return {string} a nanosecond-scale nonce as a decimal string
+         */
+        // incrementingNonce guarantees unique milliseconds within one instance; the result matches the official derive-ts client nonce format (error 11017 = duplicate nonce)
+        // the mutating calls stay hoisted out of other call arguments, nesting them breaks the rust borrow checker (E0502)
+        $rawNonce = $this->incrementing_nonce();
+        $randomPart = $this->rand_number(6); // guards against collisions of different instances with the same wallet
+        $milliseconds = $this->number_to_string($rawNonce);
+        $suffix = $this->number_to_string($randomPart);
+        $padded = str_pad($suffix, 6, '0', STR_PAD_LEFT);
+        return $milliseconds . $padded;
     }
 
     public function hash_message(mixed $message) {
@@ -1292,7 +2062,7 @@ class derive extends Exchange {
         /**
          * create a trade $order
          *
-         * @see https://docs.derive.xyz/reference/post_private-$order
+         * @see https://docs.derive.xyz/api-reference/orderbook/privateorder
          *
          * @param {string} $symbol unified $symbol of the $market to create an $order in
          * @param {string} $type 'market' or 'limit'
@@ -1301,11 +2071,12 @@ class derive extends Exchange {
          * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->subaccount_id] *required* the subaccount id
-         * @param {float} [$params->triggerPrice] The $price a trigger $order is triggered at
-         * @param {array} [$params->takeProfit] *$takeProfit object in $params* containing the triggerPrice at which the attached take profit $order will be triggered (perpetual swap markets only)
-         * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
-         * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the triggerPrice at which the attached stop loss $order will be triggered (perpetual swap markets only)
-         * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
+         * @param {float} [$params->triggerPrice] the $price a standalone trigger (stop) $order is triggered at
+         * @param {float} [$params->stopLossPrice] the $price a standalone stop loss $order is triggered at
+         * @param {float} [$params->takeProfitPrice] the $price a standalone take profit $order is triggered at
+         * @param {string} [$params->trigger_price_type] the $price $type the trigger watches, only 'mark' is supported by the venue (default)
+         * @param {bool} [$params->postOnly] true makes the $order post only
+         * @param {bool} [$params->reduceOnly] true reduces the position only, not available with post only
          * @param {float} [$params->max_fee] *required* the maximum fee you are willing to pay for the $order
          * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
          */
@@ -1316,24 +2087,23 @@ class derive extends Exchange {
         if ($price === null) {
             throw new ArgumentsRequired($this->id . ' createOrder() requires a price argument');
         }
-        $subaccountId = null;
-        list($subaccountId, $params) = $this->handle_derive_subaccount_id('createOrder', $params);
-        $test = $this->safe_bool($params, 'test', false);
-        $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only');
-        $timeInForce = $this->safe_string_lower_2($params, 'timeInForce', 'time_in_force');
-        $postOnly = $this->safe_bool($params, 'postOnly');
+        list($subaccountId, $paramsDeriveSubaccountId) = $this->handle_derive_subaccount_id('createOrder', $params);
+        $test = $this->safe_bool($paramsDeriveSubaccountId, 'test', false);
+        $reduceOnly = $this->safe_bool_2($paramsDeriveSubaccountId, 'reduceOnly', 'reduce_only');
+        $timeInForce = $this->safe_string_lower_2($paramsDeriveSubaccountId, 'timeInForce', 'time_in_force');
+        $postOnly = $this->safe_bool($paramsDeriveSubaccountId, 'postOnly');
         $orderType = strtolower($type);
         $orderSide = strtolower($side);
         $orderSideIsBuy = ($orderSide === 'buy'); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
-        $nonce = $this->incrementing_nonce();
+        $nonce = $this->nonce_string();
         // Order signature expiry must be between 2592000 and 7776000 sec from now
-        $signatureExpiry = $this->safe_integer($params, 'signature_expiry_sec', $this->seconds() + 7776000);
+        $signatureExpiry = $this->safe_integer($paramsDeriveSubaccountId, 'signature_expiry_sec', $this->seconds() + 7776000);
         $ACTION_TYPEHASH = $this->base16_to_binary('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
-        $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-        $TRADE_MODULE_ADDRESS = ($sandboxMode === true) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
+        $TRADE_MODULE_ADDRESS = '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b'; // shared across mainnet and testnet in v3
         $priceString = $this->number_to_string($price);
         $maxFee = null;
-        list($maxFee, $params) = $this->handle_option_and_params($params, 'createOrder', 'max_fee');
+        $paramsMaxFee = array();
+        list($maxFee, $paramsMaxFee) = $this->handle_option_and_params($paramsDeriveSubaccountId, 'createOrder', 'max_fee');
         if ($maxFee === null) {
             throw new ArgumentsRequired($this->id . ' createOrder() requires a max_fee argument in params');
         }
@@ -1343,19 +2113,18 @@ class derive extends Exchange {
             'address', 'uint', 'int', 'int', 'uint', 'uint', 'bool',
         ), array(
             $market['info']['base_asset_address'],
-            $this->parse_to_numeric($market['info']['base_asset_sub_id']),
+            $this->convert_to_big_int($market['info']['base_asset_sub_id']), // options carry a huge encoded sub_id that overflows double precision, so it must stay integral
             $this->convert_to_big_int(($this->parse_units($priceString))),
             $this->convert_to_big_int(($this->parse_units(($this->amount_to_precision($symbol, $amountString))))),
             $this->convert_to_big_int(($this->parse_units($maxFeeString))),
             $subaccountId,
             $orderSideIsBuy,
         )), 'keccak', 'binary');
-        $deriveWalletAddress = null;
-        list($deriveWalletAddress, $params) = $this->handle_derive_wallet_address('createOrder', $params);
+        list($deriveWalletAddress, $paramsDeriveWalletAddress) = $this->handle_derive_wallet_address('createOrder', $paramsMaxFee);
         $signature = $this->sign_order(array(
             $ACTION_TYPEHASH,
             $subaccountId,
-            $nonce,
+            $this->convert_to_big_int($nonce),
             $TRADE_MODULE_ADDRESS,
             $tradeModuleDataHash,
             $signatureExpiry,
@@ -1386,97 +2155,79 @@ class derive extends Exchange {
         } elseif ($timeInForce !== null) {
             $request['time_in_force'] = $timeInForce;
         }
-        $stopLoss = $this->safe_value($params, 'stopLoss');
-        $takeProfit = $this->safe_value($params, 'takeProfit');
-        $triggerPriceType = $this->safe_string($params, 'trigger_price_type', 'mark');
-        if ($stopLoss !== null) {
-            $stopLossPrice = $this->safe_string($stopLoss, 'triggerPrice', $stopLoss);
-            $request['trigger_price'] = $stopLossPrice;
+        // the venue supports exactly two standalone conditional kinds: 'stoploss' triggers on adverse crossing (the classic stop semantics, so both triggerPrice and stopLossPrice map onto it) and 'takeprofit' triggers on the favorable one; attached stop loss / take profit are not supported
+        $triggerPrice = $this->safe_string_n($paramsDeriveWalletAddress, array( 'triggerPrice', 'stopPrice', 'trigger_price' ));
+        $stopLossPrice = $this->safe_string($paramsDeriveWalletAddress, 'stopLossPrice');
+        $takeProfitPrice = $this->safe_string($paramsDeriveWalletAddress, 'takeProfitPrice');
+        if (($takeProfitPrice !== null) && (($triggerPrice !== null) || ($stopLossPrice !== null))) {
+            throw new InvalidOrder($this->id . ' createOrder() accepts only one of triggerPrice, stopLossPrice or takeProfitPrice');
+        }
+        $triggerPriceType = $this->safe_string($paramsDeriveWalletAddress, 'trigger_price_type', 'mark');
+        $stopPrice = ($triggerPrice !== null) ? $triggerPrice : $stopLossPrice;
+        if ($stopPrice !== null) {
+            $request['trigger_price'] = $stopPrice;
             $request['trigger_type'] = 'stoploss';
             $request['trigger_price_type'] = $triggerPriceType;
-        } elseif ($takeProfit !== null) {
-            $takeProfitPrice = $this->safe_string($takeProfit, 'triggerPrice', $takeProfit);
+        } elseif ($takeProfitPrice !== null) {
             $request['trigger_price'] = $takeProfitPrice;
             $request['trigger_type'] = 'takeprofit';
             $request['trigger_price_type'] = $triggerPriceType;
         }
-        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        $clientOrderId = $this->safe_string($paramsDeriveWalletAddress, 'clientOrderId');
         if ($clientOrderId !== null) {
             $request['label'] = $clientOrderId;
         }
         $request['signature'] = $signature;
-        $params = $this->omit($params, array( 'reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'test', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trigger_price', 'stopLoss', 'takeProfit', 'trigger_price_type' ));
+        $paramsOmitted = $this->omit($paramsDeriveWalletAddress, array( 'reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'test', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trigger_price', 'stopLossPrice', 'takeProfitPrice', 'trigger_price_type' ));
         if ($test === true) {
-            $response = Async\await($this->privatePostOrderDebug($this->extend($request, $params)));
+            $response = Async\await($this->privatePostOrderDebug($this->extend($request, $paramsOmitted)));
         } else {
-            $response = Async\await($this->privatePostOrder($this->extend($request, $params)));
+            $response = Async\await($this->privatePostOrder($this->extend($request, $paramsOmitted)));
         }
         //
-        // {
-        //     "result": {
-        //         "raw_data": {
-        //             "subaccount_id": 130837,
-        //             "nonce": 1736923517552,
-        //             "module": "0x87F2863866D85E3192a35A73b388BD625D83f2be",
-        //             "expiry": 86400,
-        //             "owner": "0x108b9aF9279a525b8A8AeAbE7AC2bA925Bc50075",
-        //             "signer": "0x108b9aF9279a525b8A8AeAbE7AC2bA925Bc50075",
-        //             "signature": "0xaa4f42b2f3da33c668fa703ea872d4c3a6b55aca66025b5119e3bebb6679fe2e2794638db51dcace21fc39a498047835994f07eb59f311bb956ce057e66793d1c",
-        //             "data": {
-        //                 "asset": "0xAFB6Bb95cd70D5367e2C39e9dbEb422B9815339D",
-        //                 "sub_id": 0,
-        //                 "limit_price": "10000",
-        //                 "desired_amount": "0.001",
-        //                 "worst_fee": "0",
-        //                 "recipient_id": 130837,
-        //                 "is_bid": true,
-        //                 "trade_id": ""
-        //             }
-        //         },
-        //         "encoded_data": "0x000000000000000000000000afb6bb95cd70d5367e2c39e9dbeb422b9815339d000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000021e19e0c9bab240000000000000000000000000000000000000000000000000000000038d7ea4c680000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001ff150000000000000000000000000000000000000000000000000000000000000001",
-        //         "encoded_data_hashed": "0xe88fb416bc54dba2d288988f1a82fee40fd792ed555b3471b5f6b4b810d279b4",
-        //         "action_hash": "0x273a0befb3751fa991edc7ed73582456c3b50ae964d458c8f472e932fb6a0069",
-        //         "typed_data_hash": "0x123e2d2f3d5b2473b4e260f51c6459d6bf904e5db8f042a3ea63be8d55329ce9"
-        //     },
-        //     "id": "f851c8c4-dddf-4b77-93cf-aeddd0966f29"
-        // }
-        // {
-        //     "result": {
-        //         "order": {
-        //             "subaccount_id": 130837,
-        //             "order_id": "96349ebb-7d46-43ae-81c7-7ab390444293",
-        //             "instrument_name": "BTC-PERP",
-        //             "direction": "buy",
-        //             "label": "",
-        //             "quote_id": null,
-        //             "creation_timestamp": 1737467576257,
-        //             "last_update_timestamp": 1737467576257,
-        //             "limit_price": "10000",
-        //             "amount": "0.01",
-        //             "filled_amount": "0",
-        //             "average_price": "0",
-        //             "order_fee": "0",
-        //             "order_type": "limit",
-        //             "time_in_force": "gtc",
-        //             "order_status": "open",
-        //             "max_fee": "210",
-        //             "signature_expiry_sec": 1737468175989,
-        //             "nonce": 1737467575989,
-        //             "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
-        //             "signature": "0xd1ca49df1fa06bd805bb59b132ff6c0de29bf973a3e01705abe0a01cc956e4945ed9eb99ab68f3df4c037908113cac5a5bfc3a954a0b7103cdab285962fa6a51c",
-        //             "cancel_reason": "",
-        //             "mmp": false,
-        //             "is_transfer": false,
-        //             "replaced_order_id": null,
-        //             "trigger_type": null,
-        //             "trigger_price_type": null,
-        //             "trigger_price": null,
-        //             "trigger_reject_message": null
-        //         },
-        //         "trades": []
-        //     },
-        //     "id": "397087fa-0125-42af-bfc3-f66166f9fb55"
-        // }
+        //     {
+        //         "id": "dd0fe5ec-043c-41ab-95e1-fc2421c6fc10",
+        //         "result": {
+        //             "order": {
+        //                 "subaccount_id": 86815,
+        //                 "order_id": "f690dfc9-5b9c-4f62-a2b0-3f6ba502f2f6",
+        //                 "instrument_name": "BTC-PERP",
+        //                 "direction": "buy",
+        //                 "label": "",
+        //                 "quote_id": null,
+        //                 "amount": "0.01",
+        //                 "average_price": "0",
+        //                 "cancel_reason": "",
+        //                 "creation_timestamp": 1790871618199,
+        //                 "filled_amount": "0",
+        //                 "is_transfer": false,
+        //                 "last_update_timestamp": 1790871618199,
+        //                 "limit_price": "83000",
+        //                 "signed_limit_price": null,
+        //                 "max_fee": "100",
+        //                 "mmp": false,
+        //                 "nonce": "1790871617137835612",
+        //                 "order_fee": "0",
+        //                 "order_status": "open",
+        //                 "order_type": "limit",
+        //                 "replaced_order_id": null,
+        //                 "signature": "0x55412a2a39e2dd70b0c39ea03859ac499b5c500756b46197900a413f7bfd294e0adb8c2c5eec467b4c83ef75f7068b528e21044cdd27faa47a6db475461641c21b",
+        //                 "signature_expiry_sec": 1798647617,
+        //                 "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                 "time_in_force": "gtc",
+        //                 "trigger_type": null,
+        //                 "trigger_price": null,
+        //                 "trigger_price_type": null,
+        //                 "trigger_reject_message": null,
+        //                 "extra_fee": "0",
+        //                 "algo_type": null,
+        //                 "algo_duration_sec": null,
+        //                 "algo_num_slices": null,
+        //                 "algo_slices_completed": null
+        //             },
+        //             "trades": []
+        //         }
+        //     }
         //
         $result = $this->safe_dict($response, 'result');
         $rawOrder = $this->safe_dict($result, 'raw_data');
@@ -1496,7 +2247,7 @@ class derive extends Exchange {
         /**
          * edit a trade $order
          *
-         * @see https://docs.derive.xyz/reference/post_private-replace
+         * @see https://docs.derive.xyz/api-reference/orderbook/privatereplace
          *
          * @param {string} $id $order $id
          * @param {string} $symbol unified $symbol of the $market to create an $order in
@@ -1512,40 +2263,36 @@ class derive extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $subaccountId = null;
-        list($subaccountId, $params) = $this->handle_derive_subaccount_id('editOrder', $params);
-        $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only');
-        $timeInForce = $this->safe_string_lower_2($params, 'timeInForce', 'time_in_force');
-        $postOnly = $this->safe_bool($params, 'postOnly');
+        list($subaccountId, $paramsDeriveSubaccountId) = $this->handle_derive_subaccount_id('editOrder', $params);
+        $reduceOnly = $this->safe_bool_2($paramsDeriveSubaccountId, 'reduceOnly', 'reduce_only');
+        $timeInForce = $this->safe_string_lower_2($paramsDeriveSubaccountId, 'timeInForce', 'time_in_force');
+        $postOnly = $this->safe_bool($paramsDeriveSubaccountId, 'postOnly');
         $orderType = strtolower($type);
         $orderSide = strtolower($side);
         $orderSideIsBuy = ($orderSide === 'buy'); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
-        $nonce = $this->incrementing_nonce();
-        $signatureExpiry = $this->safe_number($params, 'signature_expiry_sec', $this->seconds() + 7776000);
-        // TODO: subaccount id / trade module address
+        $nonce = $this->nonce_string();
+        $signatureExpiry = $this->safe_number($paramsDeriveSubaccountId, 'signature_expiry_sec', $this->seconds() + 7776000);
         $ACTION_TYPEHASH = $this->base16_to_binary('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
-        $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-        $TRADE_MODULE_ADDRESS = ($sandboxMode === true) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
+        $TRADE_MODULE_ADDRESS = '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b'; // shared across mainnet and testnet in v3
         $priceString = $this->number_to_string($price);
-        $maxFeeString = $this->safe_string($params, 'max_fee', '0');
+        $maxFeeString = $this->safe_string($paramsDeriveSubaccountId, 'max_fee', '0');
         $amountString = $this->number_to_string($amount);
         $tradeModuleDataHash = $this->hash($this->eth_abi_encode(array(
             'address', 'uint', 'int', 'int', 'uint', 'uint', 'bool',
         ), array(
             $market['info']['base_asset_address'],
-            $this->parse_to_numeric($market['info']['base_asset_sub_id']),
+            $this->convert_to_big_int($market['info']['base_asset_sub_id']), // options carry a huge encoded sub_id that overflows double precision, so it must stay integral
             $this->convert_to_big_int(($this->parse_units($priceString))),
             $this->convert_to_big_int(($this->parse_units(($this->amount_to_precision($symbol, $amountString))))),
             $this->convert_to_big_int(($this->parse_units($maxFeeString))),
             $subaccountId,
             $orderSideIsBuy,
         )), 'keccak', 'binary');
-        $deriveWalletAddress = null;
-        list($deriveWalletAddress, $params) = $this->handle_derive_wallet_address('editOrder', $params);
+        list($deriveWalletAddress, $paramsDeriveWalletAddress) = $this->handle_derive_wallet_address('editOrder', $paramsDeriveSubaccountId);
         $signature = $this->sign_order(array(
             $ACTION_TYPEHASH,
             $subaccountId,
-            $nonce,
+            $this->convert_to_big_int($nonce),
             $TRADE_MODULE_ADDRESS,
             $tradeModuleDataHash,
             $signatureExpiry,
@@ -1576,86 +2323,95 @@ class derive extends Exchange {
         } elseif ($timeInForce !== null) {
             $request['time_in_force'] = $timeInForce;
         }
-        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        $clientOrderId = $this->safe_string($paramsDeriveWalletAddress, 'clientOrderId');
         if ($clientOrderId !== null) {
             $request['label'] = $clientOrderId;
         }
         $request['signature'] = $signature;
-        $params = $this->omit($params, array( 'reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'clientOrderId' ));
-        $response = Async\await($this->privatePostReplace($this->extend($request, $params)));
+        $paramsOmitted = $this->omit($paramsDeriveWalletAddress, array( 'reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'clientOrderId' ));
+        $response = Async\await($this->privatePostReplace($this->extend($request, $paramsOmitted)));
         //
-        //   {
-        //     "result":
-        //       {
-        //         "cancelled_order":
-        //           {
-        //             "subaccount_id": 130837,
-        //             "order_id": "c2337704-f1af-437d-91c8-dddb9d6bac59",
-        //             "instrument_name": "BTC-PERP",
-        //             "direction": "buy",
-        //             "label": "test1234",
-        //             "quote_id": null,
-        //             "creation_timestamp": 1737539743959,
-        //             "last_update_timestamp": 1737539764234,
-        //             "limit_price": "10000",
-        //             "amount": "0.01",
-        //             "filled_amount": "0",
-        //             "average_price": "0",
-        //             "order_fee": "0",
-        //             "order_type": "limit",
-        //             "time_in_force": "post_only",
-        //             "order_status": "cancelled",
-        //             "max_fee": "211",
-        //             "signature_expiry_sec": 1737540343631,
-        //             "nonce": 1737539743631,
-        //             "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
-        //             "signature": "0xdb669e18f407a3efa816b79c0dd3bac1c651d4dbf3caad4db67678ce9b81c76378d787a08143a30707eb0827ce4626640767c9f174358df1b90611bd6d1391711b",
-        //             "cancel_reason": "user_request",
-        //             "mmp": false,
-        //             "is_transfer": false,
-        //             "replaced_order_id": null,
-        //             "trigger_type": null,
-        //             "trigger_price_type": null,
-        //             "trigger_price": null,
-        //             "trigger_reject_message": null,
-        //           },
-        //         "order":
-        //           {
-        //             "subaccount_id": 130837,
-        //             "order_id": "97af0902-813f-4892-a54b-797e5689db05",
-        //             "instrument_name": "BTC-PERP",
-        //             "direction": "buy",
-        //             "label": "test1234",
-        //             "quote_id": null,
-        //             "creation_timestamp": 1737539764154,
-        //             "last_update_timestamp": 1737539764154,
-        //             "limit_price": "10000",
-        //             "amount": "0.01",
-        //             "filled_amount": "0",
-        //             "average_price": "0",
-        //             "order_fee": "0",
-        //             "order_type": "limit",
-        //             "time_in_force": "post_only",
-        //             "order_status": "open",
-        //             "max_fee": "211",
-        //             "signature_expiry_sec": 1737540363890,
-        //             "nonce": 1737539763890,
-        //             "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
-        //             "signature": "0xef2c459ab4797cbbd7d97b47678ff172542af009bac912bf53e7879cf92eb1aa6b1a6cf40bf0928684f5394942fb424cc2db71eac0eaf7226a72480034332f291c",
-        //             "cancel_reason": "",
-        //             "mmp": false,
-        //             "is_transfer": false,
-        //             "replaced_order_id": "c2337704-f1af-437d-91c8-dddb9d6bac59",
-        //             "trigger_type": null,
-        //             "trigger_price_type": null,
-        //             "trigger_price": null,
-        //             "trigger_reject_message": null,
-        //           },
-        //         "trades": [],
-        //         "create_order_error": null,
-        //       },
-        //     "id": "fb19e991-15f6-4c80-a20c-917e762a1a38",
-        //   }
+        //     {
+        //         "id": "bdeaa36f-5eae-4193-a1d2-81fb7f0dfd9d",
+        //         "result": {
+        //             "cancelled_order": {
+        //                 "subaccount_id": 86815,
+        //                 "order_id": "f690dfc9-5b9c-4f62-a2b0-3f6ba502f2f6",
+        //                 "instrument_name": "BTC-PERP",
+        //                 "direction": "buy",
+        //                 "label": "",
+        //                 "quote_id": null,
+        //                 "amount": "0.01",
+        //                 "average_price": "0",
+        //                 "cancel_reason": "user_request",
+        //                 "creation_timestamp": 1790871618199,
+        //                 "filled_amount": "0",
+        //                 "is_transfer": false,
+        //                 "last_update_timestamp": 1790871630849,
+        //                 "limit_price": "83000",
+        //                 "signed_limit_price": null,
+        //                 "max_fee": "100",
+        //                 "mmp": false,
+        //                 "nonce": "1790871617137835612",
+        //                 "order_fee": "0",
+        //                 "order_status": "cancelled",
+        //                 "order_type": "limit",
+        //                 "replaced_order_id": null,
+        //                 "signature": "0x55412a2a39e2dd70b0c39ea03859ac499b5c500756b46197900a413f7bfd294e0adb8c2c5eec467b4c83ef75f7068b528e21044cdd27faa47a6db475461641c21b",
+        //                 "signature_expiry_sec": 1798647617,
+        //                 "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                 "time_in_force": "gtc",
+        //                 "trigger_type": null,
+        //                 "trigger_price": null,
+        //                 "trigger_price_type": null,
+        //                 "trigger_reject_message": null,
+        //                 "extra_fee": "0",
+        //                 "algo_type": null,
+        //                 "algo_duration_sec": null,
+        //                 "algo_num_slices": null,
+        //                 "algo_slices_completed": null
+        //             },
+        //             "order": {
+        //                 "subaccount_id": 86815,
+        //                 "order_id": "af3f3ec2-eab8-4929-bd50-8ce1657f9e93",
+        //                 "instrument_name": "BTC-PERP",
+        //                 "direction": "buy",
+        //                 "label": "",
+        //                 "quote_id": null,
+        //                 "amount": "0.01",
+        //                 "average_price": "0",
+        //                 "cancel_reason": "",
+        //                 "creation_timestamp": 1790871630849,
+        //                 "filled_amount": "0",
+        //                 "is_transfer": false,
+        //                 "last_update_timestamp": 1790871630849,
+        //                 "limit_price": "83500",
+        //                 "signed_limit_price": null,
+        //                 "max_fee": "100",
+        //                 "mmp": false,
+        //                 "nonce": "1790871630331176421",
+        //                 "order_fee": "0",
+        //                 "order_status": "open",
+        //                 "order_type": "limit",
+        //                 "replaced_order_id": "f690dfc9-5b9c-4f62-a2b0-3f6ba502f2f6",
+        //                 "signature": "0x0c8ae3bebd23b1e303b49dd60eb34a5c96ccd450ea9f37536f30d7fa07322980569e4e691e90673a9a8db27b253cf00026ea813034ad2f5e22e2db727cb42faa1c",
+        //                 "signature_expiry_sec": 1798647630,
+        //                 "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                 "time_in_force": "gtc",
+        //                 "trigger_type": null,
+        //                 "trigger_price": null,
+        //                 "trigger_price_type": null,
+        //                 "trigger_reject_message": null,
+        //                 "extra_fee": "0",
+        //                 "algo_type": null,
+        //                 "algo_duration_sec": null,
+        //                 "algo_num_slices": null,
+        //                 "algo_slices_completed": null
+        //             },
+        //             "trades": [],
+        //             "create_order_error": null
+        //         }
+        //     }
         //
         $result = $this->safe_dict($response, 'result');
         $rawOrder = $this->safe_dict($result, 'order', array());
@@ -1670,7 +2426,7 @@ class derive extends Exchange {
     private function do_cancel_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          *
-         * @see https://docs.derive.xyz/reference/post_private-cancel
+         * @see https://docs.derive.xyz/api-reference/orderbook/privatecancel
          *
          * cancels an open $order
          * @param {string} $id $order $id
@@ -1688,70 +2444,68 @@ class derive extends Exchange {
         }
         $market = $this->market($symbol);
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
-        $subaccountId = null;
-        list($subaccountId, $params) = $this->handle_derive_subaccount_id('cancelOrder', $params);
-        $params = $this->omit($params, array( 'trigger', 'stop' ));
+        list($subaccountId, $paramsDeriveSubaccountId) = $this->handle_derive_subaccount_id('cancelOrder', $params);
+        $paramsOmitted = $this->omit($paramsDeriveSubaccountId, array( 'trigger', 'stop' ));
         $request = array(
             'instrument_name' => $market['id'],
             'subaccount_id' => $subaccountId,
         );
-        $clientOrderIdUnified = $this->safe_string($params, 'clientOrderId');
-        $clientOrderIdExchangeSpecific = $this->safe_string($params, 'label', $clientOrderIdUnified);
+        $clientOrderIdUnified = $this->safe_string($paramsOmitted, 'clientOrderId');
+        $clientOrderIdExchangeSpecific = $this->safe_string($paramsOmitted, 'label', $clientOrderIdUnified);
         $isByClientOrder = $clientOrderIdExchangeSpecific !== null;
         if ($isByClientOrder) {
             $request['label'] = $clientOrderIdExchangeSpecific;
-            $params = $this->omit($params, array( 'clientOrderId', 'label' ));
-            $response = Async\await($this->privatePostCancelByLabel($this->extend($request, $params)));
+            $paramsLabel = $this->omit($paramsOmitted, array( 'clientOrderId', 'label' ));
+            $response = Async\await($this->privatePostCancelByLabel($this->extend($request, $paramsLabel)));
         } else {
             $request['order_id'] = $id;
             if ($isTrigger === true) {
-                $response = Async\await($this->privatePostCancelTriggerOrder($this->extend($request, $params)));
+                $response = Async\await($this->privatePostCancelTriggerOrder($this->extend($request, $paramsOmitted)));
             } else {
-                $response = Async\await($this->privatePostCancel($this->extend($request, $params)));
+                $response = Async\await($this->privatePostCancel($this->extend($request, $paramsOmitted)));
             }
         }
         //
-        // {
-        //     "result": {
-        //         "subaccount_id": 130837,
-        //         "order_id": "de4f30b6-0dcb-4df6-9222-c1a27f1ad80d",
-        //         "instrument_name": "BTC-PERP",
-        //         "direction": "buy",
-        //         "label": "test1234",
-        //         "quote_id": null,
-        //         "creation_timestamp": 1737540100989,
-        //         "last_update_timestamp": 1737540574696,
-        //         "limit_price": "10000",
-        //         "amount": "0.01",
-        //         "filled_amount": "0",
-        //         "average_price": "0",
-        //         "order_fee": "0",
-        //         "order_type": "limit",
-        //         "time_in_force": "post_only",
-        //         "order_status": "cancelled",
-        //         "max_fee": "211",
-        //         "signature_expiry_sec": 1737540700726,
-        //         "nonce": 1737540100726,
-        //         "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
-        //         "signature": "0x9cd1a6e32a0699929e4e090c08c548366b1353701ec56e02d5cdf37fc89bd19b7b29e00e57e8383bb6336d73019027a7e2a4364f40859e7a949115024c7f199a1b",
-        //         "cancel_reason": "user_request",
-        //         "mmp": false,
-        //         "is_transfer": false,
-        //         "replaced_order_id": "4ccc89ba-3c3d-4047-8900-0aa5fb4ef706",
-        //         "trigger_type": null,
-        //         "trigger_price_type": null,
-        //         "trigger_price": null,
-        //         "trigger_reject_message": null
-        //     },
-        //     "id": "cef61e2a-cb13-4779-8e6b-535361981fad"
-        // }
-        //
-        // {
-        //     "result": {
-        //         "cancelled_orders": 1
-        //     },
-        //     "id": "674e075e-1e8a-4a47-99ff-75efbdd2370f"
-        // }
+        //     {
+        //         "id": "1765272a-2d4d-4761-8e05-64061d64dc9c",
+        //         "result": {
+        //             "subaccount_id": 86815,
+        //             "order_id": "af3f3ec2-eab8-4929-bd50-8ce1657f9e93",
+        //             "instrument_name": "BTC-PERP",
+        //             "direction": "buy",
+        //             "label": "",
+        //             "quote_id": null,
+        //             "amount": "0.01",
+        //             "average_price": "0",
+        //             "cancel_reason": "user_request",
+        //             "creation_timestamp": 1790871630849,
+        //             "filled_amount": "0",
+        //             "is_transfer": false,
+        //             "last_update_timestamp": 1790871644913,
+        //             "limit_price": "83500",
+        //             "signed_limit_price": null,
+        //             "max_fee": "100",
+        //             "mmp": false,
+        //             "nonce": "1790871630331176421",
+        //             "order_fee": "0",
+        //             "order_status": "cancelled",
+        //             "order_type": "limit",
+        //             "replaced_order_id": "f690dfc9-5b9c-4f62-a2b0-3f6ba502f2f6",
+        //             "signature": "0x0c8ae3bebd23b1e303b49dd60eb34a5c96ccd450ea9f37536f30d7fa07322980569e4e691e90673a9a8db27b253cf00026ea813034ad2f5e22e2db727cb42faa1c",
+        //             "signature_expiry_sec": 1798647630,
+        //             "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //             "time_in_force": "gtc",
+        //             "trigger_type": null,
+        //             "trigger_price": null,
+        //             "trigger_price_type": null,
+        //             "trigger_reject_message": null,
+        //             "extra_fee": "0",
+        //             "algo_type": null,
+        //             "algo_duration_sec": null,
+        //             "algo_num_slices": null,
+        //             "algo_slices_completed": null
+        //         }
+        //     }
         //
         $extendParams = array( 'symbol' => $symbol );
         $order = $this->safe_dict($response, 'result', array());
@@ -1768,8 +2522,8 @@ class derive extends Exchange {
     private function do_cancel_all_orders(?string $symbol = null, $params = array()) {
         /**
          *
-         * @see https://docs.derive.xyz/reference/post_private-cancel-by-instrument
-         * @see https://docs.derive.xyz/reference/post_private-cancel-all
+         * @see https://docs.derive.xyz/api-reference/orderbook/privatecancel_by_instrument
+         * @see https://docs.derive.xyz/api-reference/orderbook/privatecancel_all
          *
          * cancel all open orders in a $market
          * @param {string} [$symbol] unified $market $symbol
@@ -1784,128 +2538,128 @@ class derive extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $subaccountId = null;
-        list($subaccountId, $params) = $this->handle_derive_subaccount_id('cancelAllOrders', $params);
+        list($subaccountId, $paramsDeriveSubaccountId) = $this->handle_derive_subaccount_id('cancelAllOrders', $params);
         $request = array(
             'subaccount_id' => $subaccountId,
         );
         if ($market !== null) {
             $request['instrument_name'] = $market['id'];
-            $response = Async\await($this->privatePostCancelByInstrument($this->extend($request, $params)));
+            $response = Async\await($this->privatePostCancelByInstrument($this->extend($request, $paramsDeriveSubaccountId)));
         } else {
-            $response = Async\await($this->privatePostCancelAll($this->extend($request, $params)));
+            $response = Async\await($this->privatePostCancelAll($this->extend($request, $paramsDeriveSubaccountId)));
         }
         //
-        // {
-        //     "result": {
-        //         "cancelled_orders": 0
-        //     },
-        //     "id": "9d633799-2098-4559-b547-605bb6f4d8f5"
-        // }
-        //
-        // {
-        //     "id": "45548646-c74f-4ca2-9de4-551e6de49afa",
-        //     "result": "ok"
-        // }
+        //     {
+        //         "id": "dda90de6-30d5-4bb1-8c3b-cdaa23e9e718",
+        //         "result": "ok"
+        //     }
         //
         return array( $this->safe_order(array( 'info' => $response )) );
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_fetch_orders(...))($symbol, $since, $limit, $params);
+    public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_canceled_and_closed_orders(...))($symbol, $since, $limit, $params);
     }
 
-    private function do_fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    private function do_fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
-         * fetches information on multiple $orders made by the user
+         * fetches information on multiple canceled and closed $orders made by the user; only $orders in a terminal state (filled, cancelled, expired) are returned, use fetchOpenOrders for $orders resting on the order book
          *
-         * @see https://docs.derive.xyz/reference/post_private-get-$orders
+         * @see https://docs.derive.xyz/api-reference/history/privateget_order_history
          *
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch $orders for
          * @param {boolean} [$params->paginate] set to true if you want to fetch $orders with $pagination
-         * @param {boolean} [$params->trigger] whether the order is a trigger/algo order
          * @param {string} [$params->subaccount_id] *required* the subaccount id
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate');
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchCanceledAndClosedOrders', 'paginate', false);
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_incremental('fetchOrders', $symbol, $since, $limit, $params, 'page', 500));
+            // paginate without a symbol: the venue cannot filter the order history by instrument, so an inner call filtering by symbol could return an empty page and stop the pagination loop prematurely
+            $allOrders = Async\await($this->fetch_paginated_call_incremental('fetchCanceledAndClosedOrders', null, $since, null, $paramsPaginate, 'page', 500));
+            return $this->filter_by_symbol_since_limit($allOrders, $symbol, $since, $limit);
         }
-        $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
-        $params = $this->omit($params, array( 'trigger', 'stop' ));
-        $subaccountId = null;
-        list($subaccountId, $params) = $this->handle_derive_subaccount_id('fetchOrders', $params);
+        $until = $this->safe_integer($paramsPaginate, 'until');
+        $paramsOmitted = $this->omit($paramsPaginate, array( 'until' ));
+        list($subaccountId, $paramsDeriveSubaccountId) = $this->handle_derive_subaccount_id('fetchCanceledAndClosedOrders', $paramsOmitted);
         $request = array(
             'subaccount_id' => $subaccountId,
         );
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $request['instrument_name'] = $market['id'];
         }
         if ($limit !== null) {
             $request['page_size'] = $limit;
         } else {
             $request['page_size'] = 500;
         }
-        if ($isTrigger === true) {
-            $request['status'] = 'untriggered';
+        if ($since !== null) {
+            $request['from_timestamp'] = $since;
         }
-        $response = Async\await($this->privatePostGetOrders($this->extend($request, $params)));
+        if ($until !== null) {
+            $request['to_timestamp'] = $until;
+        }
+        $response = Async\await($this->privatePostGetOrderHistory($this->extend($request, $paramsDeriveSubaccountId)));
         //
-        // {
-        //     "result": {
-        //         "subaccount_id": 130837,
-        //         "orders": [
-        //             {
-        //                 "subaccount_id": 130837,
-        //                 "order_id": "63a80cb8-387b-472b-a838-71cd9513c365",
-        //                 "instrument_name": "BTC-PERP",
-        //                 "direction": "buy",
-        //                 "label": "test1234",
-        //                 "quote_id": null,
-        //                 "creation_timestamp": 1737551053207,
-        //                 "last_update_timestamp": 1737551053207,
-        //                 "limit_price": "10000",
-        //                 "amount": "0.01",
-        //                 "filled_amount": "0",
-        //                 "average_price": "0",
-        //                 "order_fee": "0",
-        //                 "order_type": "limit",
-        //                 "time_in_force": "post_only",
-        //                 "order_status": "open",
-        //                 "max_fee": "211",
-        //                 "signature_expiry_sec": 1737551652765,
-        //                 "nonce": 1737551052765,
-        //                 "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
-        //                 "signature": "0x35535ccb1bcad509ecc435c79e966174db6403fc9aeee1e237d08a941014c57b59279dfe4be39e081f9921a53eaad59cb2a151d9f52f2d05fc47e6280254952e1c",
-        //                 "cancel_reason": "",
-        //                 "mmp": false,
-        //                 "is_transfer": false,
-        //                 "replaced_order_id": null,
-        //                 "trigger_type": null,
-        //                 "trigger_price_type": null,
-        //                 "trigger_price": null,
-        //                 "trigger_reject_message": null
+        //     {
+        //         "id": "c55b1f4e-7263-4045-ac9f-158da9a97c5c",
+        //         "result": {
+        //             "subaccount_id": 86815,
+        //             "orders": [
+        //                 {
+        //                     "subaccount_id": 86815,
+        //                     "order_id": "af3f3ec2-eab8-4929-bd50-8ce1657f9e93",
+        //                     "instrument_name": "BTC-PERP",
+        //                     "direction": "buy",
+        //                     "label": "",
+        //                     "quote_id": null,
+        //                     "amount": "0.01",
+        //                     "average_price": "0",
+        //                     "cancel_reason": "user_request",
+        //                     "creation_timestamp": 1790871630849,
+        //                     "filled_amount": "0",
+        //                     "is_transfer": false,
+        //                     "last_update_timestamp": 1790871644913,
+        //                     "limit_price": "83500",
+        //                     "signed_limit_price": null,
+        //                     "max_fee": "100",
+        //                     "mmp": false,
+        //                     "nonce": "1790871630331176421",
+        //                     "order_fee": "0",
+        //                     "order_status": "cancelled",
+        //                     "order_type": "limit",
+        //                     "replaced_order_id": null,
+        //                     "signature": "",
+        //                     "signature_expiry_sec": 1798647630,
+        //                     "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                     "time_in_force": "gtc",
+        //                     "trigger_type": null,
+        //                     "trigger_price": null,
+        //                     "trigger_price_type": null,
+        //                     "trigger_reject_message": null,
+        //                     "extra_fee": "0",
+        //                     "algo_type": null,
+        //                     "algo_duration_sec": null,
+        //                     "algo_num_slices": null,
+        //                     "algo_slices_completed": null
+        //                 }
+        //             ],
+        //             "pagination": {
+        //                 "num_pages": 2,
+        //                 "count": 6
         //             }
-        //         ],
-        //         "pagination": {
-        //             "num_pages": 1,
-        //             "count": 1
         //         }
-        //     },
-        //     "id": "e5a88d4f-7ac7-40cd-aec9-e0e8152b8b92"
-        // }
+        //     }
         //
         $data = $this->safe_dict($response, 'result');
-        $page = $this->safe_integer($params, 'page');
+        $page = $this->safe_integer($paramsDeriveSubaccountId, 'page');
         if ($page !== null) {
             $pagination = $this->safe_dict($data, 'pagination');
             $currentPage = $this->safe_integer($pagination, 'num_pages', 0);
@@ -1914,7 +2668,41 @@ class derive extends Exchange {
             }
         }
         $orders = $this->safe_list($data, 'orders', array());
-        return $this->parse_orders($orders, $market, $since, $limit);
+        $parsedOrders = $this->parse_orders($orders, $market);
+        return $this->filter_by_symbol_since_limit($parsedOrders, $symbol, $since, $limit);
+    }
+
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
+    }
+
+    private function do_fetch_order(string $id, ?string $symbol = null, $params = array()) {
+        /**
+         * fetches information on an order made by the user, a standalone trigger order is not visible here until it triggers, list those through fetchOpenOrders with $params->trigger instead
+         *
+         * @see https://docs.derive.xyz/api-reference/orderbook/privateget_order
+         *
+         * @param {string} $id the order $id
+         * @param {string} [$symbol] not used by derive.fetchOrder
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->subaccount_id] *required* the subaccount $id
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        list($subaccountId, $paramsDeriveSubaccountId) = $this->handle_derive_subaccount_id('fetchOrder', $params);
+        $request = array(
+            'order_id' => $id,
+            'subaccount_id' => $subaccountId,
+        );
+        $response = Async\await($this->privatePostGetOrder($this->extend($request, $paramsDeriveSubaccountId)));
+        $result = $this->safe_dict($response, 'result', array());
+        return $this->parse_order($result, $market);
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1923,22 +2711,88 @@ class derive extends Exchange {
 
     private function do_fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
-         * fetches information on multiple orders made by the user
+         * fetches information on all currently open $orders of the user resting on the order book
          *
-         * @see https://docs.derive.xyz/reference/post_private-get-orders
+         * @see https://docs.derive.xyz/api-reference/orderbook/privateget_open_orders
+         * @see https://docs.derive.xyz/api-reference/orderbook/privateget_trigger_orders
          *
-         * @param {string} $symbol unified market $symbol of the market orders were made in
-         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {string} $symbol unified $market $symbol of the $market $orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch $orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->paginate] set to true if you want to fetch orders with pagination
+         * @param {boolean} [$params->trigger] when true fetches the pending trigger $orders that have not fired yet instead of the $orders resting on the order book
+         * @param {string} [$params->subaccount_id] *required* the subaccount id
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $extendedParams = $this->extend($params, array( 'status' => 'open' ));
-        return Async\await($this->fetch_orders($symbol, $since, $limit, $extendedParams));
+        $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
+        $paramsOmitted = $this->omit($params, array( 'trigger', 'stop' ));
+        list($subaccountId, $paramsDeriveSubaccountId) = $this->handle_derive_subaccount_id('fetchOpenOrders', $paramsOmitted);
+        $request = array(
+            'subaccount_id' => $subaccountId,
+        );
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        if ($isTrigger === true) {
+            $response = Async\await($this->privatePostGetTriggerOrders($this->extend($request, $paramsDeriveSubaccountId)));
+        } else {
+            $response = Async\await($this->privatePostGetOpenOrders($this->extend($request, $paramsDeriveSubaccountId)));
+        }
+        //
+        //     {
+        //         "id": "aca80354-f6fe-4862-bbbd-7982f774914e",
+        //         "result": {
+        //             "subaccount_id": 86815,
+        //             "orders": [
+        //                 {
+        //                     "subaccount_id": 86815,
+        //                     "order_id": "f690dfc9-5b9c-4f62-a2b0-3f6ba502f2f6",
+        //                     "instrument_name": "BTC-PERP",
+        //                     "direction": "buy",
+        //                     "label": "",
+        //                     "quote_id": null,
+        //                     "amount": "0.01",
+        //                     "average_price": "0",
+        //                     "cancel_reason": "",
+        //                     "creation_timestamp": 1790871618199,
+        //                     "filled_amount": "0",
+        //                     "is_transfer": false,
+        //                     "last_update_timestamp": 1790871618199,
+        //                     "limit_price": "83000",
+        //                     "signed_limit_price": null,
+        //                     "max_fee": "100",
+        //                     "mmp": false,
+        //                     "nonce": "1790871617137835612",
+        //                     "order_fee": "0",
+        //                     "order_status": "open",
+        //                     "order_type": "limit",
+        //                     "replaced_order_id": null,
+        //                     "signature": "0x55412a2a39e2dd70b0c39ea03859ac499b5c500756b46197900a413f7bfd294e0adb8c2c5eec467b4c83ef75f7068b528e21044cdd27faa47a6db475461641c21b",
+        //                     "signature_expiry_sec": 1798647617,
+        //                     "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                     "time_in_force": "gtc",
+        //                     "trigger_type": null,
+        //                     "trigger_price": null,
+        //                     "trigger_price_type": null,
+        //                     "trigger_reject_message": null,
+        //                     "extra_fee": "0",
+        //                     "algo_type": null,
+        //                     "algo_duration_sec": null,
+        //                     "algo_num_slices": null,
+        //                     "algo_slices_completed": null
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        $data = $this->safe_dict($response, 'result');
+        $orders = $this->safe_list($data, 'orders', array());
+        $parsedOrders = $this->parse_orders($orders, $market);
+        return $this->filter_by_symbol_since_limit($parsedOrders, $symbol, $since, $limit);
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1947,22 +2801,22 @@ class derive extends Exchange {
 
     private function do_fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
-         * fetches information on multiple orders made by the user
+         * fetches information on multiple closed (fully filled) $orders made by the user
          *
-         * @see https://docs.derive.xyz/reference/post_private-get-orders
+         * @see https://docs.derive.xyz/api-reference/history/privateget_order_history
          *
-         * @param {string} $symbol unified market $symbol of the market orders were made in
-         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {string} $symbol unified market $symbol of the market $orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch $orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->paginate] set to true if you want to fetch orders with pagination
+         * @param {boolean} [$params->paginate] set to true if you want to fetch $orders with pagination
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $extendedParams = $this->extend($params, array( 'status' => 'filled' ));
-        return Async\await($this->fetch_orders($symbol, $since, $limit, $extendedParams));
+        $orders = Async\await($this->fetch_canceled_and_closed_orders($symbol, $since, $limit, $params));
+        return $this->filter_by($orders, 'status', 'closed');
     }
 
     public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1971,12 +2825,12 @@ class derive extends Exchange {
 
     private function do_fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
-         * fetches information on multiple canceled orders made by the user
+         * fetches information on multiple canceled $orders made by the user
          *
-         * @see https://docs.derive.xyz/reference/post_private-get-orders
+         * @see https://docs.derive.xyz/api-reference/history/privateget_order_history
          *
-         * @param {string} $symbol unified market $symbol of the market the orders were made in
-         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {string} $symbol unified market $symbol of the market the $orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch $orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
@@ -1985,8 +2839,8 @@ class derive extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $extendedParams = $this->extend($params, array( 'status' => 'cancelled' ));
-        return Async\await($this->fetch_orders($symbol, $since, $limit, $extendedParams));
+        $orders = Async\await($this->fetch_canceled_and_closed_orders($symbol, $since, $limit, $params));
+        return $this->filter_by($orders, 'status', 'canceled');
     }
 
     public function parse_time_in_force(?string $timeInForce) {
@@ -2015,70 +2869,56 @@ class derive extends Exchange {
 
     public function parse_order(array $rawOrder, ?array $market = null): array {
         //
-        // {
-        //     "subaccount_id": 130837,
-        //     "nonce": 1736923517552,
-        //     "module": "0x87F2863866D85E3192a35A73b388BD625D83f2be",
-        //     "expiry": 86400,
-        //     "owner": "0x108b9aF9279a525b8A8AeAbE7AC2bA925Bc50075",
-        //     "signer": "0x108b9aF9279a525b8A8AeAbE7AC2bA925Bc50075",
-        //     "signature": "0xaa4f42b2f3da33c668fa703ea872d4c3a6b55aca66025b5119e3bebb6679fe2e2794638db51dcace21fc39a498047835994f07eb59f311bb956ce057e66793d1c",
-        //     "data": {
-        //         "asset": "0xAFB6Bb95cd70D5367e2C39e9dbEb422B9815339D",
-        //         "sub_id": 0,
-        //         "limit_price": "10000",
-        //         "desired_amount": "0.001",
-        //         "worst_fee": "0",
-        //         "recipient_id": 130837,
-        //         "is_bid": true,
-        //         "trade_id": ""
+        //     {
+        //         "subaccount_id": 86815,
+        //         "order_id": "af3f3ec2-eab8-4929-bd50-8ce1657f9e93",
+        //         "instrument_name": "BTC-PERP",
+        //         "direction": "buy",
+        //         "label": "",
+        //         "quote_id": null,
+        //         "amount": "0.01",
+        //         "average_price": "0",
+        //         "cancel_reason": "user_request",
+        //         "creation_timestamp": 1790871630849,
+        //         "filled_amount": "0",
+        //         "is_transfer": false,
+        //         "last_update_timestamp": 1790871644913,
+        //         "limit_price": "83500",
+        //         "signed_limit_price": null,
+        //         "max_fee": "100",
+        //         "mmp": false,
+        //         "nonce": "1790871630331176421",
+        //         "order_fee": "0",
+        //         "order_status": "cancelled",
+        //         "order_type": "limit",
+        //         "replaced_order_id": "f690dfc9-5b9c-4f62-a2b0-3f6ba502f2f6",
+        //         "signature": "0x0c8ae3bebd23b1e303b49dd60eb34a5c96ccd450ea9f37536f30d7fa07322980569e4e691e90673a9a8db27b253cf00026ea813034ad2f5e22e2db727cb42faa1c",
+        //         "signature_expiry_sec": 1798647630,
+        //         "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //         "time_in_force": "gtc",
+        //         "trigger_type": null,
+        //         "trigger_price": null,
+        //         "trigger_price_type": null,
+        //         "trigger_reject_message": null,
+        //         "extra_fee": "0",
+        //         "algo_type": null,
+        //         "algo_duration_sec": null,
+        //         "algo_num_slices": null,
+        //         "algo_slices_completed": null
         //     }
-        // }
-        // {
-        //     "subaccount_id": 130837,
-        //     "order_id": "96349ebb-7d46-43ae-81c7-7ab390444293",
-        //     "instrument_name": "BTC-PERP",
-        //     "direction": "buy",
-        //     "label": "",
-        //     "quote_id": null,
-        //     "creation_timestamp": 1737467576257,
-        //     "last_update_timestamp": 1737467576257,
-        //     "limit_price": "10000",
-        //     "amount": "0.01",
-        //     "filled_amount": "0",
-        //     "average_price": "0",
-        //     "order_fee": "0",
-        //     "order_type": "limit",
-        //     "time_in_force": "gtc",
-        //     "order_status": "open",
-        //     "max_fee": "210",
-        //     "signature_expiry_sec": 1737468175989,
-        //     "nonce": 1737467575989,
-        //     "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
-        //     "signature": "0xd1ca49df1fa06bd805bb59b132ff6c0de29bf973a3e01705abe0a01cc956e4945ed9eb99ab68f3df4c037908113cac5a5bfc3a954a0b7103cdab285962fa6a51c",
-        //     "cancel_reason": "",
-        //     "mmp": false,
-        //     "is_transfer": false,
-        //     "replaced_order_id": null,
-        //     "trigger_type": null,
-        //     "trigger_price_type": null,
-        //     "trigger_price": null,
-        //     "trigger_reject_message": null
-        // }
+        //
         $order = $this->safe_dict($rawOrder, 'data');
         if ($order === null) {
             $order = $rawOrder;
         }
-        $timestamp = $this->safe_integer_2($rawOrder, 'creation_timestamp', 'nonce');
+        $timestamp = $this->safe_integer($rawOrder, 'creation_timestamp'); // the nonce is no longer a usable fallback: v3 nonces are nanosecond-scale values with a random suffix
         $orderId = $this->safe_string($order, 'order_id');
         $marketId = $this->safe_string($order, 'instrument_name');
-        if ($marketId !== null) {
-            $market = $this->safe_market($marketId, $market);
-        }
-        $symbol = $this->safe_string($market, 'symbol');
+        $marketResolved = ($marketId !== null) ? $this->safe_market($marketId, $market) : $market;
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $price = $this->safe_string($order, 'limit_price');
         $average = $this->safe_string($order, 'average_price');
-        $amount = $this->safe_string($order, 'desired_amount');
+        $amount = $this->safe_string_2($order, 'amount', 'desired_amount'); // plain orders carry amount, the raw_data debug shape nests desired_amount
         $filled = $this->safe_string($order, 'filled_amount');
         $fee = $this->safe_string($order, 'order_fee');
         $orderType = $this->safe_string_lower($order, 'order_type');
@@ -2135,7 +2975,7 @@ class derive extends Exchange {
                 'currency' => 'USDC',
             ),
             'info' => $order,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -2146,7 +2986,7 @@ class derive extends Exchange {
         /**
          * fetch all the $trades made from a single order
          *
-         * @see https://docs.derive.xyz/reference/post_private-get-trade-history
+         * @see https://docs.derive.xyz/api-reference/history/privateget_trade_history
          *
          * @param {string} $id order $id
          * @param {string} $symbol unified $market $symbol
@@ -2159,8 +2999,7 @@ class derive extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $subaccountId = null;
-        list($subaccountId, $params) = $this->handle_derive_subaccount_id('fetchOrderTrades', $params);
+        list($subaccountId, $paramsDeriveSubaccountId) = $this->handle_derive_subaccount_id('fetchOrderTrades', $params);
         $request = array(
             'order_id' => $id,
             'subaccount_id' => $subaccountId,
@@ -2176,46 +3015,49 @@ class derive extends Exchange {
         if ($since !== null) {
             $request['from_timestamp'] = $since;
         }
-        $response = Async\await($this->privatePostGetTradeHistory($this->extend($request, $params)));
+        $response = Async\await($this->privatePostGetTradeHistory($this->extend($request, $paramsDeriveSubaccountId)));
         //
-        // {
-        //     "result": {
-        //         "subaccount_id": 130837,
-        //         "trades": [
-        //             {
-        //                 "subaccount_id": 130837,
-        //                 "order_id": "30c48194-8d48-43ac-ad00-0d5ba29eddc9",
-        //                 "instrument_name": "BTC-PERP",
-        //                 "direction": "sell",
-        //                 "label": "test1234",
-        //                 "quote_id": null,
-        //                 "trade_id": "f8a30740-488c-4c2d-905d-e17057bafde1",
-        //                 "timestamp": 1738065303708,
-        //                 "mark_price": "102740.137375457314192317",
-        //                 "index_price": "102741.553409299981533184",
-        //                 "trade_price": "102700.6",
-        //                 "trade_amount": "0.01",
-        //                 "liquidity_role": "taker",
-        //                 "realized_pnl": "0",
-        //                 "realized_pnl_excl_fees": "0",
-        //                 "is_transfer": false,
-        //                 "tx_status": "settled",
-        //                 "trade_fee": "1.127415534092999815",
-        //                 "tx_hash": "0xc55df1f07330faf86579bd8a6385391fbe9e73089301149d8550e9d29c9ead74",
-        //                 "transaction_id": "e18b9426-3fa5-41bb-99d3-8b54fb4d51bb"
+        //     {
+        //         "id": "41517b29-67b3-4ed8-845d-ef4bde9b79aa",
+        //         "result": {
+        //             "subaccount_id": 86815,
+        //             "trades": [
+        //                 {
+        //                     "subaccount_id": 86815,
+        //                     "order_id": "ca94f349-8521-40a1-852e-d32b8994cb11",
+        //                     "instrument_name": "BTC-PERP",
+        //                     "direction": "buy",
+        //                     "label": "",
+        //                     "quote_id": null,
+        //                     "trade_id": "7fdf1fb0-0fba-443d-9f34-d6a1f76870aa",
+        //                     "rfq_id": null,
+        //                     "timestamp": 1790874532387,
+        //                     "mark_price": "84403.830304818628",
+        //                     "index_price": "84394.4543226228",
+        //                     "trade_price": "84412.1",
+        //                     "trade_amount": "0.01",
+        //                     "liquidity_role": "taker",
+        //                     "realized_pnl": "0",
+        //                     "realized_pnl_excl_fees": "0",
+        //                     "is_transfer": false,
+        //                     "batch_status": "Settled",
+        //                     "trade_fee": "0.263183362967",
+        //                     "expected_rebate": "0",
+        //                     "tx_hash": "0x7a31fda53195c28f2e60bab189bb9e7bf0abffc55a4eceb13d5e307f70d6e892",
+        //                     "op_uuid": "01a0f870-ba23-7600-a3dd-320305d5bb2f",
+        //                     "extra_fee": "0"
+        //                 }
+        //             ],
+        //             "pagination": {
+        //                 "num_pages": 1,
+        //                 "count": 1
         //             }
-        //         ],
-        //         "pagination": {
-        //             "num_pages": 1,
-        //             "count": 1
         //         }
-        //     },
-        //     "id": "a16f798c-a121-44e2-b77e-c38a063f8a99"
-        // }
+        //     }
         //
         $result = $this->safe_dict($response, 'result', array());
         $trades = $this->safe_list($result, 'trades', array());
-        return $this->parse_trades($trades, $market, $since, $limit, $params);
+        return $this->parse_trades($trades, $market, $since, $limit, $paramsDeriveSubaccountId);
     }
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -2226,7 +3068,7 @@ class derive extends Exchange {
         /**
          * fetch all $trades made by the user
          *
-         * @see https://docs.derive.xyz/reference/post_private-get-trade-history
+         * @see https://docs.derive.xyz/api-reference/history/privateget_trade_history
          *
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch $trades for
@@ -2239,13 +3081,11 @@ class derive extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_incremental('fetchMyTrades', $symbol, $since, $limit, $params, 'page', 500));
+            return Async\await($this->fetch_paginated_call_incremental('fetchMyTrades', $symbol, $since, $limit, $paramsPaginate, 'page', 500));
         }
-        $subaccountId = null;
-        list($subaccountId, $params) = $this->handle_derive_subaccount_id('fetchMyTrades', $params);
+        list($subaccountId, $paramsDeriveSubaccountId) = $this->handle_derive_subaccount_id('fetchMyTrades', $paramsPaginate);
         $request = array(
             'subaccount_id' => $subaccountId,
         );
@@ -2260,45 +3100,73 @@ class derive extends Exchange {
         if ($since !== null) {
             $request['from_timestamp'] = $since;
         }
-        $response = Async\await($this->privatePostGetTradeHistory($this->extend($request, $params)));
+        $response = Async\await($this->privatePostGetTradeHistory($this->extend($request, $paramsDeriveSubaccountId)));
         //
-        // {
-        //     "result": {
-        //         "subaccount_id": 130837,
-        //         "trades": [
-        //             {
-        //                 "subaccount_id": 130837,
-        //                 "order_id": "30c48194-8d48-43ac-ad00-0d5ba29eddc9",
-        //                 "instrument_name": "BTC-PERP",
-        //                 "direction": "sell",
-        //                 "label": "test1234",
-        //                 "quote_id": null,
-        //                 "trade_id": "f8a30740-488c-4c2d-905d-e17057bafde1",
-        //                 "timestamp": 1738065303708,
-        //                 "mark_price": "102740.137375457314192317",
-        //                 "index_price": "102741.553409299981533184",
-        //                 "trade_price": "102700.6",
-        //                 "trade_amount": "0.01",
-        //                 "liquidity_role": "taker",
-        //                 "realized_pnl": "0",
-        //                 "realized_pnl_excl_fees": "0",
-        //                 "is_transfer": false,
-        //                 "tx_status": "settled",
-        //                 "trade_fee": "1.127415534092999815",
-        //                 "tx_hash": "0xc55df1f07330faf86579bd8a6385391fbe9e73089301149d8550e9d29c9ead74",
-        //                 "transaction_id": "e18b9426-3fa5-41bb-99d3-8b54fb4d51bb"
+        //     {
+        //         "id": "c375c303-2356-4ba0-acea-32411e33b3f6",
+        //         "result": {
+        //             "subaccount_id": 86815,
+        //             "trades": [
+        //                 {
+        //                     "subaccount_id": 86815,
+        //                     "order_id": "f1ff080c-f2d1-4e0a-9dad-9ba462c6615d",
+        //                     "instrument_name": "BTC-PERP",
+        //                     "direction": "sell",
+        //                     "label": "",
+        //                     "quote_id": null,
+        //                     "trade_id": "b9608468-9ebe-478c-aedf-38fa2f754f19",
+        //                     "rfq_id": null,
+        //                     "timestamp": 1790874586675,
+        //                     "mark_price": "84367.247384690156",
+        //                     "index_price": "84358.49561857211",
+        //                     "trade_price": "84365.4",
+        //                     "trade_amount": "0.01",
+        //                     "liquidity_role": "taker",
+        //                     "realized_pnl": "-0.993258849822",
+        //                     "realized_pnl_excl_fees": "-0.467",
+        //                     "is_transfer": false,
+        //                     "batch_status": "Settled",
+        //                     "trade_fee": "0.263075486855",
+        //                     "expected_rebate": "0",
+        //                     "tx_hash": "0x7a31fda53195c28f2e60bab189bb9e7bf0abffc55a4eceb13d5e307f70d6e892",
+        //                     "op_uuid": "01a0f871-8e34-7152-aea8-0b6d06ce484e",
+        //                     "extra_fee": "0"
+        //                 },
+        //                 {
+        //                     "subaccount_id": 86815,
+        //                     "order_id": "ca94f349-8521-40a1-852e-d32b8994cb11",
+        //                     "instrument_name": "BTC-PERP",
+        //                     "direction": "buy",
+        //                     "label": "",
+        //                     "quote_id": null,
+        //                     "trade_id": "7fdf1fb0-0fba-443d-9f34-d6a1f76870aa",
+        //                     "rfq_id": null,
+        //                     "timestamp": 1790874532387,
+        //                     "mark_price": "84403.830304818628",
+        //                     "index_price": "84394.4543226228",
+        //                     "trade_price": "84412.1",
+        //                     "trade_amount": "0.01",
+        //                     "liquidity_role": "taker",
+        //                     "realized_pnl": "0",
+        //                     "realized_pnl_excl_fees": "0",
+        //                     "is_transfer": false,
+        //                     "batch_status": "Settled",
+        //                     "trade_fee": "0.263183362967",
+        //                     "expected_rebate": "0",
+        //                     "tx_hash": "0x7a31fda53195c28f2e60bab189bb9e7bf0abffc55a4eceb13d5e307f70d6e892",
+        //                     "op_uuid": "01a0f870-ba23-7600-a3dd-320305d5bb2f",
+        //                     "extra_fee": "0"
+        //                 }
+        //             ],
+        //             "pagination": {
+        //                 "num_pages": 2,
+        //                 "count": 4
         //             }
-        //         ],
-        //         "pagination": {
-        //             "num_pages": 1,
-        //             "count": 1
         //         }
-        //     },
-        //     "id": "a16f798c-a121-44e2-b77e-c38a063f8a99"
-        // }
+        //     }
         //
         $result = $this->safe_dict($response, 'result', array());
-        $page = $this->safe_integer($params, 'page');
+        $page = $this->safe_integer($paramsDeriveSubaccountId, 'page');
         if ($page !== null) {
             $pagination = $this->safe_dict($result, 'pagination');
             $currentPage = $this->safe_integer($pagination, 'num_pages', 0);
@@ -2307,7 +3175,7 @@ class derive extends Exchange {
             }
         }
         $trades = $this->safe_list($result, 'trades', array());
-        return $this->parse_trades($trades, $market, $since, $limit, $params);
+        return $this->parse_trades($trades, $market, $since, $limit, $paramsDeriveSubaccountId);
     }
 
     public function fetch_positions(?array $symbols = null, $params = array()): PromiseInterface {
@@ -2318,7 +3186,7 @@ class derive extends Exchange {
         /**
          * fetch all open $positions
          *
-         * @see https://docs.derive.xyz/reference/post_private-get-$positions
+         * @see https://docs.derive.xyz/api-reference/subaccounts/privateget_positions
          *
          * @param {string[]} [$symbols] not used by fetchPositions ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2328,50 +3196,50 @@ class derive extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $subaccountId = null;
-        list($subaccountId, $params) = $this->handle_derive_subaccount_id('fetchPositions', $params);
+        list($subaccountId, $paramsDeriveSubaccountId) = $this->handle_derive_subaccount_id('fetchPositions', $params);
         $request = array(
             'subaccount_id' => $subaccountId,
         );
-        $params = $this->omit($params, array( 'subaccount_id' ));
-        $response = Async\await($this->privatePostGetPositions($this->extend($request, $params)));
+        $paramsOmitted = $this->omit($paramsDeriveSubaccountId, array( 'subaccount_id' ));
+        $response = Async\await($this->privatePostGetPositions($this->extend($request, $paramsOmitted)));
         //
-        // {
-        //     "result": {
-        //         "subaccount_id": 130837,
-        //         "positions": [
-        //             {
-        //                 "instrument_type": "perp",
-        //                 "instrument_name": "BTC-PERP",
-        //                 "amount": "-0.02",
-        //                 "average_price": "102632.9105389869500088",
-        //                 "realized_pnl": "0",
-        //                 "unrealized_pnl": "-2.6455959784245548835819950103759765625",
-        //                 "total_fees": "2.255789220260999824",
-        //                 "average_price_excl_fees": "102745.7",
-        //                 "realized_pnl_excl_fees": "0",
-        //                 "unrealized_pnl_excl_fees": "-0.3898067581635550595819950103759765625",
-        //                 "net_settlements": "-4.032902047219498639",
-        //                 "cumulative_funding": "-0.004677736347850093",
-        //                 "pending_funding": "0",
-        //                 "mark_price": "102765.190337908177752979099750518798828125",
-        //                 "index_price": "102767.657193800017641472",
-        //                 "delta": "1",
-        //                 "gamma": "0",
-        //                 "vega": "0",
-        //                 "theta": "0",
-        //                 "mark_value": "1.38730606879471451975405216217041015625",
-        //                 "maintenance_margin": "-101.37788426911356509663164615631103515625",
-        //                 "initial_margin": "-132.2074413704858670826070010662078857421875",
-        //                 "open_orders_margin": "264.116085900726830004714429378509521484375",
-        //                 "leverage": "8.6954476205089299495699106539379941746377322586618",
-        //                 "liquidation_price": "109125.705451984322280623018741607666015625",
-        //                 "creation_timestamp": 1738065303840
-        //             }
-        //         ]
-        //     },
-        //     "id": "167350f1-d9fc-41d4-9797-1c78f83fda8e"
-        // }
+        //     {
+        //         "id": "64af0eeb-5b8f-4aa9-bc6b-c5029f47ac27",
+        //         "result": {
+        //             "subaccount_id": 86815,
+        //             "positions": [
+        //                 {
+        //                     "instrument_type": "perp",
+        //                     "instrument_name": "BTC-PERP",
+        //                     "amount": "0.01",
+        //                     "average_price": "84869.2487131065",
+        //                     "average_price_excl_fees": "84842.8",
+        //                     "mark_price": "84838.524516604186",
+        //                     "index_price": "84829.52978196857",
+        //                     "mark_value": "-0.002270077649",
+        //                     "amount_step": "0.0001",
+        //                     "creation_timestamp": 0,
+        //                     "cumulative_funding": "-0.000008835819",
+        //                     "pending_funding": "-0.000008835819",
+        //                     "net_settlements": "-0.304980723193",
+        //                     "initial_margin": "-55.989759825391",
+        //                     "maintenance_margin": "-42.417035008133",
+        //                     "open_orders_margin": "0",
+        //                     "realized_pnl": "0",
+        //                     "realized_pnl_excl_fees": "0",
+        //                     "total_fees": "0.264487131065",
+        //                     "unrealized_pnl": "-0.307241965023",
+        //                     "unrealized_pnl_excl_fees": "-0.042754833958",
+        //                     "delta": "1",
+        //                     "gamma": "0",
+        //                     "vega": "0",
+        //                     "theta": "0",
+        //                     "leverage": "0.141718718485",
+        //                     "liquidation_price": null
+        //                 }
+        //             ]
+        //         }
+        //     }
         //
         $result = $this->safe_dict($response, 'result', array());
         $positions = $this->safe_list($result, 'positions', array());
@@ -2410,7 +3278,7 @@ class derive extends Exchange {
         // }
         //
         $contract = $this->safe_string($position, 'instrument_name');
-        $market = $this->safe_market($contract, $market);
+        $marketResolved = $this->safe_market($contract, $market);
         $size = $this->safe_string($position, 'amount');
         $side = null;
         if (Precise::string_gt($size, '0')) {
@@ -2418,7 +3286,7 @@ class derive extends Exchange {
         } else {
             $side = 'short';
         }
-        $contractSize = $this->safe_string($market, 'contractSize');
+        $contractSize = $this->safe_string($marketResolved, 'contractSize');
         $markPrice = $this->safe_string($position, 'mark_price');
         $timestamp = $this->safe_integer($position, 'creation_timestamp');
         $unrealisedPnl = $this->safe_string($position, 'unrealized_pnl');
@@ -2427,7 +3295,7 @@ class derive extends Exchange {
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
-            'symbol' => $this->safe_string($market, 'symbol'),
+            'symbol' => $this->safe_string($marketResolved, 'symbol'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastUpdateTimestamp' => null,
@@ -2463,25 +3331,24 @@ class derive extends Exchange {
         /**
          * fetch the history of funding payments paid and received on this account
          *
-         * @see https://docs.derive.xyz/reference/post_private-get-funding-history
+         * @see https://docs.derive.xyz/api-reference/history/privateget_funding_history
          *
          * @param {string} [$symbol] unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch funding history for
          * @param {int} [$limit] the maximum number of funding history structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch funding history for
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#$pagination-$params)
          * @return {array} a ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structure~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'paginate');
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingHistory', 'paginate', false);
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_incremental('fetchFundingHistory', $symbol, $since, $limit, $params, 'page', 500));
+            return Async\await($this->fetch_paginated_call_incremental('fetchFundingHistory', $symbol, $since, $limit, $paramsPaginate, 'page', 500));
         }
-        $subaccountId = null;
-        list($subaccountId, $params) = $this->handle_derive_subaccount_id('fetchFundingHistory', $params);
+        list($subaccountId, $paramsDeriveSubaccountId) = $this->handle_derive_subaccount_id('fetchFundingHistory', $paramsPaginate);
         $request = array(
             'subaccount_id' => $subaccountId,
         );
@@ -2496,40 +3363,47 @@ class derive extends Exchange {
         if ($limit !== null) {
             $request['page_size'] = $limit;
         }
-        $response = Async\await($this->privatePostGetFundingHistory($this->extend($request, $params)));
+        $until = $this->safe_integer($paramsDeriveSubaccountId, 'until');
+        $paramsOmitted = $this->omit($paramsDeriveSubaccountId, array( 'until' ));
+        if ($until !== null) {
+            $request['end_timestamp'] = $until;
+        }
+        $response = Async\await($this->privatePostGetFundingHistory($this->extend($request, $paramsOmitted)));
         //
-        // {
-        //     "result": {
-        //         "events": [
-        //             {
-        //                 "instrument_name": "BTC-PERP",
-        //                 "timestamp": 1738066618272,
-        //                 "funding": "-0.004677736347850093",
-        //                 "pnl": "-0.944081615774632967"
-        //             },
-        //             {
-        //                 "instrument_name": "BTC-PERP",
-        //                 "timestamp": 1738066617964,
-        //                 "funding": "0",
-        //                 "pnl": "-0.437556413479249408"
-        //             },
-        //             {
-        //                 "instrument_name": "BTC-PERP",
-        //                 "timestamp": 1738065307565,
-        //                 "funding": "0",
-        //                 "pnl": "-0.39547479770461644"
+        //     {
+        //         "id": "05a90234-63dd-4769-b66b-3256fe4c3336",
+        //         "result": {
+        //             "events": [
+        //                 {
+        //                     "funding": "0",
+        //                     "instrument_name": "BTC-PERP",
+        //                     "pnl": "-0.020391277096",
+        //                     "subaccount_id": 86815,
+        //                     "timestamp": 1790874586000,
+        //                     "batch_uuid": "01a0f86e-2486-7732-bcb5-15e64d863650",
+        //                     "batch_status": "Settled",
+        //                     "tx_hash": "0x7a31fda53195c28f2e60bab189bb9e7bf0abffc55a4eceb13d5e307f70d6e892"
+        //                 },
+        //                 {
+        //                     "funding": "-0.000131801001",
+        //                     "instrument_name": "BTC-PERP",
+        //                     "pnl": "-0.124504613742",
+        //                     "subaccount_id": 86815,
+        //                     "timestamp": 1790874586000,
+        //                     "batch_uuid": "01a0f86e-2486-7732-bcb5-15e64d863650",
+        //                     "batch_status": "Settled",
+        //                     "tx_hash": "0x7a31fda53195c28f2e60bab189bb9e7bf0abffc55a4eceb13d5e307f70d6e892"
+        //                 }
+        //             ],
+        //             "pagination": {
+        //                 "num_pages": 4,
+        //                 "count": 7
         //             }
-        //         ],
-        //         "pagination": {
-        //             "num_pages": 1,
-        //             "count": 3
         //         }
-        //     },
-        //     "id": "524b817f-2108-467f-8795-511066f4acec"
-        // }
+        //     }
         //
         $result = $this->safe_dict($response, 'result', array());
-        $page = $this->safe_integer($params, 'page');
+        $page = $this->safe_integer($paramsDeriveSubaccountId, 'page');
         if ($page !== null) {
             $pagination = $this->safe_dict($result, 'pagination');
             $currentPage = $this->safe_integer($pagination, 'num_pages', 0);
@@ -2541,7 +3415,7 @@ class derive extends Exchange {
         return $this->parse_incomes($events, $market, $since, $limit);
     }
 
-    public function parse_income(mixed $income, ?array $market = null): array {
+    public function parse_income(array $income, ?array $market = null): array {
         //
         // {
         //     "instrument_name": "BTC-PERP",
@@ -2552,7 +3426,6 @@ class derive extends Exchange {
         //
         $marketId = $this->safe_string($income, 'instrument_name');
         $symbol = $this->safe_symbol($marketId, $market);
-        $rate = $this->safe_string($income, 'funding');
         $code = $this->safe_currency_code('USDC');
         $timestamp = $this->safe_integer($income, 'timestamp');
         return array(
@@ -2562,8 +3435,7 @@ class derive extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'id' => null,
-            'amount' => null,
-            'rate' => $rate,
+            'amount' => $this->safe_number($income, 'funding'),
         );
     }
 
@@ -2575,67 +3447,279 @@ class derive extends Exchange {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
-         * @see https://docs.derive.xyz/reference/post_private-get-all-portfolios
+         * @see https://docs.derive.xyz/api-reference/subaccounts/privateget_all_portfolios     // whole wallet
+         * @see https://docs.derive.xyz/api-reference/subaccounts/privateget_subaccount        // params.subaccount_id
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->subaccount_id] scope the balance to a single subaccount instead of the whole wallet
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $deriveWalletAddress = null;
-        list($deriveWalletAddress, $params) = $this->handle_derive_wallet_address('fetchBalance', $params);
+        $subaccountId = $this->safe_integer($params, 'subaccount_id');
+        if ($subaccountId !== null) {
+            $subaccountRequest = array(
+                'subaccount_id' => $subaccountId,
+            );
+            $subaccountParams = $this->omit($params, 'subaccount_id');
+            $subaccountResponse = Async\await($this->privatePostGetSubaccount($this->extend($subaccountRequest, $subaccountParams)));
+            // the result is a single portfolio object shaped exactly like one element of the get_all_portfolios sample below
+            $subaccountResult = $this->safe_dict($subaccountResponse, 'result', array());
+            return $this->parse_balance(array( $subaccountResult ));
+        }
+        list($deriveWalletAddress, $paramsDeriveWalletAddress) = $this->handle_derive_wallet_address('fetchBalance', $params);
         $request = array(
             'wallet' => $deriveWalletAddress,
         );
-        $response = Async\await($this->privatePostGetAllPortfolios($this->extend($request, $params)));
+        $response = Async\await($this->privatePostGetAllPortfolios($this->extend($request, $paramsDeriveWalletAddress)));
         //
-        // {
-        //     "result": [{
-        //             "subaccount_id": 130837,
-        //             "label": "",
-        //             "currency": "all",
-        //             "margin_type": "SM",
-        //             "is_under_liquidation": false,
-        //             "positions_value": "0",
-        //             "collaterals_value": "318.0760325000001103035174310207366943359375",
-        //             "subaccount_value": "318.0760325000001103035174310207366943359375",
-        //             "positions_maintenance_margin": "0",
-        //             "positions_initial_margin": "0",
-        //             "collaterals_maintenance_margin": "238.557024375000082727638073265552520751953125",
-        //             "collaterals_initial_margin": "190.845619500000083235136116854846477508544921875",
-        //             "maintenance_margin": "238.557024375000082727638073265552520751953125",
-        //             "initial_margin": "190.845619500000083235136116854846477508544921875",
-        //             "open_orders_margin": "0",
-        //             "projected_margin_change": "0",
-        //             "open_orders": [],
-        //             "positions": [],
-        //             "collaterals": [
-        //                 {
-        //                     "asset_type": "erc20",
-        //                     "asset_name": "ETH",
-        //                     "currency": "ETH",
-        //                     "amount": "0.1",
-        //                     "mark_price": "3180.760325000000438272",
-        //                     "mark_value": "318.0760325000001103035174310207366943359375",
-        //                     "cumulative_interest": "0",
-        //                     "pending_interest": "0",
-        //                     "initial_margin": "190.845619500000083235136116854846477508544921875",
-        //                     "maintenance_margin": "238.557024375000082727638073265552520751953125",
-        //                     "realized_pnl": "0",
-        //                     "average_price": "3184.891931",
-        //                     "unrealized_pnl": "-0.413161",
-        //                     "total_fees": "0",
-        //                     "average_price_excl_fees": "3184.891931",
-        //                     "realized_pnl_excl_fees": "0",
-        //                     "unrealized_pnl_excl_fees": "-0.413161",
-        //                     "open_orders_margin": "0",
-        //                     "creation_timestamp": 1736860533493
-        //                 }
-        //             ]
-        //     }],
-        //     "id": "27b9a64e-3379-4ce6-a126-9fb941c4a970"
-        // }
+        //     {
+        //         "id": "eb40a04b-167e-4a3f-b142-63f76e0e2a31",
+        //         "result": [
+        //             {
+        //                 "subaccount_id": 86815,
+        //                 "failed_to_fetch": false,
+        //                 "manager_id": 1,
+        //                 "risk_universe_id": 1,
+        //                 "label": "",
+        //                 "currency": [
+        //                     "AUSD",
+        //                     "BTC",
+        //                     "CBBTC",
+        //                     "DRV",
+        //                     "ETH",
+        //                     "FXUSDC",
+        //                     "HEMIBTC",
+        //                     "LBTC",
+        //                     "SC_USDC_2",
+        //                     "SC_USDT_2",
+        //                     "SFP",
+        //                     "SUSDE",
+        //                     "USDC",
+        //                     "USDE",
+        //                     "USDT",
+        //                     "WBTC",
+        //                     "WEETH",
+        //                     "WSTETH"
+        //                 ],
+        //                 "margin_type": "SM",
+        //                 "is_under_liquidation": false,
+        //                 "positions_value": "1466.712032105876",
+        //                 "collaterals_value": "4527.545377437385",
+        //                 "subaccount_value": "5994.257409543261",
+        //                 "mm_credits": "0",
+        //                 "positions_maintenance_margin": "-42.257371387251",
+        //                 "positions_initial_margin": "-55.755494300332",
+        //                 "collaterals_maintenance_margin": "4527.545388020506",
+        //                 "collaterals_initial_margin": "4527.545388020506",
+        //                 "maintenance_margin": "4485.288016633255",
+        //                 "initial_margin": "4471.789893720174",
+        //                 "open_orders_margin": "-1305.403225577642",
+        //                 "projected_margin_change": "0",
+        //                 "open_orders": [
+        //                     {
+        //                         "subaccount_id": 86815,
+        //                         "order_id": "dbc70689-dcc4-43d3-9d95-492a6c165bde",
+        //                         "instrument_name": "LBTC-USDC",
+        //                         "direction": "buy",
+        //                         "label": "",
+        //                         "quote_id": null,
+        //                         "amount": "0.002",
+        //                         "average_price": "0",
+        //                         "cancel_reason": "",
+        //                         "creation_timestamp": 1790874519896,
+        //                         "filled_amount": "0",
+        //                         "is_transfer": false,
+        //                         "last_update_timestamp": 1790874519896,
+        //                         "limit_price": "82000",
+        //                         "signed_limit_price": null,
+        //                         "max_fee": "300",
+        //                         "mmp": false,
+        //                         "nonce": "1790874518872109498",
+        //                         "order_fee": "0",
+        //                         "order_status": "open",
+        //                         "order_type": "limit",
+        //                         "replaced_order_id": null,
+        //                         "signature": "0x089fcff0654a15babcc7e7c256ab500dcee78beb3eb1963c102d7d53e233d2521ee0754fd1fa17c403a4aa9028c00f7ab5cd3d260a3136d84b617ad97e72d2c71c",
+        //                         "signature_expiry_sec": 1798650518,
+        //                         "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                         "time_in_force": "gtc",
+        //                         "trigger_type": null,
+        //                         "trigger_price": null,
+        //                         "trigger_price_type": null,
+        //                         "trigger_reject_message": null,
+        //                         "extra_fee": "0",
+        //                         "algo_type": null,
+        //                         "algo_duration_sec": null,
+        //                         "algo_num_slices": null,
+        //                         "algo_slices_completed": null
+        //                     },
+        //                     {
+        //                         "subaccount_id": 86815,
+        //                         "order_id": "c33e2299-e60e-4d71-8910-15cd5ea43fef",
+        //                         "instrument_name": "BTC-20270924-85000-C",
+        //                         "direction": "buy",
+        //                         "label": "",
+        //                         "quote_id": null,
+        //                         "amount": "0.1",
+        //                         "average_price": "0",
+        //                         "cancel_reason": "",
+        //                         "creation_timestamp": 1790874524730,
+        //                         "filled_amount": "0",
+        //                         "is_transfer": false,
+        //                         "last_update_timestamp": 1790874524730,
+        //                         "limit_price": "12000",
+        //                         "signed_limit_price": null,
+        //                         "max_fee": "300",
+        //                         "mmp": false,
+        //                         "nonce": "1790874524124508650",
+        //                         "order_fee": "0",
+        //                         "order_status": "open",
+        //                         "order_type": "limit",
+        //                         "replaced_order_id": null,
+        //                         "signature": "0x74bb9bc53c590985a916acf0e39d14f264e06105ca008c1e94935cb643741978084e05b7b4d3afa894d763d5c7abe038c58fed6c8b0a899dbeb5d0a2f3b50c8e1c",
+        //                         "signature_expiry_sec": 1798650524,
+        //                         "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                         "time_in_force": "gtc",
+        //                         "trigger_type": null,
+        //                         "trigger_price": null,
+        //                         "trigger_price_type": null,
+        //                         "trigger_reject_message": null,
+        //                         "extra_fee": "0",
+        //                         "algo_type": null,
+        //                         "algo_duration_sec": null,
+        //                         "algo_num_slices": null,
+        //                         "algo_slices_completed": null
+        //                     },
+        //                     {
+        //                         "subaccount_id": 86815,
+        //                         "order_id": "1625ce89-9cf3-4ec0-8a6c-e208b49e5830",
+        //                         "instrument_name": "BTC-PERP",
+        //                         "direction": "buy",
+        //                         "label": "",
+        //                         "quote_id": null,
+        //                         "amount": "0.01",
+        //                         "average_price": "0",
+        //                         "cancel_reason": "",
+        //                         "creation_timestamp": 1790874522225,
+        //                         "filled_amount": "0",
+        //                         "is_transfer": false,
+        //                         "last_update_timestamp": 1790874522225,
+        //                         "limit_price": "83000",
+        //                         "signed_limit_price": null,
+        //                         "max_fee": "100",
+        //                         "mmp": false,
+        //                         "nonce": "1790874521734002365",
+        //                         "order_fee": "0",
+        //                         "order_status": "open",
+        //                         "order_type": "limit",
+        //                         "replaced_order_id": null,
+        //                         "signature": "0x5005d1696341bc1a5bc1ddd9f1312343439cdef792767f0ecc823e43af809480060b1deea0f51e4827899c3766b672d4eb0d4038394d153f8b0a2cd68d3bfe5a1c",
+        //                         "signature_expiry_sec": 1798650521,
+        //                         "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                         "time_in_force": "gtc",
+        //                         "trigger_type": null,
+        //                         "trigger_price": null,
+        //                         "trigger_price_type": null,
+        //                         "trigger_reject_message": null,
+        //                         "extra_fee": "0",
+        //                         "algo_type": null,
+        //                         "algo_duration_sec": null,
+        //                         "algo_num_slices": null,
+        //                         "algo_slices_completed": null
+        //                     }
+        //                 ],
+        //                 "positions": [
+        //                     {
+        //                         "instrument_type": "perp",
+        //                         "instrument_name": "BTC-PERP",
+        //                         "amount": "0.01",
+        //                         "average_price": "84438.4183362967",
+        //                         "average_price_excl_fees": "84412.1",
+        //                         "mark_price": "84372.319949036835",
+        //                         "index_price": "84363.26788266873",
+        //                         "mark_value": "-0.075737406633",
+        //                         "amount_step": "0.0001",
+        //                         "creation_timestamp": 0,
+        //                         "cumulative_funding": "-0.000067374305",
+        //                         "pending_funding": "-0.000041006163",
+        //                         "net_settlements": "-0.585287472129",
+        //                         "initial_margin": "-55.755494300332",
+        //                         "maintenance_margin": "-42.257371387251",
+        //                         "open_orders_margin": "-55.755494300331",
+        //                         "realized_pnl": "0",
+        //                         "realized_pnl_excl_fees": "0",
+        //                         "total_fees": "0.263183362967",
+        //                         "unrealized_pnl": "-0.660983872598",
+        //                         "unrealized_pnl_excl_fees": "-0.397800509631",
+        //                         "delta": "1",
+        //                         "gamma": "0",
+        //                         "vega": "0",
+        //                         "theta": "0",
+        //                         "leverage": "0.186356454478",
+        //                         "liquidation_price": null
+        //                     },
+        //                     {
+        //                         "instrument_type": "option",
+        //                         "instrument_name": "BTC-20270924-85000-C",
+        //                         "amount": "0.1",
+        //                         "average_price": "14711.3113013995",
+        //                         "average_price_excl_fees": "14681",
+        //                         "mark_price": "14667.877695125091",
+        //                         "index_price": "84363.26788266873",
+        //                         "mark_value": "1466.787769512509",
+        //                         "amount_step": "0.00001",
+        //                         "creation_timestamp": 0,
+        //                         "cumulative_funding": "0",
+        //                         "pending_funding": "0",
+        //                         "net_settlements": "0",
+        //                         "initial_margin": "0",
+        //                         "maintenance_margin": "0",
+        //                         "open_orders_margin": "0",
+        //                         "realized_pnl": "0",
+        //                         "realized_pnl_excl_fees": "0",
+        //                         "total_fees": "3.03113013995",
+        //                         "unrealized_pnl": "-4.34336062744",
+        //                         "unrealized_pnl_excl_fees": "-1.31223048749",
+        //                         "delta": "0.620796293303",
+        //                         "gamma": "0.00001229971",
+        //                         "vega": "334.523390908959",
+        //                         "theta": "-18.178343402455",
+        //                         "leverage": null,
+        //                         "liquidation_price": null
+        //                     }
+        //                 ],
+        //                 "collaterals": [
+        //                     {
+        //                         "asset_type": "erc20",
+        //                         "asset_name": "USDC",
+        //                         "amount": "4527.545377437385",
+        //                         "average_price": "1",
+        //                         "average_price_excl_fees": "1",
+        //                         "mark_price": "1",
+        //                         "mark_value": "4527.545377437385",
+        //                         "amount_step": "0",
+        //                         "currency": "USDC",
+        //                         "creation_timestamp": 0,
+        //                         "cumulative_interest": "0.008352036862",
+        //                         "pending_interest": "0.000010583121",
+        //                         "initial_margin": "4527.545388020506",
+        //                         "maintenance_margin": "4527.545388020506",
+        //                         "open_orders_margin": "0",
+        //                         "realized_pnl": "0",
+        //                         "realized_pnl_excl_fees": "0",
+        //                         "total_fees": "0",
+        //                         "unrealized_pnl": "0",
+        //                         "unrealized_pnl_excl_fees": "0",
+        //                         "delta_currency": "USDC",
+        //                         "delta": "1"
+        //                     }
+        //                 ],
+        //                 "vault_deposit_holds": []
+        //             }
+        //         ]
+        //     }
         //
         $result = $this->safe_list($response, 'result');
         return $this->parse_balance($result);
@@ -2645,11 +3729,16 @@ class derive extends Exchange {
         $result = array(
             'info' => $response,
         );
+        // margin requirements come as negative subaccount-level contributions in usd terms (initial_margin = collaterals_initial_margin + positions_initial_margin, verified on live data), so they are attributed to the usdc settlement currency and clamped by the usdc cash below; other collaterals stay total-only because the shared margin pool cannot be split per currency
+        $usedUsd = '0';
         for ($i = 0; $i < count($response); $i++) {
-            $subaccount = $response[$i];
+            $subaccount = $this->safe_dict($response, $i);
+            $positionsMargin = $this->safe_string($subaccount, 'positions_initial_margin', '0');
+            $ordersMargin = $this->safe_string($subaccount, 'open_orders_margin', '0');
+            $usedUsd = Precise::string_sub($usedUsd, Precise::string_add($positionsMargin, $ordersMargin));
             $collaterals = $this->safe_list($subaccount, 'collaterals', array());
             for ($j = 0; $j < count($collaterals); $j++) {
-                $balance = $collaterals[$j];
+                $balance = $this->safe_dict($collaterals, $j);
                 $code = $this->safe_currency_code($this->safe_string($balance, 'currency'));
                 $account = $this->safe_dict($result, $code);
                 if ($account === null) {
@@ -2664,7 +3753,464 @@ class derive extends Exchange {
                 }
             }
         }
+        $usdcAccount = $this->safe_dict($result, 'USDC');
+        if ($usdcAccount !== null) {
+            $totalUsdc = $this->safe_string($usdcAccount, 'total');
+            $used = $usedUsd;
+            if (Precise::string_gt($used, $totalUsdc)) {
+                $used = $totalUsdc;
+            }
+            $usdcAccount['used'] = $used;
+            $usdcAccount['free'] = Precise::string_sub($totalUsdc, $used);
+            $result['USDC'] = $usdcAccount;
+        }
         return $this->safe_balance($result);
+    }
+
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): PromiseInterface {
+        return Async\async(self::do_transfer(...))($code, $amount, $fromAccount, $toAccount, $params);
+    }
+
+    private function do_transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()) {
+        /**
+         * transfer a spot asset between subaccounts belonging to the same wallet
+         *
+         * @see https://docs.derive.xyz/api-reference/transfers-&-withdrawals/privatetransfer_spot
+         *
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount amount to transfer
+         * @param {string} $fromAccount the subaccount id to transfer from
+         * @param {string} $toAccount the subaccount id to transfer to
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {float} [$params->max_fee_usd] the maximum accepted fee in usd, default 0 => transfers between existing subaccounts are free
+         * @param {int} [$params->new_subaccount_manager] a manager id creates a fresh subaccount under the sender wallet as the destination instead of $toAccount, the creation charges a fee so max_fee_usd must cover it
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $currency = $this->currency($code);
+        // the exchange reconstructs the signed payload from asset_name using the protocol spot-asset address, so signing any other address can never verify
+        $spotAssets = $this->safe_list($currency['info'], 'spot', array());
+        $spotAsset = $this->safe_dict($spotAssets, 0, array());
+        $assetAddress = $this->safe_string($spotAsset, 'address');
+        if ($assetAddress === null) {
+            throw new BadRequest($this->id . ' transfer() ' . $code . ' has no deposit-enabled spot asset');
+        }
+        $fromId = $this->parse_to_int($fromAccount);
+        // the destination is optional on the subaccount-creation path, an undefined must not reach the int conversion
+        $toId = ($toAccount === null) ? 0 : $this->parse_to_int($toAccount);
+        $amountString = $this->number_to_string($amount);
+        $maxFeeUsd = $this->safe_string($params, 'max_fee_usd', '0');
+        $newSubaccountManager = $this->safe_integer($params, 'new_subaccount_manager', 0);
+        if (($toId === 0) && ($newSubaccountManager === 0)) {
+            throw new ArgumentsRequired($this->id . ' transfer() requires an existing toAccount or params.new_subaccount_manager to create one');
+        }
+        if (($newSubaccountManager !== 0) && ($maxFeeUsd === '0')) {
+            throw new ArgumentsRequired($this->id . ' transfer() creating a subaccount charges a fee, set params.max_fee_usd to cover it');
+        }
+        $paramsOmitted = $this->omit($params, array( 'max_fee_usd', 'new_subaccount_manager' ));
+        $nonce = $this->nonce_string();
+        $signatureExpiry = $this->safe_integer($paramsOmitted, 'signature_expiry_sec', $this->seconds() + 7776000);
+        $ACTION_TYPEHASH = $this->base16_to_binary('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
+        $TRANSFER_MODULE_ADDRESS = '0x01259207A40925b794C8ac320456F7F6c8FE2636'; // shared across mainnet and testnet in v3
+        $transferModuleDataHash = $this->hash($this->eth_abi_encode(array(
+            'uint', 'uint', 'address', 'uint', 'uint', 'uint',
+        ), array(
+            $toId,
+            $newSubaccountManager, // a non-zero manager id creates a new subaccount instead of crediting an existing one
+            $assetAddress,
+            0, // erc20 spot assets always carry sub id 0
+            $this->convert_to_big_int(($this->parse_units($amountString))),
+            $this->convert_to_big_int(($this->parse_units($maxFeeUsd))),
+        )), 'keccak', 'binary');
+        list($deriveWalletAddress, $paramsDeriveWalletAddress) = $this->handle_derive_wallet_address('transfer', $paramsOmitted);
+        $signature = $this->sign_order(array(
+            $ACTION_TYPEHASH,
+            $fromId,
+            $this->convert_to_big_int($nonce),
+            $TRANSFER_MODULE_ADDRESS,
+            $transferModuleDataHash,
+            $signatureExpiry,
+            $deriveWalletAddress,
+            $this->walletAddress,
+        ), $this->privateKey);
+        $request = array(
+            'subaccount_id' => $fromId,
+            'to_subaccount_id' => $toId,
+            'new_subaccount_manager' => $newSubaccountManager,
+            'asset_name' => $currency['id'],
+            'sub_id' => 0,
+            'amount' => $amountString,
+            'max_fee_usd' => $maxFeeUsd,
+            'nonce' => $nonce,
+            'signer' => $this->walletAddress,
+            'signature' => $signature,
+            'signature_expiry_sec' => $signatureExpiry,
+        );
+        $response = Async\await($this->privatePostTransferSpot($this->extend($request, $paramsDeriveWalletAddress)));
+        //
+        //     {
+        //         "id": "cc745aff-d485-464d-bc2f-cd99f821ea52",
+        //         "result": {
+        //             "operation_id": 4724036,
+        //             "op_uuid": "01a101be-1291-7e22-b3b4-9cc6ebc71904"
+        //         }
+        //     }
+        //
+        $result = $this->safe_dict($response, 'result', array());
+        $transferEntry = $this->parse_transfer($result, $currency);
+        $transferOptions = $this->safe_dict($this->options, 'transfer', array());
+        $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
+        if ($fillResponseFromRequest) {
+            // normalized through the int ids: the raw arguments arrive as strings in some languages and as numbers in others
+            $transferEntry['fromAccount'] = $this->number_to_string($fromId);
+            $transferEntry['toAccount'] = ($toId !== 0) ? $this->number_to_string($toId) : null;
+            $transferEntry['amount'] = $this->parse_number($amountString);
+        }
+        return $transferEntry;
+    }
+
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
+        $timestamp = $this->safe_integer($transfer, 'timestamp');
+        $currencyId = $this->safe_string($transfer, 'asset');
+        return array(
+            'info' => $transfer,
+            'id' => $this->safe_string_2($transfer, 'transaction_id', 'operation_id'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'amount' => $this->safe_number($transfer, 'amount'),
+            'fromAccount' => $this->safe_string($transfer, 'from_subaccount_id'),
+            'toAccount' => $this->safe_string($transfer, 'to_subaccount_id'),
+            'status' => $this->parse_transaction_status($this->safe_string_2($transfer, 'batch_status', 'status')),
+        );
+    }
+
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_transfers(...))($code, $since, $limit, $params);
+    }
+
+    private function do_fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch the spot transfer history of a subaccount
+         *
+         * @see https://docs.derive.xyz/api-reference/history/privateget_erc20_transfer_history
+         *
+         * @param {string} [$code] unified currency $code
+         * @param {int} [$since] timestamp in ms of the earliest transfer to fetch
+         * @param {int} [$limit] the maximum number of $transfers to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest transfer to fetch
+         * @param {string} [$params->subaccount_id] *required* the subaccount id
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        list($subaccountId, $paramsDeriveSubaccountId) = $this->handle_derive_subaccount_id('fetchTransfers', $params);
+        $request = array(
+            'subaccount_id' => $subaccountId,
+        );
+        if ($since !== null) {
+            $request['start_timestamp'] = $since;
+        }
+        $until = $this->safe_integer($paramsDeriveSubaccountId, 'until');
+        $paramsOmitted = $this->omit($paramsDeriveSubaccountId, array( 'until' ));
+        if ($until !== null) {
+            $request['end_timestamp'] = $until;
+        }
+        $response = Async\await($this->privatePostGetErc20TransferHistory($this->extend($request, $paramsOmitted)));
+        //
+        //     {
+        //         "id": "6475ec25-b0ac-4f38-a5d6-6fc8f7cc5611",
+        //         "result": {
+        //             "transfers": [
+        //                 {
+        //                     "operation_id": "01a101be-28a1-7a81-967e-56e51d48752b",
+        //                     "is_outgoing": false,
+        //                     "from_subaccount_id": 86820,
+        //                     "to_subaccount_id": 86815,
+        //                     "from_wallet": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                     "to_wallet": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                     "asset": "USDC",
+        //                     "amount": "10",
+        //                     "fee": "0",
+        //                     "timestamp": 1791030601000,
+        //                     "batch_uuid": "01a101b9-c803-71b3-be01-626934f9995b",
+        //                     "batch_status": "Settled",
+        //                     "tx_hash": "0x2609daf9ae76a4289326b6ce8a1b06df6edc77bab5b01689eb535dd3a1067296"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        $result = $this->safe_dict($response, 'result', array());
+        $transfers = $this->safe_list($result, 'transfers', array());
+        $parsed = array();
+        for ($i = 0; $i < count($transfers); $i++) {
+            $parsed[] = $this->parse_transfer($this->safe_dict($transfers, $i, array()));
+        }
+        $sorted = $this->sort_by($parsed, 'timestamp');
+        return $this->filter_by_currency_since_limit($sorted, $code, $since, $limit);
+    }
+
+    public function fetch_borrow_rate_history(string $code, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_borrow_rate_history(...))($code, $since, $limit, $params);
+    }
+
+    private function do_fetch_borrow_rate_history(string $code, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * retrieves a history of a currencies borrow interest rate at specific time slots
+         *
+         * @see https://docs.derive.xyz/api-reference/market-data/publicget_interest_rate_history
+         *
+         * @param {string} $code unified $currency $code
+         * @param {int} [$since] timestamp in ms of the earliest rate to fetch
+         * @param {int} [$limit] the maximum number of $rates to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest rate to fetch
+         * @param {int} [$params->risk_universe_id] the risk universe to read the $rates from, default 1 => without the filter the venue interleaves every universe with duplicate timestamps
+         * @param {int} [$params->period] the bucket size in seconds, default hourly
+         * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=borrow-rate-structure borrow rate structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $currency = $this->currency($code);
+        list($riskUniverseId, $paramsUniverse) = $this->handle_option_and_params($params, 'fetchBorrowRateHistory', 'risk_universe_id', 1);
+        $request = array(
+            'currency' => $currency['id'],
+            'risk_universe_id' => $riskUniverseId,
+        );
+        if ($since !== null) {
+            $request['start_timestamp'] = $since;
+        }
+        $until = $this->safe_integer($paramsUniverse, 'until');
+        $paramsOmitted = $this->omit($paramsUniverse, array( 'until' ));
+        if ($until !== null) {
+            $request['end_timestamp'] = $until;
+        }
+        $response = Async\await($this->publicPostGetInterestRateHistory($this->extend($request, $paramsOmitted)));
+        //
+        //     {
+        //         "id": "d9f3db6f-9ebd-4d29-ae83-006f22ce07af",
+        //         "result": {
+        //             "interest_rate_history": [
+        //                 {
+        //                     "timestamp": 1789538400000,
+        //                     "risk_universe_id": 2,
+        //                     "borrow_apy": {
+        //                         "open": "0.03921995664",
+        //                         "high": "0.03921995664",
+        //                         "low": "0.03919465776",
+        //                         "close": "0.03919467528"
+        //                     },
+        //                     "supply_apy": {
+        //                         "open": "0.024354974666",
+        //                         "high": "0.024354974666",
+        //                         "low": "0.024323514208",
+        //                         "close": "0.024323528028"
+        //                     },
+        //                     "total_supply": "15439518.077675880999",
+        //                     "total_borrow": "10085783.283513750809"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        $result = $this->safe_dict($response, 'result', array());
+        $rows = $this->safe_list($result, 'interest_rate_history', array());
+        $rates = array();
+        for ($i = 0; $i < count($rows); $i++) {
+            // the base history helper parses without a currency, while the rows carry none, so the rate entries are built here with the requested currency attached
+            $rates[] = $this->parse_borrow_rate($this->safe_dict($rows, $i, array()), $currency);
+        }
+        $sorted = $this->sort_by($rates, 'timestamp');
+        return $this->filter_by_currency_since_limit($sorted, $code, $since, $limit);
+    }
+
+    public function parse_borrow_rate(mixed $info, ?array $currency = null): array {
+        $timestamp = $this->safe_integer($info, 'timestamp');
+        $borrowApy = $this->safe_dict($info, 'borrow_apy', array());
+        return array(
+            'currency' => $this->safe_currency_code(null, $currency),
+            'rate' => $this->safe_number($borrowApy, 'close'),
+            'period' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $info,
+        );
+    }
+
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_borrow_interest(...))($code, $symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches the interest accrued on the cash balance of a subaccount, the venue charges or pays it on the settlement currency only
+         *
+         * @see https://docs.derive.xyz/api-reference/history/privateget_interest_history
+         *
+         * @param {string} [$code] unified currency $code
+         * @param {string} [$symbol] not used by derive.fetchBorrowInterest
+         * @param {int} [$since] timestamp in ms of the earliest interest event to fetch
+         * @param {int} [$limit] the maximum number of interest $events to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest interest event to fetch
+         * @param {string} [$params->subaccount_id] *required* the subaccount id
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=borrow-interest-structure borrow interest structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        list($subaccountId, $paramsDeriveSubaccountId) = $this->handle_derive_subaccount_id('fetchBorrowInterest', $params);
+        $request = array(
+            'subaccount_id' => $subaccountId,
+        );
+        if ($since !== null) {
+            $request['start_timestamp'] = $since;
+        }
+        $until = $this->safe_integer($paramsDeriveSubaccountId, 'until');
+        $paramsOmitted = $this->omit($paramsDeriveSubaccountId, array( 'until' ));
+        if ($until !== null) {
+            $request['end_timestamp'] = $until;
+        }
+        $response = Async\await($this->privatePostGetInterestHistory($this->extend($request, $paramsOmitted)));
+        //
+        //     {
+        //         "id": "7e0a9cb5-44c4-4c27-91cb-c0b7bd23a4f0",
+        //         "result": {
+        //             "events": [
+        //                 {
+        //                     "subaccount_id": 86815,
+        //                     "timestamp": 1791033968000,
+        //                     "interest": "0.003382117138"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        $result = $this->safe_dict($response, 'result', array());
+        $events = $this->safe_list($result, 'events', array());
+        $interests = $this->parse_borrow_interests($events, null);
+        $sorted = $this->sort_by($interests, 'timestamp');
+        return $this->filter_by_currency_since_limit($sorted, $code, $since, $limit);
+    }
+
+    public function parse_borrow_interest(array $info, ?array $market = null): array {
+        $timestamp = $this->safe_integer($info, 'timestamp');
+        return array(
+            'info' => $info,
+            'symbol' => null,
+            'currency' => 'USDC', // interest accrues on the settlement currency cash balance only
+            'interest' => $this->safe_number($info, 'interest'),
+            'interestRate' => null,
+            'amountBorrowed' => null,
+            'marginMode' => 'cross',
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
+    }
+
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
+    }
+
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
+        /**
+         * make a withdrawal to an L1 $address, the payout defaults to the owner wallet and a session key may only pay out to the owner wallet or a whitelisted recipient
+         *
+         * @see https://docs.derive.xyz/api-reference/transfers-&-withdrawals/privatewithdraw
+         *
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {string} $address the L1 $address to withdraw to
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {float} [$params->max_fee_usd] the maximum accepted fee in usd, default 1, or 10 with force_batch
+         * @param {bool} [$params->force_batch] pay the higher fee to have the withdrawal batch proven immediately
+         * @param {string} [$params->subaccount_id] *required* the subaccount id
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$transaction-structure $transaction structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $this->check_address($address);
+        $currency = $this->currency($code);
+        // the exchange reconstructs the signed payload from asset_name using the protocol spot-asset address, so signing any other address can never verify
+        $spotAssets = $this->safe_list($currency['info'], 'spot', array());
+        $spotAsset = $this->safe_dict($spotAssets, 0, array());
+        $assetAddress = $this->safe_string($spotAsset, 'address');
+        if ($assetAddress === null) {
+            throw new BadRequest($this->id . ' withdraw() ' . $code . ' has no deposit-enabled spot asset');
+        }
+        $erc20 = $this->safe_dict($spotAsset, 'erc20', array());
+        $decimals = $this->safe_integer($erc20, 'decimals');
+        if ($decimals === null) {
+            throw new BadRequest($this->id . ' withdraw() ' . $code . ' carries no erc20 decimals metadata');
+        }
+        list($subaccountId, $paramsDeriveSubaccountId) = $this->handle_derive_subaccount_id('withdraw', $params);
+        $forceBatch = $this->safe_bool_2($paramsDeriveSubaccountId, 'force_batch', 'forceBatch', false);
+        $defaultMaxFee = ($forceBatch) ? '10' : '1';
+        $maxFeeUsd = $this->safe_string_2($paramsDeriveSubaccountId, 'max_fee_usd', 'maxFeeUsd', $defaultMaxFee);
+        $paramsOmitted = $this->omit($paramsDeriveSubaccountId, array( 'max_fee_usd', 'maxFeeUsd', 'force_batch', 'forceBatch' ));
+        // excess decimals are truncated away: a fractional scaled amount cannot be encoded, and the signature must commit to the exact wire amount
+        $amountString = $this->decimal_to_precision($this->number_to_string($amount), TRUNCATE, $decimals, DECIMAL_PLACES);
+        // the withdrawal amount is the protocol's only non-e18 action value, it is signed at the native decimals of the underlying erc20
+        $one = '1';
+        $scale = str_pad($one, $decimals + 1, '0', STR_PAD_RIGHT);
+        $amountScaled = Precise::string_mul($amountString, $scale);
+        $nonce = $this->nonce_string();
+        $signatureExpiry = $this->safe_integer($paramsOmitted, 'signature_expiry_sec', $this->seconds() + 7776000);
+        $ACTION_TYPEHASH = $this->base16_to_binary('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
+        $WITHDRAWAL_MODULE_ADDRESS = '0x9d0E8f5b25384C7310CB8C6aE32C8fbeb645d083'; // shared across mainnet and testnet in v3
+        $withdrawalModuleDataHash = $this->hash($this->eth_abi_encode(array(
+            'address', 'uint', 'address', 'uint', 'bool',
+        ), array(
+            $assetAddress,
+            $this->convert_to_big_int(($this->parse_units($maxFeeUsd))),
+            $address,
+            $this->convert_to_big_int($amountScaled),
+            $forceBatch,
+        )), 'keccak', 'binary');
+        list($deriveWalletAddress, $paramsDeriveWalletAddress) = $this->handle_derive_wallet_address('withdraw', $paramsOmitted);
+        $signature = $this->sign_order(array(
+            $ACTION_TYPEHASH,
+            $subaccountId,
+            $this->convert_to_big_int($nonce),
+            $WITHDRAWAL_MODULE_ADDRESS,
+            $withdrawalModuleDataHash,
+            $signatureExpiry,
+            $deriveWalletAddress,
+            $this->walletAddress,
+        ), $this->privateKey);
+        $request = array(
+            'subaccount_id' => $subaccountId,
+            'asset_name' => $currency['id'],
+            'amount_in_underlying' => $amountString,
+            'max_fee_usd' => $maxFeeUsd,
+            'force_batch' => $forceBatch,
+            'recipient' => $address,
+            'nonce' => $nonce,
+            'signer' => $this->walletAddress,
+            'signature' => $signature,
+            'signature_expiry_sec' => $signatureExpiry,
+        );
+        // never executed from tests: the signed payload was validated against public/withdraw_debug, which returns the server-side action hashes without executing; the result carries operation_id and op_uuid per the venue schema
+        $response = Async\await($this->privatePostWithdraw($this->extend($request, $paramsDeriveWalletAddress)));
+        $result = $this->safe_dict($response, 'result', array());
+        $transaction = $this->parse_transaction($result, $currency);
+        $transaction['type'] = 'withdrawal';
+        $withdrawOptions = $this->safe_dict($this->options, 'withdraw', array());
+        $fillResponseFromRequest = $this->safe_bool($withdrawOptions, 'fillResponseFromRequest', true);
+        if ($fillResponseFromRequest) {
+            // the response carries only the operation ids, the known request values fill the rest
+            $transaction['currency'] = $currency['code'];
+            $transaction['amount'] = $this->parse_number($amountString);
+            $transaction['addressTo'] = $address;
+        }
+        return $transaction;
     }
 
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -2673,13 +4219,13 @@ class derive extends Exchange {
 
     private function do_fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
-         * fetch all deposits made to an account
+         * fetch all $deposits made to an account
          *
-         * @see https://docs.derive.xyz/reference/post_private-get-deposit-history
+         * @see https://docs.derive.xyz/api-reference/history/privateget_deposit_history
          *
          * @param {string} $code unified $currency $code
-         * @param {int} [$since] the earliest time in ms to fetch deposits for
-         * @param {int} [$limit] the maximum number of deposits structures to retrieve
+         * @param {int} [$since] the earliest time in ms to fetch $deposits for
+         * @param {int} [$limit] the maximum number of $deposits structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->subaccount_id] *required* the subaccount id
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
@@ -2687,37 +4233,47 @@ class derive extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $subaccountId = null;
-        list($subaccountId, $params) = $this->handle_derive_subaccount_id('fetchDeposits', $params);
+        list($subaccountId, $paramsDeriveSubaccountId) = $this->handle_derive_subaccount_id('fetchDeposits', $params);
         $request = array(
             'subaccount_id' => $subaccountId,
         );
         if ($since !== null) {
             $request['start_timestamp'] = $since;
         }
-        $response = Async\await($this->privatePostGetDepositHistory($this->extend($request, $params)));
+        $response = Async\await($this->privatePostGetDepositHistory($this->extend($request, $paramsDeriveSubaccountId)));
         //
-        // {
-        //     "result": {
-        //         "events": [
-        //             {
-        //                 "timestamp": 1736860533599,
-        //                 "transaction_id": "f2069395-ec00-49f5-925a-87202a5d240f",
-        //                 "asset": "ETH",
-        //                 "amount": "0.1",
-        //                 "tx_status": "settled",
-        //                 "tx_hash": "0xeda21a315c59302a19c42049b4cef05a10b685302b6cc3edbaf49102d91166d4",
-        //                 "error_log": {}
-        //             }
-        //         ]
-        //     },
-        //     "id": "ceebc730-22ab-40cd-9941-33ceb2a74389"
-        // }
+        //     {
+        //         "id": "4ba60e41-fa05-490c-b849-9ead5aef63c8",
+        //         "result": {
+        //             "deposits": [
+        //                 {
+        //                     "operation_id": "01a0f7f4-008c-7322-81c6-7c80e1b98a79",
+        //                     "new_subaccount": true,
+        //                     "subaccount_id": 86815,
+        //                     "wallet": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                     "asset": "USDC",
+        //                     "amount": "10000",
+        //                     "fee": "0",
+        //                     "timestamp": 1790866358000,
+        //                     "batch_uuid": "01a0f7f1-b8f3-7261-b09f-54c6df91273e",
+        //                     "batch_status": "Batching",
+        //                     "tx_hash": null,
+        //                     "action_id": 418,
+        //                     "is_fallback": false,
+        //                     "fallback_error_code": null,
+        //                     "fallback_error_message": null,
+        //                     "fallback_error_data": null,
+        //                     "l1_tx_hash": "0x77a6f738abb0642f32a35f1a53050968728182bd29ab0b19f8234f5df7bac309",
+        //                     "l1_sender": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee"
+        //                 }
+        //             ]
+        //         }
+        //     }
         //
         $currency = $this->safe_currency($code);
         $result = $this->safe_dict($response, 'result', array());
-        $events = $this->safe_list($result, 'events', array());
-        return $this->parse_transactions($events, $currency, $since, $limit, $params);
+        $deposits = $this->safe_list($result, 'deposits', array());
+        return $this->parse_transactions($deposits, $currency, $since, $limit, $paramsDeriveSubaccountId);
     }
 
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -2726,13 +4282,13 @@ class derive extends Exchange {
 
     private function do_fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
-         * fetch all withdrawals made from an account
+         * fetch all $withdrawals made from an account
          *
-         * @see https://docs.derive.xyz/reference/post_private-get-withdrawal-history
+         * @see https://docs.derive.xyz/api-reference/history/privateget_withdrawal_history
          *
          * @param {string} $code unified $currency $code
-         * @param {int} [$since] the earliest time in ms to fetch withdrawals for
-         * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
+         * @param {int} [$since] the earliest time in ms to fetch $withdrawals for
+         * @param {int} [$limit] the maximum number of $withdrawals structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->subaccount_id] *required* the subaccount id
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
@@ -2740,115 +4296,160 @@ class derive extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $subaccountId = null;
-        list($subaccountId, $params) = $this->handle_derive_subaccount_id('fetchWithdrawals', $params);
+        list($subaccountId, $paramsDeriveSubaccountId) = $this->handle_derive_subaccount_id('fetchWithdrawals', $params);
         $request = array(
             'subaccount_id' => $subaccountId,
         );
         if ($since !== null) {
             $request['start_timestamp'] = $since;
         }
-        $response = Async\await($this->privatePostGetWithdrawalHistory($this->extend($request, $params)));
+        $response = Async\await($this->privatePostGetWithdrawalHistory($this->extend($request, $paramsDeriveSubaccountId)));
         //
-        // {
-        //     "result": {
-        //         "events": [
-        //             {
-        //                 "timestamp": 1736860533599,
-        //                 "transaction_id": "f2069395-ec00-49f5-925a-87202a5d240f",
-        //                 "asset": "ETH",
-        //                 "amount": "0.1",
-        //                 "tx_status": "settled",
-        //                 "tx_hash": "0xeda21a315c59302a19c42049b4cef05a10b685302b6cc3edbaf49102d91166d4",
-        //                 "error_log": {}
-        //             }
-        //         ]
-        //     },
-        //     "id": "ceebc730-22ab-40cd-9941-33ceb2a74389"
-        // }
+        //     {
+        //         "id": "f3d46c05-5c8f-4e4a-9d2f-5a86d26124b3",
+        //         "result": {
+        //             "withdrawals": [
+        //                 {
+        //                     "operation_id": "01a0f7f9-b539-7a42-b48e-6081fa401b3f",
+        //                     "subaccount_id": 86820,
+        //                     "wallet": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                     "recipient": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                     "asset": "USDC",
+        //                     "erc20_address": "0x73Efab09362052D26FB93A730Be4F8a5EdC833af",
+        //                     "amount": "100",
+        //                     "fee": "1.000073283608",
+        //                     "timestamp": 1790866732000,
+        //                     "batch_uuid": "01a0f7f7-1010-7c33-8bcf-7fef764d7fc5",
+        //                     "batch_status": "Batching",
+        //                     "tx_hash": null
+        //                 }
+        //             ]
+        //         }
+        //     }
         //
         $currency = $this->safe_currency($code);
         $result = $this->safe_dict($response, 'result', array());
-        $events = $this->safe_list($result, 'events', array());
-        return $this->parse_transactions($events, $currency, $since, $limit, $params);
+        $withdrawals = $this->safe_list($result, 'withdrawals', array());
+        return $this->parse_transactions($withdrawals, $currency, $since, $limit, $paramsDeriveSubaccountId);
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
-        // {
-        //     "timestamp": 1736860533599,
-        //     "transaction_id": "f2069395-ec00-49f5-925a-87202a5d240f",
-        //     "asset": "ETH",
-        //     "amount": "0.1",
-        //     "tx_status": "settled",
-        //     "tx_hash": "0xeda21a315c59302a19c42049b4cef05a10b685302b6cc3edbaf49102d91166d4",
-        //     "error_log": {}
-        // }
+        //     {
+        //         "operation_id": "01a0f7f4-008c-7322-81c6-7c80e1b98a79",
+        //         "new_subaccount": true,
+        //         "subaccount_id": 86815,
+        //         "wallet": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //         "asset": "USDC",
+        //         "amount": "10000",
+        //         "fee": "0",
+        //         "timestamp": 1790866358000,
+        //         "batch_uuid": "01a0f7f1-b8f3-7261-b09f-54c6df91273e",
+        //         "batch_status": "Batching",
+        //         "tx_hash": null,
+        //         "action_id": 418,
+        //         "is_fallback": false,
+        //         "fallback_error_code": null,
+        //         "fallback_error_message": null,
+        //         "fallback_error_data": null,
+        //         "l1_tx_hash": "0x77a6f738abb0642f32a35f1a53050968728182bd29ab0b19f8234f5df7bac309",
+        //         "l1_sender": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee"
+        //     }
         //
         $code = $this->safe_string($transaction, 'asset');
         $timestamp = $this->safe_integer($transaction, 'timestamp');
-        $txId = $this->safe_string($transaction, 'tx_hash');
+        // tx_hash is the settling ethereum L1 transaction and stays null until the batch settles; deposits carry the sender's own L1 transaction in l1_tx_hash
+        $txId = $this->safe_string_2($transaction, 'tx_hash', 'l1_tx_hash');
         if ($txId === '0x0') {
             $txId = null;
         }
+        $feeCost = $this->safe_number($transaction, 'fee');
+        $fee = null;
+        if ($feeCost !== null) {
+            $fee = array(
+                'cost' => $feeCost,
+                'currency' => $code,
+            );
+        }
+        // withdrawal rows carry the recipient address, deposit rows carry l1_sender/wallet instead
+        $addressTo = $this->safe_string($transaction, 'recipient');
         return array(
             'info' => $transaction,
-            'id' => null,
+            'id' => $this->safe_string_2($transaction, 'operation_id', 'transaction_id'),
             'txid' => $txId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'address' => null,
             'addressFrom' => null,
-            'addressTo' => null,
+            'addressTo' => $addressTo,
             'tag' => null,
             'tagFrom' => null,
             'tagTo' => null,
-            'type' => null,
+            'type' => ($addressTo !== null) ? 'withdrawal' : 'deposit',
             'amount' => $this->safe_number($transaction, 'amount'),
             'currency' => $code,
-            'status' => $this->parse_transaction_status($this->safe_string($transaction, 'tx_status')),
+            'status' => $this->parse_transaction_status($this->safe_string_2($transaction, 'batch_status', 'tx_status')),
             'updated' => null,
             'comment' => null,
             'internal' => null,
-            'fee' => null,
+            'fee' => $fee,
             'network' => null,
         );
     }
 
     public function parse_transaction_status(?string $status) {
         $statuses = array(
-            'settled' => 'ok',
-            'reverted' => 'failed',
+            'Batching' => 'pending',
+            'Executing' => 'pending',
+            'Da' => 'pending',
+            'Proving' => 'pending',
+            'Settling' => 'pending',
+            'Settled' => 'ok',
+            'BatchingError' => 'failed',
+            'ExecutingError' => 'failed',
+            'DaError' => 'failed',
+            'ProvingError' => 'failed',
+            'SettlingError' => 'failed',
+            'SettledError' => 'failed',
+            'settled' => 'ok', // v2 legacy
+            'reverted' => 'failed', // v2 legacy
         );
         return $this->safe_string($statuses, $status, $status);
     }
 
     public function handle_derive_subaccount_id(string $methodName, array $params): array {
-        $derivesubAccountId = null;
-        list($derivesubAccountId, $params) = $this->handle_option_and_params($params, $methodName, 'subaccount_id');
+        list($derivesubAccountId, $paramsSubaccountId) = $this->handle_option_and_params($params, $methodName, 'subaccount_id');
         if (($derivesubAccountId !== null) && ($derivesubAccountId !== '')) {
-            $this->options['subaccount_id'] = $derivesubAccountId; // saving in options
-            return array( $derivesubAccountId, $params );
+            // the venue rejects a string subaccount_id ("expected i64"), so coerce early
+            $subaccountIdInt = $this->parse_to_int($derivesubAccountId);
+            if (!(is_array($this->options) && array_key_exists('subaccount_id' ?? '', $this->options))) {
+                // remember the first explicitly used subaccount as the instance default, but never overwrite a configured default: a one-off param must not silently re-route later calls
+                $this->options['subaccount_id'] = $subaccountIdInt;
+            }
+            return array( $subaccountIdInt, $paramsSubaccountId );
         }
-        $optionsWallet = $this->safe_string($this->options, 'subaccount_id');
+        $optionsWallet = $this->safe_integer($this->options, 'subaccount_id');
         if ($optionsWallet !== null) {
-            return array( $optionsWallet, $params );
+            return array( $optionsWallet, $paramsSubaccountId );
         }
         throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a subaccount_id parameter inside \'params\' or exchange.options[\'subaccount_id\']=ID.');
     }
 
-    public function handle_derive_wallet_address(string $methodName, array $params) {
-        $deriveWalletAddress = null;
-        list($deriveWalletAddress, $params) = $this->handle_option_and_params($params, $methodName, 'deriveWalletAddress');
+    public function handle_derive_wallet_address(string $methodName, array $params): array {
+        list($deriveWalletAddress, $paramsDeriveWalletAddress) = $this->handle_option_string_and_params($params, $methodName, 'deriveWalletAddress');
         if (($deriveWalletAddress !== null) && ($deriveWalletAddress !== '')) {
-            $this->options['deriveWalletAddress'] = $deriveWalletAddress; // saving in options
-            return array( $deriveWalletAddress, $params );
+            $this->options['deriveWalletAddress'] = $deriveWalletAddress;
+            return array( $deriveWalletAddress, $paramsDeriveWalletAddress );
         }
         $optionsWallet = $this->safe_string($this->options, 'deriveWalletAddress');
-        if ($optionsWallet !== null) {
-            return array( $optionsWallet, $params );
+        if (($optionsWallet !== null) && ($optionsWallet !== '')) {
+            return array( $optionsWallet, $paramsDeriveWalletAddress );
         }
-        throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a deriveWalletAddress parameter inside \'params\' or exchange.options[\'deriveWalletAddress\'] = ADDRESS, the address can find in HOME => Developers tab.');
+        // v3 abolished the separate derive wallet: the owner wallet is the user's own EOA, so the walletAddress credential is the default; set deriveWalletAddress explicitly only when signing with a session key registered to another owner wallet
+        if (($this->walletAddress !== null) && ($this->walletAddress !== '')) {
+            return array( $this->walletAddress, $paramsDeriveWalletAddress );
+        }
+        throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires the walletAddress credential, a deriveWalletAddress parameter inside \'params\', or exchange.options[\'deriveWalletAddress\'] = ADDRESS.');
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
@@ -2867,26 +4468,35 @@ class derive extends Exchange {
     }
 
     public function nonce(): float {
-        // the order nonce is a millisecond timestamp and must be unique per wallet (error 11017), while staying a valid date (error 11018)
-        // incrementingNonce () reads this and bumps past the previous value when two orders share a millisecond
-        return $this->milliseconds();
+        // signs the auth timestamp and feeds incrementingNonce (), which nonceString () extends to the nanosecond-scale action nonce; must be unique per wallet (error 11017) while staying a valid date (error 11018)
+        return $this->milliseconds() - $this->safe_integer($this->options, 'timeDifference', 0);
     }
 
-    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $url = $this->urls['api'][$api] . '/' . $path;
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . '/' . $path;
         if ($method === 'POST') {
-            $headers = array(
+            $postHeaders = array(
                 'Content-Type' => 'application/json',
             );
-            if ($api === 'private') {
-                $now = (string) $this->milliseconds();
+            if ($apiName === 'private') {
+                $now = $this->number_to_string($this->nonce());
                 $signature = $this->sign_message($now, $this->privateKey);
-                $headers['X-LyraWallet'] = $this->safe_string($this->options, 'deriveWalletAddress');
-                $headers['X-LyraTimestamp'] = $now;
-                $headers['X-LyraSignature'] = $signature;
+                $deriveWalletAddress = $this->safe_string($this->options, 'deriveWalletAddress');
+                if (($deriveWalletAddress === null) || ($deriveWalletAddress === '')) {
+                    $deriveWalletAddress = $this->walletAddress; // v3: the owner wallet is the user's own EOA
+                }
+                $postHeaders['X-DeriveWallet'] = $deriveWalletAddress;
+                $postHeaders['X-DeriveTimestamp'] = $now;
+                $postHeaders['X-DeriveSignature'] = $signature;
             }
-            $body = $this->json($params);
+            $postBody = $this->json($params);
+            return array( 'url' => $url, 'method' => $method, 'body' => $postBody, 'headers' => $postHeaders );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 }

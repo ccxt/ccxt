@@ -5,7 +5,7 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import kucoin from './kucoin.js';
+import kucoin from '../abstract/pro/kucoinfutures.js';
 import { BadRequest } from '../base/errors.js';
 // ---------------------------------------------------------------------------
 export default class kucoinfutures extends kucoin {

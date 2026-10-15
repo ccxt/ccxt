@@ -8,152 +8,582 @@
 import { List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    publicGetConfConfig (params?: {}): Promise<List>;
-    publicGetConfPubActionObject (params?: {}): Promise<List>;
-    publicGetConfPubActionObjectDetail (params?: {}): Promise<List>;
-    publicGetConfPubMapObject (params?: {}): Promise<List>;
-    publicGetConfPubMapObjectDetail (params?: {}): Promise<List>;
-    publicGetConfPubMapCurrencyDetail (params?: {}): Promise<List>;
-    publicGetConfPubMapCurrencySym (params?: {}): Promise<List>;
-    publicGetConfPubMapCurrencyLabel (params?: {}): Promise<List>;
-    publicGetConfPubMapCurrencyUnit (params?: {}): Promise<List>;
-    publicGetConfPubMapCurrencyUndl (params?: {}): Promise<List>;
-    publicGetConfPubMapCurrencyPool (params?: {}): Promise<List>;
-    publicGetConfPubMapCurrencyExplorer (params?: {}): Promise<List>;
-    publicGetConfPubMapCurrencyTxFee (params?: {}): Promise<List>;
-    publicGetConfPubMapTxMethod (params?: {}): Promise<List>;
-    publicGetConfPubListObject (params?: {}): Promise<List>;
-    publicGetConfPubListObjectDetail (params?: {}): Promise<List>;
-    publicGetConfPubListCurrency (params?: {}): Promise<List>;
-    publicGetConfPubListPairExchange (params?: {}): Promise<List>;
-    publicGetConfPubListPairMargin (params?: {}): Promise<List>;
-    publicGetConfPubListPairFutures (params?: {}): Promise<List>;
-    publicGetConfPubListCompetitions (params?: {}): Promise<List>;
-    publicGetConfPubInfoObject (params?: {}): Promise<List>;
-    publicGetConfPubInfoObjectDetail (params?: {}): Promise<List>;
-    publicGetConfPubInfoPair (params?: {}): Promise<List>;
-    publicGetConfPubInfoPairFutures (params?: {}): Promise<List>;
-    publicGetConfPubInfoTxStatus (params?: {}): Promise<List>;
-    publicGetConfPubFees (params?: {}): Promise<List>;
-    publicGetPlatformStatus (params?: {}): Promise<List>;
-    publicGetTickers (params?: {}): Promise<List>;
-    publicGetTickerSymbol (params?: {}): Promise<List>;
-    publicGetTickersHist (params?: {}): Promise<List>;
-    publicGetTradesSymbolHist (params?: {}): Promise<List>;
-    publicGetBookSymbolPrecision (params?: {}): Promise<List>;
-    publicGetBookSymbolP0 (params?: {}): Promise<List>;
-    publicGetBookSymbolP1 (params?: {}): Promise<List>;
-    publicGetBookSymbolP2 (params?: {}): Promise<List>;
-    publicGetBookSymbolP3 (params?: {}): Promise<List>;
-    publicGetBookSymbolR0 (params?: {}): Promise<List>;
-    publicGetStats1KeySizeSymbolSideSection (params?: {}): Promise<List>;
-    publicGetStats1KeySizeSymbolSideLast (params?: {}): Promise<List>;
-    publicGetStats1KeySizeSymbolSideHist (params?: {}): Promise<List>;
-    publicGetStats1KeySizeSymbolSection (params?: {}): Promise<List>;
-    publicGetStats1KeySizeSymbolLast (params?: {}): Promise<List>;
-    publicGetStats1KeySizeSymbolHist (params?: {}): Promise<List>;
-    publicGetStats1KeySizeSymbolLongLast (params?: {}): Promise<List>;
-    publicGetStats1KeySizeSymbolLongHist (params?: {}): Promise<List>;
-    publicGetStats1KeySizeSymbolShortLast (params?: {}): Promise<List>;
-    publicGetStats1KeySizeSymbolShortHist (params?: {}): Promise<List>;
-    publicGetCandlesTradeTimeframeSymbolPeriodSection (params?: {}): Promise<List>;
-    publicGetCandlesTradeTimeframeSymbolSection (params?: {}): Promise<List>;
-    publicGetCandlesTradeTimeframeSymbolLast (params?: {}): Promise<List>;
-    publicGetCandlesTradeTimeframeSymbolHist (params?: {}): Promise<List>;
-    publicGetStatusType (params?: {}): Promise<List>;
-    publicGetStatusDeriv (params?: {}): Promise<List>;
-    publicGetStatusDerivSymbolHist (params?: {}): Promise<List>;
-    publicGetLiquidationsHist (params?: {}): Promise<List>;
-    publicGetRankingsKeyTimeframeSymbolSection (params?: {}): Promise<List>;
-    publicGetRankingsKeyTimeframeSymbolHist (params?: {}): Promise<List>;
-    publicGetPulseHist (params?: {}): Promise<List>;
-    publicGetPulseProfileNickname (params?: {}): Promise<List>;
-    publicGetFundingStatsSymbolHist (params?: {}): Promise<List>;
-    publicGetExtVasps (params?: {}): Promise<List>;
-    publicPostCalcTradeAvg (params?: {}): Promise<List>;
-    publicPostCalcFx (params?: {}): Promise<List>;
-    privatePostAuthRWallets (params?: {}): Promise<List>;
-    privatePostAuthRWalletsHist (params?: {}): Promise<List>;
-    privatePostAuthROrders (params?: {}): Promise<List>;
-    privatePostAuthROrdersSymbol (params?: {}): Promise<List>;
-    privatePostAuthWOrderSubmit (params?: {}): Promise<List>;
-    privatePostAuthWOrderUpdate (params?: {}): Promise<List>;
-    privatePostAuthWOrderCancel (params?: {}): Promise<List>;
-    privatePostAuthWOrderMulti (params?: {}): Promise<List>;
-    privatePostAuthWOrderCancelMulti (params?: {}): Promise<List>;
-    privatePostAuthROrdersSymbolHist (params?: {}): Promise<List>;
-    privatePostAuthROrdersHist (params?: {}): Promise<List>;
-    privatePostAuthROrdersOtcSymbolHist (params?: {}): Promise<List>;
-    privatePostAuthROrderSymbolIdTrades (params?: {}): Promise<List>;
-    privatePostAuthRTradesSymbolHist (params?: {}): Promise<List>;
-    privatePostAuthRTradesHist (params?: {}): Promise<List>;
-    privatePostAuthRLedgersCurrencyHist (params?: {}): Promise<List>;
-    privatePostAuthRLedgersHist (params?: {}): Promise<List>;
-    privatePostAuthRInfoMarginKey (params?: {}): Promise<List>;
-    privatePostAuthRInfoMarginBase (params?: {}): Promise<List>;
-    privatePostAuthRInfoMarginSymAll (params?: {}): Promise<List>;
-    privatePostAuthRPositions (params?: {}): Promise<List>;
-    privatePostAuthWPositionClaim (params?: {}): Promise<List>;
-    privatePostAuthWPositionIncrease (params?: {}): Promise<List>;
-    privatePostAuthRPositionIncreaseInfo (params?: {}): Promise<List>;
-    privatePostAuthRPositionsHist (params?: {}): Promise<List>;
-    privatePostAuthRPositionsAudit (params?: {}): Promise<List>;
-    privatePostAuthRPositionsSnap (params?: {}): Promise<List>;
-    privatePostAuthWPositionUpdateFundingType (params?: {}): Promise<List>;
-    privatePostAuthWDerivCollateralSet (params?: {}): Promise<List>;
-    privatePostAuthWDerivCollateralLimits (params?: {}): Promise<List>;
-    privatePostAuthRFundingOffers (params?: {}): Promise<List>;
-    privatePostAuthRFundingOffersSymbol (params?: {}): Promise<List>;
-    privatePostAuthWFundingOfferSubmit (params?: {}): Promise<List>;
-    privatePostAuthWFundingOfferCancel (params?: {}): Promise<List>;
-    privatePostAuthWFundingOfferCancelAll (params?: {}): Promise<List>;
-    privatePostAuthWFundingClose (params?: {}): Promise<List>;
-    privatePostAuthWFundingAuto (params?: {}): Promise<List>;
-    privatePostAuthWFundingKeep (params?: {}): Promise<List>;
-    privatePostAuthRFundingOffersSymbolHist (params?: {}): Promise<List>;
-    privatePostAuthRFundingOffersHist (params?: {}): Promise<List>;
-    privatePostAuthRFundingLoans (params?: {}): Promise<List>;
-    privatePostAuthRFundingLoansHist (params?: {}): Promise<List>;
-    privatePostAuthRFundingLoansSymbol (params?: {}): Promise<List>;
-    privatePostAuthRFundingLoansSymbolHist (params?: {}): Promise<List>;
-    privatePostAuthRFundingCredits (params?: {}): Promise<List>;
-    privatePostAuthRFundingCreditsHist (params?: {}): Promise<List>;
-    privatePostAuthRFundingCreditsSymbol (params?: {}): Promise<List>;
-    privatePostAuthRFundingCreditsSymbolHist (params?: {}): Promise<List>;
-    privatePostAuthRFundingTradesSymbolHist (params?: {}): Promise<List>;
-    privatePostAuthRFundingTradesHist (params?: {}): Promise<List>;
-    privatePostAuthRInfoFundingKey (params?: {}): Promise<List>;
-    privatePostAuthRInfoUser (params?: {}): Promise<List>;
-    privatePostAuthRSummary (params?: {}): Promise<List>;
-    privatePostAuthRLoginsHist (params?: {}): Promise<List>;
-    privatePostAuthRPermissions (params?: {}): Promise<List>;
-    privatePostAuthWToken (params?: {}): Promise<List>;
-    privatePostAuthRAuditHist (params?: {}): Promise<List>;
-    privatePostAuthWTransfer (params?: {}): Promise<List>;
-    privatePostAuthWDepositAddress (params?: {}): Promise<List>;
-    privatePostAuthRDepositAddressAll (params?: {}): Promise<List>;
-    privatePostAuthWDepositInvoice (params?: {}): Promise<List>;
-    privatePostAuthRExtInvoicePayments (params?: {}): Promise<List>;
-    privatePostAuthWWithdraw (params?: {}): Promise<List>;
-    privatePostAuthRMovementsCurrencyHist (params?: {}): Promise<List>;
-    privatePostAuthRMovementsHist (params?: {}): Promise<List>;
-    privatePostAuthRMovementsInfo (params?: {}): Promise<List>;
-    privatePostAuthRAlerts (params?: {}): Promise<List>;
-    privatePostAuthWAlertSet (params?: {}): Promise<List>;
-    privatePostAuthWAlertPriceSymbolPriceDel (params?: {}): Promise<List>;
-    privatePostAuthWAlertTypeSymbolPriceDel (params?: {}): Promise<List>;
-    privatePostAuthCalcOrderAvail (params?: {}): Promise<List>;
-    privatePostAuthWSettingsSet (params?: {}): Promise<List>;
-    privatePostAuthRSettings (params?: {}): Promise<List>;
-    privatePostAuthWSettingsDel (params?: {}): Promise<List>;
-    privatePostAuthRPulseHist (params?: {}): Promise<List>;
-    privatePostAuthWPulseAdd (params?: {}): Promise<List>;
-    privatePostAuthWPulseDel (params?: {}): Promise<List>;
-    privatePostAuthWExtWalletsDepositsRequest (params?: {}): Promise<List>;
-    privatePostAuthWExtWalletsWithdrawalsRequest (params?: {}): Promise<List>;
-    privatePostAuthRExtWalletsTransfersFreeCount (params?: {}): Promise<List>;
-}
-abstract class Exchange extends _Exchange {}
+abstract class Exchange extends _Exchange {
+    publicGetConfConfig (params = {}): Promise<List> {
+        return this.request ('conf/{config}', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
 
-export default Exchange
+    publicGetConfPubActionObject (params = {}): Promise<List> {
+        return this.request ('conf/pub:{action}:{object}', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetConfPubActionObjectDetail (params = {}): Promise<List> {
+        return this.request ('conf/pub:{action}:{object}:{detail}', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetConfPubMapObject (params = {}): Promise<List> {
+        return this.request ('conf/pub:map:{object}', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetConfPubMapObjectDetail (params = {}): Promise<List> {
+        return this.request ('conf/pub:map:{object}:{detail}', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetConfPubMapCurrencyDetail (params = {}): Promise<List> {
+        return this.request ('conf/pub:map:currency:{detail}', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetConfPubMapCurrencySym (params = {}): Promise<List> {
+        return this.request ('conf/pub:map:currency:sym', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetConfPubMapCurrencyLabel (params = {}): Promise<List> {
+        return this.request ('conf/pub:map:currency:label', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetConfPubMapCurrencyUnit (params = {}): Promise<List> {
+        return this.request ('conf/pub:map:currency:unit', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetConfPubMapCurrencyUndl (params = {}): Promise<List> {
+        return this.request ('conf/pub:map:currency:undl', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetConfPubMapCurrencyPool (params = {}): Promise<List> {
+        return this.request ('conf/pub:map:currency:pool', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetConfPubMapCurrencyExplorer (params = {}): Promise<List> {
+        return this.request ('conf/pub:map:currency:explorer', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetConfPubMapCurrencyTxFee (params = {}): Promise<List> {
+        return this.request ('conf/pub:map:currency:tx:fee', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetConfPubMapTxMethod (params = {}): Promise<List> {
+        return this.request ('conf/pub:map:tx:method', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetConfPubListObject (params = {}): Promise<List> {
+        return this.request ('conf/pub:list:{object}', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetConfPubListObjectDetail (params = {}): Promise<List> {
+        return this.request ('conf/pub:list:{object}:{detail}', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetConfPubListCurrency (params = {}): Promise<List> {
+        return this.request ('conf/pub:list:currency', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetConfPubListPairExchange (params = {}): Promise<List> {
+        return this.request ('conf/pub:list:pair:exchange', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetConfPubListPairMargin (params = {}): Promise<List> {
+        return this.request ('conf/pub:list:pair:margin', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetConfPubListPairFutures (params = {}): Promise<List> {
+        return this.request ('conf/pub:list:pair:futures', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetConfPubListCompetitions (params = {}): Promise<List> {
+        return this.request ('conf/pub:list:competitions', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetConfPubInfoObject (params = {}): Promise<List> {
+        return this.request ('conf/pub:info:{object}', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetConfPubInfoObjectDetail (params = {}): Promise<List> {
+        return this.request ('conf/pub:info:{object}:{detail}', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetConfPubInfoPair (params = {}): Promise<List> {
+        return this.request ('conf/pub:info:pair', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetConfPubInfoPairFutures (params = {}): Promise<List> {
+        return this.request ('conf/pub:info:pair:futures', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetConfPubInfoTxStatus (params = {}): Promise<List> {
+        return this.request ('conf/pub:info:tx:status', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetConfPubFees (params = {}): Promise<List> {
+        return this.request ('conf/pub:fees', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetPlatformStatus (params = {}): Promise<List> {
+        return this.request ('platform/status', [ 'public' ], 'GET', params, { 'cost': 8 });
+    }
+
+    publicGetTickers (params = {}): Promise<List> {
+        return this.request ('tickers', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetTickerSymbol (params = {}): Promise<List> {
+        return this.request ('ticker/{symbol}', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetTickersHist (params = {}): Promise<List> {
+        return this.request ('tickers/hist', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetTradesSymbolHist (params = {}): Promise<List> {
+        return this.request ('trades/{symbol}/hist', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetBookSymbolPrecision (params = {}): Promise<List> {
+        return this.request ('book/{symbol}/{precision}', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetBookSymbolP0 (params = {}): Promise<List> {
+        return this.request ('book/{symbol}/P0', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetBookSymbolP1 (params = {}): Promise<List> {
+        return this.request ('book/{symbol}/P1', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetBookSymbolP2 (params = {}): Promise<List> {
+        return this.request ('book/{symbol}/P2', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetBookSymbolP3 (params = {}): Promise<List> {
+        return this.request ('book/{symbol}/P3', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetBookSymbolR0 (params = {}): Promise<List> {
+        return this.request ('book/{symbol}/R0', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetStats1KeySizeSymbolSideSection (params = {}): Promise<List> {
+        return this.request ('stats1/{key}:{size}:{symbol}:{side}/{section}', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetStats1KeySizeSymbolSideLast (params = {}): Promise<List> {
+        return this.request ('stats1/{key}:{size}:{symbol}:{side}/last', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetStats1KeySizeSymbolSideHist (params = {}): Promise<List> {
+        return this.request ('stats1/{key}:{size}:{symbol}:{side}/hist', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetStats1KeySizeSymbolSection (params = {}): Promise<List> {
+        return this.request ('stats1/{key}:{size}:{symbol}/{section}', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetStats1KeySizeSymbolLast (params = {}): Promise<List> {
+        return this.request ('stats1/{key}:{size}:{symbol}/last', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetStats1KeySizeSymbolHist (params = {}): Promise<List> {
+        return this.request ('stats1/{key}:{size}:{symbol}/hist', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetStats1KeySizeSymbolLongLast (params = {}): Promise<List> {
+        return this.request ('stats1/{key}:{size}:{symbol}:long/last', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetStats1KeySizeSymbolLongHist (params = {}): Promise<List> {
+        return this.request ('stats1/{key}:{size}:{symbol}:long/hist', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetStats1KeySizeSymbolShortLast (params = {}): Promise<List> {
+        return this.request ('stats1/{key}:{size}:{symbol}:short/last', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetStats1KeySizeSymbolShortHist (params = {}): Promise<List> {
+        return this.request ('stats1/{key}:{size}:{symbol}:short/hist', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetCandlesTradeTimeframeSymbolPeriodSection (params = {}): Promise<List> {
+        return this.request ('candles/trade:{timeframe}:{symbol}:{period}/{section}', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetCandlesTradeTimeframeSymbolSection (params = {}): Promise<List> {
+        return this.request ('candles/trade:{timeframe}:{symbol}/{section}', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetCandlesTradeTimeframeSymbolLast (params = {}): Promise<List> {
+        return this.request ('candles/trade:{timeframe}:{symbol}/last', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetCandlesTradeTimeframeSymbolHist (params = {}): Promise<List> {
+        return this.request ('candles/trade:{timeframe}:{symbol}/hist', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetStatusType (params = {}): Promise<List> {
+        return this.request ('status/{type}', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetStatusDeriv (params = {}): Promise<List> {
+        return this.request ('status/deriv', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetStatusDerivSymbolHist (params = {}): Promise<List> {
+        return this.request ('status/deriv/{symbol}/hist', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetLiquidationsHist (params = {}): Promise<List> {
+        return this.request ('liquidations/hist', [ 'public' ], 'GET', params, { 'cost': 80 });
+    }
+
+    publicGetRankingsKeyTimeframeSymbolSection (params = {}): Promise<List> {
+        return this.request ('rankings/{key}:{timeframe}:{symbol}/{section}', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetRankingsKeyTimeframeSymbolHist (params = {}): Promise<List> {
+        return this.request ('rankings/{key}:{timeframe}:{symbol}/hist', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetPulseHist (params = {}): Promise<List> {
+        return this.request ('pulse/hist', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetPulseProfileNickname (params = {}): Promise<List> {
+        return this.request ('pulse/profile/{nickname}', [ 'public' ], 'GET', params, { 'cost': 2.7 });
+    }
+
+    publicGetFundingStatsSymbolHist (params = {}): Promise<List> {
+        return this.request ('funding/stats/{symbol}/hist', [ 'public' ], 'GET', params, { 'cost': 10 });
+    }
+
+    publicGetExtVasps (params = {}): Promise<List> {
+        return this.request ('ext/vasps', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicPostCalcTradeAvg (params = {}): Promise<List> {
+        return this.request ('calc/trade/avg', [ 'public' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    publicPostCalcFx (params = {}): Promise<List> {
+        return this.request ('calc/fx', [ 'public' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthRWallets (params = {}): Promise<List> {
+        return this.request ('auth/r/wallets', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthRWalletsHist (params = {}): Promise<List> {
+        return this.request ('auth/r/wallets/hist', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthROrders (params = {}): Promise<List> {
+        return this.request ('auth/r/orders', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthROrdersSymbol (params = {}): Promise<List> {
+        return this.request ('auth/r/orders/{symbol}', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthWOrderSubmit (params = {}): Promise<List> {
+        return this.request ('auth/w/order/submit', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthWOrderUpdate (params = {}): Promise<List> {
+        return this.request ('auth/w/order/update', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthWOrderCancel (params = {}): Promise<List> {
+        return this.request ('auth/w/order/cancel', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthWOrderMulti (params = {}): Promise<List> {
+        return this.request ('auth/w/order/multi', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthWOrderCancelMulti (params = {}): Promise<List> {
+        return this.request ('auth/w/order/cancel/multi', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthROrdersSymbolHist (params = {}): Promise<List> {
+        return this.request ('auth/r/orders/{symbol}/hist', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthROrdersHist (params = {}): Promise<List> {
+        return this.request ('auth/r/orders/hist', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthROrdersOtcSymbolHist (params = {}): Promise<List> {
+        return this.request ('auth/r/orders/otc/{symbol}/hist', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthROrderSymbolIdTrades (params = {}): Promise<List> {
+        return this.request ('auth/r/order/{symbol}:{id}/trades', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthRTradesSymbolHist (params = {}): Promise<List> {
+        return this.request ('auth/r/trades/{symbol}/hist', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthRTradesHist (params = {}): Promise<List> {
+        return this.request ('auth/r/trades/hist', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthRLedgersCurrencyHist (params = {}): Promise<List> {
+        return this.request ('auth/r/ledgers/{currency}/hist', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthRLedgersHist (params = {}): Promise<List> {
+        return this.request ('auth/r/ledgers/hist', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthRInfoMarginKey (params = {}): Promise<List> {
+        return this.request ('auth/r/info/margin/{key}', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthRInfoMarginBase (params = {}): Promise<List> {
+        return this.request ('auth/r/info/margin/base', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthRInfoMarginSymAll (params = {}): Promise<List> {
+        return this.request ('auth/r/info/margin/sym_all', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthRPositions (params = {}): Promise<List> {
+        return this.request ('auth/r/positions', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthWPositionClaim (params = {}): Promise<List> {
+        return this.request ('auth/w/position/claim', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthWPositionIncrease (params = {}): Promise<List> {
+        return this.request ('auth/w/position/increase:', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthRPositionIncreaseInfo (params = {}): Promise<List> {
+        return this.request ('auth/r/position/increase/info', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthRPositionsHist (params = {}): Promise<List> {
+        return this.request ('auth/r/positions/hist', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthRPositionsAudit (params = {}): Promise<List> {
+        return this.request ('auth/r/positions/audit', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthRPositionsSnap (params = {}): Promise<List> {
+        return this.request ('auth/r/positions/snap', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthWPositionUpdateFundingType (params = {}): Promise<List> {
+        return this.request ('auth/w/position/update/funding/type', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthWDerivCollateralSet (params = {}): Promise<List> {
+        return this.request ('auth/w/deriv/collateral/set', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthWDerivCollateralLimits (params = {}): Promise<List> {
+        return this.request ('auth/w/deriv/collateral/limits', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthRFundingOffers (params = {}): Promise<List> {
+        return this.request ('auth/r/funding/offers', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthRFundingOffersSymbol (params = {}): Promise<List> {
+        return this.request ('auth/r/funding/offers/{symbol}', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthWFundingOfferSubmit (params = {}): Promise<List> {
+        return this.request ('auth/w/funding/offer/submit', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthWFundingOfferCancel (params = {}): Promise<List> {
+        return this.request ('auth/w/funding/offer/cancel', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthWFundingOfferCancelAll (params = {}): Promise<List> {
+        return this.request ('auth/w/funding/offer/cancel/all', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthWFundingClose (params = {}): Promise<List> {
+        return this.request ('auth/w/funding/close', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthWFundingAuto (params = {}): Promise<List> {
+        return this.request ('auth/w/funding/auto', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthWFundingKeep (params = {}): Promise<List> {
+        return this.request ('auth/w/funding/keep', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthRFundingOffersSymbolHist (params = {}): Promise<List> {
+        return this.request ('auth/r/funding/offers/{symbol}/hist', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthRFundingOffersHist (params = {}): Promise<List> {
+        return this.request ('auth/r/funding/offers/hist', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthRFundingLoans (params = {}): Promise<List> {
+        return this.request ('auth/r/funding/loans', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthRFundingLoansHist (params = {}): Promise<List> {
+        return this.request ('auth/r/funding/loans/hist', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthRFundingLoansSymbol (params = {}): Promise<List> {
+        return this.request ('auth/r/funding/loans/{symbol}', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthRFundingLoansSymbolHist (params = {}): Promise<List> {
+        return this.request ('auth/r/funding/loans/{symbol}/hist', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthRFundingCredits (params = {}): Promise<List> {
+        return this.request ('auth/r/funding/credits', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthRFundingCreditsHist (params = {}): Promise<List> {
+        return this.request ('auth/r/funding/credits/hist', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthRFundingCreditsSymbol (params = {}): Promise<List> {
+        return this.request ('auth/r/funding/credits/{symbol}', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthRFundingCreditsSymbolHist (params = {}): Promise<List> {
+        return this.request ('auth/r/funding/credits/{symbol}/hist', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthRFundingTradesSymbolHist (params = {}): Promise<List> {
+        return this.request ('auth/r/funding/trades/{symbol}/hist', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthRFundingTradesHist (params = {}): Promise<List> {
+        return this.request ('auth/r/funding/trades/hist', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthRInfoFundingKey (params = {}): Promise<List> {
+        return this.request ('auth/r/info/funding/{key}', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthRInfoUser (params = {}): Promise<List> {
+        return this.request ('auth/r/info/user', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthRSummary (params = {}): Promise<List> {
+        return this.request ('auth/r/summary', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthRLoginsHist (params = {}): Promise<List> {
+        return this.request ('auth/r/logins/hist', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthRPermissions (params = {}): Promise<List> {
+        return this.request ('auth/r/permissions', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthWToken (params = {}): Promise<List> {
+        return this.request ('auth/w/token', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthRAuditHist (params = {}): Promise<List> {
+        return this.request ('auth/r/audit/hist', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthWTransfer (params = {}): Promise<List> {
+        return this.request ('auth/w/transfer', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthWDepositAddress (params = {}): Promise<List> {
+        return this.request ('auth/w/deposit/address', [ 'private' ], 'POST', params, { 'cost': 24 });
+    }
+
+    privatePostAuthRDepositAddressAll (params = {}): Promise<List> {
+        return this.request ('auth/r/deposit/address/all', [ 'private' ], 'POST', params, { 'cost': 24 });
+    }
+
+    privatePostAuthWDepositInvoice (params = {}): Promise<List> {
+        return this.request ('auth/w/deposit/invoice', [ 'private' ], 'POST', params, { 'cost': 24 });
+    }
+
+    privatePostAuthRExtInvoicePayments (params = {}): Promise<List> {
+        return this.request ('auth/r/ext/invoice/payments', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthWWithdraw (params = {}): Promise<List> {
+        return this.request ('auth/w/withdraw', [ 'private' ], 'POST', params, { 'cost': 24 });
+    }
+
+    privatePostAuthRMovementsCurrencyHist (params = {}): Promise<List> {
+        return this.request ('auth/r/movements/{currency}/hist', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthRMovementsHist (params = {}): Promise<List> {
+        return this.request ('auth/r/movements/hist', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthRMovementsInfo (params = {}): Promise<List> {
+        return this.request ('auth/r/movements/info', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthRAlerts (params = {}): Promise<List> {
+        return this.request ('auth/r/alerts', [ 'private' ], 'POST', params, { 'cost': 5.34 });
+    }
+
+    privatePostAuthWAlertSet (params = {}): Promise<List> {
+        return this.request ('auth/w/alert/set', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthWAlertPriceSymbolPriceDel (params = {}): Promise<List> {
+        return this.request ('auth/w/alert/price:{symbol}:{price}/del', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthWAlertTypeSymbolPriceDel (params = {}): Promise<List> {
+        return this.request ('auth/w/alert/{type}:{symbol}:{price}/del', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthCalcOrderAvail (params = {}): Promise<List> {
+        return this.request ('auth/calc/order/avail', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthWSettingsSet (params = {}): Promise<List> {
+        return this.request ('auth/w/settings/set', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthRSettings (params = {}): Promise<List> {
+        return this.request ('auth/r/settings', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthWSettingsDel (params = {}): Promise<List> {
+        return this.request ('auth/w/settings/del', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthRPulseHist (params = {}): Promise<List> {
+        return this.request ('auth/r/pulse/hist', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthWPulseAdd (params = {}): Promise<List> {
+        return this.request ('auth/w/pulse/add', [ 'private' ], 'POST', params, { 'cost': 16 });
+    }
+
+    privatePostAuthWPulseDel (params = {}): Promise<List> {
+        return this.request ('auth/w/pulse/del', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthWExtWalletsDepositsRequest (params = {}): Promise<List> {
+        return this.request ('auth/w/ext/wallets/deposits/request', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthWExtWalletsWithdrawalsRequest (params = {}): Promise<List> {
+        return this.request ('auth/w/ext/wallets/withdrawals/request', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+
+    privatePostAuthRExtWalletsTransfersFreeCount (params = {}): Promise<List> {
+        return this.request ('auth/r/ext/wallets/transfers/free/count', [ 'private' ], 'POST', params, { 'cost': 2.7 });
+    }
+}
+
+export default Exchange;

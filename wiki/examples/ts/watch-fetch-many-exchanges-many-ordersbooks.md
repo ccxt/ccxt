@@ -32,7 +32,7 @@ async function main () {
             'BTC/USDT',
             'ETH/BTC',
         ],
-        'coinex': [
+        'gate': [
             'BTC/USDT',
             'ETH/BTC',
         ],

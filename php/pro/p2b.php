@@ -122,10 +122,11 @@ class p2b extends \ccxt\async\p2b {
         );
         $messageHash = 'kline::' . $market['symbol'];
         $ohlcv = Async\await($this->subscribe('kline.subscribe', $messageHash, $request, $params));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit($symbol, $limit);
+            $limitResolved = $ohlcv->getLimit($symbol, $limit);
         }
-        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        return $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 0, true);
     }
 
     public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
@@ -149,14 +150,13 @@ class p2b extends \ccxt\async\p2b {
         }
         $watchTickerOptions = $this->safe_dict($this->options, 'watchTicker');
         $name = $this->safe_string($watchTickerOptions, 'name', 'state');  // or price
-        list($name, $params) = $this->handle_option_and_params($params, 'watchTicker', 'name', $name);
+        list($nameOption, $paramsName) = $this->handle_option_string_and_params($params, 'watchTicker', 'name', $name);
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
         $this->options['tickerSubs'][$market['id']] = true; // we need to re-subscribe to all tickers upon watching a new ticker
         $tickerSubs = $this->options['tickerSubs'];
         $request = is_array($tickerSubs) ? array_keys($tickerSubs) : array();
-        $messageHash = $name . '::' . $market['symbol'];
-        return Async\await($this->subscribe($name . '.subscribe', $messageHash, $request, $params));
+        $messageHash = $nameOption . '::' . $market['symbol'];
+        return Async\await($this->subscribe($nameOption . '.subscribe', $messageHash, $request, $paramsName));
     }
 
     public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
@@ -178,25 +178,25 @@ class p2b extends \ccxt\async\p2b {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols, null, false);
+        $symbolsNormalized = $this->market_symbols($symbols, null, false);
         $watchTickerOptions = $this->safe_dict($this->options, 'watchTicker');
         $name = $this->safe_string($watchTickerOptions, 'name', 'state');  // or price
-        list($name, $params) = $this->handle_option_and_params($params, 'watchTickers', 'name', $name);
+        list($nameOption, $paramsName) = $this->handle_option_string_and_params($params, 'watchTickers', 'name', $name);
         $messageHashes = array();
         $args = array();
-        for ($i = 0; $i < count(($symbols)); $i++) {
-            $market = $this->market(($symbols)[$i]);
-            $messageHashes[] = $name . '::' . $market['symbol'];
+        for ($i = 0; $i < count(($symbolsNormalized)); $i++) {
+            $market = $this->market(($symbolsNormalized)[$i]);
+            $messageHashes[] = $nameOption . '::' . $market['symbol'];
             $args[] = $market['id'];
         }
         $url = $this->urls['api']['ws'];
         $request = array(
-            'method' => $name . '.subscribe',
+            'method' => $nameOption . '.subscribe',
             'params' => $args,
             'id' => $this->milliseconds(),
         );
-        Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
-        return $this->filter_by_array($this->tickers, 'symbol', $symbols);
+        Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $paramsName), $messageHashes));
+        return $this->filter_by_array($this->tickers, 'symbol', $symbolsNormalized);
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -233,14 +233,14 @@ class p2b extends \ccxt\async\p2b {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols, null, false, true, true);
+        $symbolsNormalized = $this->market_symbols($symbols, null, false, true, true);
         $messageHashes = array();
-        if ($symbols !== null) {
-            for ($i = 0; $i < count($symbols); $i++) {
-                $messageHashes[] = 'deals::' . $symbols[$i];
+        if ($symbolsNormalized !== null) {
+            for ($i = 0; $i < count($symbolsNormalized); $i++) {
+                $messageHashes[] = 'deals::' . $symbolsNormalized[$i];
             }
         }
-        $marketIds = $this->market_ids($symbols);
+        $marketIds = $this->market_ids($symbolsNormalized);
         $url = $this->urls['api']['ws'];
         $subscribe = array(
             'method' => 'deals.subscribe',
@@ -249,12 +249,13 @@ class p2b extends \ccxt\async\p2b {
         );
         $query = $this->extend($subscribe, $params);
         $trades = Async\await($this->watch_multiple($url, $messageHashes, $query, $messageHashes));
+        $first = $this->safe_dict($trades, 0);
+        $tradeSymbol = $this->safe_string($first, 'symbol');
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $first = $this->safe_dict($trades, 0);
-            $tradeSymbol = $this->safe_string($first, 'symbol');
-            $limit = $trades->getLimit($tradeSymbol, $limit);
+            $limitResolved = $trades->getLimit($tradeSymbol, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
@@ -280,12 +281,10 @@ class p2b extends \ccxt\async\p2b {
         $name = 'depth.subscribe';
         $messageHash = 'orderbook::' . $market['symbol'];
         $interval = $this->safe_string($params, 'interval', '0.001');
-        if ($limit === null) {
-            $limit = 100;
-        }
+        $limitResolved = ($limit === null) ? 100 : $limit;
         $request = array(
             $market['id'],
-            $limit,
+            $limitResolved,
             $interval,
         );
         $orderbook = Async\await($this->subscribe($name, $messageHash, $request, $params));
@@ -321,7 +320,6 @@ class p2b extends \ccxt\async\p2b {
         $timeframes = $this->safe_dict($this->options, 'timeframes', array());
         $timeframe = $this->find_timeframe($channel, $timeframes);
         $symbol = $this->safe_string($market, 'symbol');
-        $messageHash = $channel . '::' . $symbol;
         $parsed = $this->parse_ohlcv($data, $market);
         $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
         $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
@@ -332,7 +330,10 @@ class p2b extends \ccxt\async\p2b {
                 $this->ohlcvs[$symbol][$timeframe] = $stored;
             }
             $stored->append($parsed);
-            $client->resolve($stored, $messageHash);
+            if ($channel !== null) {
+                $messageHash = $channel . '::' . $symbol;
+                $client->resolve($stored, $messageHash);
+            }
         }
         return $message;
     }
@@ -430,8 +431,10 @@ class p2b extends \ccxt\async\p2b {
         }
         $symbol = $ticker['symbol'];
         $this->tickers[$symbol] = $ticker;
-        $messageHash = $messageHashStart . '::' . $symbol;
-        $client->resolve($ticker, $messageHash);
+        if ($messageHashStart !== null) {
+            $messageHash = $messageHashStart . '::' . $symbol;
+            $client->resolve($ticker, $messageHash);
+        }
         return $message;
     }
 

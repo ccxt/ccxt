@@ -301,10 +301,10 @@ class paymium extends paymium$1["default"] {
     parseTrade(trade, market = undefined) {
         const timestamp = this.safeTimestamp(trade, 'created_at_int');
         const id = this.safeString(trade, 'uuid');
-        market = this.safeMarket(undefined, market);
+        const marketResolved = this.safeMarket(undefined, market);
         const side = this.safeString(trade, 'side');
         const price = this.safeString(trade, 'price');
-        const amountField = 'traded_' + market['base'].toLowerCase();
+        const amountField = 'traded_' + marketResolved['base'].toLowerCase();
         const amount = this.safeString(trade, amountField);
         return this.safeTrade({
             'info': trade,
@@ -312,7 +312,7 @@ class paymium extends paymium$1["default"] {
             'order': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
@@ -320,7 +320,7 @@ class paymium extends paymium$1["default"] {
             'amount': amount,
             'cost': undefined,
             'fee': undefined,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -618,10 +618,15 @@ class paymium extends paymium$1["default"] {
         // the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
         return this.milliseconds();
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api']['rest'] + '/' + this.version + '/' + this.implodeParams(path, params);
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const baseApiUrl = this.safeString(this.urls['api'], 'rest');
+        if (baseApiUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        const baseUrl = baseApiUrl;
+        let url = baseUrl + '/' + this.version + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
-        if (api === 'public') {
+        if (api[0] === 'public') {
             if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
@@ -631,27 +636,32 @@ class paymium extends paymium$1["default"] {
             // paymium requires an increasing nonce
             const nonce = this.incrementingNonce().toString();
             let auth = nonce + url;
-            headers = {
+            const signedHeaders = {
                 'Api-Key': this.apiKey,
                 'Api-Nonce': nonce,
             };
+            const hasQuery = Object.keys(query).length > 0;
+            let signedBody = undefined;
+            if (method === 'POST' && hasQuery) {
+                signedBody = this.json(query);
+            }
             if (method === 'POST') {
-                if (Object.keys(query).length > 0) {
-                    body = this.json(query);
-                    auth += body;
-                    headers['Content-Type'] = 'application/json';
+                if (hasQuery) {
+                    auth += signedBody;
+                    signedHeaders['Content-Type'] = 'application/json';
                 }
             }
             else {
-                if (Object.keys(query).length > 0) {
+                if (hasQuery) {
                     const queryString = this.urlencode(query);
                     auth += queryString;
                     url += '?' + queryString;
                 }
             }
-            headers['Api-Signature'] = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
+            signedHeaders['Api-Signature'] = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
+            return { 'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

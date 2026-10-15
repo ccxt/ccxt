@@ -847,7 +847,7 @@
                 "method": "fetchOrder",
                 "url": "https://api.bitfinex.com/v2/auth/r/orders",
                 "input": [
-                    139658969116
+                    "139658969116"
                 ],
                 "output": { "id": [ 139658969116 ] }
             },
@@ -856,7 +856,7 @@
                 "method": "fetchOrder",
                 "url": "https://api.bitfinex.com/v2/auth/r/orders/tLTCF0:USTF0",
                 "input": [
-                    139663481232,
+                    "139663481232",
                     "LTC/USDT:USDT"
                 ],
                 "output": { "id": [ 139663481232 ] }
@@ -868,7 +868,7 @@
                 "method": "editOrder",
                 "url": "https://api.bitfinex.com/v2/auth/w/order/update",
                 "input": [
-                    139658969116,
+                    "139658969116",
                     "BTC/USDT",
                     "limit",
                     "buy",
@@ -882,7 +882,7 @@
                 "method": "editOrder",
                 "url": "https://api.bitfinex.com/v2/auth/w/order/update",
                 "input": [
-                    139663481232,
+                    "139663481232",
                     "LTC/USDT:USDT",
                     "limit",
                     "buy",

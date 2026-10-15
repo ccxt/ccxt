@@ -3,7 +3,7 @@ import Exchange from './abstract/blockchaincom.js';
 import { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Int, List, Market, Num, NullableDict, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, Fee, FeeString, Bool, Endpoint } from './base/types.js';
+import type { Balances, Currency, Dict, Int, List, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, Fee, FeeString, Bool, Endpoint } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -335,6 +335,9 @@ export default class blockchaincom extends Exchange {
             const quoteId = this.safeString (market, 'counter_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const numericId = this.safeNumber (market, 'id');
             let active: Bool = undefined;
             const marketState = this.safeString (market, 'status');
@@ -642,10 +645,8 @@ export default class blockchaincom extends Exchange {
         const orderType = this.safeString (params, 'ordType', type);
         const uppercaseOrderType = orderType.toUpperCase ();
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clOrdId', this.uuid16 ());
-        params = this.omit (params, [ 'ordType', 'clientOrderId', 'clOrdId' ]);
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
-        }
+        const paramsOmitted: Dict = this.omit (params, [ 'ordType', 'clientOrderId', 'clOrdId' ]);
+        this.checkRequiredArgument ('createOrder', side, 'side');
         const request: Dict = {
             // 'stopPx' : limit price
             // 'timeInForce' : "GTC" for Good Till Cancel, "IOC" for Immediate or Cancel, "FOK" for Fill or Kill, "GTD" Good Till Date
@@ -657,8 +658,8 @@ export default class blockchaincom extends Exchange {
             'orderQty': this.amountToPrecision (symbol, amount),
             'clOrdId': clientOrderId,
         };
-        const triggerPrice = this.safeValueN (params, [ 'triggerPrice', 'stopPx', 'stopPrice' ]);
-        params = this.omit (params, [ 'triggerPrice', 'stopPx', 'stopPrice' ]);
+        const triggerPrice = this.safeValueN (paramsOmitted, [ 'triggerPrice', 'stopPx', 'stopPrice' ]);
+        const paramsOmitted2: Dict = this.omit (paramsOmitted, [ 'triggerPrice', 'stopPx', 'stopPrice' ]);
         if (uppercaseOrderType === 'STOP' || uppercaseOrderType === 'STOPLIMIT') {
             if (triggerPrice === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPx or triggerPrice param for a ' + uppercaseOrderType + ' order');
@@ -671,12 +672,13 @@ export default class blockchaincom extends Exchange {
                 request['ordType'] = 'STOPLIMIT';
             }
         }
+        const ordType = this.safeString (request, 'ordType');
         let priceRequired = false;
         let stopPriceRequired = false;
-        if (request['ordType'] === 'LIMIT' || request['ordType'] === 'STOPLIMIT') {
+        if (ordType === 'LIMIT' || ordType === 'STOPLIMIT') {
             priceRequired = true;
         }
-        if (request['ordType'] === 'STOP' || request['ordType'] === 'STOPLIMIT') {
+        if (ordType === 'STOP' || ordType === 'STOPLIMIT') {
             stopPriceRequired = true;
         }
         if (priceRequired) {
@@ -685,7 +687,7 @@ export default class blockchaincom extends Exchange {
         if (stopPriceRequired) {
             request['stopPx'] = this.priceToPrecision (symbol, triggerPrice);
         }
-        const response = await this.privatePostOrders (this.extend (request, params));
+        const response = await this.privatePostOrders (this.extend (request, paramsOmitted2));
         return this.parseOrder (response, market);
     }
 
@@ -868,12 +870,12 @@ export default class blockchaincom extends Exchange {
         const amountString = this.safeString (trade, 'qty');
         const timestamp = this.safeInteger (trade, 'timestamp');
         const datetime = this.iso8601 (timestamp);
-        market = this.safeMarket (marketId, market, '-');
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market, '-');
+        const symbol = marketResolved['symbol'];
         let fee: FeeString = undefined;
         const feeCostString = this.safeString (trade, 'fee');
         if (feeCostString !== undefined) {
-            const feeCurrency = market['quote'];
+            const feeCurrency = marketResolved['quote'];
             fee = { 'cost': feeCostString, 'currency': feeCurrency };
         }
         return this.safeTrade ({
@@ -890,7 +892,7 @@ export default class blockchaincom extends Exchange {
             'cost': undefined,
             'fee': fee,
             'info': trade,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1047,11 +1049,11 @@ export default class blockchaincom extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1193,11 +1195,11 @@ export default class blockchaincom extends Exchange {
             await this.loadMarkets ();
         }
         const accountName = this.safeString (params, 'account', 'primary');
-        params = this.omit (params, 'account');
+        const paramsOmitted: Dict = this.omit (params, 'account');
         const request: Dict = {
             'account': accountName,
         };
-        const response = await this.privateGetAccounts (this.extend (request, params));
+        const response = await this.privateGetAccounts (this.extend (request, paramsOmitted));
         //
         //     {
         //         "primary": [
@@ -1219,7 +1221,7 @@ export default class blockchaincom extends Exchange {
         }
         const result: Dict = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
-            const entry = balances[i];
+            const entry = this.safeDict (balances, i);
             const currencyId = this.safeString (entry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -1271,29 +1273,43 @@ export default class blockchaincom extends Exchange {
         return this.parseOrder (response);
     }
 
-    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
         const requestPath = '/' + this.implodeParams (path, params);
-        let url = this.urls['api'][api] + requestPath;
+        const apiName = api[0];
+        const apiUrl = this.safeString (this.urls['api'], apiName);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + requestPath;
         const query = this.omit (params, this.extractParams (path));
-        if (api === 'public') {
+        const isPrivate = (apiName === 'private');
+        const privateHeaders: Dict = {
+            'X-API-Token': this.secret,
+        };
+        let requestHeaders = undefined;
+        if (isPrivate) {
+            requestHeaders = privateHeaders;
+        }
+        const isPrivatePost = isPrivate && (method !== 'GET');
+        let requestBody: Str = undefined;
+        if (isPrivatePost) {
+            requestBody = this.json (query);
+        }
+        if (apiName === 'public') {
             if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
-        } else if (api === 'private') {
+        } else if (isPrivate) {
             this.checkRequiredCredentials ();
-            headers = {
-                'X-API-Token': this.secret,
-            };
             if ((method === 'GET')) {
                 if (Object.keys (query).length > 0) {
                     url += '?' + this.urlencode (query);
                 }
             } else {
-                body = this.json (query);
-                headers['Content-Type'] = 'application/json';
+                privateHeaders['Content-Type'] = 'application/json';
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

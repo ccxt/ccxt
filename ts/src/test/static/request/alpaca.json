@@ -223,8 +223,8 @@
                     "BTC/USD",
                     "market",
                     "buy",
-                    "1",
-                    "5"
+                    1,
+                    5
                 ],
                 "output": { "symbol": "BTC/USD", "qty": "1", "side": "buy", "type": "market", "time_in_force": "gtc", "client_order_id": "ccxt_b17b85b6309a4e9e91eb1f3ad5591efe" }
             },
@@ -249,7 +249,7 @@
                     "limit",
                     "buy",
                     0.001,
-                    "20000"
+                    20000
                 ],
                 "output": { "symbol": "BTC/USD", "qty": "0.001", "side": "buy", "type": "limit", "limit_price": "20000", "time_in_force": "gtc", "client_order_id": "ccxt_0b7a535d63a745659e6cc4ffe97e0b7b" }
             }

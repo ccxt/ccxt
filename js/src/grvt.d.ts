@@ -1,5 +1,5 @@
 import Exchange from './abstract/grvt.js';
-import type { Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, NullableDict, FundingRateHistory, FundingHistory, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, int } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, FundingRateHistory, FundingHistory, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, int } from './base/types.js';
 /**
  * @class grvt
  * @augments Exchange
@@ -229,12 +229,12 @@ export default class grvt extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} params.network the network to withdraw on (mandatory)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
     /**
      * @method
      * @name grvt#createOrder
@@ -330,8 +330,8 @@ export default class grvt extends Exchange {
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingHistory[]>;
-    parseIncome(income: any, market?: Market): {
-        info: any;
+    parseIncome(income: Dict, market?: Market): {
+        info: Dict;
         symbol: string;
         code: Str;
         timestamp: Int;
@@ -408,7 +408,7 @@ export default class grvt extends Exchange {
         chainId: number;
     };
     feeAmountMultiplier(): number;
-    createSignedRequest(request: any, structureType: string, currencyObj?: Dict | undefined, signerAddress?: Str): Dict;
+    createSignedRequest(request: Dict, structureType: string, currencyObj?: Dict | undefined, signerAddress?: Str): Dict;
     formatSignatureRS(value: string): string;
     defaultSignature(): {
         signer: string;
@@ -419,8 +419,8 @@ export default class grvt extends Exchange {
         nonce: number;
         chain_id: string;
     };
-    handleUntilOptionString(key: string, request: Dict, params?: NullableDict, multiplier?: number): any[];
-    requestId(): any;
-    sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    handleUntilOptionString(key: string, request: Dict, params?: Dict, multiplier?: number): [Dict, Dict];
+    requestId(): number;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

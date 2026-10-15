@@ -21,7 +21,7 @@ public class WatchOrderBookExample {
         ((io.github.ccxt.exchanges.Binance) exchange).enableDemoTrading(true);
 
         System.out.println("Loading markets...");
-        exchange.loadMarkets().get(60, TimeUnit.SECONDS);
+        exchange.loadMarkets(false, new java.util.HashMap<String, Object>()).get(60, TimeUnit.SECONDS);
         System.out.println("Markets loaded.\n");
 
         // Use spot for createOrderWs (demo ws-api only supports spot)

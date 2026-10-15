@@ -390,10 +390,10 @@ public partial class poloniex : Exchange
     }
 
     /// <summary>Calls the privatePostOrdersBatch endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> privatePostOrdersBatch (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privatePostOrdersBatch (object parameters = null)
     {
-        return await this.callAsync<Dictionary<string, object>> ("privatePostOrdersBatch",parameters);
+        return await this.callAsync<List<object>> ("privatePostOrdersBatch",parameters);
     }
 
     /// <summary>Calls the privatePostOrdersKillSwitch endpoint.</summary>

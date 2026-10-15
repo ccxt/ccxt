@@ -263,7 +263,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                 # 'fetchTradesMethod': 'binanceGetTrades', // binanceGetTrades, binanceGetAggTrades
                 'createMarketBuyOrderRequiresPrice': True,
                 'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
-                # 'defaultType': 'spot', // 'spot', 'future', 'margin', 'delivery'
+                # 'defaultType': 'spot', // 'spot', 'margin', 'swap', 'future'
                 'hasAlreadyAuthenticatedSuccessfully': False,
                 'warnOnFetchOpenOrdersWithoutSymbol': True,
                 # 'fetchPositions': 'positionRisk', // or 'account'
@@ -287,7 +287,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                 'reverseNetworks': {
                     'tronscan.org': 'TRC20',
                     'etherscan.io': 'ERC20',
-                    'bscscan.com': 'BSC',
+                    'bscscan.com': 'BEP20',
                     'explorer.binance.org': 'BEP2',
                     'bithomp.com': 'XRP',
                     'bloks.io': 'EOS',
@@ -725,7 +725,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         })
 
     def nonce(self) -> float:
-        return self.milliseconds() - self.options['timeDifference']
+        return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)
 
     async def fetch_time(self, params: dict = {}) -> Int:
         """
@@ -793,7 +793,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         #         "timestamp":1659492212507
         #     }
         #
-        if self.options['adjustForTimeDifference'] is True:
+        if self.safe_bool(self.options, 'adjustForTimeDifference', False):
             await self.load_time_difference()
         data = self.safe_dict(response, 'data', {})
         list = self.safe_list(data, 'list', [])
@@ -807,6 +807,8 @@ class tokocrypto(Exchange, ImplicitAPI):
             settleId = self.safe_string(market, 'marginAsset')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
             settle = self.safe_currency_code(settleId)
             symbol = base + '/' + quote
             filters = self.safe_list(market, 'filters', [])
@@ -815,7 +817,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             active = (status == '1')
             permissions = self.safe_list(market, 'permissions', [])
             for j in range(0, len(permissions)):
-                if permissions[j] == 'TRD_GRP_003':
+                if self.safe_string(permissions, j) == 'TRD_GRP_003':
                     active = False
                     break
             marginTradingEnable = self.safe_string(market, 'marginTradingEnable')
@@ -1074,7 +1076,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             side = self.safe_string_lower(trade, 'side')
         else:
             if 'isBuyer' in trade:
-                side = 'buy' if (trade['isBuyer'] is True) else 'sell'  # this is a true side
+                side = 'buy' if (self.safe_bool(trade, 'isBuyer', False)) else 'sell'  # this is a true side
         fee = None
         if 'commission' in trade:
             fee = {
@@ -1082,9 +1084,9 @@ class tokocrypto(Exchange, ImplicitAPI):
                 'currency': self.safe_currency_code(self.safe_string(trade, 'commissionAsset')),
             }
         if 'isMaker' in trade:
-            takerOrMaker = 'maker' if (trade['isMaker'] is True) else 'taker'
+            takerOrMaker = 'maker' if (self.safe_bool(trade, 'isMaker', False)) else 'taker'
         if 'maker' in trade:
-            takerOrMaker = 'maker' if (trade['maker'] is True) else 'taker'
+            takerOrMaker = 'maker' if (self.safe_bool(trade, 'maker', False)) else 'taker'
         return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
@@ -1449,11 +1451,11 @@ class tokocrypto(Exchange, ImplicitAPI):
         maxLimit = 1500
         price = self.safe_string(params, 'price')
         until = self.safe_integer(params, 'until')
-        params = self.omit(params, ['price', 'until'])
-        limit = defaultLimit if (limit is None) else min(limit, maxLimit)
+        paramsOmitted = self.omit(params, ['price', 'until'])
+        limitValue = defaultLimit if (limit is None) else min(limit, maxLimit)
         request = {
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
-            'limit': limit,
+            'limit': limitValue,
         }
         if price == 'index':
             request['pair'] = market['id']   # Index price takes this argument instead of symbol
@@ -1466,9 +1468,9 @@ class tokocrypto(Exchange, ImplicitAPI):
             request['endTime'] = until
         response = None
         if self.is_native_market(market):
-            response = await self.publicGetOpenV1MarketKlines(self.extend(request, params))
+            response = await self.publicGetOpenV1MarketKlines(self.extend(request, paramsOmitted))
         else:
-            response = await self.binanceGetKlines(self.extend(request, params))
+            response = await self.binanceGetKlines(self.extend(request, paramsOmitted))
         #
         # binanceGetKlines
         #
@@ -1512,7 +1514,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             else:
                 dataDict = self.safe_dict(response, 'data', {})
                 data = self.safe_list(dataDict, 'list', [])
-        return self.parse_ohlcvs(data, market, timeframe, since, limit)
+        return self.parse_ohlcvs(data, market, timeframe, since, limitValue)
 
     async def fetch_balance(self, params: dict = {}) -> Balances:
         """
@@ -1521,7 +1523,7 @@ class tokocrypto(Exchange, ImplicitAPI):
 
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.type]: 'future', 'delivery', 'savings', 'funding', or 'spot'
+        :param str [params.type]: 'spot', 'margin', 'swap', 'future', 'savings' or 'funding'
         :param str [params.marginMode]: 'cross' or 'isolated', for margin trading, uses self.options.defaultMarginMode if not passed, defaults to None/None/None
         :param str[]|None [params.symbols]: unified market symbols, only used in isolated margin mode
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
@@ -1570,7 +1572,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         balances = self.safe_list(data, 'accountAssets', [])
         for i in range(0, len(balances)):
-            balance = balances[i]
+            balance = self.safe_dict(balances, i)
             currencyId = self.safe_string(balance, 'asset')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -1711,7 +1713,8 @@ class tokocrypto(Exchange, ImplicitAPI):
         #   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
         cost = self.safe_string_n(order, ['cummulativeQuoteQty', 'cumQuote', 'executedQuoteQty', 'cumBase'])
         id = self.safe_string(order, 'orderId')
-        type = self.parse_order_type(self.safe_string_lower(order, 'type'))
+        rawOrderType = self.safe_string_lower(order, 'type')
+        type = self.parse_order_type(rawOrderType)
         side = self.safe_string_lower(order, 'side')
         if side == '0':
             side = 'buy'
@@ -1719,11 +1722,12 @@ class tokocrypto(Exchange, ImplicitAPI):
             side = 'sell'
         fills = self.safe_list(order, 'fills', [])
         clientOrderId = self.safe_string_2(order, 'clientOrderId', 'clientId')
-        timeInForce = self.safe_string(order, 'timeInForce')
-        if timeInForce == 'GTX':
-            # GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
-            timeInForce = 'PO'
-        postOnly = (type == 'limit_maker') or (timeInForce == 'PO')
+        timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
+        # the order type carries the post only flag on its own, 7 on the open/v1
+        # payloads and LIMIT_MAKER on the binance shaped ones, so the time force
+        # echoed back by the venue is only the third witness
+        isLimitMaker = (rawOrderType == '7') or (rawOrderType == 'limit_maker')
+        postOnly = isLimitMaker or (timeInForce == 'PO')
         return self.safe_order({
             'info': order,
             'id': id,
@@ -1749,6 +1753,16 @@ class tokocrypto(Exchange, ImplicitAPI):
             'trades': fills,
         }, market)
 
+    def parse_time_in_force(self, timeInForce: Str) -> Str:
+        timeInForces = {
+            '1': 'GTC',
+            '2': 'IOC',
+            '3': 'FOK',
+            '4': 'PO',  # GTX, good till crossing, the venue spelling of post only
+            'GTX': 'PO',
+        }
+        return self.safe_string(timeInForces, timeInForce, timeInForce)
+
     def parse_order_type(self, status: Str) -> Str:
         statuses = {
             '2': 'market',
@@ -1772,22 +1786,32 @@ class tokocrypto(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: the price at which a trigger order would be triggered
         :param float [params.cost]: for spot market buy orders, the quote quantity that can be used as an alternative for the amount
+        :param str [params.timeInForce]: 'GTC', 'IOC' or 'FOK', defaults to the defaultTimeInForce option on the order types that rest on the book, market orders accept 'IOC' as a no-op and reject the rest
+        :param bool [params.postOnly]: True for a post only order, the 'PO' and 'GTX' timeInForce spellings do the same
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clientId')
-        postOnly = self.safe_bool(params, 'postOnly', False)
+        requestedType = type.upper()
+        requestedTimeInForce = self.safe_string_upper(params, 'timeInForce')
+        isMarketOrder = (requestedType == 'MARKET')
+        # GTX is the venue spelling of post only, on top of the two unified spellings
+        isPostOnlyTimeInForce = (requestedTimeInForce == 'GTX')
+        postOnly, paramsPostOnly = self.handle_post_only(isMarketOrder, isPostOnlyTimeInForce, params)
         # only supported for spot/margin api
-        if postOnly is True:
-            type = 'LIMIT_MAKER'
-        params = self.omit(params, ['clientId', 'clientOrderId'])
-        initialUppercaseType = type.upper()
+        typeResolved = 'LIMIT_MAKER' if (postOnly is True) else type
+        # post only is expressed by the order type here, not by a time force
+        timeInForceResolved = None if (postOnly is True) else requestedTimeInForce
+        initialUppercaseType = typeResolved.upper()
         uppercaseType = initialUppercaseType
         triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
+        triggerKeys = ['triggerPrice', 'stopPrice'] if (triggerPrice is not None) else []
+        paramsRequest = self.omit(paramsPostOnly, self.array_concat(['clientId', 'clientOrderId', 'timeInForce'], triggerKeys))
         if triggerPrice is not None:
-            params = self.omit(params, ['triggerPrice', 'stopPrice'])
+            if postOnly is True:
+                raise InvalidOrder(self.id + ' createOrder() does not support post only trigger orders, the venue has no post only trigger order type')
             if uppercaseType == 'MARKET':
                 uppercaseType = 'STOP_LOSS'
             elif uppercaseType == 'LIMIT':
@@ -1795,9 +1819,9 @@ class tokocrypto(Exchange, ImplicitAPI):
         validOrderTypes = self.safe_value(market['info'], 'orderTypes')
         if not self.in_array(uppercaseType, validOrderTypes):
             if initialUppercaseType != uppercaseType:
-                raise InvalidOrder(self.id + ' triggerPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders')
+                raise InvalidOrder(self.id + ' triggerPrice parameter is not allowed for ' + symbol + ' ' + typeResolved + ' orders')
             else:
-                raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market')
+                raise InvalidOrder(self.id + ' ' + typeResolved + ' is not a valid order type for the ' + symbol + ' market')
         reverseOrderTypeMapping = {
             'LIMIT': 1,
             'MARKET': 2,
@@ -1827,6 +1851,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         priceIsRequired = False
         triggerPriceIsRequired = False
         quantityIsRequired = False
+        timeInForceIsRequired = False
         #
         # spot/margin
         #
@@ -1843,9 +1868,9 @@ class tokocrypto(Exchange, ImplicitAPI):
                 precision = market['precision']['price']
                 quoteAmount = None
                 createMarketBuyOrderRequiresPrice = True
-                createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
-                cost = self.safe_number_2(params, 'cost', 'quoteOrderQty')
-                params = self.omit(params, ['cost', 'quoteOrderQty'])
+                createMarketBuyOrderRequiresPrice, paramsRequest = self.handle_option_bool_and_params(paramsRequest, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+                cost = self.safe_number_2(paramsRequest, 'cost', 'quoteOrderQty')
+                paramsRequest = self.omit(paramsRequest, ['cost', 'quoteOrderQty'])
                 if cost is not None:
                     quoteAmount = cost
                 elif createMarketBuyOrderRequiresPrice:
@@ -1863,6 +1888,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         elif uppercaseType == 'LIMIT':
             priceIsRequired = True
             quantityIsRequired = True
+            timeInForceIsRequired = True
         elif (uppercaseType == 'STOP_LOSS') or (uppercaseType == 'TAKE_PROFIT'):
             triggerPriceIsRequired = True
             quantityIsRequired = True
@@ -1872,6 +1898,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             quantityIsRequired = True
             triggerPriceIsRequired = True
             priceIsRequired = True
+            timeInForceIsRequired = True
         elif uppercaseType == 'LIMIT_MAKER':
             priceIsRequired = True
             quantityIsRequired = True
@@ -1879,14 +1906,35 @@ class tokocrypto(Exchange, ImplicitAPI):
             request['quantity'] = self.amount_to_precision(symbol, amount)
         if priceIsRequired:
             if price is None:
-                raise InvalidOrder(self.id + ' createOrder() requires a price argument for a ' + type + ' order')
+                raise InvalidOrder(self.id + ' createOrder() requires a price argument for a ' + typeResolved + ' order')
             request['price'] = self.price_to_precision(symbol, price)
         if triggerPriceIsRequired:
             if triggerPrice is None:
-                raise InvalidOrder(self.id + ' createOrder() requires a triggerPrice extra param for a ' + type + ' order')
+                raise InvalidOrder(self.id + ' createOrder() requires a triggerPrice extra param for a ' + typeResolved + ' order')
             else:
                 request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
-        response = await self.privatePostOpenV1Orders(self.extend(request, params))
+        if timeInForceIsRequired:
+            defaultTimeInForce = self.safe_string(self.options, 'defaultTimeInForce', 'GTC')
+            timeInForce = defaultTimeInForce if (timeInForceResolved is None) else timeInForceResolved
+            # the endpoint takes the time force as a numeric code, post only is
+            # placed as a LIMIT_MAKER order rather than as the GTX code
+            timeInForceCodes = {
+                'GTC': '1',
+                'IOC': '2',
+                'FOK': '3',
+            }
+            timeInForceCode = self.safe_string(timeInForceCodes, timeInForce)
+            if timeInForceCode is None:
+                raise InvalidOrder(self.id + ' createOrder() does not support the ' + timeInForce + ' timeInForce, use GTC, IOC, FOK or the postOnly parameter')
+            request['timeInForce'] = timeInForceCode
+        elif timeInForceResolved is not None:
+            # a market order fills immediately or not at all, so an IOC asks for
+            # what the order type already does and gets accepted as a no-op, while
+            # any other time force would be a promise the venue cannot keep here
+            isRedundantImmediateOrCancel = isMarketOrder and (timeInForceResolved == 'IOC')
+            if not isRedundantImmediateOrCancel:
+                raise NotSupported(self.id + ' createOrder() does not support the ' + timeInForceResolved + ' timeInForce for ' + type + ' orders')
+        response = await self.privatePostOpenV1Orders(self.extend(request, paramsRequest))
         #
         #     {
         #         "code": 0,
@@ -2135,12 +2183,12 @@ class tokocrypto(Exchange, ImplicitAPI):
         endTime = self.safe_integer_2(params, 'until', 'endTime')
         if since is not None:
             request['startTime'] = since
+        paramsOmitted = self.omit(params, ['endTime', 'until']) if (endTime is not None) else params
         if endTime is not None:
             request['endTime'] = endTime
-            params = self.omit(params, ['endTime', 'until'])
         if limit is not None:
             request['limit'] = limit
-        response = await self.privateGetOpenV1OrdersTrades(self.extend(request, params))
+        response = await self.privateGetOpenV1OrdersTrades(self.extend(request, paramsOmitted))
         #
         #     {
         #         "code": 0,
@@ -2190,12 +2238,12 @@ class tokocrypto(Exchange, ImplicitAPI):
         networks = self.safe_dict(self.options, 'networks', {})
         network = self.safe_string_upper(params, 'network')  # this line allows the user to specify either ERC20 or ETH
         network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
+        paramsOmitted = self.omit(params, 'network') if (network is not None) else params
         if network is not None:
             request['network'] = network
-            params = self.omit(params, 'network')
         # has support for the 'network' parameter
         # https://binance-docs.github.io/apidocs/spot/en/#deposit-address-supporting-network-user_data
-        response = await self.privateGetOpenV1DepositsAddress(self.extend(request, params))
+        response = await self.privateGetOpenV1DepositsAddress(self.extend(request, paramsOmitted))
         #
         #     {
         #         "code":0,
@@ -2220,7 +2268,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         return {
             'info': response,
             'currency': code,
-            'network': self.safe_string(data, 'network'),
+            'network': self.network_id_to_code(self.safe_string(data, 'network'), code),
             'address': address,
             'tag': tag,
         }
@@ -2447,7 +2495,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             'txid': txid,
             'type': type,
             'currency': code,
-            'network': self.safe_string(transaction, 'network'),
+            'network': self.network_id_to_code(self.safe_string(transaction, 'network'), code),
             'amount': self.safe_number(transaction, 'amount'),
             'status': self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'), type),
             'timestamp': timestamp,
@@ -2464,7 +2512,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
 
         https://www.tokocrypto.com/apidocs/#withdraw-signed
@@ -2473,14 +2521,14 @@ class tokocrypto(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tag, params = self.handle_withdraw_tag_and_params(tag, params)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
         if self.markets is None:
             await self.load_markets()
-        self.check_address(address)
+        self.check_address(address, code, tagWithdrawTag)
         currency = self.currency(code)
         request = {
             'asset': currency['id'],
@@ -2490,9 +2538,9 @@ class tokocrypto(Exchange, ImplicitAPI):
             # 'addressTag': 'string', // for coins like XRP, XMR, etc
             'amount': self.number_to_string(amount),
         }
-        if tag is not None:
-            request['addressTag'] = tag
-        networkCode, query = self.handle_network_code_and_params(params)
+        if tagWithdrawTag is not None:
+            request['addressTag'] = tagWithdrawTag
+        networkCode, query = self.handle_network_code_and_params(paramsWithdrawTag)
         networkId = self.network_code_to_id(networkCode, code)
         if networkId is not None:
             request['network'] = networkId.upper()
@@ -2509,26 +2557,30 @@ class tokocrypto(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def sign(self, path: object, api='public', method: object = 'GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        if not (api in self.urls['api']['rest']):
-            raise NotSupported(self.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints')
-        url = self.urls['api']['rest'][api]
+    def sign(self, path: str, api: list[str] = ['public'], method: object = 'GET', params: dict = {}) -> dict:
+        apiName = api[0]
+        if not (apiName in self.urls['api']['rest']):
+            raise NotSupported(self.id + ' does not have a testnet/sandbox URL for ' + apiName + ' endpoints')
+        baseApiUrl = self.safe_string(self.urls['api']['rest'], apiName)
+        if baseApiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = baseApiUrl
         url += '/' + path
-        if api == 'wapi':
+        if apiName == 'wapi':
             url += '.html'
         userDataStream = (path == 'userDataStream') or (path == 'listenKey')
         if userDataStream:
             if (self.apiKey is not None) and (self.apiKey != ''):
                 # v1 special case for userDataStream
-                headers = {
+                headersStream = {
                     'X-MBX-APIKEY': self.apiKey,
                     'Content-Type': 'application/x-www-form-urlencoded',
                 }
-                if method != 'GET':
-                    body = self.urlencode(params)
+                bodyStream = self.urlencode(params) if (method != 'GET') else None
+                return {'url': url, 'method': method, 'body': bodyStream, 'headers': headersStream}
             else:
                 raise AuthenticationError(self.id + ' userDataStream endpoint requires `apiKey` credential')
-        elif (api == 'private') or (api == 'sapi' and path != 'system/status') or (api == 'sapiV3') or (api == 'wapi' and path != 'systemStatus') or (api == 'dapiPrivate') or (api == 'dapiPrivateV2') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2'):
+        elif (apiName == 'private') or (apiName == 'sapi' and path != 'system/status') or (apiName == 'sapiV3') or (apiName == 'wapi' and path != 'systemStatus') or (apiName == 'dapiPrivate') or (apiName == 'dapiPrivateV2') or (apiName == 'fapiPrivate') or (apiName == 'fapiPrivateV2'):
             self.check_required_credentials()
             query = None
             defaultRecvWindow = self.safe_integer(self.options, 'recvWindow')
@@ -2540,7 +2592,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             recvWindow = self.safe_integer(params, 'recvWindow')
             if recvWindow is not None:
                 extendedParams['recvWindow'] = recvWindow
-            if (api == 'sapi') and (path == 'asset/dust'):
+            if (apiName == 'sapi') and (path == 'asset/dust'):
                 query = self.urlencode_with_array_repeat(extendedParams)
             elif (path == 'batchOrders') or (path.find('sub-account') >= 0) or (path == 'capital/withdraw/apply') or (path.find('staking') >= 0):
                 query = self.rawencode(extendedParams)
@@ -2548,18 +2600,22 @@ class tokocrypto(Exchange, ImplicitAPI):
                 query = self.urlencode(extendedParams)
             signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha256)
             query += '&' + 'signature=' + signature
-            headers = {
+            headersSigned = {
                 'X-MBX-APIKEY': self.apiKey,
             }
-            if (method == 'GET') or (method == 'DELETE') or (api == 'wapi'):
+            queryInUrl = (method == 'GET') or (method == 'DELETE') or (apiName == 'wapi')
+            bodySigned = query
+            if queryInUrl:
+                bodySigned = None
+            if queryInUrl:
                 url += '?' + query
             else:
-                body = query
-                headers['Content-Type'] = 'application/x-www-form-urlencoded'
+                headersSigned['Content-Type'] = 'application/x-www-form-urlencoded'
+            return {'url': url, 'method': method, 'body': bodySigned, 'headers': headersSigned}
         else:
             if len(params) > 0:
                 url += '?' + self.urlencode(params)
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if (code == 418) or (code == 429):
@@ -2579,23 +2635,22 @@ class tokocrypto(Exchange, ImplicitAPI):
         # check success value for wapi endpoints
         # response in format {'msg': 'The coin does not exist.', 'success': true/false}
         success = self.safe_bool(response, 'success', True)
+        parsedMessage = None
         if success is not True:
             messageInner = self.safe_string(response, 'msg')
-            parsedMessage = None
             if messageInner is not None:
                 try:
                     parsedMessage = json.loads(messageInner)
                 except Exception as e:
                     # do nothing
                     parsedMessage = None
-                if parsedMessage is not None:
-                    response = parsedMessage
-        message = self.safe_string(response, 'msg')
+        responseParsed = parsedMessage if (parsedMessage is not None) else response
+        message = self.safe_string(responseParsed, 'msg')
         if message is not None:
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, self.id + ' ' + message)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, self.id + ' ' + message)
         # checks against error codes
-        error = self.safe_string(response, 'code')
+        error = self.safe_string(responseParsed, 'code')
         if error is not None:
             # https://github.com/ccxt/ccxt/issues/6501
             # https://github.com/ccxt/ccxt/issues/7742
@@ -2604,7 +2659,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             # despite that their message is very confusing, it is raised by Binance
             # on a temporary ban, the API key is valid, but disabled for a while
-            if (error == '-2015') and (self.options['hasAlreadyAuthenticatedSuccessfully'] is True):
+            if (error == '-2015') and (self.safe_bool(self.options, 'hasAlreadyAuthenticatedSuccessfully', False)):
                 raise DDoSProtection(self.id + ' ' + body)
             feedback = self.id + ' ' + body
             if message == 'No need to change margin type.':
@@ -2620,7 +2675,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' ' + body)
         return None
 
-    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config: object = {}):
+    def calculate_rate_limiter_cost(self, api: list[str], method: object, path: object, params: object, config: dict = {}):
         if ('noCoin' in config) and not ('coin' in params):
             return config['noCoin']
         elif ('noSymbol' in config) and not ('symbol' in params):

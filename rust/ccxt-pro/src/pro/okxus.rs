@@ -31,7 +31,9 @@ impl OkxusCore {
     pub fn init(&mut self) {
         let described = OkxusCore::describe(self);
         self.initialize_properties(described);
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self);
+        // compatibility for sandbox/testnet options in userConfig
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -202,7 +204,7 @@ impl OkxusCore {
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("rest".to_string(), Value::Str("https://{hostname}".into()));
-        m.insert("ws".to_string(), Value::Str("wss://wsus.okx.com:8443/ws/v5".into()));
+        m.insert("ws".to_string(), Value::Str("wss://wsus.okx.com:443/ws/v5".into()));
     m
 }));
         m.insert("www".to_string(), Value::Str("https://app.okx.com".into()));
@@ -216,7 +218,7 @@ impl OkxusCore {
 }));
         m.insert("test".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ws".to_string(), Value::Str("wss://wsuspap.okx.com:8443/ws/v5".into()));
+        m.insert("ws".to_string(), Value::Str("wss://wsuspap.okx.com:443/ws/v5".into()));
     m
 }));
     m

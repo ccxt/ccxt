@@ -479,17 +479,10 @@ func WithTransferParams(params map[string]any) TransferOptions {
 }
 
 type WithdrawOptionsStruct struct {
-	Tag    *string
 	Params *map[string]any
 }
 
 type WithdrawOptions func(opts *WithdrawOptionsStruct)
-
-func WithWithdrawTag(tag string) WithdrawOptions {
-	return func(opts *WithdrawOptionsStruct) {
-		opts.Tag = &tag
-	}
-}
 
 func WithWithdrawParams(params map[string]any) WithdrawOptions {
 	return func(opts *WithdrawOptionsStruct) {
@@ -969,17 +962,14 @@ func WithFetchWebEndpointEndRegex(endRegex string) FetchWebEndpointOptions {
 }
 
 type Fetch2OptionsStruct struct {
-	Api     *any
-	Method  *string
-	Params  *map[string]any
-	Headers *any
-	Body    *any
-	Config  *map[string]any
+	Api    *[]string
+	Method *string
+	Params *map[string]any
 }
 
 type Fetch2Options func(opts *Fetch2OptionsStruct)
 
-func WithFetch2Api(api any) Fetch2Options {
+func WithFetch2Api(api []string) Fetch2Options {
 	return func(opts *Fetch2OptionsStruct) {
 		opts.Api = &api
 	}
@@ -994,24 +984,6 @@ func WithFetch2Method(method string) Fetch2Options {
 func WithFetch2Params(params map[string]any) Fetch2Options {
 	return func(opts *Fetch2OptionsStruct) {
 		opts.Params = &params
-	}
-}
-
-func WithFetch2Headers(headers any) Fetch2Options {
-	return func(opts *Fetch2OptionsStruct) {
-		opts.Headers = &headers
-	}
-}
-
-func WithFetch2Body(body any) Fetch2Options {
-	return func(opts *Fetch2OptionsStruct) {
-		opts.Body = &body
-	}
-}
-
-func WithFetch2Config(config map[string]any) Fetch2Options {
-	return func(opts *Fetch2OptionsStruct) {
-		opts.Config = &config
 	}
 }
 
@@ -2430,17 +2402,10 @@ func WithUnWatchOHLCVParams(params map[string]any) UnWatchOHLCVOptions {
 }
 
 type WithdrawWsOptionsStruct struct {
-	Tag    *string
 	Params *map[string]any
 }
 
 type WithdrawWsOptions func(opts *WithdrawWsOptionsStruct)
-
-func WithWithdrawWsTag(tag string) WithdrawWsOptions {
-	return func(opts *WithdrawWsOptionsStruct) {
-		opts.Tag = &tag
-	}
-}
 
 func WithWithdrawWsParams(params map[string]any) WithdrawWsOptions {
 	return func(opts *WithdrawWsOptionsStruct) {

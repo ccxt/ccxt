@@ -4,7 +4,7 @@ _List = list[object]
 
 
 class ImplicitAPI:
-    web_get_v1_healthcheck = webGetV1Healthcheck = Entry[_Dict]('v1/healthcheck', 'web', 'GET', {'cost': 1})
+    web_get_v1_healthcheck = webGetV1Healthcheck = Entry[_Dict]('v1/healthcheck', ['web'], 'GET', {'cost': 1})
     v1_public_get_markets = v1PublicGetMarkets = Entry[_Dict]('markets', ['v1', 'public'], 'GET', {'cost': 1})
     v1_public_get_tickers = v1PublicGetTickers = Entry[_Dict]('tickers', ['v1', 'public'], 'GET', {'cost': 1})
     v1_public_get_ticker = v1PublicGetTicker = Entry[_Dict]('ticker', ['v1', 'public'], 'GET', {'cost': 1})

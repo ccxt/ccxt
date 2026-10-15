@@ -244,6 +244,9 @@ class bitflyer extends bitflyer$1["default"] {
             'DEC': '12',
         };
         const month = this.safeString(months, monthName);
+        if (month === undefined) {
+            return undefined;
+        }
         return this.parse8601(year + '-' + month + '-' + day + 'T00:00:00Z');
     }
     safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
@@ -336,12 +339,21 @@ class bitflyer extends bitflyer$1["default"] {
                     quoteId = currencyIds.slice(-3);
                     const splitId = id.split(currencyIds);
                     const expiryDate = this.safeString(splitId, 1);
+                    if (expiryDate === undefined) {
+                        continue;
+                    }
                     expiry = this.parseExpiryDate(expiryDate);
+                }
+                if (expiry === undefined) {
+                    continue;
                 }
                 type = 'future';
             }
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             let symbol = base + '/' + quote;
             let taker = this.fees['trading']['taker'];
             let maker = this.fees['trading']['maker'];
@@ -412,7 +424,7 @@ class bitflyer extends bitflyer$1["default"] {
     parseBalance(response) {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
+            const balance = this.safeDict(response, i);
             const currencyId = this.safeString(balance, 'currency_code');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
@@ -563,7 +575,7 @@ class bitflyer extends bitflyer$1["default"] {
         if (side !== undefined) {
             const idInner = side + '_child_order_acceptance_id';
             if (idInner in trade) {
-                order = trade[idInner];
+                order = this.safeString(trade, idInner);
             }
         }
         if (order === undefined) {
@@ -573,13 +585,13 @@ class bitflyer extends bitflyer$1["default"] {
         const priceString = this.safeString(trade, 'price');
         const amountString = this.safeString(trade, 'size');
         const id = this.safeString(trade, 'id');
-        market = this.safeMarket(undefined, market);
+        const marketResolved = this.safeMarket(undefined, market);
         return this.safeTrade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'order': order,
             'type': undefined,
             'side': side,
@@ -588,7 +600,7 @@ class bitflyer extends bitflyer$1["default"] {
             'amount': amountString,
             'cost': undefined,
             'fee': undefined,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -858,7 +870,8 @@ class bitflyer extends bitflyer$1["default"] {
         const orders = await this.fetchOrders(symbol);
         const ordersById = this.indexBy(orders, 'id');
         if (id in ordersById) {
-            return ordersById[id];
+            const found = this.safeDict(ordersById, id);
+            return found;
         }
         throw new errors.OrderNotFound(this.id + ' No order found with id ' + id);
     }
@@ -952,11 +965,11 @@ class bitflyer extends bitflyer$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
+    async withdraw(code, amount, address, params = {}) {
         this.checkAddress(address);
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -1211,9 +1224,12 @@ class bitflyer extends bitflyer$1["default"] {
             'interval': undefined,
         };
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        let bodySigned = undefined;
+        let headersSigned = undefined;
         let request = '/' + this.version + '/';
-        if (api === 'private') {
+        if (apiName === 'private') {
             request += 'me/';
         }
         request += path;
@@ -1222,27 +1238,33 @@ class bitflyer extends bitflyer$1["default"] {
                 request += '?' + this.urlencode(params);
             }
         }
-        const baseUrl = this.implodeHostname(this.urls['api']['rest']);
+        const apiUrl = this.safeString(this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        const baseUrl = this.implodeHostname(apiUrl);
         const url = baseUrl + request;
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             const nonce = this.nonce().toString();
             const content = [nonce, method, request];
             let auth = content.join('');
             if (Object.keys(params).length > 0) {
                 if (method !== 'GET') {
-                    body = this.json(params);
-                    auth += body;
+                    bodySigned = this.json(params);
+                    auth += bodySigned;
                 }
             }
-            headers = {
+            headersSigned = {
                 'ACCESS-KEY': this.apiKey,
                 'ACCESS-TIMESTAMP': nonce,
                 'ACCESS-SIGN': this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256),
                 'Content-Type': 'application/json',
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const headersResolved = headersSigned;
+        const bodyResolved = bodySigned;
+        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
