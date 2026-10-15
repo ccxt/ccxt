@@ -2742,7 +2742,7 @@ class testMainClass {
         const clientOrderIdInverse = swapInverseOrderRequest['newClientOrderId'];
         assert (clientOrderIdInverse.startsWith (inverseSwapId) === true, 'binance - swap clientOrderIdInverse: ' + clientOrderIdInverse + ' does not start with swapId' + inverseSwapId);
         // defaultType swap routes spot-style symbols by defaultSubType: unset or linear -> USDⓈ-M, inverse -> COIN-M
-        exchange.options['defaultType'] = 'swap';
+        exchange.extendExchangeOptions ({ 'defaultType': 'swap' });
         let swapNoSubTypeRequest: Dict = {};
         try {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
@@ -2751,7 +2751,7 @@ class testMainClass {
         }
         const swapNoSubTypeId = swapNoSubTypeRequest['newClientOrderId'];
         assert (swapNoSubTypeId.startsWith (swapId) === true, 'binance - defaultType swap without subType clientOrderId: ' + swapNoSubTypeId + ' does not start with swapId' + swapId);
-        exchange.options['defaultSubType'] = 'linear';
+        exchange.extendExchangeOptions ({ 'defaultSubType': 'linear' });
         let swapLinearRequest: Dict = {};
         try {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
@@ -2760,7 +2760,7 @@ class testMainClass {
         }
         const swapLinearId = swapLinearRequest['newClientOrderId'];
         assert (swapLinearId.startsWith (swapId) === true, 'binance - defaultType swap linear clientOrderId: ' + swapLinearId + ' does not start with swapId' + swapId);
-        exchange.options['defaultSubType'] = 'inverse';
+        exchange.extendExchangeOptions ({ 'defaultSubType': 'inverse' });
         let swapInverseRequest: Dict = {};
         try {
             await exchange.createOrder ('BTC/USD', 'limit', 'buy', 1, 20000);
@@ -2769,8 +2769,8 @@ class testMainClass {
         }
         const swapInverseId = swapInverseRequest['newClientOrderId'];
         assert (swapInverseId.startsWith (inverseSwapId) === true, 'binance - defaultType swap inverse clientOrderId: ' + swapInverseId + ' does not start with inverseSwapId' + inverseSwapId);
-        exchange.options['defaultType'] = 'spot';
-        exchange.options['defaultSubType'] = 'linear';
+        exchange.extendExchangeOptions ({ 'defaultType': 'spot' });
+        exchange.extendExchangeOptions ({ 'defaultSubType': 'linear' });
         // linear swap conditional order
         let swapAlgoOrderRequest: Dict = {};
         try {
