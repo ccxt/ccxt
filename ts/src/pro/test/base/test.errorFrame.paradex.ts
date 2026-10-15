@@ -288,6 +288,22 @@ async function testRefusedWatchMultipleKeepsLiveHashes () {
     assert ((btc['settled'] === true) && (both['settled'] === true), 'cleanup must settle every pending watch');
 }
 
+async function testRefusedPositionsRejectsSymbolWatchers () {
+    // watchPositions subscribes once to the positions channel, but its watchers wait on per-symbol hashes
+    const harness = createHarness ();
+    const exchange = harness['exchange'];
+    const client = harness['client'];
+    const positions = track (exchange.watchPositions ([ 'BTC/USD:USDC' ]));
+    const auth = await waitForSent (client, 1, 'auth');
+    deliver (exchange, client, authReply (auth['id']));
+    const request = await waitForSent (client, 2, 'watchPositions subscribe');
+    assert.strictEqual (request['params']['channel'], 'positions');
+    deliver (exchange, client, errorFrame (40300, 'permission denied', request['id']));
+    await sleep (1);
+    assert (positions['error'] instanceof PermissionDenied, 'a refused positions subscribe must reject the per-symbol watcher, got ' + String (positions['error']));
+    assert (!('positions' in client.subscriptions), 'the refused subscribe must be dropped');
+}
+
 async function testErrorCodeMapping () {
     const cases = [
         [ -32600, 'invalid subscribe request', BadRequest ],
@@ -327,6 +343,7 @@ async function testParadexErrorFrame () {
     await testErrorCodeMapping ();
     await testFirstWatchCountsAsADial ();
     await testRefusedWatchMultipleKeepsLiveHashes ();
+    await testRefusedPositionsRejectsSymbolWatchers ();
 }
 
 export default testParadexErrorFrame;

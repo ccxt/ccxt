@@ -1133,6 +1133,7 @@
                     },
                     {
                         "jsonrpc": "2.0",
+                        "id": 2,
                         "result": {
                             "channel": "fills.BTC-USD-PERP"
                         },
@@ -1155,6 +1156,7 @@
                     },
                     {
                         "jsonrpc": "2.0",
+                        "id": 2,
                         "method": "subscribe",
                         "params": {
                             "channel": "fills.BTC-USD-PERP"
@@ -1230,6 +1232,7 @@
                     },
                     {
                         "jsonrpc": "2.0",
+                        "id": 2,
                         "result": {
                             "channel": "fills.ALL"
                         },
@@ -1258,6 +1261,7 @@
                     },
                     {
                         "jsonrpc": "2.0",
+                        "id": 2,
                         "method": "subscribe",
                         "params": {
                             "channel": "fills.ALL"
@@ -1379,6 +1383,7 @@
                     },
                     {
                         "jsonrpc": "2.0",
+                        "id": 2,
                         "result": {
                             "channel": "fills.BTC-USD-PERP"
                         },
@@ -1425,6 +1430,7 @@
                     },
                     {
                         "jsonrpc": "2.0",
+                        "id": 2,
                         "method": "subscribe",
                         "params": {
                             "channel": "fills.BTC-USD-PERP"
@@ -1499,6 +1505,7 @@
                     },
                     {
                         "jsonrpc": "2.0",
+                        "id": 2,
                         "result": {
                             "channel": "positions"
                         },
@@ -1530,6 +1537,7 @@
                     },
                     {
                         "jsonrpc": "2.0",
+                        "id": 2,
                         "method": "subscribe",
                         "params": {
                             "channel": "positions"
@@ -1800,6 +1808,7 @@
                     },
                     {
                         "jsonrpc": "2.0",
+                        "id": 2,
                         "result": {
                             "channel": "positions"
                         },
@@ -1877,6 +1886,7 @@
                     },
                     {
                         "jsonrpc": "2.0",
+                        "id": 2,
                         "method": "subscribe",
                         "params": {
                             "channel": "positions"
@@ -1953,6 +1963,7 @@
                     },
                     {
                         "jsonrpc": "2.0",
+                        "id": 2,
                         "result": {
                             "channel": "account"
                         },
@@ -1975,6 +1986,7 @@
                     },
                     {
                         "jsonrpc": "2.0",
+                        "id": 2,
                         "method": "subscribe",
                         "params": {
                             "channel": "account"
@@ -2032,6 +2044,7 @@
                     },
                     {
                         "jsonrpc": "2.0",
+                        "id": 2,
                         "result": {
                             "channel": "account"
                         },
@@ -2054,6 +2067,7 @@
                     },
                     {
                         "jsonrpc": "2.0",
+                        "id": 2,
                         "method": "subscribe",
                         "params": {
                             "channel": "account"
@@ -2111,6 +2125,7 @@
                     },
                     {
                         "jsonrpc": "2.0",
+                        "id": 2,
                         "result": {
                             "channel": "account"
                         },
@@ -2150,6 +2165,7 @@
                     },
                     {
                         "jsonrpc": "2.0",
+                        "id": 2,
                         "method": "subscribe",
                         "params": {
                             "channel": "account"

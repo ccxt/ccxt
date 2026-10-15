@@ -190,7 +190,7 @@ export default class paradex extends paradexRest {
         const request: Dict = this.subscribeRequest (messageHash);
         const subscription: Dict = {
             'id': request['id'],
-            'messageHash': messageHash,
+            'messageHashes': [ messageHash ],
         };
         const trades: ArrayCache = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash, subscription);
         let limitResolved: Int = limit;
@@ -260,7 +260,7 @@ export default class paradex extends paradexRest {
         const request: Dict = this.subscribeRequest (messageHash);
         const subscription: Dict = {
             'id': request['id'],
-            'messageHash': messageHash,
+            'messageHashes': [ messageHash ],
         };
         const orderbook: WsOrderBook = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash, subscription);
         return orderbook.limit ();
@@ -354,7 +354,7 @@ export default class paradex extends paradexRest {
         const request: Dict = this.subscribeRequest (channel);
         const subscription: Dict = {
             'id': request['id'],
-            'messageHash': messageHash,
+            'messageHashes': [ messageHash ],
         };
         return await this.watch (url, messageHash, this.deepExtend (request, params), channel, subscription);
     }
@@ -430,7 +430,7 @@ export default class paradex extends paradexRest {
         const request: Dict = this.subscribeRequest (channel);
         const subscription: Dict = {
             'id': request['id'],
-            'messageHash': messageHash,
+            'messageHashes': [ messageHash ],
         };
         const orders: ArrayCache = await this.watch (url, messageHash, this.deepExtend (request, params), channel, subscription);
         let limitResolved: Int = limit;
@@ -512,14 +512,12 @@ export default class paradex extends paradexRest {
             channel += 'ALL';
         }
         const url = this.getWsUrl ();
-        const request: Dict = {
-            'jsonrpc': '2.0',
-            'method': 'subscribe',
-            'params': {
-                'channel': channel,
-            },
+        const request: Dict = this.subscribeRequest (channel);
+        const subscription: Dict = {
+            'id': request['id'],
+            'messageHashes': [ messageHash ],
         };
-        const trades: ArrayCache = await this.watch (url, messageHash, this.deepExtend (request, params), channel);
+        const trades: ArrayCache = await this.watch (url, messageHash, this.deepExtend (request, params), channel, subscription);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolResolved, limit);
@@ -589,13 +587,6 @@ export default class paradex extends paradexRest {
         // one channel carries every market
         const channel = 'positions';
         const url = this.getWsUrl ();
-        const request: Dict = {
-            'jsonrpc': '2.0',
-            'method': 'subscribe',
-            'params': {
-                'channel': channel,
-            },
-        };
         const messageHashes: string[] = [];
         let symbolsLength = 0;
         if (symbolsNormalized !== undefined) {
@@ -608,7 +599,12 @@ export default class paradex extends paradexRest {
                 messageHashes.push (channel + ':' + (symbolsNormalized as string[])[i]);
             }
         }
-        const newPositions = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), [ channel ]);
+        const request: Dict = this.subscribeRequest (channel);
+        const subscription: Dict = {
+            'id': request['id'],
+            'messageHashes': messageHashes,
+        };
+        const newPositions = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), [ channel ], subscription);
         if (this.newUpdates) {
             return newPositions;
         }
@@ -688,14 +684,13 @@ export default class paradex extends paradexRest {
         await this.authenticate ();
         const channel = 'account';
         const url = this.getWsUrl ();
-        const request: Dict = {
-            'jsonrpc': '2.0',
-            'method': 'subscribe',
-            'params': {
-                'channel': channel,
-            },
+        const messageHash = 'balance';
+        const request: Dict = this.subscribeRequest (channel);
+        const subscription: Dict = {
+            'id': request['id'],
+            'messageHashes': [ messageHash ],
         };
-        return await this.watch (url, 'balance', this.deepExtend (request, params), channel);
+        return await this.watch (url, messageHash, this.deepExtend (request, params), channel, subscription);
     }
 
     handleBalance (client: Client, message: Dict) {
@@ -808,7 +803,7 @@ export default class paradex extends paradexRest {
         const request: Dict = this.subscribeRequest (channel);
         const subscription: Dict = {
             'id': request['id'],
-            'messageHash': messageHash,
+            'messageHashes': [ messageHash ],
         };
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash, subscription);
     }
@@ -1494,7 +1489,11 @@ export default class paradex extends paradexRest {
                     if (this.safeString (subscription, 'id') === requestId) {
                         handled = true;
                         delete client.subscriptions[subscribeHash];
-                        client.reject (e, this.safeString (subscription, 'messageHash', subscribeHash));
+                        // watchMultiple subscribes per message hash, so the subscribe hash is what its watcher waits on
+                        const messageHashes = this.safeList (subscription, 'messageHashes', [ subscribeHash ]);
+                        for (let j = 0; j < messageHashes.length; j++) {
+                            client.reject (e, messageHashes[j]);
+                        }
                     }
                 }
             }
