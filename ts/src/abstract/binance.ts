@@ -8,800 +8,3306 @@
 import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    sapiGetCopyTradingFuturesUserStatus (params?: {}): Promise<Dict>;
-    sapiGetCopyTradingFuturesLeadSymbol (params?: {}): Promise<Dict>;
-    sapiGetSystemStatus (params?: {}): Promise<Dict>;
-    sapiGetAccountSnapshot (params?: {}): Promise<Dict>;
-    sapiGetAccountInfo (params?: {}): Promise<Dict>;
-    sapiGetMarginAsset (params?: {}): Promise<Dict>;
-    sapiGetMarginPair (params?: {}): Promise<Dict>;
-    sapiGetMarginAllAssets (params?: {}): Promise<List>;
-    sapiGetMarginAllPairs (params?: {}): Promise<List>;
-    sapiGetMarginPriceIndex (params?: {}): Promise<Dict>;
-    sapiGetSpotDelistSchedule (params?: {}): Promise<List>;
-    sapiGetAssetAssetDividend (params?: {}): Promise<Dict>;
-    sapiGetAssetDribblet (params?: {}): Promise<Dict>;
-    sapiGetAssetTransfer (params?: {}): Promise<Dict>;
-    sapiGetAssetAssetDetail (params?: {}): Promise<Dict>;
-    sapiGetAssetTradeFee (params?: {}): Promise<Dict>;
-    sapiGetAssetLedgerTransferCloudMiningQueryByPage (params?: {}): Promise<Dict>;
-    sapiGetAssetConvertTransferQueryByPage (params?: {}): Promise<Dict>;
-    sapiGetAssetWalletBalance (params?: {}): Promise<List>;
-    sapiGetAssetCustodyTransferHistory (params?: {}): Promise<Dict>;
-    sapiGetMarginBorrowRepay (params?: {}): Promise<Dict>;
-    sapiGetMarginLoan (params?: {}): Promise<Dict>;
-    sapiGetMarginRepay (params?: {}): Promise<Dict>;
-    sapiGetMarginAccount (params?: {}): Promise<Dict>;
-    sapiGetMarginTransfer (params?: {}): Promise<Dict>;
-    sapiGetMarginInterestHistory (params?: {}): Promise<Dict>;
-    sapiGetMarginForceLiquidationRec (params?: {}): Promise<Dict>;
-    sapiGetMarginOrder (params?: {}): Promise<Dict>;
-    sapiGetMarginOpenOrders (params?: {}): Promise<List>;
-    sapiGetMarginAllOrders (params?: {}): Promise<List>;
-    sapiGetMarginMyTrades (params?: {}): Promise<List>;
-    sapiGetMarginMaxBorrowable (params?: {}): Promise<Dict>;
-    sapiGetMarginMaxTransferable (params?: {}): Promise<Dict>;
-    sapiGetMarginTradeCoeff (params?: {}): Promise<Dict>;
-    sapiGetMarginIsolatedTransfer (params?: {}): Promise<Dict>;
-    sapiGetMarginIsolatedAccount (params?: {}): Promise<Dict>;
-    sapiGetMarginIsolatedPair (params?: {}): Promise<Dict>;
-    sapiGetMarginIsolatedAllPairs (params?: {}): Promise<List>;
-    sapiGetMarginIsolatedAccountLimit (params?: {}): Promise<Dict>;
-    sapiGetMarginInterestRateHistory (params?: {}): Promise<List>;
-    sapiGetMarginOrderList (params?: {}): Promise<Dict>;
-    sapiGetMarginAllOrderList (params?: {}): Promise<List>;
-    sapiGetMarginOpenOrderList (params?: {}): Promise<List>;
-    sapiGetMarginCrossMarginData (params?: {}): Promise<List>;
-    sapiGetMarginIsolatedMarginData (params?: {}): Promise<List>;
-    sapiGetMarginIsolatedMarginTier (params?: {}): Promise<List>;
-    sapiGetMarginRateLimitOrder (params?: {}): Promise<List>;
-    sapiGetMarginDribblet (params?: {}): Promise<Dict>;
-    sapiGetMarginDust (params?: {}): Promise<Dict>;
-    sapiGetMarginCrossMarginCollateralRatio (params?: {}): Promise<List>;
-    sapiGetMarginExchangeSmallLiability (params?: {}): Promise<List>;
-    sapiGetMarginExchangeSmallLiabilityHistory (params?: {}): Promise<Dict>;
-    sapiGetMarginNextHourlyInterestRate (params?: {}): Promise<List>;
-    sapiGetMarginCapitalFlow (params?: {}): Promise<List>;
-    sapiGetMarginDelistSchedule (params?: {}): Promise<List>;
-    sapiGetMarginAvailableInventory (params?: {}): Promise<Dict>;
-    sapiGetMarginLeverageBracket (params?: {}): Promise<List>;
-    sapiGetLoanVipLoanableData (params?: {}): Promise<Dict>;
-    sapiGetLoanVipCollateralData (params?: {}): Promise<Dict>;
-    sapiGetLoanVipRequestData (params?: {}): Promise<Dict>;
-    sapiGetLoanVipRequestInterestRate (params?: {}): Promise<List>;
-    sapiGetLoanIncome (params?: {}): Promise<List>;
-    sapiGetLoanOngoingOrders (params?: {}): Promise<Dict>;
-    sapiGetLoanLtvAdjustmentHistory (params?: {}): Promise<Dict>;
-    sapiGetLoanBorrowHistory (params?: {}): Promise<Dict>;
-    sapiGetLoanRepayHistory (params?: {}): Promise<Dict>;
-    sapiGetLoanLoanableData (params?: {}): Promise<Dict>;
-    sapiGetLoanCollateralData (params?: {}): Promise<Dict>;
-    sapiGetLoanRepayCollateralRate (params?: {}): Promise<Dict>;
-    sapiGetLoanFlexibleOngoingOrders (params?: {}): Promise<Dict>;
-    sapiGetLoanFlexibleBorrowHistory (params?: {}): Promise<Dict>;
-    sapiGetLoanFlexibleRepayHistory (params?: {}): Promise<Dict>;
-    sapiGetLoanFlexibleLtvAdjustmentHistory (params?: {}): Promise<Dict>;
-    sapiGetLoanVipOngoingOrders (params?: {}): Promise<Dict>;
-    sapiGetLoanVipRepayHistory (params?: {}): Promise<Dict>;
-    sapiGetLoanVipCollateralAccount (params?: {}): Promise<Dict>;
-    sapiGetFiatOrders (params?: {}): Promise<Dict>;
-    sapiGetFiatPayments (params?: {}): Promise<Dict>;
-    sapiGetFuturesTransfer (params?: {}): Promise<Dict>;
-    sapiGetFuturesHistDataLink (params?: {}): Promise<Dict>;
-    sapiGetRebateTaxQuery (params?: {}): Promise<Dict>;
-    sapiGetCapitalConfigGetall (params?: {}): Promise<List>;
-    sapiGetCapitalDepositAddress (params?: {}): Promise<Dict>;
-    sapiGetCapitalDepositAddressList (params?: {}): Promise<List>;
-    sapiGetCapitalDepositHisrec (params?: {}): Promise<List>;
-    sapiGetCapitalDepositSubAddress (params?: {}): Promise<Dict>;
-    sapiGetCapitalDepositSubHisrec (params?: {}): Promise<List>;
-    sapiGetCapitalWithdrawHistory (params?: {}): Promise<List>;
-    sapiGetCapitalWithdrawAddressList (params?: {}): Promise<List>;
-    sapiGetCapitalContractConvertibleCoins (params?: {}): Promise<Dict>;
-    sapiGetConvertTradeFlow (params?: {}): Promise<Dict>;
-    sapiGetConvertExchangeInfo (params?: {}): Promise<List>;
-    sapiGetConvertAssetInfo (params?: {}): Promise<List>;
-    sapiGetConvertOrderStatus (params?: {}): Promise<Dict>;
-    sapiGetConvertLimitQueryOpenOrders (params?: {}): Promise<Dict>;
-    sapiGetAccountStatus (params?: {}): Promise<Dict>;
-    sapiGetAccountApiTradingStatus (params?: {}): Promise<Dict>;
-    sapiGetAccountApiRestrictionsIpRestriction (params?: {}): Promise<Dict>;
-    sapiGetBnbBurn (params?: {}): Promise<Dict>;
-    sapiGetSubAccountFuturesAccount (params?: {}): Promise<Dict>;
-    sapiGetSubAccountFuturesAccountSummary (params?: {}): Promise<Dict>;
-    sapiGetSubAccountFuturesPositionRisk (params?: {}): Promise<List>;
-    sapiGetSubAccountFuturesInternalTransfer (params?: {}): Promise<Dict>;
-    sapiGetSubAccountList (params?: {}): Promise<Dict>;
-    sapiGetSubAccountMarginAccount (params?: {}): Promise<Dict>;
-    sapiGetSubAccountMarginAccountSummary (params?: {}): Promise<Dict>;
-    sapiGetSubAccountSpotSummary (params?: {}): Promise<Dict>;
-    sapiGetSubAccountStatus (params?: {}): Promise<List>;
-    sapiGetSubAccountSubTransferHistory (params?: {}): Promise<List>;
-    sapiGetSubAccountTransferSubUserHistory (params?: {}): Promise<List>;
-    sapiGetSubAccountUniversalTransfer (params?: {}): Promise<Dict>;
-    sapiGetSubAccountApiRestrictionsIpRestrictionThirdPartyList (params?: {}): Promise<Dict>;
-    sapiGetSubAccountTransactionStatistics (params?: {}): Promise<Dict>;
-    sapiGetSubAccountSubAccountApiIpRestriction (params?: {}): Promise<Dict>;
-    sapiGetManagedSubaccountAsset (params?: {}): Promise<List>;
-    sapiGetManagedSubaccountAccountSnapshot (params?: {}): Promise<Dict>;
-    sapiGetManagedSubaccountQueryTransLogForInvestor (params?: {}): Promise<Dict>;
-    sapiGetManagedSubaccountQueryTransLogForTradeParent (params?: {}): Promise<Dict>;
-    sapiGetManagedSubaccountFetchFutureAsset (params?: {}): Promise<Dict>;
-    sapiGetManagedSubaccountMarginAsset (params?: {}): Promise<Dict>;
-    sapiGetManagedSubaccountInfo (params?: {}): Promise<Dict>;
-    sapiGetManagedSubaccountDepositAddress (params?: {}): Promise<Dict>;
-    sapiGetManagedSubaccountQueryTransLog (params?: {}): Promise<Dict>;
-    sapiGetLendingDailyProductList (params?: {}): Promise<List>;
-    sapiGetLendingDailyUserLeftQuota (params?: {}): Promise<Dict>;
-    sapiGetLendingDailyUserRedemptionQuota (params?: {}): Promise<Dict>;
-    sapiGetLendingDailyTokenPosition (params?: {}): Promise<List>;
-    sapiGetLendingUnionAccount (params?: {}): Promise<Dict>;
-    sapiGetLendingUnionPurchaseRecord (params?: {}): Promise<List>;
-    sapiGetLendingUnionRedemptionRecord (params?: {}): Promise<Dict>;
-    sapiGetLendingUnionInterestHistory (params?: {}): Promise<List>;
-    sapiGetLendingProjectList (params?: {}): Promise<List>;
-    sapiGetLendingProjectPositionList (params?: {}): Promise<List>;
-    sapiGetEthStakingEthHistoryStakingHistory (params?: {}): Promise<Dict>;
-    sapiGetEthStakingEthHistoryRedemptionHistory (params?: {}): Promise<Dict>;
-    sapiGetEthStakingEthHistoryRewardsHistory (params?: {}): Promise<Dict>;
-    sapiGetEthStakingEthQuota (params?: {}): Promise<Dict>;
-    sapiGetEthStakingEthHistoryRateHistory (params?: {}): Promise<Dict>;
-    sapiGetEthStakingAccount (params?: {}): Promise<Dict>;
-    sapiGetEthStakingWbethHistoryWrapHistory (params?: {}): Promise<Dict>;
-    sapiGetEthStakingWbethHistoryUnwrapHistory (params?: {}): Promise<Dict>;
-    sapiGetEthStakingEthHistoryWbethRewardsHistory (params?: {}): Promise<Dict>;
-    sapiGetSolStakingSolHistoryStakingHistory (params?: {}): Promise<Dict>;
-    sapiGetSolStakingSolHistoryRedemptionHistory (params?: {}): Promise<Dict>;
-    sapiGetSolStakingSolHistoryBnsolRewardsHistory (params?: {}): Promise<Dict>;
-    sapiGetSolStakingSolHistoryRateHistory (params?: {}): Promise<Dict>;
-    sapiGetSolStakingAccount (params?: {}): Promise<Dict>;
-    sapiGetSolStakingSolQuota (params?: {}): Promise<Dict>;
-    sapiGetMiningPubAlgoList (params?: {}): Promise<Dict>;
-    sapiGetMiningPubCoinList (params?: {}): Promise<Dict>;
-    sapiGetMiningWorkerDetail (params?: {}): Promise<Dict>;
-    sapiGetMiningWorkerList (params?: {}): Promise<Dict>;
-    sapiGetMiningPaymentList (params?: {}): Promise<Dict>;
-    sapiGetMiningStatisticsUserStatus (params?: {}): Promise<Dict>;
-    sapiGetMiningStatisticsUserList (params?: {}): Promise<Dict>;
-    sapiGetMiningPaymentUid (params?: {}): Promise<Dict>;
-    sapiGetBswapPools (params?: {}): Promise<List>;
-    sapiGetBswapLiquidity (params?: {}): Promise<List>;
-    sapiGetBswapLiquidityOps (params?: {}): Promise<List>;
-    sapiGetBswapQuote (params?: {}): Promise<Dict>;
-    sapiGetBswapSwap (params?: {}): Promise<List>;
-    sapiGetBswapPoolConfigure (params?: {}): Promise<List>;
-    sapiGetBswapAddLiquidityPreview (params?: {}): Promise<Dict>;
-    sapiGetBswapRemoveLiquidityPreview (params?: {}): Promise<Dict>;
-    sapiGetBswapUnclaimedRewards (params?: {}): Promise<Dict>;
-    sapiGetBswapClaimedHistory (params?: {}): Promise<List>;
-    sapiGetBlvtTokenInfo (params?: {}): Promise<List>;
-    sapiGetBlvtSubscribeRecord (params?: {}): Promise<List>;
-    sapiGetBlvtRedeemRecord (params?: {}): Promise<List>;
-    sapiGetBlvtUserLimit (params?: {}): Promise<List>;
-    sapiGetApiReferralIfNewUser (params?: {}): Promise<Dict>;
-    sapiGetApiReferralCustomization (params?: {}): Promise<List>;
-    sapiGetApiReferralUserCustomization (params?: {}): Promise<Dict>;
-    sapiGetApiReferralRebateRecentRecord (params?: {}): Promise<List>;
-    sapiGetApiReferralRebateHistoricalRecord (params?: {}): Promise<List>;
-    sapiGetApiReferralKickbackRecentRecord (params?: {}): Promise<List>;
-    sapiGetApiReferralKickbackHistoricalRecord (params?: {}): Promise<List>;
-    sapiGetBrokerSubAccountApi (params?: {}): Promise<List>;
-    sapiGetBrokerSubAccount (params?: {}): Promise<List>;
-    sapiGetBrokerSubAccountApiCommissionFutures (params?: {}): Promise<List>;
-    sapiGetBrokerSubAccountApiCommissionCoinFutures (params?: {}): Promise<List>;
-    sapiGetBrokerInfo (params?: {}): Promise<Dict>;
-    sapiGetBrokerTransfer (params?: {}): Promise<List>;
-    sapiGetBrokerTransferFutures (params?: {}): Promise<Dict>;
-    sapiGetBrokerRebateRecentRecord (params?: {}): Promise<List>;
-    sapiGetBrokerRebateHistoricalRecord (params?: {}): Promise<List>;
-    sapiGetBrokerSubAccountBnbBurnStatus (params?: {}): Promise<Dict>;
-    sapiGetBrokerSubAccountDepositHist (params?: {}): Promise<List>;
-    sapiGetBrokerSubAccountSpotSummary (params?: {}): Promise<Dict>;
-    sapiGetBrokerSubAccountMarginSummary (params?: {}): Promise<Dict>;
-    sapiGetBrokerSubAccountFuturesSummary (params?: {}): Promise<Dict>;
-    sapiGetBrokerRebateFuturesRecentRecord (params?: {}): Promise<List>;
-    sapiGetBrokerSubAccountApiIpRestriction (params?: {}): Promise<Dict>;
-    sapiGetBrokerUniversalTransfer (params?: {}): Promise<List>;
-    sapiGetAccountApiRestrictions (params?: {}): Promise<Dict>;
-    sapiGetC2cOrderMatchListUserOrderHistory (params?: {}): Promise<Dict>;
-    sapiGetNftHistoryTransactions (params?: {}): Promise<Dict>;
-    sapiGetNftHistoryDeposit (params?: {}): Promise<Dict>;
-    sapiGetNftHistoryWithdraw (params?: {}): Promise<Dict>;
-    sapiGetNftUserGetAsset (params?: {}): Promise<Dict>;
-    sapiGetPayTransactions (params?: {}): Promise<Dict>;
-    sapiGetGiftcardVerify (params?: {}): Promise<Dict>;
-    sapiGetGiftcardCryptographyRsaPublicKey (params?: {}): Promise<Dict>;
-    sapiGetGiftcardBuyCodeTokenLimit (params?: {}): Promise<Dict>;
-    sapiGetAlgoSpotOpenOrders (params?: {}): Promise<Dict>;
-    sapiGetAlgoSpotHistoricalOrders (params?: {}): Promise<Dict>;
-    sapiGetAlgoSpotSubOrders (params?: {}): Promise<Dict>;
-    sapiGetAlgoFuturesOpenOrders (params?: {}): Promise<Dict>;
-    sapiGetAlgoFuturesHistoricalOrders (params?: {}): Promise<Dict>;
-    sapiGetAlgoFuturesSubOrders (params?: {}): Promise<Dict>;
-    sapiGetPortfolioAccount (params?: {}): Promise<Dict>;
-    sapiGetPortfolioCollateralRate (params?: {}): Promise<List>;
-    sapiGetPortfolioPmLoan (params?: {}): Promise<Dict>;
-    sapiGetPortfolioInterestHistory (params?: {}): Promise<List>;
-    sapiGetPortfolioAssetIndexPrice (params?: {}): Promise<List>;
-    sapiGetPortfolioRepayFuturesSwitch (params?: {}): Promise<Dict>;
-    sapiGetPortfolioMarginAssetLeverage (params?: {}): Promise<List>;
-    sapiGetPortfolioBalance (params?: {}): Promise<List>;
-    sapiGetPortfolioNegativeBalanceExchangeRecord (params?: {}): Promise<List>;
-    sapiGetPortfolioPmloanHistory (params?: {}): Promise<Dict>;
-    sapiGetPortfolioEarnAssetBalance (params?: {}): Promise<Dict>;
-    sapiGetPortfolioDeltaMode (params?: {}): Promise<Dict>;
-    sapiGetStakingProductList (params?: {}): Promise<List>;
-    sapiGetStakingPosition (params?: {}): Promise<List>;
-    sapiGetStakingStakingRecord (params?: {}): Promise<List>;
-    sapiGetStakingPersonalLeftQuota (params?: {}): Promise<List>;
-    sapiGetLendingAutoInvestTargetAssetList (params?: {}): Promise<Dict>;
-    sapiGetLendingAutoInvestTargetAssetRoiList (params?: {}): Promise<List>;
-    sapiGetLendingAutoInvestAllAsset (params?: {}): Promise<Dict>;
-    sapiGetLendingAutoInvestSourceAssetList (params?: {}): Promise<Dict>;
-    sapiGetLendingAutoInvestPlanList (params?: {}): Promise<Dict>;
-    sapiGetLendingAutoInvestPlanId (params?: {}): Promise<Dict>;
-    sapiGetLendingAutoInvestHistoryList (params?: {}): Promise<List>;
-    sapiGetLendingAutoInvestIndexInfo (params?: {}): Promise<Dict>;
-    sapiGetLendingAutoInvestIndexUserSummary (params?: {}): Promise<Dict>;
-    sapiGetLendingAutoInvestOneOffStatus (params?: {}): Promise<Dict>;
-    sapiGetLendingAutoInvestRedeemHistory (params?: {}): Promise<List>;
-    sapiGetLendingAutoInvestRebalanceHistory (params?: {}): Promise<List>;
-    sapiGetSimpleEarnFlexibleList (params?: {}): Promise<Dict>;
-    sapiGetSimpleEarnLockedList (params?: {}): Promise<Dict>;
-    sapiGetSimpleEarnFlexiblePersonalLeftQuota (params?: {}): Promise<Dict>;
-    sapiGetSimpleEarnLockedPersonalLeftQuota (params?: {}): Promise<Dict>;
-    sapiGetSimpleEarnFlexibleSubscriptionPreview (params?: {}): Promise<Dict>;
-    sapiGetSimpleEarnLockedSubscriptionPreview (params?: {}): Promise<List>;
-    sapiGetSimpleEarnFlexibleHistoryRateHistory (params?: {}): Promise<Dict>;
-    sapiGetSimpleEarnFlexiblePosition (params?: {}): Promise<Dict>;
-    sapiGetSimpleEarnLockedPosition (params?: {}): Promise<Dict>;
-    sapiGetSimpleEarnAccount (params?: {}): Promise<Dict>;
-    sapiGetSimpleEarnFlexibleHistorySubscriptionRecord (params?: {}): Promise<Dict>;
-    sapiGetSimpleEarnLockedHistorySubscriptionRecord (params?: {}): Promise<Dict>;
-    sapiGetSimpleEarnFlexibleHistoryRedemptionRecord (params?: {}): Promise<Dict>;
-    sapiGetSimpleEarnLockedHistoryRedemptionRecord (params?: {}): Promise<Dict>;
-    sapiGetSimpleEarnFlexibleHistoryRewardsRecord (params?: {}): Promise<Dict>;
-    sapiGetSimpleEarnLockedHistoryRewardsRecord (params?: {}): Promise<Dict>;
-    sapiGetSimpleEarnFlexibleHistoryCollateralRecord (params?: {}): Promise<Dict>;
-    sapiGetDciProductList (params?: {}): Promise<Dict>;
-    sapiGetDciProductPositions (params?: {}): Promise<Dict>;
-    sapiGetDciProductAccounts (params?: {}): Promise<Dict>;
-    sapiGetAccumulatorProductList (params?: {}): Promise<Dict>;
-    sapiGetAccumulatorProductPositionList (params?: {}): Promise<Dict>;
-    sapiGetAccumulatorProductSumHolding (params?: {}): Promise<Dict>;
-    sapiPostAssetDust (params?: {}): Promise<Dict>;
-    sapiPostAssetDustBtc (params?: {}): Promise<Dict>;
-    sapiPostAssetTransfer (params?: {}): Promise<Dict>;
-    sapiPostAssetGetFundingAsset (params?: {}): Promise<List>;
-    sapiPostAssetConvertTransfer (params?: {}): Promise<Dict>;
-    sapiPostAccountDisableFastWithdrawSwitch (params?: {}): Promise<Dict>;
-    sapiPostAccountEnableFastWithdrawSwitch (params?: {}): Promise<Dict>;
-    sapiPostCapitalWithdrawApply (params?: {}): Promise<Dict>;
-    sapiPostCapitalContractConvertibleCoins (params?: {}): Promise<Dict>;
-    sapiPostCapitalDepositCreditApply (params?: {}): Promise<Dict>;
-    sapiPostMarginBorrowRepay (params?: {}): Promise<Dict>;
-    sapiPostMarginTransfer (params?: {}): Promise<Dict>;
-    sapiPostMarginLoan (params?: {}): Promise<Dict>;
-    sapiPostMarginRepay (params?: {}): Promise<Dict>;
-    sapiPostMarginOrder (params?: {}): Promise<Dict>;
-    sapiPostMarginOrderOco (params?: {}): Promise<Dict>;
-    sapiPostMarginDust (params?: {}): Promise<Dict>;
-    sapiPostMarginExchangeSmallLiability (params?: {}): Promise<Dict>;
-    sapiPostMarginIsolatedTransfer (params?: {}): Promise<Dict>;
-    sapiPostMarginIsolatedAccount (params?: {}): Promise<Dict>;
-    sapiPostMarginMaxLeverage (params?: {}): Promise<Dict>;
-    sapiPostBnbBurn (params?: {}): Promise<Dict>;
-    sapiPostSubAccountVirtualSubAccount (params?: {}): Promise<Dict>;
-    sapiPostSubAccountMarginTransfer (params?: {}): Promise<Dict>;
-    sapiPostSubAccountMarginEnable (params?: {}): Promise<Dict>;
-    sapiPostSubAccountFuturesEnable (params?: {}): Promise<Dict>;
-    sapiPostSubAccountFuturesTransfer (params?: {}): Promise<Dict>;
-    sapiPostSubAccountFuturesInternalTransfer (params?: {}): Promise<Dict>;
-    sapiPostSubAccountTransferSubToSub (params?: {}): Promise<Dict>;
-    sapiPostSubAccountTransferSubToMaster (params?: {}): Promise<Dict>;
-    sapiPostSubAccountUniversalTransfer (params?: {}): Promise<Dict>;
-    sapiPostSubAccountOptionsEnable (params?: {}): Promise<Dict>;
-    sapiPostManagedSubaccountDeposit (params?: {}): Promise<Dict>;
-    sapiPostManagedSubaccountWithdraw (params?: {}): Promise<Dict>;
-    sapiPostUserDataStream (params?: {}): Promise<Dict>;
-    sapiPostUserDataStreamIsolated (params?: {}): Promise<Dict>;
-    sapiPostUserListenToken (params?: {}): Promise<Dict>;
-    sapiPostFuturesTransfer (params?: {}): Promise<Dict>;
-    sapiPostLendingCustomizedFixedPurchase (params?: {}): Promise<Dict>;
-    sapiPostLendingDailyPurchase (params?: {}): Promise<Dict>;
-    sapiPostLendingDailyRedeem (params?: {}): Promise<Dict>;
-    sapiPostBswapLiquidityAdd (params?: {}): Promise<Dict>;
-    sapiPostBswapLiquidityRemove (params?: {}): Promise<Dict>;
-    sapiPostBswapSwap (params?: {}): Promise<Dict>;
-    sapiPostBswapClaimRewards (params?: {}): Promise<Dict>;
-    sapiPostBlvtSubscribe (params?: {}): Promise<Dict>;
-    sapiPostBlvtRedeem (params?: {}): Promise<Dict>;
-    sapiPostApiReferralCustomization (params?: {}): Promise<Dict>;
-    sapiPostApiReferralUserCustomization (params?: {}): Promise<Dict>;
-    sapiPostApiReferralRebateHistoricalRecord (params?: {}): Promise<List>;
-    sapiPostApiReferralKickbackHistoricalRecord (params?: {}): Promise<List>;
-    sapiPostBrokerSubAccount (params?: {}): Promise<Dict>;
-    sapiPostBrokerSubAccountMargin (params?: {}): Promise<Dict>;
-    sapiPostBrokerSubAccountFutures (params?: {}): Promise<Dict>;
-    sapiPostBrokerSubAccountApi (params?: {}): Promise<Dict>;
-    sapiPostBrokerSubAccountApiPermission (params?: {}): Promise<Dict>;
-    sapiPostBrokerSubAccountApiCommission (params?: {}): Promise<Dict>;
-    sapiPostBrokerSubAccountApiCommissionFutures (params?: {}): Promise<Dict>;
-    sapiPostBrokerSubAccountApiCommissionCoinFutures (params?: {}): Promise<Dict>;
-    sapiPostBrokerTransfer (params?: {}): Promise<Dict>;
-    sapiPostBrokerTransferFutures (params?: {}): Promise<Dict>;
-    sapiPostBrokerRebateHistoricalRecord (params?: {}): Promise<List>;
-    sapiPostBrokerSubAccountBnbBurnSpot (params?: {}): Promise<Dict>;
-    sapiPostBrokerSubAccountBnbBurnMarginInterest (params?: {}): Promise<Dict>;
-    sapiPostBrokerSubAccountBlvt (params?: {}): Promise<Dict>;
-    sapiPostBrokerSubAccountApiIpRestriction (params?: {}): Promise<Dict>;
-    sapiPostBrokerSubAccountApiIpRestrictionIpList (params?: {}): Promise<Dict>;
-    sapiPostBrokerUniversalTransfer (params?: {}): Promise<Dict>;
-    sapiPostBrokerSubAccountApiPermissionUniversalTransfer (params?: {}): Promise<Dict>;
-    sapiPostBrokerSubAccountApiPermissionVanillaOptions (params?: {}): Promise<Dict>;
-    sapiPostGiftcardCreateCode (params?: {}): Promise<Dict>;
-    sapiPostGiftcardRedeemCode (params?: {}): Promise<Dict>;
-    sapiPostGiftcardBuyCode (params?: {}): Promise<Dict>;
-    sapiPostAlgoSpotNewOrderTwap (params?: {}): Promise<Dict>;
-    sapiPostAlgoFuturesNewOrderVp (params?: {}): Promise<Dict>;
-    sapiPostAlgoFuturesNewOrderTwap (params?: {}): Promise<Dict>;
-    sapiPostStakingPurchase (params?: {}): Promise<Dict>;
-    sapiPostStakingRedeem (params?: {}): Promise<Dict>;
-    sapiPostStakingSetAutoStaking (params?: {}): Promise<Dict>;
-    sapiPostEthStakingEthStake (params?: {}): Promise<Dict>;
-    sapiPostEthStakingEthRedeem (params?: {}): Promise<Dict>;
-    sapiPostEthStakingWbethWrap (params?: {}): Promise<Dict>;
-    sapiPostSolStakingSolStake (params?: {}): Promise<Dict>;
-    sapiPostSolStakingSolRedeem (params?: {}): Promise<Dict>;
-    sapiPostMiningHashTransferConfig (params?: {}): Promise<Dict>;
-    sapiPostMiningHashTransferConfigCancel (params?: {}): Promise<Dict>;
-    sapiPostPortfolioRepay (params?: {}): Promise<Dict>;
-    sapiPostLoanVipRenew (params?: {}): Promise<Dict>;
-    sapiPostLoanVipBorrow (params?: {}): Promise<Dict>;
-    sapiPostLoanBorrow (params?: {}): Promise<Dict>;
-    sapiPostLoanRepay (params?: {}): Promise<Dict>;
-    sapiPostLoanAdjustLtv (params?: {}): Promise<Dict>;
-    sapiPostLoanCustomizeMarginCall (params?: {}): Promise<Dict>;
-    sapiPostLoanFlexibleRepay (params?: {}): Promise<Dict>;
-    sapiPostLoanFlexibleAdjustLtv (params?: {}): Promise<Dict>;
-    sapiPostLoanVipRepay (params?: {}): Promise<Dict>;
-    sapiPostConvertGetQuote (params?: {}): Promise<Dict>;
-    sapiPostConvertAcceptQuote (params?: {}): Promise<Dict>;
-    sapiPostConvertLimitPlaceOrder (params?: {}): Promise<Dict>;
-    sapiPostConvertLimitCancelOrder (params?: {}): Promise<Dict>;
-    sapiPostPortfolioAutoCollection (params?: {}): Promise<Dict>;
-    sapiPostPortfolioAssetCollection (params?: {}): Promise<Dict>;
-    sapiPostPortfolioBnbTransfer (params?: {}): Promise<Dict>;
-    sapiPostPortfolioRepayFuturesSwitch (params?: {}): Promise<Dict>;
-    sapiPostPortfolioRepayFuturesNegativeBalance (params?: {}): Promise<Dict>;
-    sapiPostPortfolioMint (params?: {}): Promise<Dict>;
-    sapiPostPortfolioRedeem (params?: {}): Promise<Dict>;
-    sapiPostPortfolioEarnAssetTransfer (params?: {}): Promise<Dict>;
-    sapiPostPortfolioDeltaMode (params?: {}): Promise<Dict>;
-    sapiPostLendingAutoInvestPlanAdd (params?: {}): Promise<Dict>;
-    sapiPostLendingAutoInvestPlanEdit (params?: {}): Promise<Dict>;
-    sapiPostLendingAutoInvestPlanEditStatus (params?: {}): Promise<Dict>;
-    sapiPostLendingAutoInvestOneOff (params?: {}): Promise<Dict>;
-    sapiPostLendingAutoInvestRedeem (params?: {}): Promise<Dict>;
-    sapiPostSimpleEarnFlexibleSubscribe (params?: {}): Promise<Dict>;
-    sapiPostSimpleEarnLockedSubscribe (params?: {}): Promise<Dict>;
-    sapiPostSimpleEarnFlexibleRedeem (params?: {}): Promise<Dict>;
-    sapiPostSimpleEarnLockedRedeem (params?: {}): Promise<Dict>;
-    sapiPostSimpleEarnFlexibleSetAutoSubscribe (params?: {}): Promise<Dict>;
-    sapiPostSimpleEarnLockedSetAutoSubscribe (params?: {}): Promise<Dict>;
-    sapiPostSimpleEarnLockedSetRedeemOption (params?: {}): Promise<Dict>;
-    sapiPostDciProductSubscribe (params?: {}): Promise<Dict>;
-    sapiPostDciProductAutoCompoundEdit (params?: {}): Promise<Dict>;
-    sapiPostAccumulatorProductSubscribe (params?: {}): Promise<Dict>;
-    sapiPutUserDataStream (params?: {}): Promise<Dict>;
-    sapiPutUserDataStreamIsolated (params?: {}): Promise<Dict>;
-    sapiDeleteMarginOpenOrders (params?: {}): Promise<List>;
-    sapiDeleteMarginOrder (params?: {}): Promise<Dict>;
-    sapiDeleteMarginOrderList (params?: {}): Promise<Dict>;
-    sapiDeleteMarginIsolatedAccount (params?: {}): Promise<Dict>;
-    sapiDeleteUserDataStream (params?: {}): Promise<Dict>;
-    sapiDeleteUserDataStreamIsolated (params?: {}): Promise<Dict>;
-    sapiDeleteBrokerSubAccountApi (params?: {}): Promise<Dict>;
-    sapiDeleteBrokerSubAccountApiIpRestrictionIpList (params?: {}): Promise<Dict>;
-    sapiDeleteAlgoSpotOrder (params?: {}): Promise<Dict>;
-    sapiDeleteAlgoFuturesOrder (params?: {}): Promise<Dict>;
-    sapiDeleteSubAccountSubAccountApiIpRestrictionIpList (params?: {}): Promise<Dict>;
-    sapiV2GetEthStakingAccount (params?: {}): Promise<Dict>;
-    sapiV2GetSubAccountFuturesAccount (params?: {}): Promise<Dict>;
-    sapiV2GetSubAccountFuturesAccountSummary (params?: {}): Promise<Dict>;
-    sapiV2GetSubAccountFuturesPositionRisk (params?: {}): Promise<Dict>;
-    sapiV2GetLoanFlexibleOngoingOrders (params?: {}): Promise<Dict>;
-    sapiV2GetLoanFlexibleBorrowHistory (params?: {}): Promise<Dict>;
-    sapiV2GetLoanFlexibleRepayHistory (params?: {}): Promise<Dict>;
-    sapiV2GetLoanFlexibleLtvAdjustmentHistory (params?: {}): Promise<Dict>;
-    sapiV2GetLoanFlexibleLoanableData (params?: {}): Promise<Dict>;
-    sapiV2GetLoanFlexibleCollateralData (params?: {}): Promise<Dict>;
-    sapiV2GetPortfolioAccount (params?: {}): Promise<Dict>;
-    sapiV2PostEthStakingEthStake (params?: {}): Promise<Dict>;
-    sapiV2PostSubAccountSubAccountApiIpRestriction (params?: {}): Promise<Dict>;
-    sapiV2PostLoanFlexibleBorrow (params?: {}): Promise<Dict>;
-    sapiV2PostLoanFlexibleRepay (params?: {}): Promise<Dict>;
-    sapiV2PostLoanFlexibleAdjustLtv (params?: {}): Promise<Dict>;
-    sapiV3GetSubAccountAssets (params?: {}): Promise<Dict>;
-    sapiV3PostAssetGetUserAsset (params?: {}): Promise<List>;
-    sapiV4GetSubAccountAssets (params?: {}): Promise<Dict>;
-    dapiPublicGetPing (params?: {}): Promise<Dict>;
-    dapiPublicGetTime (params?: {}): Promise<Dict>;
-    dapiPublicGetExchangeInfo (params?: {}): Promise<Dict>;
-    dapiPublicGetDepth (params?: {}): Promise<Dict>;
-    dapiPublicGetTrades (params?: {}): Promise<List>;
-    dapiPublicGetHistoricalTrades (params?: {}): Promise<List>;
-    dapiPublicGetAggTrades (params?: {}): Promise<List>;
-    dapiPublicGetPremiumIndex (params?: {}): Promise<List>;
-    dapiPublicGetFundingRate (params?: {}): Promise<List>;
-    dapiPublicGetKlines (params?: {}): Promise<List>;
-    dapiPublicGetContinuousKlines (params?: {}): Promise<List>;
-    dapiPublicGetIndexPriceKlines (params?: {}): Promise<List>;
-    dapiPublicGetMarkPriceKlines (params?: {}): Promise<List>;
-    dapiPublicGetPremiumIndexKlines (params?: {}): Promise<List>;
-    dapiPublicGetTicker24hr (params?: {}): Promise<List>;
-    dapiPublicGetTickerPrice (params?: {}): Promise<List>;
-    dapiPublicGetTickerBookTicker (params?: {}): Promise<List>;
-    dapiPublicGetConstituents (params?: {}): Promise<Dict>;
-    dapiPublicGetOpenInterest (params?: {}): Promise<Dict>;
-    dapiPublicGetFundingInfo (params?: {}): Promise<List>;
-    dapiDataGetDeliveryPrice (params?: {}): Promise<List>;
-    dapiDataGetOpenInterestHist (params?: {}): Promise<List>;
-    dapiDataGetTopLongShortAccountRatio (params?: {}): Promise<List>;
-    dapiDataGetTopLongShortPositionRatio (params?: {}): Promise<List>;
-    dapiDataGetGlobalLongShortAccountRatio (params?: {}): Promise<List>;
-    dapiDataGetTakerBuySellVol (params?: {}): Promise<List>;
-    dapiDataGetBasis (params?: {}): Promise<List>;
-    dapiPrivateGetPositionSideDual (params?: {}): Promise<Dict>;
-    dapiPrivateGetOrderAmendment (params?: {}): Promise<List>;
-    dapiPrivateGetOrder (params?: {}): Promise<Dict>;
-    dapiPrivateGetOpenOrder (params?: {}): Promise<Dict>;
-    dapiPrivateGetOpenOrders (params?: {}): Promise<List>;
-    dapiPrivateGetOpenAlgoOrders (params?: {}): Promise<List>;
-    dapiPrivateGetAllOrders (params?: {}): Promise<List>;
-    dapiPrivateGetBalance (params?: {}): Promise<List>;
-    dapiPrivateGetAccount (params?: {}): Promise<Dict>;
-    dapiPrivateGetPositionMarginHistory (params?: {}): Promise<List>;
-    dapiPrivateGetPositionRisk (params?: {}): Promise<List>;
-    dapiPrivateGetUserTrades (params?: {}): Promise<List>;
-    dapiPrivateGetIncome (params?: {}): Promise<List>;
-    dapiPrivateGetLeverageBracket (params?: {}): Promise<List>;
-    dapiPrivateGetForceOrders (params?: {}): Promise<Dict>;
-    dapiPrivateGetAdlQuantile (params?: {}): Promise<List>;
-    dapiPrivateGetCommissionRate (params?: {}): Promise<Dict>;
-    dapiPrivateGetIncomeAsyn (params?: {}): Promise<Dict>;
-    dapiPrivateGetIncomeAsynId (params?: {}): Promise<Dict>;
-    dapiPrivateGetTradeAsyn (params?: {}): Promise<Dict>;
-    dapiPrivateGetTradeAsynId (params?: {}): Promise<Dict>;
-    dapiPrivateGetOrderAsyn (params?: {}): Promise<Dict>;
-    dapiPrivateGetOrderAsynId (params?: {}): Promise<Dict>;
-    dapiPrivateGetPmExchangeInfo (params?: {}): Promise<Dict>;
-    dapiPrivateGetPmAccountInfo (params?: {}): Promise<Dict>;
-    dapiPrivatePostPositionSideDual (params?: {}): Promise<Dict>;
-    dapiPrivatePostOrder (params?: {}): Promise<Dict>;
-    dapiPrivatePostAlgoOrder (params?: {}): Promise<Dict>;
-    dapiPrivatePostBatchOrders (params?: {}): Promise<List>;
-    dapiPrivatePostCountdownCancelAll (params?: {}): Promise<Dict>;
-    dapiPrivatePostLeverage (params?: {}): Promise<Dict>;
-    dapiPrivatePostMarginType (params?: {}): Promise<Dict>;
-    dapiPrivatePostPositionMargin (params?: {}): Promise<Dict>;
-    dapiPrivatePostListenKey (params?: {}): Promise<Dict>;
-    dapiPrivatePutListenKey (params?: {}): Promise<Dict>;
-    dapiPrivatePutOrder (params?: {}): Promise<Dict>;
-    dapiPrivatePutBatchOrders (params?: {}): Promise<List>;
-    dapiPrivateDeleteOrder (params?: {}): Promise<Dict>;
-    dapiPrivateDeleteAlgoOrder (params?: {}): Promise<Dict>;
-    dapiPrivateDeleteAllOpenOrders (params?: {}): Promise<List>;
-    dapiPrivateDeleteBatchOrders (params?: {}): Promise<List>;
-    dapiPrivateDeleteListenKey (params?: {}): Promise<Dict>;
-    dapiPrivateV2GetLeverageBracket (params?: {}): Promise<List>;
-    fapiPublicGetPing (params?: {}): Promise<Dict>;
-    fapiPublicGetTime (params?: {}): Promise<Dict>;
-    fapiPublicGetExchangeInfo (params?: {}): Promise<Dict>;
-    fapiPublicGetDepth (params?: {}): Promise<Dict>;
-    fapiPublicGetRpiDepth (params?: {}): Promise<Dict>;
-    fapiPublicGetTrades (params?: {}): Promise<List>;
-    fapiPublicGetHistoricalTrades (params?: {}): Promise<List>;
-    fapiPublicGetAggTrades (params?: {}): Promise<List>;
-    fapiPublicGetKlines (params?: {}): Promise<List>;
-    fapiPublicGetContinuousKlines (params?: {}): Promise<List>;
-    fapiPublicGetMarkPriceKlines (params?: {}): Promise<List>;
-    fapiPublicGetIndexPriceKlines (params?: {}): Promise<List>;
-    fapiPublicGetPremiumIndexKlines (params?: {}): Promise<List>;
-    fapiPublicGetFundingRate (params?: {}): Promise<List>;
-    fapiPublicGetFundingInfo (params?: {}): Promise<List>;
-    fapiPublicGetPremiumIndex (params?: {}): Promise<List>;
-    fapiPublicGetTicker24hr (params?: {}): Promise<List>;
-    fapiPublicGetTickerPrice (params?: {}): Promise<Dict>;
-    fapiPublicGetTickerBookTicker (params?: {}): Promise<List>;
-    fapiPublicGetOpenInterest (params?: {}): Promise<Dict>;
-    fapiPublicGetIndexInfo (params?: {}): Promise<List>;
-    fapiPublicGetAssetIndex (params?: {}): Promise<Dict>;
-    fapiPublicGetConstituents (params?: {}): Promise<Dict>;
-    fapiPublicGetApiTradingStatus (params?: {}): Promise<Dict>;
-    fapiPublicGetLvtKlines (params?: {}): Promise<List>;
-    fapiPublicGetConvertExchangeInfo (params?: {}): Promise<List>;
-    fapiPublicGetInsuranceBalance (params?: {}): Promise<List>;
-    fapiPublicGetSymbolAdlRisk (params?: {}): Promise<Dict>;
-    fapiPublicGetTradingSchedule (params?: {}): Promise<Dict>;
-    fapiDataGetDeliveryPrice (params?: {}): Promise<List>;
-    fapiDataGetOpenInterestHist (params?: {}): Promise<List>;
-    fapiDataGetTopLongShortAccountRatio (params?: {}): Promise<List>;
-    fapiDataGetTopLongShortPositionRatio (params?: {}): Promise<List>;
-    fapiDataGetGlobalLongShortAccountRatio (params?: {}): Promise<List>;
-    fapiDataGetTakerlongshortRatio (params?: {}): Promise<List>;
-    fapiDataGetBasis (params?: {}): Promise<List>;
-    fapiPrivateGetForceOrders (params?: {}): Promise<Dict>;
-    fapiPrivateGetAllOrders (params?: {}): Promise<List>;
-    fapiPrivateGetOpenOrder (params?: {}): Promise<Dict>;
-    fapiPrivateGetOpenOrders (params?: {}): Promise<List>;
-    fapiPrivateGetOrder (params?: {}): Promise<Dict>;
-    fapiPrivateGetAccount (params?: {}): Promise<Dict>;
-    fapiPrivateGetBalance (params?: {}): Promise<List>;
-    fapiPrivateGetLeverageBracket (params?: {}): Promise<List>;
-    fapiPrivateGetPositionMarginHistory (params?: {}): Promise<List>;
-    fapiPrivateGetPositionRisk (params?: {}): Promise<List>;
-    fapiPrivateGetPositionSideDual (params?: {}): Promise<Dict>;
-    fapiPrivateGetUserTrades (params?: {}): Promise<List>;
-    fapiPrivateGetIncome (params?: {}): Promise<List>;
-    fapiPrivateGetCommissionRate (params?: {}): Promise<Dict>;
-    fapiPrivateGetRateLimitOrder (params?: {}): Promise<List>;
-    fapiPrivateGetApiTradingStatus (params?: {}): Promise<Dict>;
-    fapiPrivateGetMultiAssetsMargin (params?: {}): Promise<Dict>;
-    fapiPrivateGetApiReferralIfNewUser (params?: {}): Promise<Dict>;
-    fapiPrivateGetApiReferralCustomization (params?: {}): Promise<List>;
-    fapiPrivateGetApiReferralUserCustomization (params?: {}): Promise<Dict>;
-    fapiPrivateGetApiReferralTraderNum (params?: {}): Promise<List>;
-    fapiPrivateGetApiReferralOverview (params?: {}): Promise<Dict>;
-    fapiPrivateGetApiReferralTradeVol (params?: {}): Promise<List>;
-    fapiPrivateGetApiReferralRebateVol (params?: {}): Promise<List>;
-    fapiPrivateGetApiReferralTraderSummary (params?: {}): Promise<List>;
-    fapiPrivateGetAdlQuantile (params?: {}): Promise<List>;
-    fapiPrivateGetPmAccountInfo (params?: {}): Promise<Dict>;
-    fapiPrivateGetOrderAmendment (params?: {}): Promise<List>;
-    fapiPrivateGetIncomeAsyn (params?: {}): Promise<Dict>;
-    fapiPrivateGetIncomeAsynId (params?: {}): Promise<Dict>;
-    fapiPrivateGetOrderAsyn (params?: {}): Promise<Dict>;
-    fapiPrivateGetOrderAsynId (params?: {}): Promise<Dict>;
-    fapiPrivateGetTradeAsyn (params?: {}): Promise<Dict>;
-    fapiPrivateGetTradeAsynId (params?: {}): Promise<Dict>;
-    fapiPrivateGetFeeBurn (params?: {}): Promise<Dict>;
-    fapiPrivateGetSymbolConfig (params?: {}): Promise<Dict>;
-    fapiPrivateGetAccountConfig (params?: {}): Promise<Dict>;
-    fapiPrivateGetConvertOrderStatus (params?: {}): Promise<Dict>;
-    fapiPrivateGetAlgoOrder (params?: {}): Promise<Dict>;
-    fapiPrivateGetOpenAlgoOrders (params?: {}): Promise<List>;
-    fapiPrivateGetAllAlgoOrders (params?: {}): Promise<List>;
-    fapiPrivateGetStockContract (params?: {}): Promise<Dict>;
-    fapiPrivatePostBatchOrders (params?: {}): Promise<List>;
-    fapiPrivatePostPositionSideDual (params?: {}): Promise<Dict>;
-    fapiPrivatePostPositionMargin (params?: {}): Promise<Dict>;
-    fapiPrivatePostMarginType (params?: {}): Promise<Dict>;
-    fapiPrivatePostOrder (params?: {}): Promise<Dict>;
-    fapiPrivatePostOrderTest (params?: {}): Promise<Dict>;
-    fapiPrivatePostLeverage (params?: {}): Promise<Dict>;
-    fapiPrivatePostListenKey (params?: {}): Promise<Dict>;
-    fapiPrivatePostCountdownCancelAll (params?: {}): Promise<Dict>;
-    fapiPrivatePostMultiAssetsMargin (params?: {}): Promise<Dict>;
-    fapiPrivatePostApiReferralCustomization (params?: {}): Promise<Dict>;
-    fapiPrivatePostApiReferralUserCustomization (params?: {}): Promise<Dict>;
-    fapiPrivatePostFeeBurn (params?: {}): Promise<Dict>;
-    fapiPrivatePostConvertGetQuote (params?: {}): Promise<Dict>;
-    fapiPrivatePostConvertAcceptQuote (params?: {}): Promise<Dict>;
-    fapiPrivatePostAlgoOrder (params?: {}): Promise<Dict>;
-    fapiPrivatePutListenKey (params?: {}): Promise<Dict>;
-    fapiPrivatePutOrder (params?: {}): Promise<Dict>;
-    fapiPrivatePutBatchOrders (params?: {}): Promise<List>;
-    fapiPrivateDeleteBatchOrders (params?: {}): Promise<List>;
-    fapiPrivateDeleteOrder (params?: {}): Promise<Dict>;
-    fapiPrivateDeleteAllOpenOrders (params?: {}): Promise<List>;
-    fapiPrivateDeleteListenKey (params?: {}): Promise<Dict>;
-    fapiPrivateDeleteAlgoOrder (params?: {}): Promise<Dict>;
-    fapiPrivateDeleteAlgoOpenOrders (params?: {}): Promise<List>;
-    fapiPublicV2GetTickerPrice (params?: {}): Promise<List>;
-    fapiPrivateV2GetAccount (params?: {}): Promise<Dict>;
-    fapiPrivateV2GetBalance (params?: {}): Promise<List>;
-    fapiPrivateV2GetPositionRisk (params?: {}): Promise<List>;
-    fapiPrivateV3GetAccount (params?: {}): Promise<Dict>;
-    fapiPrivateV3GetBalance (params?: {}): Promise<List>;
-    fapiPrivateV3GetPositionRisk (params?: {}): Promise<List>;
-    eapiPublicGetPing (params?: {}): Promise<Dict>;
-    eapiPublicGetTime (params?: {}): Promise<Dict>;
-    eapiPublicGetExchangeInfo (params?: {}): Promise<Dict>;
-    eapiPublicGetIndex (params?: {}): Promise<Dict>;
-    eapiPublicGetTicker (params?: {}): Promise<List>;
-    eapiPublicGetMark (params?: {}): Promise<List>;
-    eapiPublicGetDepth (params?: {}): Promise<Dict>;
-    eapiPublicGetKlines (params?: {}): Promise<List>;
-    eapiPublicGetTrades (params?: {}): Promise<List>;
-    eapiPublicGetHistoricalTrades (params?: {}): Promise<List>;
-    eapiPublicGetExerciseHistory (params?: {}): Promise<List>;
-    eapiPublicGetOpenInterest (params?: {}): Promise<Dict>;
-    eapiPrivateGetAccount (params?: {}): Promise<Dict>;
-    eapiPrivateGetPosition (params?: {}): Promise<List>;
-    eapiPrivateGetOpenOrders (params?: {}): Promise<List>;
-    eapiPrivateGetHistoryOrders (params?: {}): Promise<List>;
-    eapiPrivateGetUserTrades (params?: {}): Promise<List>;
-    eapiPrivateGetExerciseRecord (params?: {}): Promise<List>;
-    eapiPrivateGetBill (params?: {}): Promise<List>;
-    eapiPrivateGetIncomeAsyn (params?: {}): Promise<Dict>;
-    eapiPrivateGetIncomeAsynId (params?: {}): Promise<Dict>;
-    eapiPrivateGetMarginAccount (params?: {}): Promise<Dict>;
-    eapiPrivateGetMmp (params?: {}): Promise<Dict>;
-    eapiPrivateGetCountdownCancelAll (params?: {}): Promise<Dict>;
-    eapiPrivateGetOrder (params?: {}): Promise<Dict>;
-    eapiPrivateGetBlockOrderOrders (params?: {}): Promise<List>;
-    eapiPrivateGetBlockOrderExecute (params?: {}): Promise<Dict>;
-    eapiPrivateGetBlockUserTrades (params?: {}): Promise<List>;
-    eapiPrivateGetBlockTrades (params?: {}): Promise<List>;
-    eapiPrivateGetComission (params?: {}): Promise<Dict>;
-    eapiPrivatePostOrder (params?: {}): Promise<Dict>;
-    eapiPrivatePostBatchOrders (params?: {}): Promise<List>;
-    eapiPrivatePostListenKey (params?: {}): Promise<Dict>;
-    eapiPrivatePostMmpSet (params?: {}): Promise<Dict>;
-    eapiPrivatePostMmpReset (params?: {}): Promise<Dict>;
-    eapiPrivatePostCountdownCancelAll (params?: {}): Promise<Dict>;
-    eapiPrivatePostCountdownCancelAllHeartBeat (params?: {}): Promise<Dict>;
-    eapiPrivatePostBlockOrderCreate (params?: {}): Promise<Dict>;
-    eapiPrivatePostBlockOrderExecute (params?: {}): Promise<Dict>;
-    eapiPrivatePutListenKey (params?: {}): Promise<Dict>;
-    eapiPrivatePutBlockOrderCreate (params?: {}): Promise<Dict>;
-    eapiPrivateDeleteOrder (params?: {}): Promise<Dict>;
-    eapiPrivateDeleteBatchOrders (params?: {}): Promise<List>;
-    eapiPrivateDeleteAllOpenOrders (params?: {}): Promise<List>;
-    eapiPrivateDeleteAllOpenOrdersByUnderlying (params?: {}): Promise<Dict>;
-    eapiPrivateDeleteListenKey (params?: {}): Promise<Dict>;
-    eapiPrivateDeleteBlockOrderCreate (params?: {}): Promise<Dict>;
-    publicGetPing (params?: {}): Promise<Dict>;
-    publicGetTime (params?: {}): Promise<Dict>;
-    publicGetDepth (params?: {}): Promise<Dict>;
-    publicGetTrades (params?: {}): Promise<List>;
-    publicGetAggTrades (params?: {}): Promise<List>;
-    publicGetHistoricalTrades (params?: {}): Promise<List>;
-    publicGetKlines (params?: {}): Promise<List>;
-    publicGetUiKlines (params?: {}): Promise<List>;
-    publicGetTicker24hr (params?: {}): Promise<List>;
-    publicGetTicker (params?: {}): Promise<List>;
-    publicGetTickerTradingDay (params?: {}): Promise<Dict>;
-    publicGetTickerPrice (params?: {}): Promise<List>;
-    publicGetTickerBookTicker (params?: {}): Promise<List>;
-    publicGetExchangeInfo (params?: {}): Promise<Dict>;
-    publicGetAvgPrice (params?: {}): Promise<Dict>;
-    publicPutUserDataStream (params?: {}): Promise<Dict>;
-    publicPostUserDataStream (params?: {}): Promise<Dict>;
-    publicDeleteUserDataStream (params?: {}): Promise<Dict>;
-    privateGetAllOrderList (params?: {}): Promise<List>;
-    privateGetOpenOrderList (params?: {}): Promise<List>;
-    privateGetOrderList (params?: {}): Promise<Dict>;
-    privateGetOrder (params?: {}): Promise<Dict>;
-    privateGetOpenOrders (params?: {}): Promise<List>;
-    privateGetAllOrders (params?: {}): Promise<List>;
-    privateGetAccount (params?: {}): Promise<List>;
-    privateGetMyTrades (params?: {}): Promise<List>;
-    privateGetRateLimitOrder (params?: {}): Promise<List>;
-    privateGetMyPreventedMatches (params?: {}): Promise<List>;
-    privateGetMyAllocations (params?: {}): Promise<List>;
-    privateGetAccountCommission (params?: {}): Promise<Dict>;
-    privatePostOrderOco (params?: {}): Promise<Dict>;
-    privatePostOrderListOco (params?: {}): Promise<Dict>;
-    privatePostOrderListOto (params?: {}): Promise<Dict>;
-    privatePostOrderListOtoco (params?: {}): Promise<Dict>;
-    privatePostOrderListOpo (params?: {}): Promise<Dict>;
-    privatePostOrderListOpoco (params?: {}): Promise<Dict>;
-    privatePostSorOrder (params?: {}): Promise<Dict>;
-    privatePostSorOrderTest (params?: {}): Promise<Dict>;
-    privatePostOrder (params?: {}): Promise<Dict>;
-    privatePostOrderCancelReplace (params?: {}): Promise<Dict>;
-    privatePostOrderTest (params?: {}): Promise<Dict>;
-    privateDeleteOpenOrders (params?: {}): Promise<List>;
-    privateDeleteOrderList (params?: {}): Promise<Dict>;
-    privateDeleteOrder (params?: {}): Promise<Dict>;
-    papiGetPing (params?: {}): Promise<Dict>;
-    papiGetUmOrder (params?: {}): Promise<Dict>;
-    papiGetUmOpenOrder (params?: {}): Promise<Dict>;
-    papiGetUmOpenOrders (params?: {}): Promise<List>;
-    papiGetUmAllOrders (params?: {}): Promise<List>;
-    papiGetCmOrder (params?: {}): Promise<Dict>;
-    papiGetCmOpenOrder (params?: {}): Promise<Dict>;
-    papiGetCmOpenOrders (params?: {}): Promise<List>;
-    papiGetCmAllOrders (params?: {}): Promise<List>;
-    papiGetUmConditionalOpenOrder (params?: {}): Promise<Dict>;
-    papiGetUmConditionalOpenOrders (params?: {}): Promise<List>;
-    papiGetUmConditionalOrderHistory (params?: {}): Promise<Dict>;
-    papiGetUmConditionalAllOrders (params?: {}): Promise<List>;
-    papiGetCmConditionalOpenOrder (params?: {}): Promise<Dict>;
-    papiGetCmConditionalOpenOrders (params?: {}): Promise<List>;
-    papiGetCmConditionalOrderHistory (params?: {}): Promise<Dict>;
-    papiGetCmConditionalAllOrders (params?: {}): Promise<List>;
-    papiGetMarginOrder (params?: {}): Promise<Dict>;
-    papiGetMarginOpenOrders (params?: {}): Promise<List>;
-    papiGetMarginAllOrders (params?: {}): Promise<List>;
-    papiGetMarginOrderList (params?: {}): Promise<Dict>;
-    papiGetMarginAllOrderList (params?: {}): Promise<List>;
-    papiGetMarginOpenOrderList (params?: {}): Promise<List>;
-    papiGetMarginMyTrades (params?: {}): Promise<List>;
-    papiGetBalance (params?: {}): Promise<List>;
-    papiGetAccount (params?: {}): Promise<Dict>;
-    papiGetMarginMaxBorrowable (params?: {}): Promise<Dict>;
-    papiGetMarginMaxWithdraw (params?: {}): Promise<Dict>;
-    papiGetUmPositionRisk (params?: {}): Promise<List>;
-    papiGetCmPositionRisk (params?: {}): Promise<List>;
-    papiGetUmPositionSideDual (params?: {}): Promise<Dict>;
-    papiGetCmPositionSideDual (params?: {}): Promise<Dict>;
-    papiGetUmUserTrades (params?: {}): Promise<List>;
-    papiGetCmUserTrades (params?: {}): Promise<List>;
-    papiGetUmLeverageBracket (params?: {}): Promise<List>;
-    papiGetCmLeverageBracket (params?: {}): Promise<List>;
-    papiGetMarginForceOrders (params?: {}): Promise<Dict>;
-    papiGetUmForceOrders (params?: {}): Promise<Dict>;
-    papiGetCmForceOrders (params?: {}): Promise<Dict>;
-    papiGetUmApiTradingStatus (params?: {}): Promise<Dict>;
-    papiGetUmCommissionRate (params?: {}): Promise<Dict>;
-    papiGetCmCommissionRate (params?: {}): Promise<Dict>;
-    papiGetMarginMarginLoan (params?: {}): Promise<Dict>;
-    papiGetMarginRepayLoan (params?: {}): Promise<Dict>;
-    papiGetMarginMarginInterestHistory (params?: {}): Promise<Dict>;
-    papiGetPortfolioInterestHistory (params?: {}): Promise<List>;
-    papiGetUmIncome (params?: {}): Promise<List>;
-    papiGetCmIncome (params?: {}): Promise<List>;
-    papiGetUmAccount (params?: {}): Promise<Dict>;
-    papiGetCmAccount (params?: {}): Promise<Dict>;
-    papiGetRepayFuturesSwitch (params?: {}): Promise<Dict>;
-    papiGetUmAdlQuantile (params?: {}): Promise<List>;
-    papiGetCmAdlQuantile (params?: {}): Promise<List>;
-    papiGetUmTradeAsyn (params?: {}): Promise<Dict>;
-    papiGetUmTradeAsynId (params?: {}): Promise<Dict>;
-    papiGetUmOrderAsyn (params?: {}): Promise<Dict>;
-    papiGetUmOrderAsynId (params?: {}): Promise<Dict>;
-    papiGetUmIncomeAsyn (params?: {}): Promise<Dict>;
-    papiGetUmIncomeAsynId (params?: {}): Promise<Dict>;
-    papiGetUmOrderAmendment (params?: {}): Promise<List>;
-    papiGetCmOrderAmendment (params?: {}): Promise<List>;
-    papiGetUmFeeBurn (params?: {}): Promise<Dict>;
-    papiGetUmAccountConfig (params?: {}): Promise<Dict>;
-    papiGetUmSymbolConfig (params?: {}): Promise<List>;
-    papiGetCmAccountConfig (params?: {}): Promise<Dict>;
-    papiGetCmSymbolConfig (params?: {}): Promise<Dict>;
-    papiGetRateLimitOrder (params?: {}): Promise<List>;
-    papiPostUmOrder (params?: {}): Promise<Dict>;
-    papiPostUmConditionalOrder (params?: {}): Promise<Dict>;
-    papiPostCmOrder (params?: {}): Promise<Dict>;
-    papiPostCmConditionalOrder (params?: {}): Promise<Dict>;
-    papiPostMarginOrder (params?: {}): Promise<Dict>;
-    papiPostMarginLoan (params?: {}): Promise<Dict>;
-    papiPostRepayLoan (params?: {}): Promise<Dict>;
-    papiPostMarginOrderOco (params?: {}): Promise<Dict>;
-    papiPostUmLeverage (params?: {}): Promise<Dict>;
-    papiPostCmLeverage (params?: {}): Promise<Dict>;
-    papiPostUmPositionSideDual (params?: {}): Promise<Dict>;
-    papiPostCmPositionSideDual (params?: {}): Promise<Dict>;
-    papiPostAutoCollection (params?: {}): Promise<Dict>;
-    papiPostBnbTransfer (params?: {}): Promise<Dict>;
-    papiPostRepayFuturesSwitch (params?: {}): Promise<Dict>;
-    papiPostRepayFuturesNegativeBalance (params?: {}): Promise<Dict>;
-    papiPostListenKey (params?: {}): Promise<Dict>;
-    papiPostAssetCollection (params?: {}): Promise<Dict>;
-    papiPostMarginRepayDebt (params?: {}): Promise<Dict>;
-    papiPostUmFeeBurn (params?: {}): Promise<Dict>;
-    papiPostUmStockContract (params?: {}): Promise<Dict>;
-    papiPutListenKey (params?: {}): Promise<Dict>;
-    papiPutUmOrder (params?: {}): Promise<Dict>;
-    papiPutCmOrder (params?: {}): Promise<Dict>;
-    papiDeleteUmOrder (params?: {}): Promise<Dict>;
-    papiDeleteUmConditionalOrder (params?: {}): Promise<Dict>;
-    papiDeleteUmAllOpenOrders (params?: {}): Promise<List>;
-    papiDeleteUmConditionalAllOpenOrders (params?: {}): Promise<List>;
-    papiDeleteCmOrder (params?: {}): Promise<Dict>;
-    papiDeleteCmConditionalOrder (params?: {}): Promise<Dict>;
-    papiDeleteCmAllOpenOrders (params?: {}): Promise<List>;
-    papiDeleteCmConditionalAllOpenOrders (params?: {}): Promise<List>;
-    papiDeleteMarginOrder (params?: {}): Promise<Dict>;
-    papiDeleteMarginAllOpenOrders (params?: {}): Promise<List>;
-    papiDeleteMarginOrderList (params?: {}): Promise<Dict>;
-    papiDeleteListenKey (params?: {}): Promise<Dict>;
-    papiV2GetUmAccount (params?: {}): Promise<Dict>;
-}
-abstract class Exchange extends _Exchange {}
+abstract class Exchange extends _Exchange {
+    sapiGetCopyTradingFuturesUserStatus (params = {}): Promise<Dict> {
+        return this.request ('copyTrading/futures/userStatus', [ 'sapi' ], 'GET', params, { 'cost': 2 });
+    }
 
-export default Exchange
+    sapiGetCopyTradingFuturesLeadSymbol (params = {}): Promise<Dict> {
+        return this.request ('copyTrading/futures/leadSymbol', [ 'sapi' ], 'GET', params, { 'cost': 2 });
+    }
+
+    sapiGetSystemStatus (params = {}): Promise<Dict> {
+        return this.request ('system/status', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetAccountSnapshot (params = {}): Promise<Dict> {
+        return this.request ('accountSnapshot', [ 'sapi' ], 'GET', params, { 'cost': 240 });
+    }
+
+    sapiGetAccountInfo (params = {}): Promise<Dict> {
+        return this.request ('account/info', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetMarginAsset (params = {}): Promise<Dict> {
+        return this.request ('margin/asset', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetMarginPair (params = {}): Promise<Dict> {
+        return this.request ('margin/pair', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetMarginAllAssets (params = {}): Promise<List> {
+        return this.request ('margin/allAssets', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetMarginAllPairs (params = {}): Promise<List> {
+        return this.request ('margin/allPairs', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetMarginPriceIndex (params = {}): Promise<Dict> {
+        return this.request ('margin/priceIndex', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetSpotDelistSchedule (params = {}): Promise<List> {
+        return this.request ('spot/delist-schedule', [ 'sapi' ], 'GET', params, { 'cost': 10 });
+    }
+
+    sapiGetAssetAssetDividend (params = {}): Promise<Dict> {
+        return this.request ('asset/assetDividend', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetAssetDribblet (params = {}): Promise<Dict> {
+        return this.request ('asset/dribblet', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetAssetTransfer (params = {}): Promise<Dict> {
+        return this.request ('asset/transfer', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetAssetAssetDetail (params = {}): Promise<Dict> {
+        return this.request ('asset/assetDetail', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetAssetTradeFee (params = {}): Promise<Dict> {
+        return this.request ('asset/tradeFee', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetAssetLedgerTransferCloudMiningQueryByPage (params = {}): Promise<Dict> {
+        return this.request ('asset/ledger-transfer/cloud-mining/queryByPage', [ 'sapi' ], 'GET', params, { 'cost': 4.0002 });
+    }
+
+    sapiGetAssetConvertTransferQueryByPage (params = {}): Promise<Dict> {
+        return this.request ('asset/convert-transfer/queryByPage', [ 'sapi' ], 'GET', params, { 'cost': 0.033335 });
+    }
+
+    sapiGetAssetWalletBalance (params = {}): Promise<List> {
+        return this.request ('asset/wallet/balance', [ 'sapi' ], 'GET', params, { 'cost': 6 });
+    }
+
+    sapiGetAssetCustodyTransferHistory (params = {}): Promise<Dict> {
+        return this.request ('asset/custody/transfer-history', [ 'sapi' ], 'GET', params, { 'cost': 6 });
+    }
+
+    sapiGetMarginBorrowRepay (params = {}): Promise<Dict> {
+        return this.request ('margin/borrow-repay', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetMarginLoan (params = {}): Promise<Dict> {
+        return this.request ('margin/loan', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetMarginRepay (params = {}): Promise<Dict> {
+        return this.request ('margin/repay', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetMarginAccount (params = {}): Promise<Dict> {
+        return this.request ('margin/account', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetMarginTransfer (params = {}): Promise<Dict> {
+        return this.request ('margin/transfer', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetMarginInterestHistory (params = {}): Promise<Dict> {
+        return this.request ('margin/interestHistory', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetMarginForceLiquidationRec (params = {}): Promise<Dict> {
+        return this.request ('margin/forceLiquidationRec', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetMarginOrder (params = {}): Promise<Dict> {
+        return this.request ('margin/order', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetMarginOpenOrders (params = {}): Promise<List> {
+        return this.request ('margin/openOrders', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetMarginAllOrders (params = {}): Promise<List> {
+        return this.request ('margin/allOrders', [ 'sapi' ], 'GET', params, { 'cost': 20 });
+    }
+
+    sapiGetMarginMyTrades (params = {}): Promise<List> {
+        return this.request ('margin/myTrades', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetMarginMaxBorrowable (params = {}): Promise<Dict> {
+        return this.request ('margin/maxBorrowable', [ 'sapi' ], 'GET', params, { 'cost': 5 });
+    }
+
+    sapiGetMarginMaxTransferable (params = {}): Promise<Dict> {
+        return this.request ('margin/maxTransferable', [ 'sapi' ], 'GET', params, { 'cost': 5 });
+    }
+
+    sapiGetMarginTradeCoeff (params = {}): Promise<Dict> {
+        return this.request ('margin/tradeCoeff', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetMarginIsolatedTransfer (params = {}): Promise<Dict> {
+        return this.request ('margin/isolated/transfer', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetMarginIsolatedAccount (params = {}): Promise<Dict> {
+        return this.request ('margin/isolated/account', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetMarginIsolatedPair (params = {}): Promise<Dict> {
+        return this.request ('margin/isolated/pair', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetMarginIsolatedAllPairs (params = {}): Promise<List> {
+        return this.request ('margin/isolated/allPairs', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetMarginIsolatedAccountLimit (params = {}): Promise<Dict> {
+        return this.request ('margin/isolated/accountLimit', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetMarginInterestRateHistory (params = {}): Promise<List> {
+        return this.request ('margin/interestRateHistory', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetMarginOrderList (params = {}): Promise<Dict> {
+        return this.request ('margin/orderList', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetMarginAllOrderList (params = {}): Promise<List> {
+        return this.request ('margin/allOrderList', [ 'sapi' ], 'GET', params, { 'cost': 20 });
+    }
+
+    sapiGetMarginOpenOrderList (params = {}): Promise<List> {
+        return this.request ('margin/openOrderList', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetMarginCrossMarginData (params = {}): Promise<List> {
+        return this.request ('margin/crossMarginData', [ 'sapi' ], 'GET', params, { 'cost': 0.1, 'noCoin': 0.5 });
+    }
+
+    sapiGetMarginIsolatedMarginData (params = {}): Promise<List> {
+        return this.request ('margin/isolatedMarginData', [ 'sapi' ], 'GET', params, { 'cost': 0.1, 'noCoin': 1 });
+    }
+
+    sapiGetMarginIsolatedMarginTier (params = {}): Promise<List> {
+        return this.request ('margin/isolatedMarginTier', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetMarginRateLimitOrder (params = {}): Promise<List> {
+        return this.request ('margin/rateLimit/order', [ 'sapi' ], 'GET', params, { 'cost': 2 });
+    }
+
+    sapiGetMarginDribblet (params = {}): Promise<Dict> {
+        return this.request ('margin/dribblet', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetMarginDust (params = {}): Promise<Dict> {
+        return this.request ('margin/dust', [ 'sapi' ], 'GET', params, { 'cost': 20.001 });
+    }
+
+    sapiGetMarginCrossMarginCollateralRatio (params = {}): Promise<List> {
+        return this.request ('margin/crossMarginCollateralRatio', [ 'sapi' ], 'GET', params, { 'cost': 10 });
+    }
+
+    sapiGetMarginExchangeSmallLiability (params = {}): Promise<List> {
+        return this.request ('margin/exchange-small-liability', [ 'sapi' ], 'GET', params, { 'cost': 0.6667 });
+    }
+
+    sapiGetMarginExchangeSmallLiabilityHistory (params = {}): Promise<Dict> {
+        return this.request ('margin/exchange-small-liability-history', [ 'sapi' ], 'GET', params, { 'cost': 0.6667 });
+    }
+
+    sapiGetMarginNextHourlyInterestRate (params = {}): Promise<List> {
+        return this.request ('margin/next-hourly-interest-rate', [ 'sapi' ], 'GET', params, { 'cost': 0.6667 });
+    }
+
+    sapiGetMarginCapitalFlow (params = {}): Promise<List> {
+        return this.request ('margin/capital-flow', [ 'sapi' ], 'GET', params, { 'cost': 10 });
+    }
+
+    sapiGetMarginDelistSchedule (params = {}): Promise<List> {
+        return this.request ('margin/delist-schedule', [ 'sapi' ], 'GET', params, { 'cost': 10 });
+    }
+
+    sapiGetMarginAvailableInventory (params = {}): Promise<Dict> {
+        return this.request ('margin/available-inventory', [ 'sapi' ], 'GET', params, { 'cost': 0.3334 });
+    }
+
+    sapiGetMarginLeverageBracket (params = {}): Promise<List> {
+        return this.request ('margin/leverageBracket', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetLoanVipLoanableData (params = {}): Promise<Dict> {
+        return this.request ('loan/vip/loanable/data', [ 'sapi' ], 'GET', params, { 'cost': 40 });
+    }
+
+    sapiGetLoanVipCollateralData (params = {}): Promise<Dict> {
+        return this.request ('loan/vip/collateral/data', [ 'sapi' ], 'GET', params, { 'cost': 40 });
+    }
+
+    sapiGetLoanVipRequestData (params = {}): Promise<Dict> {
+        return this.request ('loan/vip/request/data', [ 'sapi' ], 'GET', params, { 'cost': 2.6668 });
+    }
+
+    sapiGetLoanVipRequestInterestRate (params = {}): Promise<List> {
+        return this.request ('loan/vip/request/interestRate', [ 'sapi' ], 'GET', params, { 'cost': 2.6668 });
+    }
+
+    sapiGetLoanIncome (params = {}): Promise<List> {
+        return this.request ('loan/income', [ 'sapi' ], 'GET', params, { 'cost': 40.002 });
+    }
+
+    sapiGetLoanOngoingOrders (params = {}): Promise<Dict> {
+        return this.request ('loan/ongoing/orders', [ 'sapi' ], 'GET', params, { 'cost': 40 });
+    }
+
+    sapiGetLoanLtvAdjustmentHistory (params = {}): Promise<Dict> {
+        return this.request ('loan/ltv/adjustment/history', [ 'sapi' ], 'GET', params, { 'cost': 40 });
+    }
+
+    sapiGetLoanBorrowHistory (params = {}): Promise<Dict> {
+        return this.request ('loan/borrow/history', [ 'sapi' ], 'GET', params, { 'cost': 40 });
+    }
+
+    sapiGetLoanRepayHistory (params = {}): Promise<Dict> {
+        return this.request ('loan/repay/history', [ 'sapi' ], 'GET', params, { 'cost': 40 });
+    }
+
+    sapiGetLoanLoanableData (params = {}): Promise<Dict> {
+        return this.request ('loan/loanable/data', [ 'sapi' ], 'GET', params, { 'cost': 40 });
+    }
+
+    sapiGetLoanCollateralData (params = {}): Promise<Dict> {
+        return this.request ('loan/collateral/data', [ 'sapi' ], 'GET', params, { 'cost': 40 });
+    }
+
+    sapiGetLoanRepayCollateralRate (params = {}): Promise<Dict> {
+        return this.request ('loan/repay/collateral/rate', [ 'sapi' ], 'GET', params, { 'cost': 600 });
+    }
+
+    sapiGetLoanFlexibleOngoingOrders (params = {}): Promise<Dict> {
+        return this.request ('loan/flexible/ongoing/orders', [ 'sapi' ], 'GET', params, { 'cost': 30 });
+    }
+
+    sapiGetLoanFlexibleBorrowHistory (params = {}): Promise<Dict> {
+        return this.request ('loan/flexible/borrow/history', [ 'sapi' ], 'GET', params, { 'cost': 40 });
+    }
+
+    sapiGetLoanFlexibleRepayHistory (params = {}): Promise<Dict> {
+        return this.request ('loan/flexible/repay/history', [ 'sapi' ], 'GET', params, { 'cost': 40 });
+    }
+
+    sapiGetLoanFlexibleLtvAdjustmentHistory (params = {}): Promise<Dict> {
+        return this.request ('loan/flexible/ltv/adjustment/history', [ 'sapi' ], 'GET', params, { 'cost': 40 });
+    }
+
+    sapiGetLoanVipOngoingOrders (params = {}): Promise<Dict> {
+        return this.request ('loan/vip/ongoing/orders', [ 'sapi' ], 'GET', params, { 'cost': 40 });
+    }
+
+    sapiGetLoanVipRepayHistory (params = {}): Promise<Dict> {
+        return this.request ('loan/vip/repay/history', [ 'sapi' ], 'GET', params, { 'cost': 40 });
+    }
+
+    sapiGetLoanVipCollateralAccount (params = {}): Promise<Dict> {
+        return this.request ('loan/vip/collateral/account', [ 'sapi' ], 'GET', params, { 'cost': 600 });
+    }
+
+    sapiGetFiatOrders (params = {}): Promise<Dict> {
+        return this.request ('fiat/orders', [ 'sapi' ], 'GET', params, { 'cost': 600.03 });
+    }
+
+    sapiGetFiatPayments (params = {}): Promise<Dict> {
+        return this.request ('fiat/payments', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetFuturesTransfer (params = {}): Promise<Dict> {
+        return this.request ('futures/transfer', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetFuturesHistDataLink (params = {}): Promise<Dict> {
+        return this.request ('futures/histDataLink', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetRebateTaxQuery (params = {}): Promise<Dict> {
+        return this.request ('rebate/taxQuery', [ 'sapi' ], 'GET', params, { 'cost': 80.004 });
+    }
+
+    sapiGetCapitalConfigGetall (params = {}): Promise<List> {
+        return this.request ('capital/config/getall', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetCapitalDepositAddress (params = {}): Promise<Dict> {
+        return this.request ('capital/deposit/address', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetCapitalDepositAddressList (params = {}): Promise<List> {
+        return this.request ('capital/deposit/address/list', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetCapitalDepositHisrec (params = {}): Promise<List> {
+        return this.request ('capital/deposit/hisrec', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetCapitalDepositSubAddress (params = {}): Promise<Dict> {
+        return this.request ('capital/deposit/subAddress', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetCapitalDepositSubHisrec (params = {}): Promise<List> {
+        return this.request ('capital/deposit/subHisrec', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetCapitalWithdrawHistory (params = {}): Promise<List> {
+        return this.request ('capital/withdraw/history', [ 'sapi' ], 'GET', params, { 'cost': 2 });
+    }
+
+    sapiGetCapitalWithdrawAddressList (params = {}): Promise<List> {
+        return this.request ('capital/withdraw/address/list', [ 'sapi' ], 'GET', params, { 'cost': 10 });
+    }
+
+    sapiGetCapitalContractConvertibleCoins (params = {}): Promise<Dict> {
+        return this.request ('capital/contract/convertible-coins', [ 'sapi' ], 'GET', params, { 'cost': 4.0002 });
+    }
+
+    sapiGetConvertTradeFlow (params = {}): Promise<Dict> {
+        return this.request ('convert/tradeFlow', [ 'sapi' ], 'GET', params, { 'cost': 20.001 });
+    }
+
+    sapiGetConvertExchangeInfo (params = {}): Promise<List> {
+        return this.request ('convert/exchangeInfo', [ 'sapi' ], 'GET', params, { 'cost': 50 });
+    }
+
+    sapiGetConvertAssetInfo (params = {}): Promise<List> {
+        return this.request ('convert/assetInfo', [ 'sapi' ], 'GET', params, { 'cost': 10 });
+    }
+
+    sapiGetConvertOrderStatus (params = {}): Promise<Dict> {
+        return this.request ('convert/orderStatus', [ 'sapi' ], 'GET', params, { 'cost': 0.6667 });
+    }
+
+    sapiGetConvertLimitQueryOpenOrders (params = {}): Promise<Dict> {
+        return this.request ('convert/limit/queryOpenOrders', [ 'sapi' ], 'GET', params, { 'cost': 20.001 });
+    }
+
+    sapiGetAccountStatus (params = {}): Promise<Dict> {
+        return this.request ('account/status', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetAccountApiTradingStatus (params = {}): Promise<Dict> {
+        return this.request ('account/apiTradingStatus', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetAccountApiRestrictionsIpRestriction (params = {}): Promise<Dict> {
+        return this.request ('account/apiRestrictions/ipRestriction', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetBnbBurn (params = {}): Promise<Dict> {
+        return this.request ('bnbBurn', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetSubAccountFuturesAccount (params = {}): Promise<Dict> {
+        return this.request ('sub-account/futures/account', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetSubAccountFuturesAccountSummary (params = {}): Promise<Dict> {
+        return this.request ('sub-account/futures/accountSummary', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetSubAccountFuturesPositionRisk (params = {}): Promise<List> {
+        return this.request ('sub-account/futures/positionRisk', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetSubAccountFuturesInternalTransfer (params = {}): Promise<Dict> {
+        return this.request ('sub-account/futures/internalTransfer', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetSubAccountList (params = {}): Promise<Dict> {
+        return this.request ('sub-account/list', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetSubAccountMarginAccount (params = {}): Promise<Dict> {
+        return this.request ('sub-account/margin/account', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetSubAccountMarginAccountSummary (params = {}): Promise<Dict> {
+        return this.request ('sub-account/margin/accountSummary', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetSubAccountSpotSummary (params = {}): Promise<Dict> {
+        return this.request ('sub-account/spotSummary', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetSubAccountStatus (params = {}): Promise<List> {
+        return this.request ('sub-account/status', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetSubAccountSubTransferHistory (params = {}): Promise<List> {
+        return this.request ('sub-account/sub/transfer/history', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetSubAccountTransferSubUserHistory (params = {}): Promise<List> {
+        return this.request ('sub-account/transfer/subUserHistory', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetSubAccountUniversalTransfer (params = {}): Promise<Dict> {
+        return this.request ('sub-account/universalTransfer', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetSubAccountApiRestrictionsIpRestrictionThirdPartyList (params = {}): Promise<Dict> {
+        return this.request ('sub-account/apiRestrictions/ipRestriction/thirdPartyList', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetSubAccountTransactionStatistics (params = {}): Promise<Dict> {
+        return this.request ('sub-account/transaction-statistics', [ 'sapi' ], 'GET', params, { 'cost': 0.40002 });
+    }
+
+    sapiGetSubAccountSubAccountApiIpRestriction (params = {}): Promise<Dict> {
+        return this.request ('sub-account/subAccountApi/ipRestriction', [ 'sapi' ], 'GET', params, { 'cost': 20.001 });
+    }
+
+    sapiGetManagedSubaccountAsset (params = {}): Promise<List> {
+        return this.request ('managed-subaccount/asset', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetManagedSubaccountAccountSnapshot (params = {}): Promise<Dict> {
+        return this.request ('managed-subaccount/accountSnapshot', [ 'sapi' ], 'GET', params, { 'cost': 240 });
+    }
+
+    sapiGetManagedSubaccountQueryTransLogForInvestor (params = {}): Promise<Dict> {
+        return this.request ('managed-subaccount/queryTransLogForInvestor', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetManagedSubaccountQueryTransLogForTradeParent (params = {}): Promise<Dict> {
+        return this.request ('managed-subaccount/queryTransLogForTradeParent', [ 'sapi' ], 'GET', params, { 'cost': 0.40002 });
+    }
+
+    sapiGetManagedSubaccountFetchFutureAsset (params = {}): Promise<Dict> {
+        return this.request ('managed-subaccount/fetch-future-asset', [ 'sapi' ], 'GET', params, { 'cost': 0.40002 });
+    }
+
+    sapiGetManagedSubaccountMarginAsset (params = {}): Promise<Dict> {
+        return this.request ('managed-subaccount/marginAsset', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetManagedSubaccountInfo (params = {}): Promise<Dict> {
+        return this.request ('managed-subaccount/info', [ 'sapi' ], 'GET', params, { 'cost': 0.40002 });
+    }
+
+    sapiGetManagedSubaccountDepositAddress (params = {}): Promise<Dict> {
+        return this.request ('managed-subaccount/deposit/address', [ 'sapi' ], 'GET', params, { 'cost': 0.006667 });
+    }
+
+    sapiGetManagedSubaccountQueryTransLog (params = {}): Promise<Dict> {
+        return this.request ('managed-subaccount/query-trans-log', [ 'sapi' ], 'GET', params, { 'cost': 0.40002 });
+    }
+
+    sapiGetLendingDailyProductList (params = {}): Promise<List> {
+        return this.request ('lending/daily/product/list', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetLendingDailyUserLeftQuota (params = {}): Promise<Dict> {
+        return this.request ('lending/daily/userLeftQuota', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetLendingDailyUserRedemptionQuota (params = {}): Promise<Dict> {
+        return this.request ('lending/daily/userRedemptionQuota', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetLendingDailyTokenPosition (params = {}): Promise<List> {
+        return this.request ('lending/daily/token/position', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetLendingUnionAccount (params = {}): Promise<Dict> {
+        return this.request ('lending/union/account', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetLendingUnionPurchaseRecord (params = {}): Promise<List> {
+        return this.request ('lending/union/purchaseRecord', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetLendingUnionRedemptionRecord (params = {}): Promise<Dict> {
+        return this.request ('lending/union/redemptionRecord', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetLendingUnionInterestHistory (params = {}): Promise<List> {
+        return this.request ('lending/union/interestHistory', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetLendingProjectList (params = {}): Promise<List> {
+        return this.request ('lending/project/list', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetLendingProjectPositionList (params = {}): Promise<List> {
+        return this.request ('lending/project/position/list', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetEthStakingEthHistoryStakingHistory (params = {}): Promise<Dict> {
+        return this.request ('eth-staking/eth/history/stakingHistory', [ 'sapi' ], 'GET', params, { 'cost': 15 });
+    }
+
+    sapiGetEthStakingEthHistoryRedemptionHistory (params = {}): Promise<Dict> {
+        return this.request ('eth-staking/eth/history/redemptionHistory', [ 'sapi' ], 'GET', params, { 'cost': 15 });
+    }
+
+    sapiGetEthStakingEthHistoryRewardsHistory (params = {}): Promise<Dict> {
+        return this.request ('eth-staking/eth/history/rewardsHistory', [ 'sapi' ], 'GET', params, { 'cost': 15 });
+    }
+
+    sapiGetEthStakingEthQuota (params = {}): Promise<Dict> {
+        return this.request ('eth-staking/eth/quota', [ 'sapi' ], 'GET', params, { 'cost': 15 });
+    }
+
+    sapiGetEthStakingEthHistoryRateHistory (params = {}): Promise<Dict> {
+        return this.request ('eth-staking/eth/history/rateHistory', [ 'sapi' ], 'GET', params, { 'cost': 15 });
+    }
+
+    sapiGetEthStakingAccount (params = {}): Promise<Dict> {
+        return this.request ('eth-staking/account', [ 'sapi' ], 'GET', params, { 'cost': 15 });
+    }
+
+    sapiGetEthStakingWbethHistoryWrapHistory (params = {}): Promise<Dict> {
+        return this.request ('eth-staking/wbeth/history/wrapHistory', [ 'sapi' ], 'GET', params, { 'cost': 15 });
+    }
+
+    sapiGetEthStakingWbethHistoryUnwrapHistory (params = {}): Promise<Dict> {
+        return this.request ('eth-staking/wbeth/history/unwrapHistory', [ 'sapi' ], 'GET', params, { 'cost': 15 });
+    }
+
+    sapiGetEthStakingEthHistoryWbethRewardsHistory (params = {}): Promise<Dict> {
+        return this.request ('eth-staking/eth/history/wbethRewardsHistory', [ 'sapi' ], 'GET', params, { 'cost': 15 });
+    }
+
+    sapiGetSolStakingSolHistoryStakingHistory (params = {}): Promise<Dict> {
+        return this.request ('sol-staking/sol/history/stakingHistory', [ 'sapi' ], 'GET', params, { 'cost': 15 });
+    }
+
+    sapiGetSolStakingSolHistoryRedemptionHistory (params = {}): Promise<Dict> {
+        return this.request ('sol-staking/sol/history/redemptionHistory', [ 'sapi' ], 'GET', params, { 'cost': 15 });
+    }
+
+    sapiGetSolStakingSolHistoryBnsolRewardsHistory (params = {}): Promise<Dict> {
+        return this.request ('sol-staking/sol/history/bnsolRewardsHistory', [ 'sapi' ], 'GET', params, { 'cost': 15 });
+    }
+
+    sapiGetSolStakingSolHistoryRateHistory (params = {}): Promise<Dict> {
+        return this.request ('sol-staking/sol/history/rateHistory', [ 'sapi' ], 'GET', params, { 'cost': 15 });
+    }
+
+    sapiGetSolStakingAccount (params = {}): Promise<Dict> {
+        return this.request ('sol-staking/account', [ 'sapi' ], 'GET', params, { 'cost': 15 });
+    }
+
+    sapiGetSolStakingSolQuota (params = {}): Promise<Dict> {
+        return this.request ('sol-staking/sol/quota', [ 'sapi' ], 'GET', params, { 'cost': 15 });
+    }
+
+    sapiGetMiningPubAlgoList (params = {}): Promise<Dict> {
+        return this.request ('mining/pub/algoList', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetMiningPubCoinList (params = {}): Promise<Dict> {
+        return this.request ('mining/pub/coinList', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetMiningWorkerDetail (params = {}): Promise<Dict> {
+        return this.request ('mining/worker/detail', [ 'sapi' ], 'GET', params, { 'cost': 0.5 });
+    }
+
+    sapiGetMiningWorkerList (params = {}): Promise<Dict> {
+        return this.request ('mining/worker/list', [ 'sapi' ], 'GET', params, { 'cost': 0.5 });
+    }
+
+    sapiGetMiningPaymentList (params = {}): Promise<Dict> {
+        return this.request ('mining/payment/list', [ 'sapi' ], 'GET', params, { 'cost': 0.5 });
+    }
+
+    sapiGetMiningStatisticsUserStatus (params = {}): Promise<Dict> {
+        return this.request ('mining/statistics/user/status', [ 'sapi' ], 'GET', params, { 'cost': 0.5 });
+    }
+
+    sapiGetMiningStatisticsUserList (params = {}): Promise<Dict> {
+        return this.request ('mining/statistics/user/list', [ 'sapi' ], 'GET', params, { 'cost': 0.5 });
+    }
+
+    sapiGetMiningPaymentUid (params = {}): Promise<Dict> {
+        return this.request ('mining/payment/uid', [ 'sapi' ], 'GET', params, { 'cost': 0.5 });
+    }
+
+    sapiGetBswapPools (params = {}): Promise<List> {
+        return this.request ('bswap/pools', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetBswapLiquidity (params = {}): Promise<List> {
+        return this.request ('bswap/liquidity', [ 'sapi' ], 'GET', params, { 'cost': 0.1, 'noPoolId': 1 });
+    }
+
+    sapiGetBswapLiquidityOps (params = {}): Promise<List> {
+        return this.request ('bswap/liquidityOps', [ 'sapi' ], 'GET', params, { 'cost': 20.001 });
+    }
+
+    sapiGetBswapQuote (params = {}): Promise<Dict> {
+        return this.request ('bswap/quote', [ 'sapi' ], 'GET', params, { 'cost': 1.00005 });
+    }
+
+    sapiGetBswapSwap (params = {}): Promise<List> {
+        return this.request ('bswap/swap', [ 'sapi' ], 'GET', params, { 'cost': 20.001 });
+    }
+
+    sapiGetBswapPoolConfigure (params = {}): Promise<List> {
+        return this.request ('bswap/poolConfigure', [ 'sapi' ], 'GET', params, { 'cost': 1.00005 });
+    }
+
+    sapiGetBswapAddLiquidityPreview (params = {}): Promise<Dict> {
+        return this.request ('bswap/addLiquidityPreview', [ 'sapi' ], 'GET', params, { 'cost': 1.00005 });
+    }
+
+    sapiGetBswapRemoveLiquidityPreview (params = {}): Promise<Dict> {
+        return this.request ('bswap/removeLiquidityPreview', [ 'sapi' ], 'GET', params, { 'cost': 1.00005 });
+    }
+
+    sapiGetBswapUnclaimedRewards (params = {}): Promise<Dict> {
+        return this.request ('bswap/unclaimedRewards', [ 'sapi' ], 'GET', params, { 'cost': 6.667 });
+    }
+
+    sapiGetBswapClaimedHistory (params = {}): Promise<List> {
+        return this.request ('bswap/claimedHistory', [ 'sapi' ], 'GET', params, { 'cost': 6.667 });
+    }
+
+    sapiGetBlvtTokenInfo (params = {}): Promise<List> {
+        return this.request ('blvt/tokenInfo', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetBlvtSubscribeRecord (params = {}): Promise<List> {
+        return this.request ('blvt/subscribe/record', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetBlvtRedeemRecord (params = {}): Promise<List> {
+        return this.request ('blvt/redeem/record', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetBlvtUserLimit (params = {}): Promise<List> {
+        return this.request ('blvt/userLimit', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetApiReferralIfNewUser (params = {}): Promise<Dict> {
+        return this.request ('apiReferral/ifNewUser', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetApiReferralCustomization (params = {}): Promise<List> {
+        return this.request ('apiReferral/customization', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetApiReferralUserCustomization (params = {}): Promise<Dict> {
+        return this.request ('apiReferral/userCustomization', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetApiReferralRebateRecentRecord (params = {}): Promise<List> {
+        return this.request ('apiReferral/rebate/recentRecord', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetApiReferralRebateHistoricalRecord (params = {}): Promise<List> {
+        return this.request ('apiReferral/rebate/historicalRecord', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetApiReferralKickbackRecentRecord (params = {}): Promise<List> {
+        return this.request ('apiReferral/kickback/recentRecord', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetApiReferralKickbackHistoricalRecord (params = {}): Promise<List> {
+        return this.request ('apiReferral/kickback/historicalRecord', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetBrokerSubAccountApi (params = {}): Promise<List> {
+        return this.request ('broker/subAccountApi', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetBrokerSubAccount (params = {}): Promise<List> {
+        return this.request ('broker/subAccount', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetBrokerSubAccountApiCommissionFutures (params = {}): Promise<List> {
+        return this.request ('broker/subAccountApi/commission/futures', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetBrokerSubAccountApiCommissionCoinFutures (params = {}): Promise<List> {
+        return this.request ('broker/subAccountApi/commission/coinFutures', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetBrokerInfo (params = {}): Promise<Dict> {
+        return this.request ('broker/info', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetBrokerTransfer (params = {}): Promise<List> {
+        return this.request ('broker/transfer', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetBrokerTransferFutures (params = {}): Promise<Dict> {
+        return this.request ('broker/transfer/futures', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetBrokerRebateRecentRecord (params = {}): Promise<List> {
+        return this.request ('broker/rebate/recentRecord', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetBrokerRebateHistoricalRecord (params = {}): Promise<List> {
+        return this.request ('broker/rebate/historicalRecord', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetBrokerSubAccountBnbBurnStatus (params = {}): Promise<Dict> {
+        return this.request ('broker/subAccount/bnbBurn/status', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetBrokerSubAccountDepositHist (params = {}): Promise<List> {
+        return this.request ('broker/subAccount/depositHist', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetBrokerSubAccountSpotSummary (params = {}): Promise<Dict> {
+        return this.request ('broker/subAccount/spotSummary', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetBrokerSubAccountMarginSummary (params = {}): Promise<Dict> {
+        return this.request ('broker/subAccount/marginSummary', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetBrokerSubAccountFuturesSummary (params = {}): Promise<Dict> {
+        return this.request ('broker/subAccount/futuresSummary', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetBrokerRebateFuturesRecentRecord (params = {}): Promise<List> {
+        return this.request ('broker/rebate/futures/recentRecord', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetBrokerSubAccountApiIpRestriction (params = {}): Promise<Dict> {
+        return this.request ('broker/subAccountApi/ipRestriction', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetBrokerUniversalTransfer (params = {}): Promise<List> {
+        return this.request ('broker/universalTransfer', [ 'sapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiGetAccountApiRestrictions (params = {}): Promise<Dict> {
+        return this.request ('account/apiRestrictions', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetC2cOrderMatchListUserOrderHistory (params = {}): Promise<Dict> {
+        return this.request ('c2c/orderMatch/listUserOrderHistory', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetNftHistoryTransactions (params = {}): Promise<Dict> {
+        return this.request ('nft/history/transactions', [ 'sapi' ], 'GET', params, { 'cost': 20.001 });
+    }
+
+    sapiGetNftHistoryDeposit (params = {}): Promise<Dict> {
+        return this.request ('nft/history/deposit', [ 'sapi' ], 'GET', params, { 'cost': 20.001 });
+    }
+
+    sapiGetNftHistoryWithdraw (params = {}): Promise<Dict> {
+        return this.request ('nft/history/withdraw', [ 'sapi' ], 'GET', params, { 'cost': 20.001 });
+    }
+
+    sapiGetNftUserGetAsset (params = {}): Promise<Dict> {
+        return this.request ('nft/user/getAsset', [ 'sapi' ], 'GET', params, { 'cost': 20.001 });
+    }
+
+    sapiGetPayTransactions (params = {}): Promise<Dict> {
+        return this.request ('pay/transactions', [ 'sapi' ], 'GET', params, { 'cost': 20.001 });
+    }
+
+    sapiGetGiftcardVerify (params = {}): Promise<Dict> {
+        return this.request ('giftcard/verify', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetGiftcardCryptographyRsaPublicKey (params = {}): Promise<Dict> {
+        return this.request ('giftcard/cryptography/rsa-public-key', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetGiftcardBuyCodeTokenLimit (params = {}): Promise<Dict> {
+        return this.request ('giftcard/buyCode/token-limit', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetAlgoSpotOpenOrders (params = {}): Promise<Dict> {
+        return this.request ('algo/spot/openOrders', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetAlgoSpotHistoricalOrders (params = {}): Promise<Dict> {
+        return this.request ('algo/spot/historicalOrders', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetAlgoSpotSubOrders (params = {}): Promise<Dict> {
+        return this.request ('algo/spot/subOrders', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetAlgoFuturesOpenOrders (params = {}): Promise<Dict> {
+        return this.request ('algo/futures/openOrders', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetAlgoFuturesHistoricalOrders (params = {}): Promise<Dict> {
+        return this.request ('algo/futures/historicalOrders', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetAlgoFuturesSubOrders (params = {}): Promise<Dict> {
+        return this.request ('algo/futures/subOrders', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetPortfolioAccount (params = {}): Promise<Dict> {
+        return this.request ('portfolio/account', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetPortfolioCollateralRate (params = {}): Promise<List> {
+        return this.request ('portfolio/collateralRate', [ 'sapi' ], 'GET', params, { 'cost': 5 });
+    }
+
+    sapiGetPortfolioPmLoan (params = {}): Promise<Dict> {
+        return this.request ('portfolio/pmLoan', [ 'sapi' ], 'GET', params, { 'cost': 3.3335 });
+    }
+
+    sapiGetPortfolioInterestHistory (params = {}): Promise<List> {
+        return this.request ('portfolio/interest-history', [ 'sapi' ], 'GET', params, { 'cost': 0.6667 });
+    }
+
+    sapiGetPortfolioAssetIndexPrice (params = {}): Promise<List> {
+        return this.request ('portfolio/asset-index-price', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetPortfolioRepayFuturesSwitch (params = {}): Promise<Dict> {
+        return this.request ('portfolio/repay-futures-switch', [ 'sapi' ], 'GET', params, { 'cost': 3 });
+    }
+
+    sapiGetPortfolioMarginAssetLeverage (params = {}): Promise<List> {
+        return this.request ('portfolio/margin-asset-leverage', [ 'sapi' ], 'GET', params, { 'cost': 5 });
+    }
+
+    sapiGetPortfolioBalance (params = {}): Promise<List> {
+        return this.request ('portfolio/balance', [ 'sapi' ], 'GET', params, { 'cost': 2 });
+    }
+
+    sapiGetPortfolioNegativeBalanceExchangeRecord (params = {}): Promise<List> {
+        return this.request ('portfolio/negative-balance-exchange-record', [ 'sapi' ], 'GET', params, { 'cost': 2 });
+    }
+
+    sapiGetPortfolioPmloanHistory (params = {}): Promise<Dict> {
+        return this.request ('portfolio/pmloan-history', [ 'sapi' ], 'GET', params, { 'cost': 5 });
+    }
+
+    sapiGetPortfolioEarnAssetBalance (params = {}): Promise<Dict> {
+        return this.request ('portfolio/earn-asset-balance', [ 'sapi' ], 'GET', params, { 'cost': 150 });
+    }
+
+    sapiGetPortfolioDeltaMode (params = {}): Promise<Dict> {
+        return this.request ('portfolio/delta-mode', [ 'sapi' ], 'GET', params, { 'cost': 150 });
+    }
+
+    sapiGetPortfolioMarginCallLevel (params = {}): Promise<Dict> {
+        return this.request ('portfolio/margin-call-level', [ 'sapi' ], 'GET', params, { 'cost': 150 });
+    }
+
+    sapiGetStakingProductList (params = {}): Promise<List> {
+        return this.request ('staking/productList', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetStakingPosition (params = {}): Promise<List> {
+        return this.request ('staking/position', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetStakingStakingRecord (params = {}): Promise<List> {
+        return this.request ('staking/stakingRecord', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetStakingPersonalLeftQuota (params = {}): Promise<List> {
+        return this.request ('staking/personalLeftQuota', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetLendingAutoInvestTargetAssetList (params = {}): Promise<Dict> {
+        return this.request ('lending/auto-invest/target-asset/list', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetLendingAutoInvestTargetAssetRoiList (params = {}): Promise<List> {
+        return this.request ('lending/auto-invest/target-asset/roi/list', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetLendingAutoInvestAllAsset (params = {}): Promise<Dict> {
+        return this.request ('lending/auto-invest/all/asset', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetLendingAutoInvestSourceAssetList (params = {}): Promise<Dict> {
+        return this.request ('lending/auto-invest/source-asset/list', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetLendingAutoInvestPlanList (params = {}): Promise<Dict> {
+        return this.request ('lending/auto-invest/plan/list', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetLendingAutoInvestPlanId (params = {}): Promise<Dict> {
+        return this.request ('lending/auto-invest/plan/id', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetLendingAutoInvestHistoryList (params = {}): Promise<List> {
+        return this.request ('lending/auto-invest/history/list', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetLendingAutoInvestIndexInfo (params = {}): Promise<Dict> {
+        return this.request ('lending/auto-invest/index/info', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetLendingAutoInvestIndexUserSummary (params = {}): Promise<Dict> {
+        return this.request ('lending/auto-invest/index/user-summary', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetLendingAutoInvestOneOffStatus (params = {}): Promise<Dict> {
+        return this.request ('lending/auto-invest/one-off/status', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetLendingAutoInvestRedeemHistory (params = {}): Promise<List> {
+        return this.request ('lending/auto-invest/redeem/history', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetLendingAutoInvestRebalanceHistory (params = {}): Promise<List> {
+        return this.request ('lending/auto-invest/rebalance/history', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetSimpleEarnFlexibleList (params = {}): Promise<Dict> {
+        return this.request ('simple-earn/flexible/list', [ 'sapi' ], 'GET', params, { 'cost': 15 });
+    }
+
+    sapiGetSimpleEarnLockedList (params = {}): Promise<Dict> {
+        return this.request ('simple-earn/locked/list', [ 'sapi' ], 'GET', params, { 'cost': 15 });
+    }
+
+    sapiGetSimpleEarnFlexiblePersonalLeftQuota (params = {}): Promise<Dict> {
+        return this.request ('simple-earn/flexible/personalLeftQuota', [ 'sapi' ], 'GET', params, { 'cost': 15 });
+    }
+
+    sapiGetSimpleEarnLockedPersonalLeftQuota (params = {}): Promise<Dict> {
+        return this.request ('simple-earn/locked/personalLeftQuota', [ 'sapi' ], 'GET', params, { 'cost': 15 });
+    }
+
+    sapiGetSimpleEarnFlexibleSubscriptionPreview (params = {}): Promise<Dict> {
+        return this.request ('simple-earn/flexible/subscriptionPreview', [ 'sapi' ], 'GET', params, { 'cost': 15 });
+    }
+
+    sapiGetSimpleEarnLockedSubscriptionPreview (params = {}): Promise<List> {
+        return this.request ('simple-earn/locked/subscriptionPreview', [ 'sapi' ], 'GET', params, { 'cost': 15 });
+    }
+
+    sapiGetSimpleEarnFlexibleHistoryRateHistory (params = {}): Promise<Dict> {
+        return this.request ('simple-earn/flexible/history/rateHistory', [ 'sapi' ], 'GET', params, { 'cost': 15 });
+    }
+
+    sapiGetSimpleEarnFlexiblePosition (params = {}): Promise<Dict> {
+        return this.request ('simple-earn/flexible/position', [ 'sapi' ], 'GET', params, { 'cost': 15 });
+    }
+
+    sapiGetSimpleEarnLockedPosition (params = {}): Promise<Dict> {
+        return this.request ('simple-earn/locked/position', [ 'sapi' ], 'GET', params, { 'cost': 15 });
+    }
+
+    sapiGetSimpleEarnAccount (params = {}): Promise<Dict> {
+        return this.request ('simple-earn/account', [ 'sapi' ], 'GET', params, { 'cost': 15 });
+    }
+
+    sapiGetSimpleEarnFlexibleHistorySubscriptionRecord (params = {}): Promise<Dict> {
+        return this.request ('simple-earn/flexible/history/subscriptionRecord', [ 'sapi' ], 'GET', params, { 'cost': 15 });
+    }
+
+    sapiGetSimpleEarnLockedHistorySubscriptionRecord (params = {}): Promise<Dict> {
+        return this.request ('simple-earn/locked/history/subscriptionRecord', [ 'sapi' ], 'GET', params, { 'cost': 15 });
+    }
+
+    sapiGetSimpleEarnFlexibleHistoryRedemptionRecord (params = {}): Promise<Dict> {
+        return this.request ('simple-earn/flexible/history/redemptionRecord', [ 'sapi' ], 'GET', params, { 'cost': 15 });
+    }
+
+    sapiGetSimpleEarnLockedHistoryRedemptionRecord (params = {}): Promise<Dict> {
+        return this.request ('simple-earn/locked/history/redemptionRecord', [ 'sapi' ], 'GET', params, { 'cost': 15 });
+    }
+
+    sapiGetSimpleEarnFlexibleHistoryRewardsRecord (params = {}): Promise<Dict> {
+        return this.request ('simple-earn/flexible/history/rewardsRecord', [ 'sapi' ], 'GET', params, { 'cost': 15 });
+    }
+
+    sapiGetSimpleEarnLockedHistoryRewardsRecord (params = {}): Promise<Dict> {
+        return this.request ('simple-earn/locked/history/rewardsRecord', [ 'sapi' ], 'GET', params, { 'cost': 15 });
+    }
+
+    sapiGetSimpleEarnFlexibleHistoryCollateralRecord (params = {}): Promise<Dict> {
+        return this.request ('simple-earn/flexible/history/collateralRecord', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetDciProductList (params = {}): Promise<Dict> {
+        return this.request ('dci/product/list', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetDciProductPositions (params = {}): Promise<Dict> {
+        return this.request ('dci/product/positions', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetDciProductAccounts (params = {}): Promise<Dict> {
+        return this.request ('dci/product/accounts', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetAccumulatorProductList (params = {}): Promise<Dict> {
+        return this.request ('accumulator/product/list', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetAccumulatorProductPositionList (params = {}): Promise<Dict> {
+        return this.request ('accumulator/product/position/list', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetAccumulatorProductSumHolding (params = {}): Promise<Dict> {
+        return this.request ('accumulator/product/sum-holding', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetEquityMarketExchangeInfo (params = {}): Promise<Dict> {
+        return this.request ('equity/market/exchangeInfo', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetEquityMarketTokenizedAssets (params = {}): Promise<Dict> {
+        return this.request ('equity/market/tokenized-assets', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetEquityMarketQuote (params = {}): Promise<Dict> {
+        return this.request ('equity/market/quote', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetEquityOrderOpenOrders (params = {}): Promise<List> {
+        return this.request ('equity/order/open-orders', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetEquityOrderHistory (params = {}): Promise<Dict> {
+        return this.request ('equity/order/history', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetEquityOrderDetail (params = {}): Promise<Dict> {
+        return this.request ('equity/order/detail', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetEquityTradeHistory (params = {}): Promise<Dict> {
+        return this.request ('equity/trade/history', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetEquityTokenizedConvertStatus (params = {}): Promise<Dict> {
+        return this.request ('equity/tokenized/convert-status', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiGetEquityTokenizedHistory (params = {}): Promise<Dict> {
+        return this.request ('equity/tokenized/history', [ 'sapi' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiPostAssetDust (params = {}): Promise<Dict> {
+        return this.request ('asset/dust', [ 'sapi' ], 'POST', params, { 'cost': 0.06667 });
+    }
+
+    sapiPostAssetDustBtc (params = {}): Promise<Dict> {
+        return this.request ('asset/dust-btc', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostAssetTransfer (params = {}): Promise<Dict> {
+        return this.request ('asset/transfer', [ 'sapi' ], 'POST', params, { 'cost': 6.0003 });
+    }
+
+    sapiPostAssetGetFundingAsset (params = {}): Promise<List> {
+        return this.request ('asset/get-funding-asset', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostAssetConvertTransfer (params = {}): Promise<Dict> {
+        return this.request ('asset/convert-transfer', [ 'sapi' ], 'POST', params, { 'cost': 0.033335 });
+    }
+
+    sapiPostAccountDisableFastWithdrawSwitch (params = {}): Promise<Dict> {
+        return this.request ('account/disableFastWithdrawSwitch', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostAccountEnableFastWithdrawSwitch (params = {}): Promise<Dict> {
+        return this.request ('account/enableFastWithdrawSwitch', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostCapitalWithdrawApply (params = {}): Promise<Dict> {
+        return this.request ('capital/withdraw/apply', [ 'sapi' ], 'POST', params, { 'cost': 4.0002 });
+    }
+
+    sapiPostCapitalContractConvertibleCoins (params = {}): Promise<Dict> {
+        return this.request ('capital/contract/convertible-coins', [ 'sapi' ], 'POST', params, { 'cost': 4.0002 });
+    }
+
+    sapiPostCapitalDepositCreditApply (params = {}): Promise<Dict> {
+        return this.request ('capital/deposit/credit-apply', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostMarginBorrowRepay (params = {}): Promise<Dict> {
+        return this.request ('margin/borrow-repay', [ 'sapi' ], 'POST', params, { 'cost': 20.001 });
+    }
+
+    sapiPostMarginTransfer (params = {}): Promise<Dict> {
+        return this.request ('margin/transfer', [ 'sapi' ], 'POST', params, { 'cost': 4.0002 });
+    }
+
+    sapiPostMarginLoan (params = {}): Promise<Dict> {
+        return this.request ('margin/loan', [ 'sapi' ], 'POST', params, { 'cost': 20.001 });
+    }
+
+    sapiPostMarginRepay (params = {}): Promise<Dict> {
+        return this.request ('margin/repay', [ 'sapi' ], 'POST', params, { 'cost': 20.001 });
+    }
+
+    sapiPostMarginOrder (params = {}): Promise<Dict> {
+        return this.request ('margin/order', [ 'sapi' ], 'POST', params, { 'cost': 0.040002 });
+    }
+
+    sapiPostMarginOrderOco (params = {}): Promise<Dict> {
+        return this.request ('margin/order/oco', [ 'sapi' ], 'POST', params, { 'cost': 0.040002 });
+    }
+
+    sapiPostMarginDust (params = {}): Promise<Dict> {
+        return this.request ('margin/dust', [ 'sapi' ], 'POST', params, { 'cost': 20.001 });
+    }
+
+    sapiPostMarginExchangeSmallLiability (params = {}): Promise<Dict> {
+        return this.request ('margin/exchange-small-liability', [ 'sapi' ], 'POST', params, { 'cost': 20.001 });
+    }
+
+    sapiPostMarginIsolatedTransfer (params = {}): Promise<Dict> {
+        return this.request ('margin/isolated/transfer', [ 'sapi' ], 'POST', params, { 'cost': 4.0002 });
+    }
+
+    sapiPostMarginIsolatedAccount (params = {}): Promise<Dict> {
+        return this.request ('margin/isolated/account', [ 'sapi' ], 'POST', params, { 'cost': 2.0001 });
+    }
+
+    sapiPostMarginMaxLeverage (params = {}): Promise<Dict> {
+        return this.request ('margin/max-leverage', [ 'sapi' ], 'POST', params, { 'cost': 300 });
+    }
+
+    sapiPostBnbBurn (params = {}): Promise<Dict> {
+        return this.request ('bnbBurn', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostSubAccountVirtualSubAccount (params = {}): Promise<Dict> {
+        return this.request ('sub-account/virtualSubAccount', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostSubAccountMarginTransfer (params = {}): Promise<Dict> {
+        return this.request ('sub-account/margin/transfer', [ 'sapi' ], 'POST', params, { 'cost': 4.0002 });
+    }
+
+    sapiPostSubAccountMarginEnable (params = {}): Promise<Dict> {
+        return this.request ('sub-account/margin/enable', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostSubAccountFuturesEnable (params = {}): Promise<Dict> {
+        return this.request ('sub-account/futures/enable', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostSubAccountFuturesTransfer (params = {}): Promise<Dict> {
+        return this.request ('sub-account/futures/transfer', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostSubAccountFuturesInternalTransfer (params = {}): Promise<Dict> {
+        return this.request ('sub-account/futures/internalTransfer', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostSubAccountTransferSubToSub (params = {}): Promise<Dict> {
+        return this.request ('sub-account/transfer/subToSub', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostSubAccountTransferSubToMaster (params = {}): Promise<Dict> {
+        return this.request ('sub-account/transfer/subToMaster', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostSubAccountUniversalTransfer (params = {}): Promise<Dict> {
+        return this.request ('sub-account/universalTransfer', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostSubAccountOptionsEnable (params = {}): Promise<Dict> {
+        return this.request ('sub-account/options/enable', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostManagedSubaccountDeposit (params = {}): Promise<Dict> {
+        return this.request ('managed-subaccount/deposit', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostManagedSubaccountWithdraw (params = {}): Promise<Dict> {
+        return this.request ('managed-subaccount/withdraw', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostUserDataStream (params = {}): Promise<Dict> {
+        return this.request ('userDataStream', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostUserDataStreamIsolated (params = {}): Promise<Dict> {
+        return this.request ('userDataStream/isolated', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostUserListenToken (params = {}): Promise<Dict> {
+        return this.request ('userListenToken', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostFuturesTransfer (params = {}): Promise<Dict> {
+        return this.request ('futures/transfer', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostLendingCustomizedFixedPurchase (params = {}): Promise<Dict> {
+        return this.request ('lending/customizedFixed/purchase', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostLendingDailyPurchase (params = {}): Promise<Dict> {
+        return this.request ('lending/daily/purchase', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostLendingDailyRedeem (params = {}): Promise<Dict> {
+        return this.request ('lending/daily/redeem', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostBswapLiquidityAdd (params = {}): Promise<Dict> {
+        return this.request ('bswap/liquidityAdd', [ 'sapi' ], 'POST', params, { 'cost': 60 });
+    }
+
+    sapiPostBswapLiquidityRemove (params = {}): Promise<Dict> {
+        return this.request ('bswap/liquidityRemove', [ 'sapi' ], 'POST', params, { 'cost': 60 });
+    }
+
+    sapiPostBswapSwap (params = {}): Promise<Dict> {
+        return this.request ('bswap/swap', [ 'sapi' ], 'POST', params, { 'cost': 60 });
+    }
+
+    sapiPostBswapClaimRewards (params = {}): Promise<Dict> {
+        return this.request ('bswap/claimRewards', [ 'sapi' ], 'POST', params, { 'cost': 6.667 });
+    }
+
+    sapiPostBlvtSubscribe (params = {}): Promise<Dict> {
+        return this.request ('blvt/subscribe', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostBlvtRedeem (params = {}): Promise<Dict> {
+        return this.request ('blvt/redeem', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostApiReferralCustomization (params = {}): Promise<Dict> {
+        return this.request ('apiReferral/customization', [ 'sapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    sapiPostApiReferralUserCustomization (params = {}): Promise<Dict> {
+        return this.request ('apiReferral/userCustomization', [ 'sapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    sapiPostApiReferralRebateHistoricalRecord (params = {}): Promise<List> {
+        return this.request ('apiReferral/rebate/historicalRecord', [ 'sapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    sapiPostApiReferralKickbackHistoricalRecord (params = {}): Promise<List> {
+        return this.request ('apiReferral/kickback/historicalRecord', [ 'sapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    sapiPostBrokerSubAccount (params = {}): Promise<Dict> {
+        return this.request ('broker/subAccount', [ 'sapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    sapiPostBrokerSubAccountMargin (params = {}): Promise<Dict> {
+        return this.request ('broker/subAccount/margin', [ 'sapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    sapiPostBrokerSubAccountFutures (params = {}): Promise<Dict> {
+        return this.request ('broker/subAccount/futures', [ 'sapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    sapiPostBrokerSubAccountApi (params = {}): Promise<Dict> {
+        return this.request ('broker/subAccountApi', [ 'sapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    sapiPostBrokerSubAccountApiPermission (params = {}): Promise<Dict> {
+        return this.request ('broker/subAccountApi/permission', [ 'sapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    sapiPostBrokerSubAccountApiCommission (params = {}): Promise<Dict> {
+        return this.request ('broker/subAccountApi/commission', [ 'sapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    sapiPostBrokerSubAccountApiCommissionFutures (params = {}): Promise<Dict> {
+        return this.request ('broker/subAccountApi/commission/futures', [ 'sapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    sapiPostBrokerSubAccountApiCommissionCoinFutures (params = {}): Promise<Dict> {
+        return this.request ('broker/subAccountApi/commission/coinFutures', [ 'sapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    sapiPostBrokerTransfer (params = {}): Promise<Dict> {
+        return this.request ('broker/transfer', [ 'sapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    sapiPostBrokerTransferFutures (params = {}): Promise<Dict> {
+        return this.request ('broker/transfer/futures', [ 'sapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    sapiPostBrokerRebateHistoricalRecord (params = {}): Promise<List> {
+        return this.request ('broker/rebate/historicalRecord', [ 'sapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    sapiPostBrokerSubAccountBnbBurnSpot (params = {}): Promise<Dict> {
+        return this.request ('broker/subAccount/bnbBurn/spot', [ 'sapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    sapiPostBrokerSubAccountBnbBurnMarginInterest (params = {}): Promise<Dict> {
+        return this.request ('broker/subAccount/bnbBurn/marginInterest', [ 'sapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    sapiPostBrokerSubAccountBlvt (params = {}): Promise<Dict> {
+        return this.request ('broker/subAccount/blvt', [ 'sapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    sapiPostBrokerSubAccountApiIpRestriction (params = {}): Promise<Dict> {
+        return this.request ('broker/subAccountApi/ipRestriction', [ 'sapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    sapiPostBrokerSubAccountApiIpRestrictionIpList (params = {}): Promise<Dict> {
+        return this.request ('broker/subAccountApi/ipRestriction/ipList', [ 'sapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    sapiPostBrokerUniversalTransfer (params = {}): Promise<Dict> {
+        return this.request ('broker/universalTransfer', [ 'sapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    sapiPostBrokerSubAccountApiPermissionUniversalTransfer (params = {}): Promise<Dict> {
+        return this.request ('broker/subAccountApi/permission/universalTransfer', [ 'sapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    sapiPostBrokerSubAccountApiPermissionVanillaOptions (params = {}): Promise<Dict> {
+        return this.request ('broker/subAccountApi/permission/vanillaOptions', [ 'sapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    sapiPostGiftcardCreateCode (params = {}): Promise<Dict> {
+        return this.request ('giftcard/createCode', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostGiftcardRedeemCode (params = {}): Promise<Dict> {
+        return this.request ('giftcard/redeemCode', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostGiftcardBuyCode (params = {}): Promise<Dict> {
+        return this.request ('giftcard/buyCode', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostAlgoSpotNewOrderTwap (params = {}): Promise<Dict> {
+        return this.request ('algo/spot/newOrderTwap', [ 'sapi' ], 'POST', params, { 'cost': 20.001 });
+    }
+
+    sapiPostAlgoFuturesNewOrderVp (params = {}): Promise<Dict> {
+        return this.request ('algo/futures/newOrderVp', [ 'sapi' ], 'POST', params, { 'cost': 20.001 });
+    }
+
+    sapiPostAlgoFuturesNewOrderTwap (params = {}): Promise<Dict> {
+        return this.request ('algo/futures/newOrderTwap', [ 'sapi' ], 'POST', params, { 'cost': 20.001 });
+    }
+
+    sapiPostStakingPurchase (params = {}): Promise<Dict> {
+        return this.request ('staking/purchase', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostStakingRedeem (params = {}): Promise<Dict> {
+        return this.request ('staking/redeem', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostStakingSetAutoStaking (params = {}): Promise<Dict> {
+        return this.request ('staking/setAutoStaking', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostEthStakingEthStake (params = {}): Promise<Dict> {
+        return this.request ('eth-staking/eth/stake', [ 'sapi' ], 'POST', params, { 'cost': 15 });
+    }
+
+    sapiPostEthStakingEthRedeem (params = {}): Promise<Dict> {
+        return this.request ('eth-staking/eth/redeem', [ 'sapi' ], 'POST', params, { 'cost': 15 });
+    }
+
+    sapiPostEthStakingWbethWrap (params = {}): Promise<Dict> {
+        return this.request ('eth-staking/wbeth/wrap', [ 'sapi' ], 'POST', params, { 'cost': 15 });
+    }
+
+    sapiPostSolStakingSolStake (params = {}): Promise<Dict> {
+        return this.request ('sol-staking/sol/stake', [ 'sapi' ], 'POST', params, { 'cost': 15 });
+    }
+
+    sapiPostSolStakingSolRedeem (params = {}): Promise<Dict> {
+        return this.request ('sol-staking/sol/redeem', [ 'sapi' ], 'POST', params, { 'cost': 15 });
+    }
+
+    sapiPostMiningHashTransferConfig (params = {}): Promise<Dict> {
+        return this.request ('mining/hash-transfer/config', [ 'sapi' ], 'POST', params, { 'cost': 0.5 });
+    }
+
+    sapiPostMiningHashTransferConfigCancel (params = {}): Promise<Dict> {
+        return this.request ('mining/hash-transfer/config/cancel', [ 'sapi' ], 'POST', params, { 'cost': 0.5 });
+    }
+
+    sapiPostPortfolioRepay (params = {}): Promise<Dict> {
+        return this.request ('portfolio/repay', [ 'sapi' ], 'POST', params, { 'cost': 20.001 });
+    }
+
+    sapiPostLoanVipRenew (params = {}): Promise<Dict> {
+        return this.request ('loan/vip/renew', [ 'sapi' ], 'POST', params, { 'cost': 40.002 });
+    }
+
+    sapiPostLoanVipBorrow (params = {}): Promise<Dict> {
+        return this.request ('loan/vip/borrow', [ 'sapi' ], 'POST', params, { 'cost': 40.002 });
+    }
+
+    sapiPostLoanBorrow (params = {}): Promise<Dict> {
+        return this.request ('loan/borrow', [ 'sapi' ], 'POST', params, { 'cost': 40.002 });
+    }
+
+    sapiPostLoanRepay (params = {}): Promise<Dict> {
+        return this.request ('loan/repay', [ 'sapi' ], 'POST', params, { 'cost': 40.002 });
+    }
+
+    sapiPostLoanAdjustLtv (params = {}): Promise<Dict> {
+        return this.request ('loan/adjust/ltv', [ 'sapi' ], 'POST', params, { 'cost': 40.002 });
+    }
+
+    sapiPostLoanCustomizeMarginCall (params = {}): Promise<Dict> {
+        return this.request ('loan/customize/margin_call', [ 'sapi' ], 'POST', params, { 'cost': 40.002 });
+    }
+
+    sapiPostLoanFlexibleRepay (params = {}): Promise<Dict> {
+        return this.request ('loan/flexible/repay', [ 'sapi' ], 'POST', params, { 'cost': 40.002 });
+    }
+
+    sapiPostLoanFlexibleAdjustLtv (params = {}): Promise<Dict> {
+        return this.request ('loan/flexible/adjust/ltv', [ 'sapi' ], 'POST', params, { 'cost': 40.002 });
+    }
+
+    sapiPostLoanVipRepay (params = {}): Promise<Dict> {
+        return this.request ('loan/vip/repay', [ 'sapi' ], 'POST', params, { 'cost': 40.002 });
+    }
+
+    sapiPostConvertGetQuote (params = {}): Promise<Dict> {
+        return this.request ('convert/getQuote', [ 'sapi' ], 'POST', params, { 'cost': 1.3334 });
+    }
+
+    sapiPostConvertAcceptQuote (params = {}): Promise<Dict> {
+        return this.request ('convert/acceptQuote', [ 'sapi' ], 'POST', params, { 'cost': 3.3335 });
+    }
+
+    sapiPostConvertLimitPlaceOrder (params = {}): Promise<Dict> {
+        return this.request ('convert/limit/placeOrder', [ 'sapi' ], 'POST', params, { 'cost': 3.3335 });
+    }
+
+    sapiPostConvertLimitCancelOrder (params = {}): Promise<Dict> {
+        return this.request ('convert/limit/cancelOrder', [ 'sapi' ], 'POST', params, { 'cost': 1.3334 });
+    }
+
+    sapiPostPortfolioAutoCollection (params = {}): Promise<Dict> {
+        return this.request ('portfolio/auto-collection', [ 'sapi' ], 'POST', params, { 'cost': 150 });
+    }
+
+    sapiPostPortfolioAssetCollection (params = {}): Promise<Dict> {
+        return this.request ('portfolio/asset-collection', [ 'sapi' ], 'POST', params, { 'cost': 6 });
+    }
+
+    sapiPostPortfolioBnbTransfer (params = {}): Promise<Dict> {
+        return this.request ('portfolio/bnb-transfer', [ 'sapi' ], 'POST', params, { 'cost': 150 });
+    }
+
+    sapiPostPortfolioRepayFuturesSwitch (params = {}): Promise<Dict> {
+        return this.request ('portfolio/repay-futures-switch', [ 'sapi' ], 'POST', params, { 'cost': 150 });
+    }
+
+    sapiPostPortfolioRepayFuturesNegativeBalance (params = {}): Promise<Dict> {
+        return this.request ('portfolio/repay-futures-negative-balance', [ 'sapi' ], 'POST', params, { 'cost': 150 });
+    }
+
+    sapiPostPortfolioMint (params = {}): Promise<Dict> {
+        return this.request ('portfolio/mint', [ 'sapi' ], 'POST', params, { 'cost': 20 });
+    }
+
+    sapiPostPortfolioRedeem (params = {}): Promise<Dict> {
+        return this.request ('portfolio/redeem', [ 'sapi' ], 'POST', params, { 'cost': 20 });
+    }
+
+    sapiPostPortfolioEarnAssetTransfer (params = {}): Promise<Dict> {
+        return this.request ('portfolio/earn-asset-transfer', [ 'sapi' ], 'POST', params, { 'cost': 150 });
+    }
+
+    sapiPostPortfolioDeltaMode (params = {}): Promise<Dict> {
+        return this.request ('portfolio/delta-mode', [ 'sapi' ], 'POST', params, { 'cost': 150 });
+    }
+
+    sapiPostPortfolioMarginCallLevel (params = {}): Promise<Dict> {
+        return this.request ('portfolio/margin-call-level', [ 'sapi' ], 'POST', params, { 'cost': 150 });
+    }
+
+    sapiPostLendingAutoInvestPlanAdd (params = {}): Promise<Dict> {
+        return this.request ('lending/auto-invest/plan/add', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostLendingAutoInvestPlanEdit (params = {}): Promise<Dict> {
+        return this.request ('lending/auto-invest/plan/edit', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostLendingAutoInvestPlanEditStatus (params = {}): Promise<Dict> {
+        return this.request ('lending/auto-invest/plan/edit-status', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostLendingAutoInvestOneOff (params = {}): Promise<Dict> {
+        return this.request ('lending/auto-invest/one-off', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostLendingAutoInvestRedeem (params = {}): Promise<Dict> {
+        return this.request ('lending/auto-invest/redeem', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostSimpleEarnFlexibleSubscribe (params = {}): Promise<Dict> {
+        return this.request ('simple-earn/flexible/subscribe', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostSimpleEarnLockedSubscribe (params = {}): Promise<Dict> {
+        return this.request ('simple-earn/locked/subscribe', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostSimpleEarnFlexibleRedeem (params = {}): Promise<Dict> {
+        return this.request ('simple-earn/flexible/redeem', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostSimpleEarnLockedRedeem (params = {}): Promise<Dict> {
+        return this.request ('simple-earn/locked/redeem', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostSimpleEarnFlexibleSetAutoSubscribe (params = {}): Promise<Dict> {
+        return this.request ('simple-earn/flexible/setAutoSubscribe', [ 'sapi' ], 'POST', params, { 'cost': 15 });
+    }
+
+    sapiPostSimpleEarnLockedSetAutoSubscribe (params = {}): Promise<Dict> {
+        return this.request ('simple-earn/locked/setAutoSubscribe', [ 'sapi' ], 'POST', params, { 'cost': 15 });
+    }
+
+    sapiPostSimpleEarnLockedSetRedeemOption (params = {}): Promise<Dict> {
+        return this.request ('simple-earn/locked/setRedeemOption', [ 'sapi' ], 'POST', params, { 'cost': 5 });
+    }
+
+    sapiPostDciProductSubscribe (params = {}): Promise<Dict> {
+        return this.request ('dci/product/subscribe', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostDciProductAutoCompoundEdit (params = {}): Promise<Dict> {
+        return this.request ('dci/product/auto_compound/edit', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostAccumulatorProductSubscribe (params = {}): Promise<Dict> {
+        return this.request ('accumulator/product/subscribe', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostEquityOrderPlace (params = {}): Promise<Dict> {
+        return this.request ('equity/order/place', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostEquityOrderCancel (params = {}): Promise<Dict> {
+        return this.request ('equity/order/cancel', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostEquityOrderCancelAll (params = {}): Promise<Dict> {
+        return this.request ('equity/order/cancel-all', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostEquityTokenizedMint (params = {}): Promise<Dict> {
+        return this.request ('equity/tokenized/mint', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostEquityTokenizedRedeem (params = {}): Promise<Dict> {
+        return this.request ('equity/tokenized/redeem', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostEquityAccountDisclaimer (params = {}): Promise<Dict> {
+        return this.request ('equity/account/disclaimer', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPostEquityListenKey (params = {}): Promise<Dict> {
+        return this.request ('equity/listenKey', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
+    }
+
+    sapiPutUserDataStream (params = {}): Promise<Dict> {
+        return this.request ('userDataStream', [ 'sapi' ], 'PUT', params, { 'cost': 0.1 });
+    }
+
+    sapiPutUserDataStreamIsolated (params = {}): Promise<Dict> {
+        return this.request ('userDataStream/isolated', [ 'sapi' ], 'PUT', params, { 'cost': 0.1 });
+    }
+
+    sapiDeletePortfolioMarginCallLevel (params = {}): Promise<Dict> {
+        return this.request ('portfolio/margin-call-level', [ 'sapi' ], 'DELETE', params, { 'cost': 150 });
+    }
+
+    sapiDeleteMarginOpenOrders (params = {}): Promise<List> {
+        return this.request ('margin/openOrders', [ 'sapi' ], 'DELETE', params, { 'cost': 0.1 });
+    }
+
+    sapiDeleteMarginOrder (params = {}): Promise<Dict> {
+        return this.request ('margin/order', [ 'sapi' ], 'DELETE', params, { 'cost': 0.006667 });
+    }
+
+    sapiDeleteMarginOrderList (params = {}): Promise<Dict> {
+        return this.request ('margin/orderList', [ 'sapi' ], 'DELETE', params, { 'cost': 0.006667 });
+    }
+
+    sapiDeleteMarginIsolatedAccount (params = {}): Promise<Dict> {
+        return this.request ('margin/isolated/account', [ 'sapi' ], 'DELETE', params, { 'cost': 2.0001 });
+    }
+
+    sapiDeleteUserDataStream (params = {}): Promise<Dict> {
+        return this.request ('userDataStream', [ 'sapi' ], 'DELETE', params, { 'cost': 0.1 });
+    }
+
+    sapiDeleteUserDataStreamIsolated (params = {}): Promise<Dict> {
+        return this.request ('userDataStream/isolated', [ 'sapi' ], 'DELETE', params, { 'cost': 0.1 });
+    }
+
+    sapiDeleteBrokerSubAccountApi (params = {}): Promise<Dict> {
+        return this.request ('broker/subAccountApi', [ 'sapi' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    sapiDeleteBrokerSubAccountApiIpRestrictionIpList (params = {}): Promise<Dict> {
+        return this.request ('broker/subAccountApi/ipRestriction/ipList', [ 'sapi' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    sapiDeleteAlgoSpotOrder (params = {}): Promise<Dict> {
+        return this.request ('algo/spot/order', [ 'sapi' ], 'DELETE', params, { 'cost': 0.1 });
+    }
+
+    sapiDeleteAlgoFuturesOrder (params = {}): Promise<Dict> {
+        return this.request ('algo/futures/order', [ 'sapi' ], 'DELETE', params, { 'cost': 0.1 });
+    }
+
+    sapiDeleteSubAccountSubAccountApiIpRestrictionIpList (params = {}): Promise<Dict> {
+        return this.request ('sub-account/subAccountApi/ipRestriction/ipList', [ 'sapi' ], 'DELETE', params, { 'cost': 20.001 });
+    }
+
+    sapiV2GetEthStakingAccount (params = {}): Promise<Dict> {
+        return this.request ('eth-staking/account', [ 'sapiV2' ], 'GET', params, { 'cost': 15 });
+    }
+
+    sapiV2GetSubAccountFuturesAccount (params = {}): Promise<Dict> {
+        return this.request ('sub-account/futures/account', [ 'sapiV2' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiV2GetSubAccountFuturesAccountSummary (params = {}): Promise<Dict> {
+        return this.request ('sub-account/futures/accountSummary', [ 'sapiV2' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiV2GetSubAccountFuturesPositionRisk (params = {}): Promise<Dict> {
+        return this.request ('sub-account/futures/positionRisk', [ 'sapiV2' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    sapiV2GetLoanFlexibleOngoingOrders (params = {}): Promise<Dict> {
+        return this.request ('loan/flexible/ongoing/orders', [ 'sapiV2' ], 'GET', params, { 'cost': 30 });
+    }
+
+    sapiV2GetLoanFlexibleBorrowHistory (params = {}): Promise<Dict> {
+        return this.request ('loan/flexible/borrow/history', [ 'sapiV2' ], 'GET', params, { 'cost': 40 });
+    }
+
+    sapiV2GetLoanFlexibleRepayHistory (params = {}): Promise<Dict> {
+        return this.request ('loan/flexible/repay/history', [ 'sapiV2' ], 'GET', params, { 'cost': 40 });
+    }
+
+    sapiV2GetLoanFlexibleLtvAdjustmentHistory (params = {}): Promise<Dict> {
+        return this.request ('loan/flexible/ltv/adjustment/history', [ 'sapiV2' ], 'GET', params, { 'cost': 40 });
+    }
+
+    sapiV2GetLoanFlexibleLoanableData (params = {}): Promise<Dict> {
+        return this.request ('loan/flexible/loanable/data', [ 'sapiV2' ], 'GET', params, { 'cost': 40 });
+    }
+
+    sapiV2GetLoanFlexibleCollateralData (params = {}): Promise<Dict> {
+        return this.request ('loan/flexible/collateral/data', [ 'sapiV2' ], 'GET', params, { 'cost': 40 });
+    }
+
+    sapiV2GetPortfolioAccount (params = {}): Promise<Dict> {
+        return this.request ('portfolio/account', [ 'sapiV2' ], 'GET', params, { 'cost': 2 });
+    }
+
+    sapiV2PostEthStakingEthStake (params = {}): Promise<Dict> {
+        return this.request ('eth-staking/eth/stake', [ 'sapiV2' ], 'POST', params, { 'cost': 15 });
+    }
+
+    sapiV2PostSubAccountSubAccountApiIpRestriction (params = {}): Promise<Dict> {
+        return this.request ('sub-account/subAccountApi/ipRestriction', [ 'sapiV2' ], 'POST', params, { 'cost': 20.001 });
+    }
+
+    sapiV2PostLoanFlexibleBorrow (params = {}): Promise<Dict> {
+        return this.request ('loan/flexible/borrow', [ 'sapiV2' ], 'POST', params, { 'cost': 40.002 });
+    }
+
+    sapiV2PostLoanFlexibleRepay (params = {}): Promise<Dict> {
+        return this.request ('loan/flexible/repay', [ 'sapiV2' ], 'POST', params, { 'cost': 40.002 });
+    }
+
+    sapiV2PostLoanFlexibleAdjustLtv (params = {}): Promise<Dict> {
+        return this.request ('loan/flexible/adjust/ltv', [ 'sapiV2' ], 'POST', params, { 'cost': 40.002 });
+    }
+
+    sapiV3GetSubAccountAssets (params = {}): Promise<Dict> {
+        return this.request ('sub-account/assets', [ 'sapiV3' ], 'GET', params, { 'cost': 0.40002 });
+    }
+
+    sapiV3PostAssetGetUserAsset (params = {}): Promise<List> {
+        return this.request ('asset/getUserAsset', [ 'sapiV3' ], 'POST', params, { 'cost': 0.5 });
+    }
+
+    sapiV4GetSubAccountAssets (params = {}): Promise<Dict> {
+        return this.request ('sub-account/assets', [ 'sapiV4' ], 'GET', params, { 'cost': 0.40002 });
+    }
+
+    dapiPublicGetPing (params = {}): Promise<Dict> {
+        return this.request ('ping', [ 'dapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    dapiPublicGetTime (params = {}): Promise<Dict> {
+        return this.request ('time', [ 'dapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    dapiPublicGetExchangeInfo (params = {}): Promise<Dict> {
+        return this.request ('exchangeInfo', [ 'dapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    dapiPublicGetDepth (params = {}): Promise<Dict> {
+        return this.request ('depth', [ 'dapiPublic' ], 'GET', params, { 'cost': 2, 'byLimit': [ [ 50, 2 ], [ 100, 5 ], [ 500, 10 ], [ 1000, 20 ] ] });
+    }
+
+    dapiPublicGetTrades (params = {}): Promise<List> {
+        return this.request ('trades', [ 'dapiPublic' ], 'GET', params, { 'cost': 5 });
+    }
+
+    dapiPublicGetHistoricalTrades (params = {}): Promise<List> {
+        return this.request ('historicalTrades', [ 'dapiPublic' ], 'GET', params, { 'cost': 200 });
+    }
+
+    dapiPublicGetAggTrades (params = {}): Promise<List> {
+        return this.request ('aggTrades', [ 'dapiPublic' ], 'GET', params, { 'cost': 20 });
+    }
+
+    dapiPublicGetPremiumIndex (params = {}): Promise<List> {
+        return this.request ('premiumIndex', [ 'dapiPublic' ], 'GET', params, { 'cost': 10 });
+    }
+
+    dapiPublicGetFundingRate (params = {}): Promise<List> {
+        return this.request ('fundingRate', [ 'dapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    dapiPublicGetKlines (params = {}): Promise<List> {
+        return this.request ('klines', [ 'dapiPublic' ], 'GET', params, { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] });
+    }
+
+    dapiPublicGetContinuousKlines (params = {}): Promise<List> {
+        return this.request ('continuousKlines', [ 'dapiPublic' ], 'GET', params, { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] });
+    }
+
+    dapiPublicGetIndexPriceKlines (params = {}): Promise<List> {
+        return this.request ('indexPriceKlines', [ 'dapiPublic' ], 'GET', params, { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] });
+    }
+
+    dapiPublicGetMarkPriceKlines (params = {}): Promise<List> {
+        return this.request ('markPriceKlines', [ 'dapiPublic' ], 'GET', params, { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] });
+    }
+
+    dapiPublicGetPremiumIndexKlines (params = {}): Promise<List> {
+        return this.request ('premiumIndexKlines', [ 'dapiPublic' ], 'GET', params, { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] });
+    }
+
+    dapiPublicGetTicker24hr (params = {}): Promise<Dict | List> {
+        return this.request ('ticker/24hr', [ 'dapiPublic' ], 'GET', params, { 'cost': 1, 'noSymbol': 40 });
+    }
+
+    dapiPublicGetTickerPrice (params = {}): Promise<List> {
+        return this.request ('ticker/price', [ 'dapiPublic' ], 'GET', params, { 'cost': 1, 'noSymbol': 2 });
+    }
+
+    dapiPublicGetTickerBookTicker (params = {}): Promise<List> {
+        return this.request ('ticker/bookTicker', [ 'dapiPublic' ], 'GET', params, { 'cost': 2, 'noSymbol': 5 });
+    }
+
+    dapiPublicGetConstituents (params = {}): Promise<Dict> {
+        return this.request ('constituents', [ 'dapiPublic' ], 'GET', params, { 'cost': 2 });
+    }
+
+    dapiPublicGetOpenInterest (params = {}): Promise<Dict> {
+        return this.request ('openInterest', [ 'dapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    dapiPublicGetFundingInfo (params = {}): Promise<List> {
+        return this.request ('fundingInfo', [ 'dapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    dapiDataGetDeliveryPrice (params = {}): Promise<List> {
+        return this.request ('delivery-price', [ 'dapiData' ], 'GET', params, { 'cost': 1 });
+    }
+
+    dapiDataGetOpenInterestHist (params = {}): Promise<List> {
+        return this.request ('openInterestHist', [ 'dapiData' ], 'GET', params, { 'cost': 1 });
+    }
+
+    dapiDataGetTopLongShortAccountRatio (params = {}): Promise<List> {
+        return this.request ('topLongShortAccountRatio', [ 'dapiData' ], 'GET', params, { 'cost': 1 });
+    }
+
+    dapiDataGetTopLongShortPositionRatio (params = {}): Promise<List> {
+        return this.request ('topLongShortPositionRatio', [ 'dapiData' ], 'GET', params, { 'cost': 1 });
+    }
+
+    dapiDataGetGlobalLongShortAccountRatio (params = {}): Promise<List> {
+        return this.request ('globalLongShortAccountRatio', [ 'dapiData' ], 'GET', params, { 'cost': 1 });
+    }
+
+    dapiDataGetTakerBuySellVol (params = {}): Promise<List> {
+        return this.request ('takerBuySellVol', [ 'dapiData' ], 'GET', params, { 'cost': 1 });
+    }
+
+    dapiDataGetBasis (params = {}): Promise<List> {
+        return this.request ('basis', [ 'dapiData' ], 'GET', params, { 'cost': 1 });
+    }
+
+    dapiPrivateGetPositionSideDual (params = {}): Promise<Dict> {
+        return this.request ('positionSide/dual', [ 'dapiPrivate' ], 'GET', params, { 'cost': 30 });
+    }
+
+    dapiPrivateGetOrderAmendment (params = {}): Promise<List> {
+        return this.request ('orderAmendment', [ 'dapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    dapiPrivateGetOrder (params = {}): Promise<Dict> {
+        return this.request ('order', [ 'dapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    dapiPrivateGetOpenOrder (params = {}): Promise<Dict> {
+        return this.request ('openOrder', [ 'dapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    dapiPrivateGetOpenOrders (params = {}): Promise<List> {
+        return this.request ('openOrders', [ 'dapiPrivate' ], 'GET', params, { 'cost': 1, 'noSymbol': 5 });
+    }
+
+    dapiPrivateGetOpenAlgoOrders (params = {}): Promise<List> {
+        return this.request ('openAlgoOrders', [ 'dapiPrivate' ], 'GET', params, { 'cost': 1, 'noSymbol': 40 });
+    }
+
+    dapiPrivateGetAlgoOrder (params = {}): Promise<Dict> {
+        return this.request ('algoOrder', [ 'dapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    dapiPrivateGetAllAlgoOrders (params = {}): Promise<List> {
+        return this.request ('allAlgoOrders', [ 'dapiPrivate' ], 'GET', params, { 'cost': 5 });
+    }
+
+    dapiPrivateGetAllOrders (params = {}): Promise<List> {
+        return this.request ('allOrders', [ 'dapiPrivate' ], 'GET', params, { 'cost': 5 });
+    }
+
+    dapiPrivateGetBalance (params = {}): Promise<List> {
+        return this.request ('balance', [ 'dapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    dapiPrivateGetAccount (params = {}): Promise<Dict> {
+        return this.request ('account', [ 'dapiPrivate' ], 'GET', params, { 'cost': 5 });
+    }
+
+    dapiPrivateGetPositionMarginHistory (params = {}): Promise<List> {
+        return this.request ('positionMargin/history', [ 'dapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    dapiPrivateGetPositionRisk (params = {}): Promise<List> {
+        return this.request ('positionRisk', [ 'dapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    dapiPrivateGetUserTrades (params = {}): Promise<List> {
+        return this.request ('userTrades', [ 'dapiPrivate' ], 'GET', params, { 'cost': 5 });
+    }
+
+    dapiPrivateGetIncome (params = {}): Promise<List> {
+        return this.request ('income', [ 'dapiPrivate' ], 'GET', params, { 'cost': 20 });
+    }
+
+    dapiPrivateGetLeverageBracket (params = {}): Promise<List> {
+        return this.request ('leverageBracket', [ 'dapiPrivate' ], 'GET', params, { 'cost': 2, 'noSymbol': 2 });
+    }
+
+    dapiPrivateGetForceOrders (params = {}): Promise<Dict> {
+        return this.request ('forceOrders', [ 'dapiPrivate' ], 'GET', params, { 'cost': 20, 'noSymbol': 50 });
+    }
+
+    dapiPrivateGetAdlQuantile (params = {}): Promise<List> {
+        return this.request ('adlQuantile', [ 'dapiPrivate' ], 'GET', params, { 'cost': 5 });
+    }
+
+    dapiPrivateGetCommissionRate (params = {}): Promise<Dict> {
+        return this.request ('commissionRate', [ 'dapiPrivate' ], 'GET', params, { 'cost': 20 });
+    }
+
+    dapiPrivateGetIncomeAsyn (params = {}): Promise<Dict> {
+        return this.request ('income/asyn', [ 'dapiPrivate' ], 'GET', params, { 'cost': 5 });
+    }
+
+    dapiPrivateGetIncomeAsynId (params = {}): Promise<Dict> {
+        return this.request ('income/asyn/id', [ 'dapiPrivate' ], 'GET', params, { 'cost': 5 });
+    }
+
+    dapiPrivateGetTradeAsyn (params = {}): Promise<Dict> {
+        return this.request ('trade/asyn', [ 'dapiPrivate' ], 'GET', params, { 'cost': 0.5 });
+    }
+
+    dapiPrivateGetTradeAsynId (params = {}): Promise<Dict> {
+        return this.request ('trade/asyn/id', [ 'dapiPrivate' ], 'GET', params, { 'cost': 0.5 });
+    }
+
+    dapiPrivateGetOrderAsyn (params = {}): Promise<Dict> {
+        return this.request ('order/asyn', [ 'dapiPrivate' ], 'GET', params, { 'cost': 0.5 });
+    }
+
+    dapiPrivateGetOrderAsynId (params = {}): Promise<Dict> {
+        return this.request ('order/asyn/id', [ 'dapiPrivate' ], 'GET', params, { 'cost': 0.5 });
+    }
+
+    dapiPrivateGetPmExchangeInfo (params = {}): Promise<Dict> {
+        return this.request ('pmExchangeInfo', [ 'dapiPrivate' ], 'GET', params, { 'cost': 0.5 });
+    }
+
+    dapiPrivateGetPmAccountInfo (params = {}): Promise<Dict> {
+        return this.request ('pmAccountInfo', [ 'dapiPrivate' ], 'GET', params, { 'cost': 0.5 });
+    }
+
+    dapiPrivatePostPositionSideDual (params = {}): Promise<Dict> {
+        return this.request ('positionSide/dual', [ 'dapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    dapiPrivatePostOrder (params = {}): Promise<Dict> {
+        return this.request ('order', [ 'dapiPrivate' ], 'POST', params, { 'cost': 4 });
+    }
+
+    dapiPrivatePostAlgoOrder (params = {}): Promise<Dict> {
+        return this.request ('algoOrder', [ 'dapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    dapiPrivatePostBatchOrders (params = {}): Promise<List> {
+        return this.request ('batchOrders', [ 'dapiPrivate' ], 'POST', params, { 'cost': 5 });
+    }
+
+    dapiPrivatePostCountdownCancelAll (params = {}): Promise<Dict> {
+        return this.request ('countdownCancelAll', [ 'dapiPrivate' ], 'POST', params, { 'cost': 10 });
+    }
+
+    dapiPrivatePostLeverage (params = {}): Promise<Dict> {
+        return this.request ('leverage', [ 'dapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    dapiPrivatePostMarginType (params = {}): Promise<Dict> {
+        return this.request ('marginType', [ 'dapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    dapiPrivatePostPositionMargin (params = {}): Promise<Dict> {
+        return this.request ('positionMargin', [ 'dapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    dapiPrivatePostListenKey (params = {}): Promise<Dict> {
+        return this.request ('listenKey', [ 'dapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    dapiPrivatePutListenKey (params = {}): Promise<Dict> {
+        return this.request ('listenKey', [ 'dapiPrivate' ], 'PUT', params, { 'cost': 1 });
+    }
+
+    dapiPrivatePutOrder (params = {}): Promise<Dict> {
+        return this.request ('order', [ 'dapiPrivate' ], 'PUT', params, { 'cost': 1 });
+    }
+
+    dapiPrivatePutBatchOrders (params = {}): Promise<List> {
+        return this.request ('batchOrders', [ 'dapiPrivate' ], 'PUT', params, { 'cost': 5 });
+    }
+
+    dapiPrivateDeleteOrder (params = {}): Promise<Dict> {
+        return this.request ('order', [ 'dapiPrivate' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    dapiPrivateDeleteAlgoOrder (params = {}): Promise<Dict> {
+        return this.request ('algoOrder', [ 'dapiPrivate' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    dapiPrivateDeleteAlgoOpenOrders (params = {}): Promise<Dict> {
+        return this.request ('algoOpenOrders', [ 'dapiPrivate' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    dapiPrivateDeleteAllOpenOrders (params = {}): Promise<List> {
+        return this.request ('allOpenOrders', [ 'dapiPrivate' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    dapiPrivateDeleteBatchOrders (params = {}): Promise<List> {
+        return this.request ('batchOrders', [ 'dapiPrivate' ], 'DELETE', params, { 'cost': 5 });
+    }
+
+    dapiPrivateDeleteListenKey (params = {}): Promise<Dict> {
+        return this.request ('listenKey', [ 'dapiPrivate' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    dapiPrivateV2GetLeverageBracket (params = {}): Promise<List> {
+        return this.request ('leverageBracket', [ 'dapiPrivateV2' ], 'GET', params, { 'cost': 1, 'noSymbol': 2 });
+    }
+
+    fapiPublicGetPing (params = {}): Promise<Dict> {
+        return this.request ('ping', [ 'fapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPublicGetTime (params = {}): Promise<Dict> {
+        return this.request ('time', [ 'fapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPublicGetExchangeInfo (params = {}): Promise<Dict> {
+        return this.request ('exchangeInfo', [ 'fapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPublicGetDepth (params = {}): Promise<Dict> {
+        return this.request ('depth', [ 'fapiPublic' ], 'GET', params, { 'cost': 2, 'byLimit': [ [ 50, 2 ], [ 100, 5 ], [ 500, 10 ], [ 1000, 20 ] ] });
+    }
+
+    fapiPublicGetRpiDepth (params = {}): Promise<Dict> {
+        return this.request ('rpiDepth', [ 'fapiPublic' ], 'GET', params, { 'cost': 20 });
+    }
+
+    fapiPublicGetTrades (params = {}): Promise<List> {
+        return this.request ('trades', [ 'fapiPublic' ], 'GET', params, { 'cost': 5 });
+    }
+
+    fapiPublicGetHistoricalTrades (params = {}): Promise<List> {
+        return this.request ('historicalTrades', [ 'fapiPublic' ], 'GET', params, { 'cost': 200 });
+    }
+
+    fapiPublicGetAggTrades (params = {}): Promise<List> {
+        return this.request ('aggTrades', [ 'fapiPublic' ], 'GET', params, { 'cost': 20 });
+    }
+
+    fapiPublicGetKlines (params = {}): Promise<List> {
+        return this.request ('klines', [ 'fapiPublic' ], 'GET', params, { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] });
+    }
+
+    fapiPublicGetContinuousKlines (params = {}): Promise<List> {
+        return this.request ('continuousKlines', [ 'fapiPublic' ], 'GET', params, { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] });
+    }
+
+    fapiPublicGetMarkPriceKlines (params = {}): Promise<List> {
+        return this.request ('markPriceKlines', [ 'fapiPublic' ], 'GET', params, { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] });
+    }
+
+    fapiPublicGetIndexPriceKlines (params = {}): Promise<List> {
+        return this.request ('indexPriceKlines', [ 'fapiPublic' ], 'GET', params, { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] });
+    }
+
+    fapiPublicGetPremiumIndexKlines (params = {}): Promise<List> {
+        return this.request ('premiumIndexKlines', [ 'fapiPublic' ], 'GET', params, { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] });
+    }
+
+    fapiPublicGetFundingRate (params = {}): Promise<List> {
+        return this.request ('fundingRate', [ 'fapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPublicGetFundingInfo (params = {}): Promise<List> {
+        return this.request ('fundingInfo', [ 'fapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPublicGetPremiumIndex (params = {}): Promise<List> {
+        return this.request ('premiumIndex', [ 'fapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPublicGetTicker24hr (params = {}): Promise<Dict | List> {
+        return this.request ('ticker/24hr', [ 'fapiPublic' ], 'GET', params, { 'cost': 1, 'noSymbol': 40 });
+    }
+
+    fapiPublicGetTickerPrice (params = {}): Promise<Dict | List> {
+        return this.request ('ticker/price', [ 'fapiPublic' ], 'GET', params, { 'cost': 1, 'noSymbol': 2 });
+    }
+
+    fapiPublicGetTickerBookTicker (params = {}): Promise<Dict | List> {
+        return this.request ('ticker/bookTicker', [ 'fapiPublic' ], 'GET', params, { 'cost': 2, 'noSymbol': 5 });
+    }
+
+    fapiPublicGetOpenInterest (params = {}): Promise<Dict> {
+        return this.request ('openInterest', [ 'fapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPublicGetIndexInfo (params = {}): Promise<List> {
+        return this.request ('indexInfo', [ 'fapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPublicGetAssetIndex (params = {}): Promise<Dict> {
+        return this.request ('assetIndex', [ 'fapiPublic' ], 'GET', params, { 'cost': 1, 'noSymbol': 10 });
+    }
+
+    fapiPublicGetConstituents (params = {}): Promise<Dict> {
+        return this.request ('constituents', [ 'fapiPublic' ], 'GET', params, { 'cost': 2 });
+    }
+
+    fapiPublicGetApiTradingStatus (params = {}): Promise<Dict> {
+        return this.request ('apiTradingStatus', [ 'fapiPublic' ], 'GET', params, { 'cost': 1, 'noSymbol': 10 });
+    }
+
+    fapiPublicGetLvtKlines (params = {}): Promise<List> {
+        return this.request ('lvtKlines', [ 'fapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPublicGetConvertExchangeInfo (params = {}): Promise<List> {
+        return this.request ('convert/exchangeInfo', [ 'fapiPublic' ], 'GET', params, { 'cost': 4 });
+    }
+
+    fapiPublicGetInsuranceBalance (params = {}): Promise<List> {
+        return this.request ('insuranceBalance', [ 'fapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPublicGetSymbolAdlRisk (params = {}): Promise<Dict> {
+        return this.request ('symbolAdlRisk', [ 'fapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPublicGetTradingSchedule (params = {}): Promise<Dict> {
+        return this.request ('tradingSchedule', [ 'fapiPublic' ], 'GET', params, { 'cost': 5 });
+    }
+
+    fapiDataGetDeliveryPrice (params = {}): Promise<List> {
+        return this.request ('delivery-price', [ 'fapiData' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiDataGetOpenInterestHist (params = {}): Promise<List> {
+        return this.request ('openInterestHist', [ 'fapiData' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiDataGetTopLongShortAccountRatio (params = {}): Promise<List> {
+        return this.request ('topLongShortAccountRatio', [ 'fapiData' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiDataGetTopLongShortPositionRatio (params = {}): Promise<List> {
+        return this.request ('topLongShortPositionRatio', [ 'fapiData' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiDataGetGlobalLongShortAccountRatio (params = {}): Promise<List> {
+        return this.request ('globalLongShortAccountRatio', [ 'fapiData' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiDataGetTakerlongshortRatio (params = {}): Promise<List> {
+        return this.request ('takerlongshortRatio', [ 'fapiData' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiDataGetBasis (params = {}): Promise<List> {
+        return this.request ('basis', [ 'fapiData' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetForceOrders (params = {}): Promise<Dict> {
+        return this.request ('forceOrders', [ 'fapiPrivate' ], 'GET', params, { 'cost': 20, 'noSymbol': 50 });
+    }
+
+    fapiPrivateGetAllOrders (params = {}): Promise<List> {
+        return this.request ('allOrders', [ 'fapiPrivate' ], 'GET', params, { 'cost': 5 });
+    }
+
+    fapiPrivateGetOpenOrder (params = {}): Promise<Dict> {
+        return this.request ('openOrder', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetOpenOrders (params = {}): Promise<List> {
+        return this.request ('openOrders', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1, 'noSymbol': 40 });
+    }
+
+    fapiPrivateGetOrder (params = {}): Promise<Dict> {
+        return this.request ('order', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetAccount (params = {}): Promise<Dict> {
+        return this.request ('account', [ 'fapiPrivate' ], 'GET', params, { 'cost': 5 });
+    }
+
+    fapiPrivateGetBalance (params = {}): Promise<List> {
+        return this.request ('balance', [ 'fapiPrivate' ], 'GET', params, { 'cost': 5 });
+    }
+
+    fapiPrivateGetLeverageBracket (params = {}): Promise<List> {
+        return this.request ('leverageBracket', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetPositionMarginHistory (params = {}): Promise<List> {
+        return this.request ('positionMargin/history', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetPositionRisk (params = {}): Promise<List> {
+        return this.request ('positionRisk', [ 'fapiPrivate' ], 'GET', params, { 'cost': 5 });
+    }
+
+    fapiPrivateGetPositionSideDual (params = {}): Promise<Dict> {
+        return this.request ('positionSide/dual', [ 'fapiPrivate' ], 'GET', params, { 'cost': 30 });
+    }
+
+    fapiPrivateGetUserTrades (params = {}): Promise<List> {
+        return this.request ('userTrades', [ 'fapiPrivate' ], 'GET', params, { 'cost': 5 });
+    }
+
+    fapiPrivateGetIncome (params = {}): Promise<List> {
+        return this.request ('income', [ 'fapiPrivate' ], 'GET', params, { 'cost': 30 });
+    }
+
+    fapiPrivateGetCommissionRate (params = {}): Promise<Dict> {
+        return this.request ('commissionRate', [ 'fapiPrivate' ], 'GET', params, { 'cost': 20 });
+    }
+
+    fapiPrivateGetRateLimitOrder (params = {}): Promise<List> {
+        return this.request ('rateLimit/order', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetApiTradingStatus (params = {}): Promise<Dict> {
+        return this.request ('apiTradingStatus', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetMultiAssetsMargin (params = {}): Promise<Dict> {
+        return this.request ('multiAssetsMargin', [ 'fapiPrivate' ], 'GET', params, { 'cost': 30 });
+    }
+
+    fapiPrivateGetApiReferralIfNewUser (params = {}): Promise<Dict> {
+        return this.request ('apiReferral/ifNewUser', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetApiReferralCustomization (params = {}): Promise<List> {
+        return this.request ('apiReferral/customization', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetApiReferralUserCustomization (params = {}): Promise<Dict> {
+        return this.request ('apiReferral/userCustomization', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetApiReferralTraderNum (params = {}): Promise<List> {
+        return this.request ('apiReferral/traderNum', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetApiReferralOverview (params = {}): Promise<Dict> {
+        return this.request ('apiReferral/overview', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetApiReferralTradeVol (params = {}): Promise<List> {
+        return this.request ('apiReferral/tradeVol', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetApiReferralRebateVol (params = {}): Promise<List> {
+        return this.request ('apiReferral/rebateVol', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetApiReferralTraderSummary (params = {}): Promise<List> {
+        return this.request ('apiReferral/traderSummary', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetAdlQuantile (params = {}): Promise<List> {
+        return this.request ('adlQuantile', [ 'fapiPrivate' ], 'GET', params, { 'cost': 5 });
+    }
+
+    fapiPrivateGetPmAccountInfo (params = {}): Promise<Dict> {
+        return this.request ('pmAccountInfo', [ 'fapiPrivate' ], 'GET', params, { 'cost': 5 });
+    }
+
+    fapiPrivateGetOrderAmendment (params = {}): Promise<List> {
+        return this.request ('orderAmendment', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetIncomeAsyn (params = {}): Promise<Dict> {
+        return this.request ('income/asyn', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1000 });
+    }
+
+    fapiPrivateGetIncomeAsynId (params = {}): Promise<Dict> {
+        return this.request ('income/asyn/id', [ 'fapiPrivate' ], 'GET', params, { 'cost': 10 });
+    }
+
+    fapiPrivateGetOrderAsyn (params = {}): Promise<Dict> {
+        return this.request ('order/asyn', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1000 });
+    }
+
+    fapiPrivateGetOrderAsynId (params = {}): Promise<Dict> {
+        return this.request ('order/asyn/id', [ 'fapiPrivate' ], 'GET', params, { 'cost': 10 });
+    }
+
+    fapiPrivateGetTradeAsyn (params = {}): Promise<Dict> {
+        return this.request ('trade/asyn', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1000 });
+    }
+
+    fapiPrivateGetTradeAsynId (params = {}): Promise<Dict> {
+        return this.request ('trade/asyn/id', [ 'fapiPrivate' ], 'GET', params, { 'cost': 10 });
+    }
+
+    fapiPrivateGetFeeBurn (params = {}): Promise<Dict> {
+        return this.request ('feeBurn', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetSymbolConfig (params = {}): Promise<List> {
+        return this.request ('symbolConfig', [ 'fapiPrivate' ], 'GET', params, { 'cost': 5 });
+    }
+
+    fapiPrivateGetAccountConfig (params = {}): Promise<Dict> {
+        return this.request ('accountConfig', [ 'fapiPrivate' ], 'GET', params, { 'cost': 5 });
+    }
+
+    fapiPrivateGetConvertOrderStatus (params = {}): Promise<Dict> {
+        return this.request ('convert/orderStatus', [ 'fapiPrivate' ], 'GET', params, { 'cost': 5 });
+    }
+
+    fapiPrivateGetAlgoOrder (params = {}): Promise<Dict> {
+        return this.request ('algoOrder', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetOpenAlgoOrders (params = {}): Promise<List> {
+        return this.request ('openAlgoOrders', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1, 'noSymbol': 40 });
+    }
+
+    fapiPrivateGetAllAlgoOrders (params = {}): Promise<List> {
+        return this.request ('allAlgoOrders', [ 'fapiPrivate' ], 'GET', params, { 'cost': 5 });
+    }
+
+    fapiPrivateGetStockContract (params = {}): Promise<Dict> {
+        return this.request ('stock/contract', [ 'fapiPrivate' ], 'GET', params, { 'cost': 50 });
+    }
+
+    fapiPrivatePostBatchOrders (params = {}): Promise<List> {
+        return this.request ('batchOrders', [ 'fapiPrivate' ], 'POST', params, { 'cost': 5 });
+    }
+
+    fapiPrivatePostPositionSideDual (params = {}): Promise<Dict> {
+        return this.request ('positionSide/dual', [ 'fapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePostPositionMargin (params = {}): Promise<Dict> {
+        return this.request ('positionMargin', [ 'fapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePostMarginType (params = {}): Promise<Dict> {
+        return this.request ('marginType', [ 'fapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePostOrder (params = {}): Promise<Dict> {
+        return this.request ('order', [ 'fapiPrivate' ], 'POST', params, { 'cost': 4 });
+    }
+
+    fapiPrivatePostOrderTest (params = {}): Promise<Dict> {
+        return this.request ('order/test', [ 'fapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePostLeverage (params = {}): Promise<Dict> {
+        return this.request ('leverage', [ 'fapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePostListenKey (params = {}): Promise<Dict> {
+        return this.request ('listenKey', [ 'fapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePostCountdownCancelAll (params = {}): Promise<Dict> {
+        return this.request ('countdownCancelAll', [ 'fapiPrivate' ], 'POST', params, { 'cost': 10 });
+    }
+
+    fapiPrivatePostMultiAssetsMargin (params = {}): Promise<Dict> {
+        return this.request ('multiAssetsMargin', [ 'fapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePostApiReferralCustomization (params = {}): Promise<Dict> {
+        return this.request ('apiReferral/customization', [ 'fapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePostApiReferralUserCustomization (params = {}): Promise<Dict> {
+        return this.request ('apiReferral/userCustomization', [ 'fapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePostFeeBurn (params = {}): Promise<Dict> {
+        return this.request ('feeBurn', [ 'fapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePostConvertGetQuote (params = {}): Promise<Dict> {
+        return this.request ('convert/getQuote', [ 'fapiPrivate' ], 'POST', params, { 'cost': 200 });
+    }
+
+    fapiPrivatePostConvertAcceptQuote (params = {}): Promise<Dict> {
+        return this.request ('convert/acceptQuote', [ 'fapiPrivate' ], 'POST', params, { 'cost': 20 });
+    }
+
+    fapiPrivatePostAlgoOrder (params = {}): Promise<Dict> {
+        return this.request ('algoOrder', [ 'fapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePutListenKey (params = {}): Promise<Dict> {
+        return this.request ('listenKey', [ 'fapiPrivate' ], 'PUT', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePutOrder (params = {}): Promise<Dict> {
+        return this.request ('order', [ 'fapiPrivate' ], 'PUT', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePutBatchOrders (params = {}): Promise<List> {
+        return this.request ('batchOrders', [ 'fapiPrivate' ], 'PUT', params, { 'cost': 5 });
+    }
+
+    fapiPrivateDeleteBatchOrders (params = {}): Promise<List> {
+        return this.request ('batchOrders', [ 'fapiPrivate' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    fapiPrivateDeleteOrder (params = {}): Promise<Dict> {
+        return this.request ('order', [ 'fapiPrivate' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    fapiPrivateDeleteAllOpenOrders (params = {}): Promise<List> {
+        return this.request ('allOpenOrders', [ 'fapiPrivate' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    fapiPrivateDeleteListenKey (params = {}): Promise<Dict> {
+        return this.request ('listenKey', [ 'fapiPrivate' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    fapiPrivateDeleteAlgoOrder (params = {}): Promise<Dict> {
+        return this.request ('algoOrder', [ 'fapiPrivate' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    fapiPrivateDeleteAlgoOpenOrders (params = {}): Promise<Dict> {
+        return this.request ('algoOpenOrders', [ 'fapiPrivate' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    fapiPublicV2GetTickerPrice (params = {}): Promise<Dict | List> {
+        return this.request ('ticker/price', [ 'fapiPublicV2' ], 'GET', params, { 'cost': 0 });
+    }
+
+    fapiPrivateV2GetAccount (params = {}): Promise<Dict> {
+        return this.request ('account', [ 'fapiPrivateV2' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateV2GetBalance (params = {}): Promise<List> {
+        return this.request ('balance', [ 'fapiPrivateV2' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateV2GetPositionRisk (params = {}): Promise<List> {
+        return this.request ('positionRisk', [ 'fapiPrivateV2' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateV3GetAccount (params = {}): Promise<Dict> {
+        return this.request ('account', [ 'fapiPrivateV3' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateV3GetBalance (params = {}): Promise<List> {
+        return this.request ('balance', [ 'fapiPrivateV3' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateV3GetPositionRisk (params = {}): Promise<List> {
+        return this.request ('positionRisk', [ 'fapiPrivateV3' ], 'GET', params, { 'cost': 1 });
+    }
+
+    eapiPublicGetPing (params = {}): Promise<Dict> {
+        return this.request ('ping', [ 'eapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    eapiPublicGetTime (params = {}): Promise<Dict> {
+        return this.request ('time', [ 'eapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    eapiPublicGetExchangeInfo (params = {}): Promise<Dict> {
+        return this.request ('exchangeInfo', [ 'eapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    eapiPublicGetIndex (params = {}): Promise<Dict> {
+        return this.request ('index', [ 'eapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    eapiPublicGetTicker (params = {}): Promise<List> {
+        return this.request ('ticker', [ 'eapiPublic' ], 'GET', params, { 'cost': 5 });
+    }
+
+    eapiPublicGetMark (params = {}): Promise<List> {
+        return this.request ('mark', [ 'eapiPublic' ], 'GET', params, { 'cost': 5 });
+    }
+
+    eapiPublicGetDepth (params = {}): Promise<Dict> {
+        return this.request ('depth', [ 'eapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    eapiPublicGetKlines (params = {}): Promise<List> {
+        return this.request ('klines', [ 'eapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    eapiPublicGetTrades (params = {}): Promise<List> {
+        return this.request ('trades', [ 'eapiPublic' ], 'GET', params, { 'cost': 5 });
+    }
+
+    eapiPublicGetHistoricalTrades (params = {}): Promise<List> {
+        return this.request ('historicalTrades', [ 'eapiPublic' ], 'GET', params, { 'cost': 20 });
+    }
+
+    eapiPublicGetExerciseHistory (params = {}): Promise<List> {
+        return this.request ('exerciseHistory', [ 'eapiPublic' ], 'GET', params, { 'cost': 3 });
+    }
+
+    eapiPublicGetOpenInterest (params = {}): Promise<Dict> {
+        return this.request ('openInterest', [ 'eapiPublic' ], 'GET', params, { 'cost': 3 });
+    }
+
+    eapiPrivateGetAccount (params = {}): Promise<Dict> {
+        return this.request ('account', [ 'eapiPrivate' ], 'GET', params, { 'cost': 3 });
+    }
+
+    eapiPrivateGetPosition (params = {}): Promise<List> {
+        return this.request ('position', [ 'eapiPrivate' ], 'GET', params, { 'cost': 5 });
+    }
+
+    eapiPrivateGetOpenOrders (params = {}): Promise<List> {
+        return this.request ('openOrders', [ 'eapiPrivate' ], 'GET', params, { 'cost': 1, 'noSymbol': 40 });
+    }
+
+    eapiPrivateGetHistoryOrders (params = {}): Promise<List> {
+        return this.request ('historyOrders', [ 'eapiPrivate' ], 'GET', params, { 'cost': 3 });
+    }
+
+    eapiPrivateGetUserTrades (params = {}): Promise<List> {
+        return this.request ('userTrades', [ 'eapiPrivate' ], 'GET', params, { 'cost': 5 });
+    }
+
+    eapiPrivateGetExerciseRecord (params = {}): Promise<List> {
+        return this.request ('exerciseRecord', [ 'eapiPrivate' ], 'GET', params, { 'cost': 5 });
+    }
+
+    eapiPrivateGetBill (params = {}): Promise<List> {
+        return this.request ('bill', [ 'eapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    eapiPrivateGetIncomeAsyn (params = {}): Promise<Dict> {
+        return this.request ('income/asyn', [ 'eapiPrivate' ], 'GET', params, { 'cost': 5 });
+    }
+
+    eapiPrivateGetIncomeAsynId (params = {}): Promise<Dict> {
+        return this.request ('income/asyn/id', [ 'eapiPrivate' ], 'GET', params, { 'cost': 5 });
+    }
+
+    eapiPrivateGetMarginAccount (params = {}): Promise<Dict> {
+        return this.request ('marginAccount', [ 'eapiPrivate' ], 'GET', params, { 'cost': 3 });
+    }
+
+    eapiPrivateGetMmp (params = {}): Promise<Dict> {
+        return this.request ('mmp', [ 'eapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    eapiPrivateGetCountdownCancelAll (params = {}): Promise<Dict> {
+        return this.request ('countdownCancelAll', [ 'eapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    eapiPrivateGetOrder (params = {}): Promise<Dict> {
+        return this.request ('order', [ 'eapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    eapiPrivateGetBlockOrderOrders (params = {}): Promise<List> {
+        return this.request ('block/order/orders', [ 'eapiPrivate' ], 'GET', params, { 'cost': 5 });
+    }
+
+    eapiPrivateGetBlockOrderExecute (params = {}): Promise<Dict> {
+        return this.request ('block/order/execute', [ 'eapiPrivate' ], 'GET', params, { 'cost': 5 });
+    }
+
+    eapiPrivateGetBlockUserTrades (params = {}): Promise<List> {
+        return this.request ('block/user-trades', [ 'eapiPrivate' ], 'GET', params, { 'cost': 5 });
+    }
+
+    eapiPrivateGetBlockTrades (params = {}): Promise<List> {
+        return this.request ('blockTrades', [ 'eapiPrivate' ], 'GET', params, { 'cost': 5 });
+    }
+
+    eapiPrivateGetComission (params = {}): Promise<Dict> {
+        return this.request ('comission', [ 'eapiPrivate' ], 'GET', params, { 'cost': 5 });
+    }
+
+    eapiPrivatePostOrder (params = {}): Promise<Dict> {
+        return this.request ('order', [ 'eapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    eapiPrivatePostBatchOrders (params = {}): Promise<List> {
+        return this.request ('batchOrders', [ 'eapiPrivate' ], 'POST', params, { 'cost': 5 });
+    }
+
+    eapiPrivatePostListenKey (params = {}): Promise<Dict> {
+        return this.request ('listenKey', [ 'eapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    eapiPrivatePostMmpSet (params = {}): Promise<Dict> {
+        return this.request ('mmpSet', [ 'eapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    eapiPrivatePostMmpReset (params = {}): Promise<Dict> {
+        return this.request ('mmpReset', [ 'eapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    eapiPrivatePostCountdownCancelAll (params = {}): Promise<Dict> {
+        return this.request ('countdownCancelAll', [ 'eapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    eapiPrivatePostCountdownCancelAllHeartBeat (params = {}): Promise<Dict> {
+        return this.request ('countdownCancelAllHeartBeat', [ 'eapiPrivate' ], 'POST', params, { 'cost': 10 });
+    }
+
+    eapiPrivatePostBlockOrderCreate (params = {}): Promise<Dict> {
+        return this.request ('block/order/create', [ 'eapiPrivate' ], 'POST', params, { 'cost': 5 });
+    }
+
+    eapiPrivatePostBlockOrderExecute (params = {}): Promise<Dict> {
+        return this.request ('block/order/execute', [ 'eapiPrivate' ], 'POST', params, { 'cost': 5 });
+    }
+
+    eapiPrivatePostStockContract (params = {}): Promise<Dict> {
+        return this.request ('stock/contract', [ 'eapiPrivate' ], 'POST', params, { 'cost': 50 });
+    }
+
+    eapiPrivatePutListenKey (params = {}): Promise<Dict> {
+        return this.request ('listenKey', [ 'eapiPrivate' ], 'PUT', params, { 'cost': 1 });
+    }
+
+    eapiPrivatePutBlockOrderCreate (params = {}): Promise<Dict> {
+        return this.request ('block/order/create', [ 'eapiPrivate' ], 'PUT', params, { 'cost': 5 });
+    }
+
+    eapiPrivateDeleteOrder (params = {}): Promise<Dict> {
+        return this.request ('order', [ 'eapiPrivate' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    eapiPrivateDeleteBatchOrders (params = {}): Promise<List> {
+        return this.request ('batchOrders', [ 'eapiPrivate' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    eapiPrivateDeleteAllOpenOrders (params = {}): Promise<List> {
+        return this.request ('allOpenOrders', [ 'eapiPrivate' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    eapiPrivateDeleteAllOpenOrdersByUnderlying (params = {}): Promise<Dict> {
+        return this.request ('allOpenOrdersByUnderlying', [ 'eapiPrivate' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    eapiPrivateDeleteListenKey (params = {}): Promise<Dict> {
+        return this.request ('listenKey', [ 'eapiPrivate' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    eapiPrivateDeleteBlockOrderCreate (params = {}): Promise<Dict> {
+        return this.request ('block/order/create', [ 'eapiPrivate' ], 'DELETE', params, { 'cost': 5 });
+    }
+
+    publicGetPing (params = {}): Promise<Dict> {
+        return this.request ('ping', [ 'public' ], 'GET', params, { 'cost': 0.2 });
+    }
+
+    publicGetTime (params = {}): Promise<Dict> {
+        return this.request ('time', [ 'public' ], 'GET', params, { 'cost': 0.2 });
+    }
+
+    publicGetDepth (params = {}): Promise<Dict> {
+        return this.request ('depth', [ 'public' ], 'GET', params, { 'cost': 1, 'byLimit': [ [ 100, 1 ], [ 500, 5 ], [ 1000, 10 ], [ 5000, 50 ] ] });
+    }
+
+    publicGetTrades (params = {}): Promise<List> {
+        return this.request ('trades', [ 'public' ], 'GET', params, { 'cost': 2 });
+    }
+
+    publicGetAggTrades (params = {}): Promise<List> {
+        return this.request ('aggTrades', [ 'public' ], 'GET', params, { 'cost': 0.4 });
+    }
+
+    publicGetHistoricalTrades (params = {}): Promise<List> {
+        return this.request ('historicalTrades', [ 'public' ], 'GET', params, { 'cost': 2 });
+    }
+
+    publicGetKlines (params = {}): Promise<List> {
+        return this.request ('klines', [ 'public' ], 'GET', params, { 'cost': 0.4 });
+    }
+
+    publicGetUiKlines (params = {}): Promise<List> {
+        return this.request ('uiKlines', [ 'public' ], 'GET', params, { 'cost': 0.4 });
+    }
+
+    publicGetTicker24hr (params = {}): Promise<Dict | List> {
+        return this.request ('ticker/24hr', [ 'public' ], 'GET', params, { 'cost': 0.4, 'noSymbol': 16 });
+    }
+
+    publicGetTicker (params = {}): Promise<List> {
+        return this.request ('ticker', [ 'public' ], 'GET', params, { 'cost': 0.4, 'noSymbol': 16 });
+    }
+
+    publicGetTickerTradingDay (params = {}): Promise<Dict> {
+        return this.request ('ticker/tradingDay', [ 'public' ], 'GET', params, { 'cost': 0.8 });
+    }
+
+    publicGetTickerPrice (params = {}): Promise<Dict | List> {
+        return this.request ('ticker/price', [ 'public' ], 'GET', params, { 'cost': 0.4, 'noSymbol': 0.8 });
+    }
+
+    publicGetTickerBookTicker (params = {}): Promise<List> {
+        return this.request ('ticker/bookTicker', [ 'public' ], 'GET', params, { 'cost': 0.4, 'noSymbol': 0.8 });
+    }
+
+    publicGetExchangeInfo (params = {}): Promise<Dict> {
+        return this.request ('exchangeInfo', [ 'public' ], 'GET', params, { 'cost': 4 });
+    }
+
+    publicGetExecutionRules (params = {}): Promise<Dict> {
+        return this.request ('executionRules', [ 'public' ], 'GET', params, { 'cost': 0.4, 'noSymbol': 8 });
+    }
+
+    publicGetAvgPrice (params = {}): Promise<Dict> {
+        return this.request ('avgPrice', [ 'public' ], 'GET', params, { 'cost': 0.4 });
+    }
+
+    publicGetReferencePrice (params = {}): Promise<Dict> {
+        return this.request ('referencePrice', [ 'public' ], 'GET', params, { 'cost': 0.4 });
+    }
+
+    publicGetReferencePriceCalculation (params = {}): Promise<Dict> {
+        return this.request ('referencePrice/calculation', [ 'public' ], 'GET', params, { 'cost': 0.4 });
+    }
+
+    publicGetHistoricalBlockTrades (params = {}): Promise<List> {
+        return this.request ('historicalBlockTrades', [ 'public' ], 'GET', params, { 'cost': 5 });
+    }
+
+    publicPutUserDataStream (params = {}): Promise<Dict> {
+        return this.request ('userDataStream', [ 'public' ], 'PUT', params, { 'cost': 0.4 });
+    }
+
+    publicPostUserDataStream (params = {}): Promise<Dict> {
+        return this.request ('userDataStream', [ 'public' ], 'POST', params, { 'cost': 0.4 });
+    }
+
+    publicDeleteUserDataStream (params = {}): Promise<Dict> {
+        return this.request ('userDataStream', [ 'public' ], 'DELETE', params, { 'cost': 0.4 });
+    }
+
+    privateGetAllOrderList (params = {}): Promise<List> {
+        return this.request ('allOrderList', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    privateGetOpenOrderList (params = {}): Promise<List> {
+        return this.request ('openOrderList', [ 'private' ], 'GET', params, { 'cost': 1.2 });
+    }
+
+    privateGetOrderList (params = {}): Promise<Dict> {
+        return this.request ('orderList', [ 'private' ], 'GET', params, { 'cost': 0.8 });
+    }
+
+    privateGetOrder (params = {}): Promise<Dict> {
+        return this.request ('order', [ 'private' ], 'GET', params, { 'cost': 0.8 });
+    }
+
+    privateGetOpenOrders (params = {}): Promise<List> {
+        return this.request ('openOrders', [ 'private' ], 'GET', params, { 'cost': 1.2, 'noSymbol': 16 });
+    }
+
+    privateGetAllOrders (params = {}): Promise<List> {
+        return this.request ('allOrders', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    privateGetAccount (params = {}): Promise<Dict> {
+        return this.request ('account', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    privateGetMyTrades (params = {}): Promise<List> {
+        return this.request ('myTrades', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    privateGetRateLimitOrder (params = {}): Promise<List> {
+        return this.request ('rateLimit/order', [ 'private' ], 'GET', params, { 'cost': 8 });
+    }
+
+    privateGetMyPreventedMatches (params = {}): Promise<List> {
+        return this.request ('myPreventedMatches', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    privateGetMyAllocations (params = {}): Promise<List> {
+        return this.request ('myAllocations', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    privateGetAccountCommission (params = {}): Promise<Dict> {
+        return this.request ('account/commission', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    privatePostOrderOco (params = {}): Promise<Dict> {
+        return this.request ('order/oco', [ 'private' ], 'POST', params, { 'cost': 0.2 });
+    }
+
+    privatePostOrderListOco (params = {}): Promise<Dict> {
+        return this.request ('orderList/oco', [ 'private' ], 'POST', params, { 'cost': 0.2 });
+    }
+
+    privatePostOrderListOto (params = {}): Promise<Dict> {
+        return this.request ('orderList/oto', [ 'private' ], 'POST', params, { 'cost': 0.2 });
+    }
+
+    privatePostOrderListOtoco (params = {}): Promise<Dict> {
+        return this.request ('orderList/otoco', [ 'private' ], 'POST', params, { 'cost': 0.2 });
+    }
+
+    privatePostOrderListOpo (params = {}): Promise<Dict> {
+        return this.request ('orderList/opo', [ 'private' ], 'POST', params, { 'cost': 0.2 });
+    }
+
+    privatePostOrderListOpoco (params = {}): Promise<Dict> {
+        return this.request ('orderList/opoco', [ 'private' ], 'POST', params, { 'cost': 0.2 });
+    }
+
+    privatePostSorOrder (params = {}): Promise<Dict> {
+        return this.request ('sor/order', [ 'private' ], 'POST', params, { 'cost': 0.2 });
+    }
+
+    privatePostSorOrderTest (params = {}): Promise<Dict> {
+        return this.request ('sor/order/test', [ 'private' ], 'POST', params, { 'cost': 0.2 });
+    }
+
+    privatePostOrder (params = {}): Promise<Dict> {
+        return this.request ('order', [ 'private' ], 'POST', params, { 'cost': 0.2 });
+    }
+
+    privatePostOrderCancelReplace (params = {}): Promise<Dict> {
+        return this.request ('order/cancelReplace', [ 'private' ], 'POST', params, { 'cost': 0.2 });
+    }
+
+    privatePostOrderTest (params = {}): Promise<Dict> {
+        return this.request ('order/test', [ 'private' ], 'POST', params, { 'cost': 0.2 });
+    }
+
+    privateDeleteOpenOrders (params = {}): Promise<List> {
+        return this.request ('openOrders', [ 'private' ], 'DELETE', params, { 'cost': 0.2 });
+    }
+
+    privateDeleteOrderList (params = {}): Promise<Dict> {
+        return this.request ('orderList', [ 'private' ], 'DELETE', params, { 'cost': 0.2 });
+    }
+
+    privateDeleteOrder (params = {}): Promise<Dict> {
+        return this.request ('order', [ 'private' ], 'DELETE', params, { 'cost': 0.2 });
+    }
+
+    papiGetPing (params = {}): Promise<Dict> {
+        return this.request ('ping', [ 'papi' ], 'GET', params, { 'cost': 0.2 });
+    }
+
+    papiGetUmOrder (params = {}): Promise<Dict> {
+        return this.request ('um/order', [ 'papi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    papiGetUmOpenOrder (params = {}): Promise<Dict> {
+        return this.request ('um/openOrder', [ 'papi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    papiGetUmOpenOrders (params = {}): Promise<List> {
+        return this.request ('um/openOrders', [ 'papi' ], 'GET', params, { 'cost': 1, 'noSymbol': 40 });
+    }
+
+    papiGetUmAllOrders (params = {}): Promise<List> {
+        return this.request ('um/allOrders', [ 'papi' ], 'GET', params, { 'cost': 5 });
+    }
+
+    papiGetCmOrder (params = {}): Promise<Dict> {
+        return this.request ('cm/order', [ 'papi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    papiGetCmOpenOrder (params = {}): Promise<Dict> {
+        return this.request ('cm/openOrder', [ 'papi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    papiGetCmOpenOrders (params = {}): Promise<List> {
+        return this.request ('cm/openOrders', [ 'papi' ], 'GET', params, { 'cost': 1, 'noSymbol': 40 });
+    }
+
+    papiGetCmAllOrders (params = {}): Promise<List> {
+        return this.request ('cm/allOrders', [ 'papi' ], 'GET', params, { 'cost': 20 });
+    }
+
+    papiGetUmConditionalOpenOrder (params = {}): Promise<Dict> {
+        return this.request ('um/conditional/openOrder', [ 'papi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    papiGetUmConditionalOpenOrders (params = {}): Promise<List> {
+        return this.request ('um/conditional/openOrders', [ 'papi' ], 'GET', params, { 'cost': 1, 'noSymbol': 40 });
+    }
+
+    papiGetUmConditionalOrderHistory (params = {}): Promise<Dict> {
+        return this.request ('um/conditional/orderHistory', [ 'papi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    papiGetUmConditionalAllOrders (params = {}): Promise<List> {
+        return this.request ('um/conditional/allOrders', [ 'papi' ], 'GET', params, { 'cost': 1, 'noSymbol': 40 });
+    }
+
+    papiGetUmAlgoAlgoOrder (params = {}): Promise<Dict> {
+        return this.request ('um/algo/algoOrder', [ 'papi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    papiGetUmAlgoOpenAlgoOrders (params = {}): Promise<List> {
+        return this.request ('um/algo/openAlgoOrders', [ 'papi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    papiGetUmAlgoAllAlgoOrders (params = {}): Promise<List> {
+        return this.request ('um/algo/allAlgoOrders', [ 'papi' ], 'GET', params, { 'cost': 5 });
+    }
+
+    papiGetCmConditionalOpenOrder (params = {}): Promise<Dict> {
+        return this.request ('cm/conditional/openOrder', [ 'papi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    papiGetCmConditionalOpenOrders (params = {}): Promise<List> {
+        return this.request ('cm/conditional/openOrders', [ 'papi' ], 'GET', params, { 'cost': 1, 'noSymbol': 40 });
+    }
+
+    papiGetCmConditionalOrderHistory (params = {}): Promise<Dict> {
+        return this.request ('cm/conditional/orderHistory', [ 'papi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    papiGetCmConditionalAllOrders (params = {}): Promise<List> {
+        return this.request ('cm/conditional/allOrders', [ 'papi' ], 'GET', params, { 'cost': 40 });
+    }
+
+    papiGetMarginOrder (params = {}): Promise<Dict> {
+        return this.request ('margin/order', [ 'papi' ], 'GET', params, { 'cost': 10 });
+    }
+
+    papiGetMarginOpenOrders (params = {}): Promise<List> {
+        return this.request ('margin/openOrders', [ 'papi' ], 'GET', params, { 'cost': 5 });
+    }
+
+    papiGetMarginAllOrders (params = {}): Promise<List> {
+        return this.request ('margin/allOrders', [ 'papi' ], 'GET', params, { 'cost': 100 });
+    }
+
+    papiGetMarginOrderList (params = {}): Promise<Dict> {
+        return this.request ('margin/orderList', [ 'papi' ], 'GET', params, { 'cost': 5 });
+    }
+
+    papiGetMarginAllOrderList (params = {}): Promise<List> {
+        return this.request ('margin/allOrderList', [ 'papi' ], 'GET', params, { 'cost': 100 });
+    }
+
+    papiGetMarginOpenOrderList (params = {}): Promise<List> {
+        return this.request ('margin/openOrderList', [ 'papi' ], 'GET', params, { 'cost': 5 });
+    }
+
+    papiGetMarginMyTrades (params = {}): Promise<List> {
+        return this.request ('margin/myTrades', [ 'papi' ], 'GET', params, { 'cost': 5 });
+    }
+
+    papiGetBalance (params = {}): Promise<List> {
+        return this.request ('balance', [ 'papi' ], 'GET', params, { 'cost': 4 });
+    }
+
+    papiGetAccount (params = {}): Promise<Dict> {
+        return this.request ('account', [ 'papi' ], 'GET', params, { 'cost': 4 });
+    }
+
+    papiGetMarginMaxBorrowable (params = {}): Promise<Dict> {
+        return this.request ('margin/maxBorrowable', [ 'papi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    papiGetMarginMaxWithdraw (params = {}): Promise<Dict> {
+        return this.request ('margin/maxWithdraw', [ 'papi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    papiGetUmPositionRisk (params = {}): Promise<List> {
+        return this.request ('um/positionRisk', [ 'papi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    papiGetCmPositionRisk (params = {}): Promise<List> {
+        return this.request ('cm/positionRisk', [ 'papi' ], 'GET', params, { 'cost': 0.2 });
+    }
+
+    papiGetUmPositionSideDual (params = {}): Promise<Dict> {
+        return this.request ('um/positionSide/dual', [ 'papi' ], 'GET', params, { 'cost': 6 });
+    }
+
+    papiGetCmPositionSideDual (params = {}): Promise<Dict> {
+        return this.request ('cm/positionSide/dual', [ 'papi' ], 'GET', params, { 'cost': 6 });
+    }
+
+    papiGetUmUserTrades (params = {}): Promise<List> {
+        return this.request ('um/userTrades', [ 'papi' ], 'GET', params, { 'cost': 5 });
+    }
+
+    papiGetCmUserTrades (params = {}): Promise<List> {
+        return this.request ('cm/userTrades', [ 'papi' ], 'GET', params, { 'cost': 20 });
+    }
+
+    papiGetUmLeverageBracket (params = {}): Promise<List> {
+        return this.request ('um/leverageBracket', [ 'papi' ], 'GET', params, { 'cost': 0.2 });
+    }
+
+    papiGetCmLeverageBracket (params = {}): Promise<List> {
+        return this.request ('cm/leverageBracket', [ 'papi' ], 'GET', params, { 'cost': 0.2 });
+    }
+
+    papiGetMarginForceOrders (params = {}): Promise<Dict> {
+        return this.request ('margin/forceOrders', [ 'papi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    papiGetUmForceOrders (params = {}): Promise<Dict> {
+        return this.request ('um/forceOrders', [ 'papi' ], 'GET', params, { 'cost': 20, 'noSymbol': 50 });
+    }
+
+    papiGetCmForceOrders (params = {}): Promise<Dict> {
+        return this.request ('cm/forceOrders', [ 'papi' ], 'GET', params, { 'cost': 20, 'noSymbol': 50 });
+    }
+
+    papiGetUmApiTradingStatus (params = {}): Promise<Dict> {
+        return this.request ('um/apiTradingStatus', [ 'papi' ], 'GET', params, { 'cost': 0.2, 'noSymbol': 2 });
+    }
+
+    papiGetUmCommissionRate (params = {}): Promise<Dict> {
+        return this.request ('um/commissionRate', [ 'papi' ], 'GET', params, { 'cost': 4 });
+    }
+
+    papiGetCmCommissionRate (params = {}): Promise<Dict> {
+        return this.request ('cm/commissionRate', [ 'papi' ], 'GET', params, { 'cost': 4 });
+    }
+
+    papiGetMarginMarginLoan (params = {}): Promise<Dict> {
+        return this.request ('margin/marginLoan', [ 'papi' ], 'GET', params, { 'cost': 2 });
+    }
+
+    papiGetMarginRepayLoan (params = {}): Promise<Dict> {
+        return this.request ('margin/repayLoan', [ 'papi' ], 'GET', params, { 'cost': 2 });
+    }
+
+    papiGetMarginMarginInterestHistory (params = {}): Promise<Dict> {
+        return this.request ('margin/marginInterestHistory', [ 'papi' ], 'GET', params, { 'cost': 0.2 });
+    }
+
+    papiGetPortfolioInterestHistory (params = {}): Promise<List> {
+        return this.request ('portfolio/interest-history', [ 'papi' ], 'GET', params, { 'cost': 10 });
+    }
+
+    papiGetUmIncome (params = {}): Promise<List> {
+        return this.request ('um/income', [ 'papi' ], 'GET', params, { 'cost': 6 });
+    }
+
+    papiGetCmIncome (params = {}): Promise<List> {
+        return this.request ('cm/income', [ 'papi' ], 'GET', params, { 'cost': 6 });
+    }
+
+    papiGetUmAccount (params = {}): Promise<Dict> {
+        return this.request ('um/account', [ 'papi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    papiGetCmAccount (params = {}): Promise<Dict> {
+        return this.request ('cm/account', [ 'papi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    papiGetRepayFuturesSwitch (params = {}): Promise<Dict> {
+        return this.request ('repay-futures-switch', [ 'papi' ], 'GET', params, { 'cost': 6 });
+    }
+
+    papiGetUmAdlQuantile (params = {}): Promise<List> {
+        return this.request ('um/adlQuantile', [ 'papi' ], 'GET', params, { 'cost': 5 });
+    }
+
+    papiGetCmAdlQuantile (params = {}): Promise<List> {
+        return this.request ('cm/adlQuantile', [ 'papi' ], 'GET', params, { 'cost': 5 });
+    }
+
+    papiGetUmTradeAsyn (params = {}): Promise<Dict> {
+        return this.request ('um/trade/asyn', [ 'papi' ], 'GET', params, { 'cost': 300 });
+    }
+
+    papiGetUmTradeAsynId (params = {}): Promise<Dict> {
+        return this.request ('um/trade/asyn/id', [ 'papi' ], 'GET', params, { 'cost': 2 });
+    }
+
+    papiGetUmOrderAsyn (params = {}): Promise<Dict> {
+        return this.request ('um/order/asyn', [ 'papi' ], 'GET', params, { 'cost': 300 });
+    }
+
+    papiGetUmOrderAsynId (params = {}): Promise<Dict> {
+        return this.request ('um/order/asyn/id', [ 'papi' ], 'GET', params, { 'cost': 2 });
+    }
+
+    papiGetUmIncomeAsyn (params = {}): Promise<Dict> {
+        return this.request ('um/income/asyn', [ 'papi' ], 'GET', params, { 'cost': 300 });
+    }
+
+    papiGetUmIncomeAsynId (params = {}): Promise<Dict> {
+        return this.request ('um/income/asyn/id', [ 'papi' ], 'GET', params, { 'cost': 2 });
+    }
+
+    papiGetUmOrderAmendment (params = {}): Promise<List> {
+        return this.request ('um/orderAmendment', [ 'papi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    papiGetCmOrderAmendment (params = {}): Promise<List> {
+        return this.request ('cm/orderAmendment', [ 'papi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    papiGetUmFeeBurn (params = {}): Promise<Dict> {
+        return this.request ('um/feeBurn', [ 'papi' ], 'GET', params, { 'cost': 30 });
+    }
+
+    papiGetUmAccountConfig (params = {}): Promise<Dict> {
+        return this.request ('um/accountConfig', [ 'papi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    papiGetUmSymbolConfig (params = {}): Promise<List> {
+        return this.request ('um/symbolConfig', [ 'papi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    papiGetCmAccountConfig (params = {}): Promise<Dict> {
+        return this.request ('cm/accountConfig', [ 'papi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    papiGetCmSymbolConfig (params = {}): Promise<Dict> {
+        return this.request ('cm/symbolConfig', [ 'papi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    papiGetRateLimitOrder (params = {}): Promise<List> {
+        return this.request ('rateLimit/order', [ 'papi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    papiPostUmOrder (params = {}): Promise<Dict> {
+        return this.request ('um/order', [ 'papi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    papiPostUmConditionalOrder (params = {}): Promise<Dict> {
+        return this.request ('um/conditional/order', [ 'papi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    papiPostUmAlgoOrder (params = {}): Promise<Dict> {
+        return this.request ('um/algo/order', [ 'papi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    papiPostCmOrder (params = {}): Promise<Dict> {
+        return this.request ('cm/order', [ 'papi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    papiPostCmConditionalOrder (params = {}): Promise<Dict> {
+        return this.request ('cm/conditional/order', [ 'papi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    papiPostMarginOrder (params = {}): Promise<Dict> {
+        return this.request ('margin/order', [ 'papi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    papiPostMarginLoan (params = {}): Promise<Dict> {
+        return this.request ('marginLoan', [ 'papi' ], 'POST', params, { 'cost': 100 });
+    }
+
+    papiPostRepayLoan (params = {}): Promise<Dict> {
+        return this.request ('repayLoan', [ 'papi' ], 'POST', params, { 'cost': 100 });
+    }
+
+    papiPostMarginOrderOco (params = {}): Promise<Dict> {
+        return this.request ('margin/order/oco', [ 'papi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    papiPostUmLeverage (params = {}): Promise<Dict> {
+        return this.request ('um/leverage', [ 'papi' ], 'POST', params, { 'cost': 0.2 });
+    }
+
+    papiPostCmLeverage (params = {}): Promise<Dict> {
+        return this.request ('cm/leverage', [ 'papi' ], 'POST', params, { 'cost': 0.2 });
+    }
+
+    papiPostUmPositionSideDual (params = {}): Promise<Dict> {
+        return this.request ('um/positionSide/dual', [ 'papi' ], 'POST', params, { 'cost': 0.2 });
+    }
+
+    papiPostCmPositionSideDual (params = {}): Promise<Dict> {
+        return this.request ('cm/positionSide/dual', [ 'papi' ], 'POST', params, { 'cost': 0.2 });
+    }
+
+    papiPostAutoCollection (params = {}): Promise<Dict> {
+        return this.request ('auto-collection', [ 'papi' ], 'POST', params, { 'cost': 150 });
+    }
+
+    papiPostBnbTransfer (params = {}): Promise<Dict> {
+        return this.request ('bnb-transfer', [ 'papi' ], 'POST', params, { 'cost': 150 });
+    }
+
+    papiPostRepayFuturesSwitch (params = {}): Promise<Dict> {
+        return this.request ('repay-futures-switch', [ 'papi' ], 'POST', params, { 'cost': 150 });
+    }
+
+    papiPostRepayFuturesNegativeBalance (params = {}): Promise<Dict> {
+        return this.request ('repay-futures-negative-balance', [ 'papi' ], 'POST', params, { 'cost': 150 });
+    }
+
+    papiPostListenKey (params = {}): Promise<Dict> {
+        return this.request ('listenKey', [ 'papi' ], 'POST', params, { 'cost': 0.2 });
+    }
+
+    papiPostAssetCollection (params = {}): Promise<Dict> {
+        return this.request ('asset-collection', [ 'papi' ], 'POST', params, { 'cost': 6 });
+    }
+
+    papiPostMarginRepayDebt (params = {}): Promise<Dict> {
+        return this.request ('margin/repay-debt', [ 'papi' ], 'POST', params, { 'cost': 3000 });
+    }
+
+    papiPostUmFeeBurn (params = {}): Promise<Dict> {
+        return this.request ('um/feeBurn', [ 'papi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    papiPostUmStockContract (params = {}): Promise<Dict> {
+        return this.request ('um/stock/contract', [ 'papi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    papiPutListenKey (params = {}): Promise<Dict> {
+        return this.request ('listenKey', [ 'papi' ], 'PUT', params, { 'cost': 0.2 });
+    }
+
+    papiPutUmOrder (params = {}): Promise<Dict> {
+        return this.request ('um/order', [ 'papi' ], 'PUT', params, { 'cost': 1 });
+    }
+
+    papiPutCmOrder (params = {}): Promise<Dict> {
+        return this.request ('cm/order', [ 'papi' ], 'PUT', params, { 'cost': 1 });
+    }
+
+    papiDeleteUmOrder (params = {}): Promise<Dict> {
+        return this.request ('um/order', [ 'papi' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    papiDeleteUmConditionalOrder (params = {}): Promise<Dict> {
+        return this.request ('um/conditional/order', [ 'papi' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    papiDeleteUmAllOpenOrders (params = {}): Promise<List> {
+        return this.request ('um/allOpenOrders', [ 'papi' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    papiDeleteUmConditionalAllOpenOrders (params = {}): Promise<List> {
+        return this.request ('um/conditional/allOpenOrders', [ 'papi' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    papiDeleteUmAlgoOrder (params = {}): Promise<Dict> {
+        return this.request ('um/algo/order', [ 'papi' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    papiDeleteUmAlgoAllOpenOrders (params = {}): Promise<List> {
+        return this.request ('um/algo/allOpenOrders', [ 'papi' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    papiDeleteCmOrder (params = {}): Promise<Dict> {
+        return this.request ('cm/order', [ 'papi' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    papiDeleteCmConditionalOrder (params = {}): Promise<Dict> {
+        return this.request ('cm/conditional/order', [ 'papi' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    papiDeleteCmAllOpenOrders (params = {}): Promise<List> {
+        return this.request ('cm/allOpenOrders', [ 'papi' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    papiDeleteCmConditionalAllOpenOrders (params = {}): Promise<List> {
+        return this.request ('cm/conditional/allOpenOrders', [ 'papi' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    papiDeleteMarginOrder (params = {}): Promise<Dict> {
+        return this.request ('margin/order', [ 'papi' ], 'DELETE', params, { 'cost': 2 });
+    }
+
+    papiDeleteMarginAllOpenOrders (params = {}): Promise<List> {
+        return this.request ('margin/allOpenOrders', [ 'papi' ], 'DELETE', params, { 'cost': 5 });
+    }
+
+    papiDeleteMarginOrderList (params = {}): Promise<Dict> {
+        return this.request ('margin/orderList', [ 'papi' ], 'DELETE', params, { 'cost': 2 });
+    }
+
+    papiDeleteListenKey (params = {}): Promise<Dict> {
+        return this.request ('listenKey', [ 'papi' ], 'DELETE', params, { 'cost': 0.2 });
+    }
+
+    papiV2GetUmAccount (params = {}): Promise<Dict> {
+        return this.request ('um/account', [ 'papiV2' ], 'GET', params, { 'cost': 1 });
+    }
+}
+
+export default Exchange;

@@ -1,6 +1,6 @@
 import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     publicGetApiV3Time(params?: {}): Promise<Dict>;
     publicGetApiV3Coins(params?: {}): Promise<List>;
     publicGetApiV3ExchangeInfo(params?: {}): Promise<Dict>;
@@ -26,11 +26,19 @@ interface Exchange {
     privateGetApiV3AgencyVerifyReferrals(params?: {}): Promise<List>;
     privateGetApiV3AgencyGetAssert(params?: {}): Promise<Dict>;
     privateGetApiV3AgencyGetDealData(params?: {}): Promise<Dict>;
+    privateGetApiV3ApiReferralCheckUserEligibility(params?: {}): Promise<Dict>;
+    privateGetApiV3ApiReferralRebateRecentRecord(params?: {}): Promise<Dict>;
+    privateGetApiV3ApiReferralRebateRatio(params?: {}): Promise<Dict>;
+    privateGetApiV3ContentArticlesDetail(params?: {}): Promise<Dict>;
+    privateGetApiV3ContentArticlesList(params?: {}): Promise<Dict>;
+    privateGetApiV3ContentArticlesListByCoin(params?: {}): Promise<Dict>;
+    privateGetApiV3ContentBannersLatest(params?: {}): Promise<Dict>;
     privatePostApiV3AccountBills(params?: {}): Promise<List>;
     privatePostApiV3AccountFundingBills(params?: {}): Promise<Dict>;
     privatePostApiV3Order(params?: {}): Promise<Dict>;
     privatePostApiV3OrderBatch(params?: {}): Promise<Dict>;
     privatePostApiV3RebateAffiliateInternalWithdrawal(params?: {}): Promise<string>;
+    privatePostApiV3TaxIncome(params?: {}): Promise<List>;
     privateDeleteApiV3Order(params?: {}): Promise<Dict>;
     privateDeleteApiV3OpenOrders(params?: {}): Promise<List>;
     privateDeleteApiV3OrderBatch(params?: {}): Promise<Dict>;
@@ -64,6 +72,15 @@ interface Exchange {
     contractPrivateGetCapiV3SimBalance(params?: {}): Promise<List>;
     contractPrivateGetCapiV3SimPositionAllPosition(params?: {}): Promise<List>;
     contractPrivateGetCapiV3SimOrderHistory(params?: {}): Promise<List>;
+    contractPrivateGetCapiV3CopyFollowerHistoryOrders(params?: {}): Promise<Dict>;
+    contractPrivateGetCapiV3CopyFollowerMyTraders(params?: {}): Promise<Dict>;
+    contractPrivateGetCapiV3CopyFollowerOpenOrders(params?: {}): Promise<List>;
+    contractPrivateGetCapiV3CopyFollowerSettings(params?: {}): Promise<List>;
+    contractPrivateGetCapiV3CopyTraderHistoryOrders(params?: {}): Promise<Dict>;
+    contractPrivateGetCapiV3CopyTraderOpenOrders(params?: {}): Promise<List>;
+    contractPrivateGetCapiV3CopyTraderPairs(params?: {}): Promise<List>;
+    contractPrivateGetCapiV3TrailingOpenOrders(params?: {}): Promise<List>;
+    contractPrivateGetCapiV3TrailingHistoryOrders(params?: {}): Promise<List>;
     contractPrivatePostCapiV3AccountIncome(params?: {}): Promise<Dict>;
     contractPrivatePostCapiV3AccountMarginType(params?: {}): Promise<Dict>;
     contractPrivatePostCapiV3AccountLeverage(params?: {}): Promise<Dict>;
@@ -76,12 +93,13 @@ interface Exchange {
     contractPrivatePostCapiV3PlaceTpSlOrder(params?: {}): Promise<List>;
     contractPrivatePostCapiV3ModifyTpSlOrder(params?: {}): Promise<Dict>;
     contractPrivatePostCapiV3SimOrder(params?: {}): Promise<Dict>;
+    contractPrivatePostCapiV3CopyFollowerClosePos(params?: {}): Promise<Dict>;
+    contractPrivatePostCapiV3CopyFollowerSettings(params?: {}): Promise<Dict>;
+    contractPrivatePostCapiV3CopyFollowerStopCopy(params?: {}): Promise<Dict>;
     contractPrivateDeleteCapiV3Order(params?: {}): Promise<Dict>;
     contractPrivateDeleteCapiV3BatchOrders(params?: {}): Promise<Dict>;
     contractPrivateDeleteCapiV3AllOpenOrders(params?: {}): Promise<List>;
     contractPrivateDeleteCapiV3AlgoOrder(params?: {}): Promise<Dict>;
     contractPrivateDeleteCapiV3AlgoOpenOrders(params?: {}): Promise<List>;
-}
-declare abstract class Exchange extends _Exchange {
 }
 export default Exchange;

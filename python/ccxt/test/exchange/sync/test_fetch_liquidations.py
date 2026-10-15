@@ -17,7 +17,7 @@ from ccxt.test.exchange.base import test_liquidation  # noqa E402
 
 def test_fetch_liquidations(exchange, skipped_properties, code):
     method = 'fetchLiquidations'
-    if not exchange.has['fetchLiquidations']:
+    if exchange.has['fetchLiquidations'] is None or exchange.has['fetchLiquidations'] is False:
         return True
     items = exchange.fetch_liquidations(code)
     assert isinstance(items, list), exchange.id + ' ' + method + ' ' + code + ' must return an array. ' + exchange.json(items)

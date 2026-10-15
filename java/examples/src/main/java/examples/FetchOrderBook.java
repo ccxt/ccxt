@@ -23,7 +23,7 @@ public class FetchOrderBook {
 
         exchange.loadMarkets(false);
 
-        OrderBook ob = exchange.fetchOrderBook(symbol, 10L, null);
+        OrderBook ob = exchange.fetchOrderBook(symbol, 10L, null).join();
 
         System.out.printf("%-20s | %-20s%n", "BIDS (price x size)", "ASKS (price x size)");
         System.out.println("-".repeat(43));

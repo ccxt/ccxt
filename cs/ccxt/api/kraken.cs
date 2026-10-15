@@ -39,6 +39,13 @@ public partial class kraken : Exchange
         return await this.callAsync<Dictionary<string, object>> ("publicGetSystemStatus",parameters);
     }
 
+    /// <summary>Calls the publicGetMaintenanceSchedule endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetMaintenanceSchedule (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetMaintenanceSchedule",parameters);
+    }
+
     /// <summary>Calls the publicGetAssets endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> publicGetAssets (object parameters = null)
@@ -247,6 +254,13 @@ public partial class kraken : Exchange
     public async Task<Dictionary<string, object>> privatePostGetApiKeyInfo (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privatePostGetApiKeyInfo",parameters);
+    }
+
+    /// <summary>Calls the privatePostListWalletAccounts endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostListWalletAccounts (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostListWalletAccounts",parameters);
     }
 
     /// <summary>Calls the privatePostAddOrder endpoint.</summary>

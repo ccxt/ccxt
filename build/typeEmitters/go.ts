@@ -90,18 +90,8 @@ const FIELD_ALIASES: Record<string, Record<string, string>> = {
     'PredictionOrderRequest': { 'Parameters': 'params' },
 };
 
-/**
- * Go-only fields kept even though `ts/src/base/types.ts` does not declare them.
- * Removing a public field is source-breaking for Go consumers, so a field that is merely
- * stale is preserved verbatim (same choice PR #29502 made for the C# structs). The one
- * exception is `PredictionPosition.oppositeOutcome`, which #29502 removed from C# on the
- * grounds that TS is the source of truth; it is dropped here for cross-language parity.
- */
-const KEEP_PORT_ONLY: Record<string, string[]> = {
-    'FundingHistory': [ 'Currency' ],
-    'IsolatedBorrowRate': [ 'Rate' ],
-    'Leverage': [ 'Leverage' ],
-};
+/** Go-only fields kept although ts/src/base/types.ts does not declare them (none: TS is the source of truth). */
+const KEEP_PORT_ONLY: Record<string, string[]> = {};
 
 /**
  * Go field name -> forced Go type, for fields the port deliberately carries at a
@@ -113,7 +103,45 @@ const TYPE_OVERRIDES: Record<string, Record<string, string>> = {
     'Position': { 'Timestamp': '*float64', 'LastUpdateTimestamp': '*float64' },
     // TS `Num` but Go/C# hold it as an int (leverage tier levels)
     'LeverageTier': { 'Tier': '*int64' },
+    // TS `info: any`: the raw response may be a list or a string (bitfinex, kraken, digifinex)
+    'Ticker': { 'Info': 'any' },
+    'Trade': { 'Info': 'any' },
+    'Order': { 'Info': 'any' },
 };
+
+/** TS string-literal union aliases emitted as Go `type X string` + one const per member. */
+const STRING_ENUMS: Record<string, string> = { 'DefaultType': 'exchange_types.go', 'DefaultSubType': 'exchange_types.go' };
+
+function emitStringEnum (type: IRType): string {
+    const lines = [ 'type ' + type.name + ' string', '', 'const (' ];
+    const names: string[] = [];
+    const values: string[] = [];
+    for (let i = 0; i < type.unionMembers.length; i++) {
+        const value = type.unionMembers[i].trim ().slice (1, -1);
+        names.push (type.name + value.charAt (0).toUpperCase () + value.slice (1));
+        values.push (value);
+    }
+    const width = Math.max (...names.map ((n) => n.length));
+    for (let i = 0; i < names.length; i++) {
+        lines.push ('\t' + names[i].padEnd (width) + ' ' + type.name + ' = "' + values[i] + '"');
+    }
+    lines.push (')');
+    return lines.join ('\n');
+}
+
+/** replaces `type X string` .. closing `)` of its const block, or appends it */
+function spliceStringEnum (text: string, name: string, source: string): string {
+    const lines = text.split ('\n');
+    const start = lines.indexOf ('type ' + name + ' string');
+    if (start < 0) {
+        return text.replace (/\n*$/, '') + '\n\n' + source + '\n';
+    }
+    let end = start;
+    while (end < lines.length && lines[end] !== ')') {
+        end++;
+    }
+    return lines.slice (0, start).concat (source.split ('\n')).concat (lines.slice (end + 1)).join ('\n');
+}
 
 const PLAIN_ACCESSOR = /^(?:Safe(?:Float|Int64|String|Bool)Typed\(\s*\w+\s*,\s*(?:"[^"]*"|\d+)\s*\)|GetInfo\(\s*\w+\s*\))$/;
 
@@ -359,6 +387,8 @@ function goTypeFor (ir: TypesIR, field: IRField): string | undefined {
     if (field.kind === 'dict') {
         const value = field.elementType === undefined ? '' : field.elementType.trim ();
         if (ir.byName[value] === undefined) {
+            // a literal `Dictionary<any>` (CurrencyInterface.networks) is a bag the port
+            // may have given a synthesised value type — its own declaration wins
             return undefined;
         }
         return 'map[string]' + goTypeName (value);
@@ -367,6 +397,11 @@ function goTypeFor (ir: TypesIR, field: IRField): string | undefined {
         return undefined;
     }
     const resolved = resolveTs (ir, field.tsType);
+    if (resolved === 'Dictionary<any>') {
+        // the `Dict` / `NullableDict` aliases (TradingFeeInterface.tiers): a free-form
+        // map with no declared value type — the untyped Go map
+        return 'map[string]any';
+    }
     if (resolved === 'string') {
         return '*string';
     }
@@ -430,7 +465,11 @@ function defaultExpr (goType: string, key: string, accessor: string, isInfo: boo
         return 'SafeBoolTyped(' + accessor + ', "' + key + '")';
     }
     if (goType === 'map[string]any') {
-        return isInfo ? 'GetInfo(' + accessor + ')' : undefined;
+        if (isInfo) {
+            return 'GetInfo(' + accessor + ')';
+        }
+        // a free-form `Dict` member: keep whatever map the payload carries, nil otherwise
+        return 'SafeMapTyped(' + accessor + ', "' + key + '")';
     }
     if (goType === '[]string') {
         return helpers['NewStringArray'] ? 'NewStringArray(' + accessor + '["' + key + '"])' : undefined;
@@ -444,7 +483,7 @@ function defaultExpr (goType: string, key: string, accessor: string, isInfo: boo
     }
     const constructor = 'New' + baseGoType (goType);
     if (helpers[constructor]) {
-        return constructor + '(SafeValue(' + accessor + ', "' + key + '", map[string]any{}).(map[string]any))';
+        return constructor + '(MapOrEmpty(SafeValue(' + accessor + ', "' + key + '", map[string]any{})))';
     }
     return undefined;
 }
@@ -784,7 +823,18 @@ function emit (ir: TypesIR, repoRoot: string): EmitterOutput[] {
         const file = files[f];
         const plan = plans[file.path];
         const result: SpliceResult = spliceBlocks (file.text, plan.blocks, findBraceBlockEnd);
-        const contents = ensureGeneratedBanner (result.text, '//');
+        let text = result.text;
+        for (let t = 0; t < ir.types.length; t++) {
+            const type = ir.types[t];
+            if (STRING_ENUMS[type.name] === path.basename (file.path) && type.kind === 'alias') {
+                const next = spliceStringEnum (text, type.name, emitStringEnum (type));
+                if (next !== text) {
+                    result.appended.push (type.name);
+                }
+                text = next;
+            }
+        }
+        const contents = ensureGeneratedBanner (softenNestedMapCasts (text), '//');
         const changed = result.replaced.concat (result.appended);
         if (contents !== result.text) {
             changed.push ('banner');
@@ -792,6 +842,14 @@ function emit (ir: TypesIR, repoRoot: string): EmitterOutput[] {
         outputs.push ({ 'path': file.path, 'contents': contents, 'changed': changed.concat (plan.notes) });
     }
     return outputs;
+}
+
+/** a nested dict may be nil or absent (market limits.leverage), so constructors never
+    hard-cast their argument: `NewX(expr.(map[string]any))` -> `NewX(MapOrEmpty(expr))`, and
+    `m := data.(map[string]any)` -> `m := MapOrEmpty(data)` */
+function softenNestedMapCasts (text: string): string {
+    text = text.replace (/^(\s*\w+ := )(data2?)\.\(map\[string\]any\)$/gm, '$1MapOrEmpty($2)');
+    return text.replace (/\b(New\w+)\(((?:[^()]|\([^()]*\))*?)\.\(map\[string\]any\)\)/g, '$1(MapOrEmpty($2))');
 }
 
 export default { 'id': 'go', 'emit': emit } as LanguageEmitter;

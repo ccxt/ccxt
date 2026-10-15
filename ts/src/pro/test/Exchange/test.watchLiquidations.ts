@@ -5,7 +5,6 @@ import testLiquidation from '../../../test/Exchange/base/test.liquidation.js';
 import { NetworkError } from '../../../base/errors.js';
 import type { Liquidation } from '../../../base/types.js';
 
-
 async function testWatchLiquidations (exchange: Exchange, skippedProperties: object, symbol: string) {
 
     // log (symbol.green, 'watching trades...')
@@ -21,7 +20,7 @@ async function testWatchLiquidations (exchange: Exchange, skippedProperties: obj
         return false;
     }
 
-    if (!exchange.has[method]) {
+    if (exchange.has[method] === undefined || exchange.has[method] === false) {
         const m2 = (exchange.id + ' does not support ' + method + '() method');
         console.log (m2);
         return false;

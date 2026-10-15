@@ -4,14 +4,13 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.pro.bybit import bybit
-from ccxt.base.types import Any
 
 import ccxt.async_support.bybiteu as bybiteuRest
 
 
 class bybiteu(bybit):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         # eslint-disable-next-line new-cap
         restInstance = bybiteuRest()
         restDescribe = restInstance.describe()

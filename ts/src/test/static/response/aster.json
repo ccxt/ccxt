@@ -710,7 +710,6 @@
                     "USDT",
                     5,
                     "0x1230000000000000000000000000000000000123",
-                    null,
                     {
                         "network": "ARBITRUM",
                         "fee": 1.01
@@ -2535,7 +2534,7 @@
                 "description": "default",
                 "method": "fetchOrder",
                 "input": [
-                    1917641,
+                    "1917641",
                     "BTC/USDT:USDT"
                 ],
                 "httpResponse": {
@@ -3254,7 +3253,7 @@
                 "description": "spot",
                 "method": "cancelOrder",
                 "input": [
-                    417663664,
+                    "417663664",
                     "ETH/USDT"
                 ],
                 "httpResponse": {

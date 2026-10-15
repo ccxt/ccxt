@@ -42,10 +42,10 @@ type IExchange interface {
 	FetchLongShortRatioHistory(options ...FetchLongShortRatioHistoryOptions) ([]LongShortRatio, error)
 	FetchMarginAdjustmentHistory(options ...FetchMarginAdjustmentHistoryOptions) ([]MarginModification, error)
 	SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]any, error)
-	FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error)
+	FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error)
 	FetchOpenInterestHistory(symbol string, options ...FetchOpenInterestHistoryOptions) ([]OpenInterest, error)
 	FetchOpenInterests(options ...FetchOpenInterestsOptions) (OpenInterests, error)
-	FetchPaymentMethods(params ...any) (map[string]any, error)
+	FetchPaymentMethods(params ...any) ([]map[string]any, error)
 	FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]any, error)
 	FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHLCV, error)
 	FetchOHLCVWs(symbol string, options ...FetchOHLCVWsOptions) ([]OHLCV, error)
@@ -75,7 +75,7 @@ type IExchange interface {
 	FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([]Liquidation, error)
 	FetchLiquidations(symbol string, options ...FetchLiquidationsOptions) ([]Liquidation, error)
 	FetchGreeks(symbol string, options ...FetchGreeksOptions) (Greeks, error)
-	FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error)
+	FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error)
 	FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error)
 	FetchOption(symbol string, options ...FetchOptionOptions) (Option, error)
 	FetchConvertQuote(fromCode string, toCode string, options ...FetchConvertQuoteOptions) (Conversion, error)
@@ -274,9 +274,6 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 	case "bithumb":
 		itf := NewBithumb(options)
 		return itf
-	case "bitmex":
-		itf := NewBitmex(options)
-		return itf
 	case "bitopro":
 		itf := NewBitopro(options)
 		return itf
@@ -313,6 +310,9 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 	case "btcturk":
 		itf := NewBtcturk(options)
 		return itf
+	case "btse":
+		itf := NewBtse(options)
+		return itf
 	case "bullish":
 		itf := NewBullish(options)
 		return itf
@@ -321,6 +321,9 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 		return itf
 	case "bybiteu":
 		itf := NewBybiteu(options)
+		return itf
+	case "bybitid":
+		itf := NewBybitid(options)
 		return itf
 	case "bydfi":
 		itf := NewBydfi(options)
@@ -339,9 +342,6 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 		return itf
 	case "coincheck":
 		itf := NewCoincheck(options)
-		return itf
-	case "coinex":
-		itf := NewCoinex(options)
 		return itf
 	case "coinmate":
 		itf := NewCoinmate(options)
@@ -378,9 +378,6 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 		return itf
 	case "dydx":
 		itf := NewDydx(options)
-		return itf
-	case "exmo":
-		itf := NewExmo(options)
 		return itf
 	case "extended":
 		itf := NewExtended(options)
@@ -498,6 +495,9 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 		return itf
 	case "poloniex":
 		itf := NewPoloniex(options)
+		return itf
+	case "revolutx":
+		itf := NewRevolutx(options)
 		return itf
 	case "tokocrypto":
 		itf := NewTokocrypto(options)

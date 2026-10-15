@@ -1,6 +1,6 @@
 import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     publicGetV1PublicApiLimits(params?: {}): Promise<Dict>;
     publicGetV1FapiMarketExchangeInfo(params?: {}): Promise<Dict>;
     publicGetV1FapiMarketDepth(params?: {}): Promise<Dict>;
@@ -23,6 +23,12 @@ interface Exchange {
     privateGetV1FapiTradeHistoryTrade(params?: {}): Promise<Dict>;
     privateGetV1FapiTradePositionHistory(params?: {}): Promise<Dict>;
     privateGetV1FapiTradePositions(params?: {}): Promise<Dict>;
+    privateGetV2FapiTradeOpenOrder(params?: {}): Promise<Dict>;
+    privateGetV2FapiTradePlanOrder(params?: {}): Promise<Dict>;
+    privateGetV2FapiTradeHistoryOrder(params?: {}): Promise<Dict>;
+    privateGetV2FapiTradeHistoryTrade(params?: {}): Promise<Dict>;
+    privateGetV2FapiTradePositionHistory(params?: {}): Promise<Dict>;
+    privateGetV2FapiTradePositions(params?: {}): Promise<Dict>;
     privateGetV1FapiAccountBalance(params?: {}): Promise<Dict>;
     privateGetV1FapiUserDataAssetsMargin(params?: {}): Promise<Dict>;
     privateGetV1FapiUserDataPositionSideDual(params?: {}): Promise<Dict>;
@@ -43,10 +49,15 @@ interface Exchange {
     privatePostV1FapiTradeCancelAllOrder(params?: {}): Promise<Dict>;
     privatePostV1FapiTradeLeverage(params?: {}): Promise<Dict>;
     privatePostV1FapiTradeBatchLeverageMargin(params?: {}): Promise<Dict>;
+    privatePostV2FapiTradePlaceOrder(params?: {}): Promise<Dict>;
+    privatePostV2FapiTradeBatchPlaceOrder(params?: {}): Promise<Dict>;
+    privatePostV2FapiTradeEditOrder(params?: {}): Promise<Dict>;
+    privatePostV2FapiTradeBatchEditOrder(params?: {}): Promise<Dict>;
+    privatePostV2FapiTradeCancelOrder(params?: {}): Promise<Dict>;
+    privatePostV2FapiTradeBatchCancelOrder(params?: {}): Promise<Dict>;
+    privatePostV2FapiTradeCancelAllOrder(params?: {}): Promise<Dict>;
     privatePostV1FapiUserDataMarginType(params?: {}): Promise<Dict>;
     privatePostV1FapiUserDataPositionSideDual(params?: {}): Promise<Dict>;
     privatePostV1AgentInternalWithdrawal(params?: {}): Promise<Dict>;
-}
-declare abstract class Exchange extends _Exchange {
 }
 export default Exchange;

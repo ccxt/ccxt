@@ -1,5 +1,15 @@
 import asyncio
 
+
+def _swallow(f):
+    # the loser futures of a settled race linger in client.futures and may be
+    # rejected later (unsubscribe / close) with no awaiter - retrieving the
+    # exception here marks it consumed so asyncio does not log a
+    # "Future exception was never retrieved" warning
+    if not f.cancelled():
+        f.exception()
+
+
 # Test by running:
 # - python python/ccxt/pro/test/base/test_close.py
 # - python python/ccxt/pro/test/base/test_future.py
@@ -31,23 +41,22 @@ class Future(asyncio.Future):
 
         callbacks = {}  # future -> callback
 
-        def _swallow(f):
-            # the loser futures of a settled race linger in client.futures and may be
-            # rejected later (unsubscribe / close) with no awaiter - retrieving the
-            # exception here marks it consumed so asyncio does not log a
-            # "Future exception was never retrieved" warning
-            if not f.cancelled():
-                f.exception()
-
         def detach_all():
             for f, cb in list(callbacks.items()):
                 try:
                     f.remove_done_callback(cb)
                 except Exception:
                     pass
-                # the winner is already done and retrieved via settle_from - only the
-                # still-pending losers need a swallow for their eventual rejection
-                if not f.done():
+                # losers may already be done when a broadcast reject settles all
+                # raced futures at once, swallow those immediately, still-pending
+                # losers get the swallow for their eventual rejection, otherwise
+                # every broadcast reject leaves unretrieved exceptions that asyncio
+                # dumps at gc as "Future exception was never retrieved" walls
+                if f.done():
+                    _swallow(f)
+                else:
+                    # one shared _swallow per future, re-racing a cached pending future must not stack callbacks
+                    f.remove_done_callback(_swallow)
                     f.add_done_callback(_swallow)
             callbacks.clear()
 

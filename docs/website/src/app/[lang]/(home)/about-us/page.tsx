@@ -5,14 +5,14 @@ import { gitConfig } from '@/lib/shared';
 import { i18n } from '@/lib/i18n';
 
 export const metadata: Metadata = {
-  title: 'About Us — CCXT',
+  title: { absolute: 'About Us — CCXT' },
   description: 'How CCXT started, its open-source foundations, and the community of thousands behind it.',
 };
 
 const STATS: { value: string; label: string }[] = [
   { value: '2017', label: 'founded' },
   { value: '100+', label: 'exchanges' },
-  { value: '6', label: 'languages' },
+  { value: '7', label: 'languages' },
   { value: 'MIT', label: 'licensed' },
   { value: '5M+', label: 'downloads / year' },
 ];
@@ -52,8 +52,8 @@ export default async function AboutUsPage(props: { params: Promise<{ lang: strin
             that once, for everyone: a single, unified API that abstracts away the differences between
             exchanges, so the same code works everywhere. What started as one developer&apos;s tool
             quickly became the de-facto standard for connecting to crypto markets — and today it covers
-            100+ exchanges and prediction markets across JavaScript/TypeScript, Python, PHP, C#, Go and
-            Java.
+            100+ exchanges and prediction markets across JavaScript/TypeScript, Python, PHP, C#, Go,
+            Java and Rust.
           </p>
         </section>
 

@@ -298,6 +298,13 @@ public partial class lbank : Exchange
         return await this.callAsync<Dictionary<string, object>> ("spotPrivatePostSupplementGetDepositAddress",parameters);
     }
 
+    /// <summary>Calls the spotPrivatePostSupplementAddDepositAddress endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> spotPrivatePostSupplementAddDepositAddress (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("spotPrivatePostSupplementAddDepositAddress",parameters);
+    }
+
     /// <summary>Calls the spotPrivatePostSupplementAssetDetail endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> spotPrivatePostSupplementAssetDetail (object parameters = null)
@@ -387,6 +394,41 @@ public partial class lbank : Exchange
     public async Task<Dictionary<string, object>> spotPrivatePostSupplementTransactionHistory (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("spotPrivatePostSupplementTransactionHistory",parameters);
+    }
+
+    /// <summary>Calls the spotPrivatePostSpotWalletWithdraw endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> spotPrivatePostSpotWalletWithdraw (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("spotPrivatePostSpotWalletWithdraw",parameters);
+    }
+
+    /// <summary>Calls the spotPrivatePostSpotWalletDepositHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> spotPrivatePostSpotWalletDepositHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("spotPrivatePostSpotWalletDepositHistory",parameters);
+    }
+
+    /// <summary>Calls the spotPrivatePostSpotWalletWithdraws endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> spotPrivatePostSpotWalletWithdraws (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("spotPrivatePostSpotWalletWithdraws",parameters);
+    }
+
+    /// <summary>Calls the spotPrivatePostSpotTradeOrdersInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> spotPrivatePostSpotTradeOrdersInfo (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("spotPrivatePostSpotTradeOrdersInfo",parameters);
+    }
+
+    /// <summary>Calls the spotPrivatePostSpotTradeOrdersInfoHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> spotPrivatePostSpotTradeOrdersInfoHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("spotPrivatePostSpotTradeOrdersInfoHistory",parameters);
     }
 
     /// <summary>Calls the contractPublicGetCfdOpenApiV1PubGetTime endpoint.</summary>

@@ -26,7 +26,7 @@ async def test_fetch_currencies(exchange, skipped_properties):
     features_spot = exchange.safe_dict(features, 'spot', {})
     fetch_currencies = exchange.safe_dict(features_spot, 'fetchCurrencies', {})
     is_fetch_currencies_private = exchange.safe_value(fetch_currencies, 'private', False)
-    if not is_fetch_currencies_private:
+    if is_fetch_currencies_private is not True:
         values = list(currencies.values())
         test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, values)
         currencies_length = len(values)
@@ -49,9 +49,9 @@ async def test_fetch_currencies(exchange, skipped_properties):
             withdraw = exchange.safe_bool(currency, 'withdraw')
             deposit = exchange.safe_bool(currency, 'deposit')
             is_mica_compliant = exchange.safe_bool(exchange.options, 'mica', False)
-            skip_usdt_for_mica = is_mica_compliant and code == 'USDT'
-            if exchange.in_array(code, required_active_currencies) and not skip_major_currency_check and not skip_usdt_for_mica:
-                assert withdraw and deposit, 'Major currency ' + code + ' should have withdraw and deposit flags enabled ::: ' + exchange.json(currency)
+            skip_usdt_for_mica = (is_mica_compliant) and (code == 'USDT')
+            if exchange.in_array(code, required_active_currencies) and not skip_major_currency_check and (skip_usdt_for_mica is not True):
+                assert (withdraw) and (deposit), 'Major currency ' + code + ' should have withdraw and deposit flags enabled ::: ' + exchange.json(currency)
         # check at least X% of currencies are active
         inactive_currencies_percentage = (num_inactive_currencies / currencies_length) * 100
         assert skip_active or (inactive_currencies_percentage < max_inactive_currencies_percentage), 'Percentage of inactive currencies is too high at ' + str(inactive_currencies_percentage) + '% that is more than the allowed maximum of ' + str(max_inactive_currencies_percentage) + '%'

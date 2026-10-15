@@ -1,6 +1,6 @@
 import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     spotKlinePublicGetPublicJson(params?: {}): Promise<Dict>;
     spotKlinePublicGetPublicCurrencyJson(params?: {}): Promise<Dict>;
     spotV1PublicGetPing(params?: {}): Promise<Dict>;
@@ -50,8 +50,8 @@ interface Exchange {
     dapiV1PublicGetTime(params?: {}): Promise<Dict>;
     dapiV1PublicGetContracts(params?: {}): Promise<List>;
     dapiV1PublicGetDepth(params?: {}): Promise<Dict>;
-    dapiV1PublicGetTicker(params?: {}): Promise<List>;
-    dapiV1PublicGetKlines(params?: {}): Promise<Dict>;
+    dapiV1PublicGetTicker(params?: {}): Promise<Dict | List>;
+    dapiV1PublicGetKlines(params?: {}): Promise<List>;
     dapiV2PrivateGetMyTrades(params?: {}): Promise<Dict>;
     dapiV2PrivateGetOpenOrders(params?: {}): Promise<Dict>;
     dapiV2PrivateGetOrder(params?: {}): Promise<Dict>;
@@ -69,7 +69,5 @@ interface Exchange {
     openV1PrivatePostPoseidonApiV1ListenKey(params?: {}): Promise<Dict>;
     openV1PrivatePutPoseidonApiV1ListenKeyListenKey(params?: {}): Promise<Dict>;
     openV1PrivateDeletePoseidonApiV1ListenKeyListenKey(params?: {}): Promise<Dict>;
-}
-declare abstract class Exchange extends _Exchange {
 }
 export default Exchange;

@@ -7,6 +7,9 @@
 
 package io.github.ccxt.api.prediction;
 import io.github.ccxt.PredictionExchange;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class BinanceApi extends PredictionExchange
 {
@@ -25,7 +28,7 @@ public class BinanceApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPrivateGetCategoryList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPrivateGetCategoryList (Object... optionalArgs)
     {
         return this.callAsync ("sapiPrivateGetCategoryList", optionalArgs);
     }
@@ -36,7 +39,7 @@ public class BinanceApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPrivateGetMarketList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPrivateGetMarketList (Object... optionalArgs)
     {
         return this.callAsync ("sapiPrivateGetMarketList", optionalArgs);
     }
@@ -47,7 +50,7 @@ public class BinanceApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiPrivateGetMarketSearch (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiPrivateGetMarketSearch (Object... optionalArgs)
     {
         return this.callAsync ("sapiPrivateGetMarketSearch", optionalArgs);
     }
@@ -58,7 +61,7 @@ public class BinanceApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPrivateGetMarketDetail (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPrivateGetMarketDetail (Object... optionalArgs)
     {
         return this.callAsync ("sapiPrivateGetMarketDetail", optionalArgs);
     }
@@ -69,7 +72,7 @@ public class BinanceApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPrivateGetOrderBook (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPrivateGetOrderBook (Object... optionalArgs)
     {
         return this.callAsync ("sapiPrivateGetOrderBook", optionalArgs);
     }
@@ -80,7 +83,7 @@ public class BinanceApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPrivateGetOrderBookLastTradePrice (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPrivateGetOrderBookLastTradePrice (Object... optionalArgs)
     {
         return this.callAsync ("sapiPrivateGetOrderBookLastTradePrice", optionalArgs);
     }
@@ -91,7 +94,7 @@ public class BinanceApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPrivateGetWalletList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPrivateGetWalletList (Object... optionalArgs)
     {
         return this.callAsync ("sapiPrivateGetWalletList", optionalArgs);
     }
@@ -102,7 +105,7 @@ public class BinanceApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPrivateGetBalancePaymentOptions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPrivateGetBalancePaymentOptions (Object... optionalArgs)
     {
         return this.callAsync ("sapiPrivateGetBalancePaymentOptions", optionalArgs);
     }
@@ -113,7 +116,7 @@ public class BinanceApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPrivateGetQuotaLimitStatus (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPrivateGetQuotaLimitStatus (Object... optionalArgs)
     {
         return this.callAsync ("sapiPrivateGetQuotaLimitStatus", optionalArgs);
     }
@@ -124,7 +127,7 @@ public class BinanceApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPrivateGetPnlPortfolio (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPrivateGetPnlPortfolio (Object... optionalArgs)
     {
         return this.callAsync ("sapiPrivateGetPnlPortfolio", optionalArgs);
     }
@@ -135,7 +138,7 @@ public class BinanceApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPrivateGetPnlQuery (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPrivateGetPnlQuery (Object... optionalArgs)
     {
         return this.callAsync ("sapiPrivateGetPnlQuery", optionalArgs);
     }
@@ -146,7 +149,7 @@ public class BinanceApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPrivateGetPositionList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPrivateGetPositionList (Object... optionalArgs)
     {
         return this.callAsync ("sapiPrivateGetPositionList", optionalArgs);
     }
@@ -157,7 +160,7 @@ public class BinanceApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPrivateGetPositionFilter (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPrivateGetPositionFilter (Object... optionalArgs)
     {
         return this.callAsync ("sapiPrivateGetPositionFilter", optionalArgs);
     }
@@ -168,7 +171,7 @@ public class BinanceApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPrivateGetPositionToken (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPrivateGetPositionToken (Object... optionalArgs)
     {
         return this.callAsync ("sapiPrivateGetPositionToken", optionalArgs);
     }
@@ -179,7 +182,7 @@ public class BinanceApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPrivateGetPositionSettledHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPrivateGetPositionSettledHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiPrivateGetPositionSettledHistory", optionalArgs);
     }
@@ -190,7 +193,7 @@ public class BinanceApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPrivateGetOrderList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPrivateGetOrderList (Object... optionalArgs)
     {
         return this.callAsync ("sapiPrivateGetOrderList", optionalArgs);
     }
@@ -201,7 +204,7 @@ public class BinanceApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPrivateGetOrderHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPrivateGetOrderHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiPrivateGetOrderHistory", optionalArgs);
     }
@@ -212,7 +215,7 @@ public class BinanceApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPrivatePostTradeGetQuote (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPrivatePostTradeGetQuote (Object... optionalArgs)
     {
         return this.callAsync ("sapiPrivatePostTradeGetQuote", optionalArgs);
     }
@@ -223,7 +226,7 @@ public class BinanceApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPrivatePostTradePlaceOrderBundle (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPrivatePostTradePlaceOrderBundle (Object... optionalArgs)
     {
         return this.callAsync ("sapiPrivatePostTradePlaceOrderBundle", optionalArgs);
     }
@@ -234,7 +237,7 @@ public class BinanceApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPrivatePostTradeBatchCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPrivatePostTradeBatchCancel (Object... optionalArgs)
     {
         return this.callAsync ("sapiPrivatePostTradeBatchCancel", optionalArgs);
     }

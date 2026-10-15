@@ -6,7 +6,6 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func HelperTestNetworkCodeToId(networksMap any) {
-	// we should conduct tests with such example configuration
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
 	exchange.InitParent(map[string]any{
@@ -16,52 +15,28 @@ func HelperTestNetworkCodeToId(networksMap any) {
 		},
 	}, map[string]any{}, exchange)
 	exchange.Currencies = exchange.MapToSafeMap(map[string]any{}) // go fix + c# uninitialized prop fix
-	//
-	//
-	// CASE #1 : with mainnet key
-	//
-	//
+	// unified code and its alias resolve to the same id, regardless of which one options.networks uses
+	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("ERC20"), "Ether"))
 	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("ETH"), "Ether"))
-	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("ERC20"), "Ether")) // inexistent secondary networkCode should match
-	// with currencyCode
-	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("ETH", "USDC"), "Ether"))
-	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("ETH", "ETH"), "Ether"))
-	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("ERC20", "USDC"), "Ether"))
 	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("ERC20", "ETH"), "Ether"))
-	//
-	//
-	// CASE #2 : with mainnet key
-	//
-	//
-	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("TRX"), "Tron")) // inexistent primary networkCode should match
+	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("ETH", "USDC"), "Ether"))
 	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("TRC20"), "Tron"))
-	// with currencyCode
-	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("TRX", "USDC"), "Tron"))
+	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("TRX"), "Tron"))
 	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("TRX", "TRX"), "Tron"))
-	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("TRC20", "USDC"), "Tron"))
-	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("TRC20", "TRX"), "Tron"))
-	//
-	//
-	// Case #3
-	//
-	//
-	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("BTC"), "Bitcoin"))  // exclusive match
-	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("BRC20"), "Brc_20")) // exclusive match
-	// with currencyCode
-	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("BTC", "USDC"), "Brc_20"))
-	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("BTC", "BTC"), "Bitcoin"))
-	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("BRC20", "USDC"), "Brc_20"))
-	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("BRC20", "BTC"), "Bitcoin"))
-	//
-	//
-	// Case #4: unknown networkCode
-	//
-	//
+	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("BEP20"), "Bsc"))
+	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("BSC"), "Bsc"))
+	// BTC and BRC20 are distinct networks, not aliases
+	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("BTC"), "Bitcoin"))
+	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("BRC20"), "Brc_20"))
+	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("BTC", "USDC"), "Bitcoin"))
+	// backward-supported aliases
+	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("ARB"), "Arb"))
+	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("ARBONE"), "Arb"))
+	// unknown network code passes through
 	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("Xyz"), "Xyz"))
 	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("Xyz", "SAMPLECOIN"), "Xyz"))
 }
 func HelperTestNetworkIdToCode(networksMap any) {
-	// we should conduct tests with such example configuration
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
 	exchange.InitParent(map[string]any{
@@ -71,157 +46,80 @@ func HelperTestNetworkIdToCode(networksMap any) {
 		},
 	}, map[string]any{}, exchange)
 	exchange.Currencies = exchange.MapToSafeMap(map[string]any{}) // go fix + c# uninitialized prop fix
-	//
-	//
-	// CASE #1 : with mainnet key
-	//
-	//
+	// always the unified code, never an alias, regardless of currency
 	Assert(ccxt.IsEqual(exchange.NetworkIdToCode("Ether"), "ERC20"))
-	// with currencyCode
 	Assert(ccxt.IsEqual(exchange.NetworkIdToCode("Ether", "USDC"), "ERC20"))
-	Assert(ccxt.IsEqual(exchange.NetworkIdToCode("Ether", "ETH"), "ETH"))
-	//
-	//
-	// CASE #2 : with mainnet key
-	//
-	//
+	Assert(ccxt.IsEqual(exchange.NetworkIdToCode("Ether", "ETH"), "ERC20"))
 	Assert(ccxt.IsEqual(exchange.NetworkIdToCode("Tron"), "TRC20"))
-	// with currencyCode
-	Assert(ccxt.IsEqual(exchange.NetworkIdToCode("Tron", "USDC"), "TRC20"))
-	Assert(ccxt.IsEqual(exchange.NetworkIdToCode("Tron", "TRX"), "TRX"))
-	//
-	//
-	// Case #3
-	//
-	//
-	Assert(ccxt.IsEqual(exchange.NetworkIdToCode("Bitcoin"), "BTC"))  // exclusive match
-	Assert(ccxt.IsEqual(exchange.NetworkIdToCode("Brc_20"), "BRC20")) // exclusive match
-	// with currencyCode
-	Assert(ccxt.IsEqual(exchange.NetworkIdToCode("Bitcoin", "USDC"), "BRC20"))
+	Assert(ccxt.IsEqual(exchange.NetworkIdToCode("Tron", "TRX"), "TRC20"))
+	Assert(ccxt.IsEqual(exchange.NetworkIdToCode("Bsc"), "BEP20"))
+	Assert(ccxt.IsEqual(exchange.NetworkIdToCode("Bsc", "BNB"), "BEP20"))
+	Assert(ccxt.IsEqual(exchange.NetworkIdToCode("Arb"), "ARBITRUM"))
+	Assert(ccxt.IsEqual(exchange.NetworkIdToCode("Bitcoin"), "BTC"))
 	Assert(ccxt.IsEqual(exchange.NetworkIdToCode("Bitcoin", "BTC"), "BTC"))
-	Assert(ccxt.IsEqual(exchange.NetworkIdToCode("Brc_20", "USDC"), "BRC20"))
-	Assert(ccxt.IsEqual(exchange.NetworkIdToCode("Brc_20", "BTC"), "BTC"))
-	//
-	//
-	// Case #4: unknown networkCode
-	//
-	//
+	Assert(ccxt.IsEqual(exchange.NetworkIdToCode("Brc_20"), "BRC20"))
+	// ids missing from options.networks still get unified when they spell an alias
+	Assert(ccxt.IsEqual(exchange.NetworkIdToCode("ETH"), "ERC20"))
+	Assert(ccxt.IsEqual(exchange.NetworkIdToCode("CRONOS"), "CRC20"))
 	Assert(ccxt.IsEqual(exchange.NetworkIdToCode("Xyz"), "Xyz"))
 	Assert(ccxt.IsEqual(exchange.NetworkIdToCode("Xyz", "SAMPLECOIN"), "Xyz"))
 }
-func HelperBatchNetworkTests() {
+func HelperTestNetworkAliases() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
 	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
+		"options": map[string]any{
+			"networks": map[string]any{},
+		},
 	}, map[string]any{}, exchange)
-	//
-	// check batch
-	//
-	var defaultNetworkCodeReplacements any = ccxt.GetValue(exchange.Options, "defaultNetworkCodeReplacements")
-	var allNetworkCodes any = []any{"ETH", "ERC20", "TRON", "TRX", "TRC20", "SOL", "BSC", "BEP20", "ARBITRUM", "AVAXC", "POL", "BASE", "SUI", "OPTIMISM", "OP", "NEAR", "CRO", "CRONOS", "BTC", "APT", "SCR", "KAVA", "TON", "Cardano", "ADA", "HECO", "HT", "MNT", "ALGO", "RUNE", "OSMO", "CELO", "HBAR", "FTM", "zkSync", "EraZK", "KLAY", "ACA", "STX", "XTZ", "NEO", "METIS"}
-	var allCurrencyCodes any = []any{"Bitcoin", "BTC", "Ethereum", "ETH", "Tether", "USDT", "BNB", "BNB", "XRP", "XRP", "USDC", "USDC", "Solana", "SOL", "TRON", "TRX", "Dogecoin", "DOGE", "Hyperliquid", "HYPE", "Bitcoin Cash", "BCH", "Cardano", "ADA", "LEO", "Chainlink", "LINK", "Ethena", "USDe", "USDe", "Monero", "XMR", "Stellar", "XLM", "Dai", "DAI", "Litecoin", "LTC", "PayPal", "USD", "PYUSD", "Hedera", "HBAR", "Avalanche", "AVAX", "Zcash", "ZEC", "Bittensor", "TAO", "Sui", "SUI", "Shiba Inu", "SHIB", "Cronos", "CRO", "Toncoin", "TON", "WLFI", "Tether", "Gold", "XAUt", "", "PAX", "Gold", "PAXG", "Mantle", "MNT", "Uniswap", "UNI", "Polkadot", "DOT", "USDG", "OKB", "OKB", "Aster", "ASTER", "Aave", "AAVE", "NEAR", "NEAR", "Ripple", "USD", "RLUSD", "Polygon", "POL"}
-	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(allNetworkCodes)); i++ {
-		var randomNetworkCode any = ccxt.GetValue(allNetworkCodes, i)
-		for j := 0; ccxt.IsLessThan(j, ccxt.GetArrayLength(allCurrencyCodes)); j++ {
-			var randomCurrencyCode any = ccxt.GetValue(allCurrencyCodes, j)
-			var result any = exchange.NetworkIdToCode(randomNetworkCode, randomCurrencyCode)
-			var keys any = ccxt.ObjectKeys(defaultNetworkCodeReplacements)
-			for k := 0; ccxt.IsLessThan(k, ccxt.GetArrayLength(keys)); k++ {
-				var chainBaseCoin any = ccxt.GetValue(keys, k)
-				var chainMapping any = ccxt.GetValue(defaultNetworkCodeReplacements, chainBaseCoin)
-				var primaryNetworkCode any = ccxt.GetValue(chainMapping, "primary")
-				var secondaryNetworkCode any = ccxt.GetValue(chainMapping, "secondary")
-				var msg any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("network protocol test failed for networkCode:", randomNetworkCode), " & currencyCode: "), randomCurrencyCode), ", result: "), result), ", expected: ")
-				if ccxt.IsTrue(ccxt.IsEqual(randomNetworkCode, primaryNetworkCode)) {
-					if ccxt.IsTrue(ccxt.IsEqual(randomCurrencyCode, chainBaseCoin)) {
-						assert(ccxt.IsEqual(result, primaryNetworkCode), ccxt.Add(msg, primaryNetworkCode))
-					} else {
-						assert(ccxt.IsEqual(result, secondaryNetworkCode), ccxt.Add(msg, secondaryNetworkCode))
-					}
-				} else if ccxt.IsTrue(ccxt.IsEqual(randomNetworkCode, secondaryNetworkCode)) {
-					if ccxt.IsTrue(ccxt.IsEqual(randomCurrencyCode, chainBaseCoin)) {
-						assert(ccxt.IsEqual(result, primaryNetworkCode), ccxt.Add(msg, primaryNetworkCode))
-					} else {
-						assert(ccxt.IsEqual(result, secondaryNetworkCode), ccxt.Add(msg, secondaryNetworkCode))
-					}
-				}
-			}
+	exchange.Currencies = exchange.MapToSafeMap(map[string]any{}) // go fix + c# uninitialized prop fix
+	var aliases map[string]any = map[string]any{
+		"ETH":     "ERC20",
+		"TRX":     "TRC20",
+		"BSC":     "BEP20",
+		"BSC20":   "BEP20",
+		"CRONOS":  "CRC20",
+		"ARB":     "ARBITRUM",
+		"ARBONE":  "ARBITRUM",
+		"ARBNOVA": "ARBITRUM_NOVA",
+	}
+	var keys []string = nil
+	if aliases != nil {
+		keys = make([]string, 0, len(aliases))
+		for objectKey := range aliases {
+			keys = append(keys, objectKey)
 		}
 	}
+	for i := 0; i < len(keys); i++ {
+		Assert(ccxt.IsEqual(exchange.SafeString(exchange.NetworkAliases, keys[i]), ccxt.GetValue(aliases, keys[i])))
+		// unified codes are never aliases themselves
+		Assert(!(ccxt.InOp(exchange.NetworkAliases, ccxt.GetValue(aliases, keys[i]))))
+	}
+	Assert(!(ccxt.InOp(exchange.NetworkAliases, "BTC")))
+	Assert(ccxt.IsEqual(exchange.NetworkIdToCode("ETH"), "ERC20"))
 }
-
-//	function helperTestNetworkProtocolCorrector () {
-//	    return;
-//	    const exchange = new ccxt.Exchange ({
-//	        'id': 'sampleexchange',
-//	    });
-//	    // for ethereum
-//	    assert (exchange.prioritizedNetworkAliases ('ERC20', 'MYTOKEN') === 'ERC20');
-//	    assert (exchange.prioritizedNetworkAliases ('ETH', 'MYTOKEN') === 'ERC20');
-//	    assert (exchange.prioritizedNetworkAliases ('ERC20', 'ETH') === 'ETH');
-//	    assert (exchange.prioritizedNetworkAliases ('ETH', 'ETH') === 'ETH');
-//	    // for tron
-//	    assert (exchange.prioritizedNetworkAliases ('TRC20', 'MYTOKEN') === 'TRC20');
-//	    assert (exchange.prioritizedNetworkAliases ('TRX', 'MYTOKEN') === 'TRC20');
-//	    assert (exchange.prioritizedNetworkAliases ('TRC20', 'TRX') === 'TRX');
-//	    assert (exchange.prioritizedNetworkAliases ('TRX', 'TRX') === 'TRX');
-//	    // for cronos
-//	    assert (exchange.prioritizedNetworkAliases ('CRC20', 'MYTOKEN') === 'CRC20');
-//	    assert (exchange.prioritizedNetworkAliases ('CRONOS', 'MYTOKEN') === 'CRC20');
-//	    assert (exchange.prioritizedNetworkAliases ('CRC20', 'CRO') === 'CRONOS');
-//	    assert (exchange.prioritizedNetworkAliases ('CRONOS', 'CRO') === 'CRONOS');
-//	    // for bitcoin
-//	    assert (exchange.prioritizedNetworkAliases ('BRC20', 'MYTOKEN') === 'BRC20');
-//	    assert (exchange.prioritizedNetworkAliases ('BTC', 'MYTOKEN') === 'BRC20');
-//	    assert (exchange.prioritizedNetworkAliases ('BRC20', 'BTC') === 'BTC');
-//	    assert (exchange.prioritizedNetworkAliases ('BTC', 'BTC') === 'BTC');
-//	}
-//
-//	function helperTestNetworkProtocolCorrector () {
-//	    return;
-//	    const exchange = new ccxt.Exchange ({
-//	        'id': 'sampleexchange',
-//	    });
-//	    // for ethereum
-//	    assert (exchange.prioritizedNetworkAliases ('ERC20', 'MYTOKEN') === 'ERC20');
-//	    assert (exchange.prioritizedNetworkAliases ('ETH', 'MYTOKEN') === 'ERC20');
-//	    assert (exchange.prioritizedNetworkAliases ('ERC20', 'ETH') === 'ETH');
-//	    assert (exchange.prioritizedNetworkAliases ('ETH', 'ETH') === 'ETH');
-//	    // for tron
-//	    assert (exchange.prioritizedNetworkAliases ('TRC20', 'MYTOKEN') === 'TRC20');
-//	    assert (exchange.prioritizedNetworkAliases ('TRX', 'MYTOKEN') === 'TRC20');
-//	    assert (exchange.prioritizedNetworkAliases ('TRC20', 'TRX') === 'TRX');
-//	    assert (exchange.prioritizedNetworkAliases ('TRX', 'TRX') === 'TRX');
-//	    // for cronos
-//	    assert (exchange.prioritizedNetworkAliases ('CRC20', 'MYTOKEN') === 'CRC20');
-//	    assert (exchange.prioritizedNetworkAliases ('CRONOS', 'MYTOKEN') === 'CRC20');
-//	    assert (exchange.prioritizedNetworkAliases ('CRC20', 'CRO') === 'CRONOS');
-//	    assert (exchange.prioritizedNetworkAliases ('CRONOS', 'CRO') === 'CRONOS');
-//	    // for bitcoin
-//	    assert (exchange.prioritizedNetworkAliases ('BRC20', 'MYTOKEN') === 'BRC20');
-//	    assert (exchange.prioritizedNetworkAliases ('BTC', 'MYTOKEN') === 'BRC20');
-//	    assert (exchange.prioritizedNetworkAliases ('BRC20', 'BTC') === 'BTC');
-//	    assert (exchange.prioritizedNetworkAliases ('BTC', 'BTC') === 'BTC');
-//	}
 func TestNetworkMethods() {
-	// both below dicts should end with "same" results
+	// keyed by alias vs keyed by unified code: both must behave identically
 	var dict1 map[string]any = map[string]any{
 		"BTC":   "Bitcoin",
 		"BRC20": "Brc_20",
-		"TRC20": "Tron",
 		"ETH":   "Ether",
+		"TRX":   "Tron",
+		"BSC":   "Bsc",
+		"ARB":   "Arb",
 	}
 	var dict2 map[string]any = map[string]any{
-		"BTC":   "Bitcoin",
-		"BRC20": "Brc_20",
-		"TRC20": "Tron",
-		"ERC20": "Ether",
+		"BTC":      "Bitcoin",
+		"BRC20":    "Brc_20",
+		"ERC20":    "Ether",
+		"TRC20":    "Tron",
+		"BEP20":    "Bsc",
+		"ARBITRUM": "Arb",
 	}
-	// helperTestNetworkProtocolCorrector ();
 	HelperTestNetworkCodeToId(dict1)
 	HelperTestNetworkCodeToId(dict2)
 	HelperTestNetworkIdToCode(dict1)
 	HelperTestNetworkIdToCode(dict2)
-	HelperBatchNetworkTests()
+	HelperTestNetworkAliases()
 }

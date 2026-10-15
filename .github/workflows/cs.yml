@@ -110,6 +110,16 @@ jobs:
         for exchange in $cleaned_rest_files; do
           npm run response-cs -- $exchange
         done
+    - name: Ws Static tests
+      if: env.important_modified == 'true'
+      run: npm run ws-tests-cs
+    - name: Ws Static tests (specific)
+      if: env.important_modified == 'false'
+      run: |
+        cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
+        for exchange in $cleaned_rest_files; do
+          npm run ws-tests-cs -- $exchange
+        done
     - name: Prediction request tests
       if: env.prediction_modified == 'true'
       run: npm run request-cs-prediction

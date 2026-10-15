@@ -22,14 +22,18 @@ function tcoDebug (exchange: any, symbol: Str, message: Str) {
 async function testCreateOrder (exchange: any, skippedProperties: any, symbol: string) {
     const logPrefix = testSharedMethods.logTemplate (exchange, 'createOrder', [ symbol ]);
 
-    assert (exchange.has['cancelOrder'] || exchange.has['cancelOrders'] || exchange.has['cancelAllOrders'], logPrefix + ' does not have cancelOrder|cancelOrders|canelAllOrders method, which is needed to make tests for `createOrder` method. Skipping the test...');
+    const hasCancelOrder = (exchange.has['cancelOrder'] !== undefined) && (exchange.has['cancelOrder'] !== false);
+    const hasCancelOrders = (exchange.has['cancelOrders'] !== undefined) && (exchange.has['cancelOrders'] !== false);
+    const hasCancelAllOrders = (exchange.has['cancelAllOrders'] !== undefined) && (exchange.has['cancelAllOrders'] !== false);
+    assert (hasCancelOrder || hasCancelOrders || hasCancelAllOrders, logPrefix + ' does not have cancelOrder|cancelOrders|canelAllOrders method, which is needed to make tests for `createOrder` method. Skipping the test...');
 
     // pre-define some coefficients, which will be used down below
     const limitPriceSafetyMultiplierFromMedian = 1.045; // todo: when this https://github.com/ccxt/ccxt/issues/22442 is implemented, we'll remove hardcoded value. atm 5% is enough
     const market = exchange.market (symbol);
-    const isSwapFuture = market['swap'] || market['future'];
+    const isSwapFuture = (market['swap'] === true) || (market['future'] === true);
 
-    assert (exchange.has['fetchBalance'], logPrefix + ' does not have fetchBalance() method, which is needed to make tests for `createOrder` method. Skipping the test...');
+    const hasFetchBalance = (exchange.has['fetchBalance'] !== undefined) && (exchange.has['fetchBalance'] !== false);
+    assert (hasFetchBalance, logPrefix + ' does not have fetchBalance() method, which is needed to make tests for `createOrder` method. Skipping the test...');
 
     const balance = await exchange.fetchBalance ();
     const initialBaseBalance = balance[market['base']]['free'];
@@ -49,7 +53,6 @@ async function testCreateOrder (exchange: any, skippedProperties: any, symbol: s
     }
     tcoDebug (exchange, symbol, '### SCENARIO 1 PASSED ###');
 
-
     // **************** [Scenario 2 - START] **************** //
     tcoDebug (exchange, symbol, '### SCENARIO 2 ###');
     // create an order which IS GUARANTEED to have a fill (full or partial)
@@ -59,7 +62,6 @@ async function testCreateOrder (exchange: any, skippedProperties: any, symbol: s
         await tcoCreateFillableOrder (exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, 'sell');
     }
     tcoDebug (exchange, symbol, '### SCENARIO 2 PASSED ###');
-
 
     // **************** [Scenario 3 - START] **************** //
     return true;
@@ -115,10 +117,9 @@ async function tcoCreateUnfillableOrder (exchange: any, market: Dict, logPrefix:
     return true;
 }
 
-
 async function tcoCreateFillableOrder (exchange: any, market: Dict, logPrefix: string, skippedProperties: any, bestBid: number, bestAsk: number, limitPriceSafetyMultiplierFromMedian: number, buyOrSellString: string, predefinedAmount: Num = undefined) {
     try {
-        const isSwapFuture = market['swap'] || market['future'];
+        const isSwapFuture = (market['swap'] === true) || (market['future'] === true);
         const isBuy = (buyOrSellString === 'buy');
         const entrySide = isBuy ? 'buy' : 'sell';
         const exitSide = isBuy ? 'sell' : 'buy';
@@ -143,7 +144,8 @@ async function tcoCreateFillableOrder (exchange: any, market: Dict, logPrefix: s
         if (isSwapFuture) {
             params['reduceOnly'] = true;
         }
-        const exitorderFilled = await tcoCreateOrderSafe (exchange, symbol, 'market', exitSide, amountToClose, (market['spot'] ? undefined : exitorderPrice), params, skippedProperties);
+        const exitorderPriceArg = (market['spot'] === true) ? undefined : exitorderPrice;
+        const exitorderFilled = await tcoCreateOrderSafe (exchange, symbol, 'market', exitSide, amountToClose, exitorderPriceArg, params, skippedProperties);
         const exitorderFetched = await testSharedMethods.fetchOrder (exchange, symbol, exitorderFilled['id'], skippedProperties);
         tcoAssertFilledOrder (exchange, market, logPrefix, skippedProperties, exitorderFilled, exitorderFetched, exitSide, amountToClose);
     } catch (e) {
@@ -151,7 +153,6 @@ async function tcoCreateFillableOrder (exchange: any, market: Dict, logPrefix: s
     }
     return true;
 }
-
 
 function tcoAssertFilledOrder (exchange: any, market: Dict, logPrefix: string, skippedProperties: any, createdOrder: any, fetchedOrder: any, requestedSide: string, requestedAmount: number) {
     // test filled amount
@@ -174,24 +175,20 @@ function tcoAssertFilledOrder (exchange: any, market: Dict, logPrefix: string, s
     return true;
 }
 
-
-
-
-
 // ----------------------------------------------------------------------------
 
 async function tcoCancelOrder (exchange: any, symbol: Str, orderId: Str = undefined) {
     const logPrefix = testSharedMethods.logTemplate (exchange, 'createOrder', [ symbol ]);
     let usedMethod = '';
     let cancelResult: NullableDict = undefined;
-    if (exchange.has['cancelOrder'] && orderId !== undefined) {
+    if ((exchange.has['cancelOrder'] !== undefined) && (exchange.has['cancelOrder'] !== false) && (orderId !== undefined)) {
         usedMethod = 'cancelOrder';
         cancelResult = await exchange.cancelOrder (orderId, symbol);
-    } else if (exchange.has['cancelAllOrders']) {
+    } else if ((exchange.has['cancelAllOrders'] !== undefined) && (exchange.has['cancelAllOrders'] !== false)) {
         usedMethod = 'cancelAllOrders';
         cancelResult = await exchange.cancelAllOrders (symbol);
     }
-    else if (exchange.has['cancelOrders']) {
+    else if ((exchange.has['cancelOrders'] !== undefined) && (exchange.has['cancelOrders'] !== false)) {
         // todo: uncomment after cancelOrders unification: https://github.com/ccxt/ccxt/pull/22199
         // usedMethod = 'cancelOrders';
         // if (orderId === undefined) {
@@ -209,7 +206,6 @@ async function tcoCancelOrder (exchange: any, symbol: Str, orderId: Str = undefi
 }
 
 // ----------------------------------------------------------------------------
-
 
 // ----------------------------------------------------------------------------
 
@@ -282,7 +278,7 @@ async function tcoTryCancelOrder (exchange: any, symbol: Str, order: any, skippe
     }
     const needsCancel = exchange.inArray (orderFetched['status'], [ 'open', 'pending', undefined ]);
     // if it was not reported as closed/filled, then try to cancel it
-    if (needsCancel) {
+    if (needsCancel === true) {
         tcoDebug (exchange, symbol, 'trying to cancel the remaining amount of partially filled order...');
         try {
             await tcoCancelOrder (exchange, symbol, order['id']);

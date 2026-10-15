@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public final class OrderBook {
+public final class OrderBook extends TypedMap {
     public List<List<Double>> bids;
     public List<List<Double>> asks;
     public String symbol;
@@ -14,6 +14,7 @@ public final class OrderBook {
 
     @SuppressWarnings("unchecked")
     public OrderBook(Object raw) {
+        super(raw);
         // Handle WsOrderBook (WebSocket) — extract data directly from its typed fields
         // Handle WsOrderBook (WebSocket) — copy live data from its OrderBookSide fields
         if (raw instanceof io.github.ccxt.ws.WsOrderBook wsOb) {

@@ -27,7 +27,15 @@ async def test_sleep():
     # (some runtimes, e.g. .NET Task.Delay, may return a few ms early)
     margin_of_error = 20
     min_elapsed = sleep_amount - margin_of_error
-    max_elapsed = sleep_amount + margin_of_error
+    # The ceiling is deliberately far looser than the floor. sleep () promises
+    # a MINIMUM delay in every language, never a maximum: the OS is free to
+    # reschedule late, so a busy machine or a parallel CI runner overshoots by
+    # tens of ms with nothing wrong. The old symmetric +20ms left ~18ms of
+    # headroom on a 102ms measured sleep and failed whenever the box was under
+    # load. Keep a ceiling only to catch a sleep that is genuinely broken — a
+    # seconds/milliseconds mix-up, or one that never returns.
+    max_overshoot = 2000
+    max_elapsed = sleep_amount + max_overshoot
     elapsed_bigger_than_sleep = elapsed >= min_elapsed
     elapsed_less_than_max = elapsed <= max_elapsed
     assert elapsed_bigger_than_sleep, 'Elapsed time ' + str(elapsed) + 'ms is less than minimum ' + str(min_elapsed) + 'ms (sleep amount ' + str(sleep_amount) + 'ms)'

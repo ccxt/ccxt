@@ -1,11 +1,14 @@
 package base
 
-func TestLanguageSpecific() <-chan interface{} {
+import ccxt "github.com/ccxt/ccxt/go/v4"
+
+func TestLanguageSpecificAsync() <-chan ccxt.AsyncResult[any] {
 	TestFutures()
 	TestStructs()
+	TestOptionTypes()
 
 	// ---------------------- TestThrottlerPerformance ----------------------
-	ch := make(chan interface{})
+	ch := make(chan ccxt.AsyncResult[any])
 	go func() interface{} {
 		defer close(ch)
 		defer ReturnPanicError(ch)

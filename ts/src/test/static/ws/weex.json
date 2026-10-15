@@ -1,0 +1,869 @@
+{
+    "exchange": "weex",
+    "skipKeys": [
+        "id"
+    ],
+    "options": {},
+    "methods": {
+        "watchTrades": [
+            {
+                "description": "swap trades with buyer-maker flag",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "url": "wss://ws-contract.weex.com/v3/ws/public",
+                "messages": [
+                    {
+                        "result": true,
+                        "id": 1
+                    },
+                    {
+                        "e": "trade",
+                        "E": 1787479672704,
+                        "s": "BTCUSDT",
+                        "d": [
+                            {
+                                "T": 1787479672501,
+                                "t": "c0a88f67-4598-4fb1-8373-23b81ada9fc6",
+                                "p": "76713.1",
+                                "q": "0.0015",
+                                "v": "115.06965",
+                                "m": false
+                            },
+                            {
+                                "T": 1787479672702,
+                                "t": "cae34416-9a33-4d7d-9d47-b5055c4bdb1a",
+                                "p": "76712.9",
+                                "q": "0.0007",
+                                "v": "53.69903",
+                                "m": true
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": "1",
+                        "method": "SUBSCRIBE",
+                        "params": [
+                            "BTCUSDT@trade"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "T": 1787479672501,
+                                "t": "c0a88f67-4598-4fb1-8373-23b81ada9fc6",
+                                "p": "76713.1",
+                                "q": "0.0015",
+                                "v": "115.06965",
+                                "m": false
+                            },
+                            "id": "c0a88f67-4598-4fb1-8373-23b81ada9fc6",
+                            "timestamp": 1787479672501,
+                            "datetime": "2026-08-23T10:07:52.501Z",
+                            "symbol": "BTC/USDT:USDT",
+                            "order": null,
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": "taker",
+                            "price": 76713.1,
+                            "amount": 0.0015,
+                            "cost": 115.06965,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        },
+                        {
+                            "info": {
+                                "T": 1787479672702,
+                                "t": "cae34416-9a33-4d7d-9d47-b5055c4bdb1a",
+                                "p": "76712.9",
+                                "q": "0.0007",
+                                "v": "53.69903",
+                                "m": true
+                            },
+                            "id": "cae34416-9a33-4d7d-9d47-b5055c4bdb1a",
+                            "timestamp": 1787479672702,
+                            "datetime": "2026-08-23T10:07:52.702Z",
+                            "symbol": "BTC/USDT:USDT",
+                            "order": null,
+                            "type": null,
+                            "side": "sell",
+                            "takerOrMaker": "taker",
+                            "price": 76712.9,
+                            "amount": 0.0007,
+                            "cost": 53.69903,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ]
+                ]
+            },
+            {
+                "description": "spot trades with buyer-maker flag",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://ws-spot.weex.com/v3/ws/public",
+                "messages": [
+                    {
+                        "result": true,
+                        "id": 1
+                    },
+                    {
+                        "e": "trade",
+                        "E": 1787479673444,
+                        "s": "BTCUSDT",
+                        "d": [
+                            {
+                                "T": 1787479672360,
+                                "t": "0435a3db-a638-43fb-924f-dee32ab4e10b",
+                                "p": "76718.00",
+                                "q": "0.000002",
+                                "v": "0.15343600",
+                                "m": true
+                            },
+                            {
+                                "T": 1787479672858,
+                                "t": "0b8ac798-95e7-4d53-a3d2-6e53f0c3e96c",
+                                "p": "76718.01",
+                                "q": "0.000002",
+                                "v": "0.15343602",
+                                "m": false
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": "1",
+                        "method": "SUBSCRIBE",
+                        "params": [
+                            "BTCUSDT@trade"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "T": 1787479672360,
+                                "t": "0435a3db-a638-43fb-924f-dee32ab4e10b",
+                                "p": "76718.00",
+                                "q": "0.000002",
+                                "v": "0.15343600",
+                                "m": true
+                            },
+                            "id": "0435a3db-a638-43fb-924f-dee32ab4e10b",
+                            "timestamp": 1787479672360,
+                            "datetime": "2026-08-23T10:07:52.360Z",
+                            "symbol": "BTC/USDT",
+                            "order": null,
+                            "type": null,
+                            "side": "sell",
+                            "takerOrMaker": "taker",
+                            "price": 76718,
+                            "amount": 2e-06,
+                            "cost": 0.153436,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        },
+                        {
+                            "info": {
+                                "T": 1787479672858,
+                                "t": "0b8ac798-95e7-4d53-a3d2-6e53f0c3e96c",
+                                "p": "76718.01",
+                                "q": "0.000002",
+                                "v": "0.15343602",
+                                "m": false
+                            },
+                            "id": "0b8ac798-95e7-4d53-a3d2-6e53f0c3e96c",
+                            "timestamp": 1787479672858,
+                            "datetime": "2026-08-23T10:07:52.858Z",
+                            "symbol": "BTC/USDT",
+                            "order": null,
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": "taker",
+                            "price": 76718.01,
+                            "amount": 2e-06,
+                            "cost": 0.15343602,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ]
+                ]
+            }
+        ],
+        "watchTicker": [
+            {
+                "description": "positive relative change",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "url": "wss://ws-contract.weex.com/v3/ws/public",
+                "messages": [
+                    {
+                        "result": true,
+                        "id": 1
+                    },
+                    {
+                        "e": "ticker",
+                        "E": 1789583400000,
+                        "s": "BTCUSDT",
+                        "d": [
+                            {
+                                "p": "5",
+                                "P": "0.05",
+                                "w": "102",
+                                "c": "105",
+                                "o": "100",
+                                "h": "110",
+                                "l": "90",
+                                "v": "10",
+                                "q": "1020",
+                                "O": 1789497000000,
+                                "C": 1789583400000,
+                                "n": 10
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": "1",
+                        "method": "SUBSCRIBE",
+                        "params": [
+                            "BTCUSDT@ticker"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/USDT:USDT",
+                        "timestamp": 1789583400000,
+                        "datetime": "2026-09-16T18:30:00.000Z",
+                        "high": 110,
+                        "low": 90,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 102,
+                        "open": 100,
+                        "close": 105,
+                        "last": 105,
+                        "previousClose": null,
+                        "change": 5,
+                        "percentage": 5,
+                        "average": 102,
+                        "baseVolume": 10,
+                        "quoteVolume": 1020,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "p": "5",
+                            "P": "0.05",
+                            "w": "102",
+                            "c": "105",
+                            "o": "100",
+                            "h": "110",
+                            "l": "90",
+                            "v": "10",
+                            "q": "1020",
+                            "O": 1789497000000,
+                            "C": 1789583400000,
+                            "n": 10
+                        }
+                    }
+                ]
+            },
+            {
+                "description": "negative relative change",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "url": "wss://ws-contract.weex.com/v3/ws/public",
+                "messages": [
+                    {
+                        "result": true,
+                        "id": 1
+                    },
+                    {
+                        "e": "ticker",
+                        "E": 1789583400000,
+                        "s": "BTCUSDT",
+                        "d": [
+                            {
+                                "p": "-5",
+                                "P": "-0.05",
+                                "w": "102",
+                                "c": "95",
+                                "o": "100",
+                                "h": "110",
+                                "l": "90",
+                                "v": "10",
+                                "q": "1020",
+                                "O": 1789497000000,
+                                "C": 1789583400000,
+                                "n": 10
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": "1",
+                        "method": "SUBSCRIBE",
+                        "params": [
+                            "BTCUSDT@ticker"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/USDT:USDT",
+                        "timestamp": 1789583400000,
+                        "datetime": "2026-09-16T18:30:00.000Z",
+                        "high": 110,
+                        "low": 90,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 102,
+                        "open": 100,
+                        "close": 95,
+                        "last": 95,
+                        "previousClose": null,
+                        "change": -5,
+                        "percentage": -5,
+                        "average": 102,
+                        "baseVolume": 10,
+                        "quoteVolume": 1020,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "p": "-5",
+                            "P": "-0.05",
+                            "w": "102",
+                            "c": "95",
+                            "o": "100",
+                            "h": "110",
+                            "l": "90",
+                            "v": "10",
+                            "q": "1020",
+                            "O": 1789497000000,
+                            "C": 1789583400000,
+                            "n": 10
+                        }
+                    }
+                ]
+            },
+            {
+                "description": "zero relative change",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "url": "wss://ws-contract.weex.com/v3/ws/public",
+                "messages": [
+                    {
+                        "result": true,
+                        "id": 1
+                    },
+                    {
+                        "e": "ticker",
+                        "E": 1789583400000,
+                        "s": "BTCUSDT",
+                        "d": [
+                            {
+                                "p": "0",
+                                "P": "0",
+                                "w": "102",
+                                "c": "100",
+                                "o": "100",
+                                "h": "110",
+                                "l": "90",
+                                "v": "10",
+                                "q": "1020",
+                                "O": 1789497000000,
+                                "C": 1789583400000,
+                                "n": 10
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": "1",
+                        "method": "SUBSCRIBE",
+                        "params": [
+                            "BTCUSDT@ticker"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/USDT:USDT",
+                        "timestamp": 1789583400000,
+                        "datetime": "2026-09-16T18:30:00.000Z",
+                        "high": 110,
+                        "low": 90,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 102,
+                        "open": 100,
+                        "close": 100,
+                        "last": 100,
+                        "previousClose": null,
+                        "change": 0,
+                        "percentage": 0,
+                        "average": 102,
+                        "baseVolume": 10,
+                        "quoteVolume": 1020,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "p": "0",
+                            "P": "0",
+                            "w": "102",
+                            "c": "100",
+                            "o": "100",
+                            "h": "110",
+                            "l": "90",
+                            "v": "10",
+                            "q": "1020",
+                            "O": 1789497000000,
+                            "C": 1789583400000,
+                            "n": 10
+                        }
+                    }
+                ]
+            },
+            {
+                "description": "missing relative change derives percentage",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "url": "wss://ws-contract.weex.com/v3/ws/public",
+                "messages": [
+                    {
+                        "result": true,
+                        "id": 1
+                    },
+                    {
+                        "e": "ticker",
+                        "E": 1789583400000,
+                        "s": "BTCUSDT",
+                        "d": [
+                            {
+                                "p": "5",
+                                "w": "102",
+                                "c": "105",
+                                "o": "100",
+                                "h": "110",
+                                "l": "90",
+                                "v": "10",
+                                "q": "1020",
+                                "O": 1789497000000,
+                                "C": 1789583400000,
+                                "n": 10
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": "1",
+                        "method": "SUBSCRIBE",
+                        "params": [
+                            "BTCUSDT@ticker"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/USDT:USDT",
+                        "timestamp": 1789583400000,
+                        "datetime": "2026-09-16T18:30:00.000Z",
+                        "high": 110,
+                        "low": 90,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 102,
+                        "open": 100,
+                        "close": 105,
+                        "last": 105,
+                        "previousClose": null,
+                        "change": 5,
+                        "percentage": 5,
+                        "average": 102,
+                        "baseVolume": 10,
+                        "quoteVolume": 1020,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "p": "5",
+                            "w": "102",
+                            "c": "105",
+                            "o": "100",
+                            "h": "110",
+                            "l": "90",
+                            "v": "10",
+                            "q": "1020",
+                            "O": 1789497000000,
+                            "C": 1789583400000,
+                            "n": 10
+                        }
+                    }
+                ]
+            },
+            {
+                "description": "relative change without open or change",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "url": "wss://ws-contract.weex.com/v3/ws/public",
+                "messages": [
+                    {
+                        "result": true,
+                        "id": 1
+                    },
+                    {
+                        "e": "ticker",
+                        "E": 1789583400000,
+                        "s": "BTCUSDT",
+                        "d": [
+                            {
+                                "P": "0.05",
+                                "w": "102",
+                                "c": "105",
+                                "h": "110",
+                                "l": "90",
+                                "v": "10",
+                                "q": "1020",
+                                "O": 1789497000000,
+                                "C": 1789583400000,
+                                "n": 10
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": "1",
+                        "method": "SUBSCRIBE",
+                        "params": [
+                            "BTCUSDT@ticker"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/USDT:USDT",
+                        "timestamp": 1789583400000,
+                        "datetime": "2026-09-16T18:30:00.000Z",
+                        "high": 110,
+                        "low": 90,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 102,
+                        "open": 100,
+                        "close": 105,
+                        "last": 105,
+                        "previousClose": null,
+                        "change": 5,
+                        "percentage": 5,
+                        "average": 102,
+                        "baseVolume": 10,
+                        "quoteVolume": 1020,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "P": "0.05",
+                            "w": "102",
+                            "c": "105",
+                            "h": "110",
+                            "l": "90",
+                            "v": "10",
+                            "q": "1020",
+                            "O": 1789497000000,
+                            "C": 1789583400000,
+                            "n": 10
+                        }
+                    }
+                ]
+            },
+            {
+                "description": "spot relative change",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://ws-spot.weex.com/v3/ws/public",
+                "messages": [
+                    {
+                        "result": true,
+                        "id": 1
+                    },
+                    {
+                        "e": "ticker",
+                        "E": 1789583400000,
+                        "s": "BTCUSDT",
+                        "d": [
+                            {
+                                "p": "5",
+                                "P": "0.05",
+                                "w": "102",
+                                "c": "105",
+                                "o": "100",
+                                "h": "110",
+                                "l": "90",
+                                "v": "10",
+                                "q": "1020",
+                                "O": 1789497000000,
+                                "C": 1789583400000,
+                                "n": 10
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": "1",
+                        "method": "SUBSCRIBE",
+                        "params": [
+                            "BTCUSDT@ticker"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/USDT",
+                        "timestamp": 1789583400000,
+                        "datetime": "2026-09-16T18:30:00.000Z",
+                        "high": 110,
+                        "low": 90,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 102,
+                        "open": 100,
+                        "close": 105,
+                        "last": 105,
+                        "previousClose": null,
+                        "change": 5,
+                        "percentage": 5,
+                        "average": 102,
+                        "baseVolume": 10,
+                        "quoteVolume": 1020,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "p": "5",
+                            "P": "0.05",
+                            "w": "102",
+                            "c": "105",
+                            "o": "100",
+                            "h": "110",
+                            "l": "90",
+                            "v": "10",
+                            "q": "1020",
+                            "O": 1789497000000,
+                            "C": 1789583400000,
+                            "n": 10
+                        }
+                    }
+                ]
+            },
+            {
+                "description": "captured contract ticker 2026-09-16",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "url": "wss://ws-contract.weex.com/v3/ws/public",
+                "messages": [
+                    {
+                        "result": true,
+                        "id": 1
+                    },
+                    {
+                        "e": "ticker",
+                        "E": 1789583400000,
+                        "s": "BTCUSDT",
+                        "d": [
+                            {
+                                "p": "-1208.1",
+                                "P": "-0.015714",
+                                "w": "75780.70146812",
+                                "c": "75672.3",
+                                "o": "76880.4",
+                                "h": "76919.8",
+                                "l": "74909.4",
+                                "v": "47190.2050",
+                                "q": "3576106837.32434",
+                                "O": 1789497000000,
+                                "C": 1789583400000,
+                                "n": 493174,
+                                "m": "75694.8",
+                                "i": "75722.03175"
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": "1",
+                        "method": "SUBSCRIBE",
+                        "params": [
+                            "BTCUSDT@ticker"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/USDT:USDT",
+                        "timestamp": 1789583400000,
+                        "datetime": "2026-09-16T18:30:00.000Z",
+                        "high": 76919.8,
+                        "low": 74909.4,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 75780.70146812,
+                        "open": 76880.4,
+                        "close": 75672.3,
+                        "last": 75672.3,
+                        "previousClose": null,
+                        "change": -1208.1,
+                        "percentage": -1.5714,
+                        "average": 75780.70146812,
+                        "baseVolume": 47190.205,
+                        "quoteVolume": 3576106837.32434,
+                        "markPrice": 75694.8,
+                        "indexPrice": 75722.03175,
+                        "info": {
+                            "p": "-1208.1",
+                            "P": "-0.015714",
+                            "w": "75780.70146812",
+                            "c": "75672.3",
+                            "o": "76880.4",
+                            "h": "76919.8",
+                            "l": "74909.4",
+                            "v": "47190.2050",
+                            "q": "3576106837.32434",
+                            "O": 1789497000000,
+                            "C": 1789583400000,
+                            "n": 493174,
+                            "m": "75694.8",
+                            "i": "75722.03175"
+                        }
+                    }
+                ]
+            },
+            {
+                "description": "captured spot ticker 2026-09-16",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://ws-spot.weex.com/v3/ws/public",
+                "messages": [
+                    {
+                        "result": true,
+                        "id": 1
+                    },
+                    {
+                        "e": "ticker",
+                        "E": 1789583400000,
+                        "s": "BTCUSDT",
+                        "d": [
+                            {
+                                "p": "-1256.01",
+                                "P": "-0.016300",
+                                "w": "75998.27000293",
+                                "c": "75796.00",
+                                "o": "77052.01",
+                                "h": "77343.43",
+                                "l": "74967.97",
+                                "v": "12035.676706",
+                                "q": "914690607.97060375",
+                                "O": 1789469100000,
+                                "C": 1789583400000,
+                                "n": 88245
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": "1",
+                        "method": "SUBSCRIBE",
+                        "params": [
+                            "BTCUSDT@ticker"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/USDT",
+                        "timestamp": 1789583400000,
+                        "datetime": "2026-09-16T18:30:00.000Z",
+                        "high": 77343.43,
+                        "low": 74967.97,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 75998.27000293,
+                        "open": 77052.01,
+                        "close": 75796,
+                        "last": 75796,
+                        "previousClose": null,
+                        "change": -1256.01,
+                        "percentage": -1.63,
+                        "average": 75998.27000293,
+                        "baseVolume": 12035.676706,
+                        "quoteVolume": 914690607.9706037,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "p": "-1256.01",
+                            "P": "-0.016300",
+                            "w": "75998.27000293",
+                            "c": "75796.00",
+                            "o": "77052.01",
+                            "h": "77343.43",
+                            "l": "74967.97",
+                            "v": "12035.676706",
+                            "q": "914690607.97060375",
+                            "O": 1789469100000,
+                            "C": 1789583400000,
+                            "n": 88245
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}

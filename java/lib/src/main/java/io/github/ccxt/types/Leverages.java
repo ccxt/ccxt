@@ -7,11 +7,12 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-public final class Leverages {
+public final class Leverages extends TypedMap {
     public Map<String, Leverage> leverages;
 
     @SuppressWarnings("unchecked")
     public Leverages(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.leverages = new LinkedHashMap<>();
         for (Map.Entry<String, Object> entry : data.entrySet()) {

@@ -1,8 +1,7 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict, List, Union
+_Dict = dict[str, object]
+_List = list[object]
 
-_Dict = Dict[str, PythonAny]
-_List = List[PythonAny]
 
 class ImplicitAPI:
     spot_kline_public_get_public_json = spotKlinePublicGetPublicJson = Entry[_Dict]('public.json', ['spot', 'kline', 'public'], 'GET', {'cost': 0.24})
@@ -34,7 +33,7 @@ class ImplicitAPI:
     fapi_v1_public_get_time = fapiV1PublicGetTime = Entry[_Dict]('time', ['fapi', 'v1', 'public'], 'GET', {'cost': 0.24})
     fapi_v1_public_get_contracts = fapiV1PublicGetContracts = Entry[_List]('contracts', ['fapi', 'v1', 'public'], 'GET', {'cost': 0.24})
     fapi_v1_public_get_depth = fapiV1PublicGetDepth = Entry[_Dict]('depth', ['fapi', 'v1', 'public'], 'GET', {'cost': 0.24})
-    fapi_v1_public_get_ticker = fapiV1PublicGetTicker = Entry[Union[_Dict, _List]]('ticker', ['fapi', 'v1', 'public'], 'GET', {'cost': 0.24})
+    fapi_v1_public_get_ticker = fapiV1PublicGetTicker = Entry[_Dict | _List]('ticker', ['fapi', 'v1', 'public'], 'GET', {'cost': 0.24})
     fapi_v1_public_get_klines = fapiV1PublicGetKlines = Entry[_List]('klines', ['fapi', 'v1', 'public'], 'GET', {'cost': 0.24})
     fapi_v2_private_get_mytrades = fapiV2PrivateGetMyTrades = Entry[_Dict]('myTrades', ['fapi', 'v2', 'private'], 'GET', {'cost': 5})
     fapi_v2_private_get_openorders = fapiV2PrivateGetOpenOrders = Entry[_Dict]('openOrders', ['fapi', 'v2', 'private'], 'GET', {'cost': 5})
@@ -54,8 +53,8 @@ class ImplicitAPI:
     dapi_v1_public_get_time = dapiV1PublicGetTime = Entry[_Dict]('time', ['dapi', 'v1', 'public'], 'GET', {'cost': 0.24})
     dapi_v1_public_get_contracts = dapiV1PublicGetContracts = Entry[_List]('contracts', ['dapi', 'v1', 'public'], 'GET', {'cost': 0.24})
     dapi_v1_public_get_depth = dapiV1PublicGetDepth = Entry[_Dict]('depth', ['dapi', 'v1', 'public'], 'GET', {'cost': 0.24})
-    dapi_v1_public_get_ticker = dapiV1PublicGetTicker = Entry[_List]('ticker', ['dapi', 'v1', 'public'], 'GET', {'cost': 0.24})
-    dapi_v1_public_get_klines = dapiV1PublicGetKlines = Entry[_Dict]('klines', ['dapi', 'v1', 'public'], 'GET', {'cost': 0.24})
+    dapi_v1_public_get_ticker = dapiV1PublicGetTicker = Entry[_Dict | _List]('ticker', ['dapi', 'v1', 'public'], 'GET', {'cost': 0.24})
+    dapi_v1_public_get_klines = dapiV1PublicGetKlines = Entry[_List]('klines', ['dapi', 'v1', 'public'], 'GET', {'cost': 0.24})
     dapi_v2_private_get_mytrades = dapiV2PrivateGetMyTrades = Entry[_Dict]('myTrades', ['dapi', 'v2', 'private'], 'GET', {'cost': 5})
     dapi_v2_private_get_openorders = dapiV2PrivateGetOpenOrders = Entry[_Dict]('openOrders', ['dapi', 'v2', 'private'], 'GET', {'cost': 5})
     dapi_v2_private_get_order = dapiV2PrivateGetOrder = Entry[_Dict]('order', ['dapi', 'v2', 'private'], 'GET', {'cost': 5})

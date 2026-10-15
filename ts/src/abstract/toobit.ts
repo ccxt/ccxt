@@ -8,95 +8,390 @@
 import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    commonGetApiV1Time (params?: {}): Promise<Dict>;
-    commonGetApiV1Ping (params?: {}): Promise<Dict>;
-    commonGetApiV1ExchangeInfo (params?: {}): Promise<Dict>;
-    commonGetQuoteV1Depth (params?: {}): Promise<Dict>;
-    commonGetQuoteV1DepthMerged (params?: {}): Promise<Dict>;
-    commonGetQuoteV1Trades (params?: {}): Promise<List>;
-    commonGetQuoteV1Klines (params?: {}): Promise<List>;
-    commonGetQuoteV1IndexKlines (params?: {}): Promise<List>;
-    commonGetQuoteV1IndexPriceComponents (params?: {}): Promise<Dict>;
-    commonGetQuoteV1MarkPriceKlines (params?: {}): Promise<List>;
-    commonGetQuoteV1MarkPrice (params?: {}): Promise<Dict>;
-    commonGetQuoteV1Index (params?: {}): Promise<Dict>;
-    commonGetQuoteV1Ticker24hr (params?: {}): Promise<List>;
-    commonGetQuoteV1ContractTicker24hr (params?: {}): Promise<List>;
-    commonGetQuoteV1TickerPrice (params?: {}): Promise<List>;
-    commonGetQuoteV1ContractTickerPrice (params?: {}): Promise<List>;
-    commonGetQuoteV1TickerBookTicker (params?: {}): Promise<List>;
-    commonGetQuoteV1ContractTickerBookTicker (params?: {}): Promise<List>;
-    commonGetApiV1FuturesFundingRate (params?: {}): Promise<List>;
-    commonGetApiV1FuturesHistoryFundingRate (params?: {}): Promise<List>;
-    commonGetApiV1FuturesRiskLimits (params?: {}): Promise<List>;
-    privateGetApiV1Account (params?: {}): Promise<Dict>;
-    privateGetApiV1AccountCheckApiKey (params?: {}): Promise<Dict>;
-    privateGetApiV1SpotOrder (params?: {}): Promise<Dict>;
-    privateGetApiV1SpotOpenOrders (params?: {}): Promise<List>;
-    privateGetApiV1FuturesOpenOrders (params?: {}): Promise<List>;
-    privateGetApiV1SpotTradeOrders (params?: {}): Promise<List>;
-    privateGetApiV1FuturesHistoryOrders (params?: {}): Promise<List>;
-    privateGetApiV1AccountTrades (params?: {}): Promise<List>;
-    privateGetApiV1AccountBalanceFlow (params?: {}): Promise<List>;
-    privateGetApiV1AccountDepositOrders (params?: {}): Promise<List>;
-    privateGetApiV1AccountWithdrawOrders (params?: {}): Promise<List>;
-    privateGetApiV1AccountDepositAddress (params?: {}): Promise<Dict>;
-    privateGetApiV1SubAccount (params?: {}): Promise<List>;
-    privateGetApiV1AccountSubAccount (params?: {}): Promise<List>;
-    privateGetApiV1SubAccountList (params?: {}): Promise<List>;
-    privateGetApiV1FuturesAccountLeverage (params?: {}): Promise<Dict>;
-    privateGetApiV1FuturesOrder (params?: {}): Promise<Dict>;
-    privateGetApiV1FuturesPositions (params?: {}): Promise<List>;
-    privateGetApiV1FuturesHistoryPositions (params?: {}): Promise<List>;
-    privateGetApiV1FuturesBalance (params?: {}): Promise<Dict>;
-    privateGetApiV1FuturesUserTrades (params?: {}): Promise<List>;
-    privateGetApiV1FuturesBalanceFlow (params?: {}): Promise<List>;
-    privateGetApiV1FuturesCommissionRate (params?: {}): Promise<Dict>;
-    privateGetApiV1FuturesTodayPnl (params?: {}): Promise<Dict>;
-    privateGetApiV1AccountDownloadDetail (params?: {}): Promise<Dict>;
-    privateGetApiV1AgentInviteUserList (params?: {}): Promise<Dict>;
-    privateGetApiV1AgentCommissionDataList (params?: {}): Promise<Dict>;
-    privateGetApiV1AgentCommissionDataInfo (params?: {}): Promise<Dict>;
-    privateGetApiV1AgentInviteRelationCheck (params?: {}): Promise<Dict>;
-    privateGetApiV1AgentDepositDetailList (params?: {}): Promise<Dict>;
-    privateGetApiV1AgentQuerySubAgentData (params?: {}): Promise<Dict>;
-    privateGetApiV1AgentSpotOrdersList (params?: {}): Promise<Dict>;
-    privateGetApiV1AgentFuturesOrdersList (params?: {}): Promise<Dict>;
-    privateGetApiV1AgentFuturesPositionsList (params?: {}): Promise<Dict>;
-    privateGetApiV1AgentInviteCommissionDetail (params?: {}): Promise<Dict>;
-    privateGetApiV1AgentUserExport (params?: {}): Promise<Dict>;
-    privateGetApiV1AgentExportList (params?: {}): Promise<Dict>;
-    privateGetApiV1AgentExportUrl (params?: {}): Promise<Dict>;
-    privatePostApiV1SpotOrderTest (params?: {}): Promise<Dict>;
-    privatePostApiV1SpotOrder (params?: {}): Promise<Dict>;
-    privatePostApiV1FuturesOrder (params?: {}): Promise<Dict>;
-    privatePostApiV1SpotBatchOrders (params?: {}): Promise<Dict>;
-    privatePostApiV1SubAccountTransfer (params?: {}): Promise<Dict>;
-    privatePostApiV1AccountWithdraw (params?: {}): Promise<Dict>;
-    privatePostApiV1FuturesMarginType (params?: {}): Promise<Dict>;
-    privatePostApiV1FuturesLeverage (params?: {}): Promise<Dict>;
-    privatePostApiV1FuturesBatchOrders (params?: {}): Promise<Dict>;
-    privatePostApiV1FuturesPositionTradingStop (params?: {}): Promise<Dict>;
-    privatePostApiV1FuturesPositionMargin (params?: {}): Promise<Dict>;
-    privatePostApiV1FuturesOrderUpdate (params?: {}): Promise<Dict>;
-    privatePostApiV1FuturesAutoAddMargin (params?: {}): Promise<Dict>;
-    privatePostApiV1FuturesFlashClose (params?: {}): Promise<Dict>;
-    privatePostApiV1FuturesReversePosition (params?: {}): Promise<Dict>;
-    privatePostApiV1AccountDownloadApply (params?: {}): Promise<Dict>;
-    privatePostApiV1UserDataStream (params?: {}): Promise<Dict>;
-    privatePostApiV1ListenKey (params?: {}): Promise<Dict>;
-    privateDeleteApiV1SpotOrder (params?: {}): Promise<Dict>;
-    privateDeleteApiV1FuturesOrder (params?: {}): Promise<Dict>;
-    privateDeleteApiV1SpotOpenOrders (params?: {}): Promise<Dict>;
-    privateDeleteApiV1FuturesBatchOrders (params?: {}): Promise<Dict>;
-    privateDeleteApiV1SpotCancelOrderByIds (params?: {}): Promise<Dict>;
-    privateDeleteApiV1FuturesCancelOrderByIds (params?: {}): Promise<Dict>;
-    privateDeleteApiV1UserDataStream (params?: {}): Promise<Dict>;
-    privateDeleteApiV1ListenKey (params?: {}): Promise<Dict>;
-    privatePutApiV1UserDataStream (params?: {}): Promise<Dict>;
-    privatePutApiV1ListenKey (params?: {}): Promise<Dict>;
-}
-abstract class Exchange extends _Exchange {}
+abstract class Exchange extends _Exchange {
+    commonGetApiV1Time (params = {}): Promise<Dict> {
+        return this.request ('api/v1/time', [ 'common' ], 'GET', params, { 'cost': 1 });
+    }
 
-export default Exchange
+    commonGetApiV1Ping (params = {}): Promise<Dict> {
+        return this.request ('api/v1/ping', [ 'common' ], 'GET', params, { 'cost': 1 });
+    }
+
+    commonGetApiV1ExchangeInfo (params = {}): Promise<Dict> {
+        return this.request ('api/v1/exchangeInfo', [ 'common' ], 'GET', params, { 'cost': 1 });
+    }
+
+    commonGetQuoteV1Depth (params = {}): Promise<Dict> {
+        return this.request ('quote/v1/depth', [ 'common' ], 'GET', params, { 'cost': 1 });
+    }
+
+    commonGetQuoteV1DepthMerged (params = {}): Promise<Dict> {
+        return this.request ('quote/v1/depth/merged', [ 'common' ], 'GET', params, { 'cost': 1 });
+    }
+
+    commonGetQuoteV1Trades (params = {}): Promise<List> {
+        return this.request ('quote/v1/trades', [ 'common' ], 'GET', params, { 'cost': 1 });
+    }
+
+    commonGetQuoteV1Klines (params = {}): Promise<List> {
+        return this.request ('quote/v1/klines', [ 'common' ], 'GET', params, { 'cost': 1 });
+    }
+
+    commonGetQuoteV1IndexKlines (params = {}): Promise<List> {
+        return this.request ('quote/v1/index/klines', [ 'common' ], 'GET', params, { 'cost': 1 });
+    }
+
+    commonGetQuoteV1IndexPriceComponents (params = {}): Promise<Dict> {
+        return this.request ('quote/v1/indexPriceComponents', [ 'common' ], 'GET', params, { 'cost': 1 });
+    }
+
+    commonGetQuoteV1MarkPriceKlines (params = {}): Promise<List> {
+        return this.request ('quote/v1/markPrice/klines', [ 'common' ], 'GET', params, { 'cost': 1 });
+    }
+
+    commonGetQuoteV1MarkPrice (params = {}): Promise<Dict> {
+        return this.request ('quote/v1/markPrice', [ 'common' ], 'GET', params, { 'cost': 10 });
+    }
+
+    commonGetQuoteV1Index (params = {}): Promise<Dict> {
+        return this.request ('quote/v1/index', [ 'common' ], 'GET', params, { 'cost': 1 });
+    }
+
+    commonGetQuoteV1Ticker24hr (params = {}): Promise<List> {
+        return this.request ('quote/v1/ticker/24hr', [ 'common' ], 'GET', params, { 'cost': 40 });
+    }
+
+    commonGetQuoteV1ContractTicker24hr (params = {}): Promise<List> {
+        return this.request ('quote/v1/contract/ticker/24hr', [ 'common' ], 'GET', params, { 'cost': 40 });
+    }
+
+    commonGetQuoteV1TickerPrice (params = {}): Promise<List> {
+        return this.request ('quote/v1/ticker/price', [ 'common' ], 'GET', params, { 'cost': 1 });
+    }
+
+    commonGetQuoteV1ContractTickerPrice (params = {}): Promise<List> {
+        return this.request ('quote/v1/contract/ticker/price', [ 'common' ], 'GET', params, { 'cost': 1 });
+    }
+
+    commonGetQuoteV1TickerBookTicker (params = {}): Promise<List> {
+        return this.request ('quote/v1/ticker/bookTicker', [ 'common' ], 'GET', params, { 'cost': 1 });
+    }
+
+    commonGetQuoteV1ContractTickerBookTicker (params = {}): Promise<List> {
+        return this.request ('quote/v1/contract/ticker/bookTicker', [ 'common' ], 'GET', params, { 'cost': 1 });
+    }
+
+    commonGetApiV1FuturesFundingRate (params = {}): Promise<List> {
+        return this.request ('api/v1/futures/fundingRate', [ 'common' ], 'GET', params, { 'cost': 1 });
+    }
+
+    commonGetApiV1FuturesHistoryFundingRate (params = {}): Promise<List> {
+        return this.request ('api/v1/futures/historyFundingRate', [ 'common' ], 'GET', params, { 'cost': 1 });
+    }
+
+    commonGetApiV1FuturesRiskLimits (params = {}): Promise<List> {
+        return this.request ('api/v1/futures/riskLimits', [ 'common' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetApiV1Account (params = {}): Promise<Dict> {
+        return this.request ('api/v1/account', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetApiV1AccountCheckApiKey (params = {}): Promise<Dict> {
+        return this.request ('api/v1/account/checkApiKey', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetApiV1SpotOrder (params = {}): Promise<Dict> {
+        return this.request ('api/v1/spot/order', [ 'private' ], 'GET', params, { 'cost': 1.67 });
+    }
+
+    privateGetApiV1SpotOpenOrders (params = {}): Promise<List> {
+        return this.request ('api/v1/spot/openOrders', [ 'private' ], 'GET', params, { 'cost': 1.67 });
+    }
+
+    privateGetApiV1FuturesOpenOrders (params = {}): Promise<List> {
+        return this.request ('api/v1/futures/openOrders', [ 'private' ], 'GET', params, { 'cost': 1.67 });
+    }
+
+    privateGetApiV1SpotTradeOrders (params = {}): Promise<List> {
+        return this.request ('api/v1/spot/tradeOrders', [ 'private' ], 'GET', params, { 'cost': 8.35 });
+    }
+
+    privateGetApiV1FuturesHistoryOrders (params = {}): Promise<List> {
+        return this.request ('api/v1/futures/historyOrders', [ 'private' ], 'GET', params, { 'cost': 8.35 });
+    }
+
+    privateGetApiV1AccountTrades (params = {}): Promise<List> {
+        return this.request ('api/v1/account/trades', [ 'private' ], 'GET', params, { 'cost': 8.35 });
+    }
+
+    privateGetApiV1AccountBalanceFlow (params = {}): Promise<List> {
+        return this.request ('api/v1/account/balanceFlow', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetApiV1AccountDepositOrders (params = {}): Promise<List> {
+        return this.request ('api/v1/account/depositOrders', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetApiV1AccountWithdrawOrders (params = {}): Promise<List> {
+        return this.request ('api/v1/account/withdrawOrders', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetApiV1AccountDepositAddress (params = {}): Promise<Dict> {
+        return this.request ('api/v1/account/deposit/address', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetApiV1SubAccount (params = {}): Promise<List> {
+        return this.request ('api/v1/subAccount', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetApiV1AccountSubAccount (params = {}): Promise<List> {
+        return this.request ('api/v1/account/subAccount', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetApiV1SubAccountList (params = {}): Promise<List> {
+        return this.request ('api/v1/subAccount/list', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetApiV1FuturesAccountLeverage (params = {}): Promise<List> {
+        return this.request ('api/v1/futures/accountLeverage', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetApiV1FuturesOrder (params = {}): Promise<Dict> {
+        return this.request ('api/v1/futures/order', [ 'private' ], 'GET', params, { 'cost': 1.67 });
+    }
+
+    privateGetApiV1FuturesPositions (params = {}): Promise<List> {
+        return this.request ('api/v1/futures/positions', [ 'private' ], 'GET', params, { 'cost': 8.35 });
+    }
+
+    privateGetApiV1FuturesHistoryPositions (params = {}): Promise<List> {
+        return this.request ('api/v1/futures/historyPositions', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetApiV1FuturesBalance (params = {}): Promise<List> {
+        return this.request ('api/v1/futures/balance', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetApiV1FuturesUserTrades (params = {}): Promise<List> {
+        return this.request ('api/v1/futures/userTrades', [ 'private' ], 'GET', params, { 'cost': 8.35 });
+    }
+
+    privateGetApiV1FuturesBalanceFlow (params = {}): Promise<List> {
+        return this.request ('api/v1/futures/balanceFlow', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetApiV1FuturesCommissionRate (params = {}): Promise<Dict> {
+        return this.request ('api/v1/futures/commissionRate', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetApiV1FuturesTodayPnl (params = {}): Promise<Dict> {
+        return this.request ('api/v1/futures/todayPnl', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetApiV1AccountDownloadDetail (params = {}): Promise<Dict> {
+        return this.request ('api/v1/account/download/detail', [ 'private' ], 'GET', params, { 'cost': 10 });
+    }
+
+    privateGetApiV1AgentInviteUserList (params = {}): Promise<Dict> {
+        return this.request ('api/v1/agent/inviteUserList', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetApiV1AgentCommissionDataList (params = {}): Promise<Dict> {
+        return this.request ('api/v1/agent/commissionDataList', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetApiV1AgentCommissionDataInfo (params = {}): Promise<Dict> {
+        return this.request ('api/v1/agent/commissionDataInfo', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetApiV1AgentInviteRelationCheck (params = {}): Promise<Dict> {
+        return this.request ('api/v1/agent/inviteRelationCheck', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetApiV1AgentDepositDetailList (params = {}): Promise<Dict> {
+        return this.request ('api/v1/agent/depositDetailList', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetApiV1AgentQuerySubAgentData (params = {}): Promise<Dict> {
+        return this.request ('api/v1/agent/querySubAgentData', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetApiV1AgentSpotOrdersList (params = {}): Promise<Dict> {
+        return this.request ('api/v1/agent/spotOrdersList', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetApiV1AgentFuturesOrdersList (params = {}): Promise<Dict> {
+        return this.request ('api/v1/agent/futuresOrdersList', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetApiV1AgentFuturesPositionsList (params = {}): Promise<Dict> {
+        return this.request ('api/v1/agent/futuresPositionsList', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetApiV1AgentInviteCommissionDetail (params = {}): Promise<Dict> {
+        return this.request ('api/v1/agent/invite-commission-detail', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetApiV1AgentUserExport (params = {}): Promise<Dict> {
+        return this.request ('api/v1/agent/user/export', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetApiV1AgentExportList (params = {}): Promise<Dict> {
+        return this.request ('api/v1/agent/export-list', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetApiV1AgentExportUrl (params = {}): Promise<Dict> {
+        return this.request ('api/v1/agent/export-url', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetApiV2AccountBalanceFlow (params = {}): Promise<List> {
+        return this.request ('api/v2/account/balance-flow', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetApiV2FuturesOrder (params = {}): Promise<Dict> {
+        return this.request ('api/v2/futures/order', [ 'private' ], 'GET', params, { 'cost': 1.67 });
+    }
+
+    privateGetApiV2FuturesOpenOrders (params = {}): Promise<List> {
+        return this.request ('api/v2/futures/open-orders', [ 'private' ], 'GET', params, { 'cost': 1.67 });
+    }
+
+    privateGetApiV2FuturesHistoryOrders (params = {}): Promise<List> {
+        return this.request ('api/v2/futures/history-orders', [ 'private' ], 'GET', params, { 'cost': 8.35 });
+    }
+
+    privateGetApiV2FuturesUserTrades (params = {}): Promise<List> {
+        return this.request ('api/v2/futures/user-trades', [ 'private' ], 'GET', params, { 'cost': 8.35 });
+    }
+
+    privateGetApiV2FuturesAlgoOrder (params = {}): Promise<Dict> {
+        return this.request ('api/v2/futures/algo-order', [ 'private' ], 'GET', params, { 'cost': 1.67 });
+    }
+
+    privateGetApiV2FuturesOpenAlgoOrders (params = {}): Promise<List> {
+        return this.request ('api/v2/futures/open-algo-orders', [ 'private' ], 'GET', params, { 'cost': 1.67 });
+    }
+
+    privateGetApiV2FuturesHistoryAlgoOrders (params = {}): Promise<List> {
+        return this.request ('api/v2/futures/history-algo-orders', [ 'private' ], 'GET', params, { 'cost': 8.35 });
+    }
+
+    privateGetApiV2FuturesVoucherList (params = {}): Promise<Dict> {
+        return this.request ('api/v2/futures/voucher/list', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privatePostApiV1SpotOrderTest (params = {}): Promise<Dict> {
+        return this.request ('api/v1/spot/orderTest', [ 'private' ], 'POST', params, { 'cost': 1.67 });
+    }
+
+    privatePostApiV1SpotOrder (params = {}): Promise<Dict> {
+        return this.request ('api/v1/spot/order', [ 'private' ], 'POST', params, { 'cost': 1.67 });
+    }
+
+    privatePostApiV1FuturesOrder (params = {}): Promise<Dict> {
+        return this.request ('api/v1/futures/order', [ 'private' ], 'POST', params, { 'cost': 1.67 });
+    }
+
+    privatePostApiV1SpotBatchOrders (params = {}): Promise<Dict> {
+        return this.request ('api/v1/spot/batchOrders', [ 'private' ], 'POST', params, { 'cost': 3.34 });
+    }
+
+    privatePostApiV1SubAccountTransfer (params = {}): Promise<Dict> {
+        return this.request ('api/v1/subAccount/transfer', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostApiV1AccountWithdraw (params = {}): Promise<Dict> {
+        return this.request ('api/v1/account/withdraw', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostApiV1FuturesMarginType (params = {}): Promise<Dict> {
+        return this.request ('api/v1/futures/marginType', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostApiV1FuturesLeverage (params = {}): Promise<Dict> {
+        return this.request ('api/v1/futures/leverage', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostApiV1FuturesBatchOrders (params = {}): Promise<Dict> {
+        return this.request ('api/v1/futures/batchOrders', [ 'private' ], 'POST', params, { 'cost': 3.34 });
+    }
+
+    privatePostApiV1FuturesPositionTradingStop (params = {}): Promise<Dict> {
+        return this.request ('api/v1/futures/position/trading-stop', [ 'private' ], 'POST', params, { 'cost': 5.01 });
+    }
+
+    privatePostApiV1FuturesPositionMargin (params = {}): Promise<Dict> {
+        return this.request ('api/v1/futures/positionMargin', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostApiV1FuturesOrderUpdate (params = {}): Promise<Dict> {
+        return this.request ('api/v1/futures/order/update', [ 'private' ], 'POST', params, { 'cost': 3.34 });
+    }
+
+    privatePostApiV1FuturesAutoAddMargin (params = {}): Promise<Dict> {
+        return this.request ('api/v1/futures/autoAddMargin', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostApiV1FuturesFlashClose (params = {}): Promise<Dict> {
+        return this.request ('api/v1/futures/flashClose', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostApiV1FuturesReversePosition (params = {}): Promise<Dict> {
+        return this.request ('api/v1/futures/reversePosition', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    privatePostApiV1AccountDownloadApply (params = {}): Promise<Dict> {
+        return this.request ('api/v1/account/download/apply', [ 'private' ], 'POST', params, { 'cost': 1000 });
+    }
+
+    privatePostApiV1UserDataStream (params = {}): Promise<Dict> {
+        return this.request ('api/v1/userDataStream', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostApiV1ListenKey (params = {}): Promise<Dict> {
+        return this.request ('api/v1/listenKey', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privateDeleteApiV1SpotOrder (params = {}): Promise<Dict> {
+        return this.request ('api/v1/spot/order', [ 'private' ], 'DELETE', params, { 'cost': 1.67 });
+    }
+
+    privateDeleteApiV1FuturesOrder (params = {}): Promise<Dict> {
+        return this.request ('api/v1/futures/order', [ 'private' ], 'DELETE', params, { 'cost': 1.67 });
+    }
+
+    privateDeleteApiV1SpotOpenOrders (params = {}): Promise<Dict> {
+        return this.request ('api/v1/spot/openOrders', [ 'private' ], 'DELETE', params, { 'cost': 8.35 });
+    }
+
+    privateDeleteApiV1FuturesBatchOrders (params = {}): Promise<Dict> {
+        return this.request ('api/v1/futures/batchOrders', [ 'private' ], 'DELETE', params, { 'cost': 5.01 });
+    }
+
+    privateDeleteApiV1SpotCancelOrderByIds (params = {}): Promise<Dict> {
+        return this.request ('api/v1/spot/cancelOrderByIds', [ 'private' ], 'DELETE', params, { 'cost': 8.35 });
+    }
+
+    privateDeleteApiV1FuturesCancelOrderByIds (params = {}): Promise<Dict> {
+        return this.request ('api/v1/futures/cancelOrderByIds', [ 'private' ], 'DELETE', params, { 'cost': 5.01 });
+    }
+
+    privateDeleteApiV1UserDataStream (params = {}): Promise<Dict> {
+        return this.request ('api/v1/userDataStream', [ 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    privateDeleteApiV1ListenKey (params = {}): Promise<Dict> {
+        return this.request ('api/v1/listenKey', [ 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    privatePutApiV1UserDataStream (params = {}): Promise<Dict> {
+        return this.request ('api/v1/userDataStream', [ 'private' ], 'PUT', params, { 'cost': 1 });
+    }
+
+    privatePutApiV1ListenKey (params = {}): Promise<Dict> {
+        return this.request ('api/v1/listenKey', [ 'private' ], 'PUT', params, { 'cost': 1 });
+    }
+}
+
+export default Exchange;

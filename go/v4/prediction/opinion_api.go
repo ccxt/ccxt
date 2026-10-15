@@ -7,102 +7,184 @@
 
 package ccxtprediction
 
-// OpinionPublicGetMarket returns a channel that yields a JSON object or a JSON array.
-func (this *OpinionCore) OpinionPublicGetMarket(args ...any) <-chan any {
-	return this.CallEndpointAsync("opinionPublicGetMarket", args...)
+import ccxt "github.com/ccxt/ccxt/go/v4"
+
+// OpinionPublicGetMarket returns a channel that yields a JSON object.
+func (this *Opinion) OpinionPublicGetMarket(args ...any) <-chan ccxt.EndpointResult[map[string]any] {
+	var params any
+	if len(args) > 0 {
+		params = args[0]
+	}
+	return ccxt.Fetch2Result[map[string]any](this, "market", []string{"opinion", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// OpinionPublicGetMarketMarketId returns a channel that yields a JSON object or a JSON array.
-func (this *OpinionCore) OpinionPublicGetMarketMarketId(args ...any) <-chan any {
-	return this.CallEndpointAsync("opinionPublicGetMarketMarketId", args...)
+// OpinionPublicGetMarketMarketId returns a channel that yields a JSON object.
+func (this *Opinion) OpinionPublicGetMarketMarketId(args ...any) <-chan ccxt.EndpointResult[map[string]any] {
+	var params any
+	if len(args) > 0 {
+		params = args[0]
+	}
+	return ccxt.Fetch2Result[map[string]any](this, "market/{marketId}", []string{"opinion", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// OpinionPublicGetMarketCategoricalMarketId returns a channel that yields a JSON object or a JSON array.
-func (this *OpinionCore) OpinionPublicGetMarketCategoricalMarketId(args ...any) <-chan any {
-	return this.CallEndpointAsync("opinionPublicGetMarketCategoricalMarketId", args...)
+// OpinionPublicGetMarketCategoricalMarketId returns a channel that yields a JSON object.
+func (this *Opinion) OpinionPublicGetMarketCategoricalMarketId(args ...any) <-chan ccxt.EndpointResult[map[string]any] {
+	var params any
+	if len(args) > 0 {
+		params = args[0]
+	}
+	return ccxt.Fetch2Result[map[string]any](this, "market/categorical/{marketId}", []string{"opinion", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// OpinionPublicGetMarketSlugSlug returns a channel that yields a JSON object or a JSON array.
-func (this *OpinionCore) OpinionPublicGetMarketSlugSlug(args ...any) <-chan any {
-	return this.CallEndpointAsync("opinionPublicGetMarketSlugSlug", args...)
+// OpinionPublicGetMarketSlugSlug returns a channel that yields a JSON object.
+func (this *Opinion) OpinionPublicGetMarketSlugSlug(args ...any) <-chan ccxt.EndpointResult[map[string]any] {
+	var params any
+	if len(args) > 0 {
+		params = args[0]
+	}
+	return ccxt.Fetch2Result[map[string]any](this, "market/slug/{slug}", []string{"opinion", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // OpinionPublicGetLabel returns a channel that yields a JSON object or a JSON array.
-func (this *OpinionCore) OpinionPublicGetLabel(args ...any) <-chan any {
-	return this.CallEndpointAsync("opinionPublicGetLabel", args...)
+func (this *Opinion) OpinionPublicGetLabel(args ...any) <-chan ccxt.AsyncResult[any] {
+	var params any
+	if len(args) > 0 {
+		params = args[0]
+	}
+	return this.Fetch2Async("label", []string{"opinion", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// OpinionPublicGetTokenLatestPrice returns a channel that yields a JSON object or a JSON array.
-func (this *OpinionCore) OpinionPublicGetTokenLatestPrice(args ...any) <-chan any {
-	return this.CallEndpointAsync("opinionPublicGetTokenLatestPrice", args...)
+// OpinionPublicGetTokenLatestPrice returns a channel that yields a JSON object.
+func (this *Opinion) OpinionPublicGetTokenLatestPrice(args ...any) <-chan ccxt.EndpointResult[map[string]any] {
+	var params any
+	if len(args) > 0 {
+		params = args[0]
+	}
+	return ccxt.Fetch2Result[map[string]any](this, "token/latest-price", []string{"opinion", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// OpinionPublicGetTokenOrderbook returns a channel that yields a JSON object or a JSON array.
-func (this *OpinionCore) OpinionPublicGetTokenOrderbook(args ...any) <-chan any {
-	return this.CallEndpointAsync("opinionPublicGetTokenOrderbook", args...)
+// OpinionPublicGetTokenOrderbook returns a channel that yields a JSON object.
+func (this *Opinion) OpinionPublicGetTokenOrderbook(args ...any) <-chan ccxt.EndpointResult[map[string]any] {
+	var params any
+	if len(args) > 0 {
+		params = args[0]
+	}
+	return ccxt.Fetch2Result[map[string]any](this, "token/orderbook", []string{"opinion", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// OpinionPublicGetTokenPriceHistory returns a channel that yields a JSON object or a JSON array.
-func (this *OpinionCore) OpinionPublicGetTokenPriceHistory(args ...any) <-chan any {
-	return this.CallEndpointAsync("opinionPublicGetTokenPriceHistory", args...)
+// OpinionPublicGetTokenPriceHistory returns a channel that yields a JSON object.
+func (this *Opinion) OpinionPublicGetTokenPriceHistory(args ...any) <-chan ccxt.EndpointResult[map[string]any] {
+	var params any
+	if len(args) > 0 {
+		params = args[0]
+	}
+	return ccxt.Fetch2Result[map[string]any](this, "token/price-history", []string{"opinion", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// OpinionPublicGetQuoteToken returns a channel that yields a JSON object or a JSON array.
-func (this *OpinionCore) OpinionPublicGetQuoteToken(args ...any) <-chan any {
-	return this.CallEndpointAsync("opinionPublicGetQuoteToken", args...)
+// OpinionPublicGetQuoteToken returns a channel that yields a JSON object.
+func (this *Opinion) OpinionPublicGetQuoteToken(args ...any) <-chan ccxt.EndpointResult[map[string]any] {
+	var params any
+	if len(args) > 0 {
+		params = args[0]
+	}
+	return ccxt.Fetch2Result[map[string]any](this, "quoteToken", []string{"opinion", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// OpinionPrivateGetOrder returns a channel that yields a JSON object or a JSON array.
-func (this *OpinionCore) OpinionPrivateGetOrder(args ...any) <-chan any {
-	return this.CallEndpointAsync("opinionPrivateGetOrder", args...)
+// OpinionPrivateGetOrder returns a channel that yields a JSON object.
+func (this *Opinion) OpinionPrivateGetOrder(args ...any) <-chan ccxt.EndpointResult[map[string]any] {
+	var params any
+	if len(args) > 0 {
+		params = args[0]
+	}
+	return ccxt.Fetch2Result[map[string]any](this, "order", []string{"opinion", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// OpinionPrivateGetOrderOrderId returns a channel that yields a JSON object or a JSON array.
-func (this *OpinionCore) OpinionPrivateGetOrderOrderId(args ...any) <-chan any {
-	return this.CallEndpointAsync("opinionPrivateGetOrderOrderId", args...)
+// OpinionPrivateGetOrderOrderId returns a channel that yields a JSON object.
+func (this *Opinion) OpinionPrivateGetOrderOrderId(args ...any) <-chan ccxt.EndpointResult[map[string]any] {
+	var params any
+	if len(args) > 0 {
+		params = args[0]
+	}
+	return ccxt.Fetch2Result[map[string]any](this, "order/{orderId}", []string{"opinion", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// OpinionPrivateGetPositionsUserWalletAddress returns a channel that yields a JSON object or a JSON array.
-func (this *OpinionCore) OpinionPrivateGetPositionsUserWalletAddress(args ...any) <-chan any {
-	return this.CallEndpointAsync("opinionPrivateGetPositionsUserWalletAddress", args...)
+// OpinionPrivateGetPositionsUserWalletAddress returns a channel that yields a JSON object.
+func (this *Opinion) OpinionPrivateGetPositionsUserWalletAddress(args ...any) <-chan ccxt.EndpointResult[map[string]any] {
+	var params any
+	if len(args) > 0 {
+		params = args[0]
+	}
+	return ccxt.Fetch2Result[map[string]any](this, "positions/user/{walletAddress}", []string{"opinion", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// OpinionPrivateGetTradeUserWalletAddress returns a channel that yields a JSON object or a JSON array.
-func (this *OpinionCore) OpinionPrivateGetTradeUserWalletAddress(args ...any) <-chan any {
-	return this.CallEndpointAsync("opinionPrivateGetTradeUserWalletAddress", args...)
+// OpinionPrivateGetTradeUserWalletAddress returns a channel that yields a JSON object.
+func (this *Opinion) OpinionPrivateGetTradeUserWalletAddress(args ...any) <-chan ccxt.EndpointResult[map[string]any] {
+	var params any
+	if len(args) > 0 {
+		params = args[0]
+	}
+	return ccxt.Fetch2Result[map[string]any](this, "trade/user/{walletAddress}", []string{"opinion", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// OpinionPrivateGetAuthApiKey returns a channel that yields a JSON object or a JSON array.
-func (this *OpinionCore) OpinionPrivateGetAuthApiKey(args ...any) <-chan any {
-	return this.CallEndpointAsync("opinionPrivateGetAuthApiKey", args...)
+// OpinionPrivateGetAuthApiKey returns a channel that yields a JSON object.
+func (this *Opinion) OpinionPrivateGetAuthApiKey(args ...any) <-chan ccxt.EndpointResult[map[string]any] {
+	var params any
+	if len(args) > 0 {
+		params = args[0]
+	}
+	return ccxt.Fetch2Result[map[string]any](this, "auth/api-key", []string{"opinion", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// OpinionPrivateGetUserAuth returns a channel that yields a JSON object or a JSON array.
-func (this *OpinionCore) OpinionPrivateGetUserAuth(args ...any) <-chan any {
-	return this.CallEndpointAsync("opinionPrivateGetUserAuth", args...)
+// OpinionPrivateGetUserAuth returns a channel that yields a JSON object.
+func (this *Opinion) OpinionPrivateGetUserAuth(args ...any) <-chan ccxt.EndpointResult[map[string]any] {
+	var params any
+	if len(args) > 0 {
+		params = args[0]
+	}
+	return ccxt.Fetch2Result[map[string]any](this, "user/auth", []string{"opinion", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// OpinionPrivateGetUserBalance returns a channel that yields a JSON object or a JSON array.
-func (this *OpinionCore) OpinionPrivateGetUserBalance(args ...any) <-chan any {
-	return this.CallEndpointAsync("opinionPrivateGetUserBalance", args...)
+// OpinionPrivateGetUserBalance returns a channel that yields a JSON object.
+func (this *Opinion) OpinionPrivateGetUserBalance(args ...any) <-chan ccxt.EndpointResult[map[string]any] {
+	var params any
+	if len(args) > 0 {
+		params = args[0]
+	}
+	return ccxt.Fetch2Result[map[string]any](this, "user/balance", []string{"opinion", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// OpinionPrivatePostAuthApiKey returns a channel that yields a JSON object or a JSON array.
-func (this *OpinionCore) OpinionPrivatePostAuthApiKey(args ...any) <-chan any {
-	return this.CallEndpointAsync("opinionPrivatePostAuthApiKey", args...)
+// OpinionPrivatePostAuthApiKey returns a channel that yields a JSON object.
+func (this *Opinion) OpinionPrivatePostAuthApiKey(args ...any) <-chan ccxt.EndpointResult[map[string]any] {
+	var params any
+	if len(args) > 0 {
+		params = args[0]
+	}
+	return ccxt.Fetch2Result[map[string]any](this, "auth/api-key", []string{"opinion", "private"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// OpinionPrivatePostOrder returns a channel that yields a JSON object or a JSON array.
-func (this *OpinionCore) OpinionPrivatePostOrder(args ...any) <-chan any {
-	return this.CallEndpointAsync("opinionPrivatePostOrder", args...)
+// OpinionPrivatePostOrder returns a channel that yields a JSON object.
+func (this *Opinion) OpinionPrivatePostOrder(args ...any) <-chan ccxt.EndpointResult[map[string]any] {
+	var params any
+	if len(args) > 0 {
+		params = args[0]
+	}
+	return ccxt.Fetch2Result[map[string]any](this, "order", []string{"opinion", "private"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// OpinionPrivatePostOrderCancel returns a channel that yields a JSON object or a JSON array.
-func (this *OpinionCore) OpinionPrivatePostOrderCancel(args ...any) <-chan any {
-	return this.CallEndpointAsync("opinionPrivatePostOrderCancel", args...)
+// OpinionPrivatePostOrderCancel returns a channel that yields a JSON object.
+func (this *Opinion) OpinionPrivatePostOrderCancel(args ...any) <-chan ccxt.EndpointResult[map[string]any] {
+	var params any
+	if len(args) > 0 {
+		params = args[0]
+	}
+	return ccxt.Fetch2Result[map[string]any](this, "order/cancel", []string{"opinion", "private"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// OpinionPrivateDeleteAuthApiKey returns a channel that yields a JSON object or a JSON array.
-func (this *OpinionCore) OpinionPrivateDeleteAuthApiKey(args ...any) <-chan any {
-	return this.CallEndpointAsync("opinionPrivateDeleteAuthApiKey", args...)
+// OpinionPrivateDeleteAuthApiKey returns a channel that yields a JSON object.
+func (this *Opinion) OpinionPrivateDeleteAuthApiKey(args ...any) <-chan ccxt.EndpointResult[map[string]any] {
+	var params any
+	if len(args) > 0 {
+		params = args[0]
+	}
+	return ccxt.Fetch2Result[map[string]any](this, "auth/api-key", []string{"opinion", "private"}, "DELETE", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }

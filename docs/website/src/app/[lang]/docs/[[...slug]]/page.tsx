@@ -39,6 +39,10 @@ const GUIDE_WIKI: Record<string, string> = {
 
 function wikiSourcePath(slugs: string[]): string | undefined {
   if (slugs[0] === 'exchanges' && slugs[1]) return `wiki/exchanges/${slugs[1]}.md`;
+  // comparisons: the hub is wiki/comparisons/README.md, each page is <slug>.md
+  if (slugs[0] === 'comparisons') {
+    return `wiki/comparisons/${slugs[1] ? `${slugs[1]}.md` : 'README.md'}`;
+  }
   if (slugs[0] === 'examples') {
     // citations page is synced from the repo-root examples README, not the wiki tree
     if (slugs[1] === 'citations') return 'examples/README.md';

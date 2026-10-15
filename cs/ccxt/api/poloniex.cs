@@ -390,10 +390,10 @@ public partial class poloniex : Exchange
     }
 
     /// <summary>Calls the privatePostOrdersBatch endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> privatePostOrdersBatch (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privatePostOrdersBatch (object parameters = null)
     {
-        return await this.callAsync<Dictionary<string, object>> ("privatePostOrdersBatch",parameters);
+        return await this.callAsync<List<object>> ("privatePostOrdersBatch",parameters);
     }
 
     /// <summary>Calls the privatePostOrdersKillSwitch endpoint.</summary>
@@ -564,6 +564,13 @@ public partial class poloniex : Exchange
         return await this.callAsync<Dictionary<string, object>> ("swapPublicGetV3MarketFundingRate",parameters);
     }
 
+    /// <summary>Calls the swapPublicGetV3MarketFundingRateHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> swapPublicGetV3MarketFundingRateHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("swapPublicGetV3MarketFundingRateHistory",parameters);
+    }
+
     /// <summary>Calls the swapPublicGetV3MarketOpenInterest endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> swapPublicGetV3MarketOpenInterest (object parameters = null)
@@ -583,6 +590,13 @@ public partial class poloniex : Exchange
     public async Task<Dictionary<string, object>> swapPublicGetV3MarketRiskLimit (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("swapPublicGetV3MarketRiskLimit",parameters);
+    }
+
+    /// <summary>Calls the swapPublicGetV3MarketLimitPrice endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> swapPublicGetV3MarketLimitPrice (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("swapPublicGetV3MarketLimitPrice",parameters);
     }
 
     /// <summary>Calls the swapPrivateGetV3AccountBalance endpoint.</summary>
@@ -620,6 +634,13 @@ public partial class poloniex : Exchange
         return await this.callAsync<Dictionary<string, object>> ("swapPrivateGetV3TradeOrderHistory",parameters);
     }
 
+    /// <summary>Calls the swapPrivateGetV3TradeOrderDetails endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> swapPrivateGetV3TradeOrderDetails (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("swapPrivateGetV3TradeOrderDetails",parameters);
+    }
+
     /// <summary>Calls the swapPrivateGetV3TradePositionOpens endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> swapPrivateGetV3TradePositionOpens (object parameters = null)
@@ -646,6 +667,13 @@ public partial class poloniex : Exchange
     public async Task<Dictionary<string, object>> swapPrivateGetV3PositionMode (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("swapPrivateGetV3PositionMode",parameters);
+    }
+
+    /// <summary>Calls the swapPrivateGetV3PositionRiskLimit endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> swapPrivateGetV3PositionRiskLimit (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("swapPrivateGetV3PositionRiskLimit",parameters);
     }
 
     /// <summary>Calls the swapPrivatePostV3TradeOrder endpoint.</summary>

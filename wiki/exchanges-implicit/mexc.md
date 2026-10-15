@@ -1,6 +1,6 @@
 Every endpoint in `mexc`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/mexc) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `spotPublicGetAnnouncements`); the snake_case alias (`spot_public_get_announcements`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`SpotPublicGetAnnouncements`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `spotPublicGetAnnouncements`); Python and PHP use the snake_case form (`spot_public_get_announcements`), and Go uses the PascalCase form (`SpotPublicGetAnnouncements`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official mexc API documentation:** [mexc.com](https://www.mexc.com/api-docs/spot-v3/introduction) · [mexc.com](https://www.mexc.com/api-docs/futures/integration-guide)
 
-> 238 implicit endpoints across 4 access groups.
+> 240 implicit endpoints across 4 access groups.
 
 ## spot
 
@@ -79,6 +79,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `spotPublicGetEtfInfo` | GET | `etf/info` | 1 |
 | `spotPrivateGetKycStatus` | GET | `kyc/status` | 1 |
 | `spotPrivateGetUid` | GET | `uid` | 1 |
+| `spotPrivateGetApiKeyInfo` | GET | `apiKeyInfo` | 1 |
 | `spotPrivateGetOrder` | GET | `order` | 2 |
 | `spotPrivateGetOpenOrders` | GET | `openOrders` | 3 |
 | `spotPrivateGetAllOrders` | GET | `allOrders` | 10 |
@@ -139,6 +140,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `spotPrivatePostSubAccountMargin` | POST | `sub-account/margin` | 1 |
 | `spotPrivatePostBatchOrders` | POST | `batchOrders` | 10 |
 | `spotPrivatePostStrategyGroup` | POST | `strategy/group` | 20 |
+| `spotPrivatePostStrategyGroupUid` | POST | `strategy/group/uid` | 20 |
 | `spotPrivatePostCapitalWithdrawApply` | POST | `capital/withdraw/apply` | 1 |
 | `spotPrivatePostCapitalWithdraw` | POST | `capital/withdraw` | 1 |
 | `spotPrivatePostCapitalTransfer` | POST | `capital/transfer` | 50 |

@@ -8,173 +8,722 @@
 import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    fapiPublicGetV1Ping (params?: {}): Promise<Dict>;
-    fapiPublicGetV3Ping (params?: {}): Promise<Dict>;
-    fapiPublicGetV1Time (params?: {}): Promise<Dict>;
-    fapiPublicGetV3Time (params?: {}): Promise<Dict>;
-    fapiPublicGetV1ExchangeInfo (params?: {}): Promise<Dict>;
-    fapiPublicGetV3ExchangeInfo (params?: {}): Promise<Dict>;
-    fapiPublicGetV1Depth (params?: {}): Promise<Dict>;
-    fapiPublicGetV3Depth (params?: {}): Promise<Dict>;
-    fapiPublicGetV1Trades (params?: {}): Promise<List>;
-    fapiPublicGetV3Trades (params?: {}): Promise<List>;
-    fapiPublicGetV1HistoricalTrades (params?: {}): Promise<List>;
-    fapiPublicGetV3HistoricalTrades (params?: {}): Promise<List>;
-    fapiPublicGetV1AggTrades (params?: {}): Promise<List>;
-    fapiPublicGetV3AggTrades (params?: {}): Promise<List>;
-    fapiPublicGetV1Klines (params?: {}): Promise<List>;
-    fapiPublicGetV3Klines (params?: {}): Promise<List>;
-    fapiPublicGetV1IndexPriceKlines (params?: {}): Promise<List>;
-    fapiPublicGetV3IndexPriceKlines (params?: {}): Promise<List>;
-    fapiPublicGetV1MarkPriceKlines (params?: {}): Promise<List>;
-    fapiPublicGetV3MarkPriceKlines (params?: {}): Promise<List>;
-    fapiPublicGetV1PremiumIndex (params?: {}): Promise<Dict>;
-    fapiPublicGetV3PremiumIndex (params?: {}): Promise<Dict>;
-    fapiPublicGetV1FundingRate (params?: {}): Promise<List>;
-    fapiPublicGetV3FundingRate (params?: {}): Promise<List>;
-    fapiPublicGetV1FundingInfo (params?: {}): Promise<List>;
-    fapiPublicGetV3FundingInfo (params?: {}): Promise<List>;
-    fapiPublicGetV1Ticker24hr (params?: {}): Promise<List>;
-    fapiPublicGetV3Ticker24hr (params?: {}): Promise<List>;
-    fapiPublicGetV1TickerPrice (params?: {}): Promise<List>;
-    fapiPublicGetV3TickerPrice (params?: {}): Promise<List>;
-    fapiPublicGetV1TickerBookTicker (params?: {}): Promise<List>;
-    fapiPublicGetV3TickerBookTicker (params?: {}): Promise<List>;
-    fapiPublicGetV1AdlQuantile (params?: {}): Promise<List>;
-    fapiPublicGetV1ForceOrders (params?: {}): Promise<List>;
-    fapiPublicGetV3Indexreferences (params?: {}): Promise<Dict>;
-    fapiPrivateGetV1PositionSideDual (params?: {}): Promise<Dict>;
-    fapiPrivateGetV3PositionSideDual (params?: {}): Promise<Dict>;
-    fapiPrivateGetV1MultiAssetsMargin (params?: {}): Promise<Dict>;
-    fapiPrivateGetV3MultiAssetsMargin (params?: {}): Promise<Dict>;
-    fapiPrivateGetV1Order (params?: {}): Promise<Dict>;
-    fapiPrivateGetV3Order (params?: {}): Promise<Dict>;
-    fapiPrivateGetV1OpenOrder (params?: {}): Promise<Dict>;
-    fapiPrivateGetV3OpenOrder (params?: {}): Promise<Dict>;
-    fapiPrivateGetV1OpenOrders (params?: {}): Promise<List>;
-    fapiPrivateGetV3OpenOrders (params?: {}): Promise<List>;
-    fapiPrivateGetV1AllOrders (params?: {}): Promise<List>;
-    fapiPrivateGetV3AllOrders (params?: {}): Promise<List>;
-    fapiPrivateGetV2Balance (params?: {}): Promise<List>;
-    fapiPrivateGetV3Balance (params?: {}): Promise<Dict>;
-    fapiPrivateGetV3Account (params?: {}): Promise<Dict>;
-    fapiPrivateGetV1PositionMarginHistory (params?: {}): Promise<List>;
-    fapiPrivateGetV3PositionMarginHistory (params?: {}): Promise<List>;
-    fapiPrivateGetV2PositionRisk (params?: {}): Promise<List>;
-    fapiPrivateGetV3PositionRisk (params?: {}): Promise<List>;
-    fapiPrivateGetV1UserTrades (params?: {}): Promise<List>;
-    fapiPrivateGetV3UserTrades (params?: {}): Promise<List>;
-    fapiPrivateGetV1Income (params?: {}): Promise<List>;
-    fapiPrivateGetV3Income (params?: {}): Promise<List>;
-    fapiPrivateGetV1LeverageBracket (params?: {}): Promise<List>;
-    fapiPrivateGetV3LeverageBracket (params?: {}): Promise<List>;
-    fapiPrivateGetV1CommissionRate (params?: {}): Promise<Dict>;
-    fapiPrivateGetV3CommissionRate (params?: {}): Promise<Dict>;
-    fapiPrivateGetV3AdlQuantile (params?: {}): Promise<List>;
-    fapiPrivateGetV3ForceOrders (params?: {}): Promise<List>;
-    fapiPrivateGetV3Mmp (params?: {}): Promise<List>;
-    fapiPrivateGetV3AccountWithJoinMargin (params?: {}): Promise<Dict>;
-    fapiPrivateGetV4Account (params?: {}): Promise<Dict>;
-    fapiPrivateGetV3Agent (params?: {}): Promise<List>;
-    fapiPrivateGetV3Builder (params?: {}): Promise<List>;
-    fapiPrivatePostV1PositionSideDual (params?: {}): Promise<Dict>;
-    fapiPrivatePostV3PositionSideDual (params?: {}): Promise<Dict>;
-    fapiPrivatePostV1MultiAssetsMargin (params?: {}): Promise<Dict>;
-    fapiPrivatePostV3MultiAssetsMargin (params?: {}): Promise<Dict>;
-    fapiPrivatePostV1Order (params?: {}): Promise<Dict>;
-    fapiPrivatePostV3Order (params?: {}): Promise<Dict>;
-    fapiPrivatePostV1OrderTest (params?: {}): Promise<Dict>;
-    fapiPrivatePostV3OrderTest (params?: {}): Promise<Dict>;
-    fapiPrivatePostV1BatchOrders (params?: {}): Promise<List>;
-    fapiPrivatePostV3BatchOrders (params?: {}): Promise<List>;
-    fapiPrivatePostV1AssetWalletTransfer (params?: {}): Promise<Dict>;
-    fapiPrivatePostV3AssetWalletTransfer (params?: {}): Promise<Dict>;
-    fapiPrivatePostV1CountdownCancelAll (params?: {}): Promise<Dict>;
-    fapiPrivatePostV3CountdownCancelAll (params?: {}): Promise<Dict>;
-    fapiPrivatePostV1Leverage (params?: {}): Promise<Dict>;
-    fapiPrivatePostV3Leverage (params?: {}): Promise<Dict>;
-    fapiPrivatePostV1MarginType (params?: {}): Promise<Dict>;
-    fapiPrivatePostV3MarginType (params?: {}): Promise<Dict>;
-    fapiPrivatePostV1PositionMargin (params?: {}): Promise<Dict>;
-    fapiPrivatePostV3PositionMargin (params?: {}): Promise<Dict>;
-    fapiPrivatePostV1ListenKey (params?: {}): Promise<Dict>;
-    fapiPrivatePostV3ListenKey (params?: {}): Promise<Dict>;
-    fapiPrivatePostV3Mmp (params?: {}): Promise<List>;
-    fapiPrivatePostV3MmpReset (params?: {}): Promise<Dict>;
-    fapiPrivatePostV3Noop (params?: {}): Promise<Dict>;
-    fapiPrivatePostV3ApproveAgent (params?: {}): Promise<Dict>;
-    fapiPrivatePostV3UpdateAgent (params?: {}): Promise<Dict>;
-    fapiPrivatePostV3ApproveBuilder (params?: {}): Promise<Dict>;
-    fapiPrivatePostV3UpdateBuilder (params?: {}): Promise<Dict>;
-    fapiPrivatePutV1ListenKey (params?: {}): Promise<Dict>;
-    fapiPrivatePutV3ListenKey (params?: {}): Promise<Dict>;
-    fapiPrivateDeleteV1Order (params?: {}): Promise<Dict>;
-    fapiPrivateDeleteV3Order (params?: {}): Promise<Dict>;
-    fapiPrivateDeleteV1AllOpenOrders (params?: {}): Promise<Dict>;
-    fapiPrivateDeleteV3AllOpenOrders (params?: {}): Promise<Dict>;
-    fapiPrivateDeleteV1BatchOrders (params?: {}): Promise<List>;
-    fapiPrivateDeleteV3BatchOrders (params?: {}): Promise<List>;
-    fapiPrivateDeleteV3Mmp (params?: {}): Promise<List>;
-    fapiPrivateDeleteV1ListenKey (params?: {}): Promise<Dict>;
-    fapiPrivateDeleteV3ListenKey (params?: {}): Promise<Dict>;
-    fapiPrivateDeleteV3Agent (params?: {}): Promise<Dict>;
-    fapiPrivateDeleteV3Builder (params?: {}): Promise<Dict>;
-    sapiPublicGetV1Ping (params?: {}): Promise<Dict>;
-    sapiPublicGetV1Time (params?: {}): Promise<Dict>;
-    sapiPublicGetV1ExchangeInfo (params?: {}): Promise<Dict>;
-    sapiPublicGetV1Depth (params?: {}): Promise<Dict>;
-    sapiPublicGetV1Trades (params?: {}): Promise<List>;
-    sapiPublicGetV1HistoricalTrades (params?: {}): Promise<List>;
-    sapiPublicGetV1AggTrades (params?: {}): Promise<List>;
-    sapiPublicGetV1Klines (params?: {}): Promise<List>;
-    sapiPublicGetV1Ticker24hr (params?: {}): Promise<List>;
-    sapiPublicGetV1TickerPrice (params?: {}): Promise<List>;
-    sapiPublicGetV1TickerBookTicker (params?: {}): Promise<List>;
-    sapiPublicGetV1AsterWithdrawEstimateFee (params?: {}): Promise<Dict>;
-    sapiPublicGetV3Ping (params?: {}): Promise<Dict>;
-    sapiPublicGetV3Time (params?: {}): Promise<Dict>;
-    sapiPublicGetV3ExchangeInfo (params?: {}): Promise<Dict>;
-    sapiPublicGetV3Depth (params?: {}): Promise<Dict>;
-    sapiPublicGetV3Trades (params?: {}): Promise<List>;
-    sapiPublicGetV3HistoricalTrades (params?: {}): Promise<List>;
-    sapiPublicGetV3AggTrades (params?: {}): Promise<List>;
-    sapiPublicGetV3Klines (params?: {}): Promise<List>;
-    sapiPublicGetV3Ticker24hr (params?: {}): Promise<List>;
-    sapiPublicGetV3TickerPrice (params?: {}): Promise<List>;
-    sapiPublicGetV3TickerBookTicker (params?: {}): Promise<List>;
-    sapiPublicGetV3AsterWithdrawEstimateFee (params?: {}): Promise<Dict>;
-    sapiPrivateGetV1CommissionRate (params?: {}): Promise<Dict>;
-    sapiPrivateGetV1Order (params?: {}): Promise<Dict>;
-    sapiPrivateGetV1OpenOrders (params?: {}): Promise<List>;
-    sapiPrivateGetV1AllOrders (params?: {}): Promise<List>;
-    sapiPrivateGetV1TransactionHistory (params?: {}): Promise<List>;
-    sapiPrivateGetV1Account (params?: {}): Promise<Dict>;
-    sapiPrivateGetV1UserTrades (params?: {}): Promise<List>;
-    sapiPrivateGetV3CommissionRate (params?: {}): Promise<Dict>;
-    sapiPrivateGetV3Order (params?: {}): Promise<Dict>;
-    sapiPrivateGetV3OpenOrders (params?: {}): Promise<List>;
-    sapiPrivateGetV3AllOrders (params?: {}): Promise<List>;
-    sapiPrivateGetV3Account (params?: {}): Promise<Dict>;
-    sapiPrivateGetV3UserTrades (params?: {}): Promise<List>;
-    sapiPrivateGetV3OpenOrder (params?: {}): Promise<Dict>;
-    sapiPrivatePostV1Order (params?: {}): Promise<Dict>;
-    sapiPrivatePostV1AssetWalletTransfer (params?: {}): Promise<Dict>;
-    sapiPrivatePostV1AssetSendToAddress (params?: {}): Promise<Dict>;
-    sapiPrivatePostV1ListenKey (params?: {}): Promise<Dict>;
-    sapiPrivatePostV3Order (params?: {}): Promise<Dict>;
-    sapiPrivatePostV3AssetWalletTransfer (params?: {}): Promise<Dict>;
-    sapiPrivatePostV3AsterUserWithdraw (params?: {}): Promise<Dict>;
-    sapiPrivatePostV3ListenKey (params?: {}): Promise<Dict>;
-    sapiPrivatePutV1ListenKey (params?: {}): Promise<Dict>;
-    sapiPrivatePutV3ListenKey (params?: {}): Promise<Dict>;
-    sapiPrivateDeleteV1Order (params?: {}): Promise<Dict>;
-    sapiPrivateDeleteV1AllOpenOrders (params?: {}): Promise<Dict>;
-    sapiPrivateDeleteV1ListenKey (params?: {}): Promise<Dict>;
-    sapiPrivateDeleteV3AllOpenOrders (params?: {}): Promise<List>;
-    sapiPrivateDeleteV3Order (params?: {}): Promise<Dict>;
-    sapiPrivateDeleteV3ListenKey (params?: {}): Promise<Dict>;
-}
-abstract class Exchange extends _Exchange {}
+abstract class Exchange extends _Exchange {
+    fapiPublicGetV1Ping (params = {}): Promise<Dict> {
+        return this.request ('v1/ping', [ 'fapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
 
-export default Exchange
+    fapiPublicGetV3Ping (params = {}): Promise<Dict> {
+        return this.request ('v3/ping', [ 'fapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPublicGetV1Time (params = {}): Promise<Dict> {
+        return this.request ('v1/time', [ 'fapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPublicGetV3Time (params = {}): Promise<Dict> {
+        return this.request ('v3/time', [ 'fapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPublicGetV1ExchangeInfo (params = {}): Promise<Dict> {
+        return this.request ('v1/exchangeInfo', [ 'fapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPublicGetV3ExchangeInfo (params = {}): Promise<Dict> {
+        return this.request ('v3/exchangeInfo', [ 'fapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPublicGetV1Depth (params = {}): Promise<Dict> {
+        return this.request ('v1/depth', [ 'fapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPublicGetV3Depth (params = {}): Promise<Dict> {
+        return this.request ('v3/depth', [ 'fapiPublic' ], 'GET', params, { 'cost': 2 });
+    }
+
+    fapiPublicGetV1Trades (params = {}): Promise<List> {
+        return this.request ('v1/trades', [ 'fapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPublicGetV3Trades (params = {}): Promise<List> {
+        return this.request ('v3/trades', [ 'fapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPublicGetV1HistoricalTrades (params = {}): Promise<List> {
+        return this.request ('v1/historicalTrades', [ 'fapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPublicGetV3HistoricalTrades (params = {}): Promise<List> {
+        return this.request ('v3/historicalTrades', [ 'fapiPublic' ], 'GET', params, { 'cost': 20 });
+    }
+
+    fapiPublicGetV1AggTrades (params = {}): Promise<List> {
+        return this.request ('v1/aggTrades', [ 'fapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPublicGetV3AggTrades (params = {}): Promise<List> {
+        return this.request ('v3/aggTrades', [ 'fapiPublic' ], 'GET', params, { 'cost': 20 });
+    }
+
+    fapiPublicGetV1Klines (params = {}): Promise<List> {
+        return this.request ('v1/klines', [ 'fapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPublicGetV3Klines (params = {}): Promise<List> {
+        return this.request ('v3/klines', [ 'fapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPublicGetV1IndexPriceKlines (params = {}): Promise<List> {
+        return this.request ('v1/indexPriceKlines', [ 'fapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPublicGetV3IndexPriceKlines (params = {}): Promise<List> {
+        return this.request ('v3/indexPriceKlines', [ 'fapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPublicGetV1MarkPriceKlines (params = {}): Promise<List> {
+        return this.request ('v1/markPriceKlines', [ 'fapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPublicGetV3MarkPriceKlines (params = {}): Promise<List> {
+        return this.request ('v3/markPriceKlines', [ 'fapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPublicGetV1PremiumIndex (params = {}): Promise<Dict> {
+        return this.request ('v1/premiumIndex', [ 'fapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPublicGetV3PremiumIndex (params = {}): Promise<Dict | List> {
+        return this.request ('v3/premiumIndex', [ 'fapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPublicGetV1FundingRate (params = {}): Promise<List> {
+        return this.request ('v1/fundingRate', [ 'fapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPublicGetV3FundingRate (params = {}): Promise<List> {
+        return this.request ('v3/fundingRate', [ 'fapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPublicGetV1FundingInfo (params = {}): Promise<List> {
+        return this.request ('v1/fundingInfo', [ 'fapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPublicGetV3FundingInfo (params = {}): Promise<List> {
+        return this.request ('v3/fundingInfo', [ 'fapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPublicGetV1Ticker24hr (params = {}): Promise<List> {
+        return this.request ('v1/ticker/24hr', [ 'fapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPublicGetV3Ticker24hr (params = {}): Promise<Dict | List> {
+        return this.request ('v3/ticker/24hr', [ 'fapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPublicGetV1TickerPrice (params = {}): Promise<List> {
+        return this.request ('v1/ticker/price', [ 'fapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPublicGetV3TickerPrice (params = {}): Promise<List> {
+        return this.request ('v3/ticker/price', [ 'fapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPublicGetV1TickerBookTicker (params = {}): Promise<List> {
+        return this.request ('v1/ticker/bookTicker', [ 'fapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPublicGetV3TickerBookTicker (params = {}): Promise<List> {
+        return this.request ('v3/ticker/bookTicker', [ 'fapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPublicGetV1AdlQuantile (params = {}): Promise<List> {
+        return this.request ('v1/adlQuantile', [ 'fapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPublicGetV1ForceOrders (params = {}): Promise<List> {
+        return this.request ('v1/forceOrders', [ 'fapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPublicGetV3Indexreferences (params = {}): Promise<Dict> {
+        return this.request ('v3/indexreferences', [ 'fapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetV1PositionSideDual (params = {}): Promise<Dict> {
+        return this.request ('v1/positionSide/dual', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetV3PositionSideDual (params = {}): Promise<Dict> {
+        return this.request ('v3/positionSide/dual', [ 'fapiPrivate' ], 'GET', params, { 'cost': 30 });
+    }
+
+    fapiPrivateGetV1MultiAssetsMargin (params = {}): Promise<Dict> {
+        return this.request ('v1/multiAssetsMargin', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetV3MultiAssetsMargin (params = {}): Promise<Dict> {
+        return this.request ('v3/multiAssetsMargin', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetV1Order (params = {}): Promise<Dict> {
+        return this.request ('v1/order', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetV3Order (params = {}): Promise<Dict> {
+        return this.request ('v3/order', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetV1OpenOrder (params = {}): Promise<Dict> {
+        return this.request ('v1/openOrder', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetV3OpenOrder (params = {}): Promise<Dict> {
+        return this.request ('v3/openOrder', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetV1OpenOrders (params = {}): Promise<List> {
+        return this.request ('v1/openOrders', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetV3OpenOrders (params = {}): Promise<List> {
+        return this.request ('v3/openOrders', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetV1AllOrders (params = {}): Promise<List> {
+        return this.request ('v1/allOrders', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetV3AllOrders (params = {}): Promise<List> {
+        return this.request ('v3/allOrders', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetV2Balance (params = {}): Promise<List> {
+        return this.request ('v2/balance', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetV3Balance (params = {}): Promise<List> {
+        return this.request ('v3/balance', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetV3Account (params = {}): Promise<Dict> {
+        return this.request ('v3/account', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetV1PositionMarginHistory (params = {}): Promise<List> {
+        return this.request ('v1/positionMargin/history', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetV3PositionMarginHistory (params = {}): Promise<List> {
+        return this.request ('v3/positionMargin/history', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetV2PositionRisk (params = {}): Promise<List> {
+        return this.request ('v2/positionRisk', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetV3PositionRisk (params = {}): Promise<List> {
+        return this.request ('v3/positionRisk', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetV1UserTrades (params = {}): Promise<List> {
+        return this.request ('v1/userTrades', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetV3UserTrades (params = {}): Promise<List> {
+        return this.request ('v3/userTrades', [ 'fapiPrivate' ], 'GET', params, { 'cost': 5 });
+    }
+
+    fapiPrivateGetV1Income (params = {}): Promise<List> {
+        return this.request ('v1/income', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetV3Income (params = {}): Promise<List> {
+        return this.request ('v3/income', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetV1LeverageBracket (params = {}): Promise<List> {
+        return this.request ('v1/leverageBracket', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetV3LeverageBracket (params = {}): Promise<List> {
+        return this.request ('v3/leverageBracket', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetV1CommissionRate (params = {}): Promise<Dict> {
+        return this.request ('v1/commissionRate', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetV3CommissionRate (params = {}): Promise<Dict> {
+        return this.request ('v3/commissionRate', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetV3AdlQuantile (params = {}): Promise<List> {
+        return this.request ('v3/adlQuantile', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetV3ForceOrders (params = {}): Promise<List> {
+        return this.request ('v3/forceOrders', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetV3Mmp (params = {}): Promise<List> {
+        return this.request ('v3/mmp', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetV3AccountWithJoinMargin (params = {}): Promise<Dict> {
+        return this.request ('v3/accountWithJoinMargin', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetV4Account (params = {}): Promise<Dict> {
+        return this.request ('v4/account', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetV3Agent (params = {}): Promise<List> {
+        return this.request ('v3/agent', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetV3Builder (params = {}): Promise<List> {
+        return this.request ('v3/builder', [ 'fapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    fapiPrivateGetV3BuilderUserTrades (params = {}): Promise<Dict> {
+        return this.request ('v3/builder/userTrades', [ 'fapiPrivate' ], 'GET', params, { 'cost': 5 });
+    }
+
+    fapiPrivateGetV3BuilderApprovedUserList (params = {}): Promise<Dict> {
+        return this.request ('v3/builder/approvedUserList', [ 'fapiPrivate' ], 'GET', params, { 'cost': 5 });
+    }
+
+    fapiPrivateGetV3StpMode (params = {}): Promise<Dict> {
+        return this.request ('v3/stpMode', [ 'fapiPrivate' ], 'GET', params, { 'cost': 30 });
+    }
+
+    fapiPrivateGetV3AssetMigrateUserHistory (params = {}): Promise<Dict> {
+        return this.request ('v3/asset/migrateUser/history', [ 'fapiPrivate' ], 'GET', params, { 'cost': 50 });
+    }
+
+    fapiPrivateGetV3StrategyOpenOrder (params = {}): Promise<Dict> {
+        return this.request ('v3/strategyOpenOrder', [ 'fapiPrivate' ], 'GET', params, { 'cost': 5 });
+    }
+
+    fapiPrivateGetV3StrategyHistoryOrder (params = {}): Promise<Dict> {
+        return this.request ('v3/strategyHistoryOrder', [ 'fapiPrivate' ], 'GET', params, { 'cost': 5 });
+    }
+
+    fapiPrivatePostV1PositionSideDual (params = {}): Promise<Dict> {
+        return this.request ('v1/positionSide/dual', [ 'fapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePostV3PositionSideDual (params = {}): Promise<Dict> {
+        return this.request ('v3/positionSide/dual', [ 'fapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePostV1MultiAssetsMargin (params = {}): Promise<Dict> {
+        return this.request ('v1/multiAssetsMargin', [ 'fapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePostV3MultiAssetsMargin (params = {}): Promise<Dict> {
+        return this.request ('v3/multiAssetsMargin', [ 'fapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePostV1Order (params = {}): Promise<Dict> {
+        return this.request ('v1/order', [ 'fapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePostV3Order (params = {}): Promise<Dict> {
+        return this.request ('v3/order', [ 'fapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePostV1OrderTest (params = {}): Promise<Dict> {
+        return this.request ('v1/order/test', [ 'fapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePostV3OrderTest (params = {}): Promise<Dict> {
+        return this.request ('v3/order/test', [ 'fapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePostV1BatchOrders (params = {}): Promise<List> {
+        return this.request ('v1/batchOrders', [ 'fapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePostV3BatchOrders (params = {}): Promise<List> {
+        return this.request ('v3/batchOrders', [ 'fapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePostV1AssetWalletTransfer (params = {}): Promise<Dict> {
+        return this.request ('v1/asset/wallet/transfer', [ 'fapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePostV3AssetWalletTransfer (params = {}): Promise<Dict> {
+        return this.request ('v3/asset/wallet/transfer', [ 'fapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePostV1CountdownCancelAll (params = {}): Promise<Dict> {
+        return this.request ('v1/countdownCancelAll', [ 'fapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePostV3CountdownCancelAll (params = {}): Promise<Dict> {
+        return this.request ('v3/countdownCancelAll', [ 'fapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePostV1Leverage (params = {}): Promise<Dict> {
+        return this.request ('v1/leverage', [ 'fapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePostV3Leverage (params = {}): Promise<Dict> {
+        return this.request ('v3/leverage', [ 'fapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePostV1MarginType (params = {}): Promise<Dict> {
+        return this.request ('v1/marginType', [ 'fapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePostV3MarginType (params = {}): Promise<Dict> {
+        return this.request ('v3/marginType', [ 'fapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePostV1PositionMargin (params = {}): Promise<Dict> {
+        return this.request ('v1/positionMargin', [ 'fapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePostV3PositionMargin (params = {}): Promise<Dict> {
+        return this.request ('v3/positionMargin', [ 'fapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePostV1ListenKey (params = {}): Promise<Dict> {
+        return this.request ('v1/listenKey', [ 'fapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePostV3ListenKey (params = {}): Promise<Dict> {
+        return this.request ('v3/listenKey', [ 'fapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePostV3Mmp (params = {}): Promise<List> {
+        return this.request ('v3/mmp', [ 'fapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePostV3MmpReset (params = {}): Promise<Dict> {
+        return this.request ('v3/mmpReset', [ 'fapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePostV3Noop (params = {}): Promise<Dict> {
+        return this.request ('v3/noop', [ 'fapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePostV3ApproveAgent (params = {}): Promise<Dict> {
+        return this.request ('v3/approveAgent', [ 'fapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePostV3UpdateAgent (params = {}): Promise<Dict> {
+        return this.request ('v3/updateAgent', [ 'fapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePostV3ApproveBuilder (params = {}): Promise<Dict> {
+        return this.request ('v3/approveBuilder', [ 'fapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePostV3UpdateBuilder (params = {}): Promise<Dict> {
+        return this.request ('v3/updateBuilder', [ 'fapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePostV3RegisterAndApproveAgent (params = {}): Promise<Dict> {
+        return this.request ('v3/registerAndApproveAgent', [ 'fapiPrivate' ], 'POST', params, { 'cost': 50 });
+    }
+
+    fapiPrivatePostV3AssetMigrateUser (params = {}): Promise<Dict> {
+        return this.request ('v3/asset/migrateUser', [ 'fapiPrivate' ], 'POST', params, { 'cost': 50 });
+    }
+
+    fapiPrivatePostV3Chase (params = {}): Promise<Dict> {
+        return this.request ('v3/chase', [ 'fapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePostV3StpMode (params = {}): Promise<Dict> {
+        return this.request ('v3/stpMode', [ 'fapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePostV3PlaceStrategyOrder (params = {}): Promise<Dict> {
+        return this.request ('v3/placeStrategyOrder', [ 'fapiPrivate' ], 'POST', params, { 'cost': 50 });
+    }
+
+    fapiPrivatePostV3UpdateStrategyOrder (params = {}): Promise<List> {
+        return this.request ('v3/updateStrategyOrder', [ 'fapiPrivate' ], 'POST', params, { 'cost': 50 });
+    }
+
+    fapiPrivatePutV1ListenKey (params = {}): Promise<Dict> {
+        return this.request ('v1/listenKey', [ 'fapiPrivate' ], 'PUT', params, { 'cost': 1 });
+    }
+
+    fapiPrivatePutV3ListenKey (params = {}): Promise<Dict> {
+        return this.request ('v3/listenKey', [ 'fapiPrivate' ], 'PUT', params, { 'cost': 1 });
+    }
+
+    fapiPrivateDeleteV1Order (params = {}): Promise<Dict> {
+        return this.request ('v1/order', [ 'fapiPrivate' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    fapiPrivateDeleteV3Order (params = {}): Promise<Dict> {
+        return this.request ('v3/order', [ 'fapiPrivate' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    fapiPrivateDeleteV1AllOpenOrders (params = {}): Promise<Dict> {
+        return this.request ('v1/allOpenOrders', [ 'fapiPrivate' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    fapiPrivateDeleteV3AllOpenOrders (params = {}): Promise<Dict> {
+        return this.request ('v3/allOpenOrders', [ 'fapiPrivate' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    fapiPrivateDeleteV1BatchOrders (params = {}): Promise<List> {
+        return this.request ('v1/batchOrders', [ 'fapiPrivate' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    fapiPrivateDeleteV3BatchOrders (params = {}): Promise<List> {
+        return this.request ('v3/batchOrders', [ 'fapiPrivate' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    fapiPrivateDeleteV3GuardedCancelOrder (params = {}): Promise<Dict> {
+        return this.request ('v3/guardedCancelOrder', [ 'fapiPrivate' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    fapiPrivateDeleteV3GuardedBatchOrders (params = {}): Promise<List> {
+        return this.request ('v3/guardedBatchOrders', [ 'fapiPrivate' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    fapiPrivateDeleteV3Mmp (params = {}): Promise<List> {
+        return this.request ('v3/mmp', [ 'fapiPrivate' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    fapiPrivateDeleteV1ListenKey (params = {}): Promise<Dict> {
+        return this.request ('v1/listenKey', [ 'fapiPrivate' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    fapiPrivateDeleteV3ListenKey (params = {}): Promise<Dict> {
+        return this.request ('v3/listenKey', [ 'fapiPrivate' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    fapiPrivateDeleteV3Agent (params = {}): Promise<Dict> {
+        return this.request ('v3/agent', [ 'fapiPrivate' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    fapiPrivateDeleteV3Builder (params = {}): Promise<Dict> {
+        return this.request ('v3/builder', [ 'fapiPrivate' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    sapiPublicGetV1Ping (params = {}): Promise<Dict> {
+        return this.request ('v1/ping', [ 'sapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiPublicGetV1Time (params = {}): Promise<Dict> {
+        return this.request ('v1/time', [ 'sapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiPublicGetV1ExchangeInfo (params = {}): Promise<Dict> {
+        return this.request ('v1/exchangeInfo', [ 'sapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiPublicGetV1Depth (params = {}): Promise<Dict> {
+        return this.request ('v1/depth', [ 'sapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiPublicGetV1Trades (params = {}): Promise<List> {
+        return this.request ('v1/trades', [ 'sapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiPublicGetV1HistoricalTrades (params = {}): Promise<List> {
+        return this.request ('v1/historicalTrades', [ 'sapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiPublicGetV1AggTrades (params = {}): Promise<List> {
+        return this.request ('v1/aggTrades', [ 'sapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiPublicGetV1Klines (params = {}): Promise<List> {
+        return this.request ('v1/klines', [ 'sapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiPublicGetV1Ticker24hr (params = {}): Promise<List> {
+        return this.request ('v1/ticker/24hr', [ 'sapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiPublicGetV1TickerPrice (params = {}): Promise<List> {
+        return this.request ('v1/ticker/price', [ 'sapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiPublicGetV1TickerBookTicker (params = {}): Promise<List> {
+        return this.request ('v1/ticker/bookTicker', [ 'sapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiPublicGetV1AsterWithdrawEstimateFee (params = {}): Promise<Dict> {
+        return this.request ('v1/aster/withdraw/estimateFee', [ 'sapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiPublicGetV3Ping (params = {}): Promise<Dict> {
+        return this.request ('v3/ping', [ 'sapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiPublicGetV3Time (params = {}): Promise<Dict> {
+        return this.request ('v3/time', [ 'sapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiPublicGetV3ExchangeInfo (params = {}): Promise<Dict> {
+        return this.request ('v3/exchangeInfo', [ 'sapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiPublicGetV3Depth (params = {}): Promise<Dict> {
+        return this.request ('v3/depth', [ 'sapiPublic' ], 'GET', params, { 'cost': 2, 'byLimit': [ [ 50, 2 ], [ 100, 5 ], [ 500, 10 ], [ 1000, 20 ] ] });
+    }
+
+    sapiPublicGetV3Trades (params = {}): Promise<List> {
+        return this.request ('v3/trades', [ 'sapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiPublicGetV3HistoricalTrades (params = {}): Promise<List> {
+        return this.request ('v3/historicalTrades', [ 'sapiPublic' ], 'GET', params, { 'cost': 20 });
+    }
+
+    sapiPublicGetV3AggTrades (params = {}): Promise<List> {
+        return this.request ('v3/aggTrades', [ 'sapiPublic' ], 'GET', params, { 'cost': 20 });
+    }
+
+    sapiPublicGetV3Klines (params = {}): Promise<List> {
+        return this.request ('v3/klines', [ 'sapiPublic' ], 'GET', params, { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] });
+    }
+
+    sapiPublicGetV3Ticker24hr (params = {}): Promise<Dict | List> {
+        return this.request ('v3/ticker/24hr', [ 'sapiPublic' ], 'GET', params, { 'cost': 1, 'noSymbol': 40 });
+    }
+
+    sapiPublicGetV3TickerPrice (params = {}): Promise<List> {
+        return this.request ('v3/ticker/price', [ 'sapiPublic' ], 'GET', params, { 'cost': 1, 'noSymbol': 2 });
+    }
+
+    sapiPublicGetV3TickerBookTicker (params = {}): Promise<List> {
+        return this.request ('v3/ticker/bookTicker', [ 'sapiPublic' ], 'GET', params, { 'cost': 1, 'noSymbol': 2 });
+    }
+
+    sapiPublicGetV3AsterWithdrawEstimateFee (params = {}): Promise<Dict> {
+        return this.request ('v3/aster/withdraw/estimateFee', [ 'sapiPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiPrivateGetV1CommissionRate (params = {}): Promise<Dict> {
+        return this.request ('v1/commissionRate', [ 'sapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiPrivateGetV1Order (params = {}): Promise<Dict> {
+        return this.request ('v1/order', [ 'sapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiPrivateGetV1OpenOrders (params = {}): Promise<List> {
+        return this.request ('v1/openOrders', [ 'sapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiPrivateGetV1AllOrders (params = {}): Promise<List> {
+        return this.request ('v1/allOrders', [ 'sapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiPrivateGetV1TransactionHistory (params = {}): Promise<List> {
+        return this.request ('v1/transactionHistory', [ 'sapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiPrivateGetV1Account (params = {}): Promise<Dict> {
+        return this.request ('v1/account', [ 'sapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiPrivateGetV1UserTrades (params = {}): Promise<List> {
+        return this.request ('v1/userTrades', [ 'sapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiPrivateGetV3CommissionRate (params = {}): Promise<Dict> {
+        return this.request ('v3/commissionRate', [ 'sapiPrivate' ], 'GET', params, { 'cost': 1, 'noSymbol': 2 });
+    }
+
+    sapiPrivateGetV3Order (params = {}): Promise<Dict> {
+        return this.request ('v3/order', [ 'sapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiPrivateGetV3OpenOrders (params = {}): Promise<List> {
+        return this.request ('v3/openOrders', [ 'sapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiPrivateGetV3AllOrders (params = {}): Promise<List> {
+        return this.request ('v3/allOrders', [ 'sapiPrivate' ], 'GET', params, { 'cost': 5 });
+    }
+
+    sapiPrivateGetV3Account (params = {}): Promise<Dict> {
+        return this.request ('v3/account', [ 'sapiPrivate' ], 'GET', params, { 'cost': 5 });
+    }
+
+    sapiPrivateGetV3UserTrades (params = {}): Promise<List> {
+        return this.request ('v3/userTrades', [ 'sapiPrivate' ], 'GET', params, { 'cost': 5 });
+    }
+
+    sapiPrivateGetV3OpenOrder (params = {}): Promise<Dict> {
+        return this.request ('v3/openOrder', [ 'sapiPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    sapiPrivatePostV1Order (params = {}): Promise<Dict> {
+        return this.request ('v1/order', [ 'sapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    sapiPrivatePostV1AssetWalletTransfer (params = {}): Promise<Dict> {
+        return this.request ('v1/asset/wallet/transfer', [ 'sapiPrivate' ], 'POST', params, { 'cost': 5 });
+    }
+
+    sapiPrivatePostV1AssetSendToAddress (params = {}): Promise<Dict> {
+        return this.request ('v1/asset/sendToAddress', [ 'sapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    sapiPrivatePostV1ListenKey (params = {}): Promise<Dict> {
+        return this.request ('v1/listenKey', [ 'sapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    sapiPrivatePostV3Order (params = {}): Promise<Dict> {
+        return this.request ('v3/order', [ 'sapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    sapiPrivatePostV3AssetWalletTransfer (params = {}): Promise<Dict> {
+        return this.request ('v3/asset/wallet/transfer', [ 'sapiPrivate' ], 'POST', params, { 'cost': 5 });
+    }
+
+    sapiPrivatePostV3AsterUserWithdraw (params = {}): Promise<Dict> {
+        return this.request ('v3/aster/user-withdraw', [ 'sapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    sapiPrivatePostV3ListenKey (params = {}): Promise<Dict> {
+        return this.request ('v3/listenKey', [ 'sapiPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    sapiPrivatePutV1ListenKey (params = {}): Promise<Dict> {
+        return this.request ('v1/listenKey', [ 'sapiPrivate' ], 'PUT', params, { 'cost': 1 });
+    }
+
+    sapiPrivatePutV3ListenKey (params = {}): Promise<Dict> {
+        return this.request ('v3/listenKey', [ 'sapiPrivate' ], 'PUT', params, { 'cost': 1 });
+    }
+
+    sapiPrivateDeleteV1Order (params = {}): Promise<Dict> {
+        return this.request ('v1/order', [ 'sapiPrivate' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    sapiPrivateDeleteV1AllOpenOrders (params = {}): Promise<Dict> {
+        return this.request ('v1/allOpenOrders', [ 'sapiPrivate' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    sapiPrivateDeleteV1ListenKey (params = {}): Promise<Dict> {
+        return this.request ('v1/listenKey', [ 'sapiPrivate' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    sapiPrivateDeleteV3AllOpenOrders (params = {}): Promise<List> {
+        return this.request ('v3/allOpenOrders', [ 'sapiPrivate' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    sapiPrivateDeleteV3Order (params = {}): Promise<Dict> {
+        return this.request ('v3/order', [ 'sapiPrivate' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    sapiPrivateDeleteV3ListenKey (params = {}): Promise<Dict> {
+        return this.request ('v3/listenKey', [ 'sapiPrivate' ], 'DELETE', params, { 'cost': 1 });
+    }
+}
+
+export default Exchange;

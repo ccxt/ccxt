@@ -22,7 +22,6 @@ function updateExchangeCount (fileName) {
         oldContent.replace (/shields\.io\/badge\/exchanges\-[0-9a-z]+\-blue/g, 'shields.io/badge/exchanges-' + ccxt.exchanges.length + '-blue')
 
 
-    fs.truncateSync (fileName)
     fs.writeFileSync (fileName, newContent)
 
 }

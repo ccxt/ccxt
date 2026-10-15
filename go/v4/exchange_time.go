@@ -3,7 +3,7 @@ package ccxt
 import (
 	"math"
 	"reflect"
-	"strings"
+	"regexp"
 	"time"
 )
 
@@ -59,6 +59,9 @@ func (this *BaseExchange) Microseconds() int64 {
 // }
 
 func (this *BaseExchange) ParseDate(datetime2 any) any {
+	// SafeString now yields *string, so the kind check must run on the
+	// dereferenced value or every pointer-carried datetime returns nil
+	datetime2 = derefScalar(datetime2)
 	if datetime2 == nil || reflect.TypeOf(datetime2).Kind() != reflect.String {
 		return nil
 	}
@@ -89,37 +92,64 @@ func (this *BaseExchange) ParseDate(datetime2 any) any {
 	return timestamp
 }
 
+// iso8601PlainIntegerRegex matches a string consisting only of ASCII digits,
+// mirroring the /^[0-9]+$/ guard used by the other language implementations.
+var iso8601PlainIntegerRegex = regexp.MustCompile("^[0-9]+$")
+
 // Iso8601 converts a timestamp to an ISO 8601 formatted string.
 func Iso8601(ts2 any) any {
+	// Safe* accessors hand over typed pointers, so normalise before the type switch
+	ts2 = derefScalar(ts2)
 	if ts2 == nil {
 		return nil
 	}
+	// reject the values the other language implementations reject before the
+	// numeric conversion: non-numeric strings (e.g. "123abc" or ""), NaN/±Inf and
+	// out-of-range float magnitudes. int64(NaN)/int64(±Inf) is implementation
+	// -defined in Go, so guarding here keeps the result identical across archs.
+	// A plain-integer string like "1755432123456" still falls through to ParseInt.
+	switch v := ts2.(type) {
+	case string:
+		if !iso8601PlainIntegerRegex.MatchString(v) {
+			return nil
+		}
+	case float64:
+		if math.IsNaN(v) || math.IsInf(v, 0) || v < 0 || v > 8640000000000000 {
+			return nil
+		}
+	case float32:
+		f := float64(v)
+		if math.IsNaN(f) || math.IsInf(f, 0) || f < 0 || f > 8640000000000000 {
+			return nil
+		}
+	}
 
-	// if IsNumber(ts) {
 	ts := ParseInt(ts2)
 
 	if ts == math.MinInt64 {
 		return nil
 	}
-	// }
-	// startdatetime, err := strconv.ParseInt(fmt.Sprintf("%v", ts), 10, 64)
-	// if err != nil || startdatetime < 0 {
-	// 	return nil
-	// }
-	startdatetime := ts
-
-	if startdatetime <= 0 {
+	// negative values and anything past 8.64e15 ms are outside the supported range
+	if ts < 0 || ts > 8640000000000000 {
 		return nil
 	}
 
-	// Convert timestamp to time and set to UTC
-	date := time.Unix(0, startdatetime*int64(time.Millisecond)).UTC()
+	// split into whole seconds + leftover milliseconds so the nanosecond argument
+	// of time.Unix never overflows int64 for large (year 9999) timestamps
+	seconds := ts / 1000
+	milliseconds := ts % 1000
+	date := time.Unix(seconds, milliseconds*int64(time.Millisecond)).UTC()
 	return date.Format("2006-01-02T15:04:05.000Z")
 }
 
-// iso8601 is a wrapper for Iso8601.
-func (this *BaseExchange) Iso8601(ts any) any {
-	return Iso8601(ts)
+// iso8601 is a wrapper for Iso8601. The generated locals that receive it are declared
+// `*string`: nil is the TS `undefined` the helper returns for an absent timestamp.
+func (this *BaseExchange) Iso8601(ts any) *string {
+	res := Iso8601(ts)
+	if str, ok := res.(string); ok {
+		return &str
+	}
+	return nil
 }
 
 // // ymdhms converts a timestamp to a formatted date string "yyyy-MM-dd HH:mm:ss".
@@ -137,6 +167,7 @@ func (this *BaseExchange) Iso8601(ts any) any {
 // }
 
 func (this *BaseExchange) Ymdhms(ts any, args ...any) string {
+	ts = derefScalar(ts) // generated callers may pass *int64 (e.g. from Parse8601); typed nil is absent
 	infix := GetArg(args, 0, nil)
 	if infix == nil {
 		infix = " "
@@ -151,6 +182,7 @@ func (this *BaseExchange) Ymdhms(ts any, args ...any) string {
 
 // yyyymmdd converts a timestamp to a formatted date string "yyyy-MM-dd".
 func (this *BaseExchange) Yyyymmdd(ts any, args ...any) string {
+	ts = derefScalar(ts) // generated callers may pass *int64 (e.g. from Parse8601); typed nil is absent
 	infix := GetArg(args, 0, nil)
 	if infix == nil {
 		infix = "-"
@@ -165,6 +197,7 @@ func (this *BaseExchange) Yyyymmdd(ts any, args ...any) string {
 
 // yymmdd converts a timestamp to a formatted date string "yy-MM-dd".
 func (this *BaseExchange) Yymmdd(ts any, args ...any) string {
+	ts = derefScalar(ts) // generated callers may pass *int64 (e.g. from Parse8601); typed nil is absent
 	infix := GetArg(args, 0, nil)
 	if infix == nil {
 		infix = ""
@@ -179,6 +212,7 @@ func (this *BaseExchange) Yymmdd(ts any, args ...any) string {
 
 // ymd converts a timestamp to a formatted date string "yyyy-MM-dd".
 func (this *BaseExchange) Ymd(ts any, args ...any) string {
+	ts = derefScalar(ts) // generated callers may pass *int64 (e.g. from Parse8601); typed nil is absent
 	infix := GetArg(args, 1, nil)
 	if infix == nil {
 		infix = "-"
@@ -191,82 +225,38 @@ func (this *BaseExchange) Ymd(ts any, args ...any) string {
 	return date.Format("2006" + infix.(string) + "01" + infix.(string) + "02")
 }
 
-// parse8601 parses an ISO 8601 date string and returns the timestamp in milliseconds since the Unix epoch.
-// func (this *BaseExchange) Parse8601(datetime2 any) any {
-// 	if datetime2 == nil || reflect.TypeOf(datetime2).Kind() != reflect.String {
-// 		return nil
-// 	}
-// 	datetime := datetime2.(string)
-// 	if strings.Contains(datetime, "+0") {
-// 		parts := strings.Split(datetime, "+")
-// 		datetime = parts[0]
-// 	}
-// 	// Try to parse the datetime string as RFC3339 and convert to UTC
-// 	t, err := time.Parse(time.RFC3339, datetime)
-// 	if err != nil {
-// 		return nil
-// 	}
-// 	// Ensure the time is in UTC
-// 	t = t.UTC()
-// 	timestamp := t.UnixNano() / int64(time.Millisecond)
-// 	return timestamp
-// }
+// parse8601Layouts are tried in order. Each carries an explicit zone form so the offset the
+// string declares is honoured; the zoneless variants are read as UTC by time.Parse, which is
+// what every other ccxt runtime does with a naive datetime.
+var parse8601Layouts = []string{
+	time.RFC3339,                          // 2024-07-18T04:10:33Z / 2024-07-18T04:10:33-04:00
+	"2006-01-02T15:04:05.999999999Z0700",  // 2024-01-06T21:19:45.000+0800
+	"2006-01-02T15:04:05.999999999Z07",    // 2024-05-05T15:38:56+02
+	"2006-01-02T15:04:05.999999999",       // 2024-07-18T04:10:33.389
+	"2006-01-02 15:04:05.999999999Z07:00", // 2024-07-17 16:00:43.928+09:00
+	"2006-01-02 15:04:05.999999999Z0700",  // 2024-07-17 16:00:43.928+0900
+	"2006-01-02 15:04:05.999999999Z07",    // 2024-05-05 15:38:56+02
+	"2006-01-02 15:04:05.999999999",       // 2024-07-17 16:00:43.928
+}
 
-// func (this *BaseExchange) Parse8601(datetime2 any) any {
-// 	if datetime2 == nil || reflect.TypeOf(datetime2).Kind() != reflect.String {
-// 		return nil
-// 	}
-// 	datetime := datetime2.(string)
-// 	if strings.Contains(datetime, "+0") {
-// 		parts := strings.Split(datetime, "+")
-// 		datetime = parts[0]
-// 	}
-
-// 	// First, try to parse using RFC3339 format
-// 	t, err := time.Parse(time.RFC3339, datetime)
-// 	if err != nil {
-// 		// If RFC3339 parsing fails, try the custom layout
-// 		layout := "2006-01-02 15:04:05.999"
-// 		t, err = time.Parse(layout, datetime)
-// 		if err != nil {
-// 			return nil // Return nil if both parsing attempts fail
-// 		}
-// 	}
-
-// 	// Ensure the time is in UTC
-// 	t = t.UTC()
-// 	timestamp := t.UnixNano() / int64(time.Millisecond)
-// 	return timestamp
-// }
-
-func (this *BaseExchange) Parse8601(datetime2 any) any {
+// Parse8601 follows the TS contract (milliseconds, or undefined when the string is not a
+// timestamp), so it hands back a `*int64`: a nil pointer is the absent value, and a
+// present zero stays distinguishable. Generated locals are declared `*int64` and every
+// shim that receives the value unwraps it via derefScalar.
+func (this *BaseExchange) Parse8601(datetime2 any) *int64 {
+	// SafeString yields *string, so normalise before the kind check
+	datetime2 = derefScalar(datetime2)
 	if datetime2 == nil || reflect.TypeOf(datetime2).Kind() != reflect.String {
 		return nil
 	}
 	datetime := datetime2.(string)
-	if strings.Contains(datetime, "+0") {
-		parts := strings.Split(datetime, "+")
-		datetime = parts[0]
-	}
-
-	// First, try to parse using RFC3339 format
-	t, err := time.Parse(time.RFC3339, datetime)
-	if err != nil {
-		// Try parsing without timezone (e.g., "2024-07-18T04:10:33.389")
-		layoutWithoutTimezone := "2006-01-02T15:04:05.999"
-		t, err = time.Parse(layoutWithoutTimezone, datetime)
-		if err != nil {
-			// If that fails, try the custom layout with space separator (e.g., "2024-07-17 16:00:43.928")
-			layoutWithSpace := "2006-01-02 15:04:05.999"
-			t, err = time.Parse(layoutWithSpace, datetime)
-			if err != nil {
-				return nil // Return nil if all parsing attempts fail
-			}
+	// the "+0" prefix split this used to do discarded a real offset: "...+0800" parsed as if it
+	// were UTC and came out eight hours early. Matching a layout that carries the zone keeps it.
+	for _, layout := range parse8601Layouts {
+		if t, err := time.Parse(layout, datetime); err == nil {
+			milliseconds := t.UTC().UnixNano() / int64(time.Millisecond)
+			return &milliseconds
 		}
 	}
-
-	// Ensure the time is in UTC
-	t = t.UTC()
-	timestamp := t.UnixNano() / int64(time.Millisecond)
-	return timestamp
+	return nil // Return nil if all parsing attempts fail
 }

@@ -8,521 +8,521 @@
 package ccxt
 
 // PublicGetActivate2FA returns a channel that yields a JSON object.
-func (this *NdaxCore) PublicGetActivate2FA(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetActivate2FA", args...)
+func (this *Ndax) PublicGetActivate2FA(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "Activate2FA", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetAuthenticate2FA returns a channel that yields a JSON object.
-func (this *NdaxCore) PublicGetAuthenticate2FA(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetAuthenticate2FA", args...)
+func (this *Ndax) PublicGetAuthenticate2FA(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "Authenticate2FA", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetAuthenticateUser returns a channel that yields a JSON object.
-func (this *NdaxCore) PublicGetAuthenticateUser(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetAuthenticateUser", args...)
+func (this *Ndax) PublicGetAuthenticateUser(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "AuthenticateUser", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetEnableXP2FA returns a channel that yields a JSON object.
-func (this *NdaxCore) PublicGetEnableXP2FA(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetEnableXP2FA", args...)
+func (this *Ndax) PublicGetEnableXP2FA(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "EnableXP2FA", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetGetL2Snapshot returns a channel that yields a JSON array.
-func (this *NdaxCore) PublicGetGetL2Snapshot(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetL2Snapshot", args...)
+func (this *Ndax) PublicGetGetL2Snapshot(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetL2Snapshot", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetGetLevel1 returns a channel that yields a JSON object.
-func (this *NdaxCore) PublicGetGetLevel1(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetLevel1", args...)
+func (this *Ndax) PublicGetGetLevel1(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "GetLevel1", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetGetValidate2FARequiredEndpoints returns a channel that yields a JSON array.
-func (this *NdaxCore) PublicGetGetValidate2FARequiredEndpoints(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetValidate2FARequiredEndpoints", args...)
+func (this *Ndax) PublicGetGetValidate2FARequiredEndpoints(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetValidate2FARequiredEndpoints", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetLogOut returns a channel that yields a JSON object.
-func (this *NdaxCore) PublicGetLogOut(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetLogOut", args...)
+func (this *Ndax) PublicGetLogOut(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "LogOut", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetGetTickerHistory returns a channel that yields a JSON array.
-func (this *NdaxCore) PublicGetGetTickerHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetTickerHistory", args...)
+func (this *Ndax) PublicGetGetTickerHistory(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetTickerHistory", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetGetProduct returns a channel that yields a JSON object.
-func (this *NdaxCore) PublicGetGetProduct(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetProduct", args...)
+func (this *Ndax) PublicGetGetProduct(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "GetProduct", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetGetProducts returns a channel that yields a JSON array.
-func (this *NdaxCore) PublicGetGetProducts(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetProducts", args...)
+func (this *Ndax) PublicGetGetProducts(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetProducts", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetGetInstrument returns a channel that yields a JSON object.
-func (this *NdaxCore) PublicGetGetInstrument(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetInstrument", args...)
+func (this *Ndax) PublicGetGetInstrument(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "GetInstrument", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetGetInstruments returns a channel that yields a JSON array.
-func (this *NdaxCore) PublicGetGetInstruments(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetInstruments", args...)
+func (this *Ndax) PublicGetGetInstruments(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetInstruments", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetGetEarliestTickTime returns a channel that yields a JSON array.
-func (this *NdaxCore) PublicGetGetEarliestTickTime(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetEarliestTickTime", args...)
+func (this *Ndax) PublicGetGetEarliestTickTime(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetEarliestTickTime", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetPing returns a channel that yields a JSON object.
-func (this *NdaxCore) PublicGetPing(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPing", args...)
+func (this *Ndax) PublicGetPing(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "Ping", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetAssets returns a channel that yields a JSON array.
-func (this *NdaxCore) PublicGetAssets(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetAssets", args...)
+func (this *Ndax) PublicGetAssets(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "assets", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetOrderbook returns a channel that yields a JSON object.
-func (this *NdaxCore) PublicGetOrderbook(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetOrderbook", args...)
+func (this *Ndax) PublicGetOrderbook(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "orderbook", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetTicker returns a channel that yields a JSON object.
-func (this *NdaxCore) PublicGetTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTicker", args...)
+func (this *Ndax) PublicGetTicker(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "ticker", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetSummary returns a channel that yields a JSON array.
-func (this *NdaxCore) PublicGetSummary(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSummary", args...)
+func (this *Ndax) PublicGetSummary(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "summary", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetTrades returns a channel that yields a JSON array.
-func (this *NdaxCore) PublicGetTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTrades", args...)
+func (this *Ndax) PublicGetTrades(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "trades", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetGetLastTrades returns a channel that yields a JSON array.
-func (this *NdaxCore) PublicGetGetLastTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetLastTrades", args...)
+func (this *Ndax) PublicGetGetLastTrades(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetLastTrades", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetConfirmWithdraw returns a channel that yields a JSON object.
-func (this *NdaxCore) PublicGetConfirmWithdraw(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetConfirmWithdraw", args...)
+func (this *Ndax) PublicGetConfirmWithdraw(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "ConfirmWithdraw", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetSubscribeLevel1 returns a channel that yields a JSON object.
-func (this *NdaxCore) PublicGetSubscribeLevel1(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSubscribeLevel1", args...)
+func (this *Ndax) PublicGetSubscribeLevel1(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "SubscribeLevel1", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetSubscribeLevel2 returns a channel that yields a JSON array.
-func (this *NdaxCore) PublicGetSubscribeLevel2(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSubscribeLevel2", args...)
+func (this *Ndax) PublicGetSubscribeLevel2(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "SubscribeLevel2", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetSubscribeTicker returns a channel that yields a JSON array.
-func (this *NdaxCore) PublicGetSubscribeTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSubscribeTicker", args...)
+func (this *Ndax) PublicGetSubscribeTicker(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "SubscribeTicker", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetSubscribeTrades returns a channel that yields a JSON array.
-func (this *NdaxCore) PublicGetSubscribeTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSubscribeTrades", args...)
+func (this *Ndax) PublicGetSubscribeTrades(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "SubscribeTrades", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetSubscribeBlockTrades returns a channel that yields a JSON array.
-func (this *NdaxCore) PublicGetSubscribeBlockTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSubscribeBlockTrades", args...)
+func (this *Ndax) PublicGetSubscribeBlockTrades(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "SubscribeBlockTrades", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetUnsubscribeBlockTrades returns a channel that yields a JSON object.
-func (this *NdaxCore) PublicGetUnsubscribeBlockTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetUnsubscribeBlockTrades", args...)
+func (this *Ndax) PublicGetUnsubscribeBlockTrades(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "UnsubscribeBlockTrades", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetUnsubscribeLevel1 returns a channel that yields a JSON object.
-func (this *NdaxCore) PublicGetUnsubscribeLevel1(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetUnsubscribeLevel1", args...)
+func (this *Ndax) PublicGetUnsubscribeLevel1(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "UnsubscribeLevel1", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetUnsubscribeLevel2 returns a channel that yields a JSON object.
-func (this *NdaxCore) PublicGetUnsubscribeLevel2(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetUnsubscribeLevel2", args...)
+func (this *Ndax) PublicGetUnsubscribeLevel2(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "UnsubscribeLevel2", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetUnsubscribeTicker returns a channel that yields a JSON object.
-func (this *NdaxCore) PublicGetUnsubscribeTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetUnsubscribeTicker", args...)
+func (this *Ndax) PublicGetUnsubscribeTicker(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "UnsubscribeTicker", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetUnsubscribeTrades returns a channel that yields a JSON object.
-func (this *NdaxCore) PublicGetUnsubscribeTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetUnsubscribeTrades", args...)
+func (this *Ndax) PublicGetUnsubscribeTrades(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "UnsubscribeTrades", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetAuthenticate returns a channel that yields a JSON object.
-func (this *NdaxCore) PublicGetAuthenticate(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetAuthenticate", args...)
+func (this *Ndax) PublicGetAuthenticate(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "Authenticate", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetUserAccountInfos returns a channel that yields a JSON array.
-func (this *NdaxCore) PrivateGetGetUserAccountInfos(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetUserAccountInfos", args...)
+func (this *Ndax) PrivateGetGetUserAccountInfos(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetUserAccountInfos", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetUserAccounts returns a channel that yields a JSON array.
-func (this *NdaxCore) PrivateGetGetUserAccounts(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetUserAccounts", args...)
+func (this *Ndax) PrivateGetGetUserAccounts(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetUserAccounts", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetUserAffiliateCount returns a channel that yields a JSON object.
-func (this *NdaxCore) PrivateGetGetUserAffiliateCount(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetUserAffiliateCount", args...)
+func (this *Ndax) PrivateGetGetUserAffiliateCount(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "GetUserAffiliateCount", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetUserAffiliateTag returns a channel that yields a JSON array.
-func (this *NdaxCore) PrivateGetGetUserAffiliateTag(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetUserAffiliateTag", args...)
+func (this *Ndax) PrivateGetGetUserAffiliateTag(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetUserAffiliateTag", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetUserConfig returns a channel that yields a JSON array.
-func (this *NdaxCore) PrivateGetGetUserConfig(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetUserConfig", args...)
+func (this *Ndax) PrivateGetGetUserConfig(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetUserConfig", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetAllUnredactedUserConfigsForUser returns a channel that yields a JSON array.
-func (this *NdaxCore) PrivateGetGetAllUnredactedUserConfigsForUser(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetAllUnredactedUserConfigsForUser", args...)
+func (this *Ndax) PrivateGetGetAllUnredactedUserConfigsForUser(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetAllUnredactedUserConfigsForUser", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetUnredactedUserConfigByKey returns a channel that yields a JSON array.
-func (this *NdaxCore) PrivateGetGetUnredactedUserConfigByKey(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetUnredactedUserConfigByKey", args...)
+func (this *Ndax) PrivateGetGetUnredactedUserConfigByKey(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetUnredactedUserConfigByKey", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetUserDevices returns a channel that yields a JSON array.
-func (this *NdaxCore) PrivateGetGetUserDevices(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetUserDevices", args...)
+func (this *Ndax) PrivateGetGetUserDevices(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetUserDevices", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetUserReportTickets returns a channel that yields a JSON array.
-func (this *NdaxCore) PrivateGetGetUserReportTickets(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetUserReportTickets", args...)
+func (this *Ndax) PrivateGetGetUserReportTickets(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetUserReportTickets", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetUserReportWriterResultRecords returns a channel that yields a JSON array.
-func (this *NdaxCore) PrivateGetGetUserReportWriterResultRecords(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetUserReportWriterResultRecords", args...)
+func (this *Ndax) PrivateGetGetUserReportWriterResultRecords(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetUserReportWriterResultRecords", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetAccountInfo returns a channel that yields a JSON object.
-func (this *NdaxCore) PrivateGetGetAccountInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetAccountInfo", args...)
+func (this *Ndax) PrivateGetGetAccountInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "GetAccountInfo", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetAccountPositions returns a channel that yields a JSON object.
-func (this *NdaxCore) PrivateGetGetAccountPositions(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetAccountPositions", args...)
+func (this *Ndax) PrivateGetGetAccountPositions(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "GetAccountPositions", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetAllAccountConfigs returns a channel that yields a JSON array.
-func (this *NdaxCore) PrivateGetGetAllAccountConfigs(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetAllAccountConfigs", args...)
+func (this *Ndax) PrivateGetGetAllAccountConfigs(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetAllAccountConfigs", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetTreasuryProductsForAccount returns a channel that yields a JSON array.
-func (this *NdaxCore) PrivateGetGetTreasuryProductsForAccount(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetTreasuryProductsForAccount", args...)
+func (this *Ndax) PrivateGetGetTreasuryProductsForAccount(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetTreasuryProductsForAccount", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetAccountTrades returns a channel that yields a JSON array.
-func (this *NdaxCore) PrivateGetGetAccountTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetAccountTrades", args...)
+func (this *Ndax) PrivateGetGetAccountTrades(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetAccountTrades", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetAccountTransactions returns a channel that yields a JSON array.
-func (this *NdaxCore) PrivateGetGetAccountTransactions(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetAccountTransactions", args...)
+func (this *Ndax) PrivateGetGetAccountTransactions(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetAccountTransactions", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetOpenTradeReports returns a channel that yields a JSON array.
-func (this *NdaxCore) PrivateGetGetOpenTradeReports(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetOpenTradeReports", args...)
+func (this *Ndax) PrivateGetGetOpenTradeReports(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetOpenTradeReports", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetAllOpenTradeReports returns a channel that yields a JSON array.
-func (this *NdaxCore) PrivateGetGetAllOpenTradeReports(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetAllOpenTradeReports", args...)
+func (this *Ndax) PrivateGetGetAllOpenTradeReports(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetAllOpenTradeReports", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetTradesHistory returns a channel that yields a JSON array.
-func (this *NdaxCore) PrivateGetGetTradesHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetTradesHistory", args...)
+func (this *Ndax) PrivateGetGetTradesHistory(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetTradesHistory", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetOpenOrders returns a channel that yields a JSON array.
-func (this *NdaxCore) PrivateGetGetOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetOpenOrders", args...)
+func (this *Ndax) PrivateGetGetOpenOrders(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetOpenOrders", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetOpenQuotes returns a channel that yields a JSON object.
-func (this *NdaxCore) PrivateGetGetOpenQuotes(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetOpenQuotes", args...)
+func (this *Ndax) PrivateGetGetOpenQuotes(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "GetOpenQuotes", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetOrderFee returns a channel that yields a JSON object.
-func (this *NdaxCore) PrivateGetGetOrderFee(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetOrderFee", args...)
+func (this *Ndax) PrivateGetGetOrderFee(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "GetOrderFee", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetOrderHistory returns a channel that yields a JSON array.
-func (this *NdaxCore) PrivateGetGetOrderHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetOrderHistory", args...)
+func (this *Ndax) PrivateGetGetOrderHistory(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetOrderHistory", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetOrdersHistory returns a channel that yields a JSON array.
-func (this *NdaxCore) PrivateGetGetOrdersHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetOrdersHistory", args...)
+func (this *Ndax) PrivateGetGetOrdersHistory(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetOrdersHistory", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetOrderStatus returns a channel that yields a JSON object.
-func (this *NdaxCore) PrivateGetGetOrderStatus(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetOrderStatus", args...)
+func (this *Ndax) PrivateGetGetOrderStatus(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "GetOrderStatus", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetOmsFeeTiers returns a channel that yields a JSON array.
-func (this *NdaxCore) PrivateGetGetOmsFeeTiers(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetOmsFeeTiers", args...)
+func (this *Ndax) PrivateGetGetOmsFeeTiers(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetOmsFeeTiers", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetAccountDepositTransactions returns a channel that yields a JSON array.
-func (this *NdaxCore) PrivateGetGetAccountDepositTransactions(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetAccountDepositTransactions", args...)
+func (this *Ndax) PrivateGetGetAccountDepositTransactions(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetAccountDepositTransactions", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetAccountWithdrawTransactions returns a channel that yields a JSON array.
-func (this *NdaxCore) PrivateGetGetAccountWithdrawTransactions(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetAccountWithdrawTransactions", args...)
+func (this *Ndax) PrivateGetGetAccountWithdrawTransactions(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetAccountWithdrawTransactions", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetAllDepositRequestInfoTemplates returns a channel that yields a JSON array.
-func (this *NdaxCore) PrivateGetGetAllDepositRequestInfoTemplates(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetAllDepositRequestInfoTemplates", args...)
+func (this *Ndax) PrivateGetGetAllDepositRequestInfoTemplates(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetAllDepositRequestInfoTemplates", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetDepositInfo returns a channel that yields a JSON object.
-func (this *NdaxCore) PrivateGetGetDepositInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetDepositInfo", args...)
+func (this *Ndax) PrivateGetGetDepositInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "GetDepositInfo", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetDepositRequestInfoTemplate returns a channel that yields a JSON object.
-func (this *NdaxCore) PrivateGetGetDepositRequestInfoTemplate(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetDepositRequestInfoTemplate", args...)
+func (this *Ndax) PrivateGetGetDepositRequestInfoTemplate(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "GetDepositRequestInfoTemplate", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetDeposits returns a channel that yields a JSON array.
-func (this *NdaxCore) PrivateGetGetDeposits(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetDeposits", args...)
+func (this *Ndax) PrivateGetGetDeposits(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetDeposits", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetDepositTicket returns a channel that yields a JSON object.
-func (this *NdaxCore) PrivateGetGetDepositTicket(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetDepositTicket", args...)
+func (this *Ndax) PrivateGetGetDepositTicket(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "GetDepositTicket", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetDepositTickets returns a channel that yields a JSON array.
-func (this *NdaxCore) PrivateGetGetDepositTickets(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetDepositTickets", args...)
+func (this *Ndax) PrivateGetGetDepositTickets(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetDepositTickets", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetOMSWithdrawFees returns a channel that yields a JSON array.
-func (this *NdaxCore) PrivateGetGetOMSWithdrawFees(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetOMSWithdrawFees", args...)
+func (this *Ndax) PrivateGetGetOMSWithdrawFees(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetOMSWithdrawFees", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetWithdrawFee returns a channel that yields a JSON object.
-func (this *NdaxCore) PrivateGetGetWithdrawFee(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetWithdrawFee", args...)
+func (this *Ndax) PrivateGetGetWithdrawFee(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "GetWithdrawFee", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetWithdraws returns a channel that yields a JSON array.
-func (this *NdaxCore) PrivateGetGetWithdraws(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetWithdraws", args...)
+func (this *Ndax) PrivateGetGetWithdraws(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetWithdraws", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetWithdrawTemplate returns a channel that yields a JSON object.
-func (this *NdaxCore) PrivateGetGetWithdrawTemplate(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetWithdrawTemplate", args...)
+func (this *Ndax) PrivateGetGetWithdrawTemplate(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "GetWithdrawTemplate", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetWithdrawTemplateTypes returns a channel that yields a JSON object.
-func (this *NdaxCore) PrivateGetGetWithdrawTemplateTypes(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetWithdrawTemplateTypes", args...)
+func (this *Ndax) PrivateGetGetWithdrawTemplateTypes(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "GetWithdrawTemplateTypes", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetWithdrawTicket returns a channel that yields a JSON object.
-func (this *NdaxCore) PrivateGetGetWithdrawTicket(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetWithdrawTicket", args...)
+func (this *Ndax) PrivateGetGetWithdrawTicket(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "GetWithdrawTicket", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetWithdrawTicketAttachment returns a channel that yields a JSON object.
-func (this *NdaxCore) PrivateGetGetWithdrawTicketAttachment(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetWithdrawTicketAttachment", args...)
+func (this *Ndax) PrivateGetGetWithdrawTicketAttachment(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "GetWithdrawTicketAttachment", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetWithdrawTickets returns a channel that yields a JSON array.
-func (this *NdaxCore) PrivateGetGetWithdrawTickets(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetWithdrawTickets", args...)
+func (this *Ndax) PrivateGetGetWithdrawTickets(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetWithdrawTickets", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetDepositTicketAttachment returns a channel that yields a JSON object.
-func (this *NdaxCore) PrivateGetGetDepositTicketAttachment(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetDepositTicketAttachment", args...)
+func (this *Ndax) PrivateGetGetDepositTicketAttachment(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "GetDepositTicketAttachment", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostAddUserAffiliateTag returns a channel that yields a JSON object.
-func (this *NdaxCore) PrivatePostAddUserAffiliateTag(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAddUserAffiliateTag", args...)
+func (this *Ndax) PrivatePostAddUserAffiliateTag(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "AddUserAffiliateTag", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostAddDepositTicketAttachment returns a channel that yields a JSON object.
-func (this *NdaxCore) PrivatePostAddDepositTicketAttachment(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAddDepositTicketAttachment", args...)
+func (this *Ndax) PrivatePostAddDepositTicketAttachment(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "AddDepositTicketAttachment", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostAddWithdrawTicketAttachment returns a channel that yields a JSON object.
-func (this *NdaxCore) PrivatePostAddWithdrawTicketAttachment(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAddWithdrawTicketAttachment", args...)
+func (this *Ndax) PrivatePostAddWithdrawTicketAttachment(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "AddWithdrawTicketAttachment", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostCancelUserReport returns a channel that yields a JSON object.
-func (this *NdaxCore) PrivatePostCancelUserReport(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCancelUserReport", args...)
+func (this *Ndax) PrivatePostCancelUserReport(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "CancelUserReport", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostRegisterNewDevice returns a channel that yields a JSON object.
-func (this *NdaxCore) PrivatePostRegisterNewDevice(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostRegisterNewDevice", args...)
+func (this *Ndax) PrivatePostRegisterNewDevice(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "RegisterNewDevice", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostSubscribeAccountEvents returns a channel that yields a JSON object.
-func (this *NdaxCore) PrivatePostSubscribeAccountEvents(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSubscribeAccountEvents", args...)
+func (this *Ndax) PrivatePostSubscribeAccountEvents(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "SubscribeAccountEvents", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostUpdateUserAffiliateTag returns a channel that yields a JSON object.
-func (this *NdaxCore) PrivatePostUpdateUserAffiliateTag(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostUpdateUserAffiliateTag", args...)
+func (this *Ndax) PrivatePostUpdateUserAffiliateTag(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "UpdateUserAffiliateTag", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostGenerateTradeActivityReport returns a channel that yields a JSON object.
-func (this *NdaxCore) PrivatePostGenerateTradeActivityReport(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostGenerateTradeActivityReport", args...)
+func (this *Ndax) PrivatePostGenerateTradeActivityReport(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "GenerateTradeActivityReport", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostGenerateTransactionActivityReport returns a channel that yields a JSON object.
-func (this *NdaxCore) PrivatePostGenerateTransactionActivityReport(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostGenerateTransactionActivityReport", args...)
+func (this *Ndax) PrivatePostGenerateTransactionActivityReport(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "GenerateTransactionActivityReport", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostGenerateTreasuryActivityReport returns a channel that yields a JSON object.
-func (this *NdaxCore) PrivatePostGenerateTreasuryActivityReport(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostGenerateTreasuryActivityReport", args...)
+func (this *Ndax) PrivatePostGenerateTreasuryActivityReport(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "GenerateTreasuryActivityReport", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostScheduleTradeActivityReport returns a channel that yields a JSON object.
-func (this *NdaxCore) PrivatePostScheduleTradeActivityReport(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostScheduleTradeActivityReport", args...)
+func (this *Ndax) PrivatePostScheduleTradeActivityReport(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "ScheduleTradeActivityReport", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostScheduleTransactionActivityReport returns a channel that yields a JSON object.
-func (this *NdaxCore) PrivatePostScheduleTransactionActivityReport(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostScheduleTransactionActivityReport", args...)
+func (this *Ndax) PrivatePostScheduleTransactionActivityReport(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "ScheduleTransactionActivityReport", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostScheduleTreasuryActivityReport returns a channel that yields a JSON object.
-func (this *NdaxCore) PrivatePostScheduleTreasuryActivityReport(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostScheduleTreasuryActivityReport", args...)
+func (this *Ndax) PrivatePostScheduleTreasuryActivityReport(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "ScheduleTreasuryActivityReport", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostCancelAllOrders returns a channel that yields a JSON object.
-func (this *NdaxCore) PrivatePostCancelAllOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCancelAllOrders", args...)
+func (this *Ndax) PrivatePostCancelAllOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "CancelAllOrders", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostCancelOrder returns a channel that yields a JSON object.
-func (this *NdaxCore) PrivatePostCancelOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCancelOrder", args...)
+func (this *Ndax) PrivatePostCancelOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "CancelOrder", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostCancelQuote returns a channel that yields a JSON object.
-func (this *NdaxCore) PrivatePostCancelQuote(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCancelQuote", args...)
+func (this *Ndax) PrivatePostCancelQuote(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "CancelQuote", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostCancelReplaceOrder returns a channel that yields a JSON object.
-func (this *NdaxCore) PrivatePostCancelReplaceOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCancelReplaceOrder", args...)
+func (this *Ndax) PrivatePostCancelReplaceOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "CancelReplaceOrder", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostCreateQuote returns a channel that yields a JSON object.
-func (this *NdaxCore) PrivatePostCreateQuote(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCreateQuote", args...)
+func (this *Ndax) PrivatePostCreateQuote(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "CreateQuote", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostModifyOrder returns a channel that yields a JSON object.
-func (this *NdaxCore) PrivatePostModifyOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostModifyOrder", args...)
+func (this *Ndax) PrivatePostModifyOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "ModifyOrder", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostSendOrder returns a channel that yields a JSON object.
-func (this *NdaxCore) PrivatePostSendOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSendOrder", args...)
+func (this *Ndax) PrivatePostSendOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "SendOrder", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostSubmitBlockTrade returns a channel that yields a JSON object.
-func (this *NdaxCore) PrivatePostSubmitBlockTrade(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSubmitBlockTrade", args...)
+func (this *Ndax) PrivatePostSubmitBlockTrade(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "SubmitBlockTrade", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostUpdateQuote returns a channel that yields a JSON object.
-func (this *NdaxCore) PrivatePostUpdateQuote(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostUpdateQuote", args...)
+func (this *Ndax) PrivatePostUpdateQuote(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "UpdateQuote", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostCancelWithdraw returns a channel that yields a JSON object.
-func (this *NdaxCore) PrivatePostCancelWithdraw(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCancelWithdraw", args...)
+func (this *Ndax) PrivatePostCancelWithdraw(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "CancelWithdraw", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostCreateDepositTicket returns a channel that yields a JSON object.
-func (this *NdaxCore) PrivatePostCreateDepositTicket(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCreateDepositTicket", args...)
+func (this *Ndax) PrivatePostCreateDepositTicket(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "CreateDepositTicket", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostCreateWithdrawTicket returns a channel that yields a JSON object.
-func (this *NdaxCore) PrivatePostCreateWithdrawTicket(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCreateWithdrawTicket", args...)
+func (this *Ndax) PrivatePostCreateWithdrawTicket(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "CreateWithdrawTicket", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostSubmitDepositTicketComment returns a channel that yields a JSON object.
-func (this *NdaxCore) PrivatePostSubmitDepositTicketComment(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSubmitDepositTicketComment", args...)
+func (this *Ndax) PrivatePostSubmitDepositTicketComment(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "SubmitDepositTicketComment", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostSubmitWithdrawTicketComment returns a channel that yields a JSON object.
-func (this *NdaxCore) PrivatePostSubmitWithdrawTicketComment(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSubmitWithdrawTicketComment", args...)
+func (this *Ndax) PrivatePostSubmitWithdrawTicketComment(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "SubmitWithdrawTicketComment", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostGetOrderHistoryByOrderId returns a channel that yields a JSON array.
-func (this *NdaxCore) PrivatePostGetOrderHistoryByOrderId(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostGetOrderHistoryByOrderId", args...)
+func (this *Ndax) PrivatePostGetOrderHistoryByOrderId(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetOrderHistoryByOrderId", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }

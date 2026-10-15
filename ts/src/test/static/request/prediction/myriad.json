@@ -39,6 +39,17 @@
                 "input": [
                     "POLYMARKET_KALSHI:POLYMARKET"
                 ]
+            },
+            {
+                "description": "fetchTicker pins the x-api-key auth header name (php transpiler regression guard, #30370)",
+                "method": "fetchTicker",
+                "url": "https://api-v2.myriadprotocol.com/markets/549?network_id=2741",
+                "input": [
+                    "POLYMARKET_KALSHI:POLYMARKET"
+                ],
+                "headers": {
+                    "x-api-key": "key"
+                }
             }
         ],
         "fetchTickers": [

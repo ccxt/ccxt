@@ -13,7 +13,7 @@
                 "method": "fetchMarkets",
                 "url": "https://trade.cex.io/api/spot/rest-public/get_pairs_info",
                 "input": [],
-                "output": "{}"
+                "output": {}
             }
         ],
         "fetchCurrencies": [
@@ -23,7 +23,7 @@
                 "method": "fetchCurrencies",
                 "url": "https://trade.cex.io/api/spot/rest-public/get_processing_info",
                 "input": [],
-                "output": "{}"
+                "output": {}
             }
         ],
         "fetchTime": [
@@ -32,7 +32,7 @@
                 "method": "fetchTime",
                 "url": "https://trade.cex.io/api/spot/rest-public/get_server_time",
                 "input": [],
-                "output": "{}"
+                "output": {}
              }
         ],
         "fetchTicker": [
@@ -43,7 +43,7 @@
                 "input": [
                   "BTC/USDT"
                 ],
-                "output": "{\"pairs\":[\"BTC-USDT\"]}"
+                "output": { "pairs": [ "BTC-USDT" ] }
             }
         ],
         "fetchTickers": [
@@ -52,7 +52,7 @@
                 "method": "fetchTickers",
                 "url": "https://trade.cex.io/api/spot/rest-public/get_ticker",
                 "input": [],
-                "output": "{}"
+                "output": {}
             },
             {
                 "description": "with symbols",
@@ -64,7 +64,7 @@
                     "ETH/USDT"
                   ]
                 ],
-                "output": "{\"pairs\":[\"BTC-USDT\",\"ETH-USDT\"]}"
+                "output": { "pairs": [ "BTC-USDT", "ETH-USDT" ] }
             }
         ],
         "fetchTrades": [
@@ -75,7 +75,7 @@
                 "input": [
                   "BTC/USDT"
                 ],
-                "output": "{\"pair\":\"BTC-USDT\"}"
+                "output": { "pair": "BTC-USDT" }
             },
             {
                 "description": "+symbol +since +limit +until",
@@ -89,7 +89,7 @@
                     "until": 1710001000000
                   }
                 ],
-                "output": "{\"pair\":\"BTC-USDT\",\"fromDateISO\":\"2024-03-09T16:00:00.000Z\",\"toDateISO\":\"2024-03-09T16:16:40.000Z\",\"pageSize\":10}"
+                "output": { "pair": "BTC-USDT", "fromDateISO": "2024-03-09T16:00:00.000Z", "toDateISO": "2024-03-09T16:16:40.000Z", "pageSize": 10 }
             }
         ],
         "fetchOrderBook": [
@@ -100,7 +100,7 @@
                 "input": [
                   "BTC/USDT"
                 ],
-                "output": "{\"pair\":\"BTC-USDT\"}"
+                "output": { "pair": "BTC-USDT" }
             }
         ],
         "fetchOHLCV": [
@@ -117,7 +117,7 @@
                     "dataType": "bestAsk"
                   }
                 ],
-                "output": "{\"pair\":\"BTC-USDT\",\"resolution\":\"1m\",\"dataType\":\"bestAsk\",\"fromISO\":\"2024-03-09T16:00:00.000Z\",\"limit\":15}"
+                "output": { "pair": "BTC-USDT", "resolution": "1m", "dataType": "bestAsk", "fromISO": "2024-03-09T16:00:00.000Z", "limit": 15 }
             }
         ],
         "fetchTradingFees": [
@@ -126,7 +126,7 @@
                 "method": "fetchTradingFees",
                 "url": "https://trade.cex.io/api/spot/rest/get_my_current_fee",
                 "input": [],
-                "output": "{}"
+                "output": {}
             }
         ],
         "fetchAccounts": [
@@ -135,7 +135,7 @@
                 "method": "fetchAccounts",
                 "url": "https://trade.cex.io/api/spot/rest/get_my_account_status_v3",
                 "input": [],
-                "output": "{}"
+                "output": {}
             }
         ],
         "fetchBalance": [
@@ -144,7 +144,7 @@
                 "method": "fetchBalance",
                 "url": "https://trade.cex.io/api/spot/rest/get_my_wallet_balance",
                 "input": [],
-                "output": "{}"
+                "output": {}
             }
         ],
         "fetchClosedOrders": [
@@ -160,7 +160,7 @@
                         "serverCreateTimestampFrom": 1697562534220
                     }
                 ],
-                "output": "{\"archived\":true,\"serverCreateTimestampFrom\":1697562534220}"
+                "output": { "archived": true, "serverCreateTimestampFrom": 1697562534220 }
             },
             {
                 "description": "with symbol",
@@ -174,7 +174,7 @@
                         "serverCreateTimestampFrom": 1697562575240
                     }
                 ],
-                "output": "{\"archived\":true,\"pair\":\"BTC-USDT\",\"serverCreateTimestampFrom\":1697562575240}"     
+                "output": { "archived": true, "pair": "BTC-USDT", "serverCreateTimestampFrom": 1697562575240 }     
             }
         ],
         "fetchOpenOrders": [
@@ -183,7 +183,7 @@
                 "method": "fetchOpenOrders",
                 "url": "https://trade.cex.io/api/spot/rest/get_my_orders",
                 "input": [],
-                "output": "{}"
+                "output": {}
             },
             {
                 "description": "with symbol",
@@ -192,7 +192,7 @@
                 "input": [
                   "BTC/USDT"
                 ],
-                "output": "{\"pair\":\"BTC-USDT\"}"
+                "output": { "pair": "BTC-USDT" }
             }
         ],
         "createOrder": [
@@ -212,7 +212,7 @@
                     "timestamp": 1729012587006
                   }
                 ],
-                "output": "{\"clientOrderId\":\"91871283-5d2e-4b58-8854-e7b46f9bdf1b\",\"currency1\":\"LTC\",\"currency2\":\"USDT\",\"accountId\":\"sub1\",\"orderType\":\"Limit\",\"side\":\"BUY\",\"timestamp\":1729012587006,\"amountCcy1\":\"0.23\",\"price\":\"55\",\"timeInForce\":\"GTC\"}"
+                "output": { "clientOrderId": "91871283-5d2e-4b58-8854-e7b46f9bdf1b", "currency1": "LTC", "currency2": "USDT", "accountId": "sub1", "orderType": "Limit", "side": "BUY", "timestamp": 1729012587006, "amountCcy1": "0.23", "price": "55", "timeInForce": "GTC" }
             },
             {
                 "description": "+market +buy +amount +params",
@@ -230,7 +230,7 @@
                     "timestamp": 1729012669606
                   }
                 ],
-                "output": "{\"clientOrderId\":\"9857f279-1862-4397-a3d1-c5c40b7d1458\",\"currency1\":\"LTC\",\"currency2\":\"USDT\",\"accountId\":\"sub1\",\"orderType\":\"Market\",\"side\":\"BUY\",\"timestamp\":1729012669606,\"amountCcy1\":\"0.25\"}"
+                "output": { "clientOrderId": "9857f279-1862-4397-a3d1-c5c40b7d1458", "currency1": "LTC", "currency2": "USDT", "accountId": "sub1", "orderType": "Market", "side": "BUY", "timestamp": 1729012669606, "amountCcy1": "0.25" }
             },
             {
                 "description": "+limit +sell +amount +price +params",
@@ -248,7 +248,7 @@
                     "timestamp": 1729012684901
                   }
                 ],
-                "output": "{\"clientOrderId\":\"55577f79-103f-435c-b98f-e625a1870155\",\"currency1\":\"LTC\",\"currency2\":\"USDT\",\"accountId\":\"sub1\",\"orderType\":\"Limit\",\"side\":\"SELL\",\"timestamp\":1729012684901,\"amountCcy1\":\"0.23\",\"price\":\"55\",\"timeInForce\":\"GTC\"}"
+                "output": { "clientOrderId": "55577f79-103f-435c-b98f-e625a1870155", "currency1": "LTC", "currency2": "USDT", "accountId": "sub1", "orderType": "Limit", "side": "SELL", "timestamp": 1729012684901, "amountCcy1": "0.23", "price": "55", "timeInForce": "GTC" }
             }
         ],
         "cancelOrder": [
@@ -264,7 +264,7 @@
                     "cancelRequestId": "c_1729012822601"
                   }
                 ],
-                "output": "{\"orderId\":8,\"cancelRequestId\":\"c_1729012822601\",\"timestamp\":1729012822601}"       
+                "output": { "orderId": 8, "cancelRequestId": "c_1729012822601", "timestamp": 1729012822601 }       
             }
         ],
         "cancelAllOrders": [
@@ -273,7 +273,7 @@
                 "method": "cancelAllOrders",
                 "url": "https://trade.cex.io/api/spot/rest/do_cancel_all_orders",
                 "input": [],
-                "output": "{}"
+                "output": {}
             }
         ],
         "fetchLedger": [
@@ -282,7 +282,7 @@
                 "method": "fetchLedger",
                 "url": "https://trade.cex.io/api/spot/rest/get_my_transaction_history",
                 "input": [],
-                "output": "{}"
+                "output": {}
             },
             {
                 "description": "+code +since +limit +until",
@@ -296,7 +296,7 @@
                     "until": 1710000010000
                   }
                 ],
-                "output": "{\"currency\":\"USDT\",\"dateFrom\":1710000000000,\"pageSize\":15,\"dateTo\":1710000010000}"
+                "output": { "currency": "USDT", "dateFrom": 1710000000000, "pageSize": 15, "dateTo": 1710000010000 }
             }
         ],
         "fetchDepositsWithdrawals": [
@@ -312,7 +312,7 @@
                     "until": 1710000010000
                   }
                 ],
-                "output": "{\"dateFrom\":1710000000000,\"pageSize\":15,\"dateTo\":1710000010000}"
+                "output": { "dateFrom": 1710000000000, "pageSize": 15, "dateTo": 1710000010000 }
             }
         ],
         "transfer": [
@@ -329,7 +329,7 @@
                     "clientTxId": "c23159c6-75a1-4db8-9a5c-d406748c17c4"
                   }
                 ],
-                "output": "{\"currency\":\"USDT\",\"amount\":\"5\",\"accountId\":\"sub1\",\"clientTxId\":\"c23159c6-75a1-4db8-9a5c-d406748c17c4\"}"
+                "output": { "currency": "USDT", "amount": "5", "accountId": "sub1", "clientTxId": "c23159c6-75a1-4db8-9a5c-d406748c17c4" }
             },
             {
                 "description": "sub to main",
@@ -344,7 +344,7 @@
                     "clientTxId": "c23159c6-75a1-4db8-9a5c-d406748c77c5"
                   }
                 ],
-                "output": "{\"currency\":\"USDT\",\"amount\":\"5\",\"accountId\":\"sub1\",\"clientTxId\":\"c23159c6-75a1-4db8-9a5c-d406748c77c5\"}"
+                "output": { "currency": "USDT", "amount": "5", "accountId": "sub1", "clientTxId": "c23159c6-75a1-4db8-9a5c-d406748c77c5" }
             }
         ],
         "fetchDepositAddress": [
@@ -359,7 +359,7 @@
                     "accountId": "sub1"
                   }
                 ],
-                "output": "{\"accountId\":\"sub1\",\"currency\":\"USDT\",\"blockchain\":\"tron\"}"
+                "output": { "accountId": "sub1", "currency": "USDT", "blockchain": "tron" }
             }
         ]
     }

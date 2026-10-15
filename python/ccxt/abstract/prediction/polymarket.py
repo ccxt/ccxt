@@ -1,8 +1,7 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict, List
+_List = list[object]
+_Dict = dict[str, object]
 
-_List = List[PythonAny]
-_Dict = Dict[str, PythonAny]
 
 class ImplicitAPI:
     gamma_public_get_status = gammaPublicGetStatus = Entry[str]('status', ['gamma', 'public'], 'GET', {'cost': 1})

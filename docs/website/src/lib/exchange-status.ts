@@ -1,8 +1,8 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
-// Single source of truth for the exchange-status feed: both /api/status and the
-// /docs/status page read through here, so they can never disagree.
+// Single source of truth for the exchange-status feed: the /api/status route reads
+// through here, so the JSON snapshot and the served payload can never disagree.
 //
 // A separate monitor sub-process rewrites the JSON file every ~30 minutes. The file
 // lives OUTSIDE the build (volume-mounted / written at runtime), so it's read with fs

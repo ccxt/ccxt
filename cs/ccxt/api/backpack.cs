@@ -39,6 +39,13 @@ public partial class backpack : Exchange
         return await this.callAsync<List<object>> ("publicGetApiV1BorrowLendMarketsHistory",parameters);
     }
 
+    /// <summary>Calls the publicGetApiV1BorrowLendApy endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetApiV1BorrowLendApy (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetApiV1BorrowLendApy",parameters);
+    }
+
     /// <summary>Calls the publicGetApiV1Markets endpoint.</summary>
     /// <returns>a JSON array</returns>
     public async Task<List<object>> publicGetApiV1Markets (object parameters = null)
@@ -72,6 +79,41 @@ public partial class backpack : Exchange
     public async Task<Dictionary<string, object>> publicGetApiV1Depth (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("publicGetApiV1Depth",parameters);
+    }
+
+    /// <summary>Calls the publicGetApiV1Prediction endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> publicGetApiV1Prediction (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("publicGetApiV1Prediction",parameters);
+    }
+
+    /// <summary>Calls the publicGetApiV1PredictionTags endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> publicGetApiV1PredictionTags (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("publicGetApiV1PredictionTags",parameters);
+    }
+
+    /// <summary>Calls the publicGetApiV1MarketSessions endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> publicGetApiV1MarketSessions (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("publicGetApiV1MarketSessions",parameters);
+    }
+
+    /// <summary>Calls the publicGetApiV1MarketHolidays endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> publicGetApiV1MarketHolidays (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("publicGetApiV1MarketHolidays",parameters);
+    }
+
+    /// <summary>Calls the publicGetApiV1Securities endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> publicGetApiV1Securities (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("publicGetApiV1Securities",parameters);
     }
 
     /// <summary>Calls the publicGetApiV1Klines endpoint.</summary>
@@ -179,6 +221,13 @@ public partial class backpack : Exchange
         return await this.callAsync<List<object>> ("privateGetApiV1BorrowLendPositions",parameters);
     }
 
+    /// <summary>Calls the privateGetApiV1BorrowLendPositionLiquidationPrice endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetApiV1BorrowLendPositionLiquidationPrice (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetApiV1BorrowLendPositionLiquidationPrice",parameters);
+    }
+
     /// <summary>Calls the privateGetApiV1Capital endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateGetApiV1Capital (object parameters = null)
@@ -263,11 +312,25 @@ public partial class backpack : Exchange
         return await this.callAsync<List<object>> ("privateGetWapiV1HistoryFunding",parameters);
     }
 
+    /// <summary>Calls the privateGetWapiV1HistoryPosition endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetWapiV1HistoryPosition (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateGetWapiV1HistoryPosition",parameters);
+    }
+
     /// <summary>Calls the privateGetWapiV1HistoryOrders endpoint.</summary>
     /// <returns>a JSON array</returns>
     public async Task<List<object>> privateGetWapiV1HistoryOrders (object parameters = null)
     {
         return await this.callAsync<List<object>> ("privateGetWapiV1HistoryOrders",parameters);
+    }
+
+    /// <summary>Calls the privateGetApiV1Rfqs endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetApiV1Rfqs (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateGetApiV1Rfqs",parameters);
     }
 
     /// <summary>Calls the privateGetWapiV1HistoryRfq endpoint.</summary>
@@ -284,6 +347,20 @@ public partial class backpack : Exchange
         return await this.callAsync<List<object>> ("privateGetWapiV1HistoryQuote",parameters);
     }
 
+    /// <summary>Calls the privateGetWapiV1HistoryRfqFill endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetWapiV1HistoryRfqFill (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateGetWapiV1HistoryRfqFill",parameters);
+    }
+
+    /// <summary>Calls the privateGetWapiV1HistoryQuoteFill endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetWapiV1HistoryQuoteFill (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateGetWapiV1HistoryQuoteFill",parameters);
+    }
+
     /// <summary>Calls the privateGetWapiV1HistorySettlement endpoint.</summary>
     /// <returns>a JSON array</returns>
     public async Task<List<object>> privateGetWapiV1HistorySettlement (object parameters = null)
@@ -296,6 +373,20 @@ public partial class backpack : Exchange
     public async Task<List<object>> privateGetWapiV1HistoryStrategies (object parameters = null)
     {
         return await this.callAsync<List<object>> ("privateGetWapiV1HistoryStrategies",parameters);
+    }
+
+    /// <summary>Calls the privateGetApiV1Strategy endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetApiV1Strategy (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetApiV1Strategy",parameters);
+    }
+
+    /// <summary>Calls the privateGetApiV1Strategies endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetApiV1Strategies (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateGetApiV1Strategies",parameters);
     }
 
     /// <summary>Calls the privateGetApiV1Order endpoint.</summary>
@@ -382,6 +473,13 @@ public partial class backpack : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privatePostApiV1RfqQuote",parameters);
     }
 
+    /// <summary>Calls the privatePostApiV1Strategy endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostApiV1Strategy (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostApiV1Strategy",parameters);
+    }
+
     /// <summary>Calls the privateDeleteApiV1Order endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateDeleteApiV1Order (object parameters = null)
@@ -394,6 +492,20 @@ public partial class backpack : Exchange
     public async Task<List<object>> privateDeleteApiV1Orders (object parameters = null)
     {
         return await this.callAsync<List<object>> ("privateDeleteApiV1Orders",parameters);
+    }
+
+    /// <summary>Calls the privateDeleteApiV1Strategy endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateDeleteApiV1Strategy (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateDeleteApiV1Strategy",parameters);
+    }
+
+    /// <summary>Calls the privateDeleteApiV1Strategies endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateDeleteApiV1Strategies (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateDeleteApiV1Strategies",parameters);
     }
 
     /// <summary>Calls the privatePatchApiV1Account endpoint.</summary>

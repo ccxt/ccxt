@@ -11,7 +11,7 @@ func TestGroupBy() {
 	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
 	}, map[string]any{}, exchange)
-	var sampleArray any = []any{map[string]any{
+	var sampleArray []any = []any{map[string]any{
 		"foo": "a",
 	}, map[string]any{
 		"foo": "b",
@@ -24,7 +24,7 @@ func TestGroupBy() {
 	}, map[string]any{
 		"foo": "c",
 	}}
-	var currentValue any = exchange.GroupBy(sampleArray, "foo")
+	var currentValue map[string]any = exchange.GroupBy(sampleArray, "foo")
 	var storedValue map[string]any = map[string]any{
 		"a": []any{map[string]any{
 			"foo": "a",

@@ -21,7 +21,7 @@ function test_watch_liquidations_for_symbols($exchange, $skipped_properties, $sy
             var_dump($m1);
             return false;
         }
-        if (!$exchange->has[$method]) {
+        if ($exchange->has[$method] === null || $exchange->has[$method] === false) {
             $m2 = ($exchange->id . ' does not support ' . $method . '() method');
             var_dump($m2);
             return false;

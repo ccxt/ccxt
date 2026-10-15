@@ -43,7 +43,7 @@ def helper_test_sandbox_state(exchange, expect_enabled=True):
         assert exchange.urls['api']['public'] == 'https://testnet.org'
         assert exchange.urls['apiBackup']['public'] == 'https://example.com'
     else:
-        assert not is_sandbox_mode_enabled
+        assert is_sandbox_mode_enabled is not True
         assert exchange.urls['api']['public'] == 'https://example.com'
         assert exchange.urls['test']['public'] == 'https://testnet.org'
 
@@ -79,6 +79,16 @@ def helper_test_init_sandbox():
     helper_test_sandbox_state(exchange4, True)
     exchange4.set_sandbox_mode(False)
     helper_test_sandbox_state(exchange4, False)
+    #
+    # CASE C: passed 'sandbox' within userConfig
+    #
+    opts['options']['sandbox'] = False
+    # @ts-expect-error
+    opts['sandbox'] = True
+    exchange5 = ccxt.Exchange(opts)
+    helper_test_sandbox_state(exchange5, True)
+    exchange5.set_sandbox_mode(False)
+    helper_test_sandbox_state(exchange5, False)
 
 
 def helper_test_init_market():
@@ -117,13 +127,6 @@ def helper_test_properties():
     # options
     #
     assert exchange.options is not None
-    # const defaultNetworkCodeReplacements = [
-    #     { 'baseCoin': 'ETH', 'primary': 'ETH', 'secondary': 'ERC20' },
-    #     { 'baseCoin': 'CRO', 'primary': 'CRONOS', 'secondary': 'CRC20' },
-    #     { 'baseCoin': 'TRX', 'primary': 'TRX', 'secondary': 'TRC20' },
-    #     { 'baseCoin': 'BTC', 'primary': 'BTC', 'secondary': 'BRC20' },
-    # ];
-    # testSharedMethods.assertDeepEqual (exchange, {}, 'options', exchange.options['defaultNetworkCodeReplacements'], defaultNetworkCodeReplacements);
     #
     # credentials
     #
@@ -278,7 +281,7 @@ def helper_test_properties():
     assert exchange.timeout == 10000, 'timeout should be 10000'
     assert exchange.verbose is False, 'verbose should be false'
     # assert (testSharedMethods.exchangeProp (exchange, 'newUpdates') === true, 'newUpdates should be true'); # todo WS
-    assert not test_shared_methods.exchange_prop(exchange, 'reloadingMarkets'), 'reloadingMarkets should be false'
+    assert test_shared_methods.exchange_prop(exchange, 'reloadingMarkets') is not True, 'reloadingMarkets should be false'
     assert test_shared_methods.exchange_prop(exchange, 'marketsLoading') is None, 'marketsLoading should be undefined'
     # undefined or false
     assert exchange.version is None, 'version should be undefined'

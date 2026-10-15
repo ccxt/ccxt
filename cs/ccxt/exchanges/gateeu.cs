@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class gateeu : gate
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "gateeu" },
@@ -50,6 +50,9 @@ public partial class gateeu : gate
             { "options", new Dictionary<string, object>() {
                 { "fetchMarkets", new Dictionary<string, object>() {
                     { "types", new List<object>() {"spot"} },
+                } },
+                { "fetchOrderBook", new Dictionary<string, object>() {
+                    { "maxSpotLimit", 100 },
                 } },
                 { "mica", true },
             } },

@@ -27,7 +27,7 @@ export async function generateMetadata(props: PageProps<'/[lang]/blog/page/[page
   const params = await props.params;
   const page = resolvePage(params.page);
   return {
-    title: `Blog — page ${page} | ${appName}`,
+    title: { absolute: `Blog — page ${page} | ${appName}` },
     description: blogDescription,
     alternates: {
       canonical: `${blogAbsoluteBase}/blog/page/${page}`,

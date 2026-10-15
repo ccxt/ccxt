@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 
 // Native dedicated prediction-market type. Hierarchy: Event -> Market -> Outcome.
 // Mirrors the `PredictionMarket` interface in ts/src/base/types.ts and the Go/C# structs.
-public final class PredictionMarket {
+public final class PredictionMarket extends TypedMap {
     public String id;              // raw exchange market id
     public String market;          // unified handle "TRUMP_WIN_2024"
     public String eventId;
@@ -40,10 +40,38 @@ public final class PredictionMarket {
     public PredictionFees fees;
     public String resolutionSource;
     public String image;
+    public String base;
+    public String quote;
+    public String settle;
+    public String baseId;
+    public String quoteId;
+    public String settleId;
+    public String type;
+    public Boolean spot;
+    public Boolean margin;
+    public Boolean swap;
+    public Boolean future;
+    public Boolean option;
+    public Boolean prediction;
+    public Boolean contract;
+    public Boolean linear;
+    public Boolean inverse;
+    public Double contractSize;
+    public Long expiry;
+    public String expiryDatetime;
+    public Double strike;
+    public String optionType;
+    public Double taker;
+    public Double maker;
+    public Boolean percentage;
+    public Boolean tierBased;
+    public String feeSide;
+    public Precision precision;
     public Map<String, Object> info;
 
     @SuppressWarnings("unchecked")
     public PredictionMarket(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.id = TypeHelper.safeString(data, "id");
         this.market = TypeHelper.safeString(data, "market");
@@ -80,6 +108,34 @@ public final class PredictionMarket {
         this.fees = feesRaw != null ? new PredictionFees(feesRaw) : null;
         this.resolutionSource = TypeHelper.safeString(data, "resolutionSource");
         this.image = TypeHelper.safeString(data, "image");
+        this.base = TypeHelper.safeString(data, "base");
+        this.quote = TypeHelper.safeString(data, "quote");
+        this.settle = TypeHelper.safeString(data, "settle");
+        this.baseId = TypeHelper.safeString(data, "baseId");
+        this.quoteId = TypeHelper.safeString(data, "quoteId");
+        this.settleId = TypeHelper.safeString(data, "settleId");
+        this.type = TypeHelper.safeString(data, "type");
+        this.spot = TypeHelper.safeBool(data, "spot");
+        this.margin = TypeHelper.safeBool(data, "margin");
+        this.swap = TypeHelper.safeBool(data, "swap");
+        this.future = TypeHelper.safeBool(data, "future");
+        this.option = TypeHelper.safeBool(data, "option");
+        this.prediction = TypeHelper.safeBool(data, "prediction");
+        this.contract = TypeHelper.safeBool(data, "contract");
+        this.linear = TypeHelper.safeBool(data, "linear");
+        this.inverse = TypeHelper.safeBool(data, "inverse");
+        this.contractSize = TypeHelper.safeFloat(data, "contractSize");
+        this.expiry = TypeHelper.safeInteger(data, "expiry");
+        this.expiryDatetime = TypeHelper.safeString(data, "expiryDatetime");
+        this.strike = TypeHelper.safeFloat(data, "strike");
+        this.optionType = TypeHelper.safeString(data, "optionType");
+        this.taker = TypeHelper.safeFloat(data, "taker");
+        this.maker = TypeHelper.safeFloat(data, "maker");
+        this.percentage = TypeHelper.safeBool(data, "percentage");
+        this.tierBased = TypeHelper.safeBool(data, "tierBased");
+        this.feeSide = TypeHelper.safeString(data, "feeSide");
+        Object precisionRaw = TypeHelper.safeValue(data, "precision");
+        this.precision = precisionRaw != null ? new Precision(precisionRaw) : null;
         this.info = TypeHelper.getInfo(data);
     }
 }

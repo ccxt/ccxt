@@ -35,9 +35,9 @@ function test_liquidation($exchange, $skipped_properties, $method, $entry, $symb
     $contract_size = $exchange->safe_string($entry, 'contractSize');
     $price = $exchange->safe_string($entry, 'price');
     $base_value = $exchange->safe_string($entry, 'baseValue');
-    if ($contracts && $contract_size) {
+    if (($contracts !== null) && ($contracts !== '') && ($contract_size !== null) && ($contract_size !== '')) {
         assert(Precise::string_eq($base_value, Precise::string_mul($contracts, $contract_size)), 'baseValue == contracts * contractSize' . $log_text);
-        if ($price) {
+        if (($price !== null) && ($price !== '')) {
             assert(Precise::string_eq($base_value, Precise::string_mul(Precise::string_mul($contracts, $contract_size), $price)), 'quoteValue == contracts * contractSize * price' . $log_text);
         }
     }

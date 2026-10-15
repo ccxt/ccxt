@@ -14,24 +14,38 @@ include_once PATH_TO_CCXT . '/test/exchange/base/test_order_book.php';
 function test_watch_order_book($exchange, $skipped_properties, $symbol) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbol) {
         $method = 'watchOrderBook';
+        // `watchOrderBook` only resolves when the exchange pushes an update, and a
+        // pending subscription can not be cancelled from here, so every extra
+        // iteration risks blocking until the test-runner kills the whole exchange.
+        // a validated book is already a pass, so keep sampling only while updates
+        // keep arriving quickly and stop once the book goes quiet.
+        $max_idle_time = 5000;
         $now = $exchange->milliseconds();
         $ends = $now + 15000;
-        while ($now < $ends) {
+        $idle = false;
+        while (($now < $ends) && !$idle) {
             $response = null;
             $success = true;
+            $start_time = $exchange->milliseconds();
             try {
                 $response = \React\Async\await($exchange->watch_order_book($symbol));
             } catch(\Throwable $e) {
                 if (!is_temporary_failure($e) && !($e instanceof InvalidNonce)) {
                     throw $e;
                 }
-                $now = $exchange->milliseconds();
-                // continue;
                 $success = false;
             }
+            // refresh the deadline on every path, otherwise a stream of temporary
+            // failures would loop forever
+            $now = $exchange->milliseconds();
             if (($success === true) && ($response !== null)) {
-                $now = $exchange->milliseconds();
                 test_order_book($exchange, $skipped_properties, $method, $response, $symbol);
+                $elapsed = $now - $start_time;
+                if ($elapsed > $max_idle_time) {
+                    // this market updates slower than the remaining test window, so
+                    // awaiting another delta would only end in a harness timeout
+                    $idle = true;
+                }
             }
         }
         return true;

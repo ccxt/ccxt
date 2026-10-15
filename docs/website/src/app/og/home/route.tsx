@@ -16,7 +16,7 @@ export async function GET() {
     (
       <DefaultImage
         title="Connect to any exchange"
-        description="One unified crypto trading API across 100+ exchanges — JavaScript, Python, PHP, C#, Go and Java."
+        description="One unified crypto trading API across 100+ exchanges — JavaScript, Python, PHP, C#, Go, Java and Rust."
         site={appName}
         icon={ccxtIcon}
         primaryColor={ogPrimaryColor}

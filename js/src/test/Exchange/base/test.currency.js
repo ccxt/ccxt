@@ -17,9 +17,9 @@ function testCurrency(exchange, skippedProperties, method, entry) {
     // todo: remove fee from empty
     const emptyAllowedFor = ['name', 'fee'];
     // todo: info key needs to be added in base, when exchange does not have fetchCurrencies
-    const isNative = exchange.has['fetchCurrencies'] && exchange.has['fetchCurrencies'] !== 'emulated';
+    const isNative = (exchange.has['fetchCurrencies'] !== undefined) && (exchange.has['fetchCurrencies'] !== false) && (exchange.has['fetchCurrencies'] !== 'emulated');
     const currencyType = exchange.safeString(entry, 'type');
-    if (isNative) {
+    if (isNative === true) {
         format['info'] = {};
         // todo: 'name': 'Bitcoin', // uppercase string, base currency, 2 or more letters
         format['withdraw'] = true; // withdraw enabled
@@ -56,6 +56,9 @@ function testCurrency(exchange, skippedProperties, method, entry) {
     const networks = exchange.safeDict(entry, 'networks', {});
     const networkKeys = Object.keys(networks);
     const networkKeysLength = networkKeys.length;
+    for (let i = 0; i < networkKeysLength; i++) {
+        testSharedMethods.assertUnifiedNetworkCode(exchange, skippedProperties, method, entry, networkKeys[i]);
+    }
     if (networkKeysLength === 0 && ('skipCurrenciesWithoutNetworks' in skippedProperties)) {
         return;
     }

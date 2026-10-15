@@ -1,6 +1,6 @@
 import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     spotPublicGetAnnouncements(params?: {}): Promise<Dict>;
     spotPublicGetPing(params?: {}): Promise<Dict>;
     spotPublicGetTime(params?: {}): Promise<Dict>;
@@ -19,6 +19,7 @@ interface Exchange {
     spotPublicGetEtfInfo(params?: {}): Promise<Dict>;
     spotPrivateGetKycStatus(params?: {}): Promise<Dict>;
     spotPrivateGetUid(params?: {}): Promise<Dict>;
+    spotPrivateGetApiKeyInfo(params?: {}): Promise<Dict>;
     spotPrivateGetOrder(params?: {}): Promise<Dict>;
     spotPrivateGetOpenOrders(params?: {}): Promise<List>;
     spotPrivateGetAllOrders(params?: {}): Promise<List>;
@@ -79,6 +80,7 @@ interface Exchange {
     spotPrivatePostSubAccountMargin(params?: {}): Promise<Dict>;
     spotPrivatePostBatchOrders(params?: {}): Promise<List>;
     spotPrivatePostStrategyGroup(params?: {}): Promise<Dict>;
+    spotPrivatePostStrategyGroupUid(params?: {}): Promise<Dict>;
     spotPrivatePostCapitalWithdrawApply(params?: {}): Promise<Dict>;
     spotPrivatePostCapitalWithdraw(params?: {}): Promise<Dict>;
     spotPrivatePostCapitalTransfer(params?: {}): Promise<Dict>;
@@ -239,7 +241,5 @@ interface Exchange {
     brokerPrivatePostSubAccountUniversalTransfer(params?: {}): Promise<Dict>;
     brokerPrivatePostSubAccountFutures(params?: {}): Promise<Dict>;
     brokerPrivateDeleteSubAccountApiKey(params?: {}): Promise<Dict>;
-}
-declare abstract class Exchange extends _Exchange {
 }
 export default Exchange;

@@ -393,7 +393,7 @@
                 "input": [
                     "ETH",
                     {
-                        "network": "ETH"
+                        "network": "ERC20"
                     }
                 ],
                 "httpResponse": {
@@ -404,7 +404,7 @@
                         "ETH": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
                     },
                     "currency": "ETH",
-                    "network": "ETH",
+                    "network": "ERC20",
                     "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22",
                     "tag": null
                 }
@@ -459,7 +459,7 @@
                 "input": [
                     "USDT",
                     {
-                        "network": "ETH"
+                        "network": "ERC20"
                     }
                 ],
                 "httpResponse": {
@@ -505,7 +505,7 @@
                 "input": [
                     "ETH",
                     {
-                        "network": "ETH"
+                        "network": "ERC20"
                     }
                 ],
                 "httpResponse": {
@@ -516,7 +516,7 @@
                         "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
                     },
                     "currency": "ETH",
-                    "network": "ETH",
+                    "network": "ERC20",
                     "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22",
                     "tag": null
                 }
@@ -549,7 +549,7 @@
                 "input": [
                     "USDT",
                     {
-                        "network": "ETH"
+                        "network": "ERC20"
                     }
                 ],
                 "httpResponse": {
@@ -618,7 +618,6 @@
                     "USDT",
                     5,
                     "0x883b79D31EA07AA200A4a83c50d444470A212eEE",
-                    null,
                     {
                         "network": "ERC20"
                     }
@@ -1071,7 +1070,7 @@
                         ]
                     },
                     "symbol": "BTC/USDT:USDT",
-                    "marginMode": "CROSS",
+                    "marginMode": "cross",
                     "longLeverage": 20,
                     "shortLeverage": 20
                 }
@@ -1877,7 +1876,6 @@
                 },
                 "parsedResponse": {
                     "ETH/USDT:USDT": {
-                        "id": "ETH_USDT_PERP",
                         "symbol": "ETH/USDT:USDT",
                         "timestamp": 1741118171233,
                         "datetime": "2025-03-04T19:56:11.233Z",
@@ -1887,14 +1885,14 @@
                         "bidVolume": 1,
                         "ask": 2170.84,
                         "askVolume": 4,
-                        "vwap": 20.917286186528596,
+                        "vwap": 2091.7286186528595,
                         "open": 2113.46,
                         "close": 2170.89,
                         "previousClose": null,
                         "change": 57.43,
                         "percentage": 2.7173450171756266,
                         "average": 2142.17,
-                        "baseVolume": 213994,
+                        "baseVolume": 2139.94,
                         "quoteVolume": 4476173.7402,
                         "markPrice": 2170.89,
                         "indexPrice": 2171.33,
@@ -1921,7 +1919,6 @@
                         "last": 2170.89
                     },
                     "BTC/USDT:USDT": {
-                        "id": "BTC_USDT_PERP",
                         "symbol": "BTC/USDT:USDT",
                         "timestamp": 1741118169158,
                         "datetime": "2025-03-04T19:56:09.158Z",
@@ -1931,14 +1928,14 @@
                         "bidVolume": 1,
                         "ask": 88293.05,
                         "askVolume": 1,
-                        "vwap": 84.55959765785994,
+                        "vwap": 84559.59765785995,
                         "open": 85945.76,
                         "close": 88282.54,
                         "previousClose": null,
                         "change": 2336.78,
                         "percentage": 2.7189008509553,
                         "average": 87114.15,
-                        "baseVolume": 285918,
+                        "baseVolume": 285.918,
                         "quoteVolume": 24177111.04314,
                         "markPrice": 88302.41,
                         "indexPrice": 88324.59,
@@ -2061,6 +2058,224 @@
                         "USDT": 7.203956665
                     }
                 }
+            }
+        ],
+        "createOrders": [
+            {
+                "description": "spot batch with one accepted and one rejected order, live-captured",
+                "method": "createOrders",
+                "input": [
+                    [
+                        {
+                            "symbol": "BTC/USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 0.0001,
+                            "price": 10000,
+                            "params": {
+                                "clientOrderId": "ccxtBatchSpot1"
+                            }
+                        },
+                        {
+                            "symbol": "BTC/USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 0.0001,
+                            "price": 9000
+                        }
+                    ]
+                ],
+                "httpResponse": [
+                    {
+                        "id": "613157738154983424",
+                        "clientOrderId": "ccxtBatchSpot1"
+                    },
+                    {
+                        "code": 21322,
+                        "message": "Amount less than minAmount",
+                        "clientOrderId": ""
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "613157738154983424",
+                            "clientOrderId": "ccxtBatchSpot1"
+                        },
+                        "id": "613157738154983424",
+                        "clientOrderId": "ccxtBatchSpot1",
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastTradeTimestamp": null,
+                        "status": null,
+                        "symbol": "BTC/USDT",
+                        "type": null,
+                        "timeInForce": null,
+                        "postOnly": false,
+                        "side": null,
+                        "price": null,
+                        "triggerPrice": null,
+                        "cost": null,
+                        "average": null,
+                        "amount": null,
+                        "filled": null,
+                        "remaining": null,
+                        "trades": [],
+                        "fee": null,
+                        "marginMode": null,
+                        "reduceOnly": null,
+                        "leverage": null,
+                        "hedged": true,
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    },
+                    {
+                        "info": {
+                            "code": 21322,
+                            "message": "Amount less than minAmount",
+                            "clientOrderId": ""
+                        },
+                        "id": null,
+                        "clientOrderId": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastTradeTimestamp": null,
+                        "status": "rejected",
+                        "symbol": "BTC/USDT",
+                        "type": null,
+                        "timeInForce": null,
+                        "postOnly": false,
+                        "side": null,
+                        "price": null,
+                        "triggerPrice": null,
+                        "cost": null,
+                        "average": null,
+                        "amount": null,
+                        "filled": null,
+                        "remaining": null,
+                        "trades": [],
+                        "fee": null,
+                        "marginMode": null,
+                        "reduceOnly": null,
+                        "leverage": null,
+                        "hedged": true,
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "cancelOrders": [
+            {
+                "description": "swap batch cancel with one success and one ORDER_NOT_EXISTS rejection",
+                "method": "cancelOrders",
+                "input": [
+                    [
+                        "613158248048390144",
+                        "613158248098721792"
+                    ],
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": 200,
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "code": "200",
+                            "msg": "Success",
+                            "ordId": "613158248048390144",
+                            "clOrdId": "ccxtBatchSwap2"
+                        },
+                        {
+                            "code": "11008",
+                            "msg": "ORDER_NOT_EXISTS",
+                            "ordId": "613158248098721792",
+                            "clOrdId": ""
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "code": "200",
+                            "msg": "Success",
+                            "ordId": "613158248048390144",
+                            "clOrdId": "ccxtBatchSwap2"
+                        },
+                        "id": "613158248048390144",
+                        "clientOrderId": "ccxtBatchSwap2",
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastTradeTimestamp": null,
+                        "status": null,
+                        "symbol": "BTC/USDT:USDT",
+                        "type": null,
+                        "timeInForce": null,
+                        "postOnly": false,
+                        "side": null,
+                        "price": null,
+                        "triggerPrice": null,
+                        "cost": null,
+                        "average": null,
+                        "amount": null,
+                        "filled": null,
+                        "remaining": null,
+                        "trades": [],
+                        "fee": null,
+                        "marginMode": null,
+                        "reduceOnly": null,
+                        "leverage": null,
+                        "hedged": true,
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    },
+                    {
+                        "info": {
+                            "code": "11008",
+                            "msg": "ORDER_NOT_EXISTS",
+                            "ordId": "613158248098721792",
+                            "clOrdId": ""
+                        },
+                        "id": "613158248098721792",
+                        "clientOrderId": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastTradeTimestamp": null,
+                        "status": "rejected",
+                        "symbol": "BTC/USDT:USDT",
+                        "type": null,
+                        "timeInForce": null,
+                        "postOnly": false,
+                        "side": null,
+                        "price": null,
+                        "triggerPrice": null,
+                        "cost": null,
+                        "average": null,
+                        "amount": null,
+                        "filled": null,
+                        "remaining": null,
+                        "trades": [],
+                        "fee": null,
+                        "marginMode": null,
+                        "reduceOnly": null,
+                        "leverage": null,
+                        "hedged": true,
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
             }
         ],
         "createOrder": [
@@ -2392,7 +2607,6 @@
                     ]
                 },
                 "parsedResponse": {
-                    "id": "BTC_USDT_PERP",
                     "symbol": "BTC/USDT:USDT",
                     "timestamp": 1741117912439,
                     "datetime": "2025-03-04T19:51:52.439Z",
@@ -2402,14 +2616,14 @@
                     "bidVolume": 313,
                     "ask": 88201.52,
                     "askVolume": 27,
-                    "vwap": 84.63096178568102,
+                    "vwap": 84630.96178568102,
                     "open": 86713.35,
                     "close": 88134.38,
                     "previousClose": null,
                     "change": 1421.03,
                     "percentage": 1.6387672717061443,
                     "average": 87423.86,
-                    "baseVolume": 300580,
+                    "baseVolume": 300.58,
                     "quoteVolume": 25438374.49354,
                     "markPrice": 88167.06,
                     "indexPrice": null,
@@ -2462,7 +2676,6 @@
                     "markPrice": "73370.07"
                 },
                 "parsedResponse": {
-                    "id": "BTC_USDT",
                     "symbol": "BTC/USDT",
                     "timestamp": 1710328238600,
                     "datetime": "2024-03-13T11:10:38.600Z",

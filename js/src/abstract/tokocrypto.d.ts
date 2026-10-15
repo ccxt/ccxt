@@ -1,6 +1,6 @@
 import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     binanceGetPing(params?: {}): Promise<Dict>;
     binanceGetTime(params?: {}): Promise<Dict>;
     binanceGetDepth(params?: {}): Promise<Dict>;
@@ -8,10 +8,11 @@ interface Exchange {
     binanceGetAggTrades(params?: {}): Promise<List>;
     binanceGetHistoricalTrades(params?: {}): Promise<List>;
     binanceGetKlines(params?: {}): Promise<List>;
-    binanceGetTicker24hr(params?: {}): Promise<List>;
+    binanceGetTicker24hr(params?: {}): Promise<Dict | List>;
     binanceGetTickerPrice(params?: {}): Promise<Dict>;
     binanceGetTickerBookTicker(params?: {}): Promise<List>;
     binanceGetExchangeInfo(params?: {}): Promise<Dict>;
+    binanceGetExecutionRules(params?: {}): Promise<Dict>;
     binancePutUserDataStream(params?: {}): Promise<Dict>;
     binancePostUserDataStream(params?: {}): Promise<Dict>;
     binanceDeleteUserDataStream(params?: {}): Promise<Dict>;
@@ -34,7 +35,6 @@ interface Exchange {
     privatePostOpenV1OrdersOco(params?: {}): Promise<Dict>;
     privatePostOpenV1Withdraws(params?: {}): Promise<Dict>;
     privatePostOpenV1UserDataStream(params?: {}): Promise<Dict>;
-}
-declare abstract class Exchange extends _Exchange {
+    privatePostOpenV1UserListenToken(params?: {}): Promise<Dict>;
 }
 export default Exchange;

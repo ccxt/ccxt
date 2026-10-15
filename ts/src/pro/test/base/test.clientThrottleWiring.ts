@@ -1,0 +1,99 @@
+// NO_AUTO_TRANSPILE
+import assert from 'assert';
+import ccxt from '../../../../ccxt.js';
+import { Throttler } from '../../../base/functions/throttle.js';
+
+// native ts test, intentionally not transpiled - the ws client factory is
+// hand-written in every port (python/ccxt/async_support/base/exchange.py,
+// php/pro/ClientTrait.php, go/v4/exchange.go, cs/ccxt/ws/Exchange.WsBridge.cs),
+// so only the js/ts wiring is expressed by ts/src/base/Exchange.ts and only it
+// can be pinned from here.
+//
+// what this guards, see https://github.com/ccxt/ccxt/pull/30086:
+//   1. Exchange.client () must put a callable under the 'throttle' key. watch ()
+//      and watchMultiple () gate outbound subscribe frames on
+//      `this.enableRateLimit && (client.throttle !== undefined)`, so a missing
+//      binding silently degrades to unthrottled sends on every pro exchange -
+//      enableRateLimit defaults to true, so that is the default path.
+//   2. that callable must be backed by a throttler dedicated to the client, not
+//      by Exchange.throttle - which delegates to this.throttler, the same bucket
+//      fetch () drains. Sharing them makes a subscribe burst stall unrelated REST
+//      calls by burstSize x rateLimit milliseconds, and diverges js from the
+//      dedicated-Throttler wiring the other ports already ship.
+//
+// nothing dials a socket here: client () only constructs the WsClient
+// (the connection opens in WsClient.connect (), reached from watch ()).
+
+function makeExchange () {
+    return new (ccxt as any).pro.binance ({});
+}
+
+function testClientThrottleIsCallable () {
+    const exchange = makeExchange ();
+    const client = exchange.client ('wss://throttle-wiring.probe/ws');
+    assert (typeof client.throttle === 'function', 'client.throttle must be a callable - watch () skips throttling entirely when it is undefined, got ' + typeof client.throttle);
+    assert (client.throttler instanceof Throttler, 'client.throttler must be a Throttler instance, got ' + String (client.throttler));
+}
+
+async function testClientThrottleIsBoundToItsOwnThrottler () {
+    const exchange = makeExchange ();
+    const client = exchange.client ('wss://throttle-wiring.probe/ws');
+    // the reference is read off the client and invoked detached, exactly as
+    // watch () does through client.throttle (cost) - an unbound method would
+    // throw here instead of resolving
+    const throttle = client.throttle;
+    await throttle (1);
+    assert (client.throttler.queue.length === 0, 'the detached client.throttle must drive the client throttler and drain it, queue left at ' + String (client.throttler.queue.length));
+}
+
+function testThrottlerIsPerClientAndNotRecreated () {
+    const exchange = makeExchange ();
+    const url = 'wss://throttle-wiring.probe/ws';
+    const first = exchange.client (url);
+    const again = exchange.client (url);
+    assert (first === again, 'client () must memoize per url, otherwise every watch () call would allocate a fresh throttler and lose the pacing state');
+    assert (first.throttle === again.throttle, 'the memoized client must keep the same bound throttle function');
+    const other = exchange.client ('wss://throttle-wiring.other/ws');
+    assert (other.throttler !== first.throttler, 'each client must get its own Throttler so one stream cannot pace another');
+    assert (other.throttle !== first.throttle, 'each client must get its own bound throttle function');
+}
+
+async function testWsBurstDoesNotDrainTheRestBucket () {
+    // the regression this pins: binding Exchange.throttle here would make WS
+    // subscribes and REST calls share this.throttler, so the burst below would
+    // consume the REST bucket's tokens. tokens are the leaky bucket's admission
+    // counter (ts/src/base/functions/throttle.ts), so this is exact rather than
+    // timing-based.
+    const exchange = makeExchange ();
+    const client = exchange.client ('wss://throttle-wiring.probe/ws');
+    assert (client.throttler !== exchange.throttler, 'the ws throttler must not be the exchange-wide REST throttler');
+    const restTokensBefore = exchange.throttler.config['tokens'];
+    const wsTokensBefore = client.throttler.config['tokens'];
+    const burst = [];
+    for (let i = 0; i < 3; i++) {
+        burst.push (client.throttle (1));
+    }
+    await Promise.all (burst);
+    assert (exchange.throttler.config['tokens'] === restTokensBefore, 'a ws subscribe burst must not consume REST tokens - client.throttle is bound to the exchange-wide bucket, REST tokens went from ' + String (restTokensBefore) + ' to ' + String (exchange.throttler.config['tokens']));
+    assert (exchange.throttler.queue.length === 0, 'a ws subscribe burst must not queue anything on the REST throttler, queue length ' + String (exchange.throttler.queue.length));
+    assert (client.throttler.config['tokens'] < wsTokensBefore, 'the ws burst must be accounted on the ws throttler - client.throttle is not driving it, tokens still at ' + String (client.throttler.config['tokens']));
+}
+
+function testUserSuppliedThrottleOverrideStillWins () {
+    // options.ws is deep-extended last in client (), so an integrator replacing
+    // the throttle hook must keep winning over the default binding
+    const marker = async () => {};
+    const exchange = new (ccxt as any).pro.binance ({ 'options': { 'ws': { 'throttle': marker } } });
+    const client = exchange.client ('wss://throttle-wiring.probe/ws');
+    assert (client.throttle === marker, 'options.ws.throttle must still override the default client throttle binding');
+}
+
+async function testWsClientThrottleWiring () {
+    testClientThrottleIsCallable ();
+    await testClientThrottleIsBoundToItsOwnThrottler ();
+    testThrottlerIsPerClientAndNotRecreated ();
+    await testWsBurstDoesNotDrainTheRestBucket ();
+    testUserSuppliedThrottleOverrideStillWins ();
+}
+
+export default testWsClientThrottleWiring;

@@ -7,11 +7,12 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-public final class FundingRates {
+public final class FundingRates extends TypedMap {
     public Map<String, FundingRate> rates;
 
     @SuppressWarnings("unchecked")
     public FundingRates(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.rates = new LinkedHashMap<>();
         for (Map.Entry<String, Object> entry : data.entrySet()) {

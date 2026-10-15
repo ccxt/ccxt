@@ -143,4 +143,17 @@ function test_safe_ticker() {
     assert(precise_equal_str($exchange, $result9, 'percentage', '0'));
     assert(precise_equal_str($exchange, $result9, 'open', '6.0'));
     assert(precise_equal_str($exchange, $result9, 'last', '6.0'));
+    // CASE 10 - by open and average, the pair that derives close from average
+    $ticker10 = array(
+        'open' => 5,
+        'average' => 5.5,
+    );
+    $result10 = $exchange->safe_ticker($ticker10);
+    assert(precise_equal_str($exchange, $result10, 'close', '6.0'));
+    assert(precise_equal_str($exchange, $result10, 'last', '6.0'));
+    // the supplied average must survive untouched, and this path deliberately
+    // leaves change and percentage underived - pin that boundary
+    assert(precise_equal_str($exchange, $result10, 'average', '5.5'));
+    assert($result10['change'] === null);
+    assert($result10['percentage'] === null);
 }

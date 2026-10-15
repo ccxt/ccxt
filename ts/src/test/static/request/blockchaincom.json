@@ -45,7 +45,7 @@
                 "input": [
                     "LTC/USDT"
                 ],
-                "output": "{\"symbol\":\"LTC-USDT\"}"
+                "output": { "symbol": "LTC-USDT" }
             }
         ],
         "fetchBalance": [
@@ -94,7 +94,7 @@
                 "input": [
                     "USDT"
                 ],
-                "output": "{}"
+                "output": {}
             }
         ],
         "createOrder": [
@@ -109,7 +109,7 @@
                     0.1,
                     50
                 ],
-                "output": "{\"ordType\":\"LIMIT\",\"symbol\":\"LTC-USDT\",\"side\":\"BUY\",\"orderQty\":\"0.1\",\"clOrdId\":\"4314cf84b4d38e68\",\"price\":\"50\"}"
+                "output": { "ordType": "LIMIT", "symbol": "LTC-USDT", "side": "BUY", "orderQty": "0.1", "clOrdId": "4314cf84b4d38e68", "price": "50" }
             }
         ],
         "fetchOrderBook": [

@@ -5,7 +5,7 @@ package io.github.ccxt.types;
 
 import java.util.Map;
 
-public final class MarginModification {
+public final class MarginModification extends TypedMap {
     public String symbol;
     public String type;
     public String marginMode;
@@ -19,6 +19,7 @@ public final class MarginModification {
 
     @SuppressWarnings("unchecked")
     public MarginModification(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.symbol = TypeHelper.safeString(data, "symbol");
         this.type = TypeHelper.safeString(data, "type");

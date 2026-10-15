@@ -1,6 +1,6 @@
 Every endpoint in `bit2c`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/bit2c) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetExchangesPairTicker`); the snake_case alias (`public_get_exchanges_pair_ticker`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`PublicGetExchangesPairTicker`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetExchangesPairTicker`); Python and PHP use the snake_case form (`public_get_exchanges_pair_ticker`), and Go uses the PascalCase form (`PublicGetExchangesPairTicker`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official bit2c API documentation:** [bit2c.co.il](https://www.bit2c.co.il/home/api) · [github.com](https://github.com/OferE/bit2c)
 
-> 23 implicit endpoints across 2 access groups.
+> 26 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -63,6 +63,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | --- | --- | --- | --- |
 | `publicGetExchangesPairTicker` | GET | `Exchanges/{pair}/Ticker` | 1 |
 | `publicGetExchangesPairOrderbook` | GET | `Exchanges/{pair}/orderbook` | 1 |
+| `publicGetExchangesPairOrderbookTop` | GET | `Exchanges/{pair}/orderbook-top` | 1 |
 | `publicGetExchangesPairTrades` | GET | `Exchanges/{pair}/trades` | 1 |
 | `publicGetExchangesPairLasttrades` | GET | `Exchanges/{pair}/lasttrades` | 1 |
 
@@ -72,6 +73,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | --- | --- | --- | --- |
 | `privatePostMerchantCreateCheckout` | POST | `Merchant/CreateCheckout` | 1 |
 | `privatePostFundsAddCoinFundsRequest` | POST | `Funds/AddCoinFundsRequest` | 1 |
+| `privatePostFundsWithdrawCoin` | POST | `Funds/WithdrawCoin` | 1 |
 | `privatePostOrderAddFund` | POST | `Order/AddFund` | 1 |
 | `privatePostOrderAddOrder` | POST | `Order/AddOrder` | 1 |
 | `privatePostOrderGetById` | POST | `Order/GetById` | 1 |
@@ -89,4 +91,5 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetOrderGetById` | GET | `Order/GetById` | 1 |
 | `privateGetOrderAccountHistory` | GET | `Order/AccountHistory` | 1 |
 | `privateGetOrderOrderHistory` | GET | `Order/OrderHistory` | 1 |
+| `privateGetOrderHistoryByOrderId` | GET | `Order/HistoryByOrderId` | 1 |
 

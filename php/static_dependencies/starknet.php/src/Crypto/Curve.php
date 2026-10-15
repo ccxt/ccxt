@@ -17,12 +17,23 @@ use StarkNet\Utils;
 
 class Curve
 {
+    private static $ec = null;
+
     /**
      * ec
      * 
      * @return EC
      */
     public static function ec()
+    {
+        // the curve is immutable and the generator precompute is expensive, build it once per process
+        if (self::$ec === null) {
+            self::$ec = self::buildEc();
+        }
+        return self::$ec;
+    }
+
+    private static function buildEc()
     {
         $sha256 = [ "blockSize" => 512, "outSize" => 256, "hmacStrength" => 192, "padLength" => 64, "algo" => 'sha256' ];
         return new EC(new PresetCurve(array(

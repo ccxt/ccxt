@@ -78,7 +78,7 @@ function assertStructure (exchange: Exchange, skippedProperties: object, method:
             assert (value !== undefined, i.toString () + ' index is expected to have a value' + logText);
             // because of other langs, this is needed for arrays
             const typeAssertion = assertType (exchange, {}, entry, i, format);
-            assert (typeAssertion, i.toString () + ' index does not have an expected type ' + logText);
+            assert (typeAssertion === true, i.toString () + ' index does not have an expected type ' + logText);
         }
     } else {
         assert (exchange.isDictionary (entry), 'entry is not a dict' + logText);
@@ -104,7 +104,7 @@ function assertStructure (exchange: Exchange, skippedProperties: object, method:
             // add exclusion for info key, as it can be any type
             if (key !== 'info') {
                 const typeAssertion = assertType (exchange, {}, entry, key, format);
-                assert (typeAssertion, '"' + stringValue (key) + '" key is neither undefined, neither of expected type' + logText);
+                assert (typeAssertion === true, '"' + stringValue (key) + '" key is neither undefined, neither of expected type' + logText);
                 if (deep) {
                     if (exchange.isDictionary (value) || Array.isArray (value)) {
                         assertStructure (exchange, skippedProperties, method, value, (format as Dict)[key], emptyAllowedFor, deep);
@@ -236,7 +236,6 @@ function assertSymbolInMarkets (exchange: Exchange, skippedProperties: object, m
     assert ((exchange.markets !== undefined) && (symbol in exchange.markets), 'symbol should be present in exchange.symbols' + logText);
 }
 
-
 function assertGreater (exchange: Exchange, skippedProperties: object, method: string, entry: object, key: string | number, compareTo: string, allowNull: boolean = true) {
     if (key in skippedProperties) {
         return;
@@ -295,6 +294,16 @@ function assertEqual (exchange: Exchange, skippedProperties: object, method: str
     if (value !== undefined && compareTo !== undefined) {
         assert (Precise.stringEq (value, compareTo), stringValue (key) + ' key (with a value of ' + stringValue (value) + ') was expected to be equal to ' + stringValue (compareTo) + logText);
     }
+}
+
+function assertUnifiedNetworkCode (exchange: Exchange, skippedProperties: object, method: string, entry: object, networkCode: Str) {
+    // returned network codes must be the unified code, never one of its aliases (e.g. ERC20, not ETH)
+    if (('network' in skippedProperties) || (networkCode === undefined)) {
+        return;
+    }
+    const logText = logTemplate (exchange, method, entry);
+    const unifiedCode = exchange.safeString (exchange.networkAliases, networkCode, networkCode);
+    assert (unifiedCode === networkCode, 'network code ' + networkCode + ' is an alias, expected the unified code ' + unifiedCode + logText);
 }
 
 function assertNonEqual (exchange: Exchange, skippedProperties: object, method: string, entry: object, key: string | number, compareTo: string, allowNull: boolean = true) {
@@ -410,7 +419,7 @@ async function fetchBestBidAsk (exchange: any, method: string, symbol: string) {
     let bestAsk: Num = undefined;
 
     let usedMethod: Str = undefined;
-    if (exchange.has['fetchOrderBook']) {
+    if ((exchange.has['fetchOrderBook'] !== undefined) && (exchange.has['fetchOrderBook'] !== false)) {
         usedMethod = 'fetchOrderBook';
         const orderbook = await exchange.fetchOrderBook (symbol);
         const bids = exchange.safeList (orderbook, 'bids');
@@ -419,18 +428,18 @@ async function fetchBestBidAsk (exchange: any, method: string, symbol: string) {
         const bestAskArray = exchange.safeList (asks, 0);
         bestBid = exchange.safeNumber (bestBidArray, 0);
         bestAsk = exchange.safeNumber (bestAskArray, 0);
-    } else if (exchange.has['fetchBidsAsks']) {
+    } else if ((exchange.has['fetchBidsAsks'] !== undefined) && (exchange.has['fetchBidsAsks'] !== false)) {
         usedMethod = 'fetchBidsAsks';
         const tickers = await exchange.fetchBidsAsks ([ symbol ]);
         const ticker = exchange.safeDict (tickers, symbol);
         bestBid = exchange.safeNumber (ticker, 'bid');
         bestAsk = exchange.safeNumber (ticker, 'ask');
-    } else if (exchange.has['fetchTicker']) {
+    } else if ((exchange.has['fetchTicker'] !== undefined) && (exchange.has['fetchTicker'] !== false)) {
         usedMethod = 'fetchTicker';
         const ticker = await exchange.fetchTicker (symbol);
         bestBid = exchange.safeNumber (ticker, 'bid');
         bestAsk = exchange.safeNumber (ticker, 'ask');
-    } else if (exchange.has['fetchTickers']) {
+    } else if ((exchange.has['fetchTickers'] !== undefined) && (exchange.has['fetchTickers'] !== false)) {
         usedMethod = 'fetchTickers';
         const tickers = await exchange.fetchTickers ([ symbol ]);
         const ticker = exchange.safeDict (tickers, symbol);
@@ -451,7 +460,7 @@ async function fetchOrder (exchange: any, symbol: Str, orderId: Str, skippedProp
     const methods_singular = [ 'fetchOrder', 'fetchOpenOrder', 'fetchClosedOrder', 'fetchCanceledOrder' ];
     for (let i = 0; i < methods_singular.length; i++) {
         const singularFetchName = methods_singular[i];
-        if (exchange.has[singularFetchName]) {
+        if ((exchange.has[singularFetchName] !== undefined) && (exchange.has[singularFetchName] !== false)) {
             const currentOrder = await exchange[singularFetchName] (originalId, symbol);
             // if there is an id inside the order, it means the order was fetched successfully
             if (currentOrder['id'] === originalId) {
@@ -466,7 +475,7 @@ async function fetchOrder (exchange: any, symbol: Str, orderId: Str, skippedProp
         const methods_plural = [ 'fetchOrders', 'fetchOpenOrders', 'fetchClosedOrders', 'fetchCanceledOrders' ];
         for (let i = 0; i < methods_plural.length; i++) {
             const pluralFetchName = methods_plural[i];
-            if (exchange.has[pluralFetchName]) {
+            if ((exchange.has[pluralFetchName] !== undefined) && (exchange.has[pluralFetchName] !== false)) {
                 const orders = await exchange[pluralFetchName] (symbol, sinceTime);
                 let found = false;
                 for (let j = 0; j < orders.length; j++) {
@@ -696,7 +705,6 @@ function validateTickerExceptionForPercentage (ex: any, exchange: Exchange, tick
     assert (eMessage === '', eMessage); // trigger error
 }
 
-
 export default {
     exchangeProp,
     deepEqual,
@@ -718,6 +726,7 @@ export default {
     assertLessOrEqual,
     assertEqual,
     assertNonEqual,
+    assertUnifiedNetworkCode,
     assertInteger,
     checkPrecisionAccuracy,
     fetchBestBidAsk,

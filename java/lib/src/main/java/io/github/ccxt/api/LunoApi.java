@@ -7,6 +7,8 @@
 
 package io.github.ccxt.api;
 import io.github.ccxt.Exchange;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class LunoApi extends Exchange
 {
@@ -25,7 +27,7 @@ public class LunoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  exchangeGetMarkets (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  exchangeGetMarkets (Object... optionalArgs)
     {
         return this.callAsync ("exchangeGetMarkets", optionalArgs);
     }
@@ -36,7 +38,7 @@ public class LunoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  exchangePrivateGetCandles (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  exchangePrivateGetCandles (Object... optionalArgs)
     {
         return this.callAsync ("exchangePrivateGetCandles", optionalArgs);
     }
@@ -47,7 +49,7 @@ public class LunoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  exchangePrivateGetMove (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  exchangePrivateGetMove (Object... optionalArgs)
     {
         return this.callAsync ("exchangePrivateGetMove", optionalArgs);
     }
@@ -58,7 +60,7 @@ public class LunoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  exchangePrivateGetMoveListMoves (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  exchangePrivateGetMoveListMoves (Object... optionalArgs)
     {
         return this.callAsync ("exchangePrivateGetMoveListMoves", optionalArgs);
     }
@@ -69,7 +71,7 @@ public class LunoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  exchangePrivateGetTransfers (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  exchangePrivateGetTransfers (Object... optionalArgs)
     {
         return this.callAsync ("exchangePrivateGetTransfers", optionalArgs);
     }
@@ -80,7 +82,7 @@ public class LunoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  exchangePrivatePostConvert (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  exchangePrivatePostConvert (Object... optionalArgs)
     {
         return this.callAsync ("exchangePrivatePostConvert", optionalArgs);
     }
@@ -91,7 +93,7 @@ public class LunoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  exchangePrivatePostMove (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  exchangePrivatePostMove (Object... optionalArgs)
     {
         return this.callAsync ("exchangePrivatePostMove", optionalArgs);
     }
@@ -102,7 +104,7 @@ public class LunoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetOrderbook (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetOrderbook (Object... optionalArgs)
     {
         return this.callAsync ("publicGetOrderbook", optionalArgs);
     }
@@ -113,7 +115,7 @@ public class LunoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetOrderbookTop (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetOrderbookTop (Object... optionalArgs)
     {
         return this.callAsync ("publicGetOrderbookTop", optionalArgs);
     }
@@ -124,7 +126,7 @@ public class LunoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetTicker (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetTicker (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTicker", optionalArgs);
     }
@@ -135,7 +137,7 @@ public class LunoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetTickers (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetTickers (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTickers", optionalArgs);
     }
@@ -146,7 +148,7 @@ public class LunoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetTrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetTrades (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTrades", optionalArgs);
     }
@@ -157,7 +159,7 @@ public class LunoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAccountsIdPending (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetAccountsIdPending (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAccountsIdPending", optionalArgs);
     }
@@ -168,7 +170,7 @@ public class LunoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAccountsIdTransactions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetAccountsIdTransactions (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAccountsIdTransactions", optionalArgs);
     }
@@ -179,7 +181,7 @@ public class LunoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetBalance (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetBalance (Object... optionalArgs)
     {
         return this.callAsync ("privateGetBalance", optionalArgs);
     }
@@ -190,7 +192,7 @@ public class LunoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetBeneficiaries (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetBeneficiaries (Object... optionalArgs)
     {
         return this.callAsync ("privateGetBeneficiaries", optionalArgs);
     }
@@ -201,7 +203,7 @@ public class LunoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetSendNetworks (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetSendNetworks (Object... optionalArgs)
     {
         return this.callAsync ("privateGetSendNetworks", optionalArgs);
     }
@@ -212,7 +214,7 @@ public class LunoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFeeInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetFeeInfo (Object... optionalArgs)
     {
         return this.callAsync ("privateGetFeeInfo", optionalArgs);
     }
@@ -223,7 +225,7 @@ public class LunoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFundingAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetFundingAddress (Object... optionalArgs)
     {
         return this.callAsync ("privateGetFundingAddress", optionalArgs);
     }
@@ -234,7 +236,7 @@ public class LunoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetListorders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetListorders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetListorders", optionalArgs);
     }
@@ -245,7 +247,7 @@ public class LunoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetListtrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetListtrades (Object... optionalArgs)
     {
         return this.callAsync ("privateGetListtrades", optionalArgs);
     }
@@ -256,7 +258,7 @@ public class LunoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetSendFee (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetSendFee (Object... optionalArgs)
     {
         return this.callAsync ("privateGetSendFee", optionalArgs);
     }
@@ -267,7 +269,7 @@ public class LunoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetOrdersId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetOrdersId (Object... optionalArgs)
     {
         return this.callAsync ("privateGetOrdersId", optionalArgs);
     }
@@ -278,7 +280,7 @@ public class LunoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetWithdrawals (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetWithdrawals (Object... optionalArgs)
     {
         return this.callAsync ("privateGetWithdrawals", optionalArgs);
     }
@@ -289,7 +291,7 @@ public class LunoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetWithdrawalsId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetWithdrawalsId (Object... optionalArgs)
     {
         return this.callAsync ("privateGetWithdrawalsId", optionalArgs);
     }
@@ -300,7 +302,7 @@ public class LunoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetTransfers (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetTransfers (Object... optionalArgs)
     {
         return this.callAsync ("privateGetTransfers", optionalArgs);
     }
@@ -311,7 +313,7 @@ public class LunoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetUsersLinked (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetUsersLinked (Object... optionalArgs)
     {
         return this.callAsync ("privateGetUsersLinked", optionalArgs);
     }
@@ -322,7 +324,7 @@ public class LunoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAccounts (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAccounts (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAccounts", optionalArgs);
     }
@@ -333,7 +335,7 @@ public class LunoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAddressValidate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAddressValidate (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAddressValidate", optionalArgs);
     }
@@ -344,7 +346,7 @@ public class LunoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostPostorder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostPostorder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostPostorder", optionalArgs);
     }
@@ -355,7 +357,7 @@ public class LunoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostMarketorder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostMarketorder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostMarketorder", optionalArgs);
     }
@@ -366,7 +368,7 @@ public class LunoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostStoporder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostStoporder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostStoporder", optionalArgs);
     }
@@ -377,7 +379,7 @@ public class LunoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostFundingAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostFundingAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostFundingAddress", optionalArgs);
     }
@@ -388,7 +390,7 @@ public class LunoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostWithdrawals (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostWithdrawals (Object... optionalArgs)
     {
         return this.callAsync ("privatePostWithdrawals", optionalArgs);
     }
@@ -399,7 +401,7 @@ public class LunoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSend (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSend (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSend", optionalArgs);
     }
@@ -410,7 +412,7 @@ public class LunoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOauth2Grant (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOauth2Grant (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOauth2Grant", optionalArgs);
     }
@@ -421,7 +423,7 @@ public class LunoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostBeneficiaries (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostBeneficiaries (Object... optionalArgs)
     {
         return this.callAsync ("privatePostBeneficiaries", optionalArgs);
     }
@@ -432,7 +434,7 @@ public class LunoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePutAccountsIdName (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePutAccountsIdName (Object... optionalArgs)
     {
         return this.callAsync ("privatePutAccountsIdName", optionalArgs);
     }
@@ -443,7 +445,7 @@ public class LunoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteWithdrawalsId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteWithdrawalsId (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteWithdrawalsId", optionalArgs);
     }
@@ -454,7 +456,7 @@ public class LunoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteBeneficiariesId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteBeneficiariesId (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteBeneficiariesId", optionalArgs);
     }

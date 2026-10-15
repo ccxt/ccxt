@@ -265,6 +265,15 @@ def assert_equal(exchange, skipped_properties, method, entry, key, compare_to, a
         assert Precise.string_eq(value, compare_to), string_value(key) + ' key (with a value of ' + string_value(value) + ') was expected to be equal to ' + string_value(compare_to) + log_text
 
 
+def assert_unified_network_code(exchange, skipped_properties, method, entry, network_code):
+    # returned network codes must be the unified code, never one of its aliases (e.g. ERC20, not ETH)
+    if ('network' in skipped_properties) or (network_code is None):
+        return
+    log_text = log_template(exchange, method, entry)
+    unified_code = exchange.safe_string(exchange.networkAliases, network_code, network_code)
+    assert unified_code == network_code, 'network code ' + network_code + ' is an alias, expected the unified code ' + unified_code + log_text
+
+
 def assert_non_equal(exchange, skipped_properties, method, entry, key, compare_to, allow_null=True):
     if key in skipped_properties:
         return
@@ -359,7 +368,7 @@ def fetch_best_bid_ask(exchange, method, symbol):
     best_bid = None
     best_ask = None
     used_method = None
-    if exchange.has['fetchOrderBook']:
+    if (exchange.has['fetchOrderBook'] is not None) and (exchange.has['fetchOrderBook'] is not False):
         used_method = 'fetchOrderBook'
         orderbook = exchange.fetch_order_book(symbol)
         bids = exchange.safe_list(orderbook, 'bids')
@@ -368,18 +377,18 @@ def fetch_best_bid_ask(exchange, method, symbol):
         best_ask_array = exchange.safe_list(asks, 0)
         best_bid = exchange.safe_number(best_bid_array, 0)
         best_ask = exchange.safe_number(best_ask_array, 0)
-    elif exchange.has['fetchBidsAsks']:
+    elif (exchange.has['fetchBidsAsks'] is not None) and (exchange.has['fetchBidsAsks'] is not False):
         used_method = 'fetchBidsAsks'
         tickers = exchange.fetch_bids_asks([symbol])
         ticker = exchange.safe_dict(tickers, symbol)
         best_bid = exchange.safe_number(ticker, 'bid')
         best_ask = exchange.safe_number(ticker, 'ask')
-    elif exchange.has['fetchTicker']:
+    elif (exchange.has['fetchTicker'] is not None) and (exchange.has['fetchTicker'] is not False):
         used_method = 'fetchTicker'
         ticker = exchange.fetch_ticker(symbol)
         best_bid = exchange.safe_number(ticker, 'bid')
         best_ask = exchange.safe_number(ticker, 'ask')
-    elif exchange.has['fetchTickers']:
+    elif (exchange.has['fetchTickers'] is not None) and (exchange.has['fetchTickers'] is not False):
         used_method = 'fetchTickers'
         tickers = exchange.fetch_tickers([symbol])
         ticker = exchange.safe_dict(tickers, symbol)
@@ -399,7 +408,7 @@ def fetch_order(exchange, symbol, order_id, skipped_properties):
     methods_singular = ['fetchOrder', 'fetchOpenOrder', 'fetchClosedOrder', 'fetchCanceledOrder']
     for i in range(0, len(methods_singular)):
         singular_fetch_name = methods_singular[i]
-        if exchange.has[singular_fetch_name]:
+        if (exchange.has[singular_fetch_name] is not None) and (exchange.has[singular_fetch_name] is not False):
             current_order = exchange[singular_fetch_name](original_id, symbol)
             # if there is an id inside the order, it means the order was fetched successfully
             if current_order['id'] == original_id:
@@ -411,7 +420,7 @@ def fetch_order(exchange, symbol, order_id, skipped_properties):
         methods_plural = ['fetchOrders', 'fetchOpenOrders', 'fetchClosedOrders', 'fetchCanceledOrders']
         for i in range(0, len(methods_plural)):
             plural_fetch_name = methods_plural[i]
-            if exchange.has[plural_fetch_name]:
+            if (exchange.has[plural_fetch_name] is not None) and (exchange.has[plural_fetch_name] is not False):
                 orders = exchange[plural_fetch_name](symbol, since_time)
                 found = False
                 for j in range(0, len(orders)):

@@ -29,12 +29,16 @@ function tco_debug($exchange, $symbol, $message) {
 function test_create_order($exchange, $skipped_properties, $symbol) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbol) {
         $log_prefix = log_template($exchange, 'createOrder', [$symbol]);
-        assert($exchange->has['cancelOrder'] || $exchange->has['cancelOrders'] || $exchange->has['cancelAllOrders'], $log_prefix . ' does not have cancelOrder|cancelOrders|canelAllOrders method, which is needed to make tests for `createOrder` method. Skipping the test...');
+        $has_cancel_order = ($exchange->has['cancelOrder'] !== null) && ($exchange->has['cancelOrder'] !== false);
+        $has_cancel_orders = ($exchange->has['cancelOrders'] !== null) && ($exchange->has['cancelOrders'] !== false);
+        $has_cancel_all_orders = ($exchange->has['cancelAllOrders'] !== null) && ($exchange->has['cancelAllOrders'] !== false);
+        assert($has_cancel_order || $has_cancel_orders || $has_cancel_all_orders, $log_prefix . ' does not have cancelOrder|cancelOrders|canelAllOrders method, which is needed to make tests for `createOrder` method. Skipping the test...');
         // pre-define some coefficients, which will be used down below
         $limit_price_safety_multiplier_from_median = 1.045; // todo: when this https://github.com/ccxt/ccxt/issues/22442 is implemented, we'll remove hardcoded value. atm 5% is enough
         $market = $exchange->market($symbol);
-        $is_swap_future = $market['swap'] || $market['future'];
-        assert($exchange->has['fetchBalance'], $log_prefix . ' does not have fetchBalance() method, which is needed to make tests for `createOrder` method. Skipping the test...');
+        $is_swap_future = ($market['swap'] === true) || ($market['future'] === true);
+        $has_fetch_balance = ($exchange->has['fetchBalance'] !== null) && ($exchange->has['fetchBalance'] !== false);
+        assert($has_fetch_balance, $log_prefix . ' does not have fetchBalance() method, which is needed to make tests for `createOrder` method. Skipping the test...');
         $balance = \React\Async\await($exchange->fetch_balance());
         $initial_base_balance = $balance[$market['base']]['free'];
         $initial_quote_balance = $balance[$market['quote']]['free'];
@@ -122,7 +126,7 @@ function tco_create_fillable_order($exchange, $market, $log_prefix, $skipped_pro
     // as we want to close position, we should use 'reduceOnly' to ensure we don't open a margined position accidentally, because some exchanges might have automatically enabled margin-mode (on spot) or hedge-mode (on contracts)
     return Async\async(function () use ($exchange, $market, $log_prefix, $skipped_properties, $best_bid, $best_ask, $limit_price_safety_multiplier_from_median, $buy_or_sell_string, $predefined_amount) {
         try {
-            $is_swap_future = $market['swap'] || $market['future'];
+            $is_swap_future = ($market['swap'] === true) || ($market['future'] === true);
             $is_buy = ($buy_or_sell_string === 'buy');
             $entry_side = $is_buy ? 'buy' : 'sell';
             $exit_side = $is_buy ? 'sell' : 'buy';
@@ -139,7 +143,8 @@ function tco_create_fillable_order($exchange, $market, $log_prefix, $skipped_pro
             if ($is_swap_future) {
                 $params['reduceOnly'] = true;
             }
-            $exitorder_filled = \React\Async\await(tco_create_order_safe($exchange, $symbol, 'market', $exit_side, $amount_to_close, ($market['spot'] ? null : $exitorder_price), $params, $skipped_properties));
+            $exitorder_price_arg = ($market['spot'] === true) ? null : $exitorder_price;
+            $exitorder_filled = \React\Async\await(tco_create_order_safe($exchange, $symbol, 'market', $exit_side, $amount_to_close, $exitorder_price_arg, $params, $skipped_properties));
             $exitorder_fetched = \React\Async\await(fetch_order($exchange, $symbol, $exitorder_filled['id'], $skipped_properties));
             tco_assert_filled_order($exchange, $market, $log_prefix, $skipped_properties, $exitorder_filled, $exitorder_fetched, $exit_side, $amount_to_close);
         } catch(\Throwable $e) {
@@ -178,13 +183,13 @@ function tco_cancel_order($exchange, $symbol, $order_id = null) {
         $log_prefix = log_template($exchange, 'createOrder', [$symbol]);
         $used_method = '';
         $cancel_result = null;
-        if ($exchange->has['cancelOrder'] && $order_id !== null) {
+        if (($exchange->has['cancelOrder'] !== null) && ($exchange->has['cancelOrder'] !== false) && ($order_id !== null)) {
             $used_method = 'cancelOrder';
             $cancel_result = \React\Async\await($exchange->cancel_order($order_id, $symbol));
-        } elseif ($exchange->has['cancelAllOrders']) {
+        } elseif (($exchange->has['cancelAllOrders'] !== null) && ($exchange->has['cancelAllOrders'] !== false)) {
             $used_method = 'cancelAllOrders';
             $cancel_result = \React\Async\await($exchange->cancel_all_orders($symbol));
-        } elseif ($exchange->has['cancelOrders']) {
+        } elseif (($exchange->has['cancelOrders'] !== null) && ($exchange->has['cancelOrders'] !== false)) {
             throw new Exception($log_prefix . ' cancelOrders method is not unified yet, coming soon...');
         }
         tco_debug($exchange, $symbol, 'canceled order using ' . $used_method . ':' . $cancel_result['id']);
@@ -274,7 +279,7 @@ function tco_try_cancel_order($exchange, $symbol, $order, $skipped_properties) {
         }
         $needs_cancel = $exchange->in_array($order_fetched['status'], ['open', 'pending', null]);
         // if it was not reported as closed/filled, then try to cancel it
-        if ($needs_cancel) {
+        if ($needs_cancel === true) {
             tco_debug($exchange, $symbol, 'trying to cancel the remaining amount of partially filled order...');
             try {
                 \React\Async\await(tco_cancel_order($exchange, $symbol, $order['id']));

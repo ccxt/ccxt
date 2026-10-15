@@ -1,0 +1,360 @@
+{
+    "exchange": "phemex",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "watchTrades": [
+            {
+                "description": "spot trades",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://ws.phemex.com",
+                "messages": [
+                    {
+                        "error": null,
+                        "id": 1,
+                        "result": {
+                            "status": "success"
+                        }
+                    },
+                    {
+                        "sequence": 40389304304,
+                        "symbol": "sBTCUSDT",
+                        "trades": [
+                            [
+                                1786563265110767600,
+                                "Buy",
+                                6337934000000,
+                                1758800
+                            ],
+                            [
+                                1786563265110606800,
+                                "Buy",
+                                6337934000000,
+                                2750800
+                            ],
+                            [
+                                1786563261645005600,
+                                "Sell",
+                                6337933000000,
+                                3179000
+                            ],
+                            [
+                                1786563258548406500,
+                                "Buy",
+                                6337934000000,
+                                4509300
+                            ],
+                            [
+                                1786563257030958300,
+                                "Buy",
+                                6338355000000,
+                                10335200
+                            ]
+                        ],
+                        "type": "snapshot"
+                    },
+                    {
+                        "sequence": 40389359695,
+                        "symbol": "sBTCUSDT",
+                        "trades": [
+                            [
+                                1786563267644839400,
+                                "Buy",
+                                6338355000000,
+                                4609000
+                            ]
+                        ],
+                        "type": "incremental"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "trade.subscribe",
+                        "id": 1,
+                        "params": [
+                            "sBTCUSDT"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": [
+                                1786563257030958300,
+                                "Buy",
+                                6338355000000,
+                                10335200
+                            ],
+                            "id": null,
+                            "symbol": "BTC/USDT",
+                            "timestamp": 1786563257030,
+                            "datetime": "2026-08-12T19:34:17.030Z",
+                            "order": null,
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": null,
+                            "price": 63383.55,
+                            "amount": 0.103352,
+                            "cost": 6550.8166596,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        },
+                        {
+                            "info": [
+                                1786563258548406500,
+                                "Buy",
+                                6337934000000,
+                                4509300
+                            ],
+                            "id": null,
+                            "symbol": "BTC/USDT",
+                            "timestamp": 1786563258548,
+                            "datetime": "2026-08-12T19:34:18.548Z",
+                            "order": null,
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": null,
+                            "price": 63379.34,
+                            "amount": 0.045093,
+                            "cost": 2857.96457862,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        },
+                        {
+                            "info": [
+                                1786563261645005600,
+                                "Sell",
+                                6337933000000,
+                                3179000
+                            ],
+                            "id": null,
+                            "symbol": "BTC/USDT",
+                            "timestamp": 1786563261645,
+                            "datetime": "2026-08-12T19:34:21.645Z",
+                            "order": null,
+                            "type": null,
+                            "side": "sell",
+                            "takerOrMaker": null,
+                            "price": 63379.33,
+                            "amount": 0.03179,
+                            "cost": 2014.8289007,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        },
+                        {
+                            "info": [
+                                1786563265110767600,
+                                "Buy",
+                                6337934000000,
+                                1758800
+                            ],
+                            "id": null,
+                            "symbol": "BTC/USDT",
+                            "timestamp": 1786563265110,
+                            "datetime": "2026-08-12T19:34:25.110Z",
+                            "order": null,
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": null,
+                            "price": 63379.34,
+                            "amount": 0.017588,
+                            "cost": 1114.71583192,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        },
+                        {
+                            "info": [
+                                1786563265110606800,
+                                "Buy",
+                                6337934000000,
+                                2750800
+                            ],
+                            "id": null,
+                            "symbol": "BTC/USDT",
+                            "timestamp": 1786563265110,
+                            "datetime": "2026-08-12T19:34:25.110Z",
+                            "order": null,
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": null,
+                            "price": 63379.34,
+                            "amount": 0.027508,
+                            "cost": 1743.43888472,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ]
+                ]
+            }
+        ],
+        "watchOrderBook": [
+            {
+                "description": "spot orderbook",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://ws.phemex.com",
+                "messages": [
+                    {
+                        "error": null,
+                        "id": 1,
+                        "result": {
+                            "status": "success"
+                        }
+                    },
+                    {
+                        "book": {
+                            "asks": [
+                                [
+                                    6337934000000,
+                                    8462600
+                                ],
+                                [
+                                    6338355000000,
+                                    20829000
+                                ],
+                                [
+                                    6338401000000,
+                                    17277000
+                                ],
+                                [
+                                    6338416000000,
+                                    16558000
+                                ],
+                                [
+                                    6338457000000,
+                                    18568200
+                                ]
+                            ],
+                            "bids": [
+                                [
+                                    6337933000000,
+                                    3179000
+                                ],
+                                [
+                                    6337312000000,
+                                    5687100
+                                ],
+                                [
+                                    6337259000000,
+                                    4649700
+                                ],
+                                [
+                                    6337073000000,
+                                    16524500
+                                ],
+                                [
+                                    6337060000000,
+                                    13675400
+                                ]
+                            ]
+                        },
+                        "depth": 30,
+                        "sequence": 40389359374,
+                        "symbol": "sBTCUSDT",
+                        "timestamp": "1786563252520140151",
+                        "type": "snapshot"
+                    },
+                    {
+                        "book": {
+                            "asks": [
+                                [
+                                    6339599000000,
+                                    8945000
+                                ],
+                                [
+                                    6340049000000,
+                                    0
+                                ]
+                            ],
+                            "bids": []
+                        },
+                        "depth": 30,
+                        "sequence": 40389359379,
+                        "symbol": "sBTCUSDT",
+                        "timestamp": "1786563253055996208",
+                        "type": "incremental"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "orderbook.subscribe",
+                        "id": 1,
+                        "params": [
+                            "sBTCUSDT"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "bids": [
+                            [
+                                63379.33,
+                                0.03179
+                            ],
+                            [
+                                63373.12,
+                                0.056871
+                            ],
+                            [
+                                63372.59,
+                                0.046497
+                            ],
+                            [
+                                63370.73,
+                                0.165245
+                            ],
+                            [
+                                63370.6,
+                                0.136754
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                63379.34,
+                                0.084626
+                            ],
+                            [
+                                63383.55,
+                                0.20829
+                            ],
+                            [
+                                63384.01,
+                                0.17277
+                            ],
+                            [
+                                63384.16,
+                                0.16558
+                            ],
+                            [
+                                63384.57,
+                                0.185682
+                            ]
+                        ],
+                        "timestamp": 1786563252520,
+                        "datetime": "2026-08-12T19:34:12.520Z",
+                        "nonce": 40389359374,
+                        "symbol": "BTC/USDT"
+                    }
+                ]
+            }
+        ]
+    }
+}

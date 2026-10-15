@@ -88,6 +88,13 @@ public partial class bitbank : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateGetUserSpotActiveOrders",parameters);
     }
 
+    /// <summary>Calls the privateGetUserMarginStatus endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetUserMarginStatus (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetUserMarginStatus",parameters);
+    }
+
     /// <summary>Calls the privateGetUserMarginPositions endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateGetUserMarginPositions (object parameters = null)

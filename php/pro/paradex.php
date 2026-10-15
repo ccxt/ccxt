@@ -6,10 +6,12 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 use ccxt\pro\ArrayCache;
 use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheBySymbolBySide;
 
 class paradex extends \ccxt\async\paradex {
     public function describe(): mixed {
@@ -22,9 +24,11 @@ class paradex extends \ccxt\async\paradex {
                 'watchTickers' => true,
                 'watchOrderBook' => true,
                 'watchOrders' => true,
+                'watchMyTrades' => true,
+                'watchPositions' => true,
                 'watchTrades' => true,
                 'watchTradesForSymbols' => false,
-                'watchBalance' => false,
+                'watchBalance' => true,
                 'watchOHLCV' => false,
             ),
             'urls' => array(
@@ -40,12 +44,35 @@ class paradex extends \ccxt\async\paradex {
                 'fees' => 'https://docs.paradex.trade/getting-started/trading-fees',
                 'referral' => '',
             ),
-            'options' => array(),
+            'options' => array(
+                // SBE (Simple Binary Encoding) frames on the data channels, see parseSbeMessage. the
+                // servers answer a connect without it with a 400, false keeps the JSON feed for any
+                // environment that still serves it
+                'sbe' => true,
+                // the schema version asked for at connect. the decoder reads 1:0 to 1:3 (it takes the
+                // block length from each frame header), a server answers a version above its cap with a 400
+                'sbeSchemaVersion' => '3',
+                // SBE frames must reach handleMessage as raw bytes, the JSON feed only sends text frames
+                'decompressBinary' => false,
+            ),
             'streaming' => array(),
         ));
     }
 
-    public function request_id() {
+    public function get_ws_url(): string {
+        $url = $this->urls['api']['ws'];
+        if (!$this->safe_bool($this->options, 'sbe', true)) {
+            return $url;
+        }
+        $schemaVersion = $this->safe_string($this->options, 'sbeSchemaVersion', '3');
+        return $url . '?sbeSchemaId=1&sbeSchemaVersion=' . $schemaVersion;
+    }
+
+    public function get_order_book_channel(?string $marketId): string {
+        return 'order_book.' . $marketId . '.snapshot@15@100ms';
+    }
+
+    public function request_id(): float {
         $requestId = $this->sum($this->safe_integer($this->options, 'requestId', 0), 1);
         $this->options['requestId'] = $requestId;
         return $requestId;
@@ -56,7 +83,7 @@ class paradex extends \ccxt\async\paradex {
     }
 
     private function do_authenticate($params = array()) {
-        $url = $this->urls['api']['ws'];
+        $url = $this->get_ws_url();
         $client = $this->client($url);
         $messageHash = 'authenticated';
         $future = $client->reusableFuture('authenticated');
@@ -76,17 +103,17 @@ class paradex extends \ccxt\async\paradex {
         return Async\await($future);
     }
 
-    public function handle_authentication_message(Client $client, mixed $message) {
+    public function handle_authentication_message(Client $client, array $message) {
         //
         //     {
-        //         "jsonrpc" => "2.0",
-        //         "id" => 1,
-        //         "result" => array( "node_id" => "73cf456f7cb78d59" )
+        //         "jsonrpc": "2.0",
+        //         "id": 1,
+        //         "result": { "node_id": "73cf456f7cb78d59" }
         //     }
         //
         $result = $this->safe_dict($message, 'result');
         if ($result !== null) {
-            // $client->resolve(true, messageHash);
+            // client.resolve (true, messageHash);
             $future = $this->safe_value($client->futures, 'authenticated');
             if ($future !== null) {
                 $future->resolve(true);
@@ -102,7 +129,7 @@ class paradex extends \ccxt\async\paradex {
         /**
          * get the list of most recent $trades for a particular $symbol
          *
-         * @see https://docs.paradex.trade/ws/web-socket-channels/trades/trades
+         * @see https://docs.paradex.trade/ws/web-socket-channels/trades-$market-symbol/trades-$market-$symbol
          *
          * @param {string} $symbol unified $symbol of the $market to fetch $trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -120,7 +147,7 @@ class paradex extends \ccxt\async\paradex {
         } else {
             $messageHash .= 'ALL';
         }
-        $url = $this->urls['api']['ws'];
+        $url = $this->get_ws_url();
         $request = array(
             'jsonrpc' => '2.0',
             'method' => 'subscribe',
@@ -129,27 +156,28 @@ class paradex extends \ccxt\async\paradex {
             ),
         );
         $trades = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($symbol, $limit);
+            $limitResolved = $trades->getLimit($symbol, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
-    public function handle_trade(Client $client, mixed $message) {
+    public function handle_trade(Client $client, array $message): array {
         //
         //     {
-        //         "jsonrpc" => "2.0",
-        //         "method" => "subscription",
-        //         "params" => {
-        //             "channel" => "trades.ALL",
-        //             "data" => {
-        //                 "id" => "1718179273230201709233240002",
-        //                 "market" => "kBONK-USD-PERP",
-        //                 "side" => "BUY",
-        //                 "size" => "34028",
-        //                 "price" => "0.028776",
-        //                 "created_at" => 1718179273230,
-        //                 "trade_type" => "FILL"
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "trades.ALL",
+        //             "data": {
+        //                 "id": "1718179273230201709233240002",
+        //                 "market": "kBONK-USD-PERP",
+        //                 "side": "BUY",
+        //                 "size": "34028",
+        //                 "price": "0.028776",
+        //                 "created_at": 1718179273230,
+        //                 "trade_type": "FILL"
         //             }
         //         }
         //     }
@@ -166,6 +194,12 @@ class paradex extends \ccxt\async\paradex {
         }
         $stored->append($parsedTrade);
         $client->resolve($stored, $messageHash);
+        // an SBE frame names its market but not the subscription it was sent for,
+        // so the trades.ALL subscription is resolved from the per-market channel too
+        $isSbe = $this->safe_bool($message, 'sbe', false);
+        if ($isSbe && ($messageHash !== 'trades.ALL')) {
+            $client->resolve($stored, 'trades.ALL');
+        }
         return $message;
     }
 
@@ -177,7 +211,7 @@ class paradex extends \ccxt\async\paradex {
         /**
          * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
-         * @see https://docs.paradex.trade/ws/web-socket-channels/order-book/order-book
+         * @see https://docs.paradex.trade/ws/web-socket-channels/order-book-$market-$symbol-feed-type-15-refresh-rate-price-tick/order-book-$market-$symbol-feed-type-15-refresh-rate-price-tick
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
@@ -188,8 +222,8 @@ class paradex extends \ccxt\async\paradex {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $messageHash = 'order_book.' . $market['id'] . '.snapshot@15@100ms';
-        $url = $this->urls['api']['ws'];
+        $messageHash = $this->get_order_book_channel($market['id']);
+        $url = $this->get_ws_url();
         $request = array(
             'jsonrpc' => '2.0',
             'method' => 'subscribe',
@@ -201,32 +235,32 @@ class paradex extends \ccxt\async\paradex {
         return $orderbook->limit();
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         //     {
-        //         "jsonrpc" => "2.0",
-        //         "method" => "subscription",
-        //         "params" => {
-        //             "channel" => "order_book.BTC-USD-PERP.snapshot@15@50ms",
-        //             "data" => {
-        //                 "seq_no" => 14127815,
-        //                 "market" => "BTC-USD-PERP",
-        //                 "last_updated_at" => 1718267837265,
-        //                 "update_type" => "s",
-        //                 "inserts" => array(
-        //                     array(
-        //                         "side" => "BUY",
-        //                         "price" => "67629.7",
-        //                         "size" => "0.992"
-        //                     ),
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "order_book.BTC-USD-PERP.snapshot@15@50ms",
+        //             "data": {
+        //                 "seq_no": 14127815,
+        //                 "market": "BTC-USD-PERP",
+        //                 "last_updated_at": 1718267837265,
+        //                 "update_type": "s",
+        //                 "inserts": [
         //                     {
-        //                         "side" => "SELL",
-        //                         "price" => "69378.6",
-        //                         "size" => "3.137"
+        //                         "side": "BUY",
+        //                         "price": "67629.7",
+        //                         "size": "0.992"
+        //                     },
+        //                     {
+        //                         "side": "SELL",
+        //                         "price": "69378.6",
+        //                         "size": "3.137"
         //                     }
-        //                 ),
-        //                 "updates" => array(),
-        //                 "deletes" => array()
+        //                 ],
+        //                 "updates": [],
+        //                 "deletes": []
         //             }
         //         }
         //     }
@@ -240,10 +274,9 @@ class paradex extends \ccxt\async\paradex {
         if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book();
         }
-        $orderbookData = array(
-            'bids' => array(),
-            'asks' => array(),
-        );
+        // levels go into local arrays first: pushing into orderbookData['bids'] appends to a copy in go
+        $bids = array();
+        $asks = array();
         $inserts = $this->safe_list($data, 'inserts');
         for ($i = 0; $i < count(($inserts)); $i++) {
             $insert = $this->safe_dict($inserts, $i);
@@ -251,11 +284,15 @@ class paradex extends \ccxt\async\paradex {
             $price = $this->safe_string($insert, 'price');
             $size = $this->safe_string($insert, 'size');
             if ($side === 'BUY') {
-                $orderbookData['bids'][] = array( $price, $size );
+                $bids[] = array( $price, $size );
             } else {
-                $orderbookData['asks'][] = array( $price, $size );
+                $asks[] = array( $price, $size );
             }
         }
+        $orderbookData = array(
+            'bids' => $bids,
+            'asks' => $asks,
+        );
         $orderbook = $this->orderbooks[$symbol];
         $snapshot = $this->parse_order_book($orderbookData, $symbol, $timestamp, 'bids', 'asks');
         $snapshot['nonce'] = $this->safe_integer($data, 'seq_no');
@@ -270,20 +307,22 @@ class paradex extends \ccxt\async\paradex {
 
     private function do_watch_ticker(string $symbol, $params = array()) {
         /**
-         * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
-         * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary/markets-summary
+         * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary-$market-symbol/markets-summary-$market-$symbol
          *
-         * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbol = $this->symbol($symbol);
-        $channel = 'markets_summary';
-        $url = $this->urls['api']['ws'];
+        $market = $this->market($symbol);
+        // the per-market channel: the all-markets one carries a summary for every listed
+        // option too, thousands of messages a second, all decoded only to be filtered out
+        $channel = 'markets_summary.' . $market['id'];
+        $url = $this->get_ws_url();
         $request = array(
             'jsonrpc' => '2.0',
             'method' => 'subscribe',
@@ -291,8 +330,8 @@ class paradex extends \ccxt\async\paradex {
                 'channel' => $channel,
             ),
         );
-        $messageHash = $channel . '.' . $symbol;
-        return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
+        $messageHash = 'markets_summary.' . $market['symbol'];
+        return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $channel));
     }
 
     public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
@@ -303,7 +342,7 @@ class paradex extends \ccxt\async\paradex {
         /**
          * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
          *
-         * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary/markets-summary
+         * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-symbol
          *
          * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -312,9 +351,9 @@ class paradex extends \ccxt\async\paradex {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $channel = 'markets_summary';
-        $url = $this->urls['api']['ws'];
+        $url = $this->get_ws_url();
         $request = array(
             'jsonrpc' => '2.0',
             'method' => 'subscribe',
@@ -323,9 +362,9 @@ class paradex extends \ccxt\async\paradex {
             ),
         );
         $messageHashes = array();
-        if ($symbols !== null && (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols)))) {
-            for ($i = 0; $i < count($symbols); $i++) {
-                $messageHash = $channel . '.' . $symbols[$i];
+        if ($symbolsNormalized !== null && (gettype($symbolsNormalized) === 'array' && array_keys($symbolsNormalized) === array_keys(array_keys($symbolsNormalized)))) {
+            for ($i = 0; $i < count($symbolsNormalized); $i++) {
+                $messageHash = $channel . '.' . $symbolsNormalized[$i];
                 $messageHashes[] = $messageHash;
             }
         } else {
@@ -334,10 +373,13 @@ class paradex extends \ccxt\async\paradex {
         $newTicker = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), $messageHashes));
         if ($this->newUpdates) {
             $result = array();
-            $result[$newTicker['symbol']] = $newTicker;
+            $newTickerSymbol = $this->safe_string($newTicker, 'symbol');
+            if ($newTickerSymbol !== null) {
+                $result[$newTickerSymbol] = $newTicker;
+            }
             return $result;
         }
-        return $this->filter_by_array($this->tickers, 'symbol', $symbols);
+        return $this->filter_by_array($this->tickers, 'symbol', $symbolsNormalized);
     }
 
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -348,7 +390,7 @@ class paradex extends \ccxt\async\paradex {
         /**
          * watches information on multiple $orders made by the user
          *
-         * @see https://docs.paradex.trade/ws/web-socket-channels/orders/orders
+         * @see https://docs.paradex.trade/ws/web-socket-channels/orders-$market-symbol/orders-$market-$symbol
          *
          * @param {string} [$symbol] unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
@@ -362,15 +404,15 @@ class paradex extends \ccxt\async\paradex {
         Async\await($this->authenticate());
         $messageHash = 'orders';
         $channel = 'orders.';
+        $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : $symbol;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbol = $market['symbol'];
             $channel .= $market['id'];
-            $messageHash .= ':' . $symbol;
+            $messageHash .= ':' . $symbolResolved;
         } else {
             $channel .= 'ALL';
         }
-        $url = $this->urls['api']['ws'];
+        $url = $this->get_ws_url();
         $request = array(
             'jsonrpc' => '2.0',
             'method' => 'subscribe',
@@ -379,36 +421,37 @@ class paradex extends \ccxt\async\paradex {
             ),
         );
         $orders = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $channel));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $orders->getLimit($symbol, $limit);
+            $limitResolved = $orders->getLimit($symbolResolved, $limit);
         }
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        return $this->filter_by_symbol_since_limit($orders, $symbolResolved, $since, $limitResolved, true);
     }
 
-    public function handle_order(Client $client, mixed $message) {
+    public function handle_order(Client $client, array $message) {
         //
         //     {
-        //         "jsonrpc" => "2.0",
-        //         "method" => "subscription",
-        //         "params" => {
-        //             "channel" => "orders.ALL",
-        //             "data" => {
-        //                 "account" => "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512x",
-        //                 "avg_fill_price" => "26000",
-        //                 "client_id" => "x1234",
-        //                 "cancel_reason" => "",
-        //                 "created_at" => 1681493746016,
-        //                 "flags" => ["REDUCE_ONLY"],
-        //                 "id" => "123456",
-        //                 "instruction" => "GTC",
-        //                 "last_updated_at" => 1681493746016,
-        //                 "market" => "BTC-USD-PERP",
-        //                 "price" => "26000",
-        //                 "remaining_size" => "0",
-        //                 "side" => "BUY",
-        //                 "size" => "0.05",
-        //                 "status" => "NEW",
-        //                 "type" => "LIMIT"
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "orders.ALL",
+        //             "data": {
+        //                 "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512x",
+        //                 "avg_fill_price": "26000",
+        //                 "client_id": "x1234",
+        //                 "cancel_reason": "",
+        //                 "created_at": 1681493746016,
+        //                 "flags": ["REDUCE_ONLY"],
+        //                 "id": "123456",
+        //                 "instruction": "GTC",
+        //                 "last_updated_at": 1681493746016,
+        //                 "market": "BTC-USD-PERP",
+        //                 "price": "26000",
+        //                 "remaining_size": "0",
+        //                 "side": "BUY",
+        //                 "size": "0.05",
+        //                 "status": "NEW",
+        //                 "type": "LIMIT"
         //             }
         //         }
         //     }
@@ -430,27 +473,302 @@ class paradex extends \ccxt\async\paradex {
         }
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_my_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple $trades made by the user
+         *
+         * @see https://docs.paradex.trade/ws/web-socket-channels/fills-$market-symbol/fills-$market-$symbol
+         *
+         * @param {string} [$symbol] unified $market $symbol of the $market $trades were made in
+         * @param {int} [$since] the earliest time in ms to fetch $trades for
+         * @param {int} [$limit] the maximum number of trade structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        Async\await($this->authenticate());
+        $messageHash = 'myTrades';
+        $channel = 'fills.';
+        $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : $symbol;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $channel .= $market['id'];
+            $messageHash .= ':' . $symbolResolved;
+        } else {
+            $channel .= 'ALL';
+        }
+        $url = $this->get_ws_url();
+        $request = array(
+            'jsonrpc' => '2.0',
+            'method' => 'subscribe',
+            'params' => array(
+                'channel' => $channel,
+            ),
+        );
+        $trades = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $channel));
+        $limitResolved = $limit;
+        if ($this->newUpdates) {
+            $limitResolved = $trades->getLimit($symbolResolved, $limit);
+        }
+        return $this->filter_by_symbol_since_limit($trades, $symbolResolved, $since, $limitResolved, true);
+    }
+
+    public function handle_my_trade(Client $client, array $message) {
         //
         //     {
-        //         "jsonrpc" => "2.0",
-        //         "method" => "subscription",
-        //         "params" => {
-        //             "channel" => "markets_summary",
-        //             "data" => {
-        //                 "symbol" => "ORDI-USD-PERP",
-        //                 "oracle_price" => "49.80885481",
-        //                 "mark_price" => "49.80885481",
-        //                 "last_traded_price" => "62.038",
-        //                 "bid" => "49.822",
-        //                 "ask" => "58.167",
-        //                 "volume_24h" => "0",
-        //                 "total_volume" => "54542628.66054200416",
-        //                 "created_at" => 1718334307698,
-        //                 "underlying_price" => "47.93",
-        //                 "open_interest" => "6999.5",
-        //                 "funding_rate" => "0.03919997509811",
-        //                 "price_change_rate_24h" => ""
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "fills.ALL",
+        //             "data": {
+        //                 "id": "1718947571560201703986670001",
+        //                 "side": "BUY",
+        //                 "liquidity": "TAKER",
+        //                 "market": "BTC-USD-PERP",
+        //                 "order_id": "1718947571540201703992340000",
+        //                 "price": "64852.9",
+        //                 "size": "0.01",
+        //                 "fee": "0.1945587",
+        //                 "fee_currency": "USDC",
+        //                 "created_at": 1718947571569,
+        //                 "remaining_size": "0",
+        //                 "client_id": "",
+        //                 "fill_type": "FILL"
+        //             }
+        //         }
+        //     }
+        //
+        $params = $this->safe_dict($message, 'params', array());
+        $data = $this->safe_dict($params, 'data', array());
+        $trade = $this->parse_trade($data);
+        $symbol = $this->safe_string($trade, 'symbol');
+        if ($this->myTrades === null) {
+            $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
+            $this->myTrades = new ArrayCacheBySymbolById($limit);
+        }
+        $trades = $this->myTrades;
+        $trades->append($trade);
+        $messageHash = 'myTrades';
+        $client->resolve($trades, $messageHash);
+        if ($symbol !== null) {
+            $client->resolve($trades, $messageHash . ':' . $symbol);
+        }
+    }
+
+    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_positions(...))($symbols, $since, $limit, $params);
+    }
+
+    private function do_watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watch all open positions
+         *
+         * @see https://docs.paradex.trade/ws/web-socket-channels/positions/positions
+         *
+         * @param {string[]} [$symbols] list of unified market $symbols
+         * @param {int} [$since] the earliest time in ms to fetch positions for
+         * @param {int} [$limit] the maximum number of positions to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        Async\await($this->authenticate());
+        $symbolsNormalized = $this->market_symbols($symbols);
+        // one channel carries every market
+        $channel = 'positions';
+        $url = $this->get_ws_url();
+        $request = array(
+            'jsonrpc' => '2.0',
+            'method' => 'subscribe',
+            'params' => array(
+                'channel' => $channel,
+            ),
+        );
+        $messageHashes = array();
+        $symbolsLength = 0;
+        if ($symbolsNormalized !== null) {
+            $symbolsLength = count($symbolsNormalized);
+        }
+        if ($symbolsLength === 0) {
+            $messageHashes[] = $channel;
+        } else {
+            for ($i = 0; $i < $symbolsLength; $i++) {
+                $messageHashes[] = $channel . ':' . ($symbolsNormalized)[$i];
+            }
+        }
+        $newPositions = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), array( $channel )));
+        if ($this->newUpdates) {
+            return $newPositions;
+        }
+        return $this->filter_by_symbols_since_limit($this->positions, $symbolsNormalized, $since, $limit, true);
+    }
+
+    public function handle_positions(Client $client, array $message) {
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "positions",
+        //             "data": {
+        //                 "id": "0x49ddd7a564c978f6e4089ff8355b56a42b7e2d48ba282cb5aad60f04bea0ec3-BTC-USD-PERP",
+        //                 "market": "BTC-USD-PERP",
+        //                 "status": "OPEN",
+        //                 "side": "LONG",
+        //                 "size": "0.01",
+        //                 "average_entry_price": "64839.96053748",
+        //                 "unrealized_pnl": "-2.39677214",
+        //                 "leverage": "5",
+        //                 "cost_usd": "648.529",
+        //                 "created_at": 1718947571560,
+        //                 "last_updated_at": 1718950074249,
+        //                 "liquidation_price": ""
+        //             }
+        //         }
+        //     }
+        //
+        $params = $this->safe_dict($message, 'params', array());
+        $data = $this->safe_dict($params, 'data', array());
+        if ($this->positions === null) {
+            $this->positions = new ArrayCacheBySymbolBySide();
+        }
+        $cache = $this->positions;
+        $position = $this->parse_position($data);
+        $symbol = $position['symbol'];
+        $newPositions = array();
+        // one position per market, so a fill through zero flips its side: the cache keys by
+        // symbol and side, and the opposite side it still holds is flattened here
+        $side = $this->safe_string($position, 'side');
+        $cached = $this->filter_by_symbol_since_limit($cache, $symbol, null, null, true);
+        for ($i = 0; $i < count($cached); $i++) {
+            $previous = $cached[$i];
+            $previousSide = $this->safe_string($previous, 'side');
+            $previousContracts = $this->safe_string($previous, 'contracts');
+            $isOpposite = ($side !== null) && ($previousSide !== null) && ($previousSide !== $side);
+            if ($isOpposite && ($previousContracts !== null) && !Precise::string_eq($previousContracts, '0')) {
+                $flattened = $this->extend($previous, array(
+                    'contracts' => $this->parse_number('0'),
+                    'lastUpdateTimestamp' => $this->safe_integer($position, 'lastUpdateTimestamp'),
+                ));
+                $cache->append($flattened);
+                $newPositions[] = $flattened;
+            }
+        }
+        $cache->append($position);
+        $newPositions[] = $position;
+        $client->resolve($newPositions, 'positions');
+        $client->resolve($newPositions, 'positions:' . $symbol);
+    }
+
+    public function watch_balance($params = array()): PromiseInterface {
+        return Async\async(self::do_watch_balance(...))($params);
+    }
+
+    private function do_watch_balance($params = array()) {
+        /**
+         * watch the margin balance of the account in its settlement asset => total is the account
+         * value, free the free collateral and used the initial margin requirement
+         *
+         * @see https://docs.paradex.trade/ws/web-socket-channels/account/account
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        Async\await($this->authenticate());
+        $channel = 'account';
+        $url = $this->get_ws_url();
+        $request = array(
+            'jsonrpc' => '2.0',
+            'method' => 'subscribe',
+            'params' => array(
+                'channel' => $channel,
+            ),
+        );
+        return Async\await($this->watch($url, 'balance', $this->deep_extend($request, $params), $channel));
+    }
+
+    public function handle_balance(Client $client, array $message) {
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "account",
+        //             "data": {
+        //                 "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b",
+        //                 "account_value": "1000.5",
+        //                 "free_collateral": "900.5",
+        //                 "initial_margin_requirement": "100",
+        //                 "maintenance_margin_requirement": "50",
+        //                 "margin_cushion": "950.5",
+        //                 "seq_no": 20,
+        //                 "settlement_asset": "USDC",
+        //                 "status": "ACTIVE",
+        //                 "total_collateral": "1000",
+        //                 "updated_at": 1718950074249
+        //             }
+        //         }
+        //     }
+        //
+        $params = $this->safe_dict($message, 'params', array());
+        $data = $this->safe_dict($params, 'data', array());
+        $this->balance = $this->parse_ws_balance($data);
+        $client->resolve($this->balance, 'balance');
+    }
+
+    public function parse_ws_balance(array $data): array {
+        // the account channel carries margin, not token holdings: the account value (collateral with
+        // unrealized pnl) is the total, the free collateral what can still back a new position, and the
+        // initial margin the part the open positions hold, free + used = total as the venue computes them
+        $timestamp = $this->safe_integer($data, 'updated_at');
+        $result = array(
+            'info' => $data,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
+        $code = $this->safe_currency_code($this->safe_string($data, 'settlement_asset'));
+        $account = $this->account();
+        $account['total'] = $this->safe_string($data, 'account_value');
+        $account['free'] = $this->safe_string($data, 'free_collateral');
+        $account['used'] = $this->safe_string($data, 'initial_margin_requirement');
+        if ($code !== null) {
+            $result[$code] = $account;
+        }
+        return $this->safe_balance($result);
+    }
+
+    public function handle_ticker(Client $client, array $message): array {
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "markets_summary",
+        //             "data": {
+        //                 "symbol": "ORDI-USD-PERP",
+        //                 "oracle_price": "49.80885481",
+        //                 "mark_price": "49.80885481",
+        //                 "last_traded_price": "62.038",
+        //                 "bid": "49.822",
+        //                 "ask": "58.167",
+        //                 "volume_24h": "0",
+        //                 "total_volume": "54542628.66054200416",
+        //                 "created_at": 1718334307698,
+        //                 "underlying_price": "47.93",
+        //                 "open_interest": "6999.5",
+        //                 "funding_rate": "0.03919997509811",
+        //                 "price_change_rate_24h": ""
         //             }
         //         }
         //     }
@@ -461,10 +779,11 @@ class paradex extends \ccxt\async\paradex {
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $channel = $this->safe_string($params, 'channel');
-        $messageHash = $channel . '.' . $symbol;
         $ticker = $this->parse_ticker($data, $market);
         $this->tickers[$symbol] = $ticker;
         $client->resolve($ticker, $channel);
+        // watchTicker waits on the symbol whichever channel, per-market or all, carried it
+        $messageHash = 'markets_summary.' . $symbol;
         $client->resolve($ticker, $messageHash);
         return $message;
     }
@@ -486,9 +805,9 @@ class paradex extends \ccxt\async\paradex {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbol = $this->symbol($symbol);
+        $symbolValue = $this->symbol($symbol);
         $channel = 'funding_data';
-        $url = $this->urls['api']['ws'];
+        $url = $this->get_ws_url();
         $request = array(
             'jsonrpc' => '2.0',
             'method' => 'subscribe',
@@ -496,7 +815,7 @@ class paradex extends \ccxt\async\paradex {
                 'channel' => $channel,
             ),
         );
-        $messageHash = $channel . '.' . $symbol;
+        $messageHash = $channel . '.' . $symbolValue;
         return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
     }
 
@@ -508,7 +827,7 @@ class paradex extends \ccxt\async\paradex {
         /**
          * watch the funding rate for multiple markets
          *
-         * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary/markets-summary
+         * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-symbol
          *
          * @param {string[]} [$symbols] a list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -517,9 +836,9 @@ class paradex extends \ccxt\async\paradex {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $channel = 'funding_data';
-        $url = $this->urls['api']['ws'];
+        $url = $this->get_ws_url();
         $request = array(
             'jsonrpc' => '2.0',
             'method' => 'subscribe',
@@ -528,11 +847,11 @@ class paradex extends \ccxt\async\paradex {
             ),
         );
         $messageHashes = array();
-        if ($symbols !== null) {
-            $symbolsLength = count($symbols);
+        if ($symbolsNormalized !== null) {
+            $symbolsLength = count($symbolsNormalized);
             if ($symbolsLength > 0) {
-                for ($i = 0; $i < count($symbols); $i++) {
-                    $messageHash = $channel . '.' . $symbols[$i];
+                for ($i = 0; $i < count($symbolsNormalized); $i++) {
+                    $messageHash = $channel . '.' . $symbolsNormalized[$i];
                     $messageHashes[] = $messageHash;
                 }
             } else {
@@ -544,27 +863,30 @@ class paradex extends \ccxt\async\paradex {
         $newFundingRates = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), $messageHashes));
         if ($this->newUpdates) {
             $result = array();
-            $result[$newFundingRates['symbol']] = $newFundingRates;
+            $newFundingRatesSymbol = $this->safe_string($newFundingRates, 'symbol');
+            if ($newFundingRatesSymbol !== null) {
+                $result[$newFundingRatesSymbol] = $newFundingRates;
+            }
             return $result;
         }
-        return $this->filter_by_array($this->fundingRates, 'symbol', $symbols);
+        return $this->filter_by_array($this->fundingRates, 'symbol', $symbolsNormalized);
     }
 
-    public function handle_funding_rate(Client $client, mixed $message) {
+    public function handle_funding_rate(Client $client, array $message) {
         //
         //     {
-        //         "jsonrpc" => "2.0",
-        //         "method" => "subscription",
-        //         "params" => {
-        //             "channel" => "funding_data",
-        //             "data" => {
-        //                 "market" => "TRUMP-USD-PERP",
-        //                 "funding_index" => "-0.551694014226244835",
-        //                 "funding_premium" => "-0.000509914923994872836",
-        //                 "funding_rate" => "-0.00014969570582",
-        //                 "funding_rate_8h" => "-0.00014969",
-        //                 "funding_period_hours" => 8,
-        //                 "created_at" => 1771506636154
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "funding_data",
+        //             "data": {
+        //                 "market": "TRUMP-USD-PERP",
+        //                 "funding_index": "-0.551694014226244835",
+        //                 "funding_premium": "-0.000509914923994872836",
+        //                 "funding_rate": "-0.00014969570582",
+        //                 "funding_rate_8h": "-0.00014969",
+        //                 "funding_period_hours": 8,
+        //                 "created_at": 1771506636154
         //             }
         //         }
         //     }
@@ -575,26 +897,34 @@ class paradex extends \ccxt\async\paradex {
         $symbol = $fundingRate['symbol'];
         $this->fundingRates[$symbol] = $fundingRate;
         $channel = $this->safe_string($params, 'channel');
-        $messageHash = $channel . '.' . $symbol;
-        $client->resolve($fundingRate, $messageHash);
+        // watchFundingRates without symbols waits on the bare channel
+        $client->resolve($fundingRate, $channel);
+        if ($channel !== null) {
+            $messageHash = $channel . '.' . $symbol;
+            $client->resolve($fundingRate, $messageHash);
+        }
     }
 
-    public function parse_funding_rate_ws(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate_ws(array $contract, ?array $market = null): array {
         //
         //     {
-        //         "market" => "TRUMP-USD-PERP",
-        //         "funding_index" => "-0.551694014226244835",
-        //         "funding_premium" => "-0.000509914923994872836",
-        //         "funding_rate" => "-0.00014969570582",
-        //         "funding_rate_8h" => "-0.00014969",
-        //         "funding_period_hours" => 8,
-        //         "created_at" => 1771506636154
+        //         "market": "TRUMP-USD-PERP",
+        //         "funding_index": "-0.551694014226244835",
+        //         "funding_premium": "-0.000509914923994872836",
+        //         "funding_rate": "-0.00014969570582",
+        //         "funding_rate_8h": "-0.00014969",
+        //         "funding_period_hours": 8,
+        //         "created_at": 1771506636154
         //     }
         //
         $marketId = $this->safe_string($contract, 'market');
         $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->safe_integer($contract, 'created_at');
         $fundingPeriod = $this->safe_string($contract, 'funding_period_hours');
+        $interval = null;
+        if ($fundingPeriod !== null) {
+            $interval = $fundingPeriod . 'h';
+        }
         return array(
             'info' => $contract,
             'symbol' => $symbol,
@@ -613,23 +943,540 @@ class paradex extends \ccxt\async\paradex {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
-            'interval' => $fundingPeriod . 'h',
+            'interval' => $interval,
         );
     }
 
-    public function handle_error_message(Client $client, mixed $message): ?bool {
+    public function parse_sbe_message(mixed $message): mixed {
+        //
+        // Paradex SBE schema 1:3 (https://docs.paradex.trade), little-endian. Every frame is an 8-byte
+        // header (blockLength, templateId, schemaId, version as uint16) followed by a fixed block of
+        // blockLength bytes, then repeating groups and length-prefixed strings. The frame is rebuilt in
+        // the shape of the matching JSON subscription message, so the JSON handlers parse both.
+        // Requests, subscribe acks and errors stay JSON text frames.
+        //
+        // Returns undefined for frames that carry nothing to route: heartbeats, binary acks, template
+        // ids this decoder does not know (the schema says to skip them), and malformed frames.
+        //
+        $frameHex = bin2hex($message);
+        $frameLength = $this->parse_to_int(strlen($frameHex) / 2);
+        if ($frameLength < 8) {
+            return null;
+        }
+        $blockLength = $this->sbe_read_uint($frameHex, 0, 2);
+        $templateId = $this->sbe_read_uint($frameHex, 2, 2);
+        $schemaId = $this->sbe_read_uint($frameHex, 4, 2);
+        if (($schemaId !== 1) || ($frameLength < $this->sum($blockLength, 8))) {
+            return null;
+        }
+        $channel = null;
+        $data = null;
+        if ($templateId === 1) {
+            $data = $this->parse_sbe_trade($frameHex, $blockLength, $frameLength);
+            if ($data !== null) {
+                $channel = 'trades.' . $data['market'];
+            }
+        } elseif ($templateId === 3) {
+            $data = $this->parse_sbe_order_book($frameHex, $blockLength, $frameLength);
+            if ($data !== null) {
+                $channel = $this->get_order_book_channel($data['market']);
+            }
+        } elseif ($templateId === 4) {
+            $data = $this->parse_sbe_market_summary($frameHex, $blockLength, $frameLength);
+            $channel = 'markets_summary';
+        } elseif ($templateId === 5) {
+            $data = $this->parse_sbe_funding_data($frameHex, $blockLength, $frameLength);
+            $channel = 'funding_data';
+        } elseif ($templateId === 20) {
+            $data = $this->parse_sbe_order($frameHex, $blockLength, $frameLength);
+            if ($data !== null) {
+                $channel = 'orders.' . $data['market'];
+            }
+        } elseif ($templateId === 21) {
+            $data = $this->parse_sbe_fill($frameHex, $blockLength, $frameLength);
+            if ($data !== null) {
+                $channel = 'fills.' . $data['market'];
+            }
+        } elseif ($templateId === 22) {
+            $data = $this->parse_sbe_position($frameHex, $blockLength, $frameLength);
+            $channel = 'positions';
+        } elseif ($templateId === 23) {
+            $data = $this->parse_sbe_account($frameHex, $blockLength, $frameLength);
+            $channel = 'account';
+        }
+        if ($data === null) {
+            return null;
+        }
+        return array(
+            'sbe' => true,
+            'params' => array(
+                'channel' => $channel,
+                'data' => $data,
+            ),
+        );
+    }
+
+    public function sbe_read_uint(string $frameHex, float $offset, float $length): mixed {
+        // a little-endian unsigned integer of at most 4 bytes, so that it stays exact in every language
+        $digits = '0123456789abcdef';
+        $result = 0;
+        $factor = 1;
+        $position = $offset * 2;
+        for ($i = 0; $i < $length; $i++) {
+            // plain variables as slice bounds, php gets end - start unparenthesized
+            $middle = $position + 1;
+            $next = $position + 2;
+            $high = mb_strpos($digits, mb_substr($frameHex, $position, $middle - $position));
+            $low = mb_strpos($digits, mb_substr($frameHex, $middle, $next - $middle));
+            $result = $this->sum($result, $high * 16 * $factor, $low * $factor);
+            $factor = $factor * 256;
+            $position = $next;
+        }
+        return $result;
+    }
+
+    public function sbe_read_int64(string $frameHex, float $offset): ?string {
+        // a signed int64 as a decimal string, undefined for INT64_MIN which the schema uses as null
+        $low = $this->sbe_read_uint($frameHex, $offset, 4);
+        $high = $this->sbe_read_uint($frameHex, $offset + 4, 4);
+        if (($high === 2147483648) && ($low === 0)) {
+            return null;
+        }
+        if ($high === 0) {
+            return $this->number_to_string($low);
+        }
+        $result = Precise::string_add(Precise::string_mul($this->number_to_string($high), '4294967296'), $this->number_to_string($low));
+        if ($high >= 2147483648) {
+            $result = Precise::string_sub($result, '18446744073709551616');
+        }
+        return $result;
+    }
+
+    public function sbe_read_decimal(string $frameHex, float $offset): ?string {
+        // prices, sizes and rates are int64 mantissas with a fixed exponent of -8
+        $mantissa = $this->sbe_read_int64($frameHex, $offset);
+        if ($mantissa === null) {
+            return null;
+        }
+        return Precise::string_div($mantissa, '100000000', 8);
+    }
+
+    public function sbe_read_timestamp(string $frameHex, float $offset): ?int {
+        // timestamps are microseconds, truncated to milliseconds with Precise: a float
+        // quotient like 1791906071000.999 is rounded up when php converts it to an int
+        $microseconds = $this->sbe_read_int64($frameHex, $offset);
+        if ($microseconds === null) {
+            return null;
+        }
+        return $this->parse_to_int(Precise::string_div($microseconds, '1000', 0));
+    }
+
+    public function sbe_read_enum(string $frameHex, float $offset, array $values): ?string {
+        $value = $this->sbe_read_uint($frameHex, $offset, 1);
+        return $this->safe_string($values, $this->number_to_string($value));
+    }
+
+    public function sbe_read_string(string $frameHex, float $offset, float $length): string {
+        $start = $offset * 2;
+        $end = $this->sum($start, $length * 2);
+        return $this->binary_to_string($this->base16_to_binary(mb_substr($frameHex, $start, $end - $start)));
+    }
+
+    public function sbe_read_address(string $frameHex, float $offset): string {
+        // a 32-byte big-endian account address, printed without leading zeros like the JSON feed
+        $rawStart = $offset * 2;
+        $rawEnd = $rawStart + 64;
+        $raw = mb_substr($frameHex, $rawStart, $rawEnd - $rawStart);
+        $start = 0;
+        $next = 1;
+        while (($start < 63) && (mb_substr($raw, $start, $next - $start) === '0')) {
+            $start = $next;
+            $next = $start + 1;
+        }
+        return '0x' . mb_substr($raw, $start, 64 - $start);
+    }
+
+    public function sbe_read_var_strings(string $frameHex, float $offset, float $count, float $frameLength): mixed {
+        // the var-data section: count strings, each prefixed with a uint8 length. Returns undefined
+        // when the frame ends before all of them, and only the strings present when a trailing one is
+        // absent, which is how a field appended to var-data reads on a frame from before it
+        $result = array();
+        $position = $offset;
+        for ($i = 0; $i < $count; $i++) {
+            if ($position >= $frameLength) {
+                return $result;
+            }
+            $length = $this->sbe_read_uint($frameHex, $position, 1);
+            if ($this->sum($position, 1, $length) > $frameLength) {
+                return null;
+            }
+            $result[] = $this->sbe_read_string($frameHex, $position + 1, $length);
+            $position = $this->sum($position, 1, $length);
+        }
+        return $result;
+    }
+
+    public function parse_sbe_trade(string $frameHex, float $blockLength, float $frameLength): mixed {
+        //
+        // TradeEvent (templateId 1), 50-byte block
+        //
+        //     ts int64, seq int64, tradeId int64 (deprecated, truncated), side uint8, price int64,
+        //     size int64, createdAt int64, tradeType uint8, then market and tradeIdStr strings
+        //
+        if ($blockLength < 50) {
+            return null;
+        }
+        $strings = $this->sbe_read_var_strings($frameHex, $this->sum($blockLength, 8), 2, $frameLength);
+        $stringsLength = ($strings === null) ? 0 : count($strings);
+        if ($stringsLength < 1) {
+            return null;
+        }
+        $sides = array( '1' => 'BUY', '2' => 'SELL' );
+        $tradeTypes = array( '1' => 'FILL', '2' => 'LIQUIDATION', '3' => 'UNWIND_TRANSFER', '4' => 'SETTLE_MARKET', '5' => 'RPI', '6' => 'BLOCK_TRADE' );
+        return array(
+            // the full trade id, absent only on frames that predate it, the int64 tradeId cannot hold it
+            'id' => $this->safe_string($strings, 1),
+            'market' => $strings[0],
+            'side' => $this->sbe_read_enum($frameHex, 32, $sides),
+            'size' => $this->sbe_read_decimal($frameHex, 41),
+            'price' => $this->sbe_read_decimal($frameHex, 33),
+            'created_at' => $this->sbe_read_timestamp($frameHex, 49),
+            'trade_type' => $this->sbe_read_enum($frameHex, 57, $tradeTypes),
+        );
+    }
+
+    public function parse_sbe_order_book(string $frameHex, float $blockLength, float $frameLength): mixed {
+        //
+        // BookEvent (templateId 3), 89-byte block
+        //
+        //     ts int64, seq int64, pkgType uint8, nine best bid/ask int64 fields, then the bids and asks
+        //     groups of (price int64, size int64) entries and the market string
+        //
+        if ($blockLength < 17) {
+            return null;
+        }
+        // watchOrderBook subscribes to the snapshot channel, a delta would need a book to apply it to
+        $pkgType = $this->sbe_read_uint($frameHex, 24, 1);
+        if ($pkgType !== 0) {
+            return null;
+        }
+        $inserts = array();
+        $sides = array( 'BUY', 'SELL' );
+        $position = $this->sum($blockLength, 8);
+        for ($i = 0; $i < count($sides); $i++) {
+            if ($position + 4 > $frameLength) {
+                return null;
+            }
+            $entryLength = $this->sbe_read_uint($frameHex, $position, 2);
+            $numInGroup = $this->sbe_read_uint($frameHex, $position + 2, 2);
+            $position = $position + 4;
+            if (($entryLength < 16) || ($this->sum($position, $numInGroup * $entryLength) > $frameLength)) {
+                return null;
+            }
+            for ($j = 0; $j < $numInGroup; $j++) {
+                $inserts[] = array(
+                    'side' => $sides[$i],
+                    'price' => $this->sbe_read_decimal($frameHex, $position),
+                    'size' => $this->sbe_read_decimal($frameHex, $position + 8),
+                );
+                $position = $this->sum($position, $entryLength);
+            }
+        }
+        $strings = $this->sbe_read_var_strings($frameHex, $position, 1, $frameLength);
+        $stringsLength = ($strings === null) ? 0 : count($strings);
+        if ($stringsLength < 1) {
+            return null;
+        }
+        return array(
+            'seq_no' => $this->sbe_read_int64($frameHex, 16),
+            'market' => $strings[0],
+            'last_updated_at' => $this->sbe_read_timestamp($frameHex, 8),
+            'update_type' => 's',
+            'inserts' => $inserts,
+            'updates' => array(),
+            'deletes' => array(),
+        );
+    }
+
+    public function parse_sbe_market_summary(string $frameHex, float $blockLength, float $frameLength): mixed {
+        //
+        // MarketSummaryEvent (templateId 4), 248-byte block (240 before 1:3), of which the first
+        // 12 int64 fields and settlementTwapEstimate are read
+        //
+        //     ts, seq, markPrice, indexPrice, lastPrice, volumeUsd24h, openInterest, fundingRate, bid,
+        //     ask, totalVolume, priceChangeRate24h, ..., settlementTwapEstimate (1:3, at 240), then the
+        //     market string
+        //
+        if ($blockLength < 96) {
+            return null;
+        }
+        $strings = $this->sbe_read_var_strings($frameHex, $this->sum($blockLength, 8), 1, $frameLength);
+        $stringsLength = ($strings === null) ? 0 : count($strings);
+        if ($stringsLength < 1) {
+            return null;
+        }
+        // appended in 1:3: null outside the pre-expiry settlement window and for undated markets
+        $settlementTwapEstimate = null;
+        if ($blockLength >= 248) {
+            $settlementTwapEstimate = $this->sbe_read_decimal($frameHex, 248);
+        }
+        return array(
+            'symbol' => $strings[0],
+            'mark_price' => $this->sbe_read_decimal($frameHex, 24),
+            'last_traded_price' => $this->sbe_read_decimal($frameHex, 40),
+            'bid' => $this->sbe_read_decimal($frameHex, 72),
+            'ask' => $this->sbe_read_decimal($frameHex, 80),
+            'volume_24h' => $this->sbe_read_decimal($frameHex, 48),
+            // saturates at the int64 maximum, 92233720368.54775807 once scaled
+            'total_volume' => $this->sbe_read_decimal($frameHex, 88),
+            'created_at' => $this->sbe_read_timestamp($frameHex, 8),
+            'open_interest' => $this->sbe_read_decimal($frameHex, 56),
+            'funding_rate' => $this->sbe_read_decimal($frameHex, 64),
+            'price_change_rate_24h' => $this->sbe_read_decimal($frameHex, 96),
+            'settlement_twap_estimate' => $settlementTwapEstimate,
+        );
+    }
+
+    public function parse_sbe_funding_data(string $frameHex, float $blockLength, float $frameLength): mixed {
+        //
+        // FundingDataEvent (templateId 5), 66-byte block
+        //
+        //     ts int64, seq int64, fundingRate int64, fundingIndex int64, createdAt int64,
+        //     fundingPremium int64, fundingRate8h int64, fundingPeriodHours int16, ... then the market
+        //
+        if ($blockLength < 58) {
+            return null;
+        }
+        $strings = $this->sbe_read_var_strings($frameHex, $this->sum($blockLength, 8), 1, $frameLength);
+        $stringsLength = ($strings === null) ? 0 : count($strings);
+        if ($stringsLength < 1) {
+            return null;
+        }
+        return array(
+            'market' => $strings[0],
+            'funding_index' => $this->sbe_read_decimal($frameHex, 32),
+            'funding_premium' => $this->sbe_read_decimal($frameHex, 48),
+            'funding_rate' => $this->sbe_read_decimal($frameHex, 24),
+            'funding_rate_8h' => $this->sbe_read_decimal($frameHex, 56),
+            'funding_period_hours' => $this->sbe_read_uint($frameHex, 64, 2),
+            'created_at' => $this->sbe_read_timestamp($frameHex, 40),
+        );
+    }
+
+    public function parse_sbe_order(string $frameHex, float $blockLength, float $frameLength): mixed {
+        //
+        // OrderEvent (templateId 20), 128-byte block (126 before the 1:2 request fields)
+        //
+        //     ts int64, seq int64, status uint8, side uint8, orderType uint8, timeInForce uint8,
+        //     price int64, triggerPrice int64, size int64, sizeOpen int64, avgFillPrice int64,
+        //     createdAt int64, updatedAt int64, account [32]byte, receivedAt int64, publishedAt int64,
+        //     stp uint8, flags uint8, ... then the orderId, clientOrderId, market and cancelReason strings
+        //
+        if ($blockLength < 126) {
+            return null;
+        }
+        $strings = $this->sbe_read_var_strings($frameHex, $this->sum($blockLength, 8), 4, $frameLength);
+        $stringsLength = ($strings === null) ? 0 : count($strings);
+        if ($stringsLength < 4) {
+            return null;
+        }
+        $statuses = array( '1' => 'NEW', '2' => 'UNTRIGGERED', '3' => 'OPEN', '4' => 'CLOSED' );
+        $sides = array( '1' => 'BUY', '2' => 'SELL' );
+        $orderTypes = array( '1' => 'LIMIT', '2' => 'MARKET', '3' => 'STOP_LIMIT', '4' => 'STOP_MARKET', '5' => 'TAKE_PROFIT_LIMIT', '6' => 'TAKE_PROFIT_MARKET', '7' => 'STOP_LOSS_LIMIT', '8' => 'STOP_LOSS_MARKET' );
+        $timeInForces = array( '1' => 'GTC', '2' => 'IOC', '3' => 'POST_ONLY', '4' => 'RPI' );
+        $stpModes = array( '0' => 'NONE', '1' => 'EXPIRE_MAKER', '2' => 'EXPIRE_TAKER', '3' => 'EXPIRE_BOTH' );
+        $flags = $this->sbe_read_flags($frameHex, 133, array( 'REDUCE_ONLY', 'STOP_CONDITION_BELOW_TRIGGER', 'STOP_CONDITION_ABOVE_TRIGGER', 'INTERACTIVE', 'TARGET_STRATEGY_VWAP', 'MMP' ));
+        $order = array(
+            'account' => $this->sbe_read_address($frameHex, 84),
+            'avg_fill_price' => $this->sbe_read_decimal($frameHex, 60),
+            'client_id' => $strings[1],
+            'created_at' => $this->sbe_read_timestamp($frameHex, 68),
+            'flags' => $flags,
+            'id' => $strings[0],
+            'instruction' => $this->sbe_read_enum($frameHex, 27, $timeInForces),
+            'last_updated_at' => $this->sbe_read_timestamp($frameHex, 76),
+            'market' => $strings[2],
+            'price' => $this->sbe_read_decimal($frameHex, 28),
+            'published_at' => $this->sbe_read_timestamp($frameHex, 124),
+            'received_at' => $this->sbe_read_timestamp($frameHex, 116),
+            'remaining_size' => $this->sbe_read_decimal($frameHex, 52),
+            'seq_no' => $this->sbe_read_int64($frameHex, 16),
+            'side' => $this->sbe_read_enum($frameHex, 25, $sides),
+            'size' => $this->sbe_read_decimal($frameHex, 44),
+            'status' => $this->sbe_read_enum($frameHex, 24, $statuses),
+            'stp' => $this->sbe_read_enum($frameHex, 132, $stpModes),
+            'timestamp' => $this->sbe_read_timestamp($frameHex, 8),
+            'trigger_price' => $this->sbe_read_decimal($frameHex, 36),
+            'type' => $this->sbe_read_enum($frameHex, 26, $orderTypes),
+        );
+        // an empty cancel reason is sent for every live order, parseOrder reads any reason as canceled
+        if ($strings[3] !== '') {
+            $order['cancel_reason'] = $strings[3];
+        }
+        return $order;
+    }
+
+    public function sbe_read_flags(string $frameHex, float $offset, array $names): array {
+        // a uint8 bitset, names[bit] for each set bit, an empty name for a bit the schema leaves unused
+        $flags = array();
+        $bits = $this->sbe_read_uint($frameHex, $offset, 1);
+        for ($i = 0; $i < count($names); $i++) {
+            $bit = $this->parse_to_int(fmod($bits, 2));
+            if (($bit === 1) && ($names[$i] !== '')) {
+                $flags[] = $names[$i];
+            }
+            $bits = $this->parse_to_int(($bits - $bit) / 2);
+        }
+        return $flags;
+    }
+
+    public function parse_sbe_fill(string $frameHex, float $blockLength, float $frameLength): mixed {
+        //
+        // FillEvent (templateId 21), 116-byte block (107 before the 1:2 flags and orderbookSeqNo)
+        //
+        //     ts int64, seq int64 (nullable), fillType uint8, side uint8, liquidity uint8, price int64,
+        //     size int64, fee int64, realizedPnl int64 (nullable), createdAt int64, account [32]byte,
+        //     underlyingPrice int64, realizedFunding int64, flags uint8, orderbookSeqNo uint64, then the
+        //     fillId, orderId, clientOrderId, tradeId, market and feeCurrency (1:2) strings
+        //
+        if ($blockLength < 107) {
+            return null;
+        }
+        $strings = $this->sbe_read_var_strings($frameHex, $this->sum($blockLength, 8), 6, $frameLength);
+        $stringsLength = ($strings === null) ? 0 : count($strings);
+        if ($stringsLength < 5) {
+            return null;
+        }
+        $fillTypes = array( '1' => 'FILL', '2' => 'LIQUIDATION', '3' => 'UNWIND_TRANSFER', '4' => 'SETTLE_MARKET', '5' => 'RPI', '6' => 'BLOCK_TRADE' );
+        $sides = array( '1' => 'BUY', '2' => 'SELL' );
+        $liquidities = array( '1' => 'MAKER', '2' => 'TAKER' );
+        $fill = array(
+            'account' => $this->sbe_read_address($frameHex, 67),
+            'client_id' => $strings[2],
+            'created_at' => $this->sbe_read_timestamp($frameHex, 59),
+            'fee' => $this->sbe_read_decimal($frameHex, 43),
+            'fee_currency' => $this->safe_string($strings, 5),
+            'fill_type' => $this->sbe_read_enum($frameHex, 24, $fillTypes),
+            'id' => $strings[0],
+            'liquidity' => $this->sbe_read_enum($frameHex, 26, $liquidities),
+            'market' => $strings[4],
+            'order_id' => $strings[1],
+            'price' => $this->sbe_read_decimal($frameHex, 27),
+            'realized_funding' => $this->sbe_read_decimal($frameHex, 107),
+            'realized_pnl' => $this->sbe_read_decimal($frameHex, 51),
+            'side' => $this->sbe_read_enum($frameHex, 25, $sides),
+            'size' => $this->sbe_read_decimal($frameHex, 35),
+            'underlying_price' => $this->sbe_read_decimal($frameHex, 99),
+        );
+        if ($blockLength >= 116) {
+            // lowercase, as the JSON feed spells fill flags
+            $fill['flags'] = $this->sbe_read_flags($frameHex, 115, array( 'interactive', 'rpi', 'fastfill', '', '', '', '', 'unknown' ));
+            $fill['orderbook_seq_no'] = $this->sbe_read_int64($frameHex, 116);
+        }
+        return $fill;
+    }
+
+    public function parse_sbe_position(string $frameHex, float $blockLength, float $frameLength): mixed {
+        //
+        // PositionEvent (templateId 22), 154-byte block
+        //
+        //     ts int64, seq int64, side uint8, size int64 (absolute), avgEntryPrice int64,
+        //     unrealizedPnl int64, realizedPnl int64, markPrice int64 (always null), liquidationPrice
+        //     int64 (nullable), leverage int64, updatedAt int64, account [32]byte, avgEntryPriceUsd
+        //     int64, cost int64, costUsd int64, cachedFundingIndex int64, unrealizedFundingPnl int64,
+        //     status uint8, then the market and lastFillId strings
+        //
+        if ($blockLength < 154) {
+            return null;
+        }
+        $strings = $this->sbe_read_var_strings($frameHex, $this->sum($blockLength, 8), 2, $frameLength);
+        $stringsLength = ($strings === null) ? 0 : count($strings);
+        if ($stringsLength < 1) {
+            return null;
+        }
+        $sides = array( '1' => 'LONG', '2' => 'SHORT' );
+        $statuses = array( '1' => 'OPEN', '2' => 'CLOSED' );
+        $side = $this->sbe_read_enum($frameHex, 24, $sides);
+        $account = $this->sbe_read_address($frameHex, 89);
+        // the frame carries the size unsigned, the JSON channel signs it negative for a short
+        $size = $this->sbe_read_decimal($frameHex, 25);
+        if (($side === 'SHORT') && ($size !== '0')) {
+            $size = Precise::string_neg($size);
+        }
+        return array(
+            'account' => $account,
+            'average_entry_price' => $this->sbe_read_decimal($frameHex, 33),
+            'average_entry_price_usd' => $this->sbe_read_decimal($frameHex, 121),
+            'cached_funding_index' => $this->sbe_read_decimal($frameHex, 145),
+            'cost' => $this->sbe_read_decimal($frameHex, 129),
+            'cost_usd' => $this->sbe_read_decimal($frameHex, 137),
+            // the JSON channel's id, one position per account and market
+            'id' => $account . '-' . $strings[0],
+            'last_fill_id' => $this->safe_string($strings, 1),
+            'last_updated_at' => $this->sbe_read_timestamp($frameHex, 81),
+            'leverage' => $this->sbe_read_decimal($frameHex, 73),
+            'liquidation_price' => $this->sbe_read_decimal($frameHex, 65),
+            'market' => $strings[0],
+            'realized_positional_pnl' => $this->sbe_read_decimal($frameHex, 49),
+            'seq_no' => $this->sbe_read_int64($frameHex, 16),
+            'side' => $side,
+            'size' => $size,
+            'status' => $this->sbe_read_enum($frameHex, 161, $statuses),
+            'unrealized_funding_pnl' => $this->sbe_read_decimal($frameHex, 153),
+            'unrealized_pnl' => $this->sbe_read_decimal($frameHex, 41),
+        );
+    }
+
+    public function parse_sbe_account(string $frameHex, float $blockLength, float $frameLength): mixed {
+        //
+        // AccountEvent (templateId 23), 121-byte block (113 before the 1:2 lastSeenNotification)
+        //
+        //     ts int64, seq int64, totalCollateral int64, freeCollateral int64, initialMarginReq int64,
+        //     maintenanceMarginReq int64, accountValue int64, unrealizedPnl int64 (nullable), updatedAt
+        //     int64, account [32]byte, marginCushion int64, status uint8, lastSeenNotification int64,
+        //     then the settlementAsset string
+        //
+        if ($blockLength < 113) {
+            return null;
+        }
+        $strings = $this->sbe_read_var_strings($frameHex, $this->sum($blockLength, 8), 1, $frameLength);
+        $stringsLength = ($strings === null) ? 0 : count($strings);
+        if ($stringsLength < 1) {
+            return null;
+        }
+        $statuses = array( '1' => 'ACTIVE', '2' => 'LIQUIDATION' );
+        $account = array(
+            'account' => $this->sbe_read_address($frameHex, 80),
+            'account_value' => $this->sbe_read_decimal($frameHex, 56),
+            'free_collateral' => $this->sbe_read_decimal($frameHex, 32),
+            'initial_margin_requirement' => $this->sbe_read_decimal($frameHex, 40),
+            'maintenance_margin_requirement' => $this->sbe_read_decimal($frameHex, 48),
+            'margin_cushion' => $this->sbe_read_decimal($frameHex, 112),
+            'seq_no' => $this->sbe_read_int64($frameHex, 16),
+            'settlement_asset' => $strings[0],
+            'status' => $this->sbe_read_enum($frameHex, 120, $statuses),
+            'total_collateral' => $this->sbe_read_decimal($frameHex, 24),
+            'updated_at' => $this->sbe_read_timestamp($frameHex, 72),
+        );
+        if ($blockLength >= 121) {
+            $account['last_seen_notification'] = $this->sbe_read_timestamp($frameHex, 121);
+        }
+        return $account;
+    }
+
+    public function handle_error_message(Client $client, array $message): ?bool {
         //
         //     {
-        //         "jsonrpc" => "2.0",
-        //         "id" => 0,
-        //         "error" => array(
-        //             "code" => -32600,
-        //             "message" => "invalid subscribe request",
-        //             "data" => "invalid channel"
-        //         ),
-        //         "usIn" => 1718179125962419,
-        //         "usDiff" => 76,
-        //         "usOut" => 1718179125962495
+        //         "jsonrpc": "2.0",
+        //         "id": 0,
+        //         "error": {
+        //             "code": -32600,
+        //             "message": "invalid subscribe request",
+        //             "data": "invalid channel"
+        //         },
+        //         "usIn": 1718179125962419,
+        //         "usDiff": 76,
+        //         "usOut": 1718179125962495
         //     }
         //
         $error = $this->safe_dict($message, 'error');
@@ -640,7 +1487,7 @@ class paradex extends \ccxt\async\paradex {
             if ($errorCode !== null) {
                 $feedback = $this->id . ' ' . $this->json($error);
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], '-32600', $feedback);
-                $messageString = $this->safe_value($error, 'message');
+                $messageString = $this->safe_string($error, 'message');
                 if ($messageString !== null) {
                     $this->throw_broadly_matched_exception($this->exceptions['broad'], $messageString, $feedback);
                 }
@@ -650,43 +1497,50 @@ class paradex extends \ccxt\async\paradex {
     }
 
     public function handle_message(Client $client, mixed $message) {
-        if (!$this->handle_error_message($client, $message)) {
+        $parsedMessage = $message;
+        if ($this->is_binary_message($message)) {
+            $parsedMessage = $this->parse_sbe_message($message);
+            if ($parsedMessage === null) {
+                return;
+            }
+        }
+        if ($this->handle_error_message($client, $parsedMessage) !== true) {
             return;
         }
         //
         // auth response
         //
         //     {
-        //         "jsonrpc" => "2.0",
-        //         "id" => 1,
-        //         "result" => array( "node_id" => "73cf456f7cb78d59" )
+        //         "jsonrpc": "2.0",
+        //         "id": 1,
+        //         "result": { "node_id": "73cf456f7cb78d59" }
         //     }
         //
-        // subscription $message
+        // subscription message
         //
         //     {
-        //         "jsonrpc" => "2.0",
-        //         "method" => "subscription",
-        //         "params" => {
-        //             "channel" => "trades.ALL",
-        //             "data" => {
-        //                 "id" => "1718179273230201709233240002",
-        //                 "market" => "kBONK-USD-PERP",
-        //                 "side" => "BUY",
-        //                 "size" => "34028",
-        //                 "price" => "0.028776",
-        //                 "created_at" => 1718179273230,
-        //                 "trade_type" => "FILL"
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "trades.ALL",
+        //             "data": {
+        //                 "id": "1718179273230201709233240002",
+        //                 "market": "kBONK-USD-PERP",
+        //                 "side": "BUY",
+        //                 "size": "34028",
+        //                 "price": "0.028776",
+        //                 "created_at": 1718179273230,
+        //                 "trade_type": "FILL"
         //             }
         //         }
         //     }
         //
-        $result = $this->safe_value($message, 'result');
+        $result = $this->safe_dict($parsedMessage, 'result');
         if ($result !== null) {
-            $this->handle_authentication_message($client, $message);
+            $this->handle_authentication_message($client, $parsedMessage);
             return;
         }
-        $data = $this->safe_dict($message, 'params');
+        $data = $this->safe_dict($parsedMessage, 'params');
         if ($data !== null) {
             $channel = $this->safe_string($data, 'channel');
             $parts = explode('.', $channel);
@@ -697,10 +1551,13 @@ class paradex extends \ccxt\async\paradex {
                 'markets_summary' => array($this, 'handle_ticker'),
                 'orders' => array($this, 'handle_order'),
                 'funding_data' => array($this, 'handle_funding_rate'),
+                'fills' => array($this, 'handle_my_trade'),
+                'positions' => array($this, 'handle_positions'),
+                'account' => array($this, 'handle_balance'),
             );
             $method = $this->safe_value($methods, $name);
             if ($method !== null) {
-                $method($client, $message);
+                $method($client, $parsedMessage);
             }
         }
     }

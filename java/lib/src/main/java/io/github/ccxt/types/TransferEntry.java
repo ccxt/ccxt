@@ -5,7 +5,7 @@ package io.github.ccxt.types;
 
 import java.util.Map;
 
-public final class TransferEntry {
+public final class TransferEntry extends TypedMap {
     public String id;
     public Long timestamp;
     public String datetime;
@@ -18,6 +18,7 @@ public final class TransferEntry {
 
     @SuppressWarnings("unchecked")
     public TransferEntry(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.id = TypeHelper.safeString(data, "id");
         this.timestamp = TypeHelper.safeInteger(data, "timestamp");

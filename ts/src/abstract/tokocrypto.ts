@@ -8,41 +8,146 @@
 import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    binanceGetPing (params?: {}): Promise<Dict>;
-    binanceGetTime (params?: {}): Promise<Dict>;
-    binanceGetDepth (params?: {}): Promise<Dict>;
-    binanceGetTrades (params?: {}): Promise<List>;
-    binanceGetAggTrades (params?: {}): Promise<List>;
-    binanceGetHistoricalTrades (params?: {}): Promise<List>;
-    binanceGetKlines (params?: {}): Promise<Dict>;
-    binanceGetTicker24hr (params?: {}): Promise<List>;
-    binanceGetTickerPrice (params?: {}): Promise<Dict>;
-    binanceGetTickerBookTicker (params?: {}): Promise<List>;
-    binanceGetExchangeInfo (params?: {}): Promise<Dict>;
-    binancePutUserDataStream (params?: {}): Promise<Dict>;
-    binancePostUserDataStream (params?: {}): Promise<Dict>;
-    binanceDeleteUserDataStream (params?: {}): Promise<Dict>;
-    publicGetOpenV1CommonTime (params?: {}): Promise<Dict>;
-    publicGetOpenV1CommonSymbols (params?: {}): Promise<Dict>;
-    publicGetOpenV1MarketDepth (params?: {}): Promise<Dict>;
-    publicGetOpenV1MarketTrades (params?: {}): Promise<Dict>;
-    publicGetOpenV1MarketAggTrades (params?: {}): Promise<Dict>;
-    publicGetOpenV1MarketKlines (params?: {}): Promise<Dict>;
-    privateGetOpenV1OrdersDetail (params?: {}): Promise<Dict>;
-    privateGetOpenV1Orders (params?: {}): Promise<Dict>;
-    privateGetOpenV1AccountSpot (params?: {}): Promise<Dict>;
-    privateGetOpenV1AccountSpotAsset (params?: {}): Promise<Dict>;
-    privateGetOpenV1OrdersTrades (params?: {}): Promise<Dict>;
-    privateGetOpenV1Withdraws (params?: {}): Promise<Dict>;
-    privateGetOpenV1Deposits (params?: {}): Promise<Dict>;
-    privateGetOpenV1DepositsAddress (params?: {}): Promise<Dict>;
-    privatePostOpenV1Orders (params?: {}): Promise<Dict>;
-    privatePostOpenV1OrdersCancel (params?: {}): Promise<Dict>;
-    privatePostOpenV1OrdersOco (params?: {}): Promise<Dict>;
-    privatePostOpenV1Withdraws (params?: {}): Promise<Dict>;
-    privatePostOpenV1UserDataStream (params?: {}): Promise<Dict>;
-}
-abstract class Exchange extends _Exchange {}
+abstract class Exchange extends _Exchange {
+    binanceGetPing (params = {}): Promise<Dict> {
+        return this.request ('ping', [ 'binance' ], 'GET', params, { 'cost': 1 });
+    }
 
-export default Exchange
+    binanceGetTime (params = {}): Promise<Dict> {
+        return this.request ('time', [ 'binance' ], 'GET', params, { 'cost': 1 });
+    }
+
+    binanceGetDepth (params = {}): Promise<Dict> {
+        return this.request ('depth', [ 'binance' ], 'GET', params, { 'cost': 1, 'byLimit': [ [ 100, 1 ], [ 500, 5 ], [ 1000, 10 ], [ 5000, 50 ] ] });
+    }
+
+    binanceGetTrades (params = {}): Promise<List> {
+        return this.request ('trades', [ 'binance' ], 'GET', params, { 'cost': 1 });
+    }
+
+    binanceGetAggTrades (params = {}): Promise<List> {
+        return this.request ('aggTrades', [ 'binance' ], 'GET', params, { 'cost': 1 });
+    }
+
+    binanceGetHistoricalTrades (params = {}): Promise<List> {
+        return this.request ('historicalTrades', [ 'binance' ], 'GET', params, { 'cost': 5 });
+    }
+
+    binanceGetKlines (params = {}): Promise<List> {
+        return this.request ('klines', [ 'binance' ], 'GET', params, { 'cost': 1 });
+    }
+
+    binanceGetTicker24hr (params = {}): Promise<Dict | List> {
+        return this.request ('ticker/24hr', [ 'binance' ], 'GET', params, { 'cost': 1, 'noSymbol': 40 });
+    }
+
+    binanceGetTickerPrice (params = {}): Promise<Dict> {
+        return this.request ('ticker/price', [ 'binance' ], 'GET', params, { 'cost': 1, 'noSymbol': 2 });
+    }
+
+    binanceGetTickerBookTicker (params = {}): Promise<List> {
+        return this.request ('ticker/bookTicker', [ 'binance' ], 'GET', params, { 'cost': 1, 'noSymbol': 2 });
+    }
+
+    binanceGetExchangeInfo (params = {}): Promise<Dict> {
+        return this.request ('exchangeInfo', [ 'binance' ], 'GET', params, { 'cost': 10 });
+    }
+
+    binanceGetExecutionRules (params = {}): Promise<Dict> {
+        return this.request ('executionRules', [ 'binance' ], 'GET', params, { 'cost': 2, 'noSymbol': 40 });
+    }
+
+    binancePutUserDataStream (params = {}): Promise<Dict> {
+        return this.request ('userDataStream', [ 'binance' ], 'PUT', params, { 'cost': 1 });
+    }
+
+    binancePostUserDataStream (params = {}): Promise<Dict> {
+        return this.request ('userDataStream', [ 'binance' ], 'POST', params, { 'cost': 1 });
+    }
+
+    binanceDeleteUserDataStream (params = {}): Promise<Dict> {
+        return this.request ('userDataStream', [ 'binance' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    publicGetOpenV1CommonTime (params = {}): Promise<Dict> {
+        return this.request ('open/v1/common/time', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetOpenV1CommonSymbols (params = {}): Promise<Dict> {
+        return this.request ('open/v1/common/symbols', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetOpenV1MarketDepth (params = {}): Promise<Dict> {
+        return this.request ('open/v1/market/depth', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetOpenV1MarketTrades (params = {}): Promise<Dict> {
+        return this.request ('open/v1/market/trades', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetOpenV1MarketAggTrades (params = {}): Promise<Dict> {
+        return this.request ('open/v1/market/agg-trades', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetOpenV1MarketKlines (params = {}): Promise<Dict> {
+        return this.request ('open/v1/market/klines', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOpenV1OrdersDetail (params = {}): Promise<Dict> {
+        return this.request ('open/v1/orders/detail', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOpenV1Orders (params = {}): Promise<Dict> {
+        return this.request ('open/v1/orders', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOpenV1AccountSpot (params = {}): Promise<Dict> {
+        return this.request ('open/v1/account/spot', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOpenV1AccountSpotAsset (params = {}): Promise<Dict> {
+        return this.request ('open/v1/account/spot/asset', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOpenV1OrdersTrades (params = {}): Promise<Dict> {
+        return this.request ('open/v1/orders/trades', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOpenV1Withdraws (params = {}): Promise<Dict> {
+        return this.request ('open/v1/withdraws', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOpenV1Deposits (params = {}): Promise<Dict> {
+        return this.request ('open/v1/deposits', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOpenV1DepositsAddress (params = {}): Promise<Dict> {
+        return this.request ('open/v1/deposits/address', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privatePostOpenV1Orders (params = {}): Promise<Dict> {
+        return this.request ('open/v1/orders', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOpenV1OrdersCancel (params = {}): Promise<Dict> {
+        return this.request ('open/v1/orders/cancel', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOpenV1OrdersOco (params = {}): Promise<Dict> {
+        return this.request ('open/v1/orders/oco', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOpenV1Withdraws (params = {}): Promise<Dict> {
+        return this.request ('open/v1/withdraws', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOpenV1UserDataStream (params = {}): Promise<Dict> {
+        return this.request ('open/v1/user-data-stream', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOpenV1UserListenToken (params = {}): Promise<Dict> {
+        return this.request ('open/v1/user-listen-token', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+}
+
+export default Exchange;

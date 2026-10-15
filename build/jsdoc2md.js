@@ -193,6 +193,19 @@ predictionOutputByExchange.forEach ((output, i) => {
 })
 
 
+// OrderRouter is documented as its own page. It is NOT an exchange — it does not extend
+// Exchange, implements no unified method, and is constructed directly — so it must stay out
+// of the per-exchange render and out of the by-method index above, which groups a method
+// name across the exchanges that implement it. fetchRoute is implemented by nothing else,
+// and listing it there would read as a unified method that every exchange is missing.
+console.log ('\ud83d\udcf0 writing OrderRouter docs')
+const routerData = await jsdoc2md.getTemplateData ({ files: 'js/src/base/OrderRouter.js' })
+if (!routerData.length) {
+  throw new Error ('\ud83d\udea8 js/src/base/OrderRouter.js produced no doclets. It needs a "/** @class OrderRouter */" comment above the class declaration in ts/src/base/OrderRouter.ts, or the page renders empty.')
+}
+const routerOutput = await jsdoc2md.render ({ template, data: routerData, partial: exchangePartial, helper })
+fs.writeFileSync (outputFolder + 'OrderRouter.md', routerOutput)
+
 fs.writeFileSync (outputFile, baseOutput.join ('\n---\n'))
 
 const sidebar =
@@ -205,6 +218,7 @@ const sidebar =
 - [Supported Exchanges](Exchange-Markets.md)
 - [Exchanges By Country](Exchange-Markets-By-Country.md)
 - [API Spec By Method](baseSpec.md)
+- [Order Router](OrderRouter.md)
 - [FAQ](FAQ.md)
 - [Changelog](CHANGELOG.md)
 - [Awesome](Awesome.md)

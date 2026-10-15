@@ -13,8 +13,8 @@ async function fetchTickers(exchange) {
     return tickers;
 }
 (async () => {
-    const future = new ccxt.binance({ options: { defaultType: 'future' } });
-    const delivery = new ccxt.binance({ options: { defaultType: 'delivery' } });
+    const future = new ccxt.binance({ options: { defaultType: 'future', defaultSubType: 'linear' } });
+    const delivery = new ccxt.binance({ options: { defaultType: 'future', defaultSubType: 'inverse' } });
     // ...
     const futureTickers = await fetchTickers(future);
     console.log(futureTickers);

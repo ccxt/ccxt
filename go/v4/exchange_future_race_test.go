@@ -17,7 +17,7 @@ func TestFutureResolve(t *testing.T) {
 	f.Resolve("test")
 
 	ch := f.Await()
-	result := <-ch
+	result := outcomeOf(<-ch)
 	if result != "test" {
 		t.Fatalf("expected 'test', got %v", result)
 	}
@@ -28,7 +28,7 @@ func TestFutureResolveNil(t *testing.T) {
 	f.Resolve()
 
 	ch := f.Await()
-	result := <-ch
+	result := outcomeOf(<-ch)
 	if result != nil {
 		t.Fatalf("expected nil, got %v", result)
 	}
@@ -40,7 +40,7 @@ func TestFutureReject(t *testing.T) {
 	f.Reject(testErr)
 
 	ch := f.Await()
-	result := <-ch
+	result := outcomeOf(<-ch)
 	err, ok := result.(error)
 	if !ok {
 		t.Fatalf("expected error, got %T: %v", result, result)
@@ -64,7 +64,8 @@ func TestFutureAwaitBeforeResolve(t *testing.T) {
 	}()
 
 	select {
-	case result := <-ch:
+	case received := <-ch:
+		result := outcomeOf(received)
 		if result != "delayed" {
 			t.Fatalf("expected 'delayed', got %v", result)
 		}
@@ -79,7 +80,8 @@ func TestFutureAwaitAfterResolve(t *testing.T) {
 
 	ch := f.Await()
 	select {
-	case result := <-ch:
+	case received := <-ch:
+		result := outcomeOf(received)
 		if result != "immediate" {
 			t.Fatalf("expected 'immediate', got %v", result)
 		}
@@ -98,7 +100,8 @@ func TestFutureAwaitBeforeReject(t *testing.T) {
 	}()
 
 	select {
-	case result := <-ch:
+	case received := <-ch:
+		result := outcomeOf(received)
 		err, ok := result.(error)
 		if !ok {
 			t.Fatalf("expected error, got %T: %v", result, result)
@@ -117,7 +120,8 @@ func TestFutureAwaitAfterReject(t *testing.T) {
 
 	ch := f.Await()
 	select {
-	case result := <-ch:
+	case received := <-ch:
+		result := outcomeOf(received)
 		err, ok := result.(error)
 		if !ok {
 			t.Fatalf("expected error, got %T: %v", result, result)
@@ -140,7 +144,7 @@ func TestFutureResolveOnlyOnce(t *testing.T) {
 	f.Resolve("second") // should be ignored
 
 	ch := f.Await()
-	result := <-ch
+	result := outcomeOf(<-ch)
 	if result != "first" {
 		t.Fatalf("expected 'first', got %v", result)
 	}
@@ -152,7 +156,7 @@ func TestFutureRejectOnlyOnce(t *testing.T) {
 	f.Reject(errors.New("second error"))
 
 	ch := f.Await()
-	result := <-ch
+	result := outcomeOf(<-ch)
 	err := result.(error)
 	if err.Error() != "first error" {
 		t.Fatalf("expected 'first error', got '%s'", err.Error())
@@ -165,7 +169,7 @@ func TestFutureResolveAfterRejectIgnored(t *testing.T) {
 	f.Resolve("too late")
 
 	ch := f.Await()
-	result := <-ch
+	result := outcomeOf(<-ch)
 	if _, ok := result.(error); !ok {
 		t.Fatal("expected error from reject, got non-error (resolve was not ignored)")
 	}
@@ -177,7 +181,7 @@ func TestFutureRejectAfterResolveIgnored(t *testing.T) {
 	f.Reject(errors.New("too late"))
 
 	ch := f.Await()
-	result := <-ch
+	result := outcomeOf(<-ch)
 	if _, ok := result.(error); ok {
 		t.Fatal("expected resolved value, got error (reject was not ignored)")
 	}
@@ -202,7 +206,7 @@ func TestFutureMultipleAwaiters(t *testing.T) {
 		go func(idx int) {
 			defer wg.Done()
 			ch := f.Await()
-			results[idx] = <-ch
+			results[idx] = outcomeOf(<-ch)
 		}(i)
 	}
 
@@ -230,7 +234,8 @@ func TestRaceWithPrecompletedFuture(t *testing.T) {
 	ch := race.Await()
 
 	select {
-	case result := <-ch:
+	case received := <-ch:
+		result := outcomeOf(received)
 		if result != "immediate success" {
 			t.Fatalf("expected 'immediate success', got %v", result)
 		}
@@ -255,7 +260,8 @@ func TestRaceSuccessAfter(t *testing.T) {
 
 	ch := race.Await()
 	select {
-	case result := <-ch:
+	case received := <-ch:
+		result := outcomeOf(received)
 		if result != "first" {
 			t.Fatalf("expected 'first', got %v", result)
 		}
@@ -277,7 +283,8 @@ func TestRaceSuccessBefore(t *testing.T) {
 
 	ch := race.Await()
 	select {
-	case result := <-ch:
+	case received := <-ch:
+		result := outcomeOf(received)
 		if result != "first" {
 			t.Fatalf("expected 'first', got %v", result)
 		}
@@ -298,7 +305,8 @@ func TestRaceReturnFirstException(t *testing.T) {
 
 	ch := race.Await()
 	select {
-	case result := <-ch:
+	case received := <-ch:
+		result := outcomeOf(received)
 		err, ok := result.(error)
 		if !ok {
 			t.Fatalf("expected error, got %T: %v", result, result)
@@ -329,7 +337,8 @@ func TestRaceMixedOutcomes(t *testing.T) {
 
 	ch := race.Await()
 	select {
-	case result := <-ch:
+	case received := <-ch:
+		result := outcomeOf(received)
 		if result != "first" {
 			t.Fatalf("expected 'first', got %v", result)
 		}
@@ -351,7 +360,8 @@ func TestRaceRejectionWins(t *testing.T) {
 
 	ch := race.Await()
 	select {
-	case result := <-ch:
+	case received := <-ch:
+		result := outcomeOf(received)
 		err, ok := result.(error)
 		if !ok {
 			t.Fatalf("expected error, got %T: %v", result, result)
@@ -384,7 +394,8 @@ func TestRaceAllReject(t *testing.T) {
 
 	ch := race.Await()
 	select {
-	case result := <-ch:
+	case received := <-ch:
+		result := outcomeOf(received)
 		err, ok := result.(error)
 		if !ok {
 			t.Fatalf("expected error, got %T: %v", result, result)
@@ -407,7 +418,8 @@ func TestRaceTimeout(t *testing.T) {
 
 	ch := race.Await()
 	select {
-	case result := <-ch:
+	case received := <-ch:
+		result := outcomeOf(received)
 		t.Fatalf("did not expect a result, got %v", result)
 	case <-time.After(100 * time.Millisecond):
 		// expected: race did not complete within deadline
@@ -434,7 +446,8 @@ func TestRaceCompletesWithinDeadline(t *testing.T) {
 	ch := race.Await()
 
 	select {
-	case result := <-ch:
+	case received := <-ch:
+		result := outcomeOf(received)
 		if result != "completed first" {
 			t.Fatalf("expected 'completed first', got %v", result)
 		}
@@ -458,7 +471,8 @@ func TestRaceSingleFuture(t *testing.T) {
 
 	ch := race.Await()
 	select {
-	case result := <-ch:
+	case received := <-ch:
+		result := outcomeOf(received)
 		if result != "only" {
 			t.Fatalf("expected 'only', got %v", result)
 		}
@@ -485,7 +499,8 @@ func TestRaceManyFuturesOneResolves(t *testing.T) {
 
 	ch := race.Await()
 	select {
-	case result := <-ch:
+	case received := <-ch:
+		result := outcomeOf(received)
 		if result != "winner" {
 			t.Fatalf("expected 'winner', got %v", result)
 		}
@@ -519,7 +534,8 @@ func TestRaceSecondFutureWins(t *testing.T) {
 
 	ch := race.Await()
 	select {
-	case result := <-ch:
+	case received := <-ch:
+		result := outcomeOf(received)
 		if result != "fast" {
 			t.Fatalf("expected 'fast', got %v", result)
 		}
@@ -537,7 +553,8 @@ func TestRaceEmptyFutures(t *testing.T) {
 	ch := race.Await()
 
 	select {
-	case result := <-ch:
+	case received := <-ch:
+		result := outcomeOf(received)
 		t.Fatalf("empty race should never resolve, got %v", result)
 	case <-time.After(100 * time.Millisecond):
 		// expected
@@ -569,7 +586,8 @@ func TestRaceConcurrentResolves(t *testing.T) {
 
 	ch := race.Await()
 	select {
-	case result := <-ch:
+	case received := <-ch:
+		result := outcomeOf(received)
 		// any of 0..n-1 is valid
 		idx, ok := result.(int)
 		if !ok {
@@ -596,7 +614,7 @@ func TestRaceResultAwaitedMultipleTimes(t *testing.T) {
 
 	// First Await
 	ch1 := race.Await()
-	r1 := <-ch1
+	r1 := outcomeOf(<-ch1)
 	if r1 != "value" {
 		t.Fatalf("first await: expected 'value', got %v", r1)
 	}
@@ -604,7 +622,8 @@ func TestRaceResultAwaitedMultipleTimes(t *testing.T) {
 	// Second Await on the same resolved race future
 	ch2 := race.Await()
 	select {
-	case r2 := <-ch2:
+	case received := <-ch2:
+		r2 := outcomeOf(received)
 		if r2 != "value" {
 			t.Fatalf("second await: expected 'value', got %v", r2)
 		}
@@ -626,7 +645,8 @@ func TestRaceWithPrerejectedFuture(t *testing.T) {
 	ch := race.Await()
 
 	select {
-	case result := <-ch:
+	case received := <-ch:
+		result := outcomeOf(received)
 		err, ok := result.(error)
 		if !ok {
 			t.Fatalf("expected error, got %T: %v", result, result)
@@ -652,7 +672,8 @@ func TestRacePrecompletedNotFirst(t *testing.T) {
 	ch := race.Await()
 
 	select {
-	case result := <-ch:
+	case received := <-ch:
+		result := outcomeOf(received)
 		if result != "second was ready" {
 			t.Fatalf("expected 'second was ready', got %v", result)
 		}
@@ -675,7 +696,8 @@ func TestRaceAllPreresolved(t *testing.T) {
 	ch := race.Await()
 
 	select {
-	case result := <-ch:
+	case received := <-ch:
+		result := outcomeOf(received)
 		if result != "first" {
 			t.Fatalf("expected 'first' (iteration order), got %v", result)
 		}
@@ -710,7 +732,8 @@ func TestRaceWithVariousTypes(t *testing.T) {
 
 			ch := race.Await()
 			select {
-			case result := <-ch:
+			case received := <-ch:
+				result := outcomeOf(received)
 				// nil comparison needs special handling
 				if tt.value == nil {
 					if result != nil {
@@ -742,8 +765,8 @@ func TestRaceRepeatedOnSameFutures(t *testing.T) {
 	ch1 := race1.Await()
 	ch2 := race2.Await()
 
-	r1 := <-ch1
-	r2 := <-ch2
+	r1 := outcomeOf(<-ch1)
+	r2 := outcomeOf(<-ch2)
 
 	if r1 != "shared value" {
 		t.Fatalf("race1: expected 'shared value', got %v", r1)
@@ -775,7 +798,7 @@ func TestFutureRaceGoroutineLeak(t *testing.T) {
 		futures[0].Resolve("trade_data")
 
 		ch := race.Await()
-		result := <-ch
+		result := outcomeOf(<-ch)
 		if result != "trade_data" {
 			t.Fatalf("expected trade_data, got %v", result)
 		}
@@ -887,18 +910,18 @@ func TestFutureSubscribersCleanedAfterResolve(t *testing.T) {
 		f.Await()
 	}
 
-	f.subscribersMu.Lock()
+	f.mu.Lock()
 	countBefore := len(f.subscribers)
-	f.subscribersMu.Unlock()
+	f.mu.Unlock()
 	if countBefore != 10 {
 		t.Fatalf("expected 10 subscribers before resolve, got %d", countBefore)
 	}
 
 	f.Resolve("done")
 
-	f.subscribersMu.Lock()
+	f.mu.Lock()
 	countAfter := len(f.subscribers)
-	f.subscribersMu.Unlock()
+	f.mu.Unlock()
 	if countAfter != 0 {
 		t.Errorf("expected 0 subscribers after resolve, got %d", countAfter)
 	}
@@ -964,7 +987,8 @@ func TestRaceConcurrentStress(t *testing.T) {
 
 			ch := race.Await()
 			select {
-			case result := <-ch:
+			case received := <-ch:
+				result := outcomeOf(received)
 				if result != "ok" {
 					panic("unexpected result")
 				}

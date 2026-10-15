@@ -1,0 +1,216 @@
+{
+    "BTC/USD": {
+        "id": "BTC-USD",
+        "lowercaseId": null,
+        "symbol": "BTC/USD",
+        "base": "BTC",
+        "quote": "USD",
+        "settle": null,
+        "baseId": "BTC",
+        "quoteId": "USD",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.0009,
+        "maker": 0,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1e-7,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 1e-7,
+                "max": 1000
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 0.01,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "base": "BTC",
+            "quote": "USD",
+            "base_step": "0.0000001",
+            "quote_step": "0.01",
+            "min_order_size": "0.0000001",
+            "max_order_size": "1000",
+            "min_order_size_quote": "0.01",
+            "status": "active",
+            "id": "BTC-USD"
+        },
+        "tierBased": false,
+        "percentage": true
+    },
+    "ETH/USD": {
+        "id": "ETH-USD",
+        "lowercaseId": null,
+        "symbol": "ETH/USD",
+        "base": "ETH",
+        "quote": "USD",
+        "settle": null,
+        "baseId": "ETH",
+        "quoteId": "USD",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.0009,
+        "maker": 0,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 1e-8,
+                "max": 5000
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 0.01,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "base": "ETH",
+            "quote": "USD",
+            "base_step": "0.00000001",
+            "quote_step": "0.01",
+            "min_order_size": "0.00000001",
+            "max_order_size": "5000",
+            "min_order_size_quote": "0.01",
+            "status": "active",
+            "id": "ETH-USD"
+        },
+        "tierBased": false,
+        "percentage": true
+    },
+    "BTC/USDC": {
+        "id": "BTC-USDC",
+        "lowercaseId": null,
+        "symbol": "BTC/USDC",
+        "base": "BTC",
+        "quote": "USDC",
+        "settle": null,
+        "baseId": "BTC",
+        "quoteId": "USDC",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.0009,
+        "maker": 0,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 1e-8,
+                "max": 200
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 0.1,
+                "max": null
+            },
+            "market": null
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "base": "BTC",
+            "quote": "USDC",
+            "base_step": "0.00000001",
+            "quote_step": "0.01",
+            "min_order_size": "0.00000001",
+            "max_order_size": "200",
+            "min_order_size_quote": "0.1",
+            "max_order_size_quote": "1000000",
+            "status": "active",
+            "slippage": 5,
+            "id": "BTC-USDC"
+        },
+        "tierBased": false,
+        "percentage": true,
+        "feeSide": "get"
+    }
+}

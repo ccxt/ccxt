@@ -5,22 +5,26 @@ package io.github.ccxt.types;
 
 import java.util.Map;
 
-public final class TradingFeeInterface {
+public final class TradingFeeInterface extends TypedMap {
     public String symbol;
     public Double maker;
     public Double taker;
     public Boolean percentage;
     public Boolean tierBased;
+    public Map<String, Object> tiers;
     public Map<String, Object> info;
 
     @SuppressWarnings("unchecked")
     public TradingFeeInterface(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.symbol = TypeHelper.safeString(data, "symbol");
         this.maker = TypeHelper.safeFloat(data, "maker");
         this.taker = TypeHelper.safeFloat(data, "taker");
         this.percentage = TypeHelper.safeBool(data, "percentage");
         this.tierBased = TypeHelper.safeBool(data, "tierBased");
+        Object tiersRaw = TypeHelper.safeValue(data, "tiers");
+        this.tiers = tiersRaw instanceof Map ? (Map<String, Object>) tiersRaw : null;
         this.info = TypeHelper.getInfo(data);
     }
 }

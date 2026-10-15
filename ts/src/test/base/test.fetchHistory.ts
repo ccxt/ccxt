@@ -1,6 +1,5 @@
 
 
-
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
 import testSharedMethods from '../Exchange/base/test.sharedMethods.js';
@@ -9,6 +8,7 @@ async function testFetchHistoryBase () {
     const exchange = new ccxt.Exchange ({
         'id': 'sampleexchange',
         'fetchHistoryCacheSize': 2,
+        'enableRateLimit': false, // the cache is what is under test; no throttle wait between the 3 calls
     });
     assert (testSharedMethods.exchangeProp (exchange, 'fetchHistoryCacheSize') === 2, 'fetchHistoryCacheSize should be 2');
     const trueAssertion = exchange.parseNumber (undefined) === undefined;
@@ -34,7 +34,6 @@ async function testFetchHistoryBase () {
     assert (1 + 1 < 3, 'sample assertion');
 }
 
-
 // async function testFetchHistoryDerived () {
 //     const exchange = new ccxt.coinbase ({
 //         'id': 'sampleexchange',
@@ -56,11 +55,9 @@ async function testFetchHistoryBase () {
 //     assert (1 + 1 < 3, 'sample assertion');
 // }
 
-
 async function testFetchHistory () {
     await testFetchHistoryBase ();
     // await testFetchHistoryDerived ();
 }
-
 
 export default testFetchHistory;

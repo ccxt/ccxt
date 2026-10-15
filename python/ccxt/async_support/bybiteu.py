@@ -5,12 +5,11 @@
 
 from ccxt.async_support.bybit import bybit
 from ccxt.abstract.bybiteu import ImplicitAPI
-from ccxt.base.types import Any
 
 
 class bybiteu(bybit, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(bybiteu, self).describe(), {
             'id': 'bybiteu',
             'name': 'Bybit EU',
@@ -62,5 +61,9 @@ class bybiteu(bybit, ImplicitAPI):
             },
             'options': {
                 'mica': True,
+                'defaultType': 'spot',
+                'fetchMarkets': {
+                    'types': ['spot'],
+                },
             },
         })

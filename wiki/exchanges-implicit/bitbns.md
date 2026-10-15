@@ -1,6 +1,6 @@
 Every endpoint in `bitbns`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/bitbns) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `wwwGetOrderFetchMarkets`); the snake_case alias (`www_get_order_fetchmarkets`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`WwwGetOrderFetchMarkets`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `wwwGetOrderFetchMarkets`); Python and PHP use the snake_case form (`www_get_order_fetchmarkets`), and Go uses the PascalCase form (`WwwGetOrderFetchMarkets`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official bitbns API documentation:** [bitbns.com](https://bitbns.com/trade/#/api-trading/)
 
-> 36 implicit endpoints across 3 access groups.
+> 41 implicit endpoints across 3 access groups.
 
 ## www
 
@@ -90,14 +90,19 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `v1PostWithdrawHistorySymbol` | POST | `withdrawHistory/{symbol}` | 1 |
 | `v1PostWithdrawHistoryAllSymbol` | POST | `withdrawHistoryAll/{symbol}` | 1 |
 | `v1PostDepositHistoryAllSymbol` | POST | `depositHistoryAll/{symbol}` | 1 |
+| `v1PostUserHistoryNew` | POST | `userHistoryNew` | 1 |
 | `v1PostListOpenOrdersSymbol` | POST | `listOpenOrders/{symbol}` | 1 |
+| `v1PostListOpenOrdersOtherSymbol` | POST | `listOpenOrdersOther/{symbol}` | 1 |
 | `v1PostListOpenStopOrdersSymbol` | POST | `listOpenStopOrders/{symbol}` | 1 |
 | `v1PostGetCoinAddressSymbol` | POST | `getCoinAddress/{symbol}` | 1 |
 | `v1PostPlaceSellOrderSymbol` | POST | `placeSellOrder/{symbol}` | 1 |
+| `v1PostPlaceSellOrderOtherSymbol` | POST | `placeSellOrderOther/{symbol}` | 1 |
 | `v1PostPlaceBuyOrderSymbol` | POST | `placeBuyOrder/{symbol}` | 1 |
+| `v1PostPlaceBuyOrderOtherSymbol` | POST | `placeBuyOrderOther/{symbol}` | 1 |
 | `v1PostBuyStopLossSymbol` | POST | `buyStopLoss/{symbol}` | 1 |
 | `v1PostSellStopLossSymbol` | POST | `sellStopLoss/{symbol}` | 1 |
 | `v1PostCancelOrderSymbol` | POST | `cancelOrder/{symbol}` | 1 |
+| `v1PostCancelOrderOtherSymbol` | POST | `cancelOrderOther/{symbol}` | 1 |
 | `v1PostCancelStopLossOrderSymbol` | POST | `cancelStopLossOrder/{symbol}` | 1 |
 | `v1PostListExecutedOrdersSymbol` | POST | `listExecutedOrders/{symbol}` | 1 |
 | `v1PostPlaceMarketOrderSymbol` | POST | `placeMarketOrder/{symbol}` | 1 |

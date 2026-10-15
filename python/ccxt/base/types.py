@@ -3,16 +3,11 @@
 
 import sys
 import types
-from typing import Type, Union, List, Optional, Callable, Generic, TypeVar, Any as PythonAny
+from typing import Type, Callable, Generic, TypeVar, Any as PythonAny
 from decimal import Decimal
 
 
-if sys.version_info >= (3, 8):
-    from typing import TypedDict, Literal, Dict
-else:
-    from typing import Dict
-    from typing_extensions import Literal
-    TypedDict = Dict
+from typing import TypedDict, Literal
 
 if sys.version_info >= (3, 11):
     from typing import NotRequired
@@ -34,7 +29,7 @@ class Entry(Generic[_EntryReturns]):
 
     The type argument is the shape that endpoint's decoded body has, taken
     from the same declaration the TypeScript abstract is generated from, so
-    `Entry[Dict[str, Any]]` and `Entry[List[Any]]` tell a type checker what
+    `Entry[dict[str, Any]]` and `Entry[list[Any]]` tell a type checker what
     the call returns even though there is no `def` to annotate here.
     """
     def __init__(self, path, api, method, config):
@@ -66,16 +61,18 @@ class Entry(Generic[_EntryReturns]):
         return cls
 
 
-IndexType = Union[str, int]
-NullableIndexType = Union[str, int, None]
-Num = Union[None, str, float, int, Decimal]
-NumType = Union[Type[str], Type[float], Type[int], Type[Decimal]]
-Str = Optional[str]
-Strings = Optional[List[str]]
-Int = Optional[int]
-Bool = Optional[bool]
+IndexType = str | int
+NullableIndexType = str | int | None
+Num = None | str | float | int | Decimal
+NumType = Type[str] | Type[float] | Type[int] | Type[Decimal]
+Str = str | None
+Strings = list[str] | None
+Int = int | None
+Bool = bool | None
 MarketType = Literal['spot', 'margin', 'swap', 'future', 'option']
 SubType = Literal['linear', 'inverse']
+DefaultType = Literal['spot', 'margin', 'option', 'swap', 'future']
+DefaultSubType = Literal['linear', 'inverse']
 
 
 class FeeInterface(TypedDict):
@@ -84,16 +81,17 @@ class FeeInterface(TypedDict):
     rate: NotRequired[Num]
 
 
-Fee = Optional[FeeInterface]
+Fee = FeeInterface | None
 
 
 class TradingFeeInterface(TypedDict):
-    info: Dict[str, Any]
+    info: dict[str, Any]
     symbol: Str
     maker: Num
     taker: Num
     percentage: Bool
     tierBased: Bool
+    tiers: dict[str, Any]
 
 
 class DepositWithdrawFeeNetwork(TypedDict):
@@ -102,10 +100,10 @@ class DepositWithdrawFeeNetwork(TypedDict):
 
 
 class DepositWithdrawFee(TypedDict):
-    info: Dict[str, Any]
+    info: dict[str, Any]
     withdraw: NotRequired[DepositWithdrawFeeNetwork]
     deposit: NotRequired[DepositWithdrawFeeNetwork]
-    networks: NotRequired[Dict[str, DepositWithdrawFeeNetwork]]
+    networks: NotRequired[dict[str, DepositWithdrawFeeNetwork]]
 
 
 class Balance(TypedDict):
@@ -121,18 +119,19 @@ class BalanceAccount(TypedDict):
     total: Str
     debt: Str
     frozen: Str
-    info: Dict[str, Any]
+    info: dict[str, Any]
 
 
 class Account(TypedDict):
     id: Str
     type: Str
     code: Str
-    info: Dict[str, Any]
+    info: dict[str, Any]
+    name: Str
 
 
 class Trade(TypedDict):
-    info: Dict[str, Any]
+    info: dict[str, Any]
     amount: Num
     datetime: Str
     id: Str
@@ -145,12 +144,13 @@ class Trade(TypedDict):
     takerOrMaker: Str
     cost: Num
     fee: Fee
+    fees: list[Fee]
 
 
 class Position(TypedDict):
     symbol: Str
     id: Str
-    info: Dict[str, Any]
+    info: dict[str, Any]
     timestamp: Int
     datetime: Str
     contracts: Num
@@ -176,13 +176,15 @@ class Position(TypedDict):
     stopLossPrice: Num
     takeProfitPrice: Num
     percentage: Num
+    isolated: Bool
+    exitPrice: Num
 
 class OrderRequest(TypedDict):
     symbol: str
     type: Str
     side: Str
-    amount: Union[None, float]
-    price: Union[None, float]
+    amount: float | None
+    price: float | None
     params: Any
 
 
@@ -191,8 +193,8 @@ class PredictionOrderRequest(TypedDict):
     outcome: str
     type: Str
     side: Str
-    amount: Union[None, float]
-    price: Union[None, float]
+    amount: float | None
+    price: float | None
     params: Any
 
 
@@ -224,15 +226,19 @@ class Order(TypedDict):
     takeProfitPrice: Num
     stopLossPrice: Num
     cost: Num
-    trades: List[Trade]
+    trades: list[Trade]
     fee: Fee
+    fees: list[Fee]
     reduceOnly: Bool
     postOnly: Bool
-    info: Dict[str, Any]
+    marginMode: Str
+    leverage: Num
+    hedged: Bool
+    info: dict[str, Any]
 
 
 class Liquidation(TypedDict):
-    info: Dict[str, Any]
+    info: dict[str, Any]
     symbol: Str
     timestamp: Int
     datetime: Str
@@ -245,23 +251,25 @@ class Liquidation(TypedDict):
 
 
 class FundingHistory(TypedDict):
-    info: Dict[str, Any]
+    info: dict[str, Any]
     symbol: Str
     code: Str
     timestamp: Int
     datetime: Str
     id: Str
     amount: Num
+    rate: Num
+    type: Str
 
 
-class Balances(Dict[str, Balance]):
+class Balances(dict[str, Balance]):
     datetime: Str
     timestamp: Int
 
 
 class OrderBook(TypedDict):
-    asks: List[List[Num]]
-    bids: List[List[Num]]
+    asks: list[list[Num]]
+    bids: list[list[Num]]
     datetime: Str
     timestamp: Int
     nonce: Int
@@ -269,7 +277,7 @@ class OrderBook(TypedDict):
 
 
 class Transaction(TypedDict):
-    info: Dict[str, Any]
+    info: dict[str, Any]
     id: Str
     txid: Str
     timestamp: Int
@@ -292,7 +300,7 @@ class Transaction(TypedDict):
 
 
 class TransferEntry(TypedDict):
-    info: Dict[str, Any]
+    info: dict[str, Any]
     id: Str
     timestamp: Int
     datetime: Str
@@ -305,7 +313,7 @@ class TransferEntry(TypedDict):
 
 class Ticker(TypedDict):
     symbol: Str
-    info: Dict[str, Any]
+    info: dict[str, Any]
     timestamp: Int
     datetime: Str
     high: Num
@@ -328,27 +336,27 @@ class Ticker(TypedDict):
     markPrice: Num
 
 
-Tickers = Dict[str, Ticker]
+Tickers = dict[str, Ticker]
 
-OrderBooks = Dict[str, OrderBook]
+OrderBooks = dict[str, OrderBook]
 class MarginMode(TypedDict):
-    info: Dict[str, Any]
+    info: dict[str, Any]
     symbol: Str
     marginMode: Str
 
 
-MarginModes = Dict[str, MarginMode]
+MarginModes = dict[str, MarginMode]
 
 
 class Leverage(TypedDict):
-    info: Dict[str, Any]
+    info: dict[str, Any]
     symbol: Str
     marginMode: Str
     longLeverage: Num
     shortLeverage: Num
 
 
-Leverages = Dict[str, Leverage]
+Leverages = dict[str, Leverage]
 
 
 class Greeks(TypedDict):
@@ -373,11 +381,14 @@ class Greeks(TypedDict):
     markPrice: Num
     lastPrice: Num
     underlyingPrice: Num
-    info: Dict[str, Any]
+    info: dict[str, Any]
+
+
+AllGreeks = dict[str, Greeks]
 
 
 class Conversion(TypedDict):
-    info: Dict[str, Any]
+    info: dict[str, Any]
     timestamp: Int
     datetime: Str
     id: Str
@@ -390,7 +401,7 @@ class Conversion(TypedDict):
 
 
 class Option(TypedDict):
-    info: Dict[str, Any]
+    info: dict[str, Any]
     currency: Str
     symbol: Str
     timestamp: Int
@@ -409,7 +420,7 @@ class Option(TypedDict):
     quoteVolume: Num
 
 
-OptionChain = Dict[str, Option]
+OptionChain = dict[str, Option]
 
 class MarketMarginModes(TypedDict):
     cross: bool
@@ -420,17 +431,19 @@ class MinMax(TypedDict):
     max: Num
 
 class MarketLimits(TypedDict):
-    amount: Optional[MinMax]
-    cost: Optional[MinMax]
-    leverage: Optional[MinMax]
-    price: Optional[MinMax]
-    market: Optional[MinMax]
+    amount: MinMax | None
+    cost: MinMax | None
+    leverage: MinMax | None
+    price: MinMax | None
+    market: MinMax | None
 
 
 class Precision(TypedDict):
     amount: Num
     price: Num
     cost: Num
+    base: Num
+    quote: Num
 
 
 class MarketInterface(TypedDict):
@@ -451,6 +464,8 @@ class MarketInterface(TypedDict):
     swap: Bool
     future: Bool
     option: Bool
+    index: Bool
+    stock: Bool
     prediction: Bool
     contract: Bool
     settle: Str
@@ -472,8 +487,18 @@ class MarketInterface(TypedDict):
     marginModes: MarketMarginModes
     limits: MarketLimits
     created: Int
-    info: Dict[str, Any]
-    outcomes: List['PredictionOutcome']
+    baseName: Str
+    id2: Str
+    instIdCode: Int
+    tiers: dict[str, Any]
+    info: dict[str, Any]
+    market: Str
+    marketType: Str
+    executionModel: Str
+    collateral: Str
+    resolved: Bool
+    resolvedOutcome: Str
+    outcomes: list['PredictionOutcome']
 
 class Limit(TypedDict):
     min: Num
@@ -498,8 +523,10 @@ class CurrencyInterface(TypedDict):
     withdraw: Bool
     fee: Num
     limits: CurrencyLimits
-    networks: Dict[str, Any]
-    info: Dict[str, Any]
+    networks: dict[str, Any]
+    fees: dict[str, Any]
+    valueScale: Int
+    info: dict[str, Any]
 
 
 class LastPrice(TypedDict):
@@ -508,14 +535,14 @@ class LastPrice(TypedDict):
     datetime: Str
     price: Num
     side: Str
-    info: Dict[str, Any]
+    info: dict[str, Any]
 
 
 class MarginModification(TypedDict):
-    info: Dict[str, Any]
+    info: dict[str, Any]
     symbol: Str
-    type: Optional[Literal['add', 'reduce', 'set']]
-    marginMode: Optional[Literal['cross', 'isolated']]
+    type: Literal['add', 'reduce', 'set'] | None
+    marginMode: Literal['cross', 'isolated'] | None
     amount: Num
     total: Num
     code: Str
@@ -531,7 +558,7 @@ class MarginLoan(TypedDict):
     symbol: Str
     timestamp: Int
     datetime: Str
-    info: Dict[str, Any]
+    info: dict[str, Any]
 
 
 class Status(TypedDict):
@@ -539,16 +566,16 @@ class Status(TypedDict):
     updated: Int
     eta: Int
     url: Str
-    info: Dict[str, Any]
+    info: dict[str, Any]
 
 
 class PositionModeInfo(TypedDict):
-    info: Dict[str, Any]
+    info: dict[str, Any]
     hedged: Bool
 
 
 class CrossBorrowRate(TypedDict):
-    info: Dict[str, Any]
+    info: dict[str, Any]
     currency: Str
     rate: Num
     period: Num
@@ -557,7 +584,7 @@ class CrossBorrowRate(TypedDict):
 
 
 class IsolatedBorrowRate(TypedDict):
-    info: Dict[str, Any]
+    info: dict[str, Any]
     symbol: Str
     base: Str
     baseRate: Num
@@ -570,7 +597,7 @@ class IsolatedBorrowRate(TypedDict):
 
 class FundingRate(TypedDict):
     symbol: Str
-    info: Dict[str, Any]
+    info: dict[str, Any]
     timestamp: Int
     fundingRate: Num
     datetime: Str
@@ -589,7 +616,7 @@ class FundingRate(TypedDict):
     interval: Str
 
 class FundingRateHistory(TypedDict):
-    info: Dict[str, Any]
+    info: dict[str, Any]
     symbol: Str
     fundingRate: Num
     timestamp: Int
@@ -603,7 +630,7 @@ class OpenInterest(TypedDict):
     quoteVolume: Num
     timestamp: Int
     datetime: Str
-    info: Dict[str, Any]
+    info: dict[str, Any]
 
 class LeverageTier(TypedDict):
     tier: Num
@@ -613,11 +640,11 @@ class LeverageTier(TypedDict):
     maxNotional: Num
     maintenanceMarginRate: Num
     maxLeverage: Num
-    info: Dict[str, Any]
+    info: dict[str, Any]
 
 
 class LedgerEntry(TypedDict):
-    info: Dict[str, Any]
+    info: dict[str, Any]
     id: Str
     timestamp: Int
     datetime: Str
@@ -635,15 +662,19 @@ class LedgerEntry(TypedDict):
 
 
 class DepositAddress(TypedDict):
-    info: Dict[str, Any]
+    info: dict[str, Any]
     currency: Str
     network: Str
     address: Str
     tag: Str
+    note: Str
+
+
+DepositAddresses = dict[str, DepositAddress]
 
 
 class LongShortRatio(TypedDict):
-    info: Dict[str, Any]
+    info: dict[str, Any]
     symbol: Str
     timestamp: Int
     datetime: Str
@@ -652,7 +683,7 @@ class LongShortRatio(TypedDict):
 
 
 class ADL(TypedDict):
-    info: Dict[str, Any]
+    info: dict[str, Any]
     symbol: Str
     rank: Int
     rating: Str
@@ -662,7 +693,7 @@ class ADL(TypedDict):
 
 
 class BorrowInterest(TypedDict):
-    info: Dict[str, Any]
+    info: dict[str, Any]
     symbol: Str
     currency: Str
     interest: Num
@@ -673,15 +704,15 @@ class BorrowInterest(TypedDict):
     datetime: Str
 
 
-FundingRates = Dict[str, FundingRate]
-OpenInterests = Dict[str, OpenInterest]
-LastPrices = Dict[str, LastPrice]
-Currencies = Dict[str, CurrencyInterface]
-TradingFees = Dict[str, TradingFeeInterface]
-DepositWithdrawFees = Dict[str, DepositWithdrawFee]
-IsolatedBorrowRates = Dict[str, IsolatedBorrowRate]
-CrossBorrowRates = Dict[str, CrossBorrowRate]
-LeverageTiers = Dict[str, List[LeverageTier]]
+FundingRates = dict[str, FundingRate]
+OpenInterests = dict[str, OpenInterest]
+LastPrices = dict[str, LastPrice]
+Currencies = dict[str, CurrencyInterface]
+TradingFees = dict[str, TradingFeeInterface]
+DepositWithdrawFees = dict[str, DepositWithdrawFee]
+IsolatedBorrowRates = dict[str, IsolatedBorrowRate]
+CrossBorrowRates = dict[str, CrossBorrowRate]
+LeverageTiers = dict[str, list[LeverageTier]]
 
 # Prediction-market structures (ccxt.prediction namespace).
 # Hierarchy: Event -> Market -> Outcome. The Outcome is the tradeable unit; there is
@@ -693,7 +724,7 @@ class PredictionFees(TypedDict):
 
 
 class PredictionOutcome(TypedDict):
-    info: Dict[str, Any]
+    info: dict[str, Any]
     outcome: str         # unified handle "TRUMP_WIN_2024:YES" — round-trips; ex.outcomes key
     outcomeId: Str       # raw exchange/on-chain id (token id / ticker / coin)
     label: Str           # short human name "Yes"
@@ -707,10 +738,12 @@ class PredictionOutcome(TypedDict):
     winner: Bool         # resolved True (the settleFraction == 1 case)
     settleFraction: Num  # 0..1 fractional settlement
     precision: Precision  # outcome-level price/amount precision
+    id: Str
+    negRisk: Bool
 
 
 class PredictionMarket(TypedDict):
-    info: Dict[str, Any]
+    info: dict[str, Any]
     id: str              # raw exchange market id
     market: str          # unified handle "TRUMP_WIN_2024"
     event: Str
@@ -718,7 +751,7 @@ class PredictionMarket(TypedDict):
     executionModel: Str  # 'clob' | 'amm' | 'parimutuel'
     title: Str
     description: Str
-    outcomes: List[PredictionOutcome]   # 1..N (categorical can be > 2)
+    outcomes: list[PredictionOutcome]   # 1..N (categorical can be > 2)
     underlying: Str      # scalar only
     floorStrike: Num     # scalar only
     capStrike: Num       # scalar only
@@ -741,18 +774,45 @@ class PredictionMarket(TypedDict):
     fees: PredictionFees
     resolutionSource: Str
     image: Str
+    base: Str
+    quote: Str
+    settle: Str
+    baseId: Str
+    quoteId: Str
+    settleId: Str
+    type: Str
+    spot: Bool
+    margin: Bool
+    swap: Bool
+    future: Bool
+    option: Bool
+    prediction: Bool
+    contract: Bool
+    linear: Bool
+    inverse: Bool
+    contractSize: Num
+    expiry: Int
+    expiryDatetime: Str
+    strike: Num
+    optionType: Str
+    taker: Num
+    maker: Num
+    percentage: Bool
+    tierBased: Bool
+    feeSide: Str
+    precision: Precision
 
 
 class PredictionEvent(TypedDict):
-    info: Dict[str, Any]
+    info: dict[str, Any]
     id: str              # raw exchange event id
     event: str           # unified handle "US_ELECTION_2024"
     title: Str
     description: Str
     slug: Str
     category: Str
-    tags: List[str]
-    markets: List[PredictionMarket]   # grouped ccxt market rows (each with its outcomes list) — matches the TS type + runtime
+    tags: list[str]
+    markets: list[PredictionMarket]   # grouped ccxt market rows (each with its outcomes list) — matches the TS type + runtime
     mutuallyExclusive: Bool    # exactly one market in the event resolves YES
     active: Bool
     resolved: Bool
@@ -764,6 +824,9 @@ class PredictionEvent(TypedDict):
     endDatetime: Str
     image: Str
     url: Str
+    resolutionSource: Str
+    lastUpdatedAt: Int
+    lastUpdatedAtDatetime: Str
 
 
 # Native dedicated prediction-market trading types. They inherit their base unified
@@ -772,7 +835,7 @@ class PredictionEvent(TypedDict):
 # canonical identity. Mirrors the `Prediction* extends <Base>` interfaces in
 # ts/src/base/types.ts and the native structs in Go/C#/Java.
 class PredictionTicker(TypedDict):  # standalone (was Ticker) — outcome-addressed, no symbol
-    info: Dict[str, Any]
+    info: dict[str, Any]
     timestamp: Int
     datetime: Str
     high: Num
@@ -817,17 +880,17 @@ class PredictionOrder(TypedDict):  # standalone (was Order) — outcome-addresse
     fee: Fee
     reduceOnly: Bool
     postOnly: Bool
-    info: Dict[str, Any]
+    info: dict[str, Any]
     outcome: str
     outcomeId: Str
     label: Str
     market: Str
     event: Str
-    trades: List['PredictionTrade']
+    trades: list['PredictionTrade']
 
 
 class PredictionTrade(TypedDict):  # standalone (was Trade) — outcome-addressed, no symbol
-    info: Dict[str, Any]
+    info: dict[str, Any]
     amount: Num
     datetime: Str
     id: Str
@@ -848,7 +911,7 @@ class PredictionTrade(TypedDict):  # standalone (was Trade) — outcome-addresse
 
 class PredictionPosition(TypedDict):  # standalone (was Position) — outcome-addressed, no symbol
     id: Str
-    info: Dict[str, Any]
+    info: dict[str, Any]
     timestamp: Int
     datetime: Str
     contracts: Num
@@ -873,12 +936,12 @@ class PredictionPosition(TypedDict):  # standalone (was Position) — outcome-ad
     payout: Num
 
 
-PredictionTickers = Dict[str, PredictionTicker]
+PredictionTickers = dict[str, PredictionTicker]
 
 
 class PredictionOrderBook(TypedDict):  # standalone (was OrderBook) — outcome-addressed, no symbol
-    asks: List[List[Num]]
-    bids: List[List[Num]]
+    asks: list[list[Num]]
+    bids: list[list[Num]]
     datetime: Str
     timestamp: Int
     nonce: Int
@@ -888,7 +951,7 @@ class PredictionOrderBook(TypedDict):  # standalone (was OrderBook) — outcome-
 
 
 class PredictionTradingFee(TypedDict):  # standalone (was TradingFeeInterface) — outcome-addressed, no symbol
-    info: Dict[str, Any]
+    info: dict[str, Any]
     maker: Num
     taker: Num
     percentage: Bool
@@ -903,14 +966,14 @@ class PredictionOpenInterest(TypedDict):  # standalone (was OpenInterest) — ou
     openInterestValue: Num
     timestamp: Int
     datetime: Str
-    info: Dict[str, Any]
+    info: dict[str, Any]
     outcome: str
     outcomeId: Str
     market: Str
 
 
 class PredictionSettlement(TypedDict):
-    info: Dict[str, Any]
+    info: dict[str, Any]
     id: Str
     timestamp: Int
     datetime: Str
@@ -929,8 +992,8 @@ class PredictionSettlement(TypedDict):
 
 class fetchEventsParams(TypedDict):
     query: Str
-    queries: List[str]
-    tags: List[str]
+    queries: list[str]
+    tags: list[str]
     limit: Int
     sort: Literal['volume', 'liquidity', 'newest']
     status: Literal['active', 'inactive', 'closed', 'all']
@@ -939,8 +1002,8 @@ class fetchEventsParams(TypedDict):
     slug: Str
 
 
-Market = Optional[MarketInterface]
-Currency = Optional[CurrencyInterface]
+Market = MarketInterface | None
+Currency = CurrencyInterface | None
 
 class ConstructorArgs(TypedDict, total=False):
     apiKey: str
@@ -953,20 +1016,20 @@ class ConstructorArgs(TypedDict, total=False):
     verbose: bool
     testnet: bool
     sandbox: bool  # redudant but kept for backwards compatibility
-    options: Dict[str, Any]
+    options: dict[str, Any]
     enableRateLimit: bool
     httpsProxy: str
     socksProxy: str
     wssProxy: str
     proxy: str
     rateLimit: Num
-    commonCurrencies: Dict[str, Any]
+    commonCurrencies: dict[str, Any]
     userAgent: str
-    userAgents: Dict[str, Any]
+    userAgents: dict[str, Any]
     timeout: Num
-    markets: Dict[str, Any]
-    currencies: Dict[str, Any]
+    markets: dict[str, Any]
+    currencies: dict[str, Any]
     hostname: str
-    urls: Dict[str, Any]
-    headers: Dict[str, Any]
+    urls: dict[str, Any]
+    headers: dict[str, Any]
     session: Any

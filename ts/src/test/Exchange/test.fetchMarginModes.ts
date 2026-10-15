@@ -4,7 +4,7 @@ import testSharedMethods from './base/test.sharedMethods.js';
 
 async function testFetchMarginModes (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'fetchMarginModes';
-    const marginModes = await exchange.fetchMarginModes ([ 'symbol' ]);
+    const marginModes = await exchange.fetchMarginModes ([ symbol ]);
     testSharedMethods.assertDictionaryResponse (exchange, method, marginModes, symbol);
     const marginModeKeys = Object.keys (marginModes);
     testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, marginModes, symbol);

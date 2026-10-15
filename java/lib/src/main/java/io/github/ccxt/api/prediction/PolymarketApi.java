@@ -7,6 +7,9 @@
 
 package io.github.ccxt.api.prediction;
 import io.github.ccxt.PredictionExchange;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class PolymarketApi extends PredictionExchange
 {
@@ -25,7 +28,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON scalar
      */
-    public java.util.concurrent.CompletableFuture<String>  gammaPublicGetStatus (Object... optionalArgs)
+    public CompletableFuture<String>  gammaPublicGetStatus (Object... optionalArgs)
     {
         return this.callAsync ("gammaPublicGetStatus", optionalArgs);
     }
@@ -36,7 +39,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  gammaPublicGetComments (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  gammaPublicGetComments (Object... optionalArgs)
     {
         return this.callAsync ("gammaPublicGetComments", optionalArgs);
     }
@@ -47,7 +50,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  gammaPublicGetCommentsId (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  gammaPublicGetCommentsId (Object... optionalArgs)
     {
         return this.callAsync ("gammaPublicGetCommentsId", optionalArgs);
     }
@@ -58,7 +61,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  gammaPublicGetCommentsUserAddressUserAddress (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  gammaPublicGetCommentsUserAddressUserAddress (Object... optionalArgs)
     {
         return this.callAsync ("gammaPublicGetCommentsUserAddressUserAddress", optionalArgs);
     }
@@ -69,7 +72,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  gammaPublicGetEvents (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  gammaPublicGetEvents (Object... optionalArgs)
     {
         return this.callAsync ("gammaPublicGetEvents", optionalArgs);
     }
@@ -80,7 +83,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  gammaPublicGetEventsCreators (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  gammaPublicGetEventsCreators (Object... optionalArgs)
     {
         return this.callAsync ("gammaPublicGetEventsCreators", optionalArgs);
     }
@@ -91,7 +94,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  gammaPublicGetEventsCreatorsId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  gammaPublicGetEventsCreatorsId (Object... optionalArgs)
     {
         return this.callAsync ("gammaPublicGetEventsCreatorsId", optionalArgs);
     }
@@ -102,7 +105,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  gammaPublicGetEventsKeyset (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  gammaPublicGetEventsKeyset (Object... optionalArgs)
     {
         return this.callAsync ("gammaPublicGetEventsKeyset", optionalArgs);
     }
@@ -113,7 +116,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  gammaPublicGetEventsPagination (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  gammaPublicGetEventsPagination (Object... optionalArgs)
     {
         return this.callAsync ("gammaPublicGetEventsPagination", optionalArgs);
     }
@@ -124,7 +127,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  gammaPublicGetEventsResults (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  gammaPublicGetEventsResults (Object... optionalArgs)
     {
         return this.callAsync ("gammaPublicGetEventsResults", optionalArgs);
     }
@@ -135,7 +138,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  gammaPublicGetEventsSlugSlug (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  gammaPublicGetEventsSlugSlug (Object... optionalArgs)
     {
         return this.callAsync ("gammaPublicGetEventsSlugSlug", optionalArgs);
     }
@@ -146,7 +149,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  gammaPublicGetEventsId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  gammaPublicGetEventsId (Object... optionalArgs)
     {
         return this.callAsync ("gammaPublicGetEventsId", optionalArgs);
     }
@@ -157,7 +160,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  gammaPublicGetEventsIdCommentsCount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  gammaPublicGetEventsIdCommentsCount (Object... optionalArgs)
     {
         return this.callAsync ("gammaPublicGetEventsIdCommentsCount", optionalArgs);
     }
@@ -168,7 +171,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  gammaPublicGetEventsIdTags (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  gammaPublicGetEventsIdTags (Object... optionalArgs)
     {
         return this.callAsync ("gammaPublicGetEventsIdTags", optionalArgs);
     }
@@ -179,7 +182,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  gammaPublicGetEventsIdTweetCount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  gammaPublicGetEventsIdTweetCount (Object... optionalArgs)
     {
         return this.callAsync ("gammaPublicGetEventsIdTweetCount", optionalArgs);
     }
@@ -190,7 +193,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  gammaPublicGetMarkets (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  gammaPublicGetMarkets (Object... optionalArgs)
     {
         return this.callAsync ("gammaPublicGetMarkets", optionalArgs);
     }
@@ -201,7 +204,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  gammaPublicGetMarketsKeyset (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  gammaPublicGetMarketsKeyset (Object... optionalArgs)
     {
         return this.callAsync ("gammaPublicGetMarketsKeyset", optionalArgs);
     }
@@ -212,7 +215,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  gammaPublicGetMarketsSlugSlug (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  gammaPublicGetMarketsSlugSlug (Object... optionalArgs)
     {
         return this.callAsync ("gammaPublicGetMarketsSlugSlug", optionalArgs);
     }
@@ -223,7 +226,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  gammaPublicGetMarketsId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  gammaPublicGetMarketsId (Object... optionalArgs)
     {
         return this.callAsync ("gammaPublicGetMarketsId", optionalArgs);
     }
@@ -234,7 +237,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  gammaPublicGetMarketsIdDescription (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  gammaPublicGetMarketsIdDescription (Object... optionalArgs)
     {
         return this.callAsync ("gammaPublicGetMarketsIdDescription", optionalArgs);
     }
@@ -245,7 +248,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  gammaPublicGetMarketsIdTags (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  gammaPublicGetMarketsIdTags (Object... optionalArgs)
     {
         return this.callAsync ("gammaPublicGetMarketsIdTags", optionalArgs);
     }
@@ -256,7 +259,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  gammaPublicGetProfilesUserAddressUserAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  gammaPublicGetProfilesUserAddressUserAddress (Object... optionalArgs)
     {
         return this.callAsync ("gammaPublicGetProfilesUserAddressUserAddress", optionalArgs);
     }
@@ -267,7 +270,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  gammaPublicGetPublicProfile (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  gammaPublicGetPublicProfile (Object... optionalArgs)
     {
         return this.callAsync ("gammaPublicGetPublicProfile", optionalArgs);
     }
@@ -278,7 +281,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  gammaPublicGetPublicSearch (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  gammaPublicGetPublicSearch (Object... optionalArgs)
     {
         return this.callAsync ("gammaPublicGetPublicSearch", optionalArgs);
     }
@@ -289,7 +292,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  gammaPublicGetSeries (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  gammaPublicGetSeries (Object... optionalArgs)
     {
         return this.callAsync ("gammaPublicGetSeries", optionalArgs);
     }
@@ -300,7 +303,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  gammaPublicGetSeriesSummarySlugSlug (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  gammaPublicGetSeriesSummarySlugSlug (Object... optionalArgs)
     {
         return this.callAsync ("gammaPublicGetSeriesSummarySlugSlug", optionalArgs);
     }
@@ -311,7 +314,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  gammaPublicGetSeriesSummaryId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  gammaPublicGetSeriesSummaryId (Object... optionalArgs)
     {
         return this.callAsync ("gammaPublicGetSeriesSummaryId", optionalArgs);
     }
@@ -322,7 +325,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  gammaPublicGetSeriesId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  gammaPublicGetSeriesId (Object... optionalArgs)
     {
         return this.callAsync ("gammaPublicGetSeriesId", optionalArgs);
     }
@@ -333,7 +336,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  gammaPublicGetSeriesIdCommentsCount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  gammaPublicGetSeriesIdCommentsCount (Object... optionalArgs)
     {
         return this.callAsync ("gammaPublicGetSeriesIdCommentsCount", optionalArgs);
     }
@@ -344,7 +347,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  gammaPublicGetSports (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  gammaPublicGetSports (Object... optionalArgs)
     {
         return this.callAsync ("gammaPublicGetSports", optionalArgs);
     }
@@ -355,7 +358,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  gammaPublicGetSportsMarketTypes (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  gammaPublicGetSportsMarketTypes (Object... optionalArgs)
     {
         return this.callAsync ("gammaPublicGetSportsMarketTypes", optionalArgs);
     }
@@ -366,7 +369,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  gammaPublicGetTags (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  gammaPublicGetTags (Object... optionalArgs)
     {
         return this.callAsync ("gammaPublicGetTags", optionalArgs);
     }
@@ -377,7 +380,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  gammaPublicGetTagsSlugSlug (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  gammaPublicGetTagsSlugSlug (Object... optionalArgs)
     {
         return this.callAsync ("gammaPublicGetTagsSlugSlug", optionalArgs);
     }
@@ -388,7 +391,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  gammaPublicGetTagsSlugSlugRelatedTags (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  gammaPublicGetTagsSlugSlugRelatedTags (Object... optionalArgs)
     {
         return this.callAsync ("gammaPublicGetTagsSlugSlugRelatedTags", optionalArgs);
     }
@@ -399,7 +402,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  gammaPublicGetTagsSlugSlugRelatedTagsTags (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  gammaPublicGetTagsSlugSlugRelatedTagsTags (Object... optionalArgs)
     {
         return this.callAsync ("gammaPublicGetTagsSlugSlugRelatedTagsTags", optionalArgs);
     }
@@ -410,7 +413,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  gammaPublicGetTagsId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  gammaPublicGetTagsId (Object... optionalArgs)
     {
         return this.callAsync ("gammaPublicGetTagsId", optionalArgs);
     }
@@ -421,7 +424,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  gammaPublicGetTagsIdRelatedTags (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  gammaPublicGetTagsIdRelatedTags (Object... optionalArgs)
     {
         return this.callAsync ("gammaPublicGetTagsIdRelatedTags", optionalArgs);
     }
@@ -432,7 +435,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  gammaPublicGetTagsIdRelatedTagsTags (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  gammaPublicGetTagsIdRelatedTagsTags (Object... optionalArgs)
     {
         return this.callAsync ("gammaPublicGetTagsIdRelatedTagsTags", optionalArgs);
     }
@@ -443,7 +446,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  gammaPublicGetTeams (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  gammaPublicGetTeams (Object... optionalArgs)
     {
         return this.callAsync ("gammaPublicGetTeams", optionalArgs);
     }
@@ -454,7 +457,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  gammaPublicGetTeamsId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  gammaPublicGetTeamsId (Object... optionalArgs)
     {
         return this.callAsync ("gammaPublicGetTeamsId", optionalArgs);
     }
@@ -465,7 +468,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  gammaPublicPostMarketsAbridged (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  gammaPublicPostMarketsAbridged (Object... optionalArgs)
     {
         return this.callAsync ("gammaPublicPostMarketsAbridged", optionalArgs);
     }
@@ -476,7 +479,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  gammaPublicPostMarketsInformation (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  gammaPublicPostMarketsInformation (Object... optionalArgs)
     {
         return this.callAsync ("gammaPublicPostMarketsInformation", optionalArgs);
     }
@@ -487,7 +490,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPublicGetBook (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPublicGetBook (Object... optionalArgs)
     {
         return this.callAsync ("clobPublicGetBook", optionalArgs);
     }
@@ -498,7 +501,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  clobPublicGetBooks (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  clobPublicGetBooks (Object... optionalArgs)
     {
         return this.callAsync ("clobPublicGetBooks", optionalArgs);
     }
@@ -509,7 +512,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPublicGetBuilderTrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPublicGetBuilderTrades (Object... optionalArgs)
     {
         return this.callAsync ("clobPublicGetBuilderTrades", optionalArgs);
     }
@@ -520,7 +523,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPublicGetClobMarketsConditionId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPublicGetClobMarketsConditionId (Object... optionalArgs)
     {
         return this.callAsync ("clobPublicGetClobMarketsConditionId", optionalArgs);
     }
@@ -531,7 +534,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPublicGetFeeRate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPublicGetFeeRate (Object... optionalArgs)
     {
         return this.callAsync ("clobPublicGetFeeRate", optionalArgs);
     }
@@ -542,7 +545,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPublicGetFeeRateTokenId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPublicGetFeeRateTokenId (Object... optionalArgs)
     {
         return this.callAsync ("clobPublicGetFeeRateTokenId", optionalArgs);
     }
@@ -553,7 +556,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPublicGetLastTradePrice (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPublicGetLastTradePrice (Object... optionalArgs)
     {
         return this.callAsync ("clobPublicGetLastTradePrice", optionalArgs);
     }
@@ -564,7 +567,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  clobPublicGetLastTradesPrices (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  clobPublicGetLastTradesPrices (Object... optionalArgs)
     {
         return this.callAsync ("clobPublicGetLastTradesPrices", optionalArgs);
     }
@@ -575,7 +578,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPublicGetMarketsByTokenTokenId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPublicGetMarketsByTokenTokenId (Object... optionalArgs)
     {
         return this.callAsync ("clobPublicGetMarketsByTokenTokenId", optionalArgs);
     }
@@ -586,7 +589,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPublicGetMarketsLiveActivityConditionId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPublicGetMarketsLiveActivityConditionId (Object... optionalArgs)
     {
         return this.callAsync ("clobPublicGetMarketsLiveActivityConditionId", optionalArgs);
     }
@@ -597,7 +600,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPublicGetMidpoint (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPublicGetMidpoint (Object... optionalArgs)
     {
         return this.callAsync ("clobPublicGetMidpoint", optionalArgs);
     }
@@ -608,7 +611,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPublicGetMidpoints (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPublicGetMidpoints (Object... optionalArgs)
     {
         return this.callAsync ("clobPublicGetMidpoints", optionalArgs);
     }
@@ -619,7 +622,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPublicGetNegRisk (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPublicGetNegRisk (Object... optionalArgs)
     {
         return this.callAsync ("clobPublicGetNegRisk", optionalArgs);
     }
@@ -630,7 +633,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPublicGetNegRiskTokenId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPublicGetNegRiskTokenId (Object... optionalArgs)
     {
         return this.callAsync ("clobPublicGetNegRiskTokenId", optionalArgs);
     }
@@ -641,7 +644,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPublicGetPrice (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPublicGetPrice (Object... optionalArgs)
     {
         return this.callAsync ("clobPublicGetPrice", optionalArgs);
     }
@@ -652,7 +655,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPublicGetPrices (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPublicGetPrices (Object... optionalArgs)
     {
         return this.callAsync ("clobPublicGetPrices", optionalArgs);
     }
@@ -663,7 +666,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPublicGetPricesHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPublicGetPricesHistory (Object... optionalArgs)
     {
         return this.callAsync ("clobPublicGetPricesHistory", optionalArgs);
     }
@@ -674,7 +677,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  clobPublicGetRebatesCurrent (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  clobPublicGetRebatesCurrent (Object... optionalArgs)
     {
         return this.callAsync ("clobPublicGetRebatesCurrent", optionalArgs);
     }
@@ -685,7 +688,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPublicGetRewardsMarketsCurrent (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPublicGetRewardsMarketsCurrent (Object... optionalArgs)
     {
         return this.callAsync ("clobPublicGetRewardsMarketsCurrent", optionalArgs);
     }
@@ -696,7 +699,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPublicGetRewardsMarketsMulti (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPublicGetRewardsMarketsMulti (Object... optionalArgs)
     {
         return this.callAsync ("clobPublicGetRewardsMarketsMulti", optionalArgs);
     }
@@ -707,7 +710,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPublicGetRewardsMarketsConditionId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPublicGetRewardsMarketsConditionId (Object... optionalArgs)
     {
         return this.callAsync ("clobPublicGetRewardsMarketsConditionId", optionalArgs);
     }
@@ -718,7 +721,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPublicGetSamplingMarkets (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPublicGetSamplingMarkets (Object... optionalArgs)
     {
         return this.callAsync ("clobPublicGetSamplingMarkets", optionalArgs);
     }
@@ -729,7 +732,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPublicGetSamplingSimplifiedMarkets (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPublicGetSamplingSimplifiedMarkets (Object... optionalArgs)
     {
         return this.callAsync ("clobPublicGetSamplingSimplifiedMarkets", optionalArgs);
     }
@@ -740,7 +743,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPublicGetSimplifiedMarkets (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPublicGetSimplifiedMarkets (Object... optionalArgs)
     {
         return this.callAsync ("clobPublicGetSimplifiedMarkets", optionalArgs);
     }
@@ -751,7 +754,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPublicGetSpread (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPublicGetSpread (Object... optionalArgs)
     {
         return this.callAsync ("clobPublicGetSpread", optionalArgs);
     }
@@ -762,7 +765,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPublicGetTickSize (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPublicGetTickSize (Object... optionalArgs)
     {
         return this.callAsync ("clobPublicGetTickSize", optionalArgs);
     }
@@ -773,7 +776,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPublicGetTickSizeTokenId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPublicGetTickSizeTokenId (Object... optionalArgs)
     {
         return this.callAsync ("clobPublicGetTickSizeTokenId", optionalArgs);
     }
@@ -784,7 +787,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON scalar
      */
-    public java.util.concurrent.CompletableFuture<String>  clobPublicGetTime (Object... optionalArgs)
+    public CompletableFuture<String>  clobPublicGetTime (Object... optionalArgs)
     {
         return this.callAsync ("clobPublicGetTime", optionalArgs);
     }
@@ -795,7 +798,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPublicPostBatchPricesHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPublicPostBatchPricesHistory (Object... optionalArgs)
     {
         return this.callAsync ("clobPublicPostBatchPricesHistory", optionalArgs);
     }
@@ -806,7 +809,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  clobPublicPostBooks (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  clobPublicPostBooks (Object... optionalArgs)
     {
         return this.callAsync ("clobPublicPostBooks", optionalArgs);
     }
@@ -817,7 +820,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  clobPublicPostLastTradesPrices (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  clobPublicPostLastTradesPrices (Object... optionalArgs)
     {
         return this.callAsync ("clobPublicPostLastTradesPrices", optionalArgs);
     }
@@ -828,7 +831,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  clobPublicPostMarketsLiveActivity (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  clobPublicPostMarketsLiveActivity (Object... optionalArgs)
     {
         return this.callAsync ("clobPublicPostMarketsLiveActivity", optionalArgs);
     }
@@ -839,7 +842,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPublicPostMidpoints (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPublicPostMidpoints (Object... optionalArgs)
     {
         return this.callAsync ("clobPublicPostMidpoints", optionalArgs);
     }
@@ -850,7 +853,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPublicPostPrices (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPublicPostPrices (Object... optionalArgs)
     {
         return this.callAsync ("clobPublicPostPrices", optionalArgs);
     }
@@ -861,7 +864,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPublicPostSpreads (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPublicPostSpreads (Object... optionalArgs)
     {
         return this.callAsync ("clobPublicPostSpreads", optionalArgs);
     }
@@ -872,7 +875,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPrivateGetAuthApiKeys (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPrivateGetAuthApiKeys (Object... optionalArgs)
     {
         return this.callAsync ("clobPrivateGetAuthApiKeys", optionalArgs);
     }
@@ -883,7 +886,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPrivateGetAuthBanStatusClosedOnly (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPrivateGetAuthBanStatusClosedOnly (Object... optionalArgs)
     {
         return this.callAsync ("clobPrivateGetAuthBanStatusClosedOnly", optionalArgs);
     }
@@ -894,7 +897,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  clobPrivateGetAuthBuilderApiKey (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  clobPrivateGetAuthBuilderApiKey (Object... optionalArgs)
     {
         return this.callAsync ("clobPrivateGetAuthBuilderApiKey", optionalArgs);
     }
@@ -905,7 +908,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPrivateGetAuthDeriveApiKey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPrivateGetAuthDeriveApiKey (Object... optionalArgs)
     {
         return this.callAsync ("clobPrivateGetAuthDeriveApiKey", optionalArgs);
     }
@@ -916,7 +919,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPrivateGetBalanceAllowance (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPrivateGetBalanceAllowance (Object... optionalArgs)
     {
         return this.callAsync ("clobPrivateGetBalanceAllowance", optionalArgs);
     }
@@ -927,7 +930,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPrivateGetBalanceAllowanceUpdate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPrivateGetBalanceAllowanceUpdate (Object... optionalArgs)
     {
         return this.callAsync ("clobPrivateGetBalanceAllowanceUpdate", optionalArgs);
     }
@@ -938,7 +941,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPrivateGetDataOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPrivateGetDataOrderId (Object... optionalArgs)
     {
         return this.callAsync ("clobPrivateGetDataOrderId", optionalArgs);
     }
@@ -949,7 +952,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPrivateGetDataOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPrivateGetDataOrders (Object... optionalArgs)
     {
         return this.callAsync ("clobPrivateGetDataOrders", optionalArgs);
     }
@@ -960,7 +963,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPrivateGetDataTrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPrivateGetDataTrades (Object... optionalArgs)
     {
         return this.callAsync ("clobPrivateGetDataTrades", optionalArgs);
     }
@@ -971,7 +974,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  clobPrivateGetNotifications (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  clobPrivateGetNotifications (Object... optionalArgs)
     {
         return this.callAsync ("clobPrivateGetNotifications", optionalArgs);
     }
@@ -982,7 +985,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPrivateGetOrderScoring (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPrivateGetOrderScoring (Object... optionalArgs)
     {
         return this.callAsync ("clobPrivateGetOrderScoring", optionalArgs);
     }
@@ -993,7 +996,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPrivateGetOrdersScoring (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPrivateGetOrdersScoring (Object... optionalArgs)
     {
         return this.callAsync ("clobPrivateGetOrdersScoring", optionalArgs);
     }
@@ -1004,7 +1007,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPrivateGetRewardsUser (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPrivateGetRewardsUser (Object... optionalArgs)
     {
         return this.callAsync ("clobPrivateGetRewardsUser", optionalArgs);
     }
@@ -1015,7 +1018,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPrivateGetRewardsUserMarkets (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPrivateGetRewardsUserMarkets (Object... optionalArgs)
     {
         return this.callAsync ("clobPrivateGetRewardsUserMarkets", optionalArgs);
     }
@@ -1026,7 +1029,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPrivateGetRewardsUserPercentages (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPrivateGetRewardsUserPercentages (Object... optionalArgs)
     {
         return this.callAsync ("clobPrivateGetRewardsUserPercentages", optionalArgs);
     }
@@ -1037,7 +1040,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  clobPrivateGetRewardsUserTotal (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  clobPrivateGetRewardsUserTotal (Object... optionalArgs)
     {
         return this.callAsync ("clobPrivateGetRewardsUserTotal", optionalArgs);
     }
@@ -1048,7 +1051,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPrivatePostAuthApiKey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPrivatePostAuthApiKey (Object... optionalArgs)
     {
         return this.callAsync ("clobPrivatePostAuthApiKey", optionalArgs);
     }
@@ -1059,7 +1062,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPrivatePostAuthBuilderApiKey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPrivatePostAuthBuilderApiKey (Object... optionalArgs)
     {
         return this.callAsync ("clobPrivatePostAuthBuilderApiKey", optionalArgs);
     }
@@ -1070,7 +1073,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPrivatePostHeartbeats (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPrivatePostHeartbeats (Object... optionalArgs)
     {
         return this.callAsync ("clobPrivatePostHeartbeats", optionalArgs);
     }
@@ -1081,7 +1084,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPrivatePostOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPrivatePostOrder (Object... optionalArgs)
     {
         return this.callAsync ("clobPrivatePostOrder", optionalArgs);
     }
@@ -1092,7 +1095,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  clobPrivatePostOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  clobPrivatePostOrders (Object... optionalArgs)
     {
         return this.callAsync ("clobPrivatePostOrders", optionalArgs);
     }
@@ -1103,7 +1106,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPrivatePostV1Heartbeats (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPrivatePostV1Heartbeats (Object... optionalArgs)
     {
         return this.callAsync ("clobPrivatePostV1Heartbeats", optionalArgs);
     }
@@ -1114,7 +1117,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON scalar
      */
-    public java.util.concurrent.CompletableFuture<String>  clobPrivateDeleteAuthApiKey (Object... optionalArgs)
+    public CompletableFuture<String>  clobPrivateDeleteAuthApiKey (Object... optionalArgs)
     {
         return this.callAsync ("clobPrivateDeleteAuthApiKey", optionalArgs);
     }
@@ -1125,7 +1128,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON scalar
      */
-    public java.util.concurrent.CompletableFuture<String>  clobPrivateDeleteAuthBuilderApiKey (Object... optionalArgs)
+    public CompletableFuture<String>  clobPrivateDeleteAuthBuilderApiKey (Object... optionalArgs)
     {
         return this.callAsync ("clobPrivateDeleteAuthBuilderApiKey", optionalArgs);
     }
@@ -1136,7 +1139,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPrivateDeleteCancelAll (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPrivateDeleteCancelAll (Object... optionalArgs)
     {
         return this.callAsync ("clobPrivateDeleteCancelAll", optionalArgs);
     }
@@ -1147,7 +1150,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPrivateDeleteCancelMarketOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPrivateDeleteCancelMarketOrders (Object... optionalArgs)
     {
         return this.callAsync ("clobPrivateDeleteCancelMarketOrders", optionalArgs);
     }
@@ -1158,7 +1161,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON scalar
      */
-    public java.util.concurrent.CompletableFuture<String>  clobPrivateDeleteNotifications (Object... optionalArgs)
+    public CompletableFuture<String>  clobPrivateDeleteNotifications (Object... optionalArgs)
     {
         return this.callAsync ("clobPrivateDeleteNotifications", optionalArgs);
     }
@@ -1169,7 +1172,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPrivateDeleteOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPrivateDeleteOrder (Object... optionalArgs)
     {
         return this.callAsync ("clobPrivateDeleteOrder", optionalArgs);
     }
@@ -1180,7 +1183,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  clobPrivateDeleteOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  clobPrivateDeleteOrders (Object... optionalArgs)
     {
         return this.callAsync ("clobPrivateDeleteOrders", optionalArgs);
     }
@@ -1191,7 +1194,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dataPublicGetActivity (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dataPublicGetActivity (Object... optionalArgs)
     {
         return this.callAsync ("dataPublicGetActivity", optionalArgs);
     }
@@ -1202,7 +1205,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dataPublicGetClosedPositions (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dataPublicGetClosedPositions (Object... optionalArgs)
     {
         return this.callAsync ("dataPublicGetClosedPositions", optionalArgs);
     }
@@ -1213,7 +1216,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dataPublicGetHolders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dataPublicGetHolders (Object... optionalArgs)
     {
         return this.callAsync ("dataPublicGetHolders", optionalArgs);
     }
@@ -1224,7 +1227,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dataPublicGetLiveVolume (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dataPublicGetLiveVolume (Object... optionalArgs)
     {
         return this.callAsync ("dataPublicGetLiveVolume", optionalArgs);
     }
@@ -1235,7 +1238,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dataPublicGetOi (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dataPublicGetOi (Object... optionalArgs)
     {
         return this.callAsync ("dataPublicGetOi", optionalArgs);
     }
@@ -1246,7 +1249,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dataPublicGetOther (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dataPublicGetOther (Object... optionalArgs)
     {
         return this.callAsync ("dataPublicGetOther", optionalArgs);
     }
@@ -1257,7 +1260,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dataPublicGetPositions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dataPublicGetPositions (Object... optionalArgs)
     {
         return this.callAsync ("dataPublicGetPositions", optionalArgs);
     }
@@ -1268,7 +1271,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dataPublicGetRevisions (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dataPublicGetRevisions (Object... optionalArgs)
     {
         return this.callAsync ("dataPublicGetRevisions", optionalArgs);
     }
@@ -1279,7 +1282,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dataPublicGetTraded (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dataPublicGetTraded (Object... optionalArgs)
     {
         return this.callAsync ("dataPublicGetTraded", optionalArgs);
     }
@@ -1290,7 +1293,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dataPublicGetTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dataPublicGetTrades (Object... optionalArgs)
     {
         return this.callAsync ("dataPublicGetTrades", optionalArgs);
     }
@@ -1301,7 +1304,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dataPublicGetV1AccountingSnapshot (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dataPublicGetV1AccountingSnapshot (Object... optionalArgs)
     {
         return this.callAsync ("dataPublicGetV1AccountingSnapshot", optionalArgs);
     }
@@ -1312,7 +1315,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dataPublicGetV1ActivityCombos (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dataPublicGetV1ActivityCombos (Object... optionalArgs)
     {
         return this.callAsync ("dataPublicGetV1ActivityCombos", optionalArgs);
     }
@@ -1323,7 +1326,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dataPublicGetV1BuildersLeaderboard (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dataPublicGetV1BuildersLeaderboard (Object... optionalArgs)
     {
         return this.callAsync ("dataPublicGetV1BuildersLeaderboard", optionalArgs);
     }
@@ -1334,7 +1337,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dataPublicGetV1BuildersVolume (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dataPublicGetV1BuildersVolume (Object... optionalArgs)
     {
         return this.callAsync ("dataPublicGetV1BuildersVolume", optionalArgs);
     }
@@ -1345,7 +1348,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dataPublicGetV1Leaderboard (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dataPublicGetV1Leaderboard (Object... optionalArgs)
     {
         return this.callAsync ("dataPublicGetV1Leaderboard", optionalArgs);
     }
@@ -1356,7 +1359,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dataPublicGetV1MarketPositions (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dataPublicGetV1MarketPositions (Object... optionalArgs)
     {
         return this.callAsync ("dataPublicGetV1MarketPositions", optionalArgs);
     }
@@ -1367,7 +1370,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dataPublicGetV1PositionsCombos (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dataPublicGetV1PositionsCombos (Object... optionalArgs)
     {
         return this.callAsync ("dataPublicGetV1PositionsCombos", optionalArgs);
     }
@@ -1378,7 +1381,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dataPublicGetValue (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dataPublicGetValue (Object... optionalArgs)
     {
         return this.callAsync ("dataPublicGetValue", optionalArgs);
     }
@@ -1389,7 +1392,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  combosPublicGetV1RfqComboMarkets (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  combosPublicGetV1RfqComboMarkets (Object... optionalArgs)
     {
         return this.callAsync ("combosPublicGetV1RfqComboMarkets", optionalArgs);
     }
@@ -1400,7 +1403,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  combosPrivatePostV1MakerConfirmations (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  combosPrivatePostV1MakerConfirmations (Object... optionalArgs)
     {
         return this.callAsync ("combosPrivatePostV1MakerConfirmations", optionalArgs);
     }
@@ -1411,7 +1414,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  combosPrivatePostV1MakerQuotes (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  combosPrivatePostV1MakerQuotes (Object... optionalArgs)
     {
         return this.callAsync ("combosPrivatePostV1MakerQuotes", optionalArgs);
     }
@@ -1422,7 +1425,7 @@ public class PolymarketApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  combosPrivatePostV1MakerQuotesCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  combosPrivatePostV1MakerQuotesCancel (Object... optionalArgs)
     {
         return this.callAsync ("combosPrivatePostV1MakerQuotesCancel", optionalArgs);
     }

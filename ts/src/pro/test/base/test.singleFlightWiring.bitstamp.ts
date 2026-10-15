@@ -1,0 +1,168 @@
+import assert from 'assert';
+import { AuthenticationError } from '../../../base/errors.js';
+import ccxt from '../../../../ccxt.js';
+
+// native ts test, intentionally not transpiled - pins the single-flight
+// authentication logic from https://github.com/ccxt/ccxt/issues/29393 on
+// bitstamp. bitstamp mints a short lived websocket token (valid_sec is 60)
+// through privatePostWebsocketsToken () and caches it in this.options, so the
+// check-then-fetch window in authenticate () lets every concurrent
+// subscribePrivate () caller mint its own token. the logic is inlined directly
+// into authenticate (), so there is no helper method to unit-test: this file is
+// the only guard, and no build/lint gate sees it - dropping the in-progress
+// early-return or the flight settlement still compiles and only surfaces as
+// duplicate token fetches against the live venue
+
+function sleep (ms: number) {
+    return new Promise ((resolve) => setTimeout (resolve, ms));
+}
+
+function flightCount (exchange: any) {
+    // the flights live on a never-dialed client keyed 'authenticationFlights',
+    // registered in its futures map - see the inlined single-flight block in
+    // bitstamp authenticate (). client.resolve / client.reject delete the
+    // entry, so a settled flight must leave none behind
+    const clients = exchange.clients;
+    if (!('authenticationFlights' in clients)) {
+        return 0;
+    }
+    return Object.keys (clients['authenticationFlights'].futures).length;
+}
+
+function residueCount (exchange: any) {
+    // client.reject parks its result in rejections whenever no future is
+    // registered at settle time - a parked rejection is consumed by the
+    // FIRST caller of the NEXT flight, poisoning it. the leader registers
+    // its future before the fetch, so rejections may never hold this flight
+    const clients = exchange.clients;
+    if (!('authenticationFlights' in clients)) {
+        return 0;
+    }
+    const client = clients['authenticationFlights'];
+    return Object.keys (client.rejections).length;
+}
+
+function makeStubbedBitstamp (state: { fetches: number }) {
+    const exchange = new ccxt.pro.bitstamp ({
+        'apiKey': 'test-api-key',
+        'secret': 'test-secret',
+        'uid': 'test-uid',
+    });
+    // stub the token endpoint: count fetches and hold the response open long
+    // enough for the concurrent callers to pile onto the flight
+    (exchange as any).privatePostWebsocketsToken = async () => {
+        state.fetches = state.fetches + 1;
+        await sleep (50); // the race window
+        return {
+            'token': 'BITSTAMP-TOKEN-' + state.fetches.toString (),
+            'user_id': 4848701 + state.fetches,
+            'valid_sec': 60,
+        };
+    };
+    return exchange;
+}
+
+async function testBitstampAuthenticateSingleFlight () {
+    // N concurrent authenticate () calls on a cold instance must produce
+    // exactly ONE token fetch, and every caller must observe the leader's
+    // token - not its own orphaned one
+    const state = { 'fetches': 0 };
+    const exchange = makeStubbedBitstamp (state);
+    const before = exchange.milliseconds ();
+    await Promise.all ([
+        exchange.authenticate (),
+        exchange.authenticate (),
+        exchange.authenticate (),
+        exchange.authenticate (),
+    ]);
+    const after = exchange.milliseconds ();
+    assert (state.fetches === 1, 'concurrent bitstamp authenticates must elect exactly one leader (got ' + state.fetches.toString () + ' fetches)');
+    assert (exchange.options['wsSessionToken'] === 'BITSTAMP-TOKEN-1', 'the leader token must be cached (got ' + exchange.options['wsSessionToken'] + ')');
+    assert (exchange.options['userId'] === '4848702', 'the leader user_id must be cached (got ' + exchange.options['userId'] + ')');
+    const expiresIn = exchange.options['expiresIn'];
+    assert (expiresIn >= before + 60000 && expiresIn <= after + 60000, 'expiresIn must be stamped from valid_sec (got ' + expiresIn.toString () + ')');
+    assert (flightCount (exchange) === 0, 'settled flights must leave no future behind');
+    assert (residueCount (exchange) === 0, 'a settled flight must leave no rejections residue');
+    // a fresh call inside the validity window is a no-op: no new fetch
+    await exchange.authenticate ();
+    assert (state.fetches === 1, 'a warm authenticate inside the validity window must not fetch');
+    assert (exchange.options['wsSessionToken'] === 'BITSTAMP-TOKEN-1', 'a warm authenticate must not rotate the cached token');
+}
+
+async function testBitstampAuthenticateEmptyTokenRejection () {
+    // a hollow 200 must reject the flight BEFORE any cache write. on master
+    // the empty token was swallowed by an `if (sessionToken !== undefined)`
+    // guard, so nothing was cached, nothing was thrown, expiresIn stayed
+    // stale and every caller went on to subscribe with an empty auth field
+    const state = { 'fetches': 0 };
+    const exchange = makeStubbedBitstamp (state);
+    const pristineToken = exchange.options['wsSessionToken'];
+    (exchange as any).privatePostWebsocketsToken = async () => {
+        state.fetches = state.fetches + 1;
+        await sleep (10);
+        return {}; // hollow response, no token
+    };
+    const outcomes = await Promise.allSettled ([
+        exchange.authenticate (),
+        exchange.authenticate (),
+    ]);
+    assert (state.fetches === 1, 'concurrent bitstamp authenticates must elect exactly one leader even when it fails');
+    // allSettled keeps input order but leader election does not: assert BOTH
+    // entries reject with the typed error, so a waiter that swallows the
+    // flight rejection and returns cannot pass silently
+    assert (outcomes[0].status === 'rejected' && outcomes[1].status === 'rejected', 'both the leader and the waiter must throw on an empty token');
+    assert ((outcomes[0] as any).reason instanceof AuthenticationError, 'the bitstamp leader must reject with AuthenticationError');
+    assert ((outcomes[1] as any).reason instanceof AuthenticationError, 'the bitstamp waiter must observe the same AuthenticationError');
+    assert (exchange.options['wsSessionToken'] === pristineToken, 'an empty token must never be cached');
+    assert (exchange.options['expiresIn'] === '', 'a failed flight must not stamp expiresIn');
+    assert (flightCount (exchange) === 0, 'a rejected flight must leave no future behind');
+    assert (residueCount (exchange) === 0, 'a rejected flight must leave no rejections residue');
+    // recovery: a good response re-leads and caches
+    (exchange as any).privatePostWebsocketsToken = async () => {
+        state.fetches = state.fetches + 1;
+        return { 'token': 'BITSTAMP-TOKEN-RETRY', 'user_id': 4848701, 'valid_sec': 60 };
+    };
+    await exchange.authenticate ();
+    assert (exchange.options['wsSessionToken'] === 'BITSTAMP-TOKEN-RETRY', 'a retry after a rejected flight must re-lead and cache');
+}
+
+async function testBitstampAuthenticateSoloLeaderRejection () {
+    // an alone leader - the fetch fails before any waiter arrives - must
+    // throw to its own caller, clear the slot, and NOT produce an unhandled
+    // promise rejection (which would kill the process on the tick below).
+    // the trailing `await future` is what attaches that handler, so this is
+    // the regression guard for dropping it
+    const state = { 'fetches': 0 };
+    const exchange = makeStubbedBitstamp (state);
+    (exchange as any).privatePostWebsocketsToken = async () => {
+        state.fetches = state.fetches + 1;
+        throw new AuthenticationError ('bitstamp solo leader failure');
+    };
+    let soloError: any = undefined;
+    try {
+        await exchange.authenticate ();
+    } catch (e) {
+        soloError = e;
+    }
+    assert (soloError instanceof AuthenticationError, 'a solo leader must throw its own error');
+    // give the microtask queue a tick - an unhandled rejection fires here
+    await sleep (20);
+    assert (flightCount (exchange) === 0, 'a solo rejected flight must leave no future behind');
+    assert (residueCount (exchange) === 0, 'a solo rejected flight must leave no rejections residue');
+    // the next caller becomes a fresh leader
+    (exchange as any).privatePostWebsocketsToken = async () => {
+        state.fetches = state.fetches + 1;
+        return { 'token': 'BITSTAMP-TOKEN-SOLO-RETRY', 'user_id': 4848701, 'valid_sec': 60 };
+    };
+    await exchange.authenticate ();
+    assert (exchange.options['wsSessionToken'] === 'BITSTAMP-TOKEN-SOLO-RETRY', 'the caller after a solo rejection must re-lead');
+    assert (state.fetches === 2, 'the solo rejection must not suppress the retry fetch');
+}
+
+async function testBitstampSingleFlightWiring () {
+    await testBitstampAuthenticateSingleFlight ();
+    await testBitstampAuthenticateEmptyTokenRejection ();
+    await testBitstampAuthenticateSoloLeaderRejection ();
+}
+
+export default testBitstampSingleFlightWiring;

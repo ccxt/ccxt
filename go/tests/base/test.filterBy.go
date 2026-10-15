@@ -11,7 +11,7 @@ func TestFilterBy() {
 	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
 	}, map[string]any{}, exchange)
-	var sampleArray any = []any{map[string]any{
+	var sampleArray []any = []any{map[string]any{
 		"foo": "a",
 	}, map[string]any{
 		"foo": nil,
@@ -31,8 +31,8 @@ func TestFilterBy() {
 	}, map[string]any{
 		"foo": "c",
 	}}
-	var currentValue any = exchange.FilterBy(sampleArray, "foo", "a")
-	var storedValue any = []any{map[string]any{
+	var currentValue []any = exchange.FilterBy(sampleArray, "foo", "a")
+	var storedValue []any = []any{map[string]any{
 		"foo": "a",
 	}, map[string]any{
 		"foo": "a",

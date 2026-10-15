@@ -29,7 +29,7 @@
                     0.0008379,
                     100000
                 ],
-                "output": "{\"instrument_code\":\"BTC_USDT\",\"type\":\"LIMIT\",\"side\":\"SELL\",\"amount\":\"0.00083\",\"price\":\"100000\",\"time_in_force\":\"GOOD_TILL_CANCELLED\"}"
+                "output": { "instrument_code": "BTC_USDT", "type": "LIMIT", "side": "SELL", "amount": "0.00083", "price": "100000", "time_in_force": "GOOD_TILL_CANCELLED" }
             }
         ],
         "fetchCurrencies": [
@@ -63,6 +63,93 @@
                 "url": "https://api.onetrading.com/fast/v1/account/trades?instrument_code=BTC_USDT",
                 "input": [
                   "BTC/USDT"
+                ]
+            },
+            {
+                "description": "since alone maps to from without requiring a to param",
+                "method": "fetchMyTrades",
+                "url": "https://api.onetrading.com/fast/v1/account/trades?from=2026-08-01T00%3A00%3A00.000Z",
+                "input": [
+                    null,
+                    1785542400000
+                ]
+            },
+            {
+                "description": "until alone maps to to and does not leak the until key",
+                "method": "fetchMyTrades",
+                "url": "https://api.onetrading.com/fast/v1/account/trades?to=2026-08-15T00%3A00%3A00.000Z",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "until": 1786752000000
+                    }
+                ]
+            },
+            {
+                "description": "since and until together with a symbol",
+                "method": "fetchMyTrades",
+                "url": "https://api.onetrading.com/fast/v1/account/trades?instrument_code=BTC_USDT&from=2026-08-01T00%3A00%3A00.000Z&to=2026-08-15T00%3A00%3A00.000Z",
+                "input": [
+                    "BTC/USDT",
+                    1785542400000,
+                    null,
+                    {
+                        "until": 1786752000000
+                    }
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "since alone maps to from without requiring a to param",
+                "method": "fetchOpenOrders",
+                "url": "https://api.onetrading.com/fast/v1/account/orders?from=2026-08-01T00%3A00%3A00.000Z",
+                "input": [
+                    null,
+                    1785542400000
+                ]
+            },
+            {
+                "description": "until alone maps to to and does not leak the until key",
+                "method": "fetchOpenOrders",
+                "url": "https://api.onetrading.com/fast/v1/account/orders?to=2026-08-15T00%3A00%3A00.000Z",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "until": 1786752000000
+                    }
+                ]
+            },
+            {
+                "description": "since and until together with a symbol",
+                "method": "fetchOpenOrders",
+                "url": "https://api.onetrading.com/fast/v1/account/orders?instrument_code=BTC_USDT&from=2026-08-01T00%3A00%3A00.000Z&to=2026-08-15T00%3A00%3A00.000Z",
+                "input": [
+                    "BTC/USDT",
+                    1785542400000,
+                    null,
+                    {
+                        "until": 1786752000000
+                    }
+                ]
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "since and until flow through to the shared get-orders path with the cancelled filter",
+                "method": "fetchClosedOrders",
+                "url": "https://api.onetrading.com/fast/v1/account/orders?from=2026-08-01T00%3A00%3A00.000Z&to=2026-08-15T00%3A00%3A00.000Z&with_cancelled_and_rejected=true",
+                "input": [
+                    null,
+                    1785542400000,
+                    null,
+                    {
+                        "until": 1786752000000
+                    }
                 ]
             }
         ],

@@ -16,10 +16,13 @@ async function testWatchTickersHelper (exchange: Exchange, skippedProperties: ob
     const method = 'watchTickers';
     let now = exchange.milliseconds ();
     const ends = now + 15000;
-    while (now < ends) {
+    const maxIdleTime = 5000;
+    let idle = false;
+    while ((now < ends) && !idle) {
         let response: Tickers = {};
         let success = true;
         let shouldReturn = false;
+        const startTime = exchange.milliseconds ();
         try {
             response = await exchange.watchTickers (argSymbols, argParams);
         } catch (e) {
@@ -36,10 +39,9 @@ async function testWatchTickersHelper (exchange: Exchange, skippedProperties: ob
             else if (!testSharedMethods.isTemporaryFailure (e)) {
                 throw e;
             }
-            now = exchange.milliseconds ();
-            // continue;
             success = false;
         }
+        now = exchange.milliseconds ();
         if (shouldReturn) {
             return false;
         }
@@ -55,16 +57,18 @@ async function testWatchTickersHelper (exchange: Exchange, skippedProperties: ob
                 const ticker = values[i];
                 try {
                     testTicker (exchange, skippedProperties, method, ticker, checkedSymbol);
-                    } catch (ex) {
-                        let ohlcv = undefined;
-                        const tickerSymbol = ticker['symbol'];
-                        if ((tickerSymbol !== undefined) && testSharedMethods.tickerExceptionNeedsOhlcv (ex, exchange, ticker)) {
-                            ohlcv = await exchange.fetchOHLCV (tickerSymbol, '1d', undefined, 5);
-                        }
-                        testSharedMethods.validateTickerExceptionForPercentage (ex, exchange, ticker, ohlcv);
+                } catch (ex) {
+                    let ohlcv = undefined;
+                    const tickerSymbol = ticker['symbol'];
+                    if ((tickerSymbol !== undefined) && testSharedMethods.tickerExceptionNeedsOhlcv (ex, exchange, ticker)) {
+                        ohlcv = await exchange.fetchOHLCV (tickerSymbol, '1d', undefined, 5);
                     }
+                    testSharedMethods.validateTickerExceptionForPercentage (ex, exchange, ticker, ohlcv);
+                }
             }
-            now = exchange.milliseconds ();
+            if ((now - startTime) > maxIdleTime) {
+                idle = true;
+            }
         }
     }
     return true;

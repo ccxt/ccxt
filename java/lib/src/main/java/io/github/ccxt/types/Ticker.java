@@ -5,7 +5,7 @@ package io.github.ccxt.types;
 
 import java.util.Map;
 
-public final class Ticker {
+public final class Ticker extends TypedMap {
     public String symbol;
     public Long timestamp;
     public String datetime;
@@ -31,6 +31,7 @@ public final class Ticker {
 
     @SuppressWarnings("unchecked")
     public Ticker(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.symbol = TypeHelper.safeString(data, "symbol");
         this.timestamp = TypeHelper.safeInteger(data, "timestamp");

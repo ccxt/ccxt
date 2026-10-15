@@ -9,7 +9,7 @@ import java.util.Map;
 // fields (flat typed access) and adds the prediction identity
 // fields. Mirrors the standalone `PredictionTrade` interface in
 // ts/src/base/types.ts.
-public final class PredictionTrade {
+public final class PredictionTrade extends TypedMap {
     public Double amount;
     public Double price;
     public Double cost;
@@ -31,6 +31,7 @@ public final class PredictionTrade {
 
     @SuppressWarnings("unchecked")
     public PredictionTrade(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.amount = TypeHelper.safeFloat(data, "amount");
         this.price = TypeHelper.safeFloat(data, "price");

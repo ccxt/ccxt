@@ -24,10 +24,13 @@ public partial class BaseTest
             testNumberToBE();
             testDecimalToPrecision();
             testCapitalize();
+            testIncrementingNonce();
+            testIsDictionary();
             testNumberToString();
             testPrecise();
             testSafeMethods();
             testSafeTicker();
+            testMergeBalanceAccount();
             testBase58ToBinary();
             testToArray();
             testBinaryToBase58();
@@ -44,6 +47,8 @@ public partial class BaseTest
             testInArray();
             testFilterBy();
             testHandleMethods();
+            testHandleHttpStatusCode();
+            testCheckAddress();
             testNetworkMethods();
             testRemoveRepeatedElementsFromArray();
             testIsEmpty();

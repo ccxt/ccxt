@@ -19,6 +19,7 @@ async def test_fetch_history_base():
     exchange = ccxt.Exchange({
         'id': 'sampleexchange',
         'fetchHistoryCacheSize': 2,
+        'enableRateLimit': False,
     })
     assert test_shared_methods.exchange_prop(exchange, 'fetchHistoryCacheSize') == 2, 'fetchHistoryCacheSize should be 2'
     true_assertion = exchange.parse_number(None) is None

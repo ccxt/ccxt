@@ -1,6 +1,6 @@
 import { Dict } from '../../base/types.js';
 import { default as _Exchange } from '../../base/PredictionExchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     kalshiPublicGetEvents(params?: {}): Promise<Dict>;
     kalshiPublicGetEventsMultivariate(params?: {}): Promise<Dict>;
     kalshiPublicGetEventsFeeChanges(params?: {}): Promise<Dict>;
@@ -75,7 +75,5 @@ interface Exchange {
     kalshiPrivateDeletePortfolioEventsOrdersOrderId(params?: {}): Promise<Dict>;
     kalshiPrivateDeletePortfolioOrderGroupsOrderGroupId(params?: {}): Promise<Dict>;
     electionsPublicGetSearchSeries(params?: {}): Promise<Dict>;
-}
-declare abstract class Exchange extends _Exchange {
 }
 export default Exchange;

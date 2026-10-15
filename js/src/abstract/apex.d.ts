@@ -1,6 +1,6 @@
 import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     publicGetV3Symbols(params?: {}): Promise<Dict>;
     publicGetV3HistoryFunding(params?: {}): Promise<Dict>;
     publicGetV3Ticker(params?: {}): Promise<Dict>;
@@ -21,6 +21,7 @@ interface Exchange {
     privateGetV3OpenOrders(params?: {}): Promise<Dict>;
     privateGetV3Transfers(params?: {}): Promise<Dict>;
     privateGetV3Transfer(params?: {}): Promise<Dict>;
+    privateGetV3StockAccount(params?: {}): Promise<Dict>;
     privatePostV3DeleteOpenOrders(params?: {}): Promise<Dict>;
     privatePostV3DeleteClientOrderId(params?: {}): Promise<Dict>;
     privatePostV3DeleteOrder(params?: {}): Promise<Dict>;
@@ -28,7 +29,9 @@ interface Exchange {
     privatePostV3SetInitialMarginRate(params?: {}): Promise<Dict>;
     privatePostV3TransferOut(params?: {}): Promise<Dict>;
     privatePostV3ContractTransferOut(params?: {}): Promise<Dict>;
-}
-declare abstract class Exchange extends _Exchange {
+    privatePostV3ContractTransferTo(params?: {}): Promise<Dict>;
+    privatePostV3SubmitWithdrawClaim(params?: {}): Promise<Dict>;
+    privatePostV3StockRegisterAccount(params?: {}): Promise<Dict>;
+    privatePostV3StockGenerateApi(params?: {}): Promise<Dict>;
 }
 export default Exchange;

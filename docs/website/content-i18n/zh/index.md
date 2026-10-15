@@ -1,6 +1,6 @@
 ---
 title: "CCXT 文档"
-description: "CCXT — 一个统一的 API，支持 100+ 加密货币交易所，适用于 JavaScript、Python、PHP、C#、Go 和 Java。"
+description: "CCXT — 一个统一的 API，支持 100+ 加密货币交易所，适用于 JavaScript、Python、PHP、C#、Go、Java 和 Rust。"
 ---
 
 欢迎来到 ccxt wiki！
@@ -21,6 +21,7 @@ description: "CCXT — 一个统一的 API，支持 100+ 加密货币交易所�
   - [C#](/docs/install#netc)
   - [Go](/docs/install#go)
   - [Java](/docs/install#java)
+  - [Rust](/docs/install#rust)
   - [Web 浏览器](/docs/install#web-browsers)
   - [Docker](/docs/install#docker)
   - [代理](/docs/install#proxy)

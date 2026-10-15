@@ -75,7 +75,7 @@ function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
         }
     }
     if (is_array($skipped_properties) && array_key_exists('skipNonActiveMarkets', $skipped_properties)) {
-        if ($market === null || !$market['active']) {
+        if ($market === null || ($market['active'] !== true)) {
             return;
         }
     }
@@ -120,7 +120,7 @@ function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
         // far above baseVolume * high), so the spot-derived invariant does not hold there,
         // see https://github.com/ccxt/ccxt/pull/29563
         $is_inverse = $exchange->safe_bool($market, 'inverse', false);
-        if (($base_volume !== null) && ($quote_volume !== null) && ($high !== null) && ($low !== null) && !$is_inverse) {
+        if (($base_volume !== null) && ($quote_volume !== null) && ($high !== null) && ($low !== null) && ($is_inverse !== true)) {
             $base_low = Precise::string_mul($base_volume, $low);
             $base_high = Precise::string_mul($base_volume, $high);
             // to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
@@ -138,9 +138,62 @@ function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
             // because of exchange engines might not rounding numbers propertly, we add some tolerance of calculated 24hr high/low
             $base_low = Precise::string_div($base_low, $tolerance);
             $base_high = Precise::string_mul($base_high, $tolerance);
+            // some exchanges round quoteVolume before reporting it - aster,
+            // for example, returns 8.07 when the true traded value is 8.0651,
+            // which on micro-price contracts (1000WOJAK etc) is enough to
+            // break the quoteVolume <= baseVolume * high sanity check below.
+            // the reported string reveals its own rounding step (trailing
+            // zeros are padding, so 8.07000000 -> 2 real decimals -> step
+            // 0.01), so we widen the acceptance window by one such step on
+            // each side - big enough to forgive rounding, far too small to
+            // hide a real bug like mismatched units or a wrong-field parse
+            $quote_volume_decimals = $exchange->precision_from_string($quote_volume);
+            $quote_quantum = $exchange->parse_precision($exchange->number_to_string($quote_volume_decimals));
+            $base_low = Precise::string_sub($base_low, $quote_quantum);
+            $base_high = Precise::string_add($base_high, $quote_quantum);
             assert(Precise::string_ge($quote_volume, $base_low), 'quoteVolume should be => baseVolume * low' . $log_text);
             assert(Precise::string_le($quote_volume, $base_high), 'quoteVolume should be <= baseVolume * high' . $log_text);
         }
+    }
+    //
+    // change & percentage
+    //
+    // the Manual defines both against open: change is `last - open`, and
+    // percentage is `(change/open) * 100`
+    $change_string = $exchange->safe_string($entry, 'change');
+    $percentage_string = $exchange->safe_string($entry, 'percentage');
+    if (($change_string !== null) && ($open !== null) && ($close !== null) && !(is_array($skipped_properties) && array_key_exists('compareChange', $skipped_properties))) {
+        // the window is the larger of two roundings: float residue on a change
+        // safeTicker derived, which needs a part per million of the price, and an
+        // exchange's own rounding, which its reported decimals reveal
+        $price_part = Precise::string_div(Precise::string_abs($close), '1000000');
+        $change_decimals = $exchange->precision_from_string($change_string);
+        // exponent notation ("1e4") makes `precisionFromString` return a negative
+        // count, which `parsePrecision` would turn into a step of 10000 - a string
+        // like that reveals no rounding at all, so fall back to the price part
+        // instead of letting it widen the window
+        $change_window = $price_part;
+        if ($change_decimals >= 0) {
+            $change_quantum = $exchange->parse_precision($exchange->number_to_string($change_decimals));
+            // a change of "0" prints no decimals, so its apparent step is a whole unit
+            // and accepts anything on a micro-priced asset. a per cent of the price
+            // caps it, and covers whole units on a price in the tens of thousands
+            $quantum_cap = Precise::string_div(Precise::string_abs($close), '100');
+            $change_quantum = Precise::string_min($change_quantum, $quantum_cap);
+            $change_window = Precise::string_max($price_part, $change_quantum);
+        }
+        $difference = Precise::string_abs(Precise::string_sub($change_string, Precise::string_sub($close, $open)));
+        assert(Precise::string_le($difference, $change_window), '`change` should be `last - open`' . $log_text);
+    }
+    if (($change_string !== null) && ($percentage_string !== null) && ($open !== null) && !(is_array($skipped_properties) && array_key_exists('comparePercentage', $skipped_properties))) {
+        $derived = Precise::string_mul(Precise::string_div($change_string, $open), '100');
+        // exchanges round the percentage, so allow one part in fifty of the derived
+        // value plus a floor for moves near zero. a ratio where a percentage
+        // belongs is out by a hundred and clears that by three orders of magnitude
+        $relative = Precise::string_div(Precise::string_abs($derived), '50');
+        $allowed = Precise::string_max($relative, '0.01');
+        $gap = Precise::string_abs(Precise::string_sub($percentage_string, $derived));
+        assert(Precise::string_le($gap, $allowed), '`percentage` should be `(change/open) * 100`' . $log_text);
     }
     // open and close should be between High & Low
     if ($high !== null && $low !== null && !(is_array($skipped_properties) && array_key_exists('compareOHLC', $skipped_properties))) {
@@ -187,24 +240,35 @@ function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
     }
     $percentage = $exchange->safe_string($entry, 'percentage');
     $change = $exchange->safe_string($entry, 'change');
+    // option markets are exempt from the UPPER percentage/change caps only:
+    // expiry-day convexity makes any finite cap wrong - a formerly-OTM
+    // contract moving into the money legitimately gains 1000x+ (observed: a
+    // paradex call at +109055% on its expiry date, mark price equal to
+    // intrinsic). the floors stay: a long option cannot lose more than its
+    // premium, so percentage >= -100 and change >= -open hold for options too
+    $is_option_market = $exchange->safe_bool($market, 'option', false);
     if (!(is_array($skipped_properties) && array_key_exists('maxIncrease', $skipped_properties)) && !$is_unrecognized_symbol) {
         //
         // percentage
         //
         $max_increase = '1000'; // if the increase is more than 1000x the implementation is probably wrong - the bound needs to stay above real meme-coin pumps, which routinely exceed the old 100x cap (e.g. a legitimate +50000% daily move observed on poloniex MAME/USDT)
         if ($percentage !== null) {
-            // - should be above -100 and below MAX
+            // - should be above -100 and (for non-options) below MAX
             assert(Precise::string_ge($percentage, '-100'), 'percentage should be above -100% ' . $log_text);
-            assert(Precise::string_le($percentage, Precise::string_mul('+100', $max_increase)), 'percentage should be below ' . $max_increase . '00% ' . $log_text);
+            if ($is_option_market !== true) {
+                assert(Precise::string_le($percentage, Precise::string_mul('+100', $max_increase)), 'percentage should be below ' . $max_increase . '00% ' . $log_text);
+            }
         }
         //
         // change
         //
         $approx_value = $exchange->safe_string_n($entry, ['open', 'close', 'average', 'bid', 'ask', 'vwap', 'previousClose']);
         if ($change !== null) {
-            // - should be between -price & +price*100
+            // - should be above -price and (for non-options) below +price*maxIncrease
             assert(Precise::string_ge($change, Precise::string_neg($approx_value)), 'change should be above -price ' . $log_text);
-            assert(Precise::string_le($change, Precise::string_mul($approx_value, $max_increase)), 'change should be below ' . $max_increase . 'x price ' . $log_text);
+            if ($is_option_market !== true) {
+                assert(Precise::string_le($change, Precise::string_mul($approx_value, $max_increase)), 'change should be below ' . $max_increase . 'x price ' . $log_text);
+            }
         }
     }
     //

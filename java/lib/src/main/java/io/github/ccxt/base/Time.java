@@ -163,12 +163,27 @@ public final class Time {
     public static String Iso8601(Object ts) {
         if (ts == null) return null;
         final long ms;
-        try {
-            ms = Long.parseLong(String.valueOf(ts));
-        } catch (NumberFormatException e) {
+        if (ts instanceof CharSequence) {
+            String s = ts.toString();
+            // only plain-integer strings are accepted, e.g. "1755432123456" (not "123abc" or "")
+            if (!s.matches("[0-9]+")) return null;
+            try {
+                ms = Long.parseLong(s);
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        } else if (ts instanceof Double || ts instanceof Float) {
+            // non-integer numbers are floored (e.g. 514862627559.9 -> 514862627559)
+            double d = ((Number) ts).doubleValue();
+            if (Double.isNaN(d) || d < 0 || d > 8640000000000000.0) return null;
+            ms = (long) Math.floor(d);
+        } else if (ts instanceof Number) {
+            ms = ((Number) ts).longValue();
+        } else {
             return null;
         }
-        if (ms < 0) return null;
+        // negative values and anything past 8.64e15 ms are outside the supported range
+        if (ms < 0 || ms > 8640000000000000L) return null;
         return ISO_MILLIS_Z.format(Instant.ofEpochMilli(ms));
     }
 

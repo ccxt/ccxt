@@ -137,6 +137,13 @@ public partial class mexc : Exchange
         return await this.callAsync<Dictionary<string, object>> ("spotPrivateGetUid",parameters);
     }
 
+    /// <summary>Calls the spotPrivateGetApiKeyInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> spotPrivateGetApiKeyInfo (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("spotPrivateGetApiKeyInfo",parameters);
+    }
+
     /// <summary>Calls the spotPrivateGetOrder endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> spotPrivateGetOrder (object parameters = null)
@@ -555,6 +562,13 @@ public partial class mexc : Exchange
     public async Task<Dictionary<string, object>> spotPrivatePostStrategyGroup (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("spotPrivatePostStrategyGroup",parameters);
+    }
+
+    /// <summary>Calls the spotPrivatePostStrategyGroupUid endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> spotPrivatePostStrategyGroupUid (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("spotPrivatePostStrategyGroupUid",parameters);
     }
 
     /// <summary>Calls the spotPrivatePostCapitalWithdrawApply endpoint.</summary>

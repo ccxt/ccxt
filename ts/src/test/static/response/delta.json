@@ -396,7 +396,7 @@
                     "bidVolume": null,
                     "ask": null,
                     "askVolume": null,
-                    "vwap": 1,
+                    "vwap": 71573.50674114222,
                     "open": 72135.5,
                     "close": 73394,
                     "last": 73394,
@@ -405,7 +405,7 @@
                     "percentage": 1.7446333636004463,
                     "average": 72764.7,
                     "baseVolume": 1.4971349999999992,
-                    "quoteVolume": 1.4971349999999992,
+                    "quoteVolume": 107155.2020148999,
                     "markPrice": 48000,
                     "indexPrice": 73368.4,
                     "info": {

@@ -88,10 +88,7 @@ the latest known information on the availability of the exchange API
 
 **See**
 
-- https://huobiapi.github.io/docs/spot/v1/en/#get-system-status
-- https://huobiapi.github.io/docs/dm/v1/en/#get-system-status
-- https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-system-status
-- https://huobiapi.github.io/docs/usdt_swap/v1/en/#get-system-status
+- https://huobiapi.github.io/docs/spot/v1/en/#get-market-status
 - https://huobiapi.github.io/docs/usdt_swap/v1/en/#query-whether-the-system-is-available  // contractPublicGetHeartbeat
 
 
@@ -998,12 +995,12 @@ make a withdrawal
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | the amount to withdraw |
 | address | <code>string</code> | Yes | the address to withdraw to |
-| tag | <code>string</code> | Yes |  |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
 
 
 ```javascript
-htx.withdraw (code, amount, address, tag, params?)
+htx.withdraw (code, amount, address, params?)
 ```
 
 

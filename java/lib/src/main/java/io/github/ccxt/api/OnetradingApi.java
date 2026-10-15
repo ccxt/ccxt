@@ -7,6 +7,9 @@
 
 package io.github.ccxt.api;
 import io.github.ccxt.Exchange;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class OnetradingApi extends Exchange
 {
@@ -25,7 +28,7 @@ public class OnetradingApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetCurrencies (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetCurrencies (Object... optionalArgs)
     {
         return this.callAsync ("publicGetCurrencies", optionalArgs);
     }
@@ -36,7 +39,7 @@ public class OnetradingApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetCandlesticksInstrumentCode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetCandlesticksInstrumentCode (Object... optionalArgs)
     {
         return this.callAsync ("publicGetCandlesticksInstrumentCode", optionalArgs);
     }
@@ -47,7 +50,7 @@ public class OnetradingApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetFees (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetFees (Object... optionalArgs)
     {
         return this.callAsync ("publicGetFees", optionalArgs);
     }
@@ -58,7 +61,7 @@ public class OnetradingApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetInstruments (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetInstruments (Object... optionalArgs)
     {
         return this.callAsync ("publicGetInstruments", optionalArgs);
     }
@@ -69,7 +72,7 @@ public class OnetradingApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetOrderBookInstrumentCode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetOrderBookInstrumentCode (Object... optionalArgs)
     {
         return this.callAsync ("publicGetOrderBookInstrumentCode", optionalArgs);
     }
@@ -80,7 +83,7 @@ public class OnetradingApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetMarketTicker (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetMarketTicker (Object... optionalArgs)
     {
         return this.callAsync ("publicGetMarketTicker", optionalArgs);
     }
@@ -91,7 +94,7 @@ public class OnetradingApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetMarketTickerInstrumentCode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetMarketTickerInstrumentCode (Object... optionalArgs)
     {
         return this.callAsync ("publicGetMarketTickerInstrumentCode", optionalArgs);
     }
@@ -102,9 +105,42 @@ public class OnetradingApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetTime (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetTime (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTime", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetFundingRate endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public CompletableFuture<List<Object>>  publicGetFundingRate (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetFundingRate", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetFundingRateHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  publicGetFundingRateHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetFundingRateHistory", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetFundingRateSettings endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public CompletableFuture<List<Object>>  publicGetFundingRateSettings (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetFundingRateSettings", optionalArgs);
     }
 
     /**
@@ -113,7 +149,7 @@ public class OnetradingApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAccountBalances (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetAccountBalances (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAccountBalances", optionalArgs);
     }
@@ -124,7 +160,7 @@ public class OnetradingApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAccountFees (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetAccountFees (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAccountFees", optionalArgs);
     }
@@ -135,7 +171,7 @@ public class OnetradingApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAccountOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetAccountOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAccountOrders", optionalArgs);
     }
@@ -146,7 +182,7 @@ public class OnetradingApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAccountOrdersOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetAccountOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAccountOrdersOrderId", optionalArgs);
     }
@@ -157,7 +193,7 @@ public class OnetradingApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAccountOrdersClientClientId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetAccountOrdersClientClientId (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAccountOrdersClientClientId", optionalArgs);
     }
@@ -168,7 +204,7 @@ public class OnetradingApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAccountOrdersOrderIdTrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetAccountOrdersOrderIdTrades (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAccountOrdersOrderIdTrades", optionalArgs);
     }
@@ -179,7 +215,7 @@ public class OnetradingApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAccountTrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetAccountTrades (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAccountTrades", optionalArgs);
     }
@@ -190,9 +226,75 @@ public class OnetradingApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAccountTradeTradeId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetAccountTradeTradeId (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAccountTradeTradeId", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetAccountFuturesSummary endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privateGetAccountFuturesSummary (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetAccountFuturesSummary", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetAccountFuturesPositions endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privateGetAccountFuturesPositions (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetAccountFuturesPositions", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetAccountFuturesPositionsHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privateGetAccountFuturesPositionsHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetAccountFuturesPositionsHistory", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetAccountFuturesPositionsPositionIdTrades endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privateGetAccountFuturesPositionsPositionIdTrades (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetAccountFuturesPositionsPositionIdTrades", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetAccountFuturesPositionsPositionIdFundingPayments endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privateGetAccountFuturesPositionsPositionIdFundingPayments (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetAccountFuturesPositionsPositionIdFundingPayments", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetAccountFuturesFundingPayments endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privateGetAccountFuturesFundingPayments (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetAccountFuturesFundingPayments", optionalArgs);
     }
 
     /**
@@ -201,9 +303,20 @@ public class OnetradingApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAccountOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAccountOrders (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAccountOrders", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostSubaccountsTransfers endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privatePostSubaccountsTransfers (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostSubaccountsTransfers", optionalArgs);
     }
 
     /**
@@ -212,7 +325,7 @@ public class OnetradingApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateDeleteAccountOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateDeleteAccountOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteAccountOrders", optionalArgs);
     }
@@ -223,7 +336,7 @@ public class OnetradingApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteAccountOrdersOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteAccountOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteAccountOrdersOrderId", optionalArgs);
     }
@@ -234,7 +347,7 @@ public class OnetradingApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteAccountOrdersClientClientId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteAccountOrdersClientClientId (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteAccountOrdersClientClientId", optionalArgs);
     }

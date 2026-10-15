@@ -5,18 +5,9 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // ----------------------------------------------------------------------------
-// unCamelCase has to work with the following edge cases
-//
-//     parseOHLCVs               > parse_ohlcvs
-//     safeString2               > safe_string_2
-//     safeStringN               > safe_string_n
-//     convertOHLCVToTradingView > convert_ohlcv_to_trading_view
-//     fetchL2OrderBook          > fetch_l2_order_book
-//     stringToBase64            > string_to_base64
-//     base64ToString            > base64_to_string
-//     parseHTTPResponse         > parse_http_response
-//     hasFetchOHLCV             > has_fetch_ohlcv
-//
+// unCamelCase must handle digits and acronyms: parseOHLCVs > parse_ohlcvs, safeString2 > safe_string_2,
+// safeStringN > safe_string_n, fetchL2OrderBook > fetch_l2_order_book, stringToBase64 > string_to_base64,
+// base64ToString > base64_to_string, convertOHLCVToTradingView > convert_ohlcv_to_trading_view, parseHTTPResponse > parse_http_response
 // @ts-nocheck
 const unCamelCase = (s) => {
     const exceptions = {

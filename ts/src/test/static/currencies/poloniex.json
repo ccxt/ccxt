@@ -741,7 +741,7 @@
                     }
                 }
             },
-            "ETH": {
+            "ERC20": {
                 "info": {
                     "id": 267,
                     "name": "Ethereum",
@@ -768,7 +768,7 @@
                 },
                 "id": "ETH",
                 "numericId": 267,
-                "network": "ETH",
+                "network": "ERC20",
                 "active": null,
                 "deposit": null,
                 "withdraw": null,

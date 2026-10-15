@@ -33,7 +33,7 @@ public partial class testMainClass : BaseTest
                 { "percentage", true },
             }, skippedProperties);
         }
-        object format = new Dictionary<string, object>() {
+        Dictionary<string, object> format = new Dictionary<string, object>() {
             { "info", new Dictionary<string, object>() {} },
             { "symbol", "XYZ/USDT" },
             { "timestamp", 1504224000000 },
@@ -56,7 +56,7 @@ public partial class testMainClass : BaseTest
             { "side", "long" },
             { "percentage", exchange.parseNumber("1.234") },
         };
-        object emptyotAllowedFor = new List<object>() {"liquidationPrice", "initialMargin", "initialMarginPercentage", "maintenanceMargin", "maintenanceMarginPercentage", "marginRatio"};
+        List<object> emptyotAllowedFor = new List<object>() {"liquidationPrice", "initialMargin", "initialMarginPercentage", "maintenanceMargin", "maintenanceMarginPercentage", "marginRatio"};
         testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyotAllowedFor);
         testSharedMethods.assertTimestampAndDatetime(exchange, skippedProperties, method, entry, now);
         testSharedMethods.assertSymbol(exchange, skippedProperties, method, entry, "symbol", symbol);

@@ -172,6 +172,13 @@ public partial class phemex : Exchange
         return await this.callAsync<Dictionary<string, object>> ("v2GetPublicProductsPlus",parameters);
     }
 
+    /// <summary>Calls the v2GetPublicIndexSources endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v2GetPublicIndexSources (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v2GetPublicIndexSources",parameters);
+    }
+
     /// <summary>Calls the v2GetMdV2Orderbook endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> v2GetMdV2Orderbook (object parameters = null)
@@ -578,6 +585,62 @@ public partial class phemex : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateGetAssetsQuote",parameters);
     }
 
+    /// <summary>Calls the privateGetPhemexLbPublicApiTraderPerformanceInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetPhemexLbPublicApiTraderPerformanceInfo (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetPhemexLbPublicApiTraderPerformanceInfo",parameters);
+    }
+
+    /// <summary>Calls the privateGetUtaApiRiskRiskMode endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetUtaApiRiskRiskMode (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetUtaApiRiskRiskMode",parameters);
+    }
+
+    /// <summary>Calls the privateGetUtaApiRiskRiskUnits endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetUtaApiRiskRiskUnits (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetUtaApiRiskRiskUnits",parameters);
+    }
+
+    /// <summary>Calls the privateGetUtaBizAssets endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetUtaBizAssets (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetUtaBizAssets",parameters);
+    }
+
+    /// <summary>Calls the privateGetUtaFundsContractBorrow endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetUtaFundsContractBorrow (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetUtaFundsContractBorrow",parameters);
+    }
+
+    /// <summary>Calls the privateGetUtaFundsContractPayback endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetUtaFundsContractPayback (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetUtaFundsContractPayback",parameters);
+    }
+
+    /// <summary>Calls the privateGetUtaFundsContractBorrowInterests endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetUtaFundsContractBorrowInterests (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetUtaFundsContractBorrowInterests",parameters);
+    }
+
+    /// <summary>Calls the privateGetUtaExchangerAssetsConvert endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetUtaExchangerAssetsConvert (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetUtaExchangerAssetsConvert",parameters);
+    }
+
     /// <summary>Calls the privatePostSpotOrders endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privatePostSpotOrders (object parameters = null)
@@ -695,6 +758,20 @@ public partial class phemex : Exchange
     public async Task<Dictionary<string, object>> privatePostPhemexWithdrawWalletsApiCancelWithdraw (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privatePostPhemexWithdrawWalletsApiCancelWithdraw",parameters);
+    }
+
+    /// <summary>Calls the privatePostUtaAccountSwitchMode endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostUtaAccountSwitchMode (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostUtaAccountSwitchMode",parameters);
+    }
+
+    /// <summary>Calls the privatePostUtaFundsContractPayback endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostUtaFundsContractPayback (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostUtaFundsContractPayback",parameters);
     }
 
     /// <summary>Calls the privatePutSpotOrdersCreate endpoint.</summary>

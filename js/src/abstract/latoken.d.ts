@@ -1,6 +1,6 @@
 import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     publicGetBookCurrencyQuote(params?: {}): Promise<Dict>;
     publicGetChartWeek(params?: {}): Promise<Dict>;
     publicGetChartWeekCurrencyQuote(params?: {}): Promise<Dict>;
@@ -19,7 +19,9 @@ interface Exchange {
     publicGetTransactionBindings(params?: {}): Promise<List>;
     privateGetAuthAccount(params?: {}): Promise<List>;
     privateGetAuthAccountCurrencyCurrencyType(params?: {}): Promise<List>;
+    privateGetAuthAccountFiltered(params?: {}): Promise<List>;
     privateGetAuthOrder(params?: {}): Promise<List>;
+    privateGetAuthOrderActive(params?: {}): Promise<List>;
     privateGetAuthOrderGetOrderId(params?: {}): Promise<Dict>;
     privateGetAuthOrderPairCurrencyQuote(params?: {}): Promise<List>;
     privateGetAuthOrderPairCurrencyQuoteActive(params?: {}): Promise<List>;
@@ -38,7 +40,9 @@ interface Exchange {
     privatePostAuthOrderCancel(params?: {}): Promise<Dict>;
     privatePostAuthOrderCancelAll(params?: {}): Promise<Dict>;
     privatePostAuthOrderCancelAllCurrencyQuote(params?: {}): Promise<Dict>;
+    privatePostAuthOrderCancelBulk(params?: {}): Promise<Dict>;
     privatePostAuthOrderPlace(params?: {}): Promise<Dict>;
+    privatePostAuthOrderPlaceBulk(params?: {}): Promise<Dict>;
     privatePostAuthSpotDeposit(params?: {}): Promise<Dict>;
     privatePostAuthSpotWithdraw(params?: {}): Promise<Dict>;
     privatePostAuthStopOrderCancel(params?: {}): Promise<Dict>;
@@ -53,7 +57,5 @@ interface Exchange {
     privatePostAuthTransferEmail(params?: {}): Promise<Dict>;
     privatePostAuthTransferId(params?: {}): Promise<Dict>;
     privatePostAuthTransferPhone(params?: {}): Promise<Dict>;
-}
-declare abstract class Exchange extends _Exchange {
 }
 export default Exchange;

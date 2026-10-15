@@ -6,7 +6,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestTransfer(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, requestedCode any) {
-	var format any = map[string]any{
+	var format map[string]any = map[string]any{
 		"info":        map[string]any{},
 		"id":          "1234",
 		"timestamp":   1502962946216,
@@ -17,7 +17,7 @@ func TestTransfer(exchange ccxt.ICoreExchange, skippedProperties any, method any
 		"toAccount":   "swap",
 		"status":      "ok",
 	}
-	var emptyAllowedFor any = []any{"fromAccount", "toAccount"}
+	var emptyAllowedFor []any = []any{"fromAccount", "toAccount"}
 	AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor)
 	AssertTimestampAndDatetime(exchange, skippedProperties, method, entry, exchange.Milliseconds())
 	AssertCurrencyCode(exchange, skippedProperties, method, entry, GetValue(entry, "currency"), requestedCode)

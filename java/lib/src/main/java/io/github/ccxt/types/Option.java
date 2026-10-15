@@ -5,7 +5,7 @@ package io.github.ccxt.types;
 
 import java.util.Map;
 
-public final class Option {
+public final class Option extends TypedMap {
     public String currency;
     public String symbol;
     public Long timestamp;
@@ -26,6 +26,7 @@ public final class Option {
 
     @SuppressWarnings("unchecked")
     public Option(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.currency = TypeHelper.safeString(data, "currency");
         this.symbol = TypeHelper.safeString(data, "symbol");

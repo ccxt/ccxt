@@ -65,7 +65,6 @@ export function getTempDir(): string | undefined {
     }
 }
 
-
 /**
  * Check if file path is ccxt-cache file, so users are ensured there is no access possible to other files
  * @param path File path to check
@@ -105,8 +104,6 @@ export function readFile (path: string, encoding: BufferEncoding | null = 'utf8'
         return undefined;
     }
 }
-
-
 
 /*  ------------------------------------------------------------------------ */
 
@@ -150,7 +147,6 @@ export function existsFile (path: string): boolean {
         return false;
     }
 }
-
 
 /*  ------------------------------------------------------------------------ */
 

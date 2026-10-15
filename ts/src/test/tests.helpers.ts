@@ -31,7 +31,6 @@ const ExchangeNotAvailable = ccxt.ExchangeNotAvailable;
 const OperationFailed = ccxt.OperationFailed;
 const OnMaintenance = ccxt.OnMaintenance;
 
-
 // ############## detect cli arguments ############## //
 const argv = process.argv.slice (2); // remove first two arguments (which is process and script path "js/src/test/test.js")
 
@@ -40,7 +39,7 @@ function filterArgvs (argsArray: string[], needle: string, include = true) {
 }
 function selectArgv (argsArray: string[], needle: string) {
     const foundArray = argsArray.filter ((x: string) => (x.includes (needle)));
-    return foundArray.length ? foundArray[0] : undefined;
+    return (foundArray.length > 0) ? foundArray[0] : undefined;
 }
 
 const argvs_filtered = filterArgvs (argv, '--', false);
@@ -48,7 +47,6 @@ const argvExchange = argvs_filtered[0];
 const argvSymbol   = selectArgv (argv, '/');
 const argvMethod   = selectArgv (argv, '()');
 // #################################################### //
-
 
 function getCliArgValue (arg: string) {
     return process.argv.includes (arg) || false;
@@ -197,6 +195,93 @@ function setFetchResponse (exchange: Exchange, mockResponse: any) {
     return exchange;
 }
 
+// Serves a different body per request, keyed by url fragment, for methods that call
+// several endpoints. One shared body cannot serve two endpoints whose api leaves
+// declare different shapes: the typed ports narrow each body to its declared shape
+// and throw on a mismatch. A request matching no fragment gets the first body.
+function setFetchResponseByUrl (exchange: Exchange, responsesByUrl: any) {
+    const fragments = Object.keys (responsesByUrl);
+    exchange.fetch = async (url, method = 'GET', headers: any = undefined, body: any = undefined) => {
+        for (let i = 0; i < fragments.length; i++) {
+            const fragment = fragments[i];
+            if (url.indexOf (fragment) >= 0) {
+                return responsesByUrl[fragment];
+            }
+        }
+        return responsesByUrl[fragments[0]];
+    };
+    return exchange;
+}
+
+function setupWsMockTransport (exchange: any, url: string) {
+    // put the ws client for the given url into an "already connected" state
+    // with a transport stub, so watch* methods never open a real socket;
+    // everything above the socket (subscriptions, futures, caches, message
+    // routing) runs unmodified
+    const client = exchange.client (url);
+    client.startedConnecting = true;
+    client.isConnected = true;
+    client.connectionEstablished = exchange.milliseconds ();
+    client.mockSentMessages = [];
+    client.connection = {
+        'readyState': 1, // WebSocket.OPEN, keeps isOpen () happy
+        'send': (message: any, options: any = undefined, callback: any = undefined) => {
+            // record the outgoing frame so the test can assert it
+            client.mockSentMessages.push (JSON.parse (message));
+            if (callback !== undefined) {
+                callback ();
+            }
+        },
+        'close': () => {},
+    };
+    client.connected.resolve (url);
+    return exchange;
+}
+
+function getWsSentMessages (exchange: any, url: string) {
+    // the frames the exchange sent over the mocked transport, already parsed
+    const client = exchange.client (url);
+    return client.mockSentMessages;
+}
+
+function injectWsMessage (exchange: any, url: string, message: any) {
+    // feed one already-json-parsed frame into the exchange's ws message
+    // handler — the same entry point the real transport invokes
+    const client = exchange.client (url);
+    exchange.handleMessage (client, message);
+}
+
+function wsClientHasPendingFutures (exchange: any, url: string) {
+    // whether the watch flow is currently awaiting a message — the frame
+    // injector polls this instead of relying on a fixed head-start sleep
+    const client = exchange.client (url);
+    const messageHashes = Object.keys (client.futures);
+    return messageHashes.length > 0;
+}
+
+function markWsTestCompleted (exchange: any, url: string) {
+    // the watch side of a static ws test flags completion here so the frame
+    // injector's rejection loop knows it can stop
+    const client = exchange.client (url);
+    client.wsTestCompleted = true;
+}
+
+function isWsTestCompleted (exchange: any, url: string) {
+    const client = exchange.client (url);
+    return client.wsTestCompleted === true;
+}
+
+function rejectPendingWsFutures (exchange: any, url: string) {
+    // reject any futures the injected frames did not resolve, so a broken
+    // fixture fails the test instead of hanging it; settled js promises
+    // ignore late rejections, so this is a no-op for the happy path
+    const client = exchange.client (url);
+    const messageHashes = Object.keys (client.futures);
+    for (let i = 0; i < messageHashes.length; i++) {
+        client.reject (new ExchangeError ('static ws test: the injected messages did not resolve the watch future'), messageHashes[i]);
+    }
+}
+
 function isNullValue (value: any) {
     return value === null;
 }
@@ -237,7 +322,6 @@ function isAmd64 () {
     return process.arch === "x64";
 }
 
-
 export {
     // errors
     AuthenticationError,
@@ -271,6 +355,14 @@ export {
     getTestFiles,
     getTestFilesSync,
     setFetchResponse,
+    setFetchResponseByUrl,
+    setupWsMockTransport,
+    injectWsMessage,
+    rejectPendingWsFutures,
+    wsClientHasPendingFutures,
+    markWsTestCompleted,
+    isWsTestCompleted,
+    getWsSentMessages,
     isNullValue,
     close,
     getRootDir,

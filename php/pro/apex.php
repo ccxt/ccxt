@@ -97,53 +97,54 @@ class apex extends \ccxt\async\apex {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols);
-        $symbolsLength = count($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
+        $symbolsLength = count($symbolsNormalized);
         if ($symbolsLength === 0) {
             throw new ArgumentsRequired($this->id . ' watchTradesForSymbols() requires a non-empty array of symbols');
         }
         $url = $this->get_ws_public_url();
         $topics = array();
         $messageHashes = array();
-        for ($i = 0; $i < count($symbols); $i++) {
-            $symbol = $symbols[$i];
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $symbol = $symbolsNormalized[$i];
             $market = $this->market($symbol);
-            $topic = 'recentlyTrade.H.' . $market['id2'];
+            $topic = 'recentlyTrade.H.' . $this->safe_string($market, 'id2');
             $topics[] = $topic;
             $messageHash = 'trade:' . $symbol;
             $messageHashes[] = $messageHash;
         }
         $trades = Async\await($this->watch_topics($url, $messageHashes, $topics, $params));
+        $first = $this->safe_dict($trades, 0);
+        $tradeSymbol = $this->safe_string($first, 'symbol');
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $first = $this->safe_value($trades, 0);
-            $tradeSymbol = $this->safe_string($first, 'symbol');
-            $limit = $trades->getLimit($tradeSymbol, $limit);
+            $limitResolved = $trades->getLimit($tradeSymbol, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         //     {
-        //         "topic" => "recentlyTrade.H.BTCUSDT",
-        //         "type" => "snapshot",
-        //         "ts" => 1672304486868,
-        //         "data" => array(
-        //             array(
-        //                 "T" => 1672304486865,
-        //                 "s" => "BTCUSDT",
-        //                 "S" => "Buy",
-        //                 "v" => "0.001",
-        //                 "p" => "16578.50",
-        //                 "L" => "PlusTick",
-        //                 "i" => "20f43950-d8dd-5b31-9112-a178eb6023ef",
-        //                 "BT" => false
-        //             ),
+        //         "topic": "recentlyTrade.H.BTCUSDT",
+        //         "type": "snapshot",
+        //         "ts": 1672304486868,
+        //         "data": [
+        //             {
+        //                 "T": 1672304486865,
+        //                 "s": "BTCUSDT",
+        //                 "S": "Buy",
+        //                 "v": "0.001",
+        //                 "p": "16578.50",
+        //                 "L": "PlusTick",
+        //                 "i": "20f43950-d8dd-5b31-9112-a178eb6023ef",
+        //                 "BT": false
+        //             },
         //             // sorted by newest first
-        //         )
+        //         ]
         //     }
         //
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
         $topic = $this->safe_string($message, 'topic');
         $trades = $data;
         $parts = explode('.', $topic);
@@ -166,24 +167,24 @@ class apex extends \ccxt\async\apex {
         $client->resolve($stored, $messageHash);
     }
 
-    public function parse_ws_trade(mixed $trade, ?array $market = null) {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         // public
         //    {
-        //         "T" => 1672304486865,
-        //         "s" => "BTCUSDT",
-        //         "S" => "Buy",
-        //         "v" => "0.001",
-        //         "p" => "16578.50",
-        //         "L" => "PlusTick",
-        //         "i" => "20f43950-d8dd-5b31-9112-a178eb6023af",
-        //         "BT" => false
+        //         "T": 1672304486865,
+        //         "s": "BTCUSDT",
+        //         "S": "Buy",
+        //         "v": "0.001",
+        //         "p": "16578.50",
+        //         "L": "PlusTick",
+        //         "i": "20f43950-d8dd-5b31-9112-a178eb6023af",
+        //         "BT": false
         //     }
         //
         $id = $this->safe_string_n($trade, array( 'i', 'id', 'v' ));
         $marketId = $this->safe_string_2($trade, 's', 'symbol');
-        $market = $this->safe_market($marketId, $market, null);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market, null);
+        $symbol = $marketResolved['symbol'];
         $timestamp = $this->safe_integer_n($trade, array( 't', 'T', 'createdAt' ));
         $side = $this->safe_string_lower_2($trade, 'S', 'side');
         $price = $this->safe_string_2($trade, 'p', 'price');
@@ -202,7 +203,7 @@ class apex extends \ccxt\async\apex {
             'amount' => $amount,
             'cost' => null,
             'fee' => null,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
@@ -241,17 +242,15 @@ class apex extends \ccxt\async\apex {
         if ($symbolsLength === 0) {
             throw new ArgumentsRequired($this->id . ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $url = $this->get_ws_public_url();
         $topics = array();
         $messageHashes = array();
-        for ($i = 0; $i < count($symbols); $i++) {
-            $symbol = $symbols[$i];
+        $limitValue = ($limit === null) ? 25 : $limit;
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $symbol = $symbolsNormalized[$i];
             $market = $this->market($symbol);
-            if ($limit === null) {
-                $limit = 25;
-            }
-            $topic = 'orderBook' . (string) $limit . '.H.' . $market['id2'];
+            $topic = 'orderBook' . (string) $limitValue . '.H.' . $this->safe_string($market, 'id2');
             $topics[] = $topic;
             $messageHash = 'orderbook:' . $symbol;
             $messageHashes[] = $messageHash;
@@ -260,15 +259,15 @@ class apex extends \ccxt\async\apex {
         return $orderbook->limit();
     }
 
-    public function watch_topics(mixed $url, mixed $messageHashes, mixed $topics, $params = array()) {
+    public function watch_topics(string $url, array $messageHashes, array $topics, $params = array()) {
         return Async\async(self::do_watch_topics(...))($url, $messageHashes, $topics, $params);
     }
 
-    private function do_watch_topics(mixed $url, mixed $messageHashes, mixed $topics, $params = array()) {
+    private function do_watch_topics(string $url, array $messageHashes, array $topics, $params = array()) {
         // apex's server rejects a subscribe whose args include any
         // already-subscribed topic ("topic:already subscribed ..."). Since the
         // connection is now reused across watch* calls, filter to only the
-        // $topics whose messageHash isn't yet tracked on this $client; if all
+        // topics whose messageHash isn't yet tracked on this client; if all
         // are already subscribed, skip the subscribe entirely.
         $client = $this->client($url);
         $newTopics = array();
@@ -290,7 +289,7 @@ class apex extends \ccxt\async\apex {
         return Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes));
     }
 
-    public function get_ws_public_url() {
+    public function get_ws_public_url(): string {
         // apex appends a millisecond timestamp to the WS URL for connection-time
         // signing. CCXT's client manager keys clients by URL, so recomputing the
         // timestamp on every watch* call would open a new connection each time.
@@ -298,53 +297,53 @@ class apex extends \ccxt\async\apex {
         $url = $this->safe_string($this->options, 'wsPublicUrl');
         if ($url === null) {
             $timeStamp = (string) $this->milliseconds();
-            $url = $this->urls['api']['ws']['public'] . '&timestamp=' . $timeStamp;
+            $url = $this->safe_string($this->urls['api']['ws'], 'public') . '&timestamp=' . $timeStamp;
             $this->options['wsPublicUrl'] = $url;
         }
         return $url;
     }
 
-    public function get_ws_private_url() {
+    public function get_ws_private_url(): string {
         $url = $this->safe_string($this->options, 'wsPrivateUrl');
         if ($url === null) {
             $timeStamp = (string) $this->milliseconds();
-            $url = $this->urls['api']['ws']['private'] . '&timestamp=' . $timeStamp;
+            $url = $this->safe_string($this->urls['api']['ws'], 'private') . '&timestamp=' . $timeStamp;
             $this->options['wsPrivateUrl'] = $url;
         }
         return $url;
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         //     {
-        //         "topic" => "orderbook25.H.BTCUSDT",
-        //         "type" => "snapshot",
-        //         "ts" => 1672304484978,
-        //         "data" => {
-        //             "s" => "BTCUSDT",
-        //             "b" => array(
+        //         "topic": "orderbook25.H.BTCUSDT",
+        //         "type": "snapshot",
+        //         "ts": 1672304484978,
+        //         "data": {
+        //             "s": "BTCUSDT",
+        //             "b": [
         //                 ...,
-        //                 array(
+        //                 [
         //                     "16493.50",
         //                     "0.006"
-        //                 ),
-        //                 array(
+        //                 ],
+        //                 [
         //                     "16493.00",
         //                     "0.100"
-        //                 )
-        //             ),
-        //             "a" => array(
-        //                 array(
+        //                 ]
+        //             ],
+        //             "a": [
+        //                 [
         //                     "16611.00",
         //                     "0.029"
-        //                 ),
-        //                 array(
+        //                 ],
+        //                 [
         //                     "16612.00",
         //                     "0.213"
-        //                 ),
-        //             ),
-        //             "u" => 18521288,
-        //             "seq" => 7961638724
+        //                 ],
+        //             ],
+        //             "u": 18521288,
+        //             "seq": 7961638724
         //         }
         //     }
         //
@@ -404,10 +403,10 @@ class apex extends \ccxt\async\apex {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $market['symbol'];
         $url = $this->get_ws_public_url();
-        $messageHash = 'ticker:' . $symbol;
-        $topic = 'instrumentInfo' . '.H.' . $market['id2'];
+        $messageHash = 'ticker:' . $symbolValue;
+        $topic = 'instrumentInfo' . '.H.' . $this->safe_string($market, 'id2');
         $topics = array( $topic );
         return Async\await($this->watch_topics($url, array( $messageHash ), $topics, $params));
     }
@@ -429,14 +428,14 @@ class apex extends \ccxt\async\apex {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols, null, false);
+        $symbolsNormalized = $this->market_symbols($symbols, null, false);
         $messageHashes = array();
         $url = $this->get_ws_public_url();
         $topics = array();
-        for ($i = 0; $i < count(($symbols)); $i++) {
-            $symbol = ($symbols)[$i];
+        for ($i = 0; $i < count(($symbolsNormalized)); $i++) {
+            $symbol = ($symbolsNormalized)[$i];
             $market = $this->market($symbol);
-            $topic = 'instrumentInfo' . '.H.' . $market['id2'];
+            $topic = 'instrumentInfo' . '.H.' . $this->safe_string($market, 'id2');
             $topics[] = $topic;
             $messageHash = 'ticker:' . $symbol;
             $messageHashes[] = $messageHash;
@@ -444,16 +443,19 @@ class apex extends \ccxt\async\apex {
         $ticker = Async\await($this->watch_topics($url, $messageHashes, $topics, $params));
         if ($this->newUpdates) {
             $result = array();
-            $result[$ticker['symbol']] = $ticker;
+            $tickerSymbol = $this->safe_string($ticker, 'symbol');
+            if ($tickerSymbol !== null) {
+                $result[$tickerSymbol] = $ticker;
+            }
             return $result;
         }
-        return $this->filter_by_array($this->tickers, 'symbol', $symbols);
+        return $this->filter_by_array($this->tickers, 'symbol', $symbolsNormalized);
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message) {
         // "topic":"instrumentInfo.H.BTCUSDT",
         //     "type":"snapshot",
-        //     "data":array(
+        //     "data":{
         //     "symbol":"BTCUSDT",
         //         "lastPrice":"21572.5",
         //         "price24hPcnt":"-0.0194318181818182",
@@ -468,7 +470,7 @@ class apex extends \ccxt\async\apex {
         //         "tradeCount":"0",
         //         "fundingRate":"0.0000125",
         //         "predictedFundingRate":"0.0000125"
-        // ),
+        // },
         //     "cs":44939063,
         //     "ts":1661500091955487
         // }
@@ -479,13 +481,13 @@ class apex extends \ccxt\async\apex {
         $parsed = $this->parse_ticker($data);
         if (($updateType === 'snapshot')) {
             $parsed = $this->parse_ticker($data);
-            $symbol = $parsed['symbol'];
+            $symbol = $this->safe_string($parsed, 'symbol');
         } elseif ($updateType === 'delta') {
             $topicParts = explode('.', $topic);
             $topicLength = count($topicParts);
             $marketId = $this->safe_string($topicParts, $topicLength - 1);
             $market = $this->safe_market($marketId, null, null);
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol');
             $ticker = $this->safe_dict($this->tickers, $symbol, array());
             $rawTicker = $this->safe_dict($ticker, 'info', array());
             $merged = $this->extend($rawTicker, $data);
@@ -514,7 +516,7 @@ class apex extends \ccxt\async\apex {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $params['callerMethodName'] = 'watchOHLCV';
         $result = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $since, $limit, $params));
@@ -535,7 +537,7 @@ class apex extends \ccxt\async\apex {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A list of candles ordered, open, high, low, close, volume
+         * @return {array} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -544,7 +546,7 @@ class apex extends \ccxt\async\apex {
         $rawHashes = array();
         $messageHashes = array();
         for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
-            $data = $symbolsAndTimeframes[$i];
+            $data = $this->safe_list($symbolsAndTimeframes, $i);
             $symbolString = $this->safe_string($data, 0);
             $market = $this->market($symbolString);
             $symbolString = $market['id2'];
@@ -554,37 +556,38 @@ class apex extends \ccxt\async\apex {
             $messageHashes[] = 'ohlcv::' . $market['symbol'] . '::' . $unfiedTimeframe;
         }
         list($symbol, $timeframe, $stored) = Async\await($this->watch_topics($url, $messageHashes, $rawHashes, $params));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $stored->getLimit($symbol, $limit);
+            $limitResolved = $stored->getLimit($symbol, $limit);
         }
-        $filtered = $this->filter_by_since_limit($stored, $since, $limit, 0, true);
+        $filtered = $this->filter_by_since_limit($stored, $since, $limitResolved, 0, true);
         return $this->create_ohlcv_object($symbol, $timeframe, $filtered);
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         //     {
-        //         "topic" => "candle.5.BTCUSDT",
-        //         "data" => array(
+        //         "topic": "candle.5.BTCUSDT",
+        //         "data": [
         //             {
-        //                 "start" => 1672324800000,
-        //                 "end" => 1672325099999,
-        //                 "interval" => "5",
-        //                 "open" => "16649.5",
-        //                 "close" => "16677",
-        //                 "high" => "16677",
-        //                 "low" => "16608",
-        //                 "volume" => "2.081",
-        //                 "turnover" => "34666.4005",
-        //                 "confirm" => false,
-        //                 "timestamp" => 1672324988882
+        //                 "start": 1672324800000,
+        //                 "end": 1672325099999,
+        //                 "interval": "5",
+        //                 "open": "16649.5",
+        //                 "close": "16677",
+        //                 "high": "16677",
+        //                 "low": "16608",
+        //                 "volume": "2.081",
+        //                 "turnover": "34666.4005",
+        //                 "confirm": false,
+        //                 "timestamp": 1672324988882
         //             }
-        //         ),
-        //         "ts" => 1672324988882,
-        //         "type" => "snapshot"
+        //         ],
+        //         "ts": 1672324988882,
+        //         "type": "snapshot"
         //     }
         //
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
         $topic = $this->safe_string($message, 'topic');
         $topicParts = explode('.', $topic);
         $topicLength = count($topicParts);
@@ -592,7 +595,10 @@ class apex extends \ccxt\async\apex {
         $timeframe = $this->find_timeframe($timeframeId);
         $marketId = $this->safe_string($topicParts, $topicLength - 1);
         $isSpot = mb_strpos($client->url, 'spot') > -1;
-        $marketType = $isSpot ? 'spot' : 'contract';
+        $marketType = 'contract';
+        if ($isSpot) {
+            $marketType = 'spot';
+        }
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
         if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
@@ -615,17 +621,17 @@ class apex extends \ccxt\async\apex {
     public function parse_ws_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
-        //         "start" => 1670363160000,
-        //         "end" => 1670363219999,
-        //         "interval" => "1",
-        //         "open" => "16987.5",
-        //         "close" => "16987.5",
-        //         "high" => "16988",
-        //         "low" => "16987.5",
-        //         "volume" => "23.511",
-        //         "turnover" => "399396.344",
-        //         "confirm" => false,
-        //         "timestamp" => 1670363219614
+        //         "start": 1670363160000,
+        //         "end": 1670363219999,
+        //         "interval": "1",
+        //         "open": "16987.5",
+        //         "close": "16987.5",
+        //         "high": "16988",
+        //         "low": "16987.5",
+        //         "volume": "23.511",
+        //         "turnover": "399396.344",
+        //         "confirm": false,
+        //         "timestamp": 1670363219614
         //     }
         //
         return array(
@@ -659,17 +665,19 @@ class apex extends \ccxt\async\apex {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
+        $symbolResolved = null;
         if ($symbol !== null) {
-            $symbol = $this->symbol($symbol);
-            $messageHash .= ':' . $symbol;
+            $symbolResolved = $this->symbol($symbol);
+            $messageHash .= ':' . $symbolResolved;
         }
         $url = $this->get_ws_private_url();
         Async\await($this->authenticate($url));
         $trades = Async\await($this->watch_topics($url, array( $messageHash ), array( 'myTrades' ), $params));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($symbol, $limit);
+            $limitResolved = $trades->getLimit($symbolResolved, $limit);
         }
-        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+        return $this->filter_by_symbol_since_limit($trades, $symbolResolved, $since, $limitResolved, true);
     }
 
     public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -692,26 +700,31 @@ class apex extends \ccxt\async\apex {
             Async\await($this->load_markets());
         }
         $messageHash = '';
+        $symbolsNormalized2 = null;
+        if ($this->is_empty($symbols)) {
+            $symbolsNormalized2 = $symbols;
+        } else {
+            $symbolsNormalized2 = $this->market_symbols($symbols);
+        }
         if (!$this->is_empty($symbols)) {
-            $symbols = $this->market_symbols($symbols);
-            $messageHash = '::' . implode(',', ($symbols));
+            $messageHash = '::' . implode(',', ($symbolsNormalized2));
         }
         $url = $this->get_ws_private_url();
         $messageHash = 'positions' . $messageHash;
         $client = $this->client($url);
         Async\await($this->authenticate($url));
-        $this->set_positions_cache($client, $symbols);
+        $this->set_positions_cache($client, $symbolsNormalized2);
         $cache = $this->positions;
         if ($cache === null) {
             $snapshot = Async\await($client->future('fetchPositionsSnapshot'));
-            return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
+            return $this->filter_by_symbols_since_limit($snapshot, $symbolsNormalized2, $since, $limit, true);
         }
         $topics = array( 'positions' );
         $newPositions = Async\await($this->watch_topics($url, array( $messageHash ), $topics, $params));
         if ($this->newUpdates) {
             return $newPositions;
         }
-        return $this->filter_by_symbols_since_limit($cache, $symbols, $since, $limit, true);
+        return $this->filter_by_symbols_since_limit($cache, $symbolsNormalized2, $since, $limit, true);
     }
 
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -734,22 +747,24 @@ class apex extends \ccxt\async\apex {
             Async\await($this->load_markets());
         }
         $messageHash = 'orders';
+        $symbolResolved = null;
         if ($symbol !== null) {
-            $symbol = $this->symbol($symbol);
-            $messageHash .= ':' . $symbol;
+            $symbolResolved = $this->symbol($symbol);
+            $messageHash .= ':' . $symbolResolved;
         }
         $url = $this->get_ws_private_url();
         Async\await($this->authenticate($url));
         $topics = array( 'orders' );
         $orders = Async\await($this->watch_topics($url, array( $messageHash ), $topics, $params));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $orders->getLimit($symbol, $limit);
+            $limitResolved = $orders->getLimit($symbolResolved, $limit);
         }
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        return $this->filter_by_symbol_since_limit($orders, $symbolResolved, $since, $limitResolved, true);
     }
 
-    public function handle_my_trades(Client $client, mixed $lists) {
-        // array(
+    public function handle_my_trades(Client $client, array $lists) {
+        // [
         //     {
         //         "symbol":"ETH-USDT",
         //         "side":"BUY",
@@ -765,7 +780,7 @@ class apex extends \ccxt\async\apex {
         //         "id":"2048000182272",
         //         "updatedAt":1652185678345
         //     }
-        // )
+        // ]
         if ($this->myTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $this->myTrades = new ArrayCacheBySymbolById($limit);
@@ -784,13 +799,13 @@ class apex extends \ccxt\async\apex {
             $currentMessageHash = 'myTrades:' . $keys[$i];
             $client->resolve($trades, $currentMessageHash);
         }
-        // non-$symbol specific
+        // non-symbol specific
         $messageHash = 'myTrades';
         $client->resolve($trades, $messageHash);
     }
 
-    public function handle_order(Client $client, mixed $lists) {
-        // array(
+    public function handle_order(Client $client, array $lists) {
+        // [
         //     {
         //         "symbol":"ETH-USDT",
         //         "cumSuccessFillFee":"0.625000",
@@ -818,7 +833,7 @@ class apex extends \ccxt\async\apex {
         //         "remainingSize":"0.000",
         //         "status":"PENDING"
         //     }
-        // )
+        // ]
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             $this->orders = new ArrayCacheBySymbolById($limit);
@@ -851,12 +866,12 @@ class apex extends \ccxt\async\apex {
         }
     }
 
-    public function load_positions_snapshot(Client $client, mixed $messageHash) {
+    public function load_positions_snapshot(Client $client, string $messageHash) {
         return Async\async(self::do_load_positions_snapshot(...))($client, $messageHash);
     }
 
-    private function do_load_positions_snapshot(Client $client, mixed $messageHash) {
-        // one ws channel gives $positions for all types, for snapshot must load all $positions
+    private function do_load_positions_snapshot(Client $client, string $messageHash) {
+        // as only one ws channel gives positions for all types, for snapshot must load all positions
         $fetchFunctions = array(
             $this->fetch_positions(),
         );
@@ -870,7 +885,7 @@ class apex extends \ccxt\async\apex {
                 $cache->append($position);
             }
         }
-        // don't remove the $future from the .futures $cache
+        // don't remove the future from the .futures cache
         if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
             $future = $client->futures[$messageHash];
             $future->resolve($cache);
@@ -878,9 +893,9 @@ class apex extends \ccxt\async\apex {
         }
     }
 
-    public function handle_positions(mixed $client, mixed $lists) {
+    public function handle_positions(Client $client, array $lists) {
         //
-        // array(
+        // [
         //     {
         //         "symbol":"ETH-USDT",
         //         "exitPrice":"0",
@@ -897,7 +912,7 @@ class apex extends \ccxt\async\apex {
         //         "closedAt":1652185521392,
         //         "updatedAt":1652185521392
         //     }
-        // )
+        // ]
         //
         // each account is connected to a different endpoint
         // and has exactly one subscriptionhash which is the account type
@@ -910,12 +925,12 @@ class apex extends \ccxt\async\apex {
             $rawPosition = $lists[$i];
             $position = $this->parse_position($rawPosition);
             $side = $this->safe_string($position, 'side');
-            // hacky solution to handle closing $positions
+            // hacky solution to handle closing positions
             // without crashing, we should handle this properly later
             $newPositions[] = $position;
             if ($side === null || $side === '') {
                 // closing update, adding both sides to "reset" both sides
-                // since we don't know which $side is being closed
+                // since we don't know which side is being closed
                 $position['side'] = 'long';
                 $cache->append($position);
                 $position['side'] = 'short';
@@ -940,11 +955,11 @@ class apex extends \ccxt\async\apex {
         $client->resolve($newPositions, 'positions');
     }
 
-    public function authenticate(mixed $url, $params = array()) {
+    public function authenticate(string $url, $params = array()) {
         return Async\async(self::do_authenticate(...))($url, $params);
     }
 
-    private function do_authenticate(mixed $url, $params = array()) {
+    private function do_authenticate(string $url, $params = array()) {
         $this->check_required_credentials();
         $timestamp = (string) $this->milliseconds();
         $request_path = '/ws/accounts';
@@ -976,47 +991,47 @@ class apex extends \ccxt\async\apex {
         return Async\await($future);
     }
 
-    public function handle_error_message(Client $client, mixed $message): ?bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         //
         //   {
-        //       "success" => false,
-        //       "ret_msg" => "error:invalid $op",
-        //       "conn_id" => "5e079fdd-9c7f-404d-9dbf-969d650838b5",
-        //       "request" => array( $op => '', args => null )
+        //       "success": false,
+        //       "ret_msg": "error:invalid op",
+        //       "conn_id": "5e079fdd-9c7f-404d-9dbf-969d650838b5",
+        //       "request": { op: '', args: null }
         //   }
         //
-        // auth $error
+        // auth error
         //
         //   {
-        //       "success" => false,
-        //       "ret_msg" => "error:USVC1111",
-        //       "conn_id" => "e73770fb-a0dc-45bd-8028-140e20958090",
-        //       "request" => {
-        //         "op" => "auth",
-        //         "args" => array(
+        //       "success": false,
+        //       "ret_msg": "error:USVC1111",
+        //       "conn_id": "e73770fb-a0dc-45bd-8028-140e20958090",
+        //       "request": {
+        //         "op": "auth",
+        //         "args": [
         //           "9rFT6uR4uz9Imkw4Wx",
         //           "1653405853543",
         //           "542e71bd85597b4db0290f0ce2d13ed1fd4bb5df3188716c1e9cc69a879f7889"
-        //         )
+        //         ]
         //   }
         //
-        //   array( $code => '-10009', desc => "Invalid period!" )
+        //   { code: '-10009', desc: "Invalid period!" }
         //
         //   {
         //       "reqId":"1",
         //       "retCode":170131,
         //       "retMsg":"Insufficient balance.",
         //       "op":"order.create",
-        //       "data":array(
+        //       "data":{
         //
-        //       ),
-        //       "header":array(
+        //       },
+        //       "header":{
         //           "X-Bapi-Limit":"20",
         //           "X-Bapi-Limit-Status":"19",
         //           "X-Bapi-Limit-Reset-Timestamp":"1714236608944",
         //           "Traceid":"3d7168a137bf32a947b7e5e6a575ac7f",
         //           "Timenow":"1714236608946"
-        //       ),
+        //       },
         //       "connId":"cojifin88smerbj9t560-406"
         //   }
         //
@@ -1029,16 +1044,16 @@ class apex extends \ccxt\async\apex {
                 $this->throw_broadly_matched_exception($this->exceptions['broad'], $msg, $feedback);
                 throw new ExchangeError($feedback);
             }
-            $success = $this->safe_value($message, 'success');
-            if ($success !== null && !$success) {
+            $success = $this->safe_bool($message, 'success');
+            if (($success !== null) && ($success !== true)) {
                 $ret_msg = $this->safe_string($message, 'ret_msg');
-                $request = $this->safe_value($message, 'request', array());
+                $request = $this->safe_dict($message, 'request', array());
                 $op = $this->safe_string($request, 'op');
-                // Benign re-subscribe notice (same shape 90008 /
-                // krakenfutures "Already subscribed") => the original subscription
+                // Benign re-subscribe notice (same shape as bitmart 90008 /
+                // krakenfutures "Already subscribed"): the original subscription
                 // is still active and delivering data on this socket. Without
-                // this short-circuit the catch-clause's `$client->reject($error,
-                // $messageHash)` rejects every in-flight future on the connection
+                // this short-circuit the catch-clause's `client.reject(error,
+                // messageHash)` rejects every in-flight future on the connection
                 // because apex doesn't echo a `reqId` on these warnings.
                 if ($ret_msg !== null && mb_strpos($ret_msg, 'already subscribed') !== false) {
                     return false;
@@ -1066,7 +1081,13 @@ class apex extends \ccxt\async\apex {
     }
 
     public function handle_message(Client $client, mixed $message) {
-        if ($this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message) === true) {
+            return;
+        }
+        $ret_msg = $this->safe_string($message, 'ret_msg');
+        $pong = $this->safe_integer($message, 'pong');
+        if ($ret_msg === 'pong' || $pong !== null) {
+            $this->handle_pong($client, $message);
             return;
         }
         $topic = $this->safe_string_2($message, 'topic', 'op', '');
@@ -1114,43 +1135,44 @@ class apex extends \ccxt\async\apex {
         );
     }
 
-    public function pong(Client $client, mixed $message) {
+    public function pong(Client $client, array $message) {
         return Async\async(self::do_pong(...))($client, $message);
     }
 
-    private function do_pong(Client $client, mixed $message) {
+    private function do_pong(Client $client, array $message) {
         //
-        //     array("op" => "ping", "args" => ["1761069137485"])
+        //     {"op": "ping", "args": ["1761069137485"]}
         //
         $timeStamp = $this->milliseconds();
         try {
             Async\await($client->send(array( 'args' => array( (string) $timeStamp ), 'op' => 'pong' )));
         } catch (Exception $e) {
-            $error = new NetworkError($this->id . ' handlePing failed with $error ' . $this->exception_message($e));
+            $error = new NetworkError($this->id . ' handlePing failed with error ' . $this->exception_message($e));
             $client->reset($error);
         }
     }
 
-    public function handle_pong(Client $client, mixed $message) {
+    public function handle_pong(Client $client, array $message): array {
         //
         //   {
-        //       "success" => true,
-        //       "ret_msg" => "pong",
-        //       "conn_id" => "db3158a0-8960-44b9-a9de-ac350ee13158",
-        //       "request" => array( op => "ping", args => null )
+        //       "success": true,
+        //       "ret_msg": "pong",
+        //       "conn_id": "db3158a0-8960-44b9-a9de-ac350ee13158",
+        //       "request": { op: "ping", args: null }
         //   }
         //
-        //   array( pong => 1653296711335 )
+        //   { pong: 1653296711335 }
         //
         $client->lastPong = $this->safe_integer($message, 'pong', $this->milliseconds());
         return $message;
     }
 
-    public function handle_ping(Client $client, mixed $message) {
+    public function handle_ping(Client $client, array $message) {
+        $client->lastPong = $this->milliseconds();
         $this->spawn(array($this, 'pong'), $client, $message);
     }
 
-    public function handle_account(Client $client, mixed $message) {
+    public function handle_account(Client $client, array $message) {
         $contents = $this->safe_dict($message, 'contents', array());
         $fills = $this->safe_list($contents, 'fills', array());
         if ($fills !== null) {
@@ -1166,19 +1188,19 @@ class apex extends \ccxt\async\apex {
         }
     }
 
-    public function handle_authenticate(Client $client, mixed $message) {
+    public function handle_authenticate(Client $client, array $message): array {
         //
         //    {
-        //        "success" => true,
-        //        "ret_msg" => '',
-        //        "op" => "auth",
-        //        "conn_id" => "ce3dpomvha7dha97tvp0-2xh"
+        //        "success": true,
+        //        "ret_msg": '',
+        //        "op": "auth",
+        //        "conn_id": "ce3dpomvha7dha97tvp0-2xh"
         //    }
         //
-        $success = $this->safe_value($message, 'success');
+        $success = $this->safe_bool($message, 'success');
         $code = $this->safe_integer($message, 'retCode');
         $messageHash = 'authenticated';
-        if ($success || $code === 0) {
+        if (($success === true) || ($code === 0)) {
             $future = $this->safe_value($client->futures, $messageHash);
             $future->resolve(true);
         } else {
@@ -1191,19 +1213,19 @@ class apex extends \ccxt\async\apex {
         return $message;
     }
 
-    public function handle_subscription_status(Client $client, mixed $message) {
+    public function handle_subscription_status(Client $client, array $message): array {
         //
         //    {
-        //        "topic" => "kline",
-        //        "event" => "sub",
-        //        "params" => array(
-        //          "symbol" => "LTCUSDT",
-        //          "binary" => "false",
-        //          "klineType" => "1m",
-        //          "symbolName" => "LTCUSDT"
-        //        ),
-        //        "code" => "0",
-        //        "msg" => "Success"
+        //        "topic": "kline",
+        //        "event": "sub",
+        //        "params": {
+        //          "symbol": "LTCUSDT",
+        //          "binary": "false",
+        //          "klineType": "1m",
+        //          "symbolName": "LTCUSDT"
+        //        },
+        //        "code": "0",
+        //        "msg": "Success"
         //    }
         //
         return $message;

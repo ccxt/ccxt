@@ -67,7 +67,7 @@ export async function generateMetadata(props: PageProps<'/[lang]/blog/[slug]'>):
   const canonical = postCanonicalUrl(page);
 
   return {
-    title: `${page.data.title} | ${appName} Blog`,
+    title: { absolute: `${page.data.title} | ${appName} Blog` },
     description: page.data.description,
     // every locale serves the same English post — one canonical, no hreflang variants
     alternates: {
@@ -84,7 +84,10 @@ export async function generateMetadata(props: PageProps<'/[lang]/blog/[slug]'>):
       url: canonical,
       publishedTime: new Date(page.data.date).toISOString(),
       authors: [page.data.author],
-      images: [{ url: `${basePath}/og/home`, width: 1200, height: 630 }],
+      // a post's own image is used as-is (no declared size, since it varies per post)
+      images: page.data.image
+        ? [{ url: `${basePath}${page.data.image}` }]
+        : [{ url: `${basePath}/og/home`, width: 1200, height: 630 }],
     },
   };
 }

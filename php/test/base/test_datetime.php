@@ -24,6 +24,58 @@ function test_iso8601() {
     assert($exchange->iso8601('') === null);
     assert($exchange->iso8601('a') === null);
     assert($exchange->iso8601(array()) === null);
+    // NB: every assert below must hold byte-for-byte in every language. Timestamps stay within the
+    // year 1970-9999 range, the only range where all the native date implementations agree.
+    // 1ms after epoch is asserted above
+    assert($exchange->iso8601(1000) === '1970-01-01T00:00:01.000Z');
+    assert($exchange->iso8601(1001) === '1970-01-01T00:00:01.001Z');
+    assert($exchange->iso8601(86399999) === '1970-01-01T23:59:59.999Z');
+    assert($exchange->iso8601(86400000) === '1970-01-02T00:00:00.000Z');
+    // millisecond zero-padding
+    assert($exchange->iso8601(1755432123005) === '2025-08-17T12:02:03.005Z');
+    assert($exchange->iso8601(1755432123050) === '2025-08-17T12:02:03.050Z');
+    assert($exchange->iso8601(1755432123099) === '2025-08-17T12:02:03.099Z');
+    assert($exchange->iso8601(1755432123500) === '2025-08-17T12:02:03.500Z');
+    assert($exchange->iso8601(1755432123999) === '2025-08-17T12:02:03.999Z');
+    // year rollovers, incl. out of a 366-day leap year
+    assert($exchange->iso8601(1704067199999) === '2023-12-31T23:59:59.999Z');
+    assert($exchange->iso8601(1704067200000) === '2024-01-01T00:00:00.000Z');
+    assert($exchange->iso8601(1735689599999) === '2024-12-31T23:59:59.999Z');
+    assert($exchange->iso8601(1735689600000) === '2025-01-01T00:00:00.000Z');
+    // month lengths and boundaries
+    assert($exchange->iso8601(1706702400000) === '2024-01-31T12:00:00.000Z');
+    assert($exchange->iso8601(1706788800000) === '2024-02-01T12:00:00.000Z');
+    assert($exchange->iso8601(1677585600000) === '2023-02-28T12:00:00.000Z');
+    assert($exchange->iso8601(1677672000000) === '2023-03-01T12:00:00.000Z');
+    assert($exchange->iso8601(1714521599999) === '2024-04-30T23:59:59.999Z');
+    assert($exchange->iso8601(1714521600000) === '2024-05-01T00:00:00.000Z');
+    // leap days: regular leap years, leap centuries and non-leap centuries
+    assert($exchange->iso8601(68169600000) === '1972-02-29T00:00:00.000Z');
+    assert($exchange->iso8601(1709164799999) === '2024-02-28T23:59:59.999Z');
+    assert($exchange->iso8601(1709164800000) === '2024-02-29T00:00:00.000Z');
+    assert($exchange->iso8601(1709251199999) === '2024-02-29T23:59:59.999Z');
+    assert($exchange->iso8601(1709251200000) === '2024-03-01T00:00:00.000Z');
+    assert($exchange->iso8601(951782400000) === '2000-02-29T00:00:00.000Z');
+    assert($exchange->iso8601(951868800000) === '2000-03-01T00:00:00.000Z');
+    assert($exchange->iso8601(4107499200000) === '2100-02-28T12:00:00.000Z');
+    assert($exchange->iso8601(4107585600000) === '2100-03-01T12:00:00.000Z');
+    // others
+    // zero is a valid timestamp
+    assert($exchange->iso8601(0) === '1970-01-01T00:00:00.000Z');
+    // plain-integer strings are accepted
+    assert($exchange->iso8601('1755432123456') === '2025-08-17T12:02:03.456Z');
+    // strings that are not a plain integer are rejected
+    assert($exchange->iso8601('123abc') === null);
+    // non-integer numbers are floored
+    assert($exchange->iso8601(514862627559.9) === '1986-04-26T01:23:47.559Z');
+    // last representable millisecond of year 9999
+    assert($exchange->iso8601(253402300799999) === '9999-12-31T23:59:59.999Z');
+    // one millisecond past the maximum supported range yields undefined
+    assert($exchange->iso8601(8640000000000001) === null);
+    // absurdly large / non-finite magnitudes are rejected too. NaN/Infinity
+    // literals don't survive transpilation, but 1e300 does and it exercises the
+    // same > 8.64e15 guard in every port (incl. PHP's is_finite branch)
+    assert($exchange->iso8601(1e+300) === null);
 }
 
 
@@ -36,6 +88,9 @@ function test_parse8601() {
     assert($exchange->parse8601('1986-04-26T01:23:47.062Z') === 514862627062);
     assert($exchange->parse8601('1986-04-26T01:23:47.06Z') === 514862627060);
     assert($exchange->parse8601('1986-04-26T01:23:47.6Z') === 514862627600);
+    // a negative offset is a zone like any other
+    assert($exchange->parse8601('1986-04-26T01:23:47.559-04:00') === 514877027559);
+    assert($exchange->parse8601('1986-04-26T01:23:47.559+00:00') === 514862627559);
     assert($exchange->parse8601('1977-13-13T00:00:00.000Z') === null);
     assert($exchange->parse8601('1986-04-26T25:71:47.000Z') === null);
     assert($exchange->parse8601('3333') === null);
@@ -89,6 +144,23 @@ function test_seconds() {
     $value_string = ((string) $value);
     assert($value > 0);
     assert(strlen($value_string) === 10);
+}
+
+
+function test_convert_expire_date() {
+    $exchange = new \ccxt\async\Exchange(array(
+        'id' => 'sampleexchange',
+    ));
+    // callers write this into expiryDatetime, which types.ts documents with milliseconds
+    assert($exchange->convert_expire_date('260503') === '2026-05-03T00:00:00.000Z');
+    assert($exchange->convert_expire_date('240426') === '2024-04-26T00:00:00.000Z');
+    // both spellings of midnight parse to the same instant
+    assert($exchange->parse8601($exchange->convert_expire_date('260503')) === 1777766400000);
+    assert($exchange->parse8601('2026-05-03T00:00:00Z') === $exchange->parse8601($exchange->convert_expire_date('260503')));
+    // the notation is now a fixed point of iso8601 (parse8601 (x)) - this is the
+    // invariant the change exists to establish, and it fails on the old spelling
+    assert($exchange->convert_expire_date('260503') === $exchange->iso8601($exchange->parse8601($exchange->convert_expire_date('260503'))));
+    assert($exchange->convert_expire_date(null) === null);
 }
 
 
@@ -153,4 +225,5 @@ function test_datetime() {
     test_seconds();
     test_yymmdd();
     test_yyyymmdd();
+    test_convert_expire_date();
 }

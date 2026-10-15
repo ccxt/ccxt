@@ -263,6 +263,20 @@ public partial class gateeu : gate
         return await this.callAsync<List<object>> ("publicFuturesGetSettleRiskLimitTiers",parameters);
     }
 
+    /// <summary>Calls the publicFuturesGetSettleAdlRiskStates endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> publicFuturesGetSettleAdlRiskStates (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("publicFuturesGetSettleAdlRiskStates",parameters);
+    }
+
+    /// <summary>Calls the publicFuturesPostSettleFundingRates endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> publicFuturesPostSettleFundingRates (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("publicFuturesPostSettleFundingRates",parameters);
+    }
+
     /// <summary>Calls the publicDeliveryGetSettleContracts endpoint.</summary>
     /// <returns>a JSON array</returns>
     public async Task<List<object>> publicDeliveryGetSettleContracts (object parameters = null)
@@ -429,6 +443,27 @@ public partial class gateeu : gate
     public async Task<List<object>> publicEarnGetStructuredProducts (object parameters = null)
     {
         return await this.callAsync<List<object>> ("publicEarnGetStructuredProducts",parameters);
+    }
+
+    /// <summary>Calls the publicEarnGetDualProjectRecommend endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> publicEarnGetDualProjectRecommend (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("publicEarnGetDualProjectRecommend",parameters);
+    }
+
+    /// <summary>Calls the publicEarnGetFixedTermProduct endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> publicEarnGetFixedTermProduct (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("publicEarnGetFixedTermProduct",parameters);
+    }
+
+    /// <summary>Calls the publicEarnGetFixedTermProductAssetList endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> publicEarnGetFixedTermProductAssetList (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("publicEarnGetFixedTermProductAssetList",parameters);
     }
 
     /// <summary>Calls the publicLoanGetCollateralCurrencies endpoint.</summary>
@@ -604,6 +639,13 @@ public partial class gateeu : gate
     public async Task<List<object>> privateWalletGetGetLowCapExchangeList (object parameters = null)
     {
         return await this.callAsync<List<object>> ("privateWalletGetGetLowCapExchangeList",parameters);
+    }
+
+    /// <summary>Calls the privateWalletGetTransfers endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateWalletGetTransfers (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateWalletGetTransfers",parameters);
     }
 
     /// <summary>Calls the privateWalletPostTransfers endpoint.</summary>
@@ -809,6 +851,20 @@ public partial class gateeu : gate
         return await this.callAsync<List<object>> ("privateUnifiedGetLeverageUserCurrencySetting",parameters);
     }
 
+    /// <summary>Calls the privateUnifiedGetDeltaNeutral endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUnifiedGetDeltaNeutral (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUnifiedGetDeltaNeutral",parameters);
+    }
+
+    /// <summary>Calls the privateUnifiedGetEstimatedQuickRepayment endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUnifiedGetEstimatedQuickRepayment (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUnifiedGetEstimatedQuickRepayment",parameters);
+    }
+
     /// <summary>Calls the privateUnifiedGetAccountMode endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateUnifiedGetAccountMode (object parameters = null)
@@ -842,6 +898,27 @@ public partial class gateeu : gate
     public async Task<Dictionary<string, object>> privateUnifiedPostCollateralCurrencies (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privateUnifiedPostCollateralCurrencies",parameters);
+    }
+
+    /// <summary>Calls the privateUnifiedPostDeltaNeutral endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUnifiedPostDeltaNeutral (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUnifiedPostDeltaNeutral",parameters);
+    }
+
+    /// <summary>Calls the privateUnifiedPostLeverageUserSetting endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUnifiedPostLeverageUserSetting (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUnifiedPostLeverageUserSetting",parameters);
+    }
+
+    /// <summary>Calls the privateUnifiedPostQuickRepayment endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUnifiedPostQuickRepayment (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUnifiedPostQuickRepayment",parameters);
     }
 
     /// <summary>Calls the privateUnifiedPostAccountMode endpoint.</summary>
@@ -928,6 +1005,20 @@ public partial class gateeu : gate
         return await this.callAsync<Dictionary<string, object>> ("privateSpotGetPriceOrdersOrderId",parameters);
     }
 
+    /// <summary>Calls the privateSpotGetPovOrders endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateSpotGetPovOrders (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateSpotGetPovOrders",parameters);
+    }
+
+    /// <summary>Calls the privateSpotGetPovOrdersOrderId endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateSpotGetPovOrdersOrderId (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateSpotGetPovOrdersOrderId",parameters);
+    }
+
     /// <summary>Calls the privateSpotPostBatchOrders endpoint.</summary>
     /// <returns>a JSON array</returns>
     public async Task<List<object>> privateSpotPostBatchOrders (object parameters = null)
@@ -977,6 +1068,13 @@ public partial class gateeu : gate
         return await this.callAsync<Dictionary<string, object>> ("privateSpotPostPriceOrders",parameters);
     }
 
+    /// <summary>Calls the privateSpotPostPovOrders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateSpotPostPovOrders (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateSpotPostPovOrders",parameters);
+    }
+
     /// <summary>Calls the privateSpotDeleteOrders endpoint.</summary>
     /// <returns>a JSON array</returns>
     public async Task<List<object>> privateSpotDeleteOrders (object parameters = null)
@@ -1003,6 +1101,20 @@ public partial class gateeu : gate
     public async Task<Dictionary<string, object>> privateSpotDeletePriceOrdersOrderId (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privateSpotDeletePriceOrdersOrderId",parameters);
+    }
+
+    /// <summary>Calls the privateSpotDeletePovOrders endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateSpotDeletePovOrders (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateSpotDeletePovOrders",parameters);
+    }
+
+    /// <summary>Calls the privateSpotDeletePovOrdersOrderId endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateSpotDeletePovOrdersOrderId (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateSpotDeletePovOrdersOrderId",parameters);
     }
 
     /// <summary>Calls the privateSpotPatchOrdersOrderId endpoint.</summary>
@@ -1432,6 +1544,41 @@ public partial class gateeu : gate
         return await this.callAsync<Dictionary<string, object>> ("privateFuturesGetSettlePriceOrdersOrderId",parameters);
     }
 
+    /// <summary>Calls the privateFuturesGetSettleAutoorderV1TrailList endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateFuturesGetSettleAutoorderV1TrailList (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateFuturesGetSettleAutoorderV1TrailList",parameters);
+    }
+
+    /// <summary>Calls the privateFuturesGetSettleAutoorderV1TrailDetail endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateFuturesGetSettleAutoorderV1TrailDetail (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateFuturesGetSettleAutoorderV1TrailDetail",parameters);
+    }
+
+    /// <summary>Calls the privateFuturesGetSettleAutoorderV1TrailChangeLog endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateFuturesGetSettleAutoorderV1TrailChangeLog (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateFuturesGetSettleAutoorderV1TrailChangeLog",parameters);
+    }
+
+    /// <summary>Calls the privateFuturesGetSettleAutoorderV1ChaseList endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateFuturesGetSettleAutoorderV1ChaseList (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateFuturesGetSettleAutoorderV1ChaseList",parameters);
+    }
+
+    /// <summary>Calls the privateFuturesGetSettleAutoorderV1ChaseDetail endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateFuturesGetSettleAutoorderV1ChaseDetail (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateFuturesGetSettleAutoorderV1ChaseDetail",parameters);
+    }
+
     /// <summary>Calls the privateFuturesPostSettlePositionsContractMargin endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateFuturesPostSettlePositionsContractMargin (object parameters = null)
@@ -1556,6 +1703,55 @@ public partial class gateeu : gate
     public async Task<Dictionary<string, object>> privateFuturesPostSettlePriceOrders (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privateFuturesPostSettlePriceOrders",parameters);
+    }
+
+    /// <summary>Calls the privateFuturesPostSettleAutoorderV1TrailCreate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateFuturesPostSettleAutoorderV1TrailCreate (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateFuturesPostSettleAutoorderV1TrailCreate",parameters);
+    }
+
+    /// <summary>Calls the privateFuturesPostSettleAutoorderV1TrailStop endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateFuturesPostSettleAutoorderV1TrailStop (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateFuturesPostSettleAutoorderV1TrailStop",parameters);
+    }
+
+    /// <summary>Calls the privateFuturesPostSettleAutoorderV1TrailStopAll endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateFuturesPostSettleAutoorderV1TrailStopAll (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateFuturesPostSettleAutoorderV1TrailStopAll",parameters);
+    }
+
+    /// <summary>Calls the privateFuturesPostSettleAutoorderV1TrailUpdate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateFuturesPostSettleAutoorderV1TrailUpdate (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateFuturesPostSettleAutoorderV1TrailUpdate",parameters);
+    }
+
+    /// <summary>Calls the privateFuturesPostSettleAutoorderV1ChaseCreate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateFuturesPostSettleAutoorderV1ChaseCreate (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateFuturesPostSettleAutoorderV1ChaseCreate",parameters);
+    }
+
+    /// <summary>Calls the privateFuturesPostSettleAutoorderV1ChaseStop endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateFuturesPostSettleAutoorderV1ChaseStop (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateFuturesPostSettleAutoorderV1ChaseStop",parameters);
+    }
+
+    /// <summary>Calls the privateFuturesPostSettleAutoorderV1ChaseStopAll endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateFuturesPostSettleAutoorderV1ChaseStopAll (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateFuturesPostSettleAutoorderV1ChaseStopAll",parameters);
     }
 
     /// <summary>Calls the privateFuturesPutSettleOrdersOrderId endpoint.</summary>
@@ -1845,6 +2041,13 @@ public partial class gateeu : gate
         return await this.callAsync<Dictionary<string, object>> ("privateOptionsPostMmpReset",parameters);
     }
 
+    /// <summary>Calls the privateOptionsPutOrdersOrderId endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateOptionsPutOrdersOrderId (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateOptionsPutOrdersOrderId",parameters);
+    }
+
     /// <summary>Calls the privateOptionsDeleteOrders endpoint.</summary>
     /// <returns>a JSON array</returns>
     public async Task<List<object>> privateOptionsDeleteOrders (object parameters = null)
@@ -1964,6 +2167,69 @@ public partial class gateeu : gate
         return await this.callAsync<List<object>> ("privateEarnGetStakingAssets",parameters);
     }
 
+    /// <summary>Calls the privateEarnGetDualOrderRefundPreview endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateEarnGetDualOrderRefundPreview (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateEarnGetDualOrderRefundPreview",parameters);
+    }
+
+    /// <summary>Calls the privateEarnGetFixedTermUserLend endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateEarnGetFixedTermUserLend (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateEarnGetFixedTermUserLend",parameters);
+    }
+
+    /// <summary>Calls the privateEarnGetFixedTermUserHistory endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateEarnGetFixedTermUserHistory (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateEarnGetFixedTermUserHistory",parameters);
+    }
+
+    /// <summary>Calls the privateEarnGetAutoinvestCoins endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateEarnGetAutoinvestCoins (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateEarnGetAutoinvestCoins",parameters);
+    }
+
+    /// <summary>Calls the privateEarnGetAutoinvestConfig endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateEarnGetAutoinvestConfig (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateEarnGetAutoinvestConfig",parameters);
+    }
+
+    /// <summary>Calls the privateEarnGetAutoinvestOrders endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateEarnGetAutoinvestOrders (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateEarnGetAutoinvestOrders",parameters);
+    }
+
+    /// <summary>Calls the privateEarnGetAutoinvestPlansDetail endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateEarnGetAutoinvestPlansDetail (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateEarnGetAutoinvestPlansDetail",parameters);
+    }
+
+    /// <summary>Calls the privateEarnGetAutoinvestPlansListInfo endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateEarnGetAutoinvestPlansListInfo (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateEarnGetAutoinvestPlansListInfo",parameters);
+    }
+
+    /// <summary>Calls the privateEarnGetAutoinvestPlansRecords endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateEarnGetAutoinvestPlansRecords (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateEarnGetAutoinvestPlansRecords",parameters);
+    }
+
     /// <summary>Calls the privateEarnGetUniCurrencies endpoint.</summary>
     /// <returns>a JSON array</returns>
     public async Task<List<object>> privateEarnGetUniCurrencies (object parameters = null)
@@ -2011,6 +2277,69 @@ public partial class gateeu : gate
     public async Task<Dictionary<string, object>> privateEarnPostStakingSwap (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privateEarnPostStakingSwap",parameters);
+    }
+
+    /// <summary>Calls the privateEarnPostDualOrderRefund endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateEarnPostDualOrderRefund (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateEarnPostDualOrderRefund",parameters);
+    }
+
+    /// <summary>Calls the privateEarnPostDualModifyOrderReinvest endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateEarnPostDualModifyOrderReinvest (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateEarnPostDualModifyOrderReinvest",parameters);
+    }
+
+    /// <summary>Calls the privateEarnPostFixedTermUserLend endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateEarnPostFixedTermUserLend (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateEarnPostFixedTermUserLend",parameters);
+    }
+
+    /// <summary>Calls the privateEarnPostFixedTermUserPreRedeem endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateEarnPostFixedTermUserPreRedeem (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateEarnPostFixedTermUserPreRedeem",parameters);
+    }
+
+    /// <summary>Calls the privateEarnPostAutoinvestMinInvestAmount endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateEarnPostAutoinvestMinInvestAmount (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateEarnPostAutoinvestMinInvestAmount",parameters);
+    }
+
+    /// <summary>Calls the privateEarnPostAutoinvestPlansAddPosition endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateEarnPostAutoinvestPlansAddPosition (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateEarnPostAutoinvestPlansAddPosition",parameters);
+    }
+
+    /// <summary>Calls the privateEarnPostAutoinvestPlansCreate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateEarnPostAutoinvestPlansCreate (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateEarnPostAutoinvestPlansCreate",parameters);
+    }
+
+    /// <summary>Calls the privateEarnPostAutoinvestPlansStop endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateEarnPostAutoinvestPlansStop (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateEarnPostAutoinvestPlansStop",parameters);
+    }
+
+    /// <summary>Calls the privateEarnPostAutoinvestPlansUpdate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateEarnPostAutoinvestPlansUpdate (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateEarnPostAutoinvestPlansUpdate",parameters);
     }
 
     /// <summary>Calls the privateEarnPutUniInterestReinvest endpoint.</summary>
@@ -2321,6 +2650,13 @@ public partial class gateeu : gate
         return await this.callAsync<Dictionary<string, object>> ("privateRebateGetUserSubRelation",parameters);
     }
 
+    /// <summary>Calls the privateRebateGetPartnerDataAggregated endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateRebateGetPartnerDataAggregated (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateRebateGetPartnerDataAggregated",parameters);
+    }
+
     /// <summary>Calls the privateOtcGetGetUserDefBank endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateOtcGetGetUserDefBank (object parameters = null)
@@ -2347,6 +2683,20 @@ public partial class gateeu : gate
     public async Task<Dictionary<string, object>> privateOtcGetOrderDetail (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privateOtcGetOrderDetail",parameters);
+    }
+
+    /// <summary>Calls the privateOtcGetBankList endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateOtcGetBankList (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateOtcGetBankList",parameters);
+    }
+
+    /// <summary>Calls the privateOtcGetBankBankSupplementChecklist endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateOtcGetBankBankSupplementChecklist (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateOtcGetBankBankSupplementChecklist",parameters);
     }
 
     /// <summary>Calls the privateOtcPostQuote endpoint.</summary>
@@ -2382,6 +2732,48 @@ public partial class gateeu : gate
     public async Task<Dictionary<string, object>> privateOtcPostOrderCancel (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privateOtcPostOrderCancel",parameters);
+    }
+
+    /// <summary>Calls the privateOtcPostBankCreate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateOtcPostBankCreate (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateOtcPostBankCreate",parameters);
+    }
+
+    /// <summary>Calls the privateOtcPostBankDelete endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateOtcPostBankDelete (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateOtcPostBankDelete",parameters);
+    }
+
+    /// <summary>Calls the privateOtcPostBankSetDefault endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateOtcPostBankSetDefault (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateOtcPostBankSetDefault",parameters);
+    }
+
+    /// <summary>Calls the privateOtcPostBankPersonalBankSupplement endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateOtcPostBankPersonalBankSupplement (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateOtcPostBankPersonalBankSupplement",parameters);
+    }
+
+    /// <summary>Calls the privateOtcPostBankEnterpriseBankSupplement endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateOtcPostBankEnterpriseBankSupplement (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateOtcPostBankEnterpriseBankSupplement",parameters);
+    }
+
+    /// <summary>Calls the privateOtcPostUploadPreUpload endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateOtcPostUploadPreUpload (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateOtcPostUploadPreUpload",parameters);
     }
 
 }

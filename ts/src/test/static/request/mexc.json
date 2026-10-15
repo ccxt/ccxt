@@ -54,6 +54,22 @@
         ],
         "createOrder": [
             {
+                "description": "swap market buy trigger order",
+                "method": "createOrder",
+                "url": "https://api.mexc.com/api/v1/private/planorder/place",
+                "input": [
+                    "ADA/USDT:USDT",
+                    "market",
+                    "buy",
+                    1,
+                    null,
+                    {
+                        "triggerPrice": 0.4
+                    }
+                ],
+                "output": "{\"symbol\":\"ADA_USDT\",\"vol\":1,\"type\":6,\"openType\":2,\"side\":1,\"triggerPrice\":\"0.4\",\"triggerType\":1,\"executeCycle\":1,\"trend\":1,\"orderType\":5}"
+            },
+            {
                 "description": "place swap order",
                 "method": "createOrder",
                 "url": "https://api.mexc.com/api/v1/private/order/create",
@@ -63,7 +79,7 @@
                     "buy",
                     1
                 ],
-                "output": "{\"symbol\":\"LTC_USDT\",\"vol\":1,\"type\":6,\"openType\":2,\"side\":1}"
+                "output": { "symbol": "LTC_USDT", "vol": 1, "type": 6, "openType": 2, "side": 1 }
             },
             {
                 "description": "tif FOK",
@@ -170,7 +186,7 @@
                     1,
                     0.6
                 ],
-                "output": "{\"symbol\":\"ADA_USDT\",\"vol\":1,\"type\":1,\"openType\":2,\"price\":0.6,\"side\":3}"
+                "output": { "symbol": "ADA_USDT", "vol": 1, "type": 1, "openType": 2, "price": 0.6, "side": 3 }
             },
             {
                 "description": "Swap limit sell - stop order",
@@ -186,7 +202,7 @@
                         "triggerPrice": 0.7
                     }
                 ],
-                "output": "{\"symbol\":\"ADA_USDT\",\"vol\":1,\"type\":1,\"openType\":2,\"triggerPrice\":\"0.7\",\"triggerType\":1,\"executeCycle\":1,\"trend\":1,\"orderType\":1,\"price\":0.6,\"side\":3}"
+                "output": { "symbol": "ADA_USDT", "vol": 1, "type": 1, "openType": 2, "triggerPrice": "0.7", "triggerType": 1, "executeCycle": 1, "trend": 1, "orderType": 1, "price": 0.6, "side": 3 }
             },
             {
                 "description": "spot market sell with cost",
@@ -217,7 +233,7 @@
                         "reduceOnly": true
                     }
                 ],
-                "output": "{\"symbol\":\"ADA_USDT\",\"vol\":1,\"type\":1,\"openType\":2,\"price\":0.6,\"side\":2}"
+                "output": { "symbol": "ADA_USDT", "vol": 1, "type": 1, "openType": 2, "price": 0.6, "side": 2 }
             },
             {
                 "description": "Swap limit sell reduceOnly non-hedged - side must be 4, reduceOnly absent from body",
@@ -233,7 +249,7 @@
                         "reduceOnly": true
                     }
                 ],
-                "output": "{\"symbol\":\"ADA_USDT\",\"vol\":1,\"type\":1,\"openType\":2,\"price\":0.6,\"side\":4}"
+                "output": { "symbol": "ADA_USDT", "vol": 1, "type": 1, "openType": 2, "price": 0.6, "side": 4 }
             }
         ],
         "createOrders": [
@@ -388,6 +404,20 @@
         ],
         "fetchOpenOrders": [
             {
+                "description": "swap open trigger orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.mexc.com/api/v1/private/planorder/list/orders?page_size=100&states=1",
+                "input": [
+                    "ADA/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "swap open orders",
                 "options": {
                     "defaultType": "swap"
@@ -429,7 +459,7 @@
                 "method": "closeAllPositions",
                 "url": "https://api.mexc.com/api/v1/private/position/close_all",
                 "input": [],
-                "output": "{}"
+                "output": {}
             }
         ],
         "cancelAllOrders": [
@@ -446,7 +476,7 @@
                 "input": [
                     "LTC/USDT:USDT"
                 ],
-                "output": "{\"symbol\":\"LTC_USDT\"}"
+                "output": { "symbol": "LTC_USDT" }
             },
             {
                 "description": "Cancel spot orders",
@@ -527,7 +557,7 @@
                     true,
                     "LTC/USDT:USDT"
                 ],
-                "output": "{\"positionMode\":1}"
+                "output": { "positionMode": 1 }
             }
         ],
         "fetchTransfers": [
@@ -769,6 +799,19 @@
         ],
         "cancelOrder": [
             {
+                "description": "cancel swap trigger order",
+                "method": "cancelOrder",
+                "url": "https://api.mexc.com/api/v1/private/planorder/cancel",
+                "input": [
+                    "864240665238925824",
+                    "ADA/USDT:USDT",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": "[{\"symbol\":\"ADA_USDT\",\"orderId\":\"864240665238925824\"}]"
+            },
+            {
                 "description": "Cancel spot orders",
                 "method": "cancelOrder",
                 "url": "https://api.mexc.com/api/v3/order?symbol=LTCUSDT&orderId=129402018493145088&timestamp=1702285204132&recvWindow=5000&signature=a4438291b6a39e4277e6895107b3ebd890df560075413ba725f059b95a37d00e",
@@ -785,7 +828,7 @@
                     "129402018493145088",
                     "LTC/USDT:USDT"
                 ],
-                "output": "[\"129402018493145088\"]"
+                "output": [ "129402018493145088" ]
             }
         ],
         "fetchLeverage": [
@@ -928,12 +971,11 @@
                     "USDT",
                     0.1,
                     "to_someone@gmail.com",
-                    null,
                     {
-                        "internal": true,
-                        "toAccountType": "EMAIL"
+                      "internal": true,
+                      "toAccountType": "EMAIL"
                     }
-                ],
+                  ],
                 "output": null
             },
             {
@@ -944,7 +986,6 @@
                   "USDT",
                   5,
                   "THb2SXyLLBn81JWPNhTbGBEoXHtDX62eU7",
-                  null,
                   {
                     "network": "TRC20"
                   }
@@ -964,7 +1005,7 @@
                     "direction": "short"
                   }
                 ],
-                "output": "{\"leverage\":20,\"openType\":1,\"symbol\":\"ADA_USDT\",\"positionType\":2}"
+                "output": { "leverage": 20, "openType": 1, "symbol": "ADA_USDT", "positionType": 2 }
             },
             {
                 "description": "Set cross leverage",
@@ -978,7 +1019,7 @@
                     "direction": "long"
                   }
                 ],
-                "output": "{\"leverage\":10,\"openType\":2,\"symbol\":\"ADA_USDT\",\"positionType\":1}"
+                "output": { "leverage": 10, "openType": 2, "symbol": "ADA_USDT", "positionType": 1 }
             }
         ],
         "fetchFundingInterval": [

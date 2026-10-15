@@ -37,6 +37,7 @@
 * [fetchOrderTrades](#fetchordertrades)
 * [fetchMyTrades](#fetchmytrades)
 * [fetchLedger](#fetchledger)
+* [fetchFundingHistory](#fetchfundinghistory)
 * [fetchPositions](#fetchpositions)
 * [fetchPosition](#fetchposition)
 * [fetchPositionsForSymbol](#fetchpositionsforsymbol)
@@ -569,17 +570,20 @@ helper method for creating contract orders
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.clientOrderId | <code>string</code> | No | client order id |
 | params.takeProfit | <code>object</code> | No | *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered and the triggerPriceType |
-| params.takeProfit.triggerPrice | <code>float</code> | No | The price at which the take profit order will be triggered |
+| params.takeProfit.triggerPrice | <code>float</code> | No | The price at which the take profit order will be triggered, takeProfit.stopPrice is supported as an alias |
 | params.takeProfit.triggerPriceType | <code>string</code> | No | The type of the trigger price for the take profit order, either 'last' or 'mark' (default is 'last') |
+| params.takeProfit.price | <code>float</code> | No | not supported, the attached take profit always executes at market price |
 | params.stopLoss | <code>object</code> | No | *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered and the triggerPriceType |
-| params.stopLoss.triggerPrice | <code>float</code> | No | The price at which the stop loss order will be triggered |
+| params.stopLoss.triggerPrice | <code>float</code> | No | The price at which the stop loss order will be triggered, stopLoss.stopPrice is supported as an alias |
 | params.stopLoss.triggerPriceType | <code>string</code> | No | The type of the trigger price for the stop loss order, either 'last' or 'mark' (default is 'last') |
-| params.stopLossPrice | <code>float</code> | No | price to trigger stop-loss orders |
+| params.stopLoss.price | <code>float</code> | No | not supported, the attached stop loss always executes at market price |
+| params.stopLossPrice | <code>float</code> | No | price to trigger a standalone stop-loss order on an open position, the price argument is used as its execution price for limit orders |
 | params.stopLossPriceType | <code>string</code> | No | The type of the trigger price for the stop loss order, either 'last' or 'mark' (default is 'last') |
-| params.takeProfitPrice | <code>float</code> | No | price to trigger take-profit orders |
+| params.takeProfitPrice | <code>float</code> | No | price to trigger a standalone take-profit order on an open position, the price argument is used as its execution price for limit orders |
 | params.takeProfitPriceType | <code>string</code> | No | The type of the trigger price for the take profit order, either 'last' or 'mark' (default is 'last') |
+| params.triggerPrice | <code>float</code> | No | the price at which a trigger (entry conditional) order is triggered, cannot be used together with stopLossPrice or takeProfitPrice |
 | params.reduceOnly | <code>bool</code> | No | A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true. |
-| params.timeInForce | <code>string</code> | No | GTC, IOC, or FOK (default is GTC for limit orders) |
+| params.timeInForce | <code>string</code> | No | GTC, IOC, or FOK (default is GTC for limit orders, not supported for trigger orders) |
 
 
 ```javascript
@@ -930,6 +934,31 @@ fetch the history of changes, actions done by the user or operations that altere
 
 ```javascript
 weex.fetchLedger (code?, since?, limit?, params?)
+```
+
+
+<a name="fetchFundingHistory" id="fetchfundinghistory"></a>
+
+### fetchFundingHistory{docsify-ignore}
+fetch the history of funding payments paid and received on this account
+
+**Kind**: instance method of [<code>weex</code>](#weex)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding history structures](https://docs.ccxt.com/?id=funding-history-structure)
+
+**See**: https://www.weex.com/api-doc/contract/Account_API/GetContractBills  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | No | unified market symbol |
+| since | <code>int</code> | No | the earliest time in ms to fetch funding history for |
+| limit | <code>int</code> | No | the maximum number of funding history structures to retrieve (default 20, max 100) |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest funding history entry, requires since to be set, the span may not exceed 100 days |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+
+
+```javascript
+weex.fetchFundingHistory (symbol?, since?, limit?, params?)
 ```
 
 

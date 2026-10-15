@@ -19,7 +19,7 @@
                     1,
                     2000
                 ],
-                "output": "{\"price\":\"2000\",\"quantity\":\"1\",\"side\":\"BUY\",\"symbol\":\"ETH-USDC\",\"timeInForce\":\"POST_ONLY\",\"type\":\"LIMIT\",\"wallet\":\"W001\"}"
+                "output": { "price": "2000", "quantity": "1", "side": "BUY", "symbol": "ETH-USDC", "timeInForce": "POST_ONLY", "type": "LIMIT", "wallet": "W001" }
             }
         ],
         "createTakeProfitOrder": [
@@ -35,7 +35,7 @@
                     null,
                     6000
                 ],
-                "output": "{\"quantity\":\"1\",\"side\":\"SELL\",\"stopPrice\":\"6000\",\"symbol\":\"ETH-USDC\",\"type\":\"TAKE_PROFIT_MARKET\",\"wallet\":\"W001\",\"workingType\":\"CONTRACT_PRICE\"}"
+                "output": { "quantity": "1", "side": "SELL", "stopPrice": "6000", "symbol": "ETH-USDC", "type": "TAKE_PROFIT_MARKET", "wallet": "W001", "workingType": "CONTRACT_PRICE" }
             }
         ],
         "createStopLossOrder": [
@@ -51,7 +51,7 @@
                     null,
                     2000
                 ],
-                "output": "{\"quantity\":\"1\",\"side\":\"SELL\",\"stopPrice\":\"2000\",\"symbol\":\"ETH-USDC\",\"type\":\"STOP_MARKET\",\"wallet\":\"W001\",\"workingType\":\"CONTRACT_PRICE\"}"
+                "output": { "quantity": "1", "side": "SELL", "stopPrice": "2000", "symbol": "ETH-USDC", "type": "STOP_MARKET", "wallet": "W001", "workingType": "CONTRACT_PRICE" }
             }
         ],
         "createOrder": [
@@ -70,7 +70,7 @@
                         "reduceOnly": true
                     }
                 ],
-                "output": "{\"positionSide\":\"LONG\",\"quantity\":\"1\",\"side\":\"SELL\",\"symbol\":\"ETH-USDC\",\"type\":\"MARKET\",\"wallet\":\"W001\"}"
+                "output": { "positionSide": "LONG", "quantity": "1", "side": "SELL", "symbol": "ETH-USDC", "type": "MARKET", "wallet": "W001" }
             },
             {
                 "description": "Create order for hedged position",
@@ -86,7 +86,7 @@
                         "hedged": true
                     }
                 ],
-                "output": "{\"positionSide\":\"SHORT\",\"quantity\":\"1\",\"side\":\"SELL\",\"symbol\":\"ETH-USDC\",\"type\":\"MARKET\",\"wallet\":\"W001\"}"
+                "output": { "positionSide": "SHORT", "quantity": "1", "side": "SELL", "symbol": "ETH-USDC", "type": "MARKET", "wallet": "W001" }
             }
         ],
         "fetchWithdrawals": [
@@ -135,7 +135,7 @@
                     "spot",
                     "swap"
                 ],
-                "output": "{\"amount\":\"10\",\"asset\":\"USDC\",\"fromType\":\"SPOT\",\"toType\":\"UMFUTURE\"}"
+                "output": { "amount": "10", "asset": "USDC", "fromType": "SPOT", "toType": "UMFUTURE" }
             },
             {
                 "description": "Transfer from swap to spot",
@@ -147,7 +147,7 @@
                     "swap",
                     "spot"
                 ],
-                "output": "{\"amount\":\"42\",\"asset\":\"USDC\",\"fromType\":\"UMFUTURE\",\"toType\":\"SPOT\"}"
+                "output": { "amount": "42", "asset": "USDC", "fromType": "UMFUTURE", "toType": "SPOT" }
             }
         ],
         "fetchBalance": [
@@ -206,7 +206,7 @@
                         "settleCoin": "USDC"
                     }
                 ],
-                "output": "{\"contractType\":\"FUTURE\",\"positionType\":\"HEDGE\",\"settleCoin\":\"USDC\",\"wallet\":\"W001\"}"
+                "output": { "contractType": "FUTURE", "positionType": "HEDGE", "settleCoin": "USDC", "wallet": "W001" }
             }
         ],
         "createMarketSellOrder": [
@@ -218,7 +218,7 @@
                     "ETH/USDC:USDC",
                     1
                 ],
-                "output": "{\"quantity\":\"1\",\"side\":\"SELL\",\"symbol\":\"ETH-USDC\",\"type\":\"MARKET\",\"wallet\":\"W001\"}"
+                "output": { "quantity": "1", "side": "SELL", "symbol": "ETH-USDC", "type": "MARKET", "wallet": "W001" }
             }
         ],
         "setMarginMode": [
@@ -230,7 +230,7 @@
                     "isolated",
                     "ETH/USDC:USDC"
                 ],
-                "output": "{\"contractType\":\"FUTURE\",\"marginType\":\"ISOLATED\",\"symbol\":\"ETH-USDC\",\"wallet\":\"W001\"}"
+                "output": { "contractType": "FUTURE", "marginType": "ISOLATED", "symbol": "ETH-USDC", "wallet": "W001" }
             }
         ],
         "fetchMarginMode": [
@@ -284,7 +284,7 @@
                     2,
                     "ETH/USDC:USDC"
                 ],
-                "output": "{\"leverage\":2,\"symbol\":\"ETH-USDC\",\"wallet\":\"W001\"}"
+                "output": { "leverage": 2, "symbol": "ETH-USDC", "wallet": "W001" }
             }
         ],
         "fetchCanceledAndClosedOrders": [
@@ -329,7 +329,7 @@
                     "ETH/USDC:USDC",
                     1
                 ],
-                "output": "{\"quantity\":\"1\",\"side\":\"BUY\",\"symbol\":\"ETH-USDC\",\"type\":\"MARKET\",\"wallet\":\"W001\"}"
+                "output": { "quantity": "1", "side": "BUY", "symbol": "ETH-USDC", "type": "MARKET", "wallet": "W001" }
             }
         ],
         "fetchOpenOrder": [
@@ -382,7 +382,7 @@
                     2,
                     5999
                 ],
-                "output": "{\"orderId\":\"7409254699688157184\",\"price\":\"5999\",\"quantity\":\"2\",\"side\":\"SELL\",\"symbol\":\"ETH-USDC\",\"wallet\":\"W001\"}"
+                "output": { "orderId": "7409254699688157184", "price": "5999", "quantity": "2", "side": "SELL", "symbol": "ETH-USDC", "wallet": "W001" }
             }
         ],
         "createLimitSellOrder": [
@@ -395,7 +395,7 @@
                     1,
                     6000
                 ],
-                "output": "{\"price\":\"6000\",\"quantity\":\"1\",\"side\":\"SELL\",\"symbol\":\"ETH-USDC\",\"type\":\"LIMIT\",\"wallet\":\"W001\"}"
+                "output": { "price": "6000", "quantity": "1", "side": "SELL", "symbol": "ETH-USDC", "type": "LIMIT", "wallet": "W001" }
             }
         ],
         "createLimitBuyOrder": [
@@ -408,7 +408,7 @@
                     1,
                     1000
                 ],
-                "output": "{\"price\":\"1000\",\"quantity\":\"1\",\"side\":\"BUY\",\"symbol\":\"ETH-USDC\",\"type\":\"LIMIT\",\"wallet\":\"W001\"}"
+                "output": { "price": "1000", "quantity": "1", "side": "BUY", "symbol": "ETH-USDC", "type": "LIMIT", "wallet": "W001" }
             }
         ],
         "cancelAllOrders": [
@@ -419,7 +419,7 @@
                 "input": [
                     "ETH/USDC:USDC"
                 ],
-                "output": "{\"symbol\":\"ETH-USDC\",\"wallet\":\"W001\"}"
+                "output": { "symbol": "ETH-USDC", "wallet": "W001" }
             }
         ],
         "fetchFundingRateHistory": [
