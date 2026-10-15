@@ -75,7 +75,7 @@ func (this *BaseExchange) FetchAsync(url any, method any, headers any, body any)
 
 		headersStrMap := make(map[string]string)
 		for k, v := range headersMap {
-			headersStrMap[k] = fmt.Sprintf("%v", v)
+			headersStrMap[k] = fmt.Sprintf("%v", derefScalar(v))
 		}
 
 		headersOptions, ok := this.Options.Load("headers")
@@ -83,7 +83,7 @@ func (this *BaseExchange) FetchAsync(url any, method any, headers any, body any)
 			if headersOptions != nil {
 				for key, value := range headersOptions.(map[string]any) {
 					if _, exists := headersStrMap[key]; !exists {
-						headersStrMap[key] = fmt.Sprintf("%v", value)
+						headersStrMap[key] = fmt.Sprintf("%v", derefScalar(value))
 					}
 				}
 			} else {
