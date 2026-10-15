@@ -258,11 +258,8 @@ public partial class bitopro : Exchange
             { "options", new Dictionary<string, object>() {
                 { "networks", new Dictionary<string, object>() {
                     { "ERC20", "ERC20" },
-                    { "ETH", "ERC20" },
-                    { "TRX", "TRX" },
                     { "TRC20", "TRX" },
                     { "BEP20", "BSC" },
-                    { "BSC", "BSC" },
                 } },
                 { "fetchCurrencies", new Dictionary<string, object>() {
                     { "fiatCurrencies", new List<object>() {"TWD"} },
@@ -1968,7 +1965,7 @@ public partial class bitopro : Exchange
         {
             IDictionary<string, object> networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
             string? requestedNetwork = this.safeStringUpper(paramsWithdrawTag, "network");
-            string? networkId = ((requestedNetwork == null)) ? null : this.safeString(networks, requestedNetwork);
+            string? networkId = ((requestedNetwork == null)) ? null : this.safeString(networks, this.safeString(this.networkAliases, requestedNetwork, requestedNetwork));
             if ((networkId == null))
             {
                 throw new ExchangeError (((this.id + " invalid network ") + requestedNetwork)) ;

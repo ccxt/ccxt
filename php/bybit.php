@@ -1214,11 +1214,8 @@ class bybit extends Exchange {
                 'networks' => array(
                     'BTC' => 'BTC',
                     'BRC20' => 'BTC',
-                    'ETH' => 'ETH',
                     'ERC20' => 'ETH',
-                    'TRX' => 'TRX',
                     'TRC20' => 'TRX',
-                    'BSC' => 'BSC',
                     'BEP20' => 'BSC',
                     'SOL' => 'SOL',
                     'ACA' => 'ACA',
@@ -1285,6 +1282,7 @@ class bybit extends Exchange {
                     // 'LUNA1': 'LUNA' (Terra)
                 ),
                 'networksById' => array(
+                    'BTC' => 'BTC', // BTC and BRC20 share the id 'BTC', the native chain wins
                     'ETH' => 'ERC20',
                     'TRX' => 'TRC20',
                     'BSC' => 'BEP20',
@@ -6057,7 +6055,7 @@ class bybit extends Exchange {
         $currency = $this->currency($code);
         list($networkCode, $paramsOmited) = $this->handle_network_code_and_params($params);
         $indexedAddresses = $this->fetch_deposit_addresses_by_network($code, $paramsOmited);
-        $selectedNetworkCode = $this->select_network_code_from_unified_networks($currency['code'], $networkCode, $indexedAddresses);
+        $selectedNetworkCode = $this->select_network_key_from_networks($currency['code'], $networkCode, $indexedAddresses, true);
         return $this->safe_value($indexedAddresses, $selectedNetworkCode);
     }
 

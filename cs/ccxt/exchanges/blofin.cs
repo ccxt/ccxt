@@ -2345,7 +2345,8 @@ public partial class blofin : Exchange
     public virtual string? networkCodeToChainId(string? networkCode, object currency = null)
     {
         IDictionary<string, object> aliases = this.safeDict(this.options, "networkCodeAliases", new Dictionary<string, object>() {});
-        string? unifiedCode = this.safeString(aliases, networkCode, networkCode);
+        string? aliasedCode = this.safeString(aliases, networkCode, networkCode);
+        string? unifiedCode = this.safeString(this.networkAliases, aliasedCode, aliasedCode);
         // prefer the exact chain id from the currencies registry when it is
         // loaded, since some ids are currency-specific (USDT on Optimism)
         if ((currency != null))

@@ -480,14 +480,14 @@ class hitbtc extends Exchange {
             'options' => array(
                 'defaultNetwork' => 'ERC20',
                 'defaultNetworks' => array(
-                    'ETH' => 'ETH',
+                    'ETH' => 'ERC20',
                     'USDT' => 'TRC20',
                 ),
                 'networks' => array(
                     // mainnet network ids are in lowercase for BTC & ETH
                     'BTC' => 'btc',
                     'OMNI' => 'BTC',
-                    'ETH' => 'eth',
+                    // native ETH mainnet id is 'eth', ERC20 tokens use 'ETH'
                     'ERC20' => 'ETH',
                     'ETC' => 'ETC',
                     'BEP20' => 'BSC',
@@ -986,7 +986,8 @@ class hitbtc extends Exchange {
             $rawNetwork = $rawNetworks[$j];
             $networkId = $this->safe_string_2($rawNetwork, 'protocol', 'network');
             $networkCode = $this->network_id_to_code($networkId, $code);
-            $networkCode = ($networkCode !== null) ? strtoupper($networkCode) : $code; // as hitbtc is white label, ensure we safeguard from possible bugs
+            $networkCodeUpper = ($networkCode !== null) ? strtoupper($networkCode) : null;
+            $networkCode = ($networkCodeUpper !== null) ? $this->safe_string($this->networkAliases, $networkCodeUpper, $networkCodeUpper) : $code; // as hitbtc is white label, ensure we safeguard from possible bugs
             if ($networkCode !== null) {
                 $networks[$networkCode] = array(
                     'info' => $rawNetwork,
@@ -1044,7 +1045,8 @@ class hitbtc extends Exchange {
         $request = array(
             'currency' => $currency['id'],
         );
-        $network = $this->safe_string_upper($params, 'network');
+        $networkInput = $this->safe_string_upper($params, 'network');
+        $network = ($networkInput !== null) ? $this->safe_string($this->networkAliases, $networkInput, $networkInput) : null;
         if (($network !== null) && ($code === 'USDT')) {
             $networks = $this->safe_dict($this->options, 'networks');
             $parsedNetwork = $this->safe_string($networks, $network);
@@ -1087,7 +1089,8 @@ class hitbtc extends Exchange {
         $request = array(
             'currency' => $currency['id'],
         );
-        $network = $this->safe_string_upper($params, 'network');
+        $networkInput = $this->safe_string_upper($params, 'network');
+        $network = ($networkInput !== null) ? $this->safe_string($this->networkAliases, $networkInput, $networkInput) : null;
         if (($network !== null) && ($code === 'USDT')) {
             $networks = $this->safe_dict($this->options, 'networks');
             $parsedNetwork = $this->safe_string($networks, $network);
@@ -2780,10 +2783,12 @@ class hitbtc extends Exchange {
             throw new ExchangeError($this->id . ' convertCurrencyNetwork() only supports USDT currently');
         }
         $networks = $this->safe_dict($this->options, 'networks', array());
-        $fromNetworkValue = strtoupper($fromNetwork);
-        $toNetworkValue = strtoupper($toNetwork);
-        $fromNetworkValue2 = $this->safe_string($networks, $fromNetworkValue); // handle ETH>ERC20 alias
-        $toNetworkValue2 = $this->safe_string($networks, $toNetworkValue); // handle ETH>ERC20 alias
+        $fromNetworkUpper = strtoupper($fromNetwork);
+        $toNetworkUpper = strtoupper($toNetwork);
+        $fromNetworkValue = $this->safe_string($this->networkAliases, $fromNetworkUpper, $fromNetworkUpper);
+        $toNetworkValue = $this->safe_string($this->networkAliases, $toNetworkUpper, $toNetworkUpper);
+        $fromNetworkValue2 = $this->safe_string($networks, $fromNetworkValue); // unified code to exchange id
+        $toNetworkValue2 = $this->safe_string($networks, $toNetworkValue); // unified code to exchange id
         if ($fromNetworkValue2 === $toNetworkValue2) {
             throw new BadRequest($this->id . ' convertCurrencyNetwork() fromNetwork cannot be the same as toNetwork');
         }
@@ -2831,7 +2836,8 @@ class hitbtc extends Exchange {
             $request['payment_id'] = $tagWithdrawTag;
         }
         $networks = $this->safe_dict($this->options, 'networks', array());
-        $network = $this->safe_string_upper($paramsWithdrawTag, 'network');
+        $networkInput = $this->safe_string_upper($paramsWithdrawTag, 'network');
+        $network = ($networkInput !== null) ? $this->safe_string($this->networkAliases, $networkInput, $networkInput) : null;
         if (($network !== null) && ($code === 'USDT')) {
             $parsedNetwork = $this->safe_string($networks, $network);
             if ($parsedNetwork !== null) {
@@ -3744,7 +3750,8 @@ class hitbtc extends Exchange {
             $networkId = $this->safe_string($networkEntry, 'network');
             $code = $this->safe_string($currency, 'code');
             $networkCode = $this->network_id_to_code($networkId, $code);
-            $networkCode = ($networkCode !== null) ? strtoupper($networkCode) : null;
+            $networkCodeUpper = ($networkCode !== null) ? strtoupper($networkCode) : null;
+            $networkCode = ($networkCodeUpper !== null) ? $this->safe_string($this->networkAliases, $networkCodeUpper, $networkCodeUpper) : null;
             $withdrawFee = $this->safe_number($networkEntry, 'payout_fee');
             $isDefault = $this->safe_bool($networkEntry, 'default');
             $withdrawResult = array(

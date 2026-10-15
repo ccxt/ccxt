@@ -990,7 +990,7 @@ impl BackpackCore {
         m.insert("BERA".to_string(), Value::Str("Berachain".into()));
         m.insert("BTC".to_string(), Value::Str("Bitcoin".into()));
         m.insert("BCH".to_string(), Value::Str("BitcoinCash".into()));
-        m.insert("BSC".to_string(), Value::Str("Bsc".into()));
+        m.insert("BEP20".to_string(), Value::Str("Bsc".into()));
         m.insert("ADA".to_string(), Value::Str("Cardano".into()));
         m.insert("DOGE".to_string(), Value::Str("Dogecoin".into()));
         m.insert("ECLIPSE".to_string(), Value::Str("Eclipse".into()));
@@ -1017,7 +1017,7 @@ impl BackpackCore {
         m.insert("berachain".to_string(), Value::Str("BERA".into()));
         m.insert("bitcoin".to_string(), Value::Str("BTC".into()));
         m.insert("bitcoincash".to_string(), Value::Str("BCH".into()));
-        m.insert("bsc".to_string(), Value::Str("BSC".into()));
+        m.insert("bsc".to_string(), Value::Str("BEP20".into()));
         m.insert("cardano".to_string(), Value::Str("ADA".into()));
         m.insert("dogecoin".to_string(), Value::Str("DOGE".into()));
         m.insert("eclipse".to_string(), Value::Str("ECLIPSE".into()));

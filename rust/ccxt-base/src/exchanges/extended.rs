@@ -3037,7 +3037,7 @@ impl ExtendedCore {
             });
         }
         let mut transactionType: Value = self.parse_transaction_type(self.safe_string_k(transaction.clone(), "type", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        let mut network: Value = self.safe_string_k(transaction.clone(), "chain", &[]);
+        let mut network: Value = self.network_id_to_code(&[self.safe_string_k(transaction.clone(), "chain", &[])]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction.clone());

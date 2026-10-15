@@ -1977,7 +1977,8 @@ class blofin extends Exchange {
 
     public function network_code_to_chain_id(string $networkCode, ?array $currency = null): ?string {
         $aliases = $this->safe_dict($this->options, 'networkCodeAliases', array());
-        $unifiedCode = $this->safe_string($aliases, $networkCode, $networkCode);
+        $aliasedCode = $this->safe_string($aliases, $networkCode, $networkCode);
+        $unifiedCode = $this->safe_string($this->networkAliases, $aliasedCode, $aliasedCode);
         // prefer the exact chain id from the currencies registry when it is
         // loaded, since some ids are currency-specific (USDT on Optimism)
         if ($currency !== null) {

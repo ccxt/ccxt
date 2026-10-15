@@ -1171,15 +1171,11 @@ class okx extends okx$1["default"] {
                 'networks': {
                     'BTC': 'Bitcoin',
                     'BTCLIGHTNING': 'Lightning',
-                    'BSC': 'BSC',
                     'BEP20': 'BSC',
                     'BRC20': 'BRC20',
-                    'ETH': 'ERC20',
                     'ERC20': 'ERC20',
-                    'TRX': 'TRC20',
                     'TRC20': 'TRC20',
                     'CRC20': 'Crypto',
-                    'CRONOS': 'Crypto',
                     'ACA': 'Acala',
                     'ALGO': 'Algorand',
                     'APT': 'Aptos',
@@ -5667,7 +5663,9 @@ class okx extends okx$1["default"] {
         let network = this.safeString(paramsWithdrawTag, 'network'); // this line allows the user to specify either ERC20 or ETH
         if (network !== undefined) {
             const networks = this.safeDict(this.options, 'networks', {});
-            network = this.safeString(networks, network.toUpperCase(), network); // handle ETH>ERC20 alias
+            const networkUpper = network.toUpperCase();
+            const networkKey = this.safeString(this.networkAliases, networkUpper, networkUpper);
+            network = this.safeString(networks, networkKey, network); // resolve aliases to the unified key
             request['chain'] = currency['id'] + '-' + network;
         }
         const omitKeys = ['fee'];

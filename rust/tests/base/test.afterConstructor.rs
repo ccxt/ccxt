@@ -143,13 +143,6 @@ fn helperTestProperties() {
     // options
     //
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.prop(&&Value::Str("options".into())) != Value::Null))));
-    // const defaultNetworkCodeReplacements = [
-    //     { 'baseCoin': 'ETH', 'primary': 'ETH', 'secondary': 'ERC20' },
-    //     { 'baseCoin': 'CRO', 'primary': 'CRONOS', 'secondary': 'CRC20' },
-    //     { 'baseCoin': 'TRX', 'primary': 'TRX', 'secondary': 'TRC20' },
-    //     { 'baseCoin': 'BTC', 'primary': 'BTC', 'secondary': 'BRC20' },
-    // ];
-    // testSharedMethods.assertDeepEqual (exchange, {}, 'options', exchange.options['defaultNetworkCodeReplacements'], defaultNetworkCodeReplacements);
     //
     // credentials
     //

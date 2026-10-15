@@ -1876,10 +1876,11 @@ func (this *BaseExchange) SafeIntegerOmitZero(obj any, key any, optionalArgs ...
 	return timestamp
 }
 func (this *BaseExchange) AfterConstruct(optionalArgs ...any) {
-	// networks
+	// networksById: inverse of options.networks, explicit options.networksById entries win
 	var userConfig map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = userConfig
-	this.CreateNetworksByIdObject()
+	var networkIdsToCodesGenerated any = this.InvertFlatStringDictionary(this.SafeValue(this.Options, "networks", map[string]any{}))
+	this.Options.Store("networksById", this.Extend(networkIdsToCodesGenerated, this.SafeValue(this.Options, "networksById", map[string]any{})))
 	this.FeaturesGenerator()
 	// init predefined markets if any
 	if this.Markets != nil {
@@ -2163,40 +2164,8 @@ func (this *BaseExchange) OrderbookChecksumMessage(symbol any) any {
 	}
 	return Add(Add(symbol, " : "), "orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options[\"watchOrderBook\"][\"checksum\"] = false")
 }
-func (this *BaseExchange) CreateNetworksByIdObject() {
-	// automatically generate network-id-to-code mappings
-	var networkIdsToCodesGenerated any = this.InvertFlatStringDictionary(this.SafeValue(this.Options, "networks", map[string]any{}))            // invert defined networks dictionary
-	this.Options.Store("networksById", this.Extend(networkIdsToCodesGenerated, this.SafeValue(this.Options, "networksById", map[string]any{}))) // support manually overriden "networksById" dictionary too
-}
 func (this *BaseExchange) GetDefaultOptions() any {
 	return map[string]any{
-		"defaultNetworkCodeReplacements": map[string]any{
-			"ETH": map[string]any{
-				"primary":   "ETH",
-				"secondary": "ERC20",
-				"default":   "secondary",
-			},
-			"CRO": map[string]any{
-				"primary":   "CRONOS",
-				"secondary": "CRC20",
-				"default":   "secondary",
-			},
-			"TRX": map[string]any{
-				"primary":   "TRX",
-				"secondary": "TRC20",
-				"default":   "secondary",
-			},
-			"BTC": map[string]any{
-				"primary":   "BTC",
-				"secondary": "BRC20",
-				"default":   "primary",
-			},
-		},
-		"backwardSupportedNetworkCodes": map[string]any{
-			"ARB":     "ARBITRUM",
-			"ARBONE":  "ARBITRUM",
-			"ARBNOVA": "ARBITRUM_NOVA",
-		},
 		"withdrawTagRequiredCurrencies": []any{"XRP", "XLM", "EOS", "ATOM", "HBAR", "TON", "KAVA", "STX", "XEM", "IOST", "OSMO", "WAXP"},
 	}
 }
@@ -4015,77 +3984,12 @@ func (this *BaseExchange) SafeNetwork(network any) any {
 		},
 	}
 }
-func (this *BaseExchange) PrioritizedNetworkAliases(optionalArgs ...any) any {
-	/**
-	 * @method
-	 * @name Exchange#prioritizedNetworkAliases
-	 * @description returns the chain pair [preferred, alternative] for the given networkCode & currency, e.g:
-	 *   ---------------------------------
-	 *   | input          | output       |
-	 *   --------------------------------|
-	 *   | ETH & USDC     | ERC20, ETH   |
-	 *   | ERC20 & USDC   | ERC20, ETH   |
-	 *   | ETH & ETH      | ETH, ERC20   |
-	 *   | ERC20 & ETH    | ETH, ERC20   |
-	 *   | ERC20          | ERC20, ETH   |
-	 *   | ETH            | ERC20, ETH   |
-	 *   ---------------------------------
-	 * @param {string} networkCode unified network-code
-	 * @param {string} currencyCode unified currency-code
-	 * @param {boolean} allowDefault when currencyCode is undefined, order by replacement's "default" instead of by user input
-	 * @returns {string[]} [preferredChain, alternativeChain]
-	 */
-	networkCode := GetArg(optionalArgs, 0, nil)
-	_ = networkCode
-	currencyCode := GetArg(optionalArgs, 1, nil)
-	_ = currencyCode
-	var allowDefault bool = GetArgBool(optionalArgs, 2, false)
-	_ = allowDefault
-	if networkCode == nil {
-		return nil
-	}
-	var replacements map[string]any = SafeMapTyped(this.Options, "defaultNetworkCodeReplacements")
-	var keys []string = nil
-	if replacements != nil {
-		keys = make([]string, 0, len(replacements))
-		for objectKey := range replacements {
-			keys = append(keys, objectKey)
-		}
-	}
-	for i := 0; i < len(keys); i++ {
-		var baseCoin string = keys[i]
-		var entry any = replacements[baseCoin]
-		var primary any = GetValue(entry, "primary")
-		var secondary any = GetValue(entry, "secondary")
-		if !IsEqual(networkCode, primary) && !IsEqual(networkCode, secondary) {
-			continue
-		}
-		// pick which form goes first in the returned pair
-		var preferPrimary bool = false
-		if IsEqual(currencyCode, baseCoin) {
-			preferPrimary = true // mainnet currency uses primary chain
-		} else if currencyCode != nil {
-			preferPrimary = false // any other (token) currency uses secondary chain
-		} else if allowDefault == true {
-			preferPrimary = (IsEqual(GetValue(entry, "default"), "primary"))
-		} else {
-			preferPrimary = (IsEqual(networkCode, primary)) // keep user input first
-		}
-		return func() any {
-			if preferPrimary {
-				return []any{primary, secondary}
-			}
-			return []any{secondary, primary}
-		}()
-	}
-	return []any{networkCode, networkCode}
-}
 func (this *BaseExchange) NetworkCodeToId(networkCode any, optionalArgs ...any) any {
 	/**
 	 * @ignore
 	 * @method
 	 * @name exchange#networkCodeToId
-	 * @description tries to convert the provided networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
+	 * @description tries to convert the provided networkCode (a unified network code or one of its aliases) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
 	 * @param {string} networkCode unified network code
 	 * @param {string} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
 	 * @returns {string|undefined} exchange-specific network id
@@ -4095,24 +3999,20 @@ func (this *BaseExchange) NetworkCodeToId(networkCode any, optionalArgs ...any) 
 	if IsEqual(networkCode, nil) {
 		return nil
 	}
+	var unifiedCode *string = this.SafeString(this.NetworkAliases, networkCode, networkCode)
 	var networkIdsByCodes map[string]any = SafeMapTyped(this.Options, "networks")
-	// try the preferred form first, fall back to its alternative (e.g. when only 'ETH' or only 'ERC20' is defined)
-	var chainPair any = this.PrioritizedNetworkAliases(networkCode, currencyCode, false)
-	var preferredChain any = func() any {
-		if IsEqual(chainPair, nil) {
-			return networkCode
-		}
-		return GetValue(chainPair, 0)
-	}()
-	var alternativeChain any = func() any {
-		if IsEqual(chainPair, nil) {
-			return networkCode
-		}
-		return GetValue(chainPair, 1)
-	}()
-	var networkId *string = this.SafeString2(networkIdsByCodes, preferredChain, alternativeChain)
+	var networkId *string = this.SafeString(networkIdsByCodes, unifiedCode)
 	if networkId != nil {
 		return networkId
+	}
+	// options.networks may still be keyed by an alias of the unified code
+	var aliases any = this.NetworkAliases
+	var aliasKeys []string = ObjectKeys(aliases)
+	for i := 0; i < len(aliasKeys); i++ {
+		var alias string = aliasKeys[i]
+		if (IsEqual(GetValue(aliases, alias), unifiedCode)) && (func() bool { _, ok := networkIdsByCodes[alias]; return ok }()) {
+			return networkIdsByCodes[alias]
+		}
 	}
 	// fall back to scanning loaded currencies
 	var currenciesToCheck any = []any{}
@@ -4123,14 +4023,20 @@ func (this *BaseExchange) NetworkCodeToId(networkCode any, optionalArgs ...any) 
 	}
 	for i := 0; i < GetArrayLength(currenciesToCheck); i++ {
 		var networks map[string]any = SafeMapTyped(GetValue(currenciesToCheck, i), "networks")
-		if InOp(networks, networkCode) {
-			return this.SafeString(GetValue(networks, networkCode), "id")
+		if func() bool {
+			if unifiedCode == nil {
+				return false
+			}
+			_, ok := networks[*unifiedCode]
+			return ok
+		}() {
+			return this.SafeString(func() any {
+				if unifiedCode == nil {
+					return nil
+				}
+				return networks[*unifiedCode]
+			}(), "id")
 		}
-	}
-	// before returning the original input, try to match if it's backward-maintained networkCode
-	var oldCodes map[string]any = SafeMapTyped(this.Options, "backwardSupportedNetworkCodes")
-	if InOp(oldCodes, networkCode) {
-		return this.NetworkCodeToId(GetValue(oldCodes, networkCode), currencyCode)
 	}
 	return networkCode
 }
@@ -4152,34 +4058,14 @@ func (this *BaseExchange) NetworkIdToCode(optionalArgs ...any) *string {
 		return SafeStringPtr(nil)
 	}
 	var networkCodesByIds map[string]any = SafeMapTyped(this.Options, "networksById")
-	var networkCode *string = this.SafeString(networkCodesByIds, networkId, networkId)
-	var chainPair any = this.PrioritizedNetworkAliases(networkCode, currencyCode, true)
-	if IsEqual(chainPair, nil) {
-		return SafeStringPtr(networkCode)
-	}
-	var preferredChain *string = SafeStringPtr(GetValue(chainPair, 0))
-	var alternativeChain *string = SafeStringPtr(GetValue(chainPair, 1))
-	// when the exchange explicitly defines both forms in options.networks (e.g. BTC + BRC20),
-	// it disambiguates them — trust the direct id→code inversion instead of guessing
-	if currencyCode == nil {
-		var networkIdsByCodes map[string]any = SafeMapTyped(this.Options, "networks")
-		if (func() bool {
-			if preferredChain == nil {
-				return false
-			}
-			_, ok := networkIdsByCodes[*preferredChain]
-			return ok
-		}()) && (func() bool {
-			if alternativeChain == nil {
-				return false
-			}
-			_, ok := networkIdsByCodes[*alternativeChain]
-			return ok
-		}()) {
-			return SafeStringPtr(networkCode)
+	var mappedCode *string = this.SafeString(networkCodesByIds, networkId)
+	var networkCode *string = func() *string {
+		if mappedCode == nil {
+			return networkId
 		}
-	}
-	return SafeStringPtr(preferredChain)
+		return mappedCode
+	}()
+	return SafeStringPtr(this.SafeString(this.NetworkAliases, networkCode, networkCode))
 }
 func (this *BaseExchange) HandleNetworkCodeAndParams(params any) []any {
 	var networkCodeInParams *string = this.SafeString2(params, "networkCode", "network")
@@ -4191,27 +4077,6 @@ func (this *BaseExchange) HandleNetworkCodeAndParams(params any) []any {
 	}()
 	// if it was not defined by user, we should not set it from 'defaultNetworks', because handleNetworkCodeAndParams is for only request-side and thus we do not fill it with anything. We can only use 'defaultNetworks' after parsing response-side
 	return []any{networkCodeInParams, paramsOmitted}
-}
-func (this *BaseExchange) DefaultNetworkCode(currencyCode any) any {
-	var defaultNetworkCode any = nil
-	var defaultNetworks map[string]any = SafeMapTyped(this.Options, "defaultNetworks")
-	if InOp(defaultNetworks, currencyCode) {
-		// if currency had set its network in "defaultNetworks", use it
-		defaultNetworkCode = GetValue(defaultNetworks, currencyCode)
-	} else {
-		// otherwise, try to use the global-scope 'defaultNetwork' value (even if that network is not supported by currency, it doesn't make any problem, this will be just used "at first" if currency supports this network at all)
-		var defaultNetwork *string = this.SafeString(this.Options, "defaultNetwork")
-		if defaultNetwork != nil {
-			defaultNetworkCode = defaultNetwork
-		}
-	}
-	return defaultNetworkCode
-}
-func (this *BaseExchange) SelectNetworkCodeFromUnifiedNetworks(currencyCode any, networkCode any, indexedNetworkEntries any) any {
-	return this.SelectNetworkKeyFromNetworks(currencyCode, networkCode, indexedNetworkEntries, true)
-}
-func (this *BaseExchange) SelectNetworkIdFromRawNetworks(currencyCode any, networkCode any, indexedNetworkEntries any) any {
-	return this.SelectNetworkKeyFromNetworks(currencyCode, networkCode, indexedNetworkEntries, false)
 }
 func (this *BaseExchange) SelectNetworkKeyFromNetworks(currencyCode any, networkCode any, indexedNetworkEntries any, optionalArgs ...any) any {
 	// this method is used against raw & unparse network entries, which are just indexed by network id
@@ -4245,14 +4110,14 @@ func (this *BaseExchange) SelectNetworkKeyFromNetworks(currencyCode any, network
 			panic(NotSupported(Add(this.Id+" - no networks were returned for ", currencyCode)))
 		} else {
 			// if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
-			var defaultNetworkCode any = this.DefaultNetworkCode(currencyCode)
+			var defaultNetworkCode *string = this.SafeString(this.SafeDict(this.Options, "defaultNetworks", map[string]any{}), currencyCode, this.SafeString(this.Options, "defaultNetwork"))
 			var defaultNetworkId any = func() any {
 				if isIndexedByUnifiedNetworkCode == true {
 					return defaultNetworkCode
 				}
 				return this.NetworkCodeToId(defaultNetworkCode, currencyCode)
 			}()
-			if defaultNetworkId == nil {
+			if IsEqual(defaultNetworkId, nil) {
 				panic(ExchangeError(this.Id + " selectNetworkKeyFromNetworks() missing defaultNetworkId"))
 			}
 			if InOp(indexedNetworkEntries, defaultNetworkId) {
@@ -4779,40 +4644,6 @@ func (this *BaseExchange) HandleParamBool2(params any, paramName1 any, paramName
 		return params
 	}()
 	return []any{value, paramsOmitted}
-}
-
-/**
- * @param {object} params - extra parameters
- * @param {object} request - existing dictionary of request
- * @param {string} exchangeSpecificKey - the key for chain id to be set in request
- * @param {object} currencyCode - (optional) existing dictionary of request
- * @param {boolean} isRequired - (optional) whether that param is required to be present
- * @returns {object[]} - returns [request, params] where request is the modified request object and params is the modified params object
- */
-func (this *BaseExchange) HandleRequestNetwork(params any, request any, exchangeSpecificKey any, optionalArgs ...any) any {
-	var currencyCode *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = currencyCode
-	var isRequired bool = GetArgBool(optionalArgs, 1, false)
-	_ = isRequired
-	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(params)
-	var networkCode *string = SafeStringPtr(func() any {
-		if 0 >= 0 && 0 < len(networkCodeparamsNetworkCodeVariable) {
-			return networkCodeparamsNetworkCodeVariable[0]
-		}
-		return nil
-	}())
-	var paramsNetworkCode map[string]any = MapTyped(func() any {
-		if 1 >= 0 && 1 < len(networkCodeparamsNetworkCodeVariable) {
-			return networkCodeparamsNetworkCodeVariable[1]
-		}
-		return nil
-	}())
-	if networkCode != nil {
-		AddElementToObject(request, exchangeSpecificKey, this.NetworkCodeToId(networkCode, currencyCode))
-	} else if isRequired == true {
-		panic(ArgumentsRequired(this.Id + " - \"network\" param is required for this request"))
-	}
-	return []any{request, paramsNetworkCode}
 }
 func (this *BaseExchange) ResolvePath(path any, params any) any {
 	return []any{this.ImplodeParams(path, params), this.Omit(params, this.ExtractParams(path))}
@@ -5548,11 +5379,11 @@ func (this *BaseExchange) fetchTransactionFeeBody(ch chan EndpointResult[map[str
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes678415 map[string]any = MapTyped(r.Value)
-	if retRes678415 == nil {
+	var retRes667115 map[string]any = MapTyped(r.Value)
+	if retRes667115 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes678415, Raw: retRes678415}
+		ch <- EndpointResult[map[string]any]{Value: retRes667115, Raw: retRes667115}
 	}
 	return nil
 }
@@ -11577,12 +11408,12 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan EndpointResult[
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv11098, _ := r.Value.([]any)
-	var retRes1021115 []any = listRecv11098
-	if retRes1021115 == nil {
+	listRecv10929, _ := r.Value.([]any)
+	var retRes1009815 []any = listRecv10929
+	if retRes1009815 == nil {
 		ch <- EndpointResult[[]any]{}
 	} else {
-		ch <- EndpointResult[[]any]{Value: retRes1021115, Raw: retRes1021115}
+		ch <- EndpointResult[[]any]{Value: retRes1009815, Raw: retRes1009815}
 	}
 	return nil
 }

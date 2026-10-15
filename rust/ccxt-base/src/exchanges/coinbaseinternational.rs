@@ -710,7 +710,7 @@ impl CoinbaseinternationalCore {
 }));
         m.insert("networksById".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ethereum".to_string(), Value::Str("ETH".into()));
+        m.insert("ethereum".to_string(), Value::Str("ERC20".into()));
         m.insert("arbitrum".to_string(), Value::Str("ARBITRUM".into()));
         m.insert("avacchain".to_string(), Value::Str("AVAX".into()));
         m.insert("optimism".to_string(), Value::Str("OPTIMISM".into()));

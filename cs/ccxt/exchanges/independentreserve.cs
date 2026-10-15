@@ -386,7 +386,7 @@ public partial class independentreserve : Exchange
                 } },
                 { "networks", new Dictionary<string, object>() {
                     { "BTC", "Bitcoin" },
-                    { "ETH", "Ethereum" },
+                    { "ERC20", "Ethereum" },
                     { "BCH", "BitcoinCash" },
                     { "LTC", "Litecoin" },
                     { "XRP", "XrpLedger" },
@@ -398,7 +398,7 @@ public partial class independentreserve : Exchange
                     { "DOT", "Polkadot" },
                     { "ADA", "Cardano" },
                     { "SOL", "Solana" },
-                    { "TRX", "Tron" },
+                    { "TRC20", "Tron" },
                 } },
             } },
         });

@@ -334,7 +334,6 @@ class poloniex(Exchange, ImplicitAPI):
                     'ERC20': 'ETH',
                     # v2 withdraw accepts only the blockchain id: 'TRX' passes validation, 'TRON' is rejected with 830111 (live-verified)
                     'TRC20': 'TRX',
-                    'TRX': 'TRX',
                 },
                 'networksById': {
                     'TRX': 'TRC20',
@@ -2819,7 +2818,7 @@ class poloniex(Exchange, ImplicitAPI):
         if networkEntry is not None:
             exchangeNetworkId = networkEntry['id']
         else:
-            exchangeNetworkId = networkCode
+            exchangeNetworkId = self.network_code_to_id(networkCode, code)
         request = {
             'currency': exchangeNetworkId,
         }

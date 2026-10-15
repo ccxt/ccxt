@@ -2806,7 +2806,7 @@ class bithumb extends Exchange {
                 }
                 $request['address'] = $address;
                 $request['currency'] = $currency['id'];
-                $request['net_type'] = $network;
+                $request['net_type'] = $this->network_code_to_id($network, $code);
                 $request['amount'] = $this->number_to_string($amount);
                 if ($destinationRequest !== null) {
                     $request['secondary_address'] = $destinationRequest;
@@ -2837,7 +2837,7 @@ class bithumb extends Exchange {
             $request['currency'] = $currency['id'];
             $request['units'] = $amount;
             if ($network !== null) {
-                $request['net_type'] = $network;
+                $request['net_type'] = $this->network_code_to_id($network, $code);
             }
             if ($destinationRequest !== null) {
                 $request['destination'] = $destinationRequest;
@@ -2901,7 +2901,7 @@ class bithumb extends Exchange {
             'txid' => $this->safe_string($transaction, 'txid'),
             'timestamp' => $timestamp,
             'datetime' => $datetime,
-            'network' => $this->safe_string($transaction, 'net_type'),
+            'network' => $this->network_id_to_code($this->safe_string($transaction, 'net_type'), $currencyResolved['code']),
             'addressFrom' => null,
             'address' => null,
             'addressTo' => null,
@@ -3259,7 +3259,7 @@ class bithumb extends Exchange {
         if ($network === null) {
             throw new ArgumentsRequired($this->id . ' ' . $code . ' createDepositAddress() requires a network parameter');
         }
-        $request['net_type'] = $network;
+        $request['net_type'] = $this->network_code_to_id($network, $code);
         $response = Async\await($this->privatePostV1DepositsGenerateCoinAddress($this->extend($request, $paramsOmitted)));
         //
         //     {
@@ -3304,7 +3304,7 @@ class bithumb extends Exchange {
         if ($network === null) {
             throw new ArgumentsRequired($this->id . ' ' . $code . ' fetchDepositAddress() requires a network parameter');
         }
-        $request['net_type'] = $network;
+        $request['net_type'] = $this->network_code_to_id($network, $code);
         $response = Async\await($this->privateGetV1DepositsCoinAddress($this->extend($request, $paramsOmitted)));
         //
         //     {
@@ -3374,7 +3374,7 @@ class bithumb extends Exchange {
         return array(
             'info' => $response,
             'currency' => $code,
-            'network' => $this->safe_string($response, 'net_type'),
+            'network' => $this->network_id_to_code($this->safe_string($response, 'net_type'), $code),
             'address' => $address,
             'tag' => $this->safe_string($response, 'secondary_address'),
         );

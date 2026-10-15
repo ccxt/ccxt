@@ -365,7 +365,7 @@ public partial class coinbaseinternational : Exchange
                     { "method", "v1PrivatePostTransfersWithdraw" },
                 } },
                 { "networksById", new Dictionary<string, object>() {
-                    { "ethereum", "ETH" },
+                    { "ethereum", "ERC20" },
                     { "arbitrum", "ARBITRUM" },
                     { "avacchain", "AVAX" },
                     { "optimism", "OPTIMISM" },

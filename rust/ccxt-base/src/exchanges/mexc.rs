@@ -1769,10 +1769,10 @@ impl MexcCore {
     m
 }));
         m.insert("defaultType".to_string(), Value::Str("spot".into()));
-        m.insert("defaultNetwork".to_string(), Value::Str("ETH".into()));
+        m.insert("defaultNetwork".to_string(), Value::Str("ERC20".into()));
         m.insert("defaultNetworks".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ETH".to_string(), Value::Str("ETH".into()));
+        m.insert("ETH".to_string(), Value::Str("ERC20".into()));
         m.insert("USDT".to_string(), Value::Str("ERC20".into()));
         m.insert("USDC".to_string(), Value::Str("ERC20".into()));
         m.insert("BTC".to_string(), Value::Str("BTC".into()));
@@ -1808,9 +1808,9 @@ impl MexcCore {
 }));
         m.insert("networksById".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("BNB Smart Chain(BEP20-RACAV1)".to_string(), Value::Str("BSC".into()));
-        m.insert("BNB Smart Chain(BEP20-RACAV2)".to_string(), Value::Str("BSC".into()));
-        m.insert("BNB Smart Chain(BEP20)".to_string(), Value::Str("BSC".into()));
+        m.insert("BNB Smart Chain(BEP20-RACAV1)".to_string(), Value::Str("BEP20".into()));
+        m.insert("BNB Smart Chain(BEP20-RACAV2)".to_string(), Value::Str("BEP20".into()));
+        m.insert("BNB Smart Chain(BEP20)".to_string(), Value::Str("BEP20".into()));
         m.insert("Ethereum(ERC20)".to_string(), Value::Str("ERC20".into()));
     m
 }));

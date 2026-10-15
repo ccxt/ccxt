@@ -5176,7 +5176,6 @@ class NewTranspiler {
             'cancelOrdersRequest',
             'cancelAllOrdersRequest',
             'createContractOrder',
-            'createNetworksByIdObject',
             'createSpotOrder',
             'createSwapOrder',
             'createVault',

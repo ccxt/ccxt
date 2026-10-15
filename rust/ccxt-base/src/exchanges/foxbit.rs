@@ -491,7 +491,7 @@ impl FoxbitCore {
         m.insert("cardano".to_string(), Value::Str("ADA".into()));
         m.insert("cosmos".to_string(), Value::Str("ATOM".into()));
         m.insert("dogecoin".to_string(), Value::Str("DOGE".into()));
-        m.insert("erc20".to_string(), Value::Str("ETH".into()));
+        m.insert("erc20".to_string(), Value::Str("ERC20".into()));
         m.insert("hedera".to_string(), Value::Str("HBAR".into()));
         m.insert("litecoin".to_string(), Value::Str("LTC".into()));
         m.insert("near".to_string(), Value::Str("NEAR".into()));
@@ -517,7 +517,7 @@ impl FoxbitCore {
         m.insert("ADA".to_string(), Value::Str("cardano".into()));
         m.insert("ATOM".to_string(), Value::Str("cosmos".into()));
         m.insert("DOGE".to_string(), Value::Str("dogecoin".into()));
-        m.insert("ETH".to_string(), Value::Str("erc20".into()));
+        m.insert("ERC20".to_string(), Value::Str("erc20".into()));
         m.insert("HBAR".to_string(), Value::Str("hedera".into()));
         m.insert("LTC".to_string(), Value::Str("litecoin".into()));
         m.insert("NEAR".to_string(), Value::Str("near".into()));
@@ -2608,7 +2608,7 @@ impl FoxbitCore {
         m.insert("txid".to_string(), self.safe_string_k(cryptoDetails, "transaction_id", &[]));
         m.insert("timestamp".to_string(), timestamp);
         m.insert("datetime".to_string(), datetime);
-        m.insert("network".to_string(), self.safe_string_k(transaction.clone(), "network_code", &[]));
+        m.insert("network".to_string(), self.network_id_to_code(&[self.safe_string_k(transaction.clone(), "network_code", &[]), currencyCode.clone()]));
         m.insert("address".to_string(), address.clone());
         m.insert("addressTo".to_string(), address);
         m.insert("addressFrom".to_string(), Value::Null);

@@ -1037,7 +1037,7 @@ class bingx(ccxt.async_support.bingx):
             messageHash += ':' + symbolResolved
         uuid = self.uuid()
         baseUrl = None
-        request = {}
+        request = None
         if type == 'swap':
             if subType == 'inverse':
                 raise NotSupported(self.id + ' watchMyTrades is not supported for inverse swap markets yet')

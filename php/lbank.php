@@ -247,13 +247,10 @@ class lbank extends Exchange {
                 ),
                 'networks' => array(
                     'ERC20' => 'erc20',
-                    'ETH' => 'erc20',
                     'TRC20' => 'trc20',
-                    'TRX' => 'trc20',
                     'OMNI' => 'omni',
                     'ASA' => 'asa',
                     'BEP20' => 'bep20(bsc)',
-                    'BSC' => 'bep20(bsc)',
                     'HT' => 'heco',
                     'BNB' => 'bep2',
                     'BTC' => 'btc',
@@ -2278,9 +2275,9 @@ class lbank extends Exchange {
         $defaultNetworks = $this->safe_dict($this->options, 'defaultNetworks');
         $defaultNetwork = $this->safe_string_upper($defaultNetworks, $currencyCode);
         $networks = $this->safe_dict($this->options, 'networks', array());
-        $network = $this->safe_string_upper($params, 'network', $defaultNetwork); // this line allows the user to specify either ERC20 or ETH
-        $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
-        return $network;
+        $networkParam = $this->safe_string_upper($params, 'network', $defaultNetwork); // accepts unified codes and aliases
+        $networkCode = ($networkParam !== null) ? $this->safe_string($this->networkAliases, $networkParam, $networkParam) : null;
+        return $this->safe_string($networks, $networkCode, $networkCode);
     }
 
     public function fetch_deposit_address(string $code, $params = array()): array {
@@ -2359,6 +2356,9 @@ class lbank extends Exchange {
         );
         $networks = $this->safe_dict($this->options, 'networks');
         $network = $this->safe_string_upper($params, 'network');
+        if ($network !== null) {
+            $network = $this->safe_string($this->networkAliases, $network, $network);
+        }
         $network = $this->safe_string($networks, $network, $network);
         $paramsOmitted = ($network !== null) ? $this->omit($params, 'network') : $params;
         if ($network !== null) {
@@ -2428,6 +2428,9 @@ class lbank extends Exchange {
             $request['memo'] = $tagWithdrawTag;
         }
         $network = $this->safe_string_upper_2($paramsOmitted, 'network', 'networkName');
+        if ($network !== null) {
+            $network = $this->safe_string($this->networkAliases, $network, $network);
+        }
         $paramsOmitted2 = $this->omit($paramsOmitted, array( 'network', 'networkName' ));
         $networks = $this->safe_dict($this->options, 'networks');
         $networkId = $this->safe_string($networks, $network, $network);

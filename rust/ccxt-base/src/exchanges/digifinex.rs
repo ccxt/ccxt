@@ -1068,16 +1068,13 @@ impl DigifinexCore {
         m.insert("AVALANCEC".to_string(), Value::Str("AVAX-CCHAIN".into()));
         m.insert("AVALANCEX".to_string(), Value::Str("AVAX-XCHAIN".into()));
         m.insert("BEP20".to_string(), Value::Str("BEP20".into()));
-        m.insert("BSC".to_string(), Value::Str("BEP20".into()));
         m.insert("CARDANO".to_string(), Value::Str("Cardano".into()));
         m.insert("CELO".to_string(), Value::Str("Celo".into()));
         m.insert("CHILIZ".to_string(), Value::Str("Chiliz".into()));
         m.insert("COSMOS".to_string(), Value::Str("COSMOS".into()));
         m.insert("CRC20".to_string(), Value::Str("Crypto.com".into()));
-        m.insert("CRONOS".to_string(), Value::Str("Crypto.com".into()));
         m.insert("DOGECOIN".to_string(), Value::Str("DogeChain".into()));
         m.insert("ERC20".to_string(), Value::Str("ERC20".into()));
-        m.insert("ETH".to_string(), Value::Str("ERC20".into()));
         m.insert("ETHW".to_string(), Value::Str("ETHW".into()));
         m.insert("IOTA".to_string(), Value::Str("MIOTA".into()));
         m.insert("KLAYTN".to_string(), Value::Str("KLAY".into()));
@@ -1094,7 +1091,6 @@ impl DigifinexCore {
         m.insert("TERRA".to_string(), Value::Str("Terra".into()));
         m.insert("TON".to_string(), Value::Str("Ton".into()));
         m.insert("TRC20".to_string(), Value::Str("TRC20".into()));
-        m.insert("TRX".to_string(), Value::Str("TRC20".into()));
         m.insert("VECHAIN".to_string(), Value::Str("Vechain".into()));
     m
 }));
@@ -1107,7 +1103,7 @@ impl DigifinexCore {
         m.insert("ERC20".to_string(), Value::Str("ERC20".into()));
         m.insert("ETH".to_string(), Value::Str("ERC20".into()));
         m.insert("Polygon".to_string(), Value::Str("POLYGON".into()));
-        m.insert("Crypto.com".to_string(), Value::Str("CRONOS".into()));
+        m.insert("Crypto.com".to_string(), Value::Str("CRC20".into()));
     m
 }));
     m
@@ -4324,7 +4320,7 @@ impl DigifinexCore {
                 m
             });
         }
-        let mut network: Value = self.safe_string_k(transaction.clone(), "chain", &[]);
+        let mut network: Value = self.network_id_to_code(&[self.safe_string_k(transaction.clone(), "chain", &[]), code.clone()]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction);

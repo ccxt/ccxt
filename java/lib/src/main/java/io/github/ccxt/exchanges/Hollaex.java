@@ -364,9 +364,7 @@ public class Hollaex extends HollaexApi
                 put( "api-expires", Hollaex.this.parseToInt(Helpers.divide(Hollaex.this.timeout, 1000)) );
                 put( "networks", new HashMap<String, Object>() {{
                     put( "BTC", "btc" );
-                    put( "ETH", "eth" );
                     put( "ERC20", "eth" );
-                    put( "TRX", "trx" );
                     put( "TRC20", "trx" );
                     put( "XRP", "xrp" );
                     put( "XLM", "xlm" );
@@ -1774,12 +1772,12 @@ public class Hollaex extends HollaexApi
         this.checkAddress(address, (String) null, (String) null);
         String currencyId = this.safeString(depositAddress, "currency");
         Map<String, Object> currencyResolved = this.safeCurrency(currencyId, currency);
-        String network = this.safeString(depositAddress, "network");
+        String networkId = this.safeString(depositAddress, "network");
         {
             HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
             h2kMap0.put("info", depositAddress);
             h2kMap0.put("currency", currencyResolved.get("code"));
-            h2kMap0.put("network", network);
+            h2kMap0.put("network", this.networkIdToCode(networkId, Helpers.toStringArg(currencyResolved.get("code"))));
             h2kMap0.put("address", address);
             h2kMap0.put("tag", tag);
             return h2kMap0;
@@ -1859,7 +1857,7 @@ public class Hollaex extends HollaexApi
                 addresses = wallet;
             } else
             {
-                addresses = this.filterBy(wallet, "network", network);
+                addresses = this.filterBy(wallet, "network", this.networkCodeToId(network, (String) null));
             }
             return this.parseDepositAddresses(addresses, codes, false, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(DepositAddress::new).collect(Collectors.toList()));

@@ -3011,7 +3011,7 @@
                         "fee": 0.0000089,
                         "fees": {
                             "BEP20": 0.0000089,
-                            "ETH": 0.0001,
+                            "ERC20": 0.0001,
                             "ARBITRUM": 0.00002,
                             "BASE": 0.00005,
                             "MANTA": 0.00001,
@@ -3069,7 +3069,7 @@
                                     }
                                 }
                             },
-                            "ETH": {
+                            "ERC20": {
                                 "info": {
                                     "network": "ETH",
                                     "coin": "ETH",
@@ -3099,7 +3099,7 @@
                                     "contractAddressUrl": "https://etherscan.io/address/"
                                 },
                                 "id": "ETH",
-                                "network": "ETH",
+                                "network": "ERC20",
                                 "active": null,
                                 "deposit": true,
                                 "withdraw": true,

@@ -2180,7 +2180,7 @@ class extended extends Exchange {
             );
         }
         $transactionType = $this->parse_transaction_type($this->safe_string($transaction, 'type'));
-        $network = $this->safe_string($transaction, 'chain');
+        $network = $this->network_id_to_code($this->safe_string($transaction, 'chain'));
         return array(
             'info' => $transaction,
             'id' => $this->safe_string($transaction, 'id'),

@@ -2569,8 +2569,8 @@ public class Coinsph extends CoinsphApi
                 "cost", feeCost
             );
         }
-        String network = this.safeString(transaction, "network");
-        Boolean intern = java.util.Objects.equals(network, "Internal");
+        String networkId = this.safeString(transaction, "network");
+        Boolean intern = java.util.Objects.equals(networkId, "Internal");
         {
             HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
             h2kMap0.put("info", transaction);
@@ -2578,7 +2578,7 @@ public class Coinsph extends CoinsphApi
             h2kMap0.put("txid", txid);
             h2kMap0.put("timestamp", timestamp);
             h2kMap0.put("datetime", this.iso8601(timestamp));
-            h2kMap0.put("network", network);
+            h2kMap0.put("network", this.networkIdToCode(networkId, code));
             h2kMap0.put("address", address);
             h2kMap0.put("addressTo", address);
             h2kMap0.put("addressFrom", null);

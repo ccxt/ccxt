@@ -1773,7 +1773,7 @@ func (this *Htx) Describe() any {
 				"LTC":       "LTC",
 				"XRP":       "XRP",
 				"XLM":       "XLM",
-				"CRONOS":    "CRO",
+				"CRC20":     "CRO",
 				"CRO":       "CRO",
 				"GLMR":      "GLMR",
 				"POLYGON":   "MATIC",
@@ -8880,7 +8880,7 @@ func (this *Htx) fetchDepositAddressBody(ch chan AsyncResult[any], code string, 
 		panic(r1.Err)
 	}
 	indexedAddresses := r1.Raw
-	var selectedNetworkCode any = this.SelectNetworkCodeFromUnifiedNetworks(currency["code"], networkCode, indexedAddresses)
+	var selectedNetworkCode any = this.SelectNetworkKeyFromNetworks(currency["code"], networkCode, indexedAddresses, true)
 
 	ch <- AsyncResult[any]{Value: this.SafeValue(indexedAddresses, selectedNetworkCode)}
 	return nil

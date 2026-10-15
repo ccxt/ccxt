@@ -289,11 +289,8 @@ public class Bitopro extends BitoproApi
             put( "options", new HashMap<String, Object>() {{
                 put( "networks", new HashMap<String, Object>() {{
                     put( "ERC20", "ERC20" );
-                    put( "ETH", "ERC20" );
-                    put( "TRX", "TRX" );
                     put( "TRC20", "TRX" );
                     put( "BEP20", "BSC" );
-                    put( "BSC", "BSC" );
                 }} );
                 put( "fetchCurrencies", new HashMap<String, Object>() {{
                     put( "fiatCurrencies", new ArrayList<Object>(Arrays.asList("TWD")) );
@@ -2089,7 +2086,7 @@ public class Bitopro extends BitoproApi
             {
                 Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
                 String requestedNetwork = this.safeStringUpper(paramsWithdrawTag, "network");
-                String networkId = (((java.util.Objects.equals(requestedNetwork, null)))) ? null : this.safeString(networks, requestedNetwork);
+                String networkId = (((java.util.Objects.equals(requestedNetwork, null)))) ? null : this.safeString(networks, this.safeString(this.networkAliases, requestedNetwork, requestedNetwork));
                 if (java.util.Objects.equals(networkId, null))
                 {
                     throw new ExchangeError(((this.id + " invalid network ") + requestedNetwork)) ;

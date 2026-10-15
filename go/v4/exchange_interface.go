@@ -129,6 +129,7 @@ type IBaseExchange interface {
 	GetOptions() *sync.Map
 	GetCurrencies() *sync.Map
 	GetMarkets() *sync.Map
+	GetNetworkAliases() map[string]any
 	SetSandboxMode(enable any)
 	EnableDemoTrading(enable any)
 	LoadMarkets(params ...any) (map[string]MarketInterface, error)
@@ -187,6 +188,7 @@ type ICoreExchange interface {
 	GetOptions() *sync.Map
 	GetCurrencies() *sync.Map
 	GetMarkets() *sync.Map
+	GetNetworkAliases() map[string]any
 	CheckRequiredCredentials(optionalArgs ...any) bool
 	Sleep(milliseconds any) <-chan bool
 	Json(object any) string

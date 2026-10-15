@@ -3368,14 +3368,14 @@ func (this *Bullish) fetchDepositAddressBody(ch chan AsyncResult[any], code stri
 	var data any = this.SafeDict(safeResponse, 0, map[string]any{})
 	var network any = nil
 	network = GetValue(this.HandleNetworkCodeAndParams(params), 0)
-	var networkDefinedByUser bool = (network != nil)
+	var networkDefinedByUser bool = !IsEqual(network, nil)
 	if (length > 1) || (networkDefinedByUser) {
 		// some currencies have multiple networks
-		if network == nil {
+		if IsEqual(network, nil) {
 			// use default network if not specified and multiple are available
-			network = this.DefaultNetworkCode(code)
+			network = this.SafeString(this.SafeDict(this.Options, "defaultNetworks", map[string]any{}), code, this.SafeString(this.Options, "defaultNetwork"))
 		}
-		if network != nil {
+		if !IsEqual(network, nil) {
 			// find the entry that matches the network or return first entry if not found and user did not specify a network
 			for i := 0; i < len(safeResponse); i++ {
 				var entry any = this.SafeDict(safeResponse, i, map[string]any{})

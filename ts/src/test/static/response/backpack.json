@@ -724,9 +724,9 @@
                                     "withdrawalFee": "0.6"
                                 }
                             },
-                            "BSC": {
+                            "BEP20": {
                                 "id": "Bsc",
-                                "network": "BSC",
+                                "network": "BEP20",
                                 "limits": {
                                     "withdraw": {
                                         "min": 1.2,

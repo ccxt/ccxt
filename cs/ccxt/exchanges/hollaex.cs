@@ -331,9 +331,7 @@ public partial class hollaex : Exchange
                 { "api-expires", this.parseToInt(divide(this.timeout, 1000)) },
                 { "networks", new Dictionary<string, object>() {
                     { "BTC", "btc" },
-                    { "ETH", "eth" },
                     { "ERC20", "eth" },
-                    { "TRX", "trx" },
                     { "TRC20", "trx" },
                     { "XRP", "xrp" },
                     { "XLM", "xlm" },
@@ -1669,11 +1667,11 @@ public partial class hollaex : Exchange
         this.checkAddress(address);
         string? currencyId = this.safeString(depositAddress, "currency");
         Dictionary<string, object> currencyResolved = this.safeCurrency(currencyId, currency);
-        string? network = this.safeString(depositAddress, "network");
+        string? networkId = this.safeString(depositAddress, "network");
         return new Dictionary<string, object>() {
             { "info", depositAddress },
             { "currency", (currencyResolved != null && currencyResolved.ContainsKey("code") ? currencyResolved["code"] : null) },
-            { "network", network },
+            { "network", this.networkIdToCode(networkId, (currencyResolved != null && currencyResolved.ContainsKey("code") ? currencyResolved["code"] : null)) },
             { "address", address },
             { "tag", tag },
         };
@@ -1750,7 +1748,7 @@ public partial class hollaex : Exchange
             addresses = wallet;
         } else
         {
-            addresses = this.filterBy(wallet, "network", network);
+            addresses = this.filterBy(wallet, "network", this.networkCodeToId(network));
         }
         return ccxt.BaseExchange.ToDepositAddressList(this.parseDepositAddresses(addresses, codes, false));
     }

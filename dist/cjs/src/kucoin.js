@@ -1133,9 +1133,7 @@ class kucoin extends kucoin$1["default"] {
                     'BTC': 'btc',
                     'BRC20': 'btc',
                     'BTCNATIVESEGWIT': 'bech32',
-                    'ETH': 'eth',
                     'ERC20': 'eth',
-                    'TRX': 'trx',
                     'TRC20': 'trx',
                     'HECO': 'heco',
                     'HRC20': 'heco',
@@ -3707,7 +3705,7 @@ class kucoin extends kucoin$1["default"] {
         return {
             'info': response,
             'currency': currencyId,
-            'network': this.safeString(data, 'chain'),
+            'network': this.networkIdToCode(this.safeString(data, 'chain'), code),
             'address': address,
             'tag': this.safeString(data, 'memo'),
         };

@@ -2535,7 +2535,7 @@ class bullish extends Exchange {
             // some currencies have multiple networks
             if ($network === null) {
                 // use default network if not specified and multiple are available
-                $network = $this->default_network_code($code);
+                $network = $this->safe_string($this->safe_dict($this->options, 'defaultNetworks', array()), $code, $this->safe_string($this->options, 'defaultNetwork'));
             }
             if ($network !== null) {
                 // find the entry that matches the network or return first entry if not found and user did not specify a network

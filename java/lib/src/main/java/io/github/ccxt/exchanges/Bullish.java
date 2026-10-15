@@ -2881,7 +2881,7 @@ public class Bullish extends BullishApi
                 if (java.util.Objects.equals(network, null))
                 {
                     // use default network if not specified and multiple are available
-                    network = this.defaultNetworkCode(code);
+                    network = this.safeString(this.safeDict(this.options, "defaultNetworks", new HashMap<String, Object>() {{}}), code, this.safeString(this.options, "defaultNetwork"));
                 }
                 if (!java.util.Objects.equals(network, null))
                 {

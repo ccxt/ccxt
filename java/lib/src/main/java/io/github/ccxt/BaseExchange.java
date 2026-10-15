@@ -242,6 +242,7 @@ public class BaseExchange {
     public String uid;
     public String accountId;
     public int minFundingAddressLength = 1;
+    public java.util.Map<String, Object> networkAliases = new java.util.HashMap<>(java.util.Map.of("ETH", "ERC20", "TRX", "TRC20", "BSC", "BEP20", "BSC20", "BEP20", "CRONOS", "CRC20", "ARB", "ARBITRUM", "ARBONE", "ARBITRUM", "ARBNOVA", "ARBITRUM_NOVA"));
 
     private static final SecureRandom secureRandom = new SecureRandom();
 
@@ -5757,8 +5758,9 @@ public Object describe()
 
     public void afterConstruct(Map<String, Object> userConfig)
     {
-        // networks
-        this.createNetworksByIdObject();
+        // networksById: inverse of options.networks, explicit options.networksById entries win
+        Object networkIdsToCodesGenerated = this.invertFlatStringDictionary(this.safeValue(this.options, "networks", new HashMap<String, Object>() {{}}));
+        Helpers.addElementToObject(this.options, "networksById", this.extend(networkIdsToCodesGenerated, this.safeValue(this.options, "networksById", new HashMap<String, Object>() {{}})));
         this.featuresGenerator();
         // init predefined markets if any
         if (!java.util.Objects.equals(this.markets, null))
@@ -6040,43 +6042,9 @@ public Object describe()
         return ((symbol + " : ") + "orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options[\"watchOrderBook\"][\"checksum\"] = false");
     }
 
-    public void createNetworksByIdObject()
-    {
-        // automatically generate network-id-to-code mappings
-        Object networkIdsToCodesGenerated = this.invertFlatStringDictionary(this.safeValue(this.options, "networks", new HashMap<String, Object>() {{}})); // invert defined networks dictionary
-        Helpers.addElementToObject(this.options, "networksById", this.extend(networkIdsToCodesGenerated, this.safeValue(this.options, "networksById", new HashMap<String, Object>() {{}}))); // support manually overriden "networksById" dictionary too
-    }
-
     public Object getDefaultOptions()
     {
         return new HashMap<String, Object>() {{
-            put( "defaultNetworkCodeReplacements", new HashMap<String, Object>() {{
-                put( "ETH", new HashMap<String, Object>() {{
-                    put( "primary", "ETH" );
-                    put( "secondary", "ERC20" );
-                    put( "default", "secondary" );
-                }} );
-                put( "CRO", new HashMap<String, Object>() {{
-                    put( "primary", "CRONOS" );
-                    put( "secondary", "CRC20" );
-                    put( "default", "secondary" );
-                }} );
-                put( "TRX", new HashMap<String, Object>() {{
-                    put( "primary", "TRX" );
-                    put( "secondary", "TRC20" );
-                    put( "default", "secondary" );
-                }} );
-                put( "BTC", new HashMap<String, Object>() {{
-                    put( "primary", "BTC" );
-                    put( "secondary", "BRC20" );
-                    put( "default", "primary" );
-                }} );
-            }} );
-            put( "backwardSupportedNetworkCodes", new HashMap<String, Object>() {{
-                put( "ARB", "ARBITRUM" );
-                put( "ARBONE", "ARBITRUM" );
-                put( "ARBNOVA", "ARBITRUM_NOVA" );
-            }} );
             put( "withdrawTagRequiredCurrencies", new ArrayList<Object>(Arrays.asList("XRP", "XLM", "EOS", "ATOM", "HBAR", "TON", "KAVA", "STX", "XEM", "IOST", "OSMO", "WAXP")) );
         }};
     }
@@ -7929,70 +7897,13 @@ public Object describe()
         );
     }
 
-    public Object prioritizedNetworkAliases(String networkCode, String currencyCode, Boolean allowDefault)
-    {
-        /**
-         * @method
-         * @name Exchange#prioritizedNetworkAliases
-         * @description returns the chain pair [preferred, alternative] for the given networkCode & currency, e.g:
-         *   ---------------------------------
-         *   | input          | output       |
-         *   --------------------------------|
-         *   | ETH & USDC     | ERC20, ETH   |
-         *   | ERC20 & USDC   | ERC20, ETH   |
-         *   | ETH & ETH      | ETH, ERC20   |
-         *   | ERC20 & ETH    | ETH, ERC20   |
-         *   | ERC20          | ERC20, ETH   |
-         *   | ETH            | ERC20, ETH   |
-         *   ---------------------------------
-         * @param {string} networkCode unified network-code
-         * @param {string} currencyCode unified currency-code
-         * @param {boolean} allowDefault when currencyCode is undefined, order by replacement's "default" instead of by user input
-         * @returns {string[]} [preferredChain, alternativeChain]
-         */
-        if (java.util.Objects.equals(networkCode, null))
-        {
-            return null;
-        }
-        Map<String, Object> replacements = (Map<String, Object>) this.safeDict(this.options, "defaultNetworkCodeReplacements", new HashMap<String, Object>() {{}});
-        List<String> keys = new ArrayList<String>(replacements.keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
-        {
-            String baseCoin = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            Object entry = (replacements == null || baseCoin == null ? null : replacements.get(baseCoin));
-            Object primary = Helpers.GetValue(entry, "primary");
-            Object secondary = Helpers.GetValue(entry, "secondary");
-            if (!java.util.Objects.equals(networkCode, primary) && !java.util.Objects.equals(networkCode, secondary))
-            {
-                continue;
-            }
-            // pick which form goes first in the returned pair
-            Boolean preferPrimary = false;
-            if (java.util.Objects.equals(currencyCode, baseCoin))
-            {
-                preferPrimary = true; // mainnet currency uses primary chain
-            } else if (!java.util.Objects.equals(currencyCode, null))
-            {
-                preferPrimary = false; // any other (token) currency uses secondary chain
-            } else if (java.util.Objects.requireNonNullElse(allowDefault, false))
-            {
-                preferPrimary = (java.util.Objects.equals(Helpers.GetValue(entry, "default"), "primary"));
-            } else
-            {
-                preferPrimary = (java.util.Objects.equals(networkCode, primary)); // keep user input first
-            }
-            return ((Boolean.TRUE.equals(preferPrimary))) ? new ArrayList<Object>(Arrays.asList(primary, secondary)) : new ArrayList<Object>(Arrays.asList(secondary, primary));
-        }
-        return new ArrayList<Object>(Arrays.asList(networkCode, networkCode));
-    }
-
     public Object networkCodeToId(String networkCode, String currencyCode)
     {
         /**
          * @ignore
          * @method
          * @name exchange#networkCodeToId
-         * @description tries to convert the provided networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
+         * @description tries to convert the provided networkCode (a unified network code or one of its aliases) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
          * @param {string} networkCode unified network code
          * @param {string} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {string|undefined} exchange-specific network id
@@ -8001,15 +7912,23 @@ public Object describe()
         {
             return null;
         }
+        String unifiedCode = this.safeString(this.networkAliases, networkCode, networkCode);
         Map<String, Object> networkIdsByCodes = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
-        // try the preferred form first, fall back to its alternative (e.g. when only 'ETH' or only 'ERC20' is defined)
-        Object chainPair = this.prioritizedNetworkAliases(networkCode, currencyCode, false);
-        Object preferredChain = (((java.util.Objects.equals(chainPair, null)))) ? networkCode : (chainPair == null || 0 >= ((List<?>)chainPair).size() ? null : ((List<?>)chainPair).get(0));
-        Object alternativeChain = (((java.util.Objects.equals(chainPair, null)))) ? networkCode : (chainPair == null || 1 >= ((List<?>)chainPair).size() ? null : ((List<?>)chainPair).get(1));
-        String networkId = this.safeString2(networkIdsByCodes, preferredChain, alternativeChain);
+        String networkId = this.safeString(networkIdsByCodes, unifiedCode);
         if (!java.util.Objects.equals(networkId, null))
         {
             return networkId;
+        }
+        // options.networks may still be keyed by an alias of the unified code
+        Object aliases = this.networkAliases;
+        List<String> aliasKeys = new ArrayList<String>(((Map<String, Object>)aliases).keySet());
+        for (var i = 0; i < ((List<?>)aliasKeys).size(); i++)
+        {
+            String alias = (aliasKeys == null || i < 0 || i >= aliasKeys.size() ? null : aliasKeys.get(i));
+            if ((java.util.Objects.equals(Helpers.GetValue(aliases, alias), unifiedCode)) && (networkIdsByCodes.containsKey(alias)))
+            {
+                return (networkIdsByCodes == null || alias == null ? null : networkIdsByCodes.get(alias));
+            }
         }
         // fall back to scanning loaded currencies
         Object currenciesToCheck = new ArrayList<Object>(Arrays.asList());
@@ -8023,16 +7942,10 @@ public Object describe()
         for (var i = 0; i < ((List<?>)currenciesToCheck).size(); i++)
         {
             Map<String, Object> networks = (Map<String, Object>) this.safeDict((currenciesToCheck == null || i < 0 || i >= ((List<?>)currenciesToCheck).size() ? null : ((List<?>)currenciesToCheck).get(i)), "networks", new HashMap<String, Object>() {{}});
-            if (networks.containsKey(networkCode))
+            if (networks.containsKey(unifiedCode))
             {
-                return this.safeString((networks == null || networkCode == null ? null : networks.get(networkCode)), "id");
+                return this.safeString((networks == null || unifiedCode == null ? null : networks.get(unifiedCode)), "id");
             }
-        }
-        // before returning the original input, try to match if it's backward-maintained networkCode
-        Map<String, Object> oldCodes = (Map<String, Object>) this.safeDict(this.options, "backwardSupportedNetworkCodes", new HashMap<String, Object>() {{}});
-        if (oldCodes.containsKey(networkCode))
-        {
-            return this.networkCodeToId((String) ((oldCodes == null || networkCode == null ? null : oldCodes.get(networkCode))), currencyCode);
         }
         return networkCode;
     }
@@ -8053,25 +7966,9 @@ public Object describe()
             return null;
         }
         Map<String, Object> networkCodesByIds = (Map<String, Object>) this.safeDict(this.options, "networksById", new HashMap<String, Object>() {{}});
-        String networkCode = this.safeString(networkCodesByIds, networkId, networkId);
-        Object chainPair = this.prioritizedNetworkAliases(networkCode, currencyCode, true);
-        if (java.util.Objects.equals(chainPair, null))
-        {
-            return (String) (networkCode);
-        }
-        Object preferredChain = (chainPair == null || 0 >= ((List<?>)chainPair).size() ? null : ((List<?>)chainPair).get(0));
-        Object alternativeChain = (chainPair == null || 1 >= ((List<?>)chainPair).size() ? null : ((List<?>)chainPair).get(1));
-        // when the exchange explicitly defines both forms in options.networks (e.g. BTC + BRC20),
-        // it disambiguates them — trust the direct id→code inversion instead of guessing
-        if (java.util.Objects.equals(currencyCode, null))
-        {
-            Map<String, Object> networkIdsByCodes = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
-            if ((networkIdsByCodes.containsKey(preferredChain)) && (networkIdsByCodes.containsKey(alternativeChain)))
-            {
-                return (String) (networkCode);
-            }
-        }
-        return (String) (preferredChain);
+        String mappedCode = this.safeString(networkCodesByIds, networkId);
+        String networkCode = (((java.util.Objects.equals(mappedCode, null)))) ? networkId : mappedCode;
+        return (String) (this.safeString(this.networkAliases, networkCode, networkCode));
     }
 
     public Object handleNetworkCodeAndParams(Map<String, Object> parameters)
@@ -8080,36 +7977,6 @@ public Object describe()
         Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(networkCodeInParams, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("networkCode", "network"))) : parameters;
         // if it was not defined by user, we should not set it from 'defaultNetworks', because handleNetworkCodeAndParams is for only request-side and thus we do not fill it with anything. We can only use 'defaultNetworks' after parsing response-side
         return new ArrayList<Object>(Arrays.asList(networkCodeInParams, paramsOmitted));
-    }
-
-    public Object defaultNetworkCode(Object currencyCode)
-    {
-        Object defaultNetworkCode = null;
-        Map<String, Object> defaultNetworks = (Map<String, Object>) this.safeDict(this.options, "defaultNetworks", new HashMap<String, Object>() {{}});
-        if (defaultNetworks.containsKey(currencyCode))
-        {
-            // if currency had set its network in "defaultNetworks", use it
-            defaultNetworkCode = (defaultNetworks == null || currencyCode == null ? null : defaultNetworks.get(currencyCode));
-        } else
-        {
-            // otherwise, try to use the global-scope 'defaultNetwork' value (even if that network is not supported by currency, it doesn't make any problem, this will be just used "at first" if currency supports this network at all)
-            String defaultNetwork = this.safeString(this.options, "defaultNetwork");
-            if (!java.util.Objects.equals(defaultNetwork, null))
-            {
-                defaultNetworkCode = defaultNetwork;
-            }
-        }
-        return defaultNetworkCode;
-    }
-
-    public Object selectNetworkCodeFromUnifiedNetworks(Object currencyCode, Object networkCode, Object indexedNetworkEntries)
-    {
-        return this.selectNetworkKeyFromNetworks(currencyCode, (String) (networkCode), indexedNetworkEntries, true);
-    }
-
-    public Object selectNetworkIdFromRawNetworks(Object currencyCode, Object networkCode, Object indexedNetworkEntries)
-    {
-        return this.selectNetworkKeyFromNetworks(currencyCode, (String) (networkCode), indexedNetworkEntries, false);
     }
 
     public Object selectNetworkKeyFromNetworks(Object currencyCode, String networkCode, Object indexedNetworkEntries, Boolean isIndexedByUnifiedNetworkCode)
@@ -8147,8 +8014,8 @@ public Object describe()
             } else
             {
                 // if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
-                Object defaultNetworkCode = this.defaultNetworkCode(currencyCode);
-                Object defaultNetworkId = ((java.util.Objects.requireNonNullElse(isIndexedByUnifiedNetworkCode, false))) ? defaultNetworkCode : this.networkCodeToId((String) (defaultNetworkCode), Helpers.toStringArg(currencyCode));
+                String defaultNetworkCode = this.safeString(this.safeDict(this.options, "defaultNetworks", new HashMap<String, Object>() {{}}), currencyCode, this.safeString(this.options, "defaultNetwork"));
+                Object defaultNetworkId = ((java.util.Objects.requireNonNullElse(isIndexedByUnifiedNetworkCode, false))) ? defaultNetworkCode : this.networkCodeToId(defaultNetworkCode, Helpers.toStringArg(currencyCode));
                 if (java.util.Objects.equals(defaultNetworkId, null))
                 {
                     throw new ExchangeError((this.id + " selectNetworkKeyFromNetworks() missing defaultNetworkId")) ;
@@ -8542,29 +8409,6 @@ public Object describe()
         Object value = this.safeBool2(parameters, paramName1, paramName2, defaultValue);
         Object paramsOmitted = (((!java.util.Objects.equals(value, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList(paramName1, paramName2))) : parameters;
         return new ArrayList<Object>(Arrays.asList(value, paramsOmitted));
-    }
-
-    /**
-     * @param {object} params - extra parameters
-     * @param {object} request - existing dictionary of request
-     * @param {string} exchangeSpecificKey - the key for chain id to be set in request
-     * @param {object} currencyCode - (optional) existing dictionary of request
-     * @param {boolean} isRequired - (optional) whether that param is required to be present
-     * @returns {object[]} - returns [request, params] where request is the modified request object and params is the modified params object
-     */
-    public Object handleRequestNetwork(Map<String, Object> parameters, Map<String, Object> request, Object exchangeSpecificKey, String currencyCode, Boolean isRequired)
-    {
-        List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
-        String networkCode = (String) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(0);
-        Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
-        if (!java.util.Objects.equals(networkCode, null))
-        {
-            Helpers.addElementToObject(request, exchangeSpecificKey, this.networkCodeToId(networkCode, currencyCode));
-        } else if (java.util.Objects.requireNonNullElse(isRequired, false))
-        {
-            throw new ArgumentsRequired((this.id + " - \"network\" param is required for this request")) ;
-        }
-        return new ArrayList<Object>(Arrays.asList(request, paramsNetworkCode));
     }
 
     public Object resolvePath(Object path, Object parameters)

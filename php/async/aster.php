@@ -4326,6 +4326,9 @@ class aster extends Exchange {
         // TODO: check how ARBI signature would work
         $networks = $this->safe_dict($this->options, 'networks', array());
         $network = $this->safe_string_upper($paramsWithdrawTag, 'network');
+        if ($network !== null) {
+            $network = $this->safe_string($this->networkAliases, $network, $network); // accepts aliases like ETH for ERC20
+        }
         $network = $this->safe_string($networks, $network, $network);
         if (($chainId === null) && ($network !== null)) {
             $chainIds = $this->safe_dict($this->options, 'networksToChainId', array());

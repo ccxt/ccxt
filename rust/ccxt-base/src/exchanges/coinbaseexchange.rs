@@ -1011,7 +1011,7 @@ impl CoinbaseexchangeCore {
         m.insert("networks".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("BTC".to_string(), Value::Str("bitcoin".into()));
-        m.insert("ETH".to_string(), Value::Str("ethereum".into()));
+        m.insert("ERC20".to_string(), Value::Str("ethereum".into()));
         m.insert("SOL".to_string(), Value::Str("solana".into()));
         m.insert("ARBITRUM".to_string(), Value::Str("arbitrum".into()));
         m.insert("AVAXC".to_string(), Value::Str("avacchain".into()));

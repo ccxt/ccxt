@@ -2048,7 +2048,7 @@ class extended extends extended$1["default"] {
             };
         }
         const transactionType = this.parseTransactionType(this.safeString(transaction, 'type'));
-        const network = this.safeString(transaction, 'chain');
+        const network = this.networkIdToCode(this.safeString(transaction, 'chain'));
         return {
             'info': transaction,
             'id': this.safeString(transaction, 'id'),

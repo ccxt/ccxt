@@ -1762,9 +1762,7 @@ public class Kucoin extends KucoinApi
                     put( "BTC", "btc" );
                     put( "BRC20", "btc" );
                     put( "BTCNATIVESEGWIT", "bech32" );
-                    put( "ETH", "eth" );
                     put( "ERC20", "eth" );
-                    put( "TRX", "trx" );
                     put( "TRC20", "trx" );
                     put( "HECO", "heco" );
                     put( "HRC20", "heco" );
@@ -4419,7 +4417,7 @@ public class Kucoin extends KucoinApi
                 HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
                 h2kMap1.put("info", response);
                 h2kMap1.put("currency", currencyId);
-                h2kMap1.put("network", this.safeString(data, "chain"));
+                h2kMap1.put("network", this.networkIdToCode(this.safeString(data, "chain"), code));
                 h2kMap1.put("address", address);
                 h2kMap1.put("tag", this.safeString(data, "memo"));
                 return h2kMap1;

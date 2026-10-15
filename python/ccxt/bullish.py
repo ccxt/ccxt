@@ -2329,7 +2329,7 @@ class bullish(Exchange, ImplicitAPI):
             # some currencies have multiple networks
             if network is None:
                 # use default network if not specified and multiple are available
-                network = self.default_network_code(code)
+                network = self.safe_string(self.safe_dict(self.options, 'defaultNetworks', {}), code, self.safe_string(self.options, 'defaultNetwork'))
             if network is not None:
                 # find the entry that matches the network or return first entry if not found and user did not specify a network
                 for i in range(0, len(safeResponse)):
