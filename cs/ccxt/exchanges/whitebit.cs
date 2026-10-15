@@ -3740,7 +3740,7 @@ public partial class whitebit : Exchange
             { "txid", this.safeString(transaction, "transactionId") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "network", this.safeString(transaction, "network") },
+            { "network", this.networkIdToCode(this.safeString(transaction, "network"), this.safeCurrencyCode(currencyId, currencyResolved)) },
             { "addressFrom", (method == "1") ? address : null },
             { "address", address },
             { "addressTo", (method == "2") ? address : null },
@@ -4880,16 +4880,16 @@ public partial class whitebit : Exchange
         return ((Int64)((object)((this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0))))!);
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object query = this.omit(parameters, this.extractParams(path));
         object version = this.safeValue(api, 0);
         string? accessibility = this.safeString(api, 1);
-        object publicHeaders = ((headers == null)) ? new Dictionary<string, object>() {} : headers;
-        ((IDictionary<string,object>)publicHeaders)["User-Agent"] = ((("ccxt/" + this.id) + "-") + this.version);
+        Dictionary<string, object> publicHeaders = new Dictionary<string, object>() {};
+        publicHeaders["User-Agent"] = ((("ccxt/" + this.id) + "-") + this.version);
         string pathWithParams = ("/" + this.implodeParams(path, parameters));
         string? apiUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), version), accessibility);
         if ((apiUrl == null))
@@ -4931,12 +4931,12 @@ public partial class whitebit : Exchange
             };
         }
         bool isPrivate = (accessibility == "private");
-        object requestBody = body;
+        string? requestBody = null;
         if (isPrivate)
         {
             requestBody = privateBody;
         }
-        object requestHeaders = publicHeaders;
+        Dictionary<string, object> requestHeaders = publicHeaders;
         if (isPrivate)
         {
             requestHeaders = privateHeaders;

@@ -279,7 +279,7 @@ impl KrakenfuturesCore {
     m
 }));
         m.insert("www".to_string(), Value::Str("https://futures.kraken.com/".into()));
-        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://docs.kraken.com/api/docs/futures-api/trading/market-data/".into())]));
+        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://docs.kraken.com/exchange/guides/futures/rest".into())]));
         m.insert("fees".to_string(), Value::Str("https://support.kraken.com/hc/en-us/articles/360022835771-Transaction-fees-and-rebates-for-Kraken-Futures".into()));
         m.insert("referral".to_string(), Value::Null);
     m
@@ -1338,8 +1338,8 @@ impl KrakenfuturesCore {
  * @method
  * @name krakenfutures#fetchTradingFees
  * @description fetch the trading fees for multiple markets, resolving the account's 30-day usd volume tier when API credentials are set
- * @see https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules
- * @see https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules-volumes
+ * @see https://docs.kraken.com/api-reference/fee-schedules/get-fee-schedules
+ * @see https://docs.kraken.com/api-reference/fee-schedules/get-fee-schedule-volumes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
@@ -1476,7 +1476,7 @@ impl KrakenfuturesCore {
 /*
  * @method
  * @name krakenfutures#fetchOHLCV
- * @see https://docs.kraken.com/api/docs/futures-api/charts/candles
+ * @see https://docs.kraken.com/api-reference/candles/market-candles
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
@@ -1568,8 +1568,8 @@ impl KrakenfuturesCore {
 /*
  * @method
  * @name krakenfutures#fetchTrades
- * @see https://docs.kraken.com/api/docs/futures-api/trading/get-history
- * @see https://docs.kraken.com/api/docs/futures-api/history/get-public-execution-events
+ * @see https://docs.kraken.com/api-reference/market-data/get-trade-history
+ * @see https://docs.kraken.com/api-reference/market-history/get-public-execution-events
  * @description Fetch a history of filled trades that this account has made
  * @param {string} symbol Unified CCXT market symbol
  * @param {int} [since] Timestamp in ms of earliest trade. Not used by krakenfutures except in combination with params.until
@@ -2419,7 +2419,7 @@ impl KrakenfuturesCore {
  * @method
  * @name krakenfutures#cancelAllOrdersAfter
  * @description dead man's switch, cancel all orders after the given timeout
- * @see https://docs.kraken.com/api/docs/futures-api/trading/cancel-all-orders-after
+ * @see https://docs.kraken.com/api-reference/order-management/dead-mans-switch
  * @param {number} timeout time in milliseconds, 0 represents cancel the timer
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the api result
@@ -3707,7 +3707,7 @@ impl KrakenfuturesCore {
 /*
  * @method
  * @name krakenfutures#fetchBalance
- * @see https://docs.kraken.com/api/docs/futures-api/trading/get-accounts
+ * @see https://docs.kraken.com/api-reference/account-information/get-wallets
  * @description Fetch the balance for a sub-account, all sub-account balances are inside 'info' in the response
  * @param {object} [params] Exchange specific parameters
  * @param {string} [params.type] The sub-account type to query the balance of, possible values include 'flex', 'cash'/'main'/'funding', or a market symbol * defaults to 'flex' *
@@ -4893,15 +4893,16 @@ impl KrakenfuturesCore {
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut apiVersions: Value = self.safe_dict(self.options.as_map().and_then(|__m| __m.get("versions")).cloned().unwrap_or(Value::Null), api.clone(), &[Value::Map({
+        let __api_empty = Vec::new();
+        let api = api.as_array().unwrap_or(&__api_empty);
+        let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
+        let mut apiVersions: Value = self.safe_dict(self.options.as_map().and_then(|__m| __m.get("versions")).cloned().unwrap_or(Value::Null), apiName.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -4912,7 +4913,7 @@ impl KrakenfuturesCore {
         let mut defaultVersion: Value = self.safe_string(methodVersions, path.clone(), &[self.version.clone()]);
         let mut version: Value = self.safe_string_k(params.clone(), "version", &[defaultVersion]);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("version".into()), &[]);
-        let mut apiAccess: Value = self.safe_dict(self.options.as_map().and_then(|__m| __m.get("access")).cloned().unwrap_or(Value::Null), api.clone(), &[Value::Map({
+        let mut apiAccess: Value = self.safe_dict(self.options.as_map().and_then(|__m| __m.get("access")).cloned().unwrap_or(Value::Null), apiName.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -4935,18 +4936,18 @@ impl KrakenfuturesCore {
             }
             query = Value::Str(format!("{}{}", query, Value::Str(format!("{}{}", Value::Str("?".into()), postData).into())).into());
         }
-        let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), api.clone(), &[]);
+        let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone(), &[]);
         if (apiUrl == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
         let mut url: Value = Value::Str(format!("{}{}", apiUrl, query).into());
-        let mut requestBody: Value = (if (path.as_str() == Some("batchorder")) { postData.clone() } else { body });
+        let mut requestBody: Value = (if (path.as_str() == Some("batchorder")) { postData.clone() } else { Value::Null });
         let mut privateHeaders: Value = Value::Null;
-        if (api.as_str() == Some("private")) || (access.as_deref() == Some("private")) {
+        if (apiName.as_str() == Some("private")) || (access.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut auth: Value = Value::Str(format!("{}{}", postData, Value::Str("/api/".into())).into());
-            if (api.as_str() != Some("private")) {
-                auth = Value::Str(format!("{}{}", auth, Value::Str(format!("{}{}", api, Value::Str("/".into())).into())).into());
+            if (apiName.as_str() != Some("private")) {
+                auth = Value::Str(format!("{}{}", auth, Value::Str(format!("{}{}", apiName, Value::Str("/".into())).into())).into());
             }
             auth = Value::Str(format!("{}{}", auth, endpoint).into()); // 1
             let mut hash: Value = self.hash(self.encode(auth), Value::Str("sha256".into()), &[Value::Str("binary".into())]); // 2
@@ -4961,7 +4962,7 @@ impl KrakenfuturesCore {
                 m
             });
         }
-        let mut requestHeaders: Value = (if (privateHeaders != Value::Null) { privateHeaders } else { headers });
+        let mut requestHeaders: Value = privateHeaders;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);

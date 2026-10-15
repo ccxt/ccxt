@@ -2638,13 +2638,11 @@ class kalshi extends kalshi$1["default"] {
      * @param {string|string[]} [api] the api group and access level
      * @param {string} [method] HTTP method
      * @param {object} [params] request parameters
-     * @param {object} [headers] request headers
-     * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    sign(path, api = 'kalshi', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const apiGroup = typeof api === 'string' ? api : api[0];
-        const access = typeof api === 'string' ? 'public' : api[1];
+    sign(path, api = ['kalshi'], method = 'GET', params = {}) {
+        const apiGroup = api[0];
+        const access = this.safeString(api, 1, 'public');
         const baseUrls = this.urls['api'];
         const baseUrl = this.safeString(baseUrls, apiGroup, baseUrls['kalshi']);
         const implodedPath = this.implodeParams(path, params);
@@ -2654,12 +2652,12 @@ class kalshi extends kalshi$1["default"] {
         if (method === 'GET' && (querystring !== '')) {
             url += '?' + querystring;
         }
-        const existingHeaders = (headers !== undefined) ? headers : {};
+        const existingHeaders = {};
         let headersValue = this.extend({
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         }, existingHeaders);
-        let bodyValue = body;
+        let bodyValue = undefined;
         if (access === 'private') {
             this.checkRequiredCredentials();
             const timestamp = this.milliseconds().toString();

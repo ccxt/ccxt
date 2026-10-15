@@ -691,7 +691,7 @@ class bingx(Exchange, ImplicitAPI):
                 'recvWindow': 5 * 1000,  # 5 sec
                 'broker': 'CCXT',
                 'defaultNetworks': {
-                    'ETH': 'ETH',
+                    'ETH': 'ERC20',
                     'USDT': 'ERC20',
                     'USDC': 'ERC20',
                     'BTC': 'BTC',
@@ -5282,7 +5282,7 @@ class bingx(Exchange, ImplicitAPI):
         # the 0x prefix on the evm networks, see https://github.com/ccxt/ccxt/issues/24331
         if address is not None:
             isPrefixed = address.startswith('0x') or address.startswith('0X')
-            evmNetworks = ['BEP20', 'BSC', 'ERC20', 'ETH', 'HECO', 'MATIC', 'POLYGON', 'ARBITRUM', 'ARB', 'OPTIMISM', 'AVAXC', 'BASE', 'FTM', 'LINEA', 'ZKSYNC', 'OPBNB']
+            evmNetworks = ['BEP20', 'ERC20', 'HECO', 'MATIC', 'POLYGON', 'ARBITRUM', 'OPTIMISM', 'AVAXC', 'BASE', 'FTM', 'LINEA', 'ZKSYNC', 'OPBNB']
             if not isPrefixed and self.in_array(networkCode, evmNetworks):
                 address = '0x' + address
         self.check_address(address)
@@ -6771,7 +6771,7 @@ class bingx(Exchange, ImplicitAPI):
             })
         return tiers
 
-    def sign(self, path: str, section='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, section: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         type = section[0]
         version = section[1]
         access = section[2]
@@ -6827,8 +6827,8 @@ class bingx(Exchange, ImplicitAPI):
             else:
                 query = self.urlencode(parsedParams, True)
                 url += '?' + query + '&' + 'signature=' + signature
-        bodyResult = requestBody if (requestBody is not None) else body
-        headersResult = requestHeaders if (requestHeaders is not None) else headers
+        bodyResult = requestBody
+        headersResult = requestHeaders
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
 
     def nonce(self) -> float:

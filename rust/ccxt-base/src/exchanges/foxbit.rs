@@ -491,7 +491,7 @@ impl FoxbitCore {
         m.insert("cardano".to_string(), Value::Str("ADA".into()));
         m.insert("cosmos".to_string(), Value::Str("ATOM".into()));
         m.insert("dogecoin".to_string(), Value::Str("DOGE".into()));
-        m.insert("erc20".to_string(), Value::Str("ETH".into()));
+        m.insert("erc20".to_string(), Value::Str("ERC20".into()));
         m.insert("hedera".to_string(), Value::Str("HBAR".into()));
         m.insert("litecoin".to_string(), Value::Str("LTC".into()));
         m.insert("near".to_string(), Value::Str("NEAR".into()));
@@ -517,7 +517,7 @@ impl FoxbitCore {
         m.insert("ADA".to_string(), Value::Str("cardano".into()));
         m.insert("ATOM".to_string(), Value::Str("cosmos".into()));
         m.insert("DOGE".to_string(), Value::Str("dogecoin".into()));
-        m.insert("ETH".to_string(), Value::Str("erc20".into()));
+        m.insert("ERC20".to_string(), Value::Str("erc20".into()));
         m.insert("HBAR".to_string(), Value::Str("hedera".into()));
         m.insert("LTC".to_string(), Value::Str("litecoin".into()));
         m.insert("NEAR".to_string(), Value::Str("near".into()));
@@ -2608,7 +2608,7 @@ impl FoxbitCore {
         m.insert("txid".to_string(), self.safe_string_k(cryptoDetails, "transaction_id", &[]));
         m.insert("timestamp".to_string(), timestamp);
         m.insert("datetime".to_string(), datetime);
-        m.insert("network".to_string(), self.safe_string_k(transaction.clone(), "network_code", &[]));
+        m.insert("network".to_string(), self.network_id_to_code(&[self.safe_string_k(transaction.clone(), "network_code", &[]), currencyCode.clone()]));
         m.insert("address".to_string(), address.clone());
         m.insert("addressTo".to_string(), address);
         m.insert("addressFrom".to_string(), Value::Null);
@@ -2718,11 +2718,11 @@ impl FoxbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut version: Value = get_value(&api, &Value::Int(0));
-        let mut urlPath: Value = get_value(&api, &Value::Int(1));
-        let mut fullPath: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("/rest/".into()), &version), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())).into());
+        let __api_empty = Vec::new();
+        let api = api.as_array().unwrap_or(&__api_empty);
+        let mut version: Value = api.get(0).cloned().unwrap_or(Value::Null);
+        let mut urlPath: Value = api.get(1).cloned().unwrap_or(Value::Null);
+        let mut fullPath: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/rest/".into()), version).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())).into());
         if (version.as_str() == Some("status")) {
             fullPath = Value::Str("/status".into());
             urlPath = Value::Str("status".into());
@@ -2758,7 +2758,7 @@ impl FoxbitCore {
             }
             }
         }
-        let mut requestBody: Value = body;
+        let mut requestBody: Value = Value::Null;
         if (method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")) {
             requestBody = json_stringify(&paramsOmitted);
         }

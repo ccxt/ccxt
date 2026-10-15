@@ -1,5 +1,5 @@
 import Exchange from './abstract/bithumb.js';
-import type { Balances, Currency, Dict, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, NullableDict, OrderRequest, DepositAddress } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, OrderRequest, DepositAddress } from './base/types.js';
 /**
  * @class bithumb
  * @augments Exchange
@@ -427,6 +427,6 @@ export default class bithumb extends Exchange {
     fixCommaNumber(numberStr: Str): string | undefined;
     nonce(): number;
     urlencodeWithArrayBrackets(query: Dict): string;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

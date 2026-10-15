@@ -1004,7 +1004,7 @@ func (this *Coinmate) ParseTransaction(transaction any, optionalArgs ...any) map
 		"txid":        this.SafeString(transaction, "txid"),
 		"type":        this.SafeStringLower(transaction, "transferType"),
 		"currency":    code,
-		"network":     this.SafeString(transaction, "walletType"),
+		"network":     this.NetworkIdToCode(this.SafeString(transaction, "walletType"), code),
 		"amount":      this.SafeNumber(transaction, "amount"),
 		"status":      this.ParseTransactionStatus(this.SafeString(transaction, "transferStatus")),
 		"timestamp":   timestamp,
@@ -1838,24 +1838,21 @@ func (this *Coinmate) Nonce() any {
 	return this.Milliseconds()
 }
 func (this *Coinmate) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
-	var bodySigned any = nil
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var bodySigned *string = nil
 	var headersSigned any = nil
 	var apiUrl *string = this.SafeString(this.Urls["api"], "rest")
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *apiUrl + "/" + path
-	if api == "public" {
+	if apiName != nil && *apiName == "public" {
 		if len(ObjectKeys(params)) > 0 {
 			url += "?" + this.Urlencode(params)
 		}
@@ -1865,28 +1862,18 @@ func (this *Coinmate) Sign(path string, optionalArgs ...any) any {
 		var nonce string = ToString(this.IncrementingNonce())
 		var auth *string = SafeStringPtr(Add(Add(nonce, this.Uid), this.ApiKey))
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
-		bodySigned = this.Urlencode(this.Extend(map[string]any{
+		bodySigned = SafeStringPtr(this.Urlencode(this.Extend(map[string]any{
 			"clientId":  this.Uid,
 			"nonce":     nonce,
 			"publicKey": this.ApiKey,
 			"signature": strings.ToUpper(signature),
-		}, params))
+		}, params)))
 		headersSigned = map[string]any{
 			"Content-Type": "application/x-www-form-urlencoded",
 		}
 	}
-	var headersResolved any = func() any {
-		if headersSigned == nil {
-			return headers
-		}
-		return headersSigned
-	}()
-	var bodyResolved any = func() any {
-		if bodySigned == nil {
-			return body
-		}
-		return bodySigned
-	}()
+	var headersResolved any = headersSigned
+	var bodyResolved *string = bodySigned
 	return map[string]any{
 		"url":     url,
 		"method":  method,

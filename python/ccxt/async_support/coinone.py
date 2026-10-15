@@ -1222,25 +1222,26 @@ class coinone(Exchange, ImplicitAPI):
                 result[code] = depositAddress
         return result
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
         request = self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         apiUrl = self.safe_string(self.urls['api'], 'rest')
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + '/'
-        isPublic = (api == 'public') or (api == 'v2Public')
-        if api == 'v2Public':
+        isPublic = (apiName == 'public') or (apiName == 'v2Public')
+        if apiName == 'v2Public':
             apiUrl2 = self.safe_string(self.urls['api'], 'v2Public')
             if apiUrl2 is None:
                 raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
             url = apiUrl2 + '/'
-        elif api == 'v2Private':
+        elif apiName == 'v2Private':
             apiUrl3 = self.safe_string(self.urls['api'], 'v2Private')
             if apiUrl3 is None:
                 raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
             url = apiUrl3 + '/'
-        elif api == 'v2_1Private':
+        elif apiName == 'v2_1Private':
             apiUrl4 = self.safe_string(self.urls['api'], 'v2_1Private')
             if apiUrl4 is None:
                 raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
@@ -1256,7 +1257,7 @@ class coinone(Exchange, ImplicitAPI):
             url += request
             # the v2.1 api requires a uuid nonce, the older apis use a numeric one
             nonce = None
-            if api == 'v2_1Private':
+            if apiName == 'v2_1Private':
                 nonce = self.uuid()
             else:
                 nonce = str(self.nonce())
@@ -1273,8 +1274,8 @@ class coinone(Exchange, ImplicitAPI):
                 'X-COINONE-PAYLOAD': payload,
                 'X-COINONE-SIGNATURE': signature,
             }
-        bodyResolved = body if (requestBody is None) else requestBody
-        headersResolved = headers if (requestHeaders is None) else requestHeaders
+        bodyResolved = requestBody
+        headersResolved = requestHeaders
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

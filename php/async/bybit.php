@@ -1226,11 +1226,8 @@ class bybit extends Exchange {
                 'networks' => array(
                     'BTC' => 'BTC',
                     'BRC20' => 'BTC',
-                    'ETH' => 'ETH',
                     'ERC20' => 'ETH',
-                    'TRX' => 'TRX',
                     'TRC20' => 'TRX',
-                    'BSC' => 'BSC',
                     'BEP20' => 'BSC',
                     'SOL' => 'SOL',
                     'ACA' => 'ACA',
@@ -1297,6 +1294,7 @@ class bybit extends Exchange {
                     // 'LUNA1': 'LUNA' (Terra)
                 ),
                 'networksById' => array(
+                    'BTC' => 'BTC', // BTC and BRC20 share the id 'BTC', the native chain wins
                     'ETH' => 'ERC20',
                     'TRX' => 'TRC20',
                     'BSC' => 'BEP20',
@@ -6237,7 +6235,7 @@ class bybit extends Exchange {
         $currency = $this->currency($code);
         list($networkCode, $paramsOmited) = $this->handle_network_code_and_params($params);
         $indexedAddresses = Async\await($this->fetch_deposit_addresses_by_network($code, $paramsOmited));
-        $selectedNetworkCode = $this->select_network_code_from_unified_networks($currency['code'], $networkCode, $indexedAddresses);
+        $selectedNetworkCode = $this->select_network_key_from_networks($currency['code'], $networkCode, $indexedAddresses, true);
         return $this->safe_value($indexedAddresses, $selectedNetworkCode);
     }
 
@@ -10373,19 +10371,20 @@ class bybit extends Exchange {
         return $this->safe_string($marginModes, $marginMode, $marginMode);
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $requestBody = null;
         $requestHeaders = null;
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $this->implode_hostname($apiUrl) . '/' . $path;
-        if ($api === 'public') {
+        if ($apiName === 'public') {
             if (count($params) > 0) {
                 $url .= '?' . $this->rawencode($params);
             }
-        } elseif ($api === 'private') {
+        } elseif ($apiName === 'private') {
             $this->check_required_credentials();
             $isOpenapi = mb_strpos($url, 'openapi') !== false;
             $isV3UnifiedMargin = mb_strpos($url, 'unified/v3') !== false;
@@ -10474,12 +10473,12 @@ class bybit extends Exchange {
         }
         if ($method === 'POST') {
             $brokerId = $this->safe_string($this->options, 'brokerId', 'CCXT');
-            $headersBase = ($requestHeaders === null) ? $headers : $requestHeaders;
+            $headersBase = $requestHeaders;
             $requestHeaders = ($headersBase === null) ? array() : $headersBase;
             $requestHeaders['Referer'] = $brokerId;
         }
-        $bodyResolved = ($requestBody === null) ? $body : $requestBody;
-        $headersResolved = ($requestHeaders === null) ? $headers : $requestHeaders;
+        $bodyResolved = $requestBody;
+        $headersResolved = $requestHeaders;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 

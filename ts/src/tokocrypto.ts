@@ -265,7 +265,7 @@ export default class tokocrypto extends Exchange {
                 'reverseNetworks': {
                     'tronscan.org': 'TRC20',
                     'etherscan.io': 'ERC20',
-                    'bscscan.com': 'BSC',
+                    'bscscan.com': 'BEP20',
                     'explorer.binance.org': 'BEP2',
                     'bithomp.com': 'XRP',
                     'bloks.io': 'EOS',
@@ -2354,7 +2354,7 @@ export default class tokocrypto extends Exchange {
         return {
             'info': response,
             'currency': code,
-            'network': this.safeString (data, 'network'),
+            'network': this.networkIdToCode (this.safeString (data, 'network'), code),
             'address': address,
             'tag': tag,
         } as DepositAddress;
@@ -2602,7 +2602,7 @@ export default class tokocrypto extends Exchange {
             'txid': txid,
             'type': type,
             'currency': code,
-            'network': this.safeString (transaction, 'network'),
+            'network': this.networkIdToCode (this.safeString (transaction, 'network'), code),
             'amount': this.safeNumber (transaction, 'amount'),
             'status': this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type),
             'timestamp': timestamp,
@@ -2669,17 +2669,18 @@ export default class tokocrypto extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    override sign (path: string, api = 'public', method: any = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        if (!(api in this.urls['api']['rest'])) {
-            throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
+    override sign (path: string, api: string[] = [ 'public' ], method: any = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
+        if (!(apiName in this.urls['api']['rest'])) {
+            throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + apiName + ' endpoints');
         }
-        const baseApiUrl = this.safeString (this.urls['api']['rest'], api);
+        const baseApiUrl = this.safeString (this.urls['api']['rest'], apiName);
         if (baseApiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
         let url: string = baseApiUrl;
         url += '/' + path;
-        if (api === 'wapi') {
+        if (apiName === 'wapi') {
             url += '.html';
         }
         const userDataStream = (path === 'userDataStream') || (path === 'listenKey');
@@ -2690,12 +2691,12 @@ export default class tokocrypto extends Exchange {
                     'X-MBX-APIKEY': this.apiKey,
                     'Content-Type': 'application/x-www-form-urlencoded',
                 };
-                const bodyStream = (method !== 'GET') ? this.urlencode (params) : body;
+                const bodyStream = (method !== 'GET') ? this.urlencode (params) : undefined;
                 return { 'url': url, 'method': method, 'body': bodyStream, 'headers': headersStream };
             } else {
                 throw new AuthenticationError (this.id + ' userDataStream endpoint requires `apiKey` credential');
             }
-        } else if ((api === 'private') || (api === 'sapi' && path !== 'system/status') || (api === 'sapiV3') || (api === 'wapi' && path !== 'systemStatus') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2')) {
+        } else if ((apiName === 'private') || (apiName === 'sapi' && path !== 'system/status') || (apiName === 'sapiV3') || (apiName === 'wapi' && path !== 'systemStatus') || (apiName === 'dapiPrivate') || (apiName === 'dapiPrivateV2') || (apiName === 'fapiPrivate') || (apiName === 'fapiPrivateV2')) {
             this.checkRequiredCredentials ();
             let query: Str = undefined;
             const defaultRecvWindow = this.safeInteger (this.options, 'recvWindow');
@@ -2709,7 +2710,7 @@ export default class tokocrypto extends Exchange {
             if (recvWindow !== undefined) {
                 extendedParams['recvWindow'] = recvWindow;
             }
-            if ((api === 'sapi') && (path === 'asset/dust')) {
+            if ((apiName === 'sapi') && (path === 'asset/dust')) {
                 query = this.urlencodeWithArrayRepeat (extendedParams);
             } else if ((path === 'batchOrders') || (path.indexOf ('sub-account') >= 0) || (path === 'capital/withdraw/apply') || (path.indexOf ('staking') >= 0)) {
                 query = this.rawencode (extendedParams);
@@ -2721,10 +2722,10 @@ export default class tokocrypto extends Exchange {
             const headersSigned: NullableDict = {
                 'X-MBX-APIKEY': this.apiKey,
             };
-            const queryInUrl = (method === 'GET') || (method === 'DELETE') || (api === 'wapi');
+            const queryInUrl = (method === 'GET') || (method === 'DELETE') || (apiName === 'wapi');
             let bodySigned: Str = query;
             if (queryInUrl) {
-                bodySigned = body;
+                bodySigned = undefined;
             }
             if (queryInUrl) {
                 url += '?' + query;
@@ -2737,7 +2738,7 @@ export default class tokocrypto extends Exchange {
                 url += '?' + this.urlencode (params);
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
@@ -2814,7 +2815,7 @@ export default class tokocrypto extends Exchange {
         return undefined;
     }
 
-    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config: Dict = {}) {
+    override calculateRateLimiterCost (api: string[], method: any, path: any, params: any, config: Dict = {}) {
         if (('noCoin' in config) && !('coin' in params)) {
             return config['noCoin'];
         } else if (('noSymbol' in config) && !('symbol' in params)) {

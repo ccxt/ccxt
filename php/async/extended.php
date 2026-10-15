@@ -2180,7 +2180,7 @@ class extended extends Exchange {
             );
         }
         $transactionType = $this->parse_transaction_type($this->safe_string($transaction, 'type'));
-        $network = $this->safe_string($transaction, 'chain');
+        $network = $this->network_id_to_code($this->safe_string($transaction, 'chain'));
         return array(
             'info' => $transaction,
             'id' => $this->safe_string($transaction, 'id'),
@@ -3755,9 +3755,9 @@ class extended extends Exchange {
         return null;
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $requestHeaders = $headers;
-        $requestBody = $body;
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $requestHeaders = null;
+        $requestBody = null;
         $version = $this->safe_string($api, 0);
         $accessibility = $this->safe_string($api, 1);
         $endpoint = '/' . $this->implode_params($path, $params);

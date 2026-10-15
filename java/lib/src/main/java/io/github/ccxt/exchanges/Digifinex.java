@@ -629,16 +629,13 @@ public class Digifinex extends DigifinexApi
                     put( "AVALANCEC", "AVAX-CCHAIN" );
                     put( "AVALANCEX", "AVAX-XCHAIN" );
                     put( "BEP20", "BEP20" );
-                    put( "BSC", "BEP20" );
                     put( "CARDANO", "Cardano" );
                     put( "CELO", "Celo" );
                     put( "CHILIZ", "Chiliz" );
                     put( "COSMOS", "COSMOS" );
                     put( "CRC20", "Crypto.com" );
-                    put( "CRONOS", "Crypto.com" );
                     put( "DOGECOIN", "DogeChain" );
                     put( "ERC20", "ERC20" );
-                    put( "ETH", "ERC20" );
                     put( "ETHW", "ETHW" );
                     put( "IOTA", "MIOTA" );
                     put( "KLAYTN", "KLAY" );
@@ -655,7 +652,6 @@ public class Digifinex extends DigifinexApi
                     put( "TERRA", "Terra" );
                     put( "TON", "Ton" );
                     put( "TRC20", "TRC20" );
-                    put( "TRX", "TRC20" );
                     put( "VECHAIN", "Vechain" );
                 }} );
                 put( "networksById", new HashMap<String, Object>() {{
@@ -666,7 +662,7 @@ public class Digifinex extends DigifinexApi
                     put( "ERC20", "ERC20" );
                     put( "ETH", "ERC20" );
                     put( "Polygon", "POLYGON" );
-                    put( "Crypto.com", "CRONOS" );
+                    put( "Crypto.com", "CRC20" );
                 }} );
             }} );
             put( "commonCurrencies", new HashMap<String, Object>() {{
@@ -3850,7 +3846,7 @@ public class Digifinex extends DigifinexApi
                 "cost", feeCost
             );
         }
-        String network = this.safeString(transaction, "chain");
+        String network = this.networkIdToCode(this.safeString(transaction, "chain"), code);
         {
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
             h2kMap1.put("info", transaction);
@@ -5584,7 +5580,7 @@ public class Digifinex extends DigifinexApi
 
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Boolean signed = java.util.Objects.equals(this.safeString(api, 0), "private");
         String endpoint = this.safeString(api, 1);
@@ -5642,7 +5638,7 @@ public class Digifinex extends DigifinexApi
                 }
             }
             Boolean hasPostBody = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")) && (!java.util.Objects.equals(urlencoded, null)) && (!java.util.Objects.equals(urlencoded, ""));
-            Object requestBody = body;
+            Object requestBody = null;
             if (Boolean.TRUE.equals(hasPostBody))
             {
                 requestBody = urlencoded;
@@ -5670,8 +5666,8 @@ public class Digifinex extends DigifinexApi
             HashMap<String, Object> h2kMap5 = new HashMap<String, Object>();
             h2kMap5.put("url", url);
             h2kMap5.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap5.put("body", body);
-            h2kMap5.put("headers", headers);
+            h2kMap5.put("body", null);
+            h2kMap5.put("headers", null);
             return h2kMap5;
         }
     }

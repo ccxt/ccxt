@@ -1515,12 +1515,13 @@ public class Bitflyer extends BitflyerApi
         }};
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String bodySigned = null;
         Map<String, Object> headersSigned = null;
         String request = (("/" + this.version) + "/");
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        if (java.util.Objects.equals(apiName, "private"))
         {
             request = (request + "me/");
         }
@@ -1539,7 +1540,7 @@ public class Bitflyer extends BitflyerApi
         }
         String baseUrl = (String) this.implodeHostname(apiUrl);
         String url = (baseUrl + request);
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
             String nonce = String.valueOf(this.nonce());
@@ -1560,8 +1561,8 @@ public class Bitflyer extends BitflyerApi
                 "Content-Type", "application/json"
             );
         }
-        Object headersResolved = (((java.util.Objects.equals(headersSigned, null)))) ? headers : headersSigned;
-        String bodyResolved = (((java.util.Objects.equals(bodySigned, null)))) ? body : bodySigned;
+        Map<String, Object> headersResolved = headersSigned;
+        String bodyResolved = bodySigned;
         {
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
             h2kMap1.put("url", url);

@@ -1925,7 +1925,7 @@ class zebpay extends Exchange {
         );
     }
 
-    public function sign(string $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $bodySigned = null;
         $headersSigned = null;
         $paramsOmitted = $this->omit($params, 'defaultType');
@@ -1984,8 +1984,8 @@ class zebpay extends Exchange {
             );
             $headersSigned['Content-Type'] = 'application/json';
         }
-        $headersResolved = ($headersSigned === null) ? $headers : $headersSigned;
-        $bodyResolved = ($bodySigned === null) ? $body : $bodySigned;
+        $headersResolved = $headersSigned;
+        $bodyResolved = $bodySigned;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 

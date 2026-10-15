@@ -303,7 +303,7 @@ class independentreserve extends independentreserve$1["default"] {
                 },
                 'networks': {
                     'BTC': 'Bitcoin',
-                    'ETH': 'Ethereum',
+                    'ERC20': 'Ethereum',
                     'BCH': 'BitcoinCash',
                     'LTC': 'Litecoin',
                     'XRP': 'XrpLedger',
@@ -315,7 +315,7 @@ class independentreserve extends independentreserve$1["default"] {
                     'DOT': 'Polkadot',
                     'ADA': 'Cardano',
                     'SOL': 'Solana',
-                    'TRX': 'Tron',
+                    'TRC20': 'Tron',
                 },
             },
         });
@@ -1142,13 +1142,14 @@ class independentreserve extends independentreserve$1["default"] {
         // the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
         return this.milliseconds();
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const apiUrl = this.safeString(this.urls['api'], api);
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         let url = apiUrl + '/' + path;
-        if (api === 'public') {
+        if (apiName === 'public') {
             if (Object.keys(params).length > 0) {
                 url += '?' + this.urlencode(params);
             }
@@ -1182,7 +1183,7 @@ class independentreserve extends independentreserve$1["default"] {
             const signedHeaders = { 'Content-Type': 'application/json' };
             return { 'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 }
 

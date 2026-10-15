@@ -364,9 +364,7 @@ public class Hollaex extends HollaexApi
                 put( "api-expires", Hollaex.this.parseToInt(Helpers.divide(Hollaex.this.timeout, 1000)) );
                 put( "networks", new HashMap<String, Object>() {{
                     put( "BTC", "btc" );
-                    put( "ETH", "eth" );
                     put( "ERC20", "eth" );
-                    put( "TRX", "trx" );
                     put( "TRC20", "trx" );
                     put( "XRP", "xrp" );
                     put( "XLM", "xlm" );
@@ -1774,12 +1772,12 @@ public class Hollaex extends HollaexApi
         this.checkAddress(address, (String) null, (String) null);
         String currencyId = this.safeString(depositAddress, "currency");
         Map<String, Object> currencyResolved = this.safeCurrency(currencyId, currency);
-        String network = this.safeString(depositAddress, "network");
+        String networkId = this.safeString(depositAddress, "network");
         {
             HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
             h2kMap0.put("info", depositAddress);
             h2kMap0.put("currency", currencyResolved.get("code"));
-            h2kMap0.put("network", network);
+            h2kMap0.put("network", this.networkIdToCode(networkId, Helpers.toStringArg(currencyResolved.get("code"))));
             h2kMap0.put("address", address);
             h2kMap0.put("tag", tag);
             return h2kMap0;
@@ -1859,7 +1857,7 @@ public class Hollaex extends HollaexApi
                 addresses = wallet;
             } else
             {
-                addresses = this.filterBy(wallet, "network", network);
+                addresses = this.filterBy(wallet, "network", this.networkCodeToId(network, (String) null));
             }
             return this.parseDepositAddresses(addresses, codes, false, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(DepositAddress::new).collect(Collectors.toList()));
@@ -2356,7 +2354,7 @@ public class Hollaex extends HollaexApi
 
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object query = this.omit(parameters, this.extractParams(path));
         String requestPath = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
@@ -2375,7 +2373,7 @@ public class Hollaex extends HollaexApi
         String url = (apiUrl + requestPath);
         String requestBody = null;
         Map<String, Object> requestHeaders = null;
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        if (java.util.Objects.equals((api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)), "private"))
         {
             this.checkRequiredCredentials(true);
             Long defaultExpires = (Long) this.safeInteger2(this.options, "api-expires", "expires", this.parseToInt(Helpers.divide(this.timeout, 1000)));
@@ -2398,8 +2396,8 @@ public class Hollaex extends HollaexApi
             String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             requestHeaders.put("api-signature", signature);
         }
-        String bodyResult = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
-        Object headersResult = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
+        String bodyResult = requestBody;
+        Map<String, Object> headersResult = requestHeaders;
         {
             HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
             h2kMap2.put("url", url);

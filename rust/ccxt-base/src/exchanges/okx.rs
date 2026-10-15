@@ -3331,15 +3331,11 @@ impl OkxCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("BTC".to_string(), Value::Str("Bitcoin".into()));
         m.insert("BTCLIGHTNING".to_string(), Value::Str("Lightning".into()));
-        m.insert("BSC".to_string(), Value::Str("BSC".into()));
         m.insert("BEP20".to_string(), Value::Str("BSC".into()));
         m.insert("BRC20".to_string(), Value::Str("BRC20".into()));
-        m.insert("ETH".to_string(), Value::Str("ERC20".into()));
         m.insert("ERC20".to_string(), Value::Str("ERC20".into()));
-        m.insert("TRX".to_string(), Value::Str("TRC20".into()));
         m.insert("TRC20".to_string(), Value::Str("TRC20".into()));
         m.insert("CRC20".to_string(), Value::Str("Crypto".into()));
-        m.insert("CRONOS".to_string(), Value::Str("Crypto".into()));
         m.insert("ACA".to_string(), Value::Str("Acala".into()));
         m.insert("ALGO".to_string(), Value::Str("Algorand".into()));
         m.insert("APT".to_string(), Value::Str("Aptos".into()));
@@ -8393,7 +8389,9 @@ impl OkxCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            network = self.safe_string(networks, to_upper(&network), &[network.clone()]); // handle ETH>ERC20 alias
+            let mut networkUpper: Value = to_upper(&network);
+            let mut networkKey: Value = self.safe_string(self.networkAliases.clone(), networkUpper.clone(), &[networkUpper.clone()]);
+            network = self.safe_string(networks, networkKey, &[network.clone()]); // resolve aliases to the unified key
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("chain".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("-".into())).into()), network).into())); }
         }
         let mut omitKeys: Value = Value::from(vec![Value::Str("fee".into())]);
@@ -9687,14 +9685,15 @@ impl OkxCore {
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
+        let __api_empty = Vec::new();
+        let api = api.as_array().unwrap_or(&__api_empty);
+        let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
         let mut isArray: bool = matches!(&params, Value::Arr(_));
         let mut request: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/api/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())).into());
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
@@ -9707,11 +9706,11 @@ impl OkxCore {
         let mut hasJsonBody: bool = false;
         let mut jsonBody: Value = Value::Null;
         // const type = this.getPathAuthenticationType (path);
-        if (api.as_str() == Some("public")) {
+        if (apiName.as_str() == Some("public")) {
             if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
             }
-        }  else if (api.as_str() == Some("private")) {
+        }  else if (apiName.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             // inject id in implicit api call
             if (method.as_str() == Some("POST")) && ((path.as_str() == Some("trade/batch-orders")) || (path.as_str() == Some("trade/order-algo")) || (path.as_str() == Some("trade/order"))) {
@@ -9764,11 +9763,11 @@ impl OkxCore {
             let mut signature: Value = self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
             add_element_to_object(&mut privateHeaders, &Value::Str("OK-ACCESS-SIGN".into()), signature);
         }
-        let mut requestBody: Value = body;
+        let mut requestBody: Value = Value::Null;
         if hasJsonBody {
             requestBody = jsonBody;
         }
-        let mut requestHeaders: Value = (if (api.as_str() == Some("private")) { privateHeaders } else { headers });
+        let mut requestHeaders: Value = (if (apiName.as_str() == Some("private")) { privateHeaders } else { Value::Null });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
@@ -10783,8 +10782,8 @@ impl OkxCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut type_var: Value = (if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { Value::Str("MARGIN".into()) } else { self.convert_to_instrument_type(market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null)) });
-        let mut uly: Value = self.safe_string(market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("uly".into()), &[]);
-        if (uly == Value::Null) || (uly.as_str() == Some("")) {
+        let mut instFamily: Value = self.safe_string(market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("instFamily".into()), &[]);
+        if (instFamily == Value::Null) || (instFamily.as_str() == Some("")) {
             if (type_var.as_str() != Some("MARGIN")) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMarketLeverageTiers() cannot fetch leverage tiers for ".into())).into()), symbol)));
             }
@@ -10798,7 +10797,7 @@ impl OkxCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("instType".to_string(), type_var.clone());
                 m.insert("tdMode".to_string(), marginMode);
-                m.insert("uly".to_string(), uly);
+                m.insert("instFamily".to_string(), instFamily);
             m
         });
         if (type_var.as_str() == Some("MARGIN")) {

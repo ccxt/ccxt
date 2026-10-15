@@ -880,7 +880,7 @@ impl HashkeyCore {
         m.insert("TRC20".to_string(), Value::Str("TRC20".into()));
         m.insert("Tron".to_string(), Value::Str("TRC20".into()));
         m.insert("TON".to_string(), Value::Str("TON".into()));
-        m.insert("BSC(BEP20)".to_string(), Value::Str("BSC".into()));
+        m.insert("BSC(BEP20)".to_string(), Value::Str("BEP20".into()));
         m.insert("Klaytn".to_string(), Value::Str("KLAYTN".into()));
     m
 }));
@@ -1774,7 +1774,7 @@ impl HashkeyCore {
             while { if !__for_first_709 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_709 = false; j.as_f64().unwrap_or(f64::NAN) < ((networks.len() as i64) as f64) } {
             let mut network: Value = networks.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut networkId: Value = self.safe_string_k(network.clone(), "chainType", &[]);
-            let mut networkCode: Value = self.network_code_to_id(networkId.clone(), &[code.clone()]);
+            let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
             if (networkCode != Value::Null) {
                 if let Value::Dict(__d) = &mut parsedNetworks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2537,7 +2537,7 @@ impl HashkeyCore {
  * @see https://hashkeyglobal-apidoc.readme.io/reference/get-deposit-address
  * @param {string} code unified currency code (default is 'USDT')
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.network] network for fetch deposit address (default is 'ETH')
+ * @param {string} [params.network] network for fetch deposit address (default is 'ERC20')
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
     pub async fn fetch_deposit_address(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
@@ -2557,7 +2557,10 @@ impl HashkeyCore {
         let mut networkCodeInParamsparamsNetworkCodeVariable = self.handle_network_code_and_params(params);
         let mut networkCodeInParams: Value = networkCodeInParamsparamsNetworkCodeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsNetworkCode: Value = networkCodeInParamsparamsNetworkCodeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut networkCode: Value = (if (networkCodeInParams == Value::Null) { self.default_network_code(code.clone()) } else { networkCodeInParams });
+        let mut networkCode: Value = (if (networkCodeInParams == Value::Null) { self.safe_string(self.safe_dict_k(self.options.clone(), "defaultNetworks", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]), code.clone(), &[self.safe_string_k(self.options.clone(), "defaultNetwork", &[])]) } else { networkCodeInParams });
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("chainType".into(), self.network_code_to_id(networkCode.clone(), &[code])); }
         let __ws_arg_10 = self.extend(request, &[paramsNetworkCode]);
         let mut response: Value = self.private_get_api_v1_account_deposit_address(&[__ws_arg_10]).await;
@@ -5220,21 +5223,22 @@ impl HashkeyCore {
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), api.clone(), &[]);
+        let __api_empty = Vec::new();
+        let api = api.as_array().unwrap_or(&__api_empty);
+        let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
+        let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone(), &[]);
         if (apiUrl == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl, Value::Str("/".into())).into()), path).into());
         let mut query: Value = Value::Null;
-        if (api.as_str() == Some("private")) {
+        if (apiName.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut timestamp: Value = self.milliseconds();
             let mut additionalParams: Value = Value::Map({
@@ -5278,7 +5282,7 @@ impl HashkeyCore {
             }
             if let Value::Dict(__d) = &mut headersSigned { std::sync::Arc::make_mut(__d).insert("INPUT-SOURCE".into(), self.safe_string_k(self.options.clone(), "broker", &[Value::Str("10000700011".into())])); }
             if let Value::Dict(__d) = &mut headersSigned { std::sync::Arc::make_mut(__d).insert("broker_sign".into(), signature); }
-            let mut bodyResolved: Value = (if (method.as_str() == Some("GET")) { body.clone() } else { bodySigned });
+            let mut bodyResolved: Value = (if (method.as_str() == Some("GET")) { Value::Null } else { bodySigned });
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url.clone());
@@ -5297,8 +5301,8 @@ impl HashkeyCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), body);
-        m.insert("headers".to_string(), headers);
+        m.insert("body".to_string(), Value::Null);
+        m.insert("headers".to_string(), Value::Null);
     m
 });
 

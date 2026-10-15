@@ -809,13 +809,10 @@ class gate extends gate$1["default"] {
                 'networks': {
                     'BTC': 'BTC',
                     'BRC20': 'BTCBRC', // for eg: ORDI, RATS, ...
-                    'ETH': 'ETH',
                     'ERC20': 'ETH',
-                    'TRX': 'TRX',
                     'TRC20': 'TRX',
                     'HECO': 'HT',
                     'HRC20': 'HT',
-                    'BSC': 'BSC',
                     'BEP20': 'BSC',
                     'SOL': 'SOL',
                     'MATIC': 'MATIC',
@@ -827,7 +824,7 @@ class gate extends gate$1["default"] {
                     'ARBITRUM_NOVA': 'ARBNOVA',
                     'BASE': 'BASEEVM',
                     'SUI': 'SUI',
-                    'CRONOS': 'CRO',
+                    'CRC20': 'CRO',
                     'CRO': 'CRO',
                     'APT': 'APT',
                     'SCROLL': 'SCROLLETH',
@@ -2450,7 +2447,7 @@ class gate extends gate$1["default"] {
         const [networkCode, paramsNetworkCode] = this.handleNetworkCodeAndParams(params);
         const chainsIndexedByIdRaw = await this.fetchDepositAddressesByNetwork(code, paramsNetworkCode);
         const chainsIndexedById = chainsIndexedByIdRaw;
-        const selectedNetworkIdOrCode = this.selectNetworkCodeFromUnifiedNetworks(code, networkCode, chainsIndexedById);
+        const selectedNetworkIdOrCode = this.selectNetworkKeyFromNetworks(code, networkCode, chainsIndexedById, true);
         return chainsIndexedById[selectedNetworkIdOrCode];
     }
     parseDepositAddress(depositAddress, currency = undefined) {
@@ -6875,7 +6872,7 @@ class gate extends gate$1["default"] {
             tiers.push({
                 'tier': this.sum(i, 1),
                 'symbol': this.safeString(market, 'symbol'),
-                'currency': this.safeString(market, 'base'),
+                'currency': this.safeString(market, 'settle'),
                 'minNotional': minNotional,
                 'maxNotional': maxNotional,
                 'maintenanceMarginRate': this.safeNumber(item, 'maintenance_rate'),
@@ -7200,7 +7197,7 @@ class gate extends gate$1["default"] {
         }
         return this.milliseconds() - timeDifference;
     }
-    sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = [], method = 'GET', params = {}) {
         const authentication = api[0]; // public, private
         const type = api[1]; // spot, margin, future, delivery
         let query = this.omit(params, this.extractParams(path));
@@ -7288,7 +7285,7 @@ class gate extends gate$1["default"] {
                 query = this.omit(query, 'query');
                 bodyJson = this.json(query);
             }
-            const bodySigned = (bodyJson === undefined) ? body : bodyJson;
+            const bodySigned = bodyJson;
             const bodyPayload = (bodySigned === undefined) ? '' : bodySigned;
             const bodySignature = this.hash(this.encode(bodyPayload), sha2_js.sha512);
             const nonce = this.nonce();
@@ -7306,8 +7303,8 @@ class gate extends gate$1["default"] {
                 'Content-Type': 'application/json',
             };
         }
-        const bodyResolved = (bodyJson === undefined) ? body : bodyJson;
-        const headersResolved = (signedHeaders === undefined) ? headers : signedHeaders;
+        const bodyResolved = bodyJson;
+        const headersResolved = signedHeaders;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     async modifyMarginHelper(symbol, amount, params = {}) {

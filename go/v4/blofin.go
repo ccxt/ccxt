@@ -2740,7 +2740,8 @@ func (this *Blofin) NetworkCodeToChainId(networkCode any, optionalArgs ...any) a
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var aliases map[string]any = SafeMapTyped(this.Options, "networkCodeAliases")
-	var unifiedCode *string = this.SafeString(aliases, networkCode, networkCode)
+	var aliasedCode *string = this.SafeString(aliases, networkCode, networkCode)
+	var unifiedCode *string = this.SafeString(this.NetworkAliases, aliasedCode, aliasedCode)
 	// prefer the exact chain id from the currencies registry when it is
 	// loaded, since some ids are currency-specific (USDT on Optimism)
 	if currency != nil {
@@ -3404,11 +3405,11 @@ func (this *Blofin) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...an
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes247419 []any = ListTyped(r1.Value)
-		if retRes247419 == nil {
+		var retRes247519 []any = ListTyped(r1.Value)
+		if retRes247519 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes247419}
+			ch <- AsyncResult[any]{Value: retRes247519}
 		}
 		return nil
 	}
@@ -4438,11 +4439,11 @@ func (this *Blofin) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes324719 []any = ListTyped(r1.Value)
-		if retRes324719 == nil {
+		var retRes324819 []any = ListTyped(r1.Value)
+		if retRes324819 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes324719}
+			ch <- AsyncResult[any]{Value: retRes324819}
 		}
 		return nil
 	}
@@ -4838,16 +4839,13 @@ func (this *Blofin) HandleErrors(httpCode any, reason any, url any, method any, 
 	return nil
 }
 func (this *Blofin) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var request string = "/api/" + this.Version + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var apiUrl *string = this.SafeString(this.Urls["api"], "rest")
@@ -4856,11 +4854,11 @@ func (this *Blofin) Sign(path string, optionalArgs ...any) any {
 	}
 	var url string = *apiUrl + request
 	// const type = this.getPathAuthenticationType (path);
-	if api == "public" {
+	if apiName != nil && *apiName == "public" {
 		if !this.IsEmpty(query) {
 			url += "?" + this.Urlencode(query)
 		}
-	} else if api == "private" {
+	} else if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		var timestamp string = strconv.FormatInt(this.Milliseconds(), 10)
 		var signedHeaders map[string]any = map[string]any{
@@ -4887,12 +4885,7 @@ func (this *Blofin) Sign(path string, optionalArgs ...any) any {
 		var auth *string = SafeStringPtr(Add(request+method+timestamp+timestamp, sign_body))
 		var signature string = this.StringToBase64(this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256))
 		signedHeaders["ACCESS-SIGN"] = signature
-		var bodyResolved any = func() any {
-			if signedBody == nil {
-				return body
-			}
-			return signedBody
-		}()
+		var bodyResolved any = signedBody
 		return map[string]any{
 			"url":     url,
 			"method":  method,
@@ -4903,8 +4896,8 @@ func (this *Blofin) Sign(path string, optionalArgs ...any) any {
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    nil,
+		"headers": nil,
 	}
 }
 

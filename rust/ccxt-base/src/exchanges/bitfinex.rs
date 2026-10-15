@@ -1804,7 +1804,7 @@ impl BitfinexCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), networkId.clone());
         m.insert("id".to_string(), to_lower(&networkId));
-        m.insert("network".to_string(), networkId);
+        m.insert("network".to_string(), network.clone());
         m.insert("active".to_string(), Value::Null);
         m.insert("deposit".to_string(), Value::Bool(self.safe_integer(dwStatuses.clone(), Value::Int(1), &[]).as_f64() == Some(1.0)));
         m.insert("withdraw".to_string(), Value::Bool(self.safe_integer(dwStatuses, Value::Int(2), &[]).as_f64() == Some(1.0)));
@@ -3663,7 +3663,8 @@ impl BitfinexCore {
         }
         let mut currency: Value = self.currency(code.clone());
         // if not provided explicitly we will try to match using the currency name
-        let mut network: Value = self.safe_string_k(params.clone(), "network", &[code.clone()]);
+        let mut networkParam: Value = self.safe_string_k(params.clone(), "network", &[code.clone()]);
+        let mut network: Value = self.safe_string(self.networkAliases.clone(), networkParam.clone(), &[networkParam.clone()]);
         let mut currencyNetworks: Value = self.safe_dict_k(currency, "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4100,7 +4101,8 @@ impl BitfinexCore {
         }
         let mut currency: Value = self.currency(code.clone());
         // if not provided explicitly we will try to match using the currency name
-        let mut network: Value = self.safe_string_k(paramsWithdrawTag.clone(), "network", &[code.clone()]);
+        let mut networkParam: Value = self.safe_string_k(paramsWithdrawTag.clone(), "network", &[code.clone()]);
+        let mut network: Value = self.safe_string(self.networkAliases.clone(), networkParam.clone(), &[networkParam.clone()]);
         let mut paramsOmitted: Value = self.omit(paramsWithdrawTag, Value::Str("network".into()), &[]);
         let mut currencyNetworks: Value = self.safe_dict_k(currency.clone(), "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4339,34 +4341,35 @@ impl BitfinexCore {
 }
 
     pub fn sign(&mut self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
+        let __api_empty = Vec::new();
+        let api = api.as_array().unwrap_or(&__api_empty);
+        let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
         let mut request: Value = Value::Str(format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone())).into());
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
-        if (api.as_str() == Some("v1")) {
-            request = Value::Str(format!("{}{}", api, request).into());
+        if (apiName.as_str() == Some("v1")) {
+            request = Value::Str(format!("{}{}", apiName, request).into());
         }  else {
             request = Value::Str(format!("{}{}", self.version.clone(), request).into());
         }
-        let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), api.clone(), &[]);
+        let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone(), &[]);
         if (apiUrl == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl, Value::Str("/".into())).into()), request).into());
         let mut requestBody: Value = Value::Null;
         let mut requestHeaders: Value = Value::Null;
-        if (api.as_str() == Some("public")) {
+        if (apiName.as_str() == Some("public")) {
             if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
             }
         }
-        if (api.as_str() == Some("private")) {
+        if (apiName.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             // bitfinex rejects a nonce that is not greater than the previous one for the key (error 10114)
             let mut nonce: Value = to_string_val(&self.incrementing_nonce());
@@ -4382,8 +4385,8 @@ impl BitfinexCore {
                 m
             });
         }
-        let mut bodyResolved: Value = (if (requestBody == Value::Null) { body } else { requestBody });
-        let mut headersResolved: Value = (if (requestHeaders == Value::Null) { headers } else { requestHeaders });
+        let mut bodyResolved: Value = requestBody;
+        let mut headersResolved: Value = requestHeaders;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);

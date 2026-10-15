@@ -992,7 +992,8 @@ class coincheck extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $bodySigned = null;
         $headersSigned = null;
         $apiUrl = $this->safe_string($this->urls['api'], 'rest');
@@ -1001,7 +1002,7 @@ class coincheck extends Exchange {
         }
         $url = $apiUrl . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
-        if ($api === 'public') {
+        if ($apiName === 'public') {
             if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
@@ -1027,8 +1028,8 @@ class coincheck extends Exchange {
                 'ACCESS-SIGNATURE' => $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256'),
             );
         }
-        $headersResolved = ($headersSigned === null) ? $headers : $headersSigned;
-        $bodyResolved = ($bodySigned === null) ? $body : $bodySigned;
+        $headersResolved = $headersSigned;
+        $bodyResolved = $bodySigned;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 

@@ -1438,11 +1438,8 @@ class binance extends binance$1["default"] {
                     'BTCSEGWIT': 'SEGWITBTC',
                     'BTCLIGHTNING': 'LIGHTNING',
                     'ERC20': 'ETH',
-                    'ETH': 'ETH',
                     'TRC20': 'TRX',
-                    'TRX': 'TRX',
                     'BEP2': 'BNB',
-                    'BSC': 'BSC',
                     'BEP20': 'BSC',
                     'CHZ2': 'CHZ2', // Chiliz chain new
                     'XRP': 'XRP',
@@ -10777,7 +10774,7 @@ class binance extends binance$1["default"] {
             for (let j = 0; j < networkList.length; j++) {
                 const networkEntry = this.safeDict(networkList, j);
                 const networkId = this.safeString(networkEntry, 'network');
-                const networkCode = this.safeCurrencyCode(networkId);
+                const networkCode = this.networkIdToCode(networkId, code);
                 const fee = this.safeNumber(networkEntry, 'withdrawFee');
                 if ((code !== undefined) && (networkCode !== undefined)) {
                     withdrawFees[code][networkCode] = fee;
@@ -13549,12 +13546,13 @@ class binance extends binance$1["default"] {
         }
         return scheme + '//' + domain + '/';
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         const urls = this.urls;
-        if (!(api in urls['api'])) {
-            throw new errors.NotSupported(this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
+        if (!(apiName in urls['api'])) {
+            throw new errors.NotSupported(this.id + ' does not have a testnet/sandbox URL for ' + apiName + ' endpoints');
         }
-        const baseApiUrl = this.safeString(this.urls['api'], api);
+        const baseApiUrl = this.safeString(this.urls['api'], apiName);
         if (baseApiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
@@ -13588,12 +13586,12 @@ class binance extends binance$1["default"] {
                 throw new errors.AuthenticationError(this.id + ' userDataStream endpoint requires `apiKey` credential');
             }
         }
-        else if ((api === 'private') || (api === 'eapiPrivate') || (api === 'sapi' && path !== 'system/status') || (api === 'sapiV2') || (api === 'sapiV3') || (api === 'sapiV4') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2') || (api === 'fapiPrivateV3') || (api === 'papiV2' || api === 'papi' && path !== 'ping')) {
+        else if ((apiName === 'private') || (apiName === 'eapiPrivate') || (apiName === 'sapi' && path !== 'system/status') || (apiName === 'sapiV2') || (apiName === 'sapiV3') || (apiName === 'sapiV4') || (apiName === 'dapiPrivate') || (apiName === 'dapiPrivateV2') || (apiName === 'fapiPrivate') || (apiName === 'fapiPrivateV2') || (apiName === 'fapiPrivateV3') || (apiName === 'papiV2' || apiName === 'papi' && path !== 'ping')) {
             this.checkRequiredCredentials();
             if ((url.indexOf('testnet.binancefuture.com') > -1) && this.isSandboxModeEnabled && (!this.safeBool(this.options, 'disableFuturesSandboxWarning', false))) {
                 throw new errors.NotSupported(this.id + ' testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.');
             }
-            const requestParams = this.handleClientOrderId(params, api, path, method);
+            const requestParams = this.handleClientOrderId(params, apiName, path, method);
             let query = undefined;
             // handle batchOrders
             if ((path === 'batchOrders') && ((method === 'POST') || (method === 'PUT'))) {
@@ -13612,7 +13610,7 @@ class binance extends binance$1["default"] {
             if (recvWindow !== undefined) {
                 extendedParams['recvWindow'] = recvWindow;
             }
-            if ((api === 'sapi') && (path === 'asset/dust')) {
+            if ((apiName === 'sapi') && (path === 'asset/dust')) {
                 query = this.urlencodeWithArrayRepeat(extendedParams);
             }
             else if ((path === 'batchOrders') || (path.indexOf('sub-account') >= 0) || (path === 'capital/withdraw/apply') || (path.indexOf('staking') >= 0) || (path.indexOf('simple-earn') >= 0)) {
@@ -13674,8 +13672,8 @@ class binance extends binance$1["default"] {
                 url += '?' + this.urlencode(params);
             }
         }
-        const headersResolved = (signedHeaders !== undefined) ? signedHeaders : headers;
-        const bodyResolved = (signedBody !== undefined) ? signedBody : body;
+        const headersResolved = signedHeaders;
+        const bodyResolved = signedBody;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     getExceptionsByUrl(url, exactOrBroad) {
@@ -13816,10 +13814,10 @@ class binance extends binance$1["default"] {
         }
         return this.safeValue(config, 'cost', 1);
     }
-    async request(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}) {
-        const response = await this.fetch2(path, api, method, params, headers, body, config);
+    async request(path, api = ['public'], method = 'GET', params = {}, config = {}) {
+        const response = await this.fetch2(path, api, method, params, config);
         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
-        if (api === 'private') {
+        if (api[0] === 'private') {
             this.options['hasAlreadyAuthenticatedSuccessfully'] = true;
         }
         return response;

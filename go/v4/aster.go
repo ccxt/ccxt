@@ -5683,6 +5683,9 @@ func (this *Aster) withdrawBody(ch chan EndpointResult[map[string]any], code str
 	// TODO: check how ARBI signature would work
 	var networks map[string]any = SafeMapTyped(this.Options, "networks")
 	var network *string = this.SafeStringUpper(paramsWithdrawTag, "network")
+	if network != nil {
+		network = this.SafeString(this.NetworkAliases, network, network) // accepts aliases like ETH for ERC20
+	}
 	network = this.SafeString(networks, network, network)
 	if (chainId == nil) && (network != nil) {
 		var chainIds map[string]any = SafeMapTyped(this.Options, "networksToChainId")
@@ -5841,26 +5844,23 @@ func (this *Aster) SignHash(hash any, privateKey string) string {
 	return "0x" + PadStart(r, 64, "0") + PadStart(s, 64, "0") + v
 }
 func (this *Aster) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
-	var baseApiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var baseApiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url any = *baseApiUrl + "/" + path
-	if (api == "fapiPublic") || (api == "sapiPublic") {
+	if (apiName != nil && *apiName == "fapiPublic") || (apiName != nil && *apiName == "sapiPublic") {
 		if len(ObjectKeys(params)) > 0 {
 			url = Add(url, "?"+this.Rawencode(params))
 		}
-	} else if (api == "fapiPrivate") || (api == "sapiPrivate") {
+	} else if (apiName != nil && *apiName == "fapiPrivate") || (apiName != nil && *apiName == "sapiPrivate") {
 		this.CheckRequiredCredentials()
 		var nonce int64 = this.Milliseconds() * 1000
 		// Sign using EIP-712 typed data per the AsterSignTransaction spec
@@ -5952,8 +5952,8 @@ func (this *Aster) Sign(path string, optionalArgs ...any) any {
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    nil,
+		"headers": nil,
 	}
 }
 func (this *Aster) EncodeValuesWithJson(values any) string {

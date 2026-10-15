@@ -1427,25 +1427,26 @@ public partial class bitbns : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "www";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object urls = this.urls;
-        if (!(inOp(getValue(urls, "api"), api)))
+        object apiName = getValue(api, 0);
+        if (!(inOp(getValue(urls, "api"), apiName)))
         {
-            throw new ExchangeError ((((this.id + " does not have a testnet/sandbox URL for ") + (api)) + " endpoints")) ;
+            throw new ExchangeError ((((this.id + " does not have a testnet/sandbox URL for ") + (apiName)) + " endpoints")) ;
         }
-        if (!(api is "www"))
+        if (!(apiName is "www"))
         {
             this.checkRequiredCredentials();
         }
         Dictionary<string, object> apiKeyHeaders = new Dictionary<string, object>() {
             { "X-BITBNS-APIKEY", this.apiKey },
         };
-        object requestHeaders = (!(api is "www")) ? apiKeyHeaders : headers;
-        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        Dictionary<string, object> requestHeaders = (!(apiName is "www")) ? apiKeyHeaders : null;
+        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((baseApiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -1460,7 +1461,7 @@ public partial class bitbns : Exchange
         {
             postBody = this.json(query);
         }
-        object requestBody = ((method == "POST")) ? postBody : body;
+        string? requestBody = ((method == "POST")) ? postBody : null;
         if ((method == "GET"))
         {
             if (queryLength > 0)
@@ -1476,9 +1477,9 @@ public partial class bitbns : Exchange
             string payload = this.stringToBase64(this.json(auth));
             string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512);
             requestHeaders = ((requestHeaders == null)) ? new Dictionary<string, object>() {} : requestHeaders;
-            ((IDictionary<string,object>)requestHeaders)["X-BITBNS-PAYLOAD"] = payload;
-            ((IDictionary<string,object>)requestHeaders)["X-BITBNS-SIGNATURE"] = signature;
-            ((IDictionary<string,object>)requestHeaders)["Content-Type"] = "application/x-www-form-urlencoded";
+            requestHeaders["X-BITBNS-PAYLOAD"] = payload;
+            requestHeaders["X-BITBNS-SIGNATURE"] = signature;
+            requestHeaders["Content-Type"] = "application/x-www-form-urlencoded";
         }
         return new Dictionary<string, object>() {
             { "url", url },

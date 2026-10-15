@@ -2305,8 +2305,8 @@ class hyperliquid extends Exchange {
         return strtolower($normalized);
     }
 
-    public function sign(string $path, mixed $api = 'public', $method = 'POST', $params = array(), mixed $headers = null, mixed $body = null) {
-        $apiGroup = (gettype($api) === 'array' && array_keys($api) === array_keys(array_keys($api))) ? $api[0] : $api;
+    public function sign(string $path, array $api = array('public'), $method = 'POST', $params = array()) {
+        $apiGroup = $api[0];
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         if ($sandboxMode === true) {
             $testUrls = $this->safe_dict($this->urls, 'test', array());
@@ -2316,8 +2316,8 @@ class hyperliquid extends Exchange {
             $baseUrl = $this->safe_string($apiUrls, $apiGroup, $this->safe_string($apiUrls, 'public', ''));
         }
         $url = $baseUrl . '/' . $path;
-        $headersValue = $headers;
-        $bodyValue = $body;
+        $headersValue = null;
+        $bodyValue = null;
         if ($method === 'POST') {
             $headersValue = array( 'Content-Type' => 'application/json' );
             $bodyValue = $this->json($params);
@@ -2353,7 +2353,7 @@ class hyperliquid extends Exchange {
         return null;
     }
 
-    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
+    public function calculate_rate_limiter_cost(array $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
         if ((is_array($config) && array_key_exists('byType' ?? '', $config)) && (is_array($params) && array_key_exists('type' ?? '', $params))) {
             $type = $params['type'];
             $byType = $config['byType'];

@@ -403,7 +403,7 @@ class hashkey(Exchange, ImplicitAPI):
                     'TRC20': 'TRC20',
                     'Tron': 'TRC20',
                     'TON': 'TON',
-                    'BSC(BEP20)': 'BSC',
+                    'BSC(BEP20)': 'BEP20',
                     'Klaytn': 'KLAYTN',
                 },
                 'defaultNetwork': 'ERC20',
@@ -1209,7 +1209,7 @@ class hashkey(Exchange, ImplicitAPI):
         for j in range(0, len(networks)):
             network = networks[j]
             networkId = self.safe_string(network, 'chainType')
-            networkCode = self.network_code_to_id(networkId, code)
+            networkCode = self.network_id_to_code(networkId, code)
             if networkCode is not None:
                 parsedNetworks[networkCode] = {
                     'id': networkId,
@@ -1873,7 +1873,7 @@ class hashkey(Exchange, ImplicitAPI):
 
         :param str code: unified currency code(default is 'USDT')
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.network]: network for fetch deposit address(default is 'ETH')
+        :param str [params.network]: network for fetch deposit address(default is 'ERC20')
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
         if self.markets is None:
@@ -1883,7 +1883,7 @@ class hashkey(Exchange, ImplicitAPI):
             'coin': currency['id'],
         }
         networkCodeInParams, paramsNetworkCode = self.handle_network_code_and_params(params)
-        networkCode = self.default_network_code(code) if (networkCodeInParams is None) else networkCodeInParams
+        networkCode = self.safe_string(self.safe_dict(self.options, 'defaultNetworks', {}), code, self.safe_string(self.options, 'defaultNetwork')) if (networkCodeInParams is None) else networkCodeInParams
         request['chainType'] = self.network_code_to_id(networkCode, code)
         response = self.privateGetApiV1AccountDepositAddress(self.extend(request, paramsNetworkCode))
         #
@@ -4281,13 +4281,14 @@ class hashkey(Exchange, ImplicitAPI):
             'tierBased': True,
         }
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        apiUrl = self.safe_string(self.urls['api'], api)
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + '/' + path
         query = None
-        if api == 'private':
+        if apiName == 'private':
             self.check_required_credentials()
             timestamp = self.milliseconds()
             additionalParams = {
@@ -4319,13 +4320,13 @@ class hashkey(Exchange, ImplicitAPI):
                     bodySigned = query
             headersSigned['INPUT-SOURCE'] = self.safe_string(self.options, 'broker', '10000700011')
             headersSigned['broker_sign'] = signature
-            bodyResolved = body if (method == 'GET') else bodySigned
+            bodyResolved = None if (method == 'GET') else bodySigned
             return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersSigned}
         else:
             query = self.urlencode(params)
             if len(query) != 0:
                 url += '?' + query
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}
 
     def custom_urlencode(self, params: dict = {}) -> Str:
         result = self.urlencode(params)

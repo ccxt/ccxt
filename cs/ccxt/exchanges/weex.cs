@@ -649,9 +649,7 @@ public partial class weex : Exchange
                 } },
                 { "networks", new Dictionary<string, object>() {
                     { "BEP20", "BEP20(BSC)" },
-                    { "BSC", "BEP20(BSC)" },
                     { "ERC20", "ERC20" },
-                    { "ETH", "ERC20" },
                     { "POLYGON", "POLYGON(MATIC)" },
                     { "MATIC", "POLYGON(MATIC)" },
                     { "ARBITRUM", "ARBITRUM(ARB)" },
@@ -5001,11 +4999,12 @@ public partial class weex : Exchange
         this.options["sandboxMode"] = enable;
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        object apiName = getValue(api, 0);
         object endpoint = this.implodeParams(path, parameters);
         object query = this.omit(parameters, this.extractParams(path));
         bool isBatch = (path.IndexOf("batch", StringComparison.Ordinal) >= 0);
@@ -5016,9 +5015,9 @@ public partial class weex : Exchange
                 endpoint = add(endpoint, ("?" + this.urlencode(query)));
             }
         }
-        bool isPrivate = ((api is "private")) || ((api is "contractPrivate"));
+        bool isPrivate = ((apiName is "private")) || ((apiName is "contractPrivate"));
         bool hasJsonBody = isPrivate && (((method == "POST")) || isBatch);
-        object requestBody = body;
+        string? requestBody = null;
         if (hasJsonBody)
         {
             requestBody = this.json(query);
@@ -5055,7 +5054,7 @@ public partial class weex : Exchange
                 { "User-Agent", "ccxt" },
             };
         }
-        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((baseApiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;

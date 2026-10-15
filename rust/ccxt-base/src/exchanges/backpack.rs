@@ -990,7 +990,7 @@ impl BackpackCore {
         m.insert("BERA".to_string(), Value::Str("Berachain".into()));
         m.insert("BTC".to_string(), Value::Str("Bitcoin".into()));
         m.insert("BCH".to_string(), Value::Str("BitcoinCash".into()));
-        m.insert("BSC".to_string(), Value::Str("Bsc".into()));
+        m.insert("BEP20".to_string(), Value::Str("Bsc".into()));
         m.insert("ADA".to_string(), Value::Str("Cardano".into()));
         m.insert("DOGE".to_string(), Value::Str("Dogecoin".into()));
         m.insert("ECLIPSE".to_string(), Value::Str("Eclipse".into()));
@@ -1017,7 +1017,7 @@ impl BackpackCore {
         m.insert("berachain".to_string(), Value::Str("BERA".into()));
         m.insert("bitcoin".to_string(), Value::Str("BTC".into()));
         m.insert("bitcoincash".to_string(), Value::Str("BCH".into()));
-        m.insert("bsc".to_string(), Value::Str("BSC".into()));
+        m.insert("bsc".to_string(), Value::Str("BEP20".into()));
         m.insert("cardano".to_string(), Value::Str("ADA".into()));
         m.insert("dogecoin".to_string(), Value::Str("DOGE".into()));
         m.insert("eclipse".to_string(), Value::Str("ECLIPSE".into()));
@@ -3330,16 +3330,17 @@ impl BackpackCore {
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
+        let __api_empty = Vec::new();
+        let api = api.as_array().unwrap_or(&__api_empty);
+        let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
         let mut endpoint: Value = Value::Str(format!("{}{}", Value::Str("/".into()), path).into());
-        let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), api.clone(), &[]);
+        let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone(), &[]);
         if (apiUrl == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
@@ -3347,7 +3348,7 @@ impl BackpackCore {
         let mut sortedParams: Value = (if (matches!(&params, Value::Arr(_))) { params.clone() } else { self.keysort(params.clone(), &[]) });
         let mut headersSigned: Value = Value::Null;
         let mut bodySigned: Value = Value::Null;
-        if (api.as_str() == Some("private")) {
+        if (apiName.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut ts: Value = to_string_val(&self.nonce());
             let mut recvWindow: Value = self.safe_string2(self.options.clone(), Value::Str("recvWindow".into()), Value::Str("X-Window".into()), &[Value::Str("5000".into())]);
@@ -3394,9 +3395,9 @@ impl BackpackCore {
             }
         }
         url = Value::Str(format!("{}{}", url, endpoint).into());
-        let mut headersResolved: Value = (if (api.as_str() == Some("private")) { headersSigned } else { headers });
-        let mut bodyResolved: Value = body;
-        if (api.as_str() == Some("private")) && (method.as_str() != Some("GET")) {
+        let mut headersResolved: Value = (if (apiName.as_str() == Some("private")) { headersSigned } else { Value::Null });
+        let mut bodyResolved: Value = Value::Null;
+        if (apiName.as_str() == Some("private")) && (method.as_str() != Some("GET")) {
             bodyResolved = bodySigned;
         }
         return Value::Map({

@@ -898,7 +898,7 @@ class htx(Exchange, ImplicitAPI):
                     'LTC': 'LTC',
                     'XRP': 'XRP',
                     'XLM': 'XLM',
-                    'CRONOS': 'CRO',
+                    'CRC20': 'CRO',
                     'CRO': 'CRO',
                     'GLMR': 'GLMR',
                     'POLYGON': 'MATIC',
@@ -6031,7 +6031,7 @@ class htx(Exchange, ImplicitAPI):
         currency = self.currency(code)
         networkCode, paramsOmited = self.handle_network_code_and_params(params)
         indexedAddresses = self.fetch_deposit_addresses_by_network(code, paramsOmited)
-        selectedNetworkCode = self.select_network_code_from_unified_networks(currency['code'], networkCode, indexedAddresses)
+        selectedNetworkCode = self.select_network_key_from_networks(currency['code'], networkCode, indexedAddresses, True)
         return self.safe_value(indexedAddresses, selectedNetworkCode)
 
     def fetch_withdraw_addresses(self, code: str, note: Str = None, networkCode: Str = None, params: dict = {}) -> list[DepositAddress]:
@@ -7077,7 +7077,7 @@ class htx(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)
 
-    def sign(self, path: str, api: object = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         signedHeaders = None
         signedBody = None
         pathString = path
@@ -7088,14 +7088,16 @@ class htx(Exchange, ImplicitAPI):
             query = {}
         else:
             query = self.omit(params, self.extract_params(path))
-        if isinstance(api, str):
+        apiLength = len(api)
+        if apiLength == 1:
             # signing implementation for the old endpoints
-            if (api == 'public') or (api == 'private'):
+            apiName = api[0]
+            if (apiName == 'public') or (apiName == 'private'):
                 url += self.version
-            elif (api == 'v2Public') or (api == 'v2Private'):
+            elif (apiName == 'v2Public') or (apiName == 'v2Private'):
                 url += 'v2'
             url += '/' + self.implode_params(path, params)
-            if api == 'private' or api == 'v2Private':
+            if apiName == 'private' or apiName == 'v2Private':
                 self.check_required_credentials()
                 timestamp = self.ymdhms(self.nonce(), 'T')
                 request = {
@@ -7131,7 +7133,7 @@ class htx(Exchange, ImplicitAPI):
             else:
                 if (query is not None) and (len(query) > 0):
                     url += '?' + self.urlencode(query)
-            baseApiUrl = self.safe_string(self.urls['api'], api)
+            baseApiUrl = self.safe_string(self.urls['api'], apiName)
             if baseApiUrl is None:
                 raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
             url = self.implode_params(baseApiUrl, {
@@ -7213,8 +7215,8 @@ class htx(Exchange, ImplicitAPI):
             url = self.implode_params(baseApiUrl2, {
                 'hostname': finalHostname,
             }) + url
-        headersResolved = signedHeaders if (signedHeaders is not None) else headers
-        bodyResolved = signedBody if (signedBody is not None) else body
+        headersResolved = signedHeaders
+        bodyResolved = signedBody
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

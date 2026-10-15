@@ -632,10 +632,8 @@ class xt(Exchange, ImplicitAPI):
                 'networks': {
                     'ERC20': 'Ethereum',
                     'TRC20': 'Tron',
-                    'TRX': 'Tron',
                     'BEP20': 'BNB Smart Chain',
                     'BEP2': 'BNB-BEP2',
-                    'ETH': 'Ethereum',
                     'AVAX': 'AVAX C-Chain',
                     'GAL': 'GAL(FT)',
                     'ALEO': 'ALEO(IOU)',
@@ -5522,7 +5520,7 @@ class xt(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path: str, api: object = [], method='GET', params={}, headers: dict = None, body: object = None):
+    def sign(self, path: str, api: list[str] = [], method='GET', params={}):
         signed = api[0] == 'private'
         endpoint = api[1]
         request = '/' + self.implode_params(path, params)
@@ -5593,7 +5591,7 @@ class xt(Exchange, ImplicitAPI):
         else:
             if urlencoded != '':
                 url += '?' + urlencoded
-        bodyValue = body
+        bodyValue = None
         if signed:
             bodyValue = signedBody
         return {'url': url, 'method': method, 'body': bodyValue, 'headers': headersValue}

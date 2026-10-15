@@ -3373,23 +3373,24 @@ class lighter extends Exchange {
         );
     }
 
-    public function sign(string $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()) {
+        $apiName = $api[0];
         $url = null;
-        if ($api === 'root') {
+        if ($apiName === 'root') {
             $baseApiUrl = $this->safe_string($this->urls['api'], 'public');
             if ($baseApiUrl === null) {
                 throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
             }
             $url = $this->implode_hostname($baseApiUrl);
         } else {
-            $baseApiUrl2 = $this->safe_string($this->urls['api'], $api);
+            $baseApiUrl2 = $this->safe_string($this->urls['api'], $apiName);
             if ($baseApiUrl2 === null) {
                 throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
             }
             $url = $this->implode_hostname($baseApiUrl2) . '/api/' . $this->version . '/' . $path;
         }
         $authHeaders = null;
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $authHeaders = array(
                 'Authorization' => $this->create_auth($params),
             );
@@ -3403,10 +3404,10 @@ class lighter extends Exchange {
             }
             $url .= '?' . $this->rawencode($params);
         }
-        if ($api === 'private') {
-            return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $authHeaders );
+        if ($apiName === 'private') {
+            return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => $authHeaders );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

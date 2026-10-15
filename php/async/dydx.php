@@ -2611,11 +2611,11 @@ class dydx extends Exchange {
         throw new ArgumentsRequired($this->id . ' getWalletAddress() requires a wallet address. Set `walletAddress` or `dydxAccount` in exchange options.');
     }
 
-    public function sign(string $path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $section = array('public'), $method = 'GET', $params = array()): array {
         $requestHeaders = null;
         $requestBody = null;
         $pathWithParams = $this->implode_params($path, $params);
-        $apiUrl = $this->safe_string($this->urls['api'], $section);
+        $apiUrl = $this->safe_string($this->urls['api'], $section[0]);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
@@ -2633,8 +2633,8 @@ class dydx extends Exchange {
                 'Content-type' => 'application/json',
             );
         }
-        $headersResult = ($requestHeaders !== null) ? $requestHeaders : $headers;
-        $bodyResult = ($requestBody !== null) ? $requestBody : $body;
+        $headersResult = $requestHeaders;
+        $bodyResult = $requestBody;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
     }
 

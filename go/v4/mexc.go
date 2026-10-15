@@ -999,9 +999,9 @@ func (this *Mexc) Describe() any {
 				},
 			},
 			"defaultType":    "spot",
-			"defaultNetwork": "ETH",
+			"defaultNetwork": "ERC20",
 			"defaultNetworks": map[string]any{
-				"ETH":  "ETH",
+				"ETH":  "ERC20",
 				"USDT": "ERC20",
 				"USDC": "ERC20",
 				"BTC":  "BTC",
@@ -1033,9 +1033,9 @@ func (this *Mexc) Describe() any {
 				"RSK":      "RBTC",
 			},
 			"networksById": map[string]any{
-				"BNB Smart Chain(BEP20-RACAV1)": "BSC",
-				"BNB Smart Chain(BEP20-RACAV2)": "BSC",
-				"BNB Smart Chain(BEP20)":        "BSC",
+				"BNB Smart Chain(BEP20-RACAV1)": "BEP20",
+				"BNB Smart Chain(BEP20-RACAV2)": "BEP20",
+				"BNB Smart Chain(BEP20)":        "BEP20",
 				"Ethereum(ERC20)":               "ERC20",
 			},
 			"recvWindow":     5 * 1000,
@@ -8239,18 +8239,14 @@ func (this *Mexc) Nonce() any {
 	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 func (this *Mexc) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
-	var requestHeaders any = headers
-	var requestBody any = body
+	var requestHeaders any = nil
+	var requestBody any = nil
 	var section *string = this.SafeString(api, 0)
 	var access *string = this.SafeString(api, 1)
 	var pathValue string = this.ImplodeParams(path, params)

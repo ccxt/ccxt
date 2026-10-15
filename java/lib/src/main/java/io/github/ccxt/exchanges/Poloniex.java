@@ -544,7 +544,6 @@ public class Poloniex extends PoloniexApi
                     put( "BEP20", "BSC" );
                     put( "ERC20", "ETH" );
                     put( "TRC20", "TRX" );
-                    put( "TRX", "TRX" );
                 }} );
                 put( "networksById", new HashMap<String, Object>() {{
                     put( "TRX", "TRC20" );
@@ -3511,7 +3510,7 @@ public class Poloniex extends PoloniexApi
             exchangeNetworkId = networkEntry.get("id");
         } else
         {
-            exchangeNetworkId = networkCode;
+            exchangeNetworkId = this.networkCodeToId((String) (networkCode), code);
         }
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("currency", exchangeNetworkId);
@@ -4564,11 +4563,12 @@ public class Poloniex extends PoloniexApi
         return this.milliseconds();
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Boolean isArray = (parameters instanceof List);
         Object url = ((Map<String, Object>)this.urls.get("api")).get("spot");
-        if (this.inArray(java.util.Objects.requireNonNullElse(api, "public"), new ArrayList<Object>(Arrays.asList("swapPublic", "swapPrivate"))))
+        if (this.inArray(apiName, new ArrayList<Object>(Arrays.asList("swapPublic", "swapPrivate"))))
         {
             url = ((Map<String, Object>)this.urls.get("api")).get("swap");
         }
@@ -4580,7 +4580,7 @@ public class Poloniex extends PoloniexApi
         String implodedPath = (String) this.implodeParams(path, parameters);
         String bodyJson = null;
         Map<String, Object> signedHeaders = null;
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "swapPublic"))
+        if (java.util.Objects.equals(apiName, "public") || java.util.Objects.equals(apiName, "swapPublic"))
         {
             url = (url + ("/" + implodedPath));
             if (((Map<String, Object>)query).size() > 0)
@@ -4623,8 +4623,8 @@ public class Poloniex extends PoloniexApi
                 put( "signature", signature );
             }};
         }
-        String bodyResolved = (((java.util.Objects.equals(bodyJson, null)))) ? body : bodyJson;
-        Object headersResolved = (((java.util.Objects.equals(signedHeaders, null)))) ? headers : signedHeaders;
+        String bodyResolved = bodyJson;
+        Map<String, Object> headersResolved = signedHeaders;
         {
             HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
             h2kMap3.put("url", url);

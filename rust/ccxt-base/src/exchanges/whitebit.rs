@@ -4494,7 +4494,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         m.insert("txid".to_string(), self.safe_string_k(transaction.clone(), "transactionId", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("network".to_string(), self.safe_string_k(transaction.clone(), "network", &[]));
+        m.insert("network".to_string(), self.network_id_to_code(&[self.safe_string_k(transaction.clone(), "network", &[]), self.safe_currency_code(currencyId.clone(), &[currencyResolved.clone()])]));
         m.insert("addressFrom".to_string(), (if (method.as_deref() == Some("1")) { address.clone() } else { Value::Null }));
         m.insert("address".to_string(), address.clone());
         m.insert("addressTo".to_string(), (if (method.as_deref() == Some("2")) { address } else { Value::Null }));
@@ -5727,22 +5727,20 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     pub fn sign(&mut self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut version: Value = self.safe_value(api.clone(), Value::Int(0), &[]);
         let mut accessibility: Value = self.safe_string(api, Value::Int(1), &[]);
-        let mut publicHeaders: Value = (if (headers == Value::Null) { Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) } else { headers });
-        add_element_to_object(&mut publicHeaders, &Value::Str("User-Agent".into()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ccxt/".into()), self.id.clone()).into()), Value::Str("-".into())).into()), self.version.clone()).into()));
+        let mut publicHeaders: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
+        if let Value::Dict(__d) = &mut publicHeaders { std::sync::Arc::make_mut(__d).insert("User-Agent".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ccxt/".into()), self.id.clone()).into()), Value::Str("-".into())).into()), self.version.clone()).into())); }
         let mut pathWithParams: Value = Value::Str(format!("{}{}", Value::Str("/".into()), self.implode_params(path, params.clone())).into());
         let mut apiUrl: Value = self.safe_string(get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &version), accessibility.clone(), &[]);
         if (apiUrl == Value::Null) {
@@ -5788,7 +5786,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             });
         }
         let mut isPrivate: bool = accessibility.as_str() == Some("private");
-        let mut requestBody: Value = body;
+        let mut requestBody: Value = Value::Null;
         if isPrivate {
             requestBody = privateBody;
         }

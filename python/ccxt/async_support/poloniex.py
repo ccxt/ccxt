@@ -335,7 +335,6 @@ class poloniex(Exchange, ImplicitAPI):
                     'ERC20': 'ETH',
                     # v2 withdraw accepts only the blockchain id: 'TRX' passes validation, 'TRON' is rejected with 830111 (live-verified)
                     'TRC20': 'TRX',
-                    'TRX': 'TRX',
                 },
                 'networksById': {
                     'TRX': 'TRC20',
@@ -2820,7 +2819,7 @@ class poloniex(Exchange, ImplicitAPI):
         if networkEntry is not None:
             exchangeNetworkId = networkEntry['id']
         else:
-            exchangeNetworkId = networkCode
+            exchangeNetworkId = self.network_code_to_id(networkCode, code)
         request = {
             'currency': exchangeNetworkId,
         }
@@ -3671,10 +3670,11 @@ class poloniex(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
         isArray = isinstance(params, list)
         url = self.urls['api']['spot']
-        if self.in_array(api, ['swapPublic', 'swapPrivate']):
+        if self.in_array(apiName, ['swapPublic', 'swapPrivate']):
             url = self.urls['api']['swap']
         if method == 'GET' and ('symbol' in params):
             params['symbol'] = self.encode_uri_component(params['symbol'])  # handle symbols like 索拉拉/USDT'
@@ -3682,7 +3682,7 @@ class poloniex(Exchange, ImplicitAPI):
         implodedPath = self.implode_params(path, params)
         bodyJson = None
         signedHeaders = None
-        if api == 'public' or api == 'swapPublic':
+        if apiName == 'public' or apiName == 'swapPublic':
             url += '/' + implodedPath
             if len(query) > 0:
                 url += '?' + self.urlencode(query)
@@ -3711,8 +3711,8 @@ class poloniex(Exchange, ImplicitAPI):
                 'signTimestamp': timestamp,
                 'signature': signature,
             }
-        bodyResolved = body if (bodyJson is None) else bodyJson
-        headersResolved = headers if (signedHeaders is None) else signedHeaders
+        bodyResolved = bodyJson
+        headersResolved = signedHeaders
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

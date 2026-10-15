@@ -516,7 +516,6 @@ func (this *Poloniex) Describe() any {
 				"BEP20": "BSC",
 				"ERC20": "ETH",
 				"TRC20": "TRX",
-				"TRX":   "TRX",
 			},
 			"networksById": map[string]any{
 				"TRX":  "TRC20",
@@ -890,11 +889,11 @@ func (this *Poloniex) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, op
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes69119 []any = ListTyped(r1.Value)
-		if retRes69119 == nil {
+		var retRes69019 []any = ListTyped(r1.Value)
+		if retRes69019 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes69119}
+			ch <- AsyncResult[any]{Value: retRes69019}
 		}
 		return nil
 	}
@@ -1050,11 +1049,11 @@ func (this *Poloniex) fetchSpotMarketsBody(ch chan AsyncResult[[]any], optionalA
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	listEp1031 := <-this.PublicGetMarkets(params)
-	if listEp1031.Err != nil {
-		panic(listEp1031.Err)
+	listEp1030 := <-this.PublicGetMarkets(params)
+	if listEp1030.Err != nil {
+		panic(listEp1030.Err)
 	}
-	var markets []any = listEp1031.Value
+	var markets []any = listEp1030.Value
 
 	//
 	//     [
@@ -1522,11 +1521,11 @@ func (this *Poloniex) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ..
 		return nil
 	}
 
-	listEp1486 := <-this.PublicGetMarketsTicker24h(paramsMarketType)
-	if listEp1486.Err != nil {
-		panic(listEp1486.Err)
+	listEp1485 := <-this.PublicGetMarketsTicker24h(paramsMarketType)
+	if listEp1485.Err != nil {
+		panic(listEp1485.Err)
 	}
-	var response []any = listEp1486.Value
+	var response []any = listEp1485.Value
 
 	//
 	//     [
@@ -1575,11 +1574,11 @@ func (this *Poloniex) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	listEp1535 := <-this.PublicGetV2Currencies(params)
-	if listEp1535.Err != nil {
-		panic(listEp1535.Err)
+	listEp1534 := <-this.PublicGetV2Currencies(params)
+	if listEp1534.Err != nil {
+		panic(listEp1534.Err)
 	}
-	var response []any = listEp1535.Value
+	var response []any = listEp1534.Value
 
 	//
 	//    [
@@ -1939,11 +1938,11 @@ func (this *Poloniex) fetchTradesBody(ch chan AsyncResult[any], symbol any, opti
 		return nil
 	}
 
-	listEp1878 := <-this.PublicGetMarketsSymbolTrades(this.Extend(request, params))
-	if listEp1878.Err != nil {
-		panic(listEp1878.Err)
+	listEp1877 := <-this.PublicGetMarketsSymbolTrades(this.Extend(request, params))
+	if listEp1877.Err != nil {
+		panic(listEp1877.Err)
 	}
-	var trades []any = listEp1878.Value
+	var trades []any = listEp1877.Value
 
 	//
 	//     [
@@ -2004,11 +2003,11 @@ func (this *Poloniex) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs .
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes157619 []any = ListTyped(r1.Value)
-		if retRes157619 == nil {
+		var retRes157519 []any = ListTyped(r1.Value)
+		if retRes157519 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes157619}
+			ch <- AsyncResult[any]{Value: retRes157519}
 		}
 		return nil
 	}
@@ -2081,11 +2080,11 @@ func (this *Poloniex) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs .
 		return nil
 	}
 
-	listEp2005 := <-this.PrivateGetTrades(this.Extend(requestUntil, paramsUntil))
-	if listEp2005.Err != nil {
-		panic(listEp2005.Err)
+	listEp2004 := <-this.PrivateGetTrades(this.Extend(requestUntil, paramsUntil))
+	if listEp2004.Err != nil {
+		panic(listEp2004.Err)
 	}
-	var response []any = listEp2005.Value
+	var response []any = listEp2004.Value
 	//
 	//     [
 	//         {
@@ -3146,11 +3145,11 @@ func (this *Poloniex) cancelOrdersBody(ch chan AsyncResult[any], ids any, option
 		request["clientOrderIds"] = clientOrderIds
 	}
 
-	listEp2990 := <-this.PrivateDeleteOrdersCancelByIds(this.Extend(request, query))
-	if listEp2990.Err != nil {
-		panic(listEp2990.Err)
+	listEp2989 := <-this.PrivateDeleteOrdersCancelByIds(this.Extend(request, query))
+	if listEp2989.Err != nil {
+		panic(listEp2989.Err)
 	}
-	var response []any = listEp2990.Value
+	var response []any = listEp2989.Value
 
 	//
 	//     [
@@ -3424,11 +3423,11 @@ func (this *Poloniex) fetchOrderTradesBody(ch chan AsyncResult[any], id string, 
 		"id": id,
 	}
 
-	listEp3233 := <-this.PrivateGetOrdersIdTrades(this.Extend(request, params))
-	if listEp3233.Err != nil {
-		panic(listEp3233.Err)
+	listEp3232 := <-this.PrivateGetOrdersIdTrades(this.Extend(request, params))
+	if listEp3232.Err != nil {
+		panic(listEp3232.Err)
 	}
-	var trades []any = listEp3233.Value
+	var trades []any = listEp3232.Value
 
 	//
 	//     [
@@ -3894,7 +3893,7 @@ func (this *Poloniex) PrepareRequestForDepositAddress(code string, optionalArgs 
 	if networkEntry != nil {
 		exchangeNetworkId = GetValue(networkEntry, "id")
 	} else {
-		exchangeNetworkId = networkCode
+		exchangeNetworkId = this.NetworkCodeToId(networkCode, code)
 	}
 	var request map[string]any = map[string]any{
 		"currency": exchangeNetworkId,
@@ -5121,11 +5120,11 @@ func (this *Poloniex) reduceMarginBody(ch chan EndpointResult[map[string]any], s
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes384615 map[string]any = MapTyped(r.Value)
-	if retRes384615 == nil {
+	var retRes384515 map[string]any = MapTyped(r.Value)
+	if retRes384515 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes384615, Raw: retRes384615}
+		ch <- EndpointResult[map[string]any]{Value: retRes384515, Raw: retRes384515}
 	}
 	return nil
 }
@@ -5154,11 +5153,11 @@ func (this *Poloniex) addMarginBody(ch chan AsyncResult[map[string]any], symbol 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes385915 map[string]any = MapTyped(r.Value)
-	if retRes385915 == nil {
+	var retRes385815 map[string]any = MapTyped(r.Value)
+	if retRes385815 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes385915}
+		ch <- AsyncResult[map[string]any]{Value: retRes385815}
 	}
 	return nil
 }
@@ -5166,19 +5165,16 @@ func (this *Poloniex) Nonce() any {
 	return this.Milliseconds()
 }
 func (this *Poloniex) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var isArray bool = IsArray(params)
 	var url any = GetValue(this.Urls["api"], "spot")
-	if this.InArray(api, []any{"swapPublic", "swapPrivate"}) {
+	if this.InArray(apiName, []any{"swapPublic", "swapPrivate"}) {
 		url = GetValue(this.Urls["api"], "swap")
 	}
 	if (method == "GET") && (InOp(params, "symbol")) {
@@ -5186,9 +5182,9 @@ func (this *Poloniex) Sign(path string, optionalArgs ...any) any {
 	}
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var implodedPath string = this.ImplodeParams(path, params)
-	var bodyJson any = nil
+	var bodyJson *string = nil
 	var signedHeaders any = nil
-	if (api == "public") || (api == "swapPublic") {
+	if (apiName != nil && *apiName == "public") || (apiName != nil && *apiName == "swapPublic") {
 		url = Add(url, "/"+implodedPath)
 		if len(ObjectKeys(query)) > 0 {
 			url = Add(url, "?"+this.Urlencode(query))
@@ -5196,22 +5192,22 @@ func (this *Poloniex) Sign(path string, optionalArgs ...any) any {
 	} else {
 		this.CheckRequiredCredentials()
 		var timestamp string = ToString(this.Nonce())
-		var auth any = method + "\n" // eslint-disable-line quotes
+		var auth string = method + "\n" // eslint-disable-line quotes
 		url = Add(url, "/"+implodedPath)
-		auth = Add(auth, "/"+implodedPath)
+		auth += "/" + implodedPath
 		if (method == "POST") || (method == "PUT") || (method == "DELETE") {
-			auth = Add(auth, "\n") // eslint-disable-line quotes
+			auth += "\n" // eslint-disable-line quotes
 			if isArray || (len(ObjectKeys(query)) > 0) {
-				bodyJson = this.Json(query)
-				auth = Add(auth, Add(Add("requestBody=", bodyJson), "&"))
+				bodyJson = SafeStringPtr(this.Json(query))
+				auth += "requestBody=" + *bodyJson + "&"
 			}
-			auth = Add(auth, "signTimestamp="+timestamp)
+			auth += "signTimestamp=" + timestamp
 		} else {
 			var sortedQuery map[string]any = this.Extend(map[string]any{
 				"signTimestamp": timestamp,
 			}, query)
 			sortedQuery = this.Keysort(sortedQuery)
-			auth = Add(auth, "\n"+this.Urlencode(sortedQuery)) // eslint-disable-line quotes
+			auth += "\n" + this.Urlencode(sortedQuery) // eslint-disable-line quotes
 			if len(ObjectKeys(query)) > 0 {
 				url = Add(url, "?"+this.Urlencode(query))
 			}
@@ -5224,18 +5220,8 @@ func (this *Poloniex) Sign(path string, optionalArgs ...any) any {
 			"signature":     signature,
 		}
 	}
-	var bodyResolved any = func() any {
-		if bodyJson == nil {
-			return body
-		}
-		return bodyJson
-	}()
-	var headersResolved any = func() any {
-		if signedHeaders == nil {
-			return headers
-		}
-		return signedHeaders
-	}()
+	var bodyResolved *string = bodyJson
+	var headersResolved any = signedHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,

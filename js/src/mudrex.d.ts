@@ -1,12 +1,12 @@
 import Exchange from './abstract/mudrex.js';
-import type { Balances, Dict, Int, NullableDict, Leverage, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int } from './base/types.js';
+import type { Balances, Dict, Int, Leverage, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int } from './base/types.js';
 /**
  * @class mudrex
  * @augments Exchange
  */
 export default class mudrex extends Exchange {
     describe(): any;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     /**

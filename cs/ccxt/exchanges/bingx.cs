@@ -1070,7 +1070,7 @@ public partial class bingx : Exchange
                 { "recvWindow", (5L * 1000L) },
                 { "broker", "CCXT" },
                 { "defaultNetworks", new Dictionary<string, object>() {
-                    { "ETH", "ETH" },
+                    { "ETH", "ERC20" },
                     { "USDT", "ERC20" },
                     { "USDC", "ERC20" },
                     { "BTC", "BTC" },
@@ -5774,7 +5774,7 @@ public partial class bingx : Exchange
         if ((address != null))
         {
             bool isPrefixed = address.StartsWith("0x") || address.StartsWith("0X");
-            List<object> evmNetworks = new List<object>() {"BEP20", "BSC", "ERC20", "ETH", "HECO", "MATIC", "POLYGON", "ARBITRUM", "ARB", "OPTIMISM", "AVAXC", "BASE", "FTM", "LINEA", "ZKSYNC", "OPBNB"};
+            List<object> evmNetworks = new List<object>() {"BEP20", "ERC20", "HECO", "MATIC", "POLYGON", "ARBITRUM", "OPTIMISM", "AVAXC", "BASE", "FTM", "LINEA", "ZKSYNC", "OPBNB"};
             if (!isPrefixed && this.inArray(networkCode, evmNetworks))
             {
                 address = ("0x" + address);
@@ -7262,9 +7262,9 @@ public partial class bingx : Exchange
         return tiers;
     }
 
-    public override Dictionary<string, object> sign(string path, object section = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object section = null, string method = null, object parameters = null)
     {
-        section ??= "public";
+        section ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object type = getValue(section, 0);
@@ -7345,8 +7345,8 @@ public partial class bingx : Exchange
                 url = add(url, (((("?" + query) + "&") + "signature=") + signature));
             }
         }
-        object bodyResult = ((requestBody != null)) ? requestBody : body;
-        object headersResult = ((requestHeaders != null)) ? requestHeaders : headers;
+        string? bodyResult = requestBody;
+        Dictionary<string, object> headersResult = requestHeaders;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

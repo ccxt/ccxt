@@ -2178,12 +2178,15 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress(code, params = {}) {
-        const network = this.safeStringUpper(params, 'network');
+        const networkParam = this.safeStringUpper(params, 'network');
         const paramsOmitted = this.omit(params, ['network']);
         const depositAddressesRaw = await this.fetchDepositAddressesByNetwork(code, paramsOmitted);
         const depositAddresses = depositAddressesRaw;
-        if (network in depositAddresses) {
-            return depositAddresses[network];
+        if (networkParam !== undefined) {
+            const network = this.safeString(this.networkAliases, networkParam, networkParam);
+            if (network in depositAddresses) {
+                return depositAddresses[network];
+            }
         }
         const keys = Object.keys(depositAddresses);
         return depositAddresses[keys[0]];
@@ -3609,9 +3612,9 @@ class cryptocom extends cryptocom$1["default"] {
             'tierBased': undefined,
         };
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let requestHeaders = headers;
-        let requestBody = body;
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        let requestHeaders = undefined;
+        let requestBody = undefined;
         const type = this.safeString(api, 0);
         const access = this.safeString(api, 1);
         const apiUrl = this.safeString(this.urls['api'], type);

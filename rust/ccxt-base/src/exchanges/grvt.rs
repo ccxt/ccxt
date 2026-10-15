@@ -693,12 +693,11 @@ impl GrvtCore {
         m.insert("ARBITRUM".to_string(), Value::Str("42161".into()));
         m.insert("AVAXC".to_string(), Value::Str("43114".into()));
         m.insert("BASE".to_string(), Value::Str("8453".into()));
-        m.insert("BSC".to_string(), Value::Str("56".into()));
-        m.insert("ETH".to_string(), Value::Str("1".into()));
+        m.insert("BEP20".to_string(), Value::Str("56".into()));
         m.insert("ERC20".to_string(), Value::Str("1".into()));
         m.insert("OP".to_string(), Value::Str("10".into()));
         m.insert("SOL".to_string(), Value::Str("900".into()));
-        m.insert("TRX".to_string(), Value::Str("728126428".into()));
+        m.insert("TRC20".to_string(), Value::Str("728126428".into()));
         m.insert("ZKSYNCERA".to_string(), Value::Str("324".into()));
         m.insert("KAIA".to_string(), Value::Str("8217".into()));
     m
@@ -4583,19 +4582,20 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut requestHeaders: Value = headers;
-        let mut requestBody: Value = body;
+        let __api_empty = Vec::new();
+        let api = api.as_array().unwrap_or(&__api_empty);
+        let mut requestHeaders: Value = Value::Null;
+        let mut requestBody: Value = Value::Null;
         let mut requestPath: Value = path;
         let mut query: Value = self.omit(params.clone(), self.extract_params(requestPath.clone()), &[]);
-        let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), api.clone(), &[]);
+        let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
+        let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone(), &[]);
         if (apiUrl == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
@@ -4624,7 +4624,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 requestBody = json_stringify(&params);
             }
         }
-        let mut isPrivate: bool = starts_with(&api, &Value::Str("private".into()));
+        let mut isPrivate: bool = starts_with(&apiName, &Value::Str("private".into()));
         if (isPrivate) {
             self.check_required_credentials(&[]);
             if (queryString.as_str() != Some("")) {

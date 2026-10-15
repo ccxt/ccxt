@@ -523,9 +523,7 @@ class weex extends weex$1["default"] {
                 },
                 'networks': {
                     'BEP20': 'BEP20(BSC)',
-                    'BSC': 'BEP20(BSC)',
                     'ERC20': 'ERC20',
-                    'ETH': 'ERC20',
                     'POLYGON': 'POLYGON(MATIC)',
                     'MATIC': 'POLYGON(MATIC)',
                     'ARBITRUM': 'ARBITRUM(ARB)',
@@ -4333,7 +4331,8 @@ class weex extends weex$1["default"] {
         super.setSandboxMode(enable);
         this.options['sandboxMode'] = enable;
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         let endpoint = this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         const isBatch = (path.indexOf('batch') >= 0);
@@ -4342,9 +4341,9 @@ class weex extends weex$1["default"] {
                 endpoint += '?' + this.urlencode(query);
             }
         }
-        const isPrivate = (api === 'private') || (api === 'contractPrivate');
+        const isPrivate = (apiName === 'private') || (apiName === 'contractPrivate');
         const hasJsonBody = isPrivate && ((method === 'POST') || isBatch);
-        let requestBody = body;
+        let requestBody = undefined;
         if (hasJsonBody) {
             requestBody = this.json(query);
         }
@@ -4377,7 +4376,7 @@ class weex extends weex$1["default"] {
                 'User-Agent': 'ccxt',
             };
         }
-        const baseApiUrl = this.safeString(this.urls['api'], api);
+        const baseApiUrl = this.safeString(this.urls['api'], apiName);
         if (baseApiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }

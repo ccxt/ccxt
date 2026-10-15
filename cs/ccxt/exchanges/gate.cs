@@ -1587,13 +1587,10 @@ public partial class gate : Exchange
                 { "networks", new Dictionary<string, object>() {
                     { "BTC", "BTC" },
                     { "BRC20", "BTCBRC" },
-                    { "ETH", "ETH" },
                     { "ERC20", "ETH" },
-                    { "TRX", "TRX" },
                     { "TRC20", "TRX" },
                     { "HECO", "HT" },
                     { "HRC20", "HT" },
-                    { "BSC", "BSC" },
                     { "BEP20", "BSC" },
                     { "SOL", "SOL" },
                     { "MATIC", "MATIC" },
@@ -1605,7 +1602,7 @@ public partial class gate : Exchange
                     { "ARBITRUM_NOVA", "ARBNOVA" },
                     { "BASE", "BASEEVM" },
                     { "SUI", "SUI" },
-                    { "CRONOS", "CRO" },
+                    { "CRC20", "CRO" },
                     { "CRO", "CRO" },
                     { "APT", "APT" },
                     { "SCROLL", "SCROLLETH" },
@@ -3289,7 +3286,7 @@ public partial class gate : Exchange
         IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable.Item2);
         Dictionary<string, object> chainsIndexedByIdRaw = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(code, paramsNetworkCode));
         Dictionary<string, object> chainsIndexedById = chainsIndexedByIdRaw;
-        object selectedNetworkIdOrCode = this.selectNetworkCodeFromUnifiedNetworks(code, networkCode, chainsIndexedById);
+        object selectedNetworkIdOrCode = this.selectNetworkKeyFromNetworks(code, networkCode, chainsIndexedById, true);
         return ccxt.BaseExchange.ToDepositAddress(getValue(chainsIndexedById, ((string)selectedNetworkIdOrCode)));
     }
 
@@ -8246,7 +8243,7 @@ public partial class gate : Exchange
             tiers.Add(new Dictionary<string, object>() {
                 { "tier", this.sum(i, 1) },
                 { "symbol", this.safeString(market, "symbol") },
-                { "currency", this.safeString(market, "base") },
+                { "currency", this.safeString(market, "settle") },
                 { "minNotional", minNotional },
                 { "maxNotional", maxNotional },
                 { "maintenanceMarginRate", this.safeNumber(item, "maintenance_rate") },
@@ -8589,7 +8586,7 @@ public partial class gate : Exchange
         return ((Int64)((object)((this.milliseconds() - timeDifference)))!);
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -8694,8 +8691,8 @@ public partial class gate : Exchange
                 query = this.omit(query, "query");
                 bodyJson = this.json(query);
             }
-            object bodySigned = ((bodyJson == null)) ? body : bodyJson;
-            object bodyPayload = ((bodySigned == null)) ? "" : bodySigned;
+            string? bodySigned = bodyJson;
+            string? bodyPayload = ((bodySigned == null)) ? "" : bodySigned;
             string bodySignature = ((string)this.hash(this.encode(bodyPayload), sha512));
             Int64 nonce = this.nonce();
             Int64? timestamp = this.parseToInt(((double)nonce / 1000));
@@ -8712,8 +8709,8 @@ public partial class gate : Exchange
                 { "Content-Type", "application/json" },
             };
         }
-        object bodyResolved = ((bodyJson == null)) ? body : bodyJson;
-        object headersResolved = ((signedHeaders == null)) ? headers : signedHeaders;
+        string? bodyResolved = bodyJson;
+        Dictionary<string, object> headersResolved = signedHeaders;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

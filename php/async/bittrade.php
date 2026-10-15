@@ -381,8 +381,8 @@ class bittrade extends Exchange {
             'options' => array(
                 'defaultNetwork' => 'ERC20',
                 'networks' => array(
-                    'ETH' => 'erc20',
-                    'TRX' => 'trc20',
+                    'ERC20' => 'erc20',
+                    'TRC20' => 'trc20',
                     'HRC20' => 'hrc20',
                     'HECO' => 'hrc20',
                     'HT' => 'hrc20',
@@ -2085,7 +2085,7 @@ class bittrade extends Exchange {
             'txid' => $this->safe_string($transaction, 'tx-hash'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => $this->safe_string_upper($transaction, 'chain'),
+            'network' => $this->network_id_to_code($this->safe_string_upper($transaction, 'chain'), $code),
             'address' => $this->safe_string($transaction, 'address'),
             'addressTo' => null,
             'addressFrom' => null,
@@ -2160,7 +2160,10 @@ class bittrade extends Exchange {
             $request['addr-tag'] = $tagWithdrawTag; // only for XRP?
         }
         $networks = $this->safe_dict($this->options, 'networks', array());
-        $network = $this->safe_string_upper($paramsWithdrawTag, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string_upper($paramsWithdrawTag, 'network');
+        if ($network !== null) {
+            $network = $this->safe_string($this->networkAliases, $network, $network); // accepts aliases like ETH for ERC20
+        }
         $network = $this->safe_string_lower($networks, $network, $network); // handle ETH>ERC20 alias
         if ($network !== null) {
             // possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
@@ -2181,20 +2184,21 @@ class bittrade extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $requestHeaders = null;
         $requestBody = null;
         $url = '/';
-        if ($api === 'market') {
+        if ($apiName === 'market') {
             $url .= 'market';
-        } elseif (($api === 'public') || ($api === 'private')) {
+        } elseif (($apiName === 'public') || ($apiName === 'private')) {
             $url .= $this->version;
-        } elseif (($api === 'v2Public') || ($api === 'v2Private')) {
+        } elseif (($apiName === 'v2Public') || ($apiName === 'v2Private')) {
             $url .= 'v2';
         }
         $url .= '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
-        if ($api === 'private' || $api === 'v2Private') {
+        if ($apiName === 'private' || $apiName === 'v2Private') {
             $this->check_required_credentials();
             $timestamp = $this->ymdhms($this->milliseconds(), 'T');
             $request = array(
@@ -2230,15 +2234,15 @@ class bittrade extends Exchange {
                 $url .= '?' . $this->urlencode($params);
             }
         }
-        $baseApiUrl = $this->safe_string($this->urls['api'], $api);
+        $baseApiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($baseApiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $this->implode_params($baseApiUrl, array(
             'hostname' => $this->hostname,
         )) . $url;
-        $headersResult = ($requestHeaders !== null) ? $requestHeaders : $headers;
-        $bodyResult = ($requestBody !== null) ? $requestBody : $body;
+        $headersResult = $requestHeaders;
+        $bodyResult = $requestBody;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
     }
 

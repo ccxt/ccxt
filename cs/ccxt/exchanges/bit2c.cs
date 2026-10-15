@@ -1190,9 +1190,9 @@ public partial class bit2c : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest");
@@ -1203,7 +1203,7 @@ public partial class bit2c : Exchange
         string url = ((apiUrl + "/") + this.implodeParams(path, parameters));
         string? requestBody = null;
         Dictionary<string, object> requestHeaders = null;
-        if ((api is "public"))
+        if (isEqual(getValue(api, 0), "public"))
         {
             url = url + ".json";
         } else
@@ -1232,8 +1232,8 @@ public partial class bit2c : Exchange
                 { "sign", signature },
             };
         }
-        object bodyResult = ((requestBody == null)) ? body : requestBody;
-        object headersResult = ((requestHeaders == null)) ? headers : requestHeaders;
+        string? bodyResult = requestBody;
+        Dictionary<string, object> headersResult = requestHeaders;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

@@ -688,13 +688,12 @@ public partial class hitbtc : Exchange
             { "options", new Dictionary<string, object>() {
                 { "defaultNetwork", "ERC20" },
                 { "defaultNetworks", new Dictionary<string, object>() {
-                    { "ETH", "ETH" },
+                    { "ETH", "ERC20" },
                     { "USDT", "TRC20" },
                 } },
                 { "networks", new Dictionary<string, object>() {
                     { "BTC", "btc" },
                     { "OMNI", "BTC" },
-                    { "ETH", "eth" },
                     { "ERC20", "ETH" },
                     { "ETC", "ETC" },
                     { "BEP20", "BSC" },
@@ -1045,7 +1044,8 @@ public partial class hitbtc : Exchange
             object rawNetwork = rawNetworks[j];
             string? networkId = this.safeString2(rawNetwork, "protocol", "network");
             string? networkCode = this.networkIdToCode(networkId, code);
-            networkCode = ((networkCode != null)) ? networkCode.ToUpper() : code; // as hitbtc is white label, ensure we safeguard from possible bugs
+            string? networkCodeUpper = ((networkCode != null)) ? networkCode.ToUpper() : null;
+            networkCode = ((networkCodeUpper != null)) ? this.safeString(this.networkAliases, networkCodeUpper, networkCodeUpper) : code; // as hitbtc is white label, ensure we safeguard from possible bugs
             if ((networkCode != null))
             {
                 networks[(string)networkCode] = new Dictionary<string, object>() {
@@ -1107,7 +1107,8 @@ public partial class hitbtc : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
-        string? network = this.safeStringUpper(parameters, "network");
+        string? networkInput = this.safeStringUpper(parameters, "network");
+        string? network = ((networkInput != null)) ? this.safeString(this.networkAliases, networkInput, networkInput) : null;
         if (((network != null)) && ((code == "USDT")))
         {
             IDictionary<string, object> networks = this.safeDict(this.options, "networks");
@@ -1150,7 +1151,8 @@ public partial class hitbtc : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
-        string? network = this.safeStringUpper(parameters, "network");
+        string? networkInput = this.safeStringUpper(parameters, "network");
+        string? network = ((networkInput != null)) ? this.safeString(this.networkAliases, networkInput, networkInput) : null;
         if (((network != null)) && ((code == "USDT")))
         {
             IDictionary<string, object> networks = this.safeDict(this.options, "networks");
@@ -3074,10 +3076,12 @@ public partial class hitbtc : Exchange
             throw new ExchangeError ((this.id + " convertCurrencyNetwork() only supports USDT currently")) ;
         }
         IDictionary<string, object> networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
-        string fromNetworkValue = ((string)fromNetwork).ToUpper();
-        string toNetworkValue = ((string)toNetwork).ToUpper();
-        string? fromNetworkValue2 = this.safeString(networks, fromNetworkValue); // handle ETH>ERC20 alias
-        string? toNetworkValue2 = this.safeString(networks, toNetworkValue); // handle ETH>ERC20 alias
+        string fromNetworkUpper = ((string)fromNetwork).ToUpper();
+        string toNetworkUpper = ((string)toNetwork).ToUpper();
+        string? fromNetworkValue = this.safeString(this.networkAliases, fromNetworkUpper, fromNetworkUpper);
+        string? toNetworkValue = this.safeString(this.networkAliases, toNetworkUpper, toNetworkUpper);
+        string? fromNetworkValue2 = this.safeString(networks, fromNetworkValue); // unified code to exchange id
+        string? toNetworkValue2 = this.safeString(networks, toNetworkValue); // unified code to exchange id
         if ((fromNetworkValue2 == toNetworkValue2))
         {
             throw new BadRequest ((this.id + " convertCurrencyNetwork() fromNetwork cannot be the same as toNetwork")) ;
@@ -3133,7 +3137,8 @@ public partial class hitbtc : Exchange
             request["payment_id"] = tagWithdrawTag;
         }
         IDictionary<string, object> networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
-        string? network = this.safeStringUpper(paramsWithdrawTag, "network");
+        string? networkInput = this.safeStringUpper(paramsWithdrawTag, "network");
+        string? network = ((networkInput != null)) ? this.safeString(this.networkAliases, networkInput, networkInput) : null;
         if (((network != null)) && ((code == "USDT")))
         {
             string? parsedNetwork = this.safeString(networks, network);
@@ -4152,7 +4157,8 @@ public partial class hitbtc : Exchange
             string? networkId = this.safeString(networkEntry, "network");
             string? code = this.safeString(currency, "code");
             string? networkCode = this.networkIdToCode(networkId, code);
-            networkCode = ((networkCode != null)) ? networkCode.ToUpper() : null;
+            string? networkCodeUpper = ((networkCode != null)) ? networkCode.ToUpper() : null;
+            networkCode = ((networkCodeUpper != null)) ? this.safeString(this.networkAliases, networkCodeUpper, networkCodeUpper) : null;
             double? withdrawFee = this.safeNumber(networkEntry, "payout_fee");
             bool? isDefault = this.safeBool(networkEntry, "default");
             Dictionary<string, object> withdrawResult = new Dictionary<string, object>() {
@@ -4276,14 +4282,15 @@ public partial class hitbtc : Exchange
         return null;
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        object apiName = getValue(api, 0);
         object query = this.omit(parameters, this.extractParams(path));
         string? implodedPath = this.implodeParams(path, parameters);
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -4303,8 +4310,8 @@ public partial class hitbtc : Exchange
                 url = (url + getRequest);
             }
         }
-        object bodyResolved = ((method == "GET")) ? body : this.json(parameters);
-        if ((api is "private"))
+        string? bodyResolved = ((method == "GET")) ? null : this.json(parameters);
+        if ((apiName is "private"))
         {
             this.checkRequiredCredentials();
             string timestamp = this.nonce().ToString();

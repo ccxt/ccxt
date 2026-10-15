@@ -2443,15 +2443,15 @@ public partial class coinsph : Exchange
                 { "cost", feeCost },
             };
         }
-        string? network = this.safeString(transaction, "network");
-        bool intern = network == "Internal";
+        string? networkId = this.safeString(transaction, "network");
+        bool intern = networkId == "Internal";
         return new Dictionary<string, object>() {
             { "info", transaction },
             { "id", id },
             { "txid", txid },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "network", network },
+            { "network", this.networkIdToCode(networkId, code) },
             { "address", address },
             { "addressTo", address },
             { "addressFrom", null },
@@ -2584,12 +2584,13 @@ public partial class coinsph : Exchange
         return ((string?)((object)(urlEncodedParam)));
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        object apiName = getValue(api, 0);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -2597,7 +2598,7 @@ public partial class coinsph : Exchange
         object query = this.omit(parameters, this.extractParams(path));
         string? endpoint = this.implodeParams(path, parameters);
         string url = ((apiUrl + "/") + endpoint);
-        if ((api is "private"))
+        if ((apiName is "private"))
         {
             this.checkRequiredCredentials();
             ((IDictionary<string,object>)query)["timestamp"] = this.milliseconds();
@@ -2619,7 +2620,7 @@ public partial class coinsph : Exchange
             return new Dictionary<string, object>() {
                 { "url", url },
                 { "method", method },
-                { "body", body },
+                { "body", null },
                 { "headers", signedHeaders },
             };
         }
@@ -2631,8 +2632,8 @@ public partial class coinsph : Exchange
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", null },
+            { "headers", null },
         };
     }
 

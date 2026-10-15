@@ -446,28 +446,29 @@ impl RevolutxCore {
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
+        let __api_empty = Vec::new();
+        let api = api.as_array().unwrap_or(&__api_empty);
         let mut requestHeaders: Value = Value::Null;
         let mut requestBody: Value = Value::Null;
         let mut implodedPath: Value = self.implode_params(path.clone(), params.clone());
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
         let mut queryKeys: Value = object_keys(&query);
         let mut queryLength: f64 = ((queryKeys.len() as i64) as f64);
-        let mut baseApiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), api.clone(), &[]);
+        let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
+        let mut baseApiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone(), &[]);
         if (baseApiUrl == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
         let mut baseUrl: Value = baseApiUrl;
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("/".into())).into()), implodedPath).into());
         let mut queryString: Value = Value::Str("".into());
-        if (api.as_str() == Some("private")) {
+        if (apiName.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut timestamp: Value = to_string_val(&self.milliseconds());
             if (method.as_str() == Some("GET")) {
@@ -484,7 +485,7 @@ impl RevolutxCore {
                 requestBody = json_stringify(&query);
             }
             let mut requestPath: Value = Value::Str(format!("{}{}", Value::Str("/api/".into()), implodedPath).into());
-            let mut bodyValue: Value = (if (requestBody != Value::Null) { requestBody.clone() } else { body.clone() });
+            let mut bodyValue: Value = requestBody.clone();
             let mut bodyString: Value = (if (bodyValue != Value::Null) { bodyValue } else { Value::Str("".into()) });
             let mut message: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, to_upper(&method)).into()), requestPath).into()), queryString).into()), bodyString).into());
             let mut signature: Value = eddsa(self.encode(message), self.privateKey.clone(), Value::Str("ed25519".into()));
@@ -513,8 +514,8 @@ impl RevolutxCore {
                 });
             }
         }
-        let mut headersResult: Value = (if (requestHeaders != Value::Null) { requestHeaders } else { headers });
-        let mut bodyResult: Value = (if (requestBody != Value::Null) { requestBody } else { body });
+        let mut headersResult: Value = requestHeaders;
+        let mut bodyResult: Value = requestBody;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);

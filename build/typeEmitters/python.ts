@@ -97,6 +97,7 @@ const NARROWED_ALIASES: { [key: string]: string } = {
     'SubType': 'Str',
     'DefaultType': 'Str',
     'DefaultSubType': 'Str',
+    'NetworkCode': 'Str',
 };
 
 const SCALARS: { [key: string]: string } = {

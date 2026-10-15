@@ -718,9 +718,9 @@ public partial class paymium : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest");
@@ -731,7 +731,7 @@ public partial class paymium : Exchange
         string baseUrl = baseApiUrl;
         string url = ((((baseUrl + "/") + this.version) + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
-        if ((api is "public"))
+        if (isEqual(getValue(api, 0), "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
@@ -742,13 +742,13 @@ public partial class paymium : Exchange
             this.checkRequiredCredentials();
             // paymium requires an increasing nonce
             string nonce = ((object)this.incrementingNonce()).ToString();
-            object auth = (nonce + url);
+            string auth = (nonce + url);
             Dictionary<string, object> signedHeaders = new Dictionary<string, object>() {
                 { "Api-Key", this.apiKey },
                 { "Api-Nonce", nonce },
             };
             bool hasQuery = (new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0;
-            object signedBody = body;
+            string? signedBody = null;
             if ((method == "POST") && hasQuery)
             {
                 signedBody = this.json(query);
@@ -757,7 +757,7 @@ public partial class paymium : Exchange
             {
                 if (hasQuery)
                 {
-                    auth = add(auth, signedBody);
+                    auth = auth + signedBody;
                     signedHeaders["Content-Type"] = "application/json";
                 }
             } else
@@ -765,7 +765,7 @@ public partial class paymium : Exchange
                 if (hasQuery)
                 {
                     string queryString = this.urlencode(query);
-                    auth = add(auth, queryString);
+                    auth = auth + queryString;
                     url = url + ("?" + queryString);
                 }
             }
@@ -780,8 +780,8 @@ public partial class paymium : Exchange
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", null },
+            { "headers", null },
         };
     }
 

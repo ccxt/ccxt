@@ -2413,7 +2413,7 @@ public class Alpaca extends AlpacaApi
         String txid = null;
         Long timestamp = null;
         String datetime = null;
-        String network = null;
+        Object network = null;
         String address = null;
         String addressTo = null;
         String addressFrom = null;
@@ -2454,7 +2454,6 @@ public class Alpaca extends AlpacaApi
             txid = this.safeString(transaction, "tx_hash");
             datetime = this.safeString(transaction, "created_at");
             timestamp = this.parse8601(datetime);
-            network = this.safeString(transaction, "chain");
             address = this.safeString(transaction, "to_address");
             addressTo = this.safeString(transaction, "to_address");
             addressFrom = this.safeString(transaction, "from_address");
@@ -2462,6 +2461,7 @@ public class Alpaca extends AlpacaApi
             amount = this.safeNumber(transaction, "amount", (Object) null);
             String currencyId = this.safeString(transaction, "asset");
             code = this.safeCurrencyCode(currencyId, currency);
+            network = this.networkIdToCode(this.safeString(transaction, "chain"), code);
             status = this.parseTransactionStatus(this.safeString(transaction, "status"));
             String fees = this.safeString(transaction, "fees");
             String networkFee = this.safeString(transaction, "network_fee");
@@ -2678,24 +2678,20 @@ public class Alpaca extends AlpacaApi
         return this.safeBalance(result);
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         String endpoint = ("/" + this.implodeParams(path, parameters));
-        String baseApiUrl = this.safeString(this.urls.get("api"), Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "public"), 0));
+        String baseApiUrl = this.safeString(this.urls.get("api"), (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)));
         if (java.util.Objects.equals(baseApiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        Object headersValue = new HashMap<String, Object>() {{}};
-        if (!java.util.Objects.equals(headers, null))
-        {
-            headersValue = headers;
-        }
-        if (java.util.Objects.equals(Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "public"), 1), "private"))
+        Map<String, Object> headersValue = new HashMap<String, Object>() {{}};
+        if (java.util.Objects.equals((api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1)), "private"))
         {
             this.checkRequiredCredentials(true);
-            ((Map<String, Object>)headersValue).put("APCA-API-KEY-ID", this.apiKey);
-            ((Map<String, Object>)headersValue).put("APCA-API-SECRET-KEY", this.secret);
+            headersValue.put("APCA-API-KEY-ID", this.apiKey);
+            headersValue.put("APCA-API-SECRET-KEY", this.secret);
         }
         Object query = this.omit(parameters, this.extractParams(path));
         String bodyJson = null;
@@ -2707,11 +2703,11 @@ public class Alpaca extends AlpacaApi
             } else
             {
                 bodyJson = this.json(query);
-                ((Map<String, Object>)headersValue).put("Content-Type", "application/json");
+                headersValue.put("Content-Type", "application/json");
             }
         }
         String url = (this.implodeHostname(baseApiUrl) + endpoint);
-        String bodyResolved = (((java.util.Objects.equals(bodyJson, null)))) ? body : bodyJson;
+        String bodyResolved = bodyJson;
         {
             HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
             h2kMap2.put("url", url);

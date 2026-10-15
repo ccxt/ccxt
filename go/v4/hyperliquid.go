@@ -6908,17 +6908,14 @@ func (this *Hyperliquid) HandleErrors(code any, reason any, url any, method any,
 	return nil
 }
 func (this *Hyperliquid) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -6927,13 +6924,13 @@ func (this *Hyperliquid) Sign(path string, optionalArgs ...any) any {
 	var postHeaders map[string]any = map[string]any{
 		"Content-Type": "application/json",
 	}
-	var requestHeaders any = headers
+	var requestHeaders map[string]any = nil
 	if isPost {
 		requestHeaders = postHeaders
 	}
-	var requestBody any = body
+	var requestBody *string = nil
 	if isPost {
-		requestBody = this.Json(params)
+		requestBody = SafeStringPtr(this.Json(params))
 	}
 	return map[string]any{
 		"url":     url,

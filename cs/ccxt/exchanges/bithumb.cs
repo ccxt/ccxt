@@ -3000,7 +3000,7 @@ public partial class bithumb : Exchange
                 }
                 request["address"] = address;
                 request["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
-                request["net_type"] = network;
+                request["net_type"] = this.networkCodeToId(network, code);
                 request["amount"] = this.numberToString(amount);
                 if ((destinationRequest != null))
                 {
@@ -3019,7 +3019,7 @@ public partial class bithumb : Exchange
             request["units"] = amount;
             if ((network != null))
             {
-                request["net_type"] = network;
+                request["net_type"] = this.networkCodeToId(network, code);
             }
             if ((destinationRequest != null))
             {
@@ -3086,7 +3086,7 @@ public partial class bithumb : Exchange
             { "txid", this.safeString(transaction, "txid") },
             { "timestamp", timestamp },
             { "datetime", datetime },
-            { "network", this.safeString(transaction, "net_type") },
+            { "network", this.networkIdToCode(this.safeString(transaction, "net_type"), (currencyResolved != null && currencyResolved.ContainsKey("code") ? currencyResolved["code"] : null)) },
             { "addressFrom", null },
             { "address", null },
             { "addressTo", null },
@@ -3471,7 +3471,7 @@ public partial class bithumb : Exchange
         {
             throw new ArgumentsRequired ((((this.id + " ") + code) + " createDepositAddress() requires a network parameter")) ;
         }
-        request["net_type"] = network;
+        request["net_type"] = this.networkCodeToId(network, code);
         Dictionary<string, object> response = await this.privatePostV1DepositsGenerateCoinAddress(this.extend(request, paramsOmitted));
         //
         //     {
@@ -3519,7 +3519,7 @@ public partial class bithumb : Exchange
         {
             throw new ArgumentsRequired ((((this.id + " ") + code) + " fetchDepositAddress() requires a network parameter")) ;
         }
-        request["net_type"] = network;
+        request["net_type"] = this.networkCodeToId(network, code);
         Dictionary<string, object> response = await this.privateGetV1DepositsCoinAddress(this.extend(request, paramsOmitted));
         //
         //     {
@@ -3593,7 +3593,7 @@ public partial class bithumb : Exchange
         return new Dictionary<string, object>() {
             { "info", response },
             { "currency", code },
-            { "network", this.safeString(response, "net_type") },
+            { "network", this.networkIdToCode(this.safeString(response, "net_type"), code) },
             { "address", address },
             { "tag", this.safeString(response, "secondary_address") },
         };
@@ -3659,15 +3659,16 @@ public partial class bithumb : Exchange
         return ((string?)((object)(result)));
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        object apiName = getValue(api, 0);
         Dictionary<string, object> requestHeaders = null;
         string? requestBody = null;
         string endpoint = ("/" + this.implodeParams(path, parameters));
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -3677,7 +3678,7 @@ public partial class bithumb : Exchange
         List<object> queryKeys = new List<object>(((IDictionary<string,object>)query).Keys);
         int queryKeysLength = queryKeys.Count;
         bool hasQuery = (queryKeysLength > 0);
-        if ((api is "public"))
+        if ((apiName is "public"))
         {
             requestHeaders = new Dictionary<string, object>() {
                 { "OPEN-API-PARTNER", "CCXT" },
@@ -3745,8 +3746,8 @@ public partial class bithumb : Exchange
                 };
             }
         }
-        object headersResult = ((requestHeaders != null)) ? requestHeaders : headers;
-        object bodyResult = ((requestBody != null)) ? requestBody : body;
+        Dictionary<string, object> headersResult = requestHeaders;
+        string? bodyResult = requestBody;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

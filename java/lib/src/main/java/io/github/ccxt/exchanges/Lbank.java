@@ -398,13 +398,10 @@ public class Lbank extends LbankApi
                 }} );
                 put( "networks", new HashMap<String, Object>() {{
                     put( "ERC20", "erc20" );
-                    put( "ETH", "erc20" );
                     put( "TRC20", "trc20" );
-                    put( "TRX", "trc20" );
                     put( "OMNI", "omni" );
                     put( "ASA", "asa" );
                     put( "BEP20", "bep20(bsc)" );
-                    put( "BSC", "bep20(bsc)" );
                     put( "HT", "heco" );
                     put( "BNB", "bep2" );
                     put( "BTC", "btc" );
@@ -2666,9 +2663,9 @@ public class Lbank extends LbankApi
         Map<String, Object> defaultNetworks = (Map<String, Object>) this.safeDict(this.options, "defaultNetworks", (Object) null);
         String defaultNetwork = this.safeStringUpper(defaultNetworks, currencyCode);
         Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
-        String network = this.safeStringUpper(parameters, "network", defaultNetwork); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString(networks, network, network); // handle ERC20>ETH alias
-        return network;
+        String networkParam = this.safeStringUpper(parameters, "network", defaultNetwork); // accepts unified codes and aliases
+        String networkCode = (((!java.util.Objects.equals(networkParam, null)))) ? this.safeString(this.networkAliases, networkParam, networkParam) : null;
+        return this.safeString(networks, networkCode, networkCode);
     }
 
     /**
@@ -2770,6 +2767,10 @@ public class Lbank extends LbankApi
             }};
             Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", (Object) null);
             String network = this.safeStringUpper(parameters, "network");
+            if (!java.util.Objects.equals(network, null))
+            {
+                network = this.safeString(this.networkAliases, network, network);
+            }
             network = this.safeString(networks, network, network);
             Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(network, null)))) ? this.omit(parameters, "network") : parameters;
             if (!java.util.Objects.equals(network, null))
@@ -2844,6 +2845,10 @@ public class Lbank extends LbankApi
                 request.put("memo", tagWithdrawTag);
             }
             String network = this.safeStringUpper2(paramsOmitted, "network", "networkName");
+            if (!java.util.Objects.equals(network, null))
+            {
+                network = this.safeString(this.networkAliases, network, network);
+            }
             Map<String, Object> paramsOmitted2 = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("network", "networkName")));
             Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", (Object) null);
             String networkId = this.safeString(networks, network, network);
@@ -3576,7 +3581,7 @@ public class Lbank extends LbankApi
         return result;
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object query = this.omit(parameters, this.extractParams(path));
         String apiUrl = this.safeString(this.urls.get("api"), "rest");
@@ -3586,7 +3591,7 @@ public class Lbank extends LbankApi
         }
         String url = ((((apiUrl + "/") + this.version) + "/") + this.implodeParams(path, parameters));
         // Every spot endpoint ends with ".do"
-        if (java.util.Objects.equals(Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "public"), 0), "spot"))
+        if (java.util.Objects.equals((api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)), "spot"))
         {
             url = (url + ".do");
         } else
@@ -3598,7 +3603,7 @@ public class Lbank extends LbankApi
             }
             url = ((contractUrl + "/") + this.implodeParams(path, parameters));
         }
-        if (java.util.Objects.equals(Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "public"), 1), "public"))
+        if (java.util.Objects.equals((api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1)), "public"))
         {
             if (Helpers.objectKeys(query).size() > 0)
             {
@@ -3671,8 +3676,8 @@ public class Lbank extends LbankApi
             HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
             h2kMap3.put("url", url);
             h2kMap3.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap3.put("body", body);
-            h2kMap3.put("headers", headers);
+            h2kMap3.put("body", null);
+            h2kMap3.put("headers", null);
             return h2kMap3;
         }
     }

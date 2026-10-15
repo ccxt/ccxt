@@ -492,7 +492,7 @@ public class Deepcoin extends DeepcoinApi
                     put( "ERC20", "ERC20" );
                     put( "TRC20", "TRC20" );
                     put( "ARBITRUM", "ARBITRUM" );
-                    put( "BSC", "BSC(BEP20)" );
+                    put( "BEP20", "BSC(BEP20)" );
                     put( "SOL", "SOL" );
                     put( "BTC", "Bitcoin" );
                     put( "ADA", "Cardano" );
@@ -1534,6 +1534,10 @@ public class Deepcoin extends DeepcoinApi
             if ((java.util.Objects.equals(network, null)) || (java.util.Objects.equals(network, "")))
             {
                 network = defaultNetwork;
+            }
+            if (!java.util.Objects.equals(network, null))
+            {
+                network = this.safeString(this.networkAliases, network, network);
             }
             Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(network, null)))) ? this.omit(parameters, "network") : parameters;
             List<DepositAddress> addressess = (this.fetchDepositAddresses(new ArrayList<Object>(Arrays.asList(code)), paramsOmitted)).join();
@@ -3720,8 +3724,9 @@ public class Deepcoin extends DeepcoinApi
 
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Object requestPath = path;
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
@@ -3731,13 +3736,13 @@ public class Deepcoin extends DeepcoinApi
                 requestPath = (requestPath + ("?" + query));
             }
         }
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = ((apiUrl + "/") + requestPath);
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
             Long timestamp = this.milliseconds();
@@ -3748,7 +3753,7 @@ public class Deepcoin extends DeepcoinApi
             privateHeaders.put("DC-ACCESS-TIMESTAMP", dateTime);
             privateHeaders.put("DC-ACCESS-PASSPHRASE", this.password);
             privateHeaders.put("appid", "200103");
-            String requestBody = (((!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))) ? this.json(parameters) : body;
+            String requestBody = (((!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))) ? this.json(parameters) : null;
             if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
                 privateHeaders.put("Content-Type", "application/json");
@@ -3769,8 +3774,8 @@ public class Deepcoin extends DeepcoinApi
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
             h2kMap1.put("url", url);
             h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap1.put("body", body);
-            h2kMap1.put("headers", headers);
+            h2kMap1.put("body", null);
+            h2kMap1.put("headers", null);
             return h2kMap1;
         }
     }

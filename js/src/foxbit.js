@@ -210,7 +210,7 @@ export default class foxbit extends Exchange {
                     'cardano': 'ADA',
                     'cosmos': 'ATOM',
                     'dogecoin': 'DOGE',
-                    'erc20': 'ETH',
+                    'erc20': 'ERC20',
                     'hedera': 'HBAR',
                     'litecoin': 'LTC',
                     'near': 'NEAR',
@@ -234,7 +234,7 @@ export default class foxbit extends Exchange {
                     'ADA': 'cardano',
                     'ATOM': 'cosmos',
                     'DOGE': 'dogecoin',
-                    'ETH': 'erc20',
+                    'ERC20': 'erc20',
                     'HBAR': 'hedera',
                     'LTC': 'litecoin',
                     'NEAR': 'near',
@@ -1916,7 +1916,7 @@ export default class foxbit extends Exchange {
             'txid': this.safeString(cryptoDetails, 'transaction_id'),
             'timestamp': timestamp,
             'datetime': datetime,
-            'network': this.safeString(transaction, 'network_code'),
+            'network': this.networkIdToCode(this.safeString(transaction, 'network_code'), currencyCode),
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
@@ -2004,7 +2004,7 @@ export default class foxbit extends Exchange {
             'fee': fee,
         };
     }
-    sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = [], method = 'GET', params = {}) {
         const version = api[0];
         let urlPath = api[1];
         let fullPath = '/rest/' + version + '/' + this.implodeParams(path, params);
@@ -2039,7 +2039,7 @@ export default class foxbit extends Exchange {
                 }
             }
         }
-        let requestBody = body;
+        let requestBody = undefined;
         if (method === 'POST' || method === 'PUT') {
             requestBody = this.json(paramsOmitted);
         }

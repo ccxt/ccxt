@@ -613,8 +613,8 @@ public class Bittrade extends BittradeApi
             put( "options", new HashMap<String, Object>() {{
                 put( "defaultNetwork", "ERC20" );
                 put( "networks", new HashMap<String, Object>() {{
-                    put( "ETH", "erc20" );
-                    put( "TRX", "trc20" );
+                    put( "ERC20", "erc20" );
+                    put( "TRC20", "trc20" );
                     put( "HRC20", "hrc20" );
                     put( "HECO", "hrc20" );
                     put( "HT", "hrc20" );
@@ -2513,7 +2513,7 @@ public class Bittrade extends BittradeApi
             h2kMap0.put("txid", this.safeString(transaction, "tx-hash"));
             h2kMap0.put("timestamp", timestamp);
             h2kMap0.put("datetime", this.iso8601(timestamp));
-            h2kMap0.put("network", this.safeStringUpper(transaction, "chain"));
+            h2kMap0.put("network", this.networkIdToCode(this.safeStringUpper(transaction, "chain"), code));
             h2kMap0.put("address", this.safeString(transaction, "address"));
             h2kMap0.put("addressTo", null);
             h2kMap0.put("addressFrom", null);
@@ -2593,7 +2593,11 @@ public class Bittrade extends BittradeApi
                 request.put("addr-tag", tagWithdrawTag); // only for XRP?
             }
             Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
-            String network = this.safeStringUpper(paramsWithdrawTag, "network"); // this line allows the user to specify either ERC20 or ETH
+            String network = this.safeStringUpper(paramsWithdrawTag, "network");
+            if (!java.util.Objects.equals(network, null))
+            {
+                network = this.safeString(this.networkAliases, network, network); // accepts aliases like ETH for ERC20
+            }
             network = this.safeStringLower(networks, network, network); // handle ETH>ERC20 alias
             if (!java.util.Objects.equals(network, null))
             {
@@ -2619,24 +2623,25 @@ public class Bittrade extends BittradeApi
 
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Map<String, Object> requestHeaders = null;
         String requestBody = null;
         Object url = "/";
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "market"))
+        if (java.util.Objects.equals(apiName, "market"))
         {
             url = (url + "market");
-        } else if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private")))
+        } else if ((java.util.Objects.equals(apiName, "public")) || (java.util.Objects.equals(apiName, "private")))
         {
             url = Helpers.add(url, this.version);
-        } else if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "v2Public")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "v2Private")))
+        } else if ((java.util.Objects.equals(apiName, "v2Public")) || (java.util.Objects.equals(apiName, "v2Private")))
         {
             url = (url + "v2");
         }
         url = (url + ("/" + this.implodeParams(path, parameters)));
         Object query = this.omit(parameters, this.extractParams(path));
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "v2Private"))
+        if (java.util.Objects.equals(apiName, "private") || java.util.Objects.equals(apiName, "v2Private"))
         {
             this.checkRequiredCredentials(true);
             String timestamp = this.ymdhms(this.milliseconds(), "T");
@@ -2680,7 +2685,7 @@ public class Bittrade extends BittradeApi
                 url = (url + ("?" + this.urlencode(parameters)));
             }
         }
-        String baseApiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String baseApiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(baseApiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -2688,8 +2693,8 @@ public class Bittrade extends BittradeApi
         url = Helpers.add(this.implodeParams(baseApiUrl, new HashMap<String, Object>() {{
     put( "hostname", Bittrade.this.hostname );
 }}), url);
-        Object headersResult = (((!java.util.Objects.equals(requestHeaders, null)))) ? requestHeaders : headers;
-        String bodyResult = (((!java.util.Objects.equals(requestBody, null)))) ? requestBody : body;
+        Map<String, Object> headersResult = requestHeaders;
+        String bodyResult = requestBody;
         {
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
             h2kMap1.put("url", url);

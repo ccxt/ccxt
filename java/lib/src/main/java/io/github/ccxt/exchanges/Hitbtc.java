@@ -732,13 +732,12 @@ public class Hitbtc extends HitbtcApi
             put( "options", new HashMap<String, Object>() {{
                 put( "defaultNetwork", "ERC20" );
                 put( "defaultNetworks", new HashMap<String, Object>() {{
-                    put( "ETH", "ETH" );
+                    put( "ETH", "ERC20" );
                     put( "USDT", "TRC20" );
                 }} );
                 put( "networks", new HashMap<String, Object>() {{
                     put( "BTC", "btc" );
                     put( "OMNI", "BTC" );
-                    put( "ETH", "eth" );
                     put( "ERC20", "ETH" );
                     put( "ETC", "ETC" );
                     put( "BEP20", "BSC" );
@@ -1097,7 +1096,8 @@ public class Hitbtc extends HitbtcApi
             Object rawNetwork = (rawNetworks == null || j < 0 || j >= rawNetworks.size() ? null : rawNetworks.get(j));
             String networkId = this.safeString2(rawNetwork, "protocol", "network");
             Object networkCode = this.networkIdToCode(networkId, code);
-            networkCode = (((!java.util.Objects.equals(networkCode, null)))) ? ((String)networkCode).toUpperCase() : code; // as hitbtc is white label, ensure we safeguard from possible bugs
+            String networkCodeUpper = (((!java.util.Objects.equals(networkCode, null)))) ? ((String)networkCode).toUpperCase() : null;
+            networkCode = (((!java.util.Objects.equals(networkCodeUpper, null)))) ? this.safeString(this.networkAliases, networkCodeUpper, networkCodeUpper) : code; // as hitbtc is white label, ensure we safeguard from possible bugs
             if (!java.util.Objects.equals(networkCode, null))
             {
                 networks.put((String)networkCode, Helpers.newMap(
@@ -1161,7 +1161,8 @@ public class Hitbtc extends HitbtcApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", currency.get("id") );
             }};
-            String network = this.safeStringUpper(parameters, "network");
+            String networkInput = this.safeStringUpper(parameters, "network");
+            String network = (((!java.util.Objects.equals(networkInput, null)))) ? this.safeString(this.networkAliases, networkInput, networkInput) : null;
             if ((!java.util.Objects.equals(network, null)) && (java.util.Objects.equals(code, "USDT")))
             {
                 Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", (Object) null);
@@ -1214,7 +1215,8 @@ public class Hitbtc extends HitbtcApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", currency.get("id") );
             }};
-            String network = this.safeStringUpper(parameters, "network");
+            String networkInput = this.safeStringUpper(parameters, "network");
+            String network = (((!java.util.Objects.equals(networkInput, null)))) ? this.safeString(this.networkAliases, networkInput, networkInput) : null;
             if ((!java.util.Objects.equals(network, null)) && (java.util.Objects.equals(code, "USDT")))
             {
                 Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", (Object) null);
@@ -3243,10 +3245,12 @@ public class Hitbtc extends HitbtcApi
                 throw new ExchangeError((this.id + " convertCurrencyNetwork() only supports USDT currently")) ;
             }
             Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
-            String fromNetworkValue = ((String)fromNetwork).toUpperCase();
-            String toNetworkValue = ((String)toNetwork).toUpperCase();
-            String fromNetworkValue2 = this.safeString(networks, fromNetworkValue); // handle ETH>ERC20 alias
-            String toNetworkValue2 = this.safeString(networks, toNetworkValue); // handle ETH>ERC20 alias
+            String fromNetworkUpper = ((String)fromNetwork).toUpperCase();
+            String toNetworkUpper = ((String)toNetwork).toUpperCase();
+            String fromNetworkValue = this.safeString(this.networkAliases, fromNetworkUpper, fromNetworkUpper);
+            String toNetworkValue = this.safeString(this.networkAliases, toNetworkUpper, toNetworkUpper);
+            String fromNetworkValue2 = this.safeString(networks, fromNetworkValue); // unified code to exchange id
+            String toNetworkValue2 = this.safeString(networks, toNetworkValue); // unified code to exchange id
             if (java.util.Objects.equals(fromNetworkValue2, toNetworkValue2))
             {
                 throw new BadRequest((this.id + " convertCurrencyNetwork() fromNetwork cannot be the same as toNetwork")) ;
@@ -3305,7 +3309,8 @@ public class Hitbtc extends HitbtcApi
                 request.put("payment_id", tagWithdrawTag);
             }
             Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
-            String network = this.safeStringUpper(paramsWithdrawTag, "network");
+            String networkInput = this.safeStringUpper(paramsWithdrawTag, "network");
+            String network = (((!java.util.Objects.equals(networkInput, null)))) ? this.safeString(this.networkAliases, networkInput, networkInput) : null;
             if ((!java.util.Objects.equals(network, null)) && (java.util.Objects.equals(code, "USDT")))
             {
                 String parsedNetwork = this.safeString(networks, network);
@@ -4376,8 +4381,9 @@ public class Hitbtc extends HitbtcApi
             Map<String, Object> networkEntry = (Map<String, Object>) this.safeDict(networks, j, (Object) null);
             String networkId = this.safeString(networkEntry, "network");
             String code = this.safeString(currency, "code");
-            Object networkCode = this.networkIdToCode(networkId, code);
-            networkCode = (((!java.util.Objects.equals(networkCode, null)))) ? ((String)networkCode).toUpperCase() : null;
+            String networkCode = this.networkIdToCode(networkId, code);
+            String networkCodeUpper = (((!java.util.Objects.equals(networkCode, null)))) ? ((String)networkCode).toUpperCase() : null;
+            networkCode = (((!java.util.Objects.equals(networkCodeUpper, null)))) ? this.safeString(this.networkAliases, networkCodeUpper, networkCodeUpper) : null;
             Double withdrawFee = this.safeNumber(networkEntry, "payout_fee", (Object) null);
             Boolean isDefault = (Boolean) this.safeBool(networkEntry, "default", (Object) null);
             Map<String, Object> withdrawResult = new HashMap<String, Object>();
@@ -4503,11 +4509,12 @@ public class Hitbtc extends HitbtcApi
         return null;
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Object query = this.omit(parameters, this.extractParams(path));
         String implodedPath = (String) this.implodeParams(path, parameters);
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -4527,8 +4534,8 @@ public class Hitbtc extends HitbtcApi
                 url = (url + getRequest);
             }
         }
-        String bodyResolved = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))) ? body : this.json(parameters);
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        String bodyResolved = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))) ? null : this.json(parameters);
+        if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
             String timestamp = String.valueOf(this.nonce());

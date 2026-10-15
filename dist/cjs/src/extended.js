@@ -2048,7 +2048,7 @@ class extended extends extended$1["default"] {
             };
         }
         const transactionType = this.parseTransactionType(this.safeString(transaction, 'type'));
-        const network = this.safeString(transaction, 'chain');
+        const network = this.networkIdToCode(this.safeString(transaction, 'chain'));
         return {
             'info': transaction,
             'id': this.safeString(transaction, 'id'),
@@ -3505,9 +3505,9 @@ class extended extends extended$1["default"] {
         }
         return undefined;
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let requestHeaders = headers;
-        let requestBody = body;
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        let requestHeaders = undefined;
+        let requestBody = undefined;
         const version = this.safeString(api, 0);
         const accessibility = this.safeString(api, 1);
         const endpoint = '/' + this.implodeParams(path, params);

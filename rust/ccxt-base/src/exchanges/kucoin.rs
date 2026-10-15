@@ -2636,7 +2636,7 @@ impl KucoinCore {
         m.insert("uta".to_string(), Value::Null);
         m.insert("version".to_string(), Value::Str("v1".into()));
         m.insert("symbolSeparator".to_string(), Value::Str("-".into()));
-        m.insert("fetchMyTradesMethod".to_string(), Value::Str("private_get_fills".into()));
+        m.insert("fetchMyTradesMethod".to_string(), Value::Str("privateGetFills".into()));
         m.insert("timeDifference".to_string(), Value::Int(0));
         m.insert("adjustForTimeDifference".to_string(), Value::Bool(false));
         m.insert("fetchCurrencies".to_string(), Value::Map({
@@ -2894,9 +2894,7 @@ impl KucoinCore {
         m.insert("BTC".to_string(), Value::Str("btc".into()));
         m.insert("BRC20".to_string(), Value::Str("btc".into()));
         m.insert("BTCNATIVESEGWIT".to_string(), Value::Str("bech32".into()));
-        m.insert("ETH".to_string(), Value::Str("eth".into()));
         m.insert("ERC20".to_string(), Value::Str("eth".into()));
-        m.insert("TRX".to_string(), Value::Str("trx".into()));
         m.insert("TRC20".to_string(), Value::Str("trx".into()));
         m.insert("HECO".to_string(), Value::Str("heco".into()));
         m.insert("HRC20".to_string(), Value::Str("heco".into()));
@@ -5740,7 +5738,7 @@ impl KucoinCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut currency: Value = self.currency(code);
+        let mut currency: Value = self.currency(code.clone());
         let mut currencyId: Value = currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -5771,7 +5769,7 @@ impl KucoinCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);
         m.insert("currency".to_string(), currencyId);
-        m.insert("network".to_string(), self.safe_string_k(data.clone(), "chain", &[]));
+        m.insert("network".to_string(), self.network_id_to_code(&[self.safe_string_k(data.clone(), "chain", &[]), code]));
         m.insert("address".to_string(), address);
         m.insert("tag".to_string(), self.safe_string_k(data, "memo", &[]));
     m
@@ -9414,7 +9412,7 @@ impl KucoinCore {
                 let __ws_arg_82 = self.extend(request.clone(), &[paramsRequest.clone()]);
                 response = self.private_get_hf_fills(&[__ws_arg_82]).await;
             }
-        }  else if (method.as_deref() == Some("private_get_fills")) {
+        }  else if (method.as_deref() == Some("privateGetFills")) || (method.as_deref() == Some("private_get_fills")) {
             // does not return trades earlier than 2019-02-18T00:00:00Z
             if (since != Value::Null) {
                 // only returns trades up to one week after the since param
@@ -9422,7 +9420,7 @@ impl KucoinCore {
             }
             let __ws_arg_83 = self.extend(request.clone(), &[paramsRequest.clone()]);
             response = self.private_get_fills(&[__ws_arg_83]).await;
-        }  else if (method.as_deref() == Some("private_get_limit_fills")) {
+        }  else if (method.as_deref() == Some("privateGetLimitFills")) || (method.as_deref() == Some("private_get_limit_fills")) {
             // does not return trades earlier than 2019-02-18T00:00:00Z
             // takes no params
             // only returns first 1000 trades (not only "in the last 24 hours" as stated in the docs)
@@ -12181,13 +12179,15 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
+        let __api_empty = Vec::new();
+        let api = api.as_array().unwrap_or(&__api_empty);
         let __config_empty = indexmap::IndexMap::new();
         let config = config.as_map().unwrap_or(&__config_empty);
         let mut versions: Value = self.safe_dict_k(self.options.clone(), "versions", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut apiVersions: Value = self.safe_dict(versions, api, &[Value::Map({
+        let mut apiVersions: Value = self.safe_dict(versions, api.get(0).cloned().unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -15159,14 +15159,15 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
+        let __api_empty = Vec::new();
+        let api = api.as_array().unwrap_or(&__api_empty);
+        let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
         //
         // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
         //                                ↑                 ↑
@@ -15176,7 +15177,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut apiVersions: Value = self.safe_dict(versions, api.clone(), &[Value::Map({
+        let mut apiVersions: Value = self.safe_dict(versions, apiName.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -15188,19 +15189,19 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         let mut version: Value = self.safe_string_k(params.clone(), "version", &[defaultVersion]);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("version".into()), &[]);
         let mut endpoint: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/api/".into()), version).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), paramsOmitted.clone())).into());
-        if (api.as_str() == Some("utaV2")) {
+        if (apiName.as_str() == Some("utaV2")) {
             endpoint = Value::Str(format!("{}{}", Value::Str("/api/ua/v2/".into()), self.implode_params(path.clone(), paramsOmitted.clone())).into());
         }
-        if (api.as_str() == Some("webExchange")) {
+        if (apiName.as_str() == Some("webExchange")) {
             endpoint = Value::Str(format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), paramsOmitted.clone())).into());
         }
-        if (api.as_str() == Some("earn")) {
+        if (apiName.as_str() == Some("earn")) {
             endpoint = Value::Str(format!("{}{}", Value::Str("/api/v1/".into()), self.implode_params(path.clone(), paramsOmitted.clone())).into());
         }
         let mut isUtaPrivate: bool = false;
-        if (api.as_str() == Some("uta")) || (api.as_str() == Some("utaPrivate")) {
+        if (apiName.as_str() == Some("uta")) || (apiName.as_str() == Some("utaPrivate")) {
             endpoint = Value::Str(format!("{}{}", Value::Str("/api/ua/v1/".into()), self.implode_params(path.clone(), paramsOmitted.clone())).into());
-            if (api.as_str() == Some("utaPrivate")) {
+            if (apiName.as_str() == Some("utaPrivate")) {
                 isUtaPrivate = true;
             }
         }
@@ -15210,11 +15211,8 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (headers != Value::Null) {
-            headersBase = headers;
-        }
-        let mut bodyJson: Value = body;
-        let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), api.clone(), &[]);
+        let mut bodyJson: Value = Value::Null;
+        let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone(), &[]);
         if (apiUrl == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
@@ -15228,14 +15226,14 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
                 }
                 bodyJson = json_stringify(&query);
                 endpart = bodyJson.clone();
-                add_element_to_object(&mut headersBase, &Value::Str("Content-Type".into()), Value::Str("application/json".into()));
+                if let Value::Dict(__d) = &mut headersBase { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
             }
         }
         let mut headersResult: Value = headersBase.clone();
-        let mut isFuturePrivate: bool = api.as_str() == Some("futuresPrivate");
-        let mut isPrivate: bool = api.as_str() == Some("private");
-        let mut isBroker: bool = api.as_str() == Some("broker");
-        let mut isEarn: bool = api.as_str() == Some("earn");
+        let mut isFuturePrivate: bool = apiName.as_str() == Some("futuresPrivate");
+        let mut isPrivate: bool = apiName.as_str() == Some("private");
+        let mut isBroker: bool = apiName.as_str() == Some("broker");
+        let mut isEarn: bool = apiName.as_str() == Some("earn");
         if isPrivate || isFuturePrivate || isBroker || isEarn || isUtaPrivate {
             self.check_required_credentials(&[]);
             let mut timestamp: Value = to_string_val(&self.nonce());

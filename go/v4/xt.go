@@ -962,10 +962,8 @@ func (this *Xt) Describe() any {
 			"networks": map[string]any{
 				"ERC20": "Ethereum",
 				"TRC20": "Tron",
-				"TRX":   "Tron",
 				"BEP20": "BNB Smart Chain",
 				"BEP2":  "BNB-BEP2",
-				"ETH":   "Ethereum",
 				"AVAX":  "AVAX C-Chain",
 				"GAL":   "GAL(FT)",
 				"ALEO":  "ALEO(IOU)",
@@ -1967,11 +1965,11 @@ func (this *Xt) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes149519 []any = ListTyped(r1.Value)
-		if retRes149519 == nil {
+		var retRes149319 []any = ListTyped(r1.Value)
+		if retRes149319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes149519}
+			ch <- AsyncResult[any]{Value: retRes149319}
 		}
 		return nil
 	}
@@ -3376,11 +3374,11 @@ func (this *Xt) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any], symbo
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes257615 map[string]any = r1.Value
-	if retRes257615 == nil {
+	var retRes257415 map[string]any = r1.Value
+	if retRes257415 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes257615}
+		ch <- AsyncResult[any]{Value: retRes257415}
 	}
 	return nil
 }
@@ -3445,11 +3443,11 @@ func (this *Xt) createOrderBody(ch chan AsyncResult[map[string]any], symbol stri
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes262019 map[string]any = r1.Value
-		if retRes262019 == nil {
+		var retRes261819 map[string]any = r1.Value
+		if retRes261819 == nil {
 			ch <- AsyncResult[map[string]any]{Value: nil}
 		} else {
-			ch <- AsyncResult[map[string]any]{Value: retRes262019}
+			ch <- AsyncResult[map[string]any]{Value: retRes261819}
 		}
 		return nil
 	} else {
@@ -3458,11 +3456,11 @@ func (this *Xt) createOrderBody(ch chan AsyncResult[map[string]any], symbol stri
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes262219 map[string]any = r2.Value
-		if retRes262219 == nil {
+		var retRes262019 map[string]any = r2.Value
+		if retRes262019 == nil {
 			ch <- AsyncResult[map[string]any]{Value: nil}
 		} else {
-			ch <- AsyncResult[map[string]any]{Value: retRes262219}
+			ch <- AsyncResult[map[string]any]{Value: retRes262019}
 		}
 		return nil
 	}
@@ -4697,11 +4695,11 @@ func (this *Xt) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...an
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes353815 []any = r.Value
-	if retRes353815 == nil {
+	var retRes353615 []any = r.Value
+	if retRes353615 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes353815}
+		ch <- AsyncResult[any]{Value: retRes353615}
 	}
 	return nil
 }
@@ -4745,11 +4743,11 @@ func (this *Xt) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs ...
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes356015 []any = r.Value
-	if retRes356015 == nil {
+	var retRes355815 []any = r.Value
+	if retRes355815 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes356015}
+		ch <- AsyncResult[any]{Value: retRes355815}
 	}
 	return nil
 }
@@ -4793,11 +4791,11 @@ func (this *Xt) fetchCanceledOrdersBody(ch chan AsyncResult[[]any], optionalArgs
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes358215 []any = r.Value
-	if retRes358215 == nil {
+	var retRes358015 []any = r.Value
+	if retRes358015 == nil {
 		ch <- AsyncResult[[]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]any]{Value: retRes358215}
+		ch <- AsyncResult[[]any]{Value: retRes358015}
 	}
 	return nil
 }
@@ -6088,11 +6086,11 @@ func (this *Xt) addMarginBody(ch chan AsyncResult[map[string]any], symbol string
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes452715 map[string]any = MapTyped(r.Value)
-	if retRes452715 == nil {
+	var retRes452515 map[string]any = MapTyped(r.Value)
+	if retRes452515 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes452715}
+		ch <- AsyncResult[map[string]any]{Value: retRes452515}
 	}
 	return nil
 }
@@ -6123,11 +6121,11 @@ func (this *Xt) reduceMarginBody(ch chan EndpointResult[map[string]any], symbol 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes454215 map[string]any = MapTyped(r.Value)
-	if retRes454215 == nil {
+	var retRes454015 map[string]any = MapTyped(r.Value)
+	if retRes454015 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes454215, Raw: retRes454215}
+		ch <- EndpointResult[map[string]any]{Value: retRes454015, Raw: retRes454015}
 	}
 	return nil
 }
@@ -6486,11 +6484,11 @@ func (this *Xt) fetchFundingRateHistoryBody(ch chan AsyncResult[any], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes478919 []any = ListTyped(r1.Value)
-		if retRes478919 == nil {
+		var retRes478719 []any = ListTyped(r1.Value)
+		if retRes478719 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes478919}
+			ch <- AsyncResult[any]{Value: retRes478719}
 		}
 		return nil
 	}
@@ -6595,11 +6593,11 @@ func (this *Xt) fetchFundingIntervalBody(ch chan AsyncResult[map[string]any], sy
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes486115 map[string]any = r.Value
-	if retRes486115 == nil {
+	var retRes485915 map[string]any = r.Value
+	if retRes485915 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes486115}
+		ch <- AsyncResult[map[string]any]{Value: retRes485915}
 	}
 	return nil
 }
@@ -7916,15 +7914,11 @@ func (this *Xt) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var headers map[string]any = GetArgMap(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
-	var signed bool = IsEqual(GetValue(api, 0), "private")
-	var endpoint any = GetValue(api, 1)
+	var signed bool = (GetValue(api, 0) == "private")
+	var endpoint *string = SafeStringPtr(GetValue(api, 1))
 	var request string = "/" + this.ImplodeParams(path, params)
 	var payload string
-	if (endpoint == "spot") || (endpoint == "user") {
+	if (endpoint != nil && *endpoint == "spot") || (endpoint != nil && *endpoint == "user") {
 		if signed {
 			payload = "/" + this.Version + request
 		} else {
@@ -7964,7 +7958,7 @@ func (this *Xt) Sign(path string, optionalArgs ...any) any {
 			}
 		}
 		var isUndefinedBody bool = ((method == "GET") || (path == "order/{orderId}") || (path == "ws-token"))
-		if (method == "PUT") && (endpoint == "spot") {
+		if (method == "PUT") && (endpoint != nil && *endpoint == "spot") {
 			isUndefinedBody = false
 		}
 		signedBody = func() any {
@@ -7974,7 +7968,7 @@ func (this *Xt) Sign(path string, optionalArgs ...any) any {
 			return this.Json(query)
 		}()
 		var payloadString any = nil
-		if (endpoint == "spot") || (endpoint == "user") {
+		if (endpoint != nil && *endpoint == "spot") || (endpoint != nil && *endpoint == "user") {
 			payloadString = Add(Add(Add(Add(Add(Add("xt-validate-algorithms=HmacSHA256&xt-validate-appkey=", this.ApiKey), "&xt-validate-recvwindow="), recvWindow), "&xt-validate-t"), "imestamp="), timestamp)
 			if isUndefinedBody {
 				if urlencoded != "" {
@@ -8010,7 +8004,7 @@ func (this *Xt) Sign(path string, optionalArgs ...any) any {
 			url = Add(url, "?"+urlencoded)
 		}
 	}
-	var bodyValue any = body
+	var bodyValue any = nil
 	if signed {
 		bodyValue = signedBody
 	}

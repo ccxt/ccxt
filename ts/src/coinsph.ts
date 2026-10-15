@@ -3,7 +3,7 @@ import Exchange from './abstract/coinsph.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InvalidAddress, InvalidOrder, InsufficientFunds, NotSupported, OrderImmediatelyFillable, OrderNotFound, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Currency, CurrencyInterface, Currencies, Dict, Fee, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress, NullableDict, Status, Endpoint } from './base/types.js';
+import type { Balances, Currency, CurrencyInterface, Currencies, Dict, Fee, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress, Status, Endpoint } from './base/types.js';
 
 /**
  * @class coinsph
@@ -677,7 +677,7 @@ export default class coinsph extends Exchange {
         });
     }
 
-    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config: Dict = {}) {
+    override calculateRateLimiterCost (api: string[], method: any, path: any, params: any, config: Dict = {}) {
         if (('noSymbol' in config) && !('symbol' in params)) {
             return config['noSymbol'];
         } else if (('noSymbolAndNoSymbols' in config) && !('symbol' in params) && !('symbols' in params)) {
@@ -2157,15 +2157,15 @@ export default class coinsph extends Exchange {
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
-        const network = this.safeString (transaction, 'network');
-        const internal = network === 'Internal';
+        const networkId = this.safeString (transaction, 'network');
+        const internal = networkId === 'Internal';
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': network,
+            'network': this.networkIdToCode (networkId, code),
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
@@ -2283,15 +2283,16 @@ export default class coinsph extends Exchange {
         return urlEncodedParam;
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        const apiUrl = this.safeString (this.urls['api'], api);
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
+        const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
         const query = this.omit (params, this.extractParams (path));
         const endpoint = this.implodeParams (path, params);
         let url = apiUrl + '/' + endpoint;
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials ();
             query['timestamp'] = this.milliseconds ();
             const recvWindow = this.safeInteger (query, 'recvWindow');
@@ -2307,13 +2308,13 @@ export default class coinsph extends Exchange {
             const signedHeaders: Dict = {
                 'X-COINS-APIKEY': this.apiKey,
             };
-            return { 'url': url, 'method': method, 'body': body, 'headers': signedHeaders };
+            return { 'url': url, 'method': method, 'body': undefined, 'headers': signedHeaders };
         }
         const encodedQuery = this.urlEncodeQuery (query);
         if (encodedQuery.length !== 0) {
             url += '?' + encodedQuery;
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

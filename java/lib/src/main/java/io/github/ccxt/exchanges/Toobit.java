@@ -667,7 +667,6 @@ public class Toobit extends ToobitApi
                 put( "networks", new HashMap<String, Object>() {{
                     put( "BTC", "BTC" );
                     put( "ERC20", "ETH" );
-                    put( "ETH", "ETH" );
                     put( "BEP20", "BSC" );
                     put( "TRC20", "TRX" );
                     put( "SOL", "SOL" );
@@ -3639,9 +3638,10 @@ public class Toobit extends ToobitApi
         }});
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        String baseApiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String baseApiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(baseApiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -3652,7 +3652,7 @@ public class Toobit extends ToobitApi
         Boolean isDelete = java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE");
         Map<String, Object> extraQuery = new HashMap<String, Object>() {{}};
         Object query = this.omit(parameters, this.extractParams(path));
-        if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        if (!java.util.Objects.equals(apiName, "private"))
         {
             // Public endpoints
             if (!Boolean.TRUE.equals(isPost))
@@ -3687,7 +3687,7 @@ public class Toobit extends ToobitApi
             {
                 queryString = this.urlencode(queryExtended);
             }
-            Object payloadBody = body;
+            Object payloadBody = null;
             if (Boolean.TRUE.equals(isPost) || Boolean.TRUE.equals(isDelete))
             {
                 payloadBody = privateBody;
@@ -3712,7 +3712,7 @@ public class Toobit extends ToobitApi
                 put( "X-BB-API-PLATFORM", Toobit.this.safeString(Toobit.this.options, "brokerId", "177321641268789") );
                 put( "Content-Type", "application/x-www-form-urlencoded" );
             }};
-            String requestBody = body;
+            String requestBody = null;
             if (Boolean.TRUE.equals(isPost) || Boolean.TRUE.equals(isDelete))
             {
                 requestBody = privateBody;
@@ -3730,8 +3730,8 @@ public class Toobit extends ToobitApi
             HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
             h2kMap2.put("url", url);
             h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap2.put("body", body);
-            h2kMap2.put("headers", headers);
+            h2kMap2.put("body", null);
+            h2kMap2.put("headers", null);
             return h2kMap2;
         }
     }

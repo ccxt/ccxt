@@ -5045,32 +5045,29 @@ func (this *Lighter) ParseMarginModification(data any, optionalArgs ...any) map[
 	}
 }
 func (this *Lighter) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var url any = nil
-	if api == "root" {
+	if apiName != nil && *apiName == "root" {
 		var baseApiUrl *string = this.SafeString(this.Urls["api"], "public")
 		if baseApiUrl == nil {
 			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 		}
 		url = this.ImplodeHostname(baseApiUrl)
 	} else {
-		var baseApiUrl2 *string = this.SafeString(this.Urls["api"], api)
+		var baseApiUrl2 *string = this.SafeString(this.Urls["api"], apiName)
 		if baseApiUrl2 == nil {
 			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 		}
 		url = this.ImplodeHostname(baseApiUrl2) + "/api/" + this.Version + "/" + path
 	}
 	var authHeaders map[string]any = nil
-	if api == "private" {
+	if apiName != nil && *apiName == "private" {
 		authHeaders = map[string]any{
 			"Authorization": this.CreateAuth(params),
 		}
@@ -5089,19 +5086,19 @@ func (this *Lighter) Sign(path string, optionalArgs ...any) any {
 		}
 		url = Add(url, "?"+this.Rawencode(params))
 	}
-	if api == "private" {
+	if apiName != nil && *apiName == "private" {
 		return map[string]any{
 			"url":     url,
 			"method":  method,
-			"body":    body,
+			"body":    nil,
 			"headers": authHeaders,
 		}
 	}
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    nil,
+		"headers": nil,
 	}
 }
 func (this *Lighter) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {

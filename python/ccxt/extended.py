@@ -1986,7 +1986,7 @@ class extended(Exchange, ImplicitAPI):
                 'cost': self.parse_number(Precise.string_abs(feeCost)),
             }
         transactionType = self.parse_transaction_type(self.safe_string(transaction, 'type'))
-        network = self.safe_string(transaction, 'chain')
+        network = self.network_id_to_code(self.safe_string(transaction, 'chain'))
         return {
             'info': transaction,
             'id': self.safe_string(transaction, 'id'),
@@ -3365,9 +3365,9 @@ class extended(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        requestHeaders = headers
-        requestBody = body
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        requestHeaders = None
+        requestBody = None
         version = self.safe_string(api, 0)
         accessibility = self.safe_string(api, 1)
         endpoint = '/' + self.implode_params(path, params)

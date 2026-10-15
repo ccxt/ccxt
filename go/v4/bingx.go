@@ -1080,7 +1080,7 @@ func (this *Bingx) Describe() any {
 			"recvWindow": 5 * 1000,
 			"broker":     "CCXT",
 			"defaultNetworks": map[string]any{
-				"ETH":  "ETH",
+				"ETH":  "ERC20",
 				"USDT": "ERC20",
 				"USDC": "ERC20",
 				"BTC":  "BTC",
@@ -6636,7 +6636,7 @@ func (this *Bingx) ParseDepositAddress(depositAddress any, optionalArgs ...any) 
 	// the 0x prefix on the evm networks, see https://github.com/ccxt/ccxt/issues/24331
 	if address != nil {
 		var isPrefixed bool = StartsWith(address, "0x") || StartsWith(address, "0X")
-		var evmNetworks []any = []any{"BEP20", "BSC", "ERC20", "ETH", "HECO", "MATIC", "POLYGON", "ARBITRUM", "ARB", "OPTIMISM", "AVAXC", "BASE", "FTM", "LINEA", "ZKSYNC", "OPBNB"}
+		var evmNetworks []any = []any{"BEP20", "ERC20", "HECO", "MATIC", "POLYGON", "ARBITRUM", "OPTIMISM", "AVAXC", "BASE", "FTM", "LINEA", "ZKSYNC", "OPBNB"}
 		if !isPrefixed && this.InArray(networkCode, evmNetworks) {
 			address = Add("0x", address)
 		}
@@ -8504,47 +8504,43 @@ func (this *Bingx) ParseMarketLeverageTiers(info any, optionalArgs ...any) any {
 	return tiers
 }
 func (this *Bingx) Sign(path string, optionalArgs ...any) any {
-	section := GetArg(optionalArgs, 0, "public")
+	section := GetArg(optionalArgs, 0, []any{"public"})
 	_ = section
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
-	var typeVar any = GetValue(section, 0)
+	var typeVar *string = SafeStringPtr(GetValue(section, 0))
 	var version any = GetValue(section, 1)
 	var access any = GetValue(section, 2)
 	var isSandbox *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	var url any = this.ImplodeHostname(GetValue(this.Urls["api"], typeVar))
 	if (isSandbox != nil && *isSandbox == true) && (url == nil) {
-		panic(NotSupported(Add(Add(this.Id+" does not have a testnet/sandbox URL for ", typeVar), " endpoints")))
+		panic(NotSupported(this.Id + " does not have a testnet/sandbox URL for " + *typeVar + " endpoints"))
 	}
 	var pathValue string = this.ImplodeParams(path, params)
 	var versionIsTransfer bool = (version == "transfer")
 	var versionIsAsset bool = (version == "asset")
 	if versionIsTransfer || versionIsAsset {
 		if versionIsTransfer {
-			typeVar = "account/transfer"
+			typeVar = SafeStringPtr("account/transfer")
 		} else {
-			typeVar = "api/asset"
+			typeVar = SafeStringPtr("api/asset")
 		}
 		version = GetValue(section, 2)
 		access = GetValue(section, 3)
 	}
 	var flatAccountPaths []any = []any{"account/apiPermissions", "account/apiRestrictions"}
 	if !this.InArray(pathValue, flatAccountPaths) {
-		if (typeVar == "spot") && (version == "v3") {
+		if (typeVar != nil && *typeVar == "spot") && (version == "v3") {
 			url = Add(url, "/api")
 		} else {
-			url = Add(url, Add("/", typeVar))
+			url = Add(url, "/"+*typeVar)
 		}
 	}
 	url = Add(url, Add(Add(Add("/", version), "/"), pathValue))
 	var requestHeaders any = nil
-	var requestBody any = nil
+	var requestBody *string = nil
 	var paramsOmitted any = this.Omit(params, this.ExtractParams(pathValue))
 	AddElementToObject(paramsOmitted, "timestamp", this.Nonce())
 	var paramsSorted map[string]any = this.Keysort(paramsOmitted)
@@ -8554,7 +8550,7 @@ func (this *Bingx) Sign(path string, optionalArgs ...any) any {
 		}
 	} else if access == "private" {
 		this.CheckRequiredCredentials()
-		var isJsonContentType bool = (((typeVar == "subAccount") || (typeVar == "account/transfer")) && (method == "POST"))
+		var isJsonContentType bool = (((typeVar != nil && *typeVar == "subAccount") || (typeVar != nil && *typeVar == "account/transfer")) && (method == "POST"))
 		var parsedParams any = nil
 		var encodeRequest any = nil
 		if isJsonContentType {
@@ -8577,24 +8573,14 @@ func (this *Bingx) Sign(path string, optionalArgs ...any) any {
 		if isJsonContentType {
 			AddElementToObject(requestHeaders, "Content-Type", "application/json")
 			paramsSorted["signature"] = signature
-			requestBody = this.Json(paramsSorted)
+			requestBody = SafeStringPtr(this.Json(paramsSorted))
 		} else {
 			var query string = this.Urlencode(parsedParams, true)
 			url = Add(url, "?"+query+"&"+"signature="+signature)
 		}
 	}
-	var bodyResult any = func() any {
-		if requestBody != nil {
-			return requestBody
-		}
-		return body
-	}()
-	var headersResult any = func() any {
-		if requestHeaders != nil {
-			return requestHeaders
-		}
-		return headers
-	}()
+	var bodyResult *string = requestBody
+	var headersResult any = requestHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,

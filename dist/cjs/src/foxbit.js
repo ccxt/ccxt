@@ -209,7 +209,7 @@ class foxbit extends foxbit$1["default"] {
                     'cardano': 'ADA',
                     'cosmos': 'ATOM',
                     'dogecoin': 'DOGE',
-                    'erc20': 'ETH',
+                    'erc20': 'ERC20',
                     'hedera': 'HBAR',
                     'litecoin': 'LTC',
                     'near': 'NEAR',
@@ -233,7 +233,7 @@ class foxbit extends foxbit$1["default"] {
                     'ADA': 'cardano',
                     'ATOM': 'cosmos',
                     'DOGE': 'dogecoin',
-                    'ETH': 'erc20',
+                    'ERC20': 'erc20',
                     'HBAR': 'hedera',
                     'LTC': 'litecoin',
                     'NEAR': 'near',
@@ -1915,7 +1915,7 @@ class foxbit extends foxbit$1["default"] {
             'txid': this.safeString(cryptoDetails, 'transaction_id'),
             'timestamp': timestamp,
             'datetime': datetime,
-            'network': this.safeString(transaction, 'network_code'),
+            'network': this.networkIdToCode(this.safeString(transaction, 'network_code'), currencyCode),
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
@@ -2003,7 +2003,7 @@ class foxbit extends foxbit$1["default"] {
             'fee': fee,
         };
     }
-    sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = [], method = 'GET', params = {}) {
         const version = api[0];
         let urlPath = api[1];
         let fullPath = '/rest/' + version + '/' + this.implodeParams(path, params);
@@ -2038,7 +2038,7 @@ class foxbit extends foxbit$1["default"] {
                 }
             }
         }
-        let requestBody = body;
+        let requestBody = undefined;
         if (method === 'POST' || method === 'PUT') {
             requestBody = this.json(paramsOmitted);
         }

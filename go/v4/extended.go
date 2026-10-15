@@ -2957,7 +2957,7 @@ func (this *Extended) ParseTransaction(transaction any, optionalArgs ...any) map
 		}
 	}
 	var transactionType *string = this.ParseTransactionType(this.SafeString(transaction, "type"))
-	var network *string = this.SafeString(transaction, "chain")
+	var network *string = this.NetworkIdToCode(this.SafeString(transaction, "chain"))
 	return map[string]any{
 		"info":        transaction,
 		"id":          this.SafeString(transaction, "id"),
@@ -4941,18 +4941,14 @@ func (this *Extended) HandleErrors(httpCode any, reason any, url any, method any
 	return nil
 }
 func (this *Extended) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
-	var requestHeaders any = headers
-	var requestBody any = body
+	var requestHeaders map[string]any = nil
+	var requestBody *string = nil
 	var version *string = this.SafeString(api, 0)
 	var accessibility *string = this.SafeString(api, 1)
 	var endpoint string = "/" + this.ImplodeParams(path, params)
@@ -4971,7 +4967,7 @@ func (this *Extended) Sign(path string, optionalArgs ...any) any {
 			"X-Api-Key": this.ApiKey,
 		}
 		if ((method == "POST") || (method == "PATCH")) && !queryPost {
-			requestBody = this.Json(query)
+			requestBody = SafeStringPtr(this.Json(query))
 			AddElementToObject(requestHeaders, "Content-Type", "application/json")
 		}
 	}

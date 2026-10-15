@@ -336,7 +336,7 @@ func (this *Tokocrypto) Describe() any {
 			"reverseNetworks": map[string]any{
 				"tronscan.org":                   "TRC20",
 				"etherscan.io":                   "ERC20",
-				"bscscan.com":                    "BSC",
+				"bscscan.com":                    "BEP20",
 				"explorer.binance.org":           "BEP2",
 				"bithomp.com":                    "XRP",
 				"bloks.io":                       "EOS",
@@ -2876,7 +2876,7 @@ func (this *Tokocrypto) fetchDepositAddressBody(ch chan AsyncResult[any], code s
 	ch <- AsyncResult[any]{Value: map[string]any{
 		"info":     response,
 		"currency": code,
-		"network":  this.SafeString(data, "network"),
+		"network":  this.NetworkIdToCode(this.SafeString(data, "network"), code),
 		"address":  address,
 		"tag":      tag,
 	}}
@@ -3190,7 +3190,7 @@ func (this *Tokocrypto) ParseTransaction(transaction any, optionalArgs ...any) m
 		"txid":        txid,
 		"type":        typeVar,
 		"currency":    code,
-		"network":     this.SafeString(transaction, "network"),
+		"network":     this.NetworkIdToCode(this.SafeString(transaction, "network"), code),
 		"amount":      this.SafeNumber(transaction, "amount"),
 		"status":      this.ParseTransactionStatusByType(this.SafeString(transaction, "status"), typeVar),
 		"timestamp":   timestamp,
@@ -3279,26 +3279,23 @@ func (this *Tokocrypto) withdrawBody(ch chan EndpointResult[map[string]any], cod
 	return nil
 }
 func (this *Tokocrypto) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
-	if !(InOp(GetValue(this.Urls["api"], "rest"), api)) {
-		panic(NotSupported(Add(Add(this.Id+" does not have a testnet/sandbox URL for ", api), " endpoints")))
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	if !(InOp(GetValue(this.Urls["api"], "rest"), apiName)) {
+		panic(NotSupported(this.Id + " does not have a testnet/sandbox URL for " + *apiName + " endpoints"))
 	}
-	var baseApiUrl *string = this.SafeString(GetValue(this.Urls["api"], "rest"), api)
+	var baseApiUrl *string = this.SafeString(GetValue(this.Urls["api"], "rest"), apiName)
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url any = baseApiUrl
 	url = Add(url, "/"+path)
-	if api == "wapi" {
+	if apiName != nil && *apiName == "wapi" {
 		url = Add(url, ".html")
 	}
 	var userDataStream bool = (path == "userDataStream") || (path == "listenKey")
@@ -3313,7 +3310,7 @@ func (this *Tokocrypto) Sign(path string, optionalArgs ...any) any {
 				if method != "GET" {
 					return SafeStringPtr(this.Urlencode(params))
 				}
-				return body
+				return nil
 			}()
 			return map[string]any{
 				"url":     url,
@@ -3324,7 +3321,7 @@ func (this *Tokocrypto) Sign(path string, optionalArgs ...any) any {
 		} else {
 			panic(AuthenticationError(this.Id + " userDataStream endpoint requires `apiKey` credential"))
 		}
-	} else if (api == "private") || ((api == "sapi") && (path != "system/status")) || (api == "sapiV3") || ((api == "wapi") && (path != "systemStatus")) || (api == "dapiPrivate") || (api == "dapiPrivateV2") || (api == "fapiPrivate") || (api == "fapiPrivateV2") {
+	} else if (apiName != nil && *apiName == "private") || ((apiName != nil && *apiName == "sapi") && (path != "system/status")) || (apiName != nil && *apiName == "sapiV3") || ((apiName != nil && *apiName == "wapi") && (path != "systemStatus")) || (apiName != nil && *apiName == "dapiPrivate") || (apiName != nil && *apiName == "dapiPrivateV2") || (apiName != nil && *apiName == "fapiPrivate") || (apiName != nil && *apiName == "fapiPrivateV2") {
 		this.CheckRequiredCredentials()
 		var query any = nil
 		var defaultRecvWindow *int64 = this.SafeInteger(this.Options, "recvWindow")
@@ -3338,7 +3335,7 @@ func (this *Tokocrypto) Sign(path string, optionalArgs ...any) any {
 		if recvWindow != nil {
 			extendedParams["recvWindow"] = recvWindow
 		}
-		if (api == "sapi") && (path == "asset/dust") {
+		if (apiName != nil && *apiName == "sapi") && (path == "asset/dust") {
 			query = this.UrlencodeWithArrayRepeat(extendedParams)
 		} else if (path == "batchOrders") || (strings.Index(path, "sub-account") >= 0) || (path == "capital/withdraw/apply") || (strings.Index(path, "staking") >= 0) {
 			query = this.Rawencode(extendedParams)
@@ -3350,10 +3347,10 @@ func (this *Tokocrypto) Sign(path string, optionalArgs ...any) any {
 		var headersSigned map[string]any = map[string]any{
 			"X-MBX-APIKEY": this.ApiKey,
 		}
-		var queryInUrl bool = (method == "GET") || (method == "DELETE") || (api == "wapi")
+		var queryInUrl bool = (method == "GET") || (method == "DELETE") || (apiName != nil && *apiName == "wapi")
 		var bodySigned any = query
 		if queryInUrl {
-			bodySigned = body
+			bodySigned = nil
 		}
 		if queryInUrl {
 			url = Add(url, Add("?", query))
@@ -3374,8 +3371,8 @@ func (this *Tokocrypto) Sign(path string, optionalArgs ...any) any {
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    nil,
+		"headers": nil,
 	}
 }
 func (this *Tokocrypto) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {

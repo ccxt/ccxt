@@ -8,199 +8,199 @@
 import { Exchange as _Exchange } from '../base/Exchange.js';
 class Exchange extends _Exchange {
     publicGetOrderbook(params = {}) {
-        return this.request("orderbook", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('orderbook', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetTicker(params = {}) {
-        return this.request("ticker", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('ticker', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetTickerUtc(params = {}) {
-        return this.request("ticker_utc", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('ticker_utc', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetTrades(params = {}) {
-        return this.request("trades", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('trades', ['public'], 'GET', params, { 'cost': 1 });
     }
     v2PublicGetRangeUnits(params = {}) {
-        return this.request("range_units", "v2Public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('range_units', ['v2Public'], 'GET', params, { 'cost': 1 });
     }
     v2PublicGetMarketsQuoteCurrency(params = {}) {
-        return this.request("markets/{quote_currency}", "v2Public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('markets/{quote_currency}', ['v2Public'], 'GET', params, { 'cost': 1 });
     }
     v2PublicGetMarketsQuoteCurrencyTargetCurrency(params = {}) {
-        return this.request("markets/{quote_currency}/{target_currency}", "v2Public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('markets/{quote_currency}/{target_currency}', ['v2Public'], 'GET', params, { 'cost': 1 });
     }
     v2PublicGetOrderbookQuoteCurrencyTargetCurrency(params = {}) {
-        return this.request("orderbook/{quote_currency}/{target_currency}", "v2Public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('orderbook/{quote_currency}/{target_currency}', ['v2Public'], 'GET', params, { 'cost': 1 });
     }
     v2PublicGetTradesQuoteCurrencyTargetCurrency(params = {}) {
-        return this.request("trades/{quote_currency}/{target_currency}", "v2Public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('trades/{quote_currency}/{target_currency}', ['v2Public'], 'GET', params, { 'cost': 1 });
     }
     v2PublicGetTickerNewQuoteCurrency(params = {}) {
-        return this.request("ticker_new/{quote_currency}", "v2Public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('ticker_new/{quote_currency}', ['v2Public'], 'GET', params, { 'cost': 1 });
     }
     v2PublicGetTickerNewQuoteCurrencyTargetCurrency(params = {}) {
-        return this.request("ticker_new/{quote_currency}/{target_currency}", "v2Public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('ticker_new/{quote_currency}/{target_currency}', ['v2Public'], 'GET', params, { 'cost': 1 });
     }
     v2PublicGetTickerUtcNewQuoteCurrency(params = {}) {
-        return this.request("ticker_utc_new/{quote_currency}", "v2Public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('ticker_utc_new/{quote_currency}', ['v2Public'], 'GET', params, { 'cost': 1 });
     }
     v2PublicGetTickerUtcNewQuoteCurrencyTargetCurrency(params = {}) {
-        return this.request("ticker_utc_new/{quote_currency}/{target_currency}", "v2Public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('ticker_utc_new/{quote_currency}/{target_currency}', ['v2Public'], 'GET', params, { 'cost': 1 });
     }
     v2PublicGetCurrencies(params = {}) {
-        return this.request("currencies", "v2Public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('currencies', ['v2Public'], 'GET', params, { 'cost': 1 });
     }
     v2PublicGetCurrenciesCurrency(params = {}) {
-        return this.request("currencies/{currency}", "v2Public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('currencies/{currency}', ['v2Public'], 'GET', params, { 'cost': 1 });
     }
     v2PublicGetChartQuoteCurrencyTargetCurrency(params = {}) {
-        return this.request("chart/{quote_currency}/{target_currency}", "v2Public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('chart/{quote_currency}/{target_currency}', ['v2Public'], 'GET', params, { 'cost': 1 });
     }
     privatePostAccountDepositAddress(params = {}) {
-        return this.request("account/deposit_address", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/deposit_address', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostAccountBtcDepositAddress(params = {}) {
-        return this.request("account/btc_deposit_address", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/btc_deposit_address', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostAccountBalance(params = {}) {
-        return this.request("account/balance", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/balance', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostAccountDailyBalance(params = {}) {
-        return this.request("account/daily_balance", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/daily_balance', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostAccountUserInfo(params = {}) {
-        return this.request("account/user_info", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/user_info', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostAccountVirtualAccount(params = {}) {
-        return this.request("account/virtual_account", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/virtual_account', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostOrderCancelAll(params = {}) {
-        return this.request("order/cancel_all", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/cancel_all', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostOrderCancel(params = {}) {
-        return this.request("order/cancel", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/cancel', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostOrderLimitBuy(params = {}) {
-        return this.request("order/limit_buy", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/limit_buy', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostOrderLimitSell(params = {}) {
-        return this.request("order/limit_sell", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/limit_sell', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostOrderCompleteOrders(params = {}) {
-        return this.request("order/complete_orders", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/complete_orders', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostOrderLimitOrders(params = {}) {
-        return this.request("order/limit_orders", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/limit_orders', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostOrderOrderInfo(params = {}) {
-        return this.request("order/order_info", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/order_info', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTransactionAuthNumber(params = {}) {
-        return this.request("transaction/auth_number", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('transaction/auth_number', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTransactionHistory(params = {}) {
-        return this.request("transaction/history", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('transaction/history', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTransactionKrwHistory(params = {}) {
-        return this.request("transaction/krw/history", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('transaction/krw/history', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTransactionBtc(params = {}) {
-        return this.request("transaction/btc", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('transaction/btc', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostTransactionCoin(params = {}) {
-        return this.request("transaction/coin", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('transaction/coin', ['private'], 'POST', params, { 'cost': 1 });
     }
     v2PrivatePostAccountBalance(params = {}) {
-        return this.request("account/balance", "v2Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/balance', ['v2Private'], 'POST', params, { 'cost': 1 });
     }
     v2PrivatePostAccountDepositAddress(params = {}) {
-        return this.request("account/deposit_address", "v2Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/deposit_address', ['v2Private'], 'POST', params, { 'cost': 1 });
     }
     v2PrivatePostAccountUserInfo(params = {}) {
-        return this.request("account/user_info", "v2Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/user_info', ['v2Private'], 'POST', params, { 'cost': 1 });
     }
     v2PrivatePostAccountVirtualAccount(params = {}) {
-        return this.request("account/virtual_account", "v2Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/virtual_account', ['v2Private'], 'POST', params, { 'cost': 1 });
     }
     v2PrivatePostOrderCancel(params = {}) {
-        return this.request("order/cancel", "v2Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/cancel', ['v2Private'], 'POST', params, { 'cost': 1 });
     }
     v2PrivatePostOrderLimitBuy(params = {}) {
-        return this.request("order/limit_buy", "v2Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/limit_buy', ['v2Private'], 'POST', params, { 'cost': 1 });
     }
     v2PrivatePostOrderLimitSell(params = {}) {
-        return this.request("order/limit_sell", "v2Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/limit_sell', ['v2Private'], 'POST', params, { 'cost': 1 });
     }
     v2PrivatePostOrderLimitOrders(params = {}) {
-        return this.request("order/limit_orders", "v2Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/limit_orders', ['v2Private'], 'POST', params, { 'cost': 1 });
     }
     v2PrivatePostOrderCompleteOrders(params = {}) {
-        return this.request("order/complete_orders", "v2Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/complete_orders', ['v2Private'], 'POST', params, { 'cost': 1 });
     }
     v2PrivatePostOrderQueryOrder(params = {}) {
-        return this.request("order/query_order", "v2Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/query_order', ['v2Private'], 'POST', params, { 'cost': 1 });
     }
     v2PrivatePostTransactionAuthNumber(params = {}) {
-        return this.request("transaction/auth_number", "v2Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('transaction/auth_number', ['v2Private'], 'POST', params, { 'cost': 1 });
     }
     v2PrivatePostTransactionBtc(params = {}) {
-        return this.request("transaction/btc", "v2Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('transaction/btc', ['v2Private'], 'POST', params, { 'cost': 1 });
     }
     v2PrivatePostTransactionHistory(params = {}) {
-        return this.request("transaction/history", "v2Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('transaction/history', ['v2Private'], 'POST', params, { 'cost': 1 });
     }
     v2PrivatePostTransactionKrwHistory(params = {}) {
-        return this.request("transaction/krw/history", "v2Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('transaction/krw/history', ['v2Private'], 'POST', params, { 'cost': 1 });
     }
     v2_1PrivatePostAccountBalanceAll(params = {}) {
-        return this.request("account/balance/all", "v2_1Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/balance/all', ['v2_1Private'], 'POST', params, { 'cost': 1 });
     }
     v2_1PrivatePostAccountBalance(params = {}) {
-        return this.request("account/balance", "v2_1Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/balance', ['v2_1Private'], 'POST', params, { 'cost': 1 });
     }
     v2_1PrivatePostAccountTradeFee(params = {}) {
-        return this.request("account/trade_fee", "v2_1Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/trade_fee', ['v2_1Private'], 'POST', params, { 'cost': 1 });
     }
     v2_1PrivatePostAccountTradeFeeQuoteCurrencyTargetCurrency(params = {}) {
-        return this.request("account/trade_fee/{quote_currency}/{target_currency}", "v2_1Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('account/trade_fee/{quote_currency}/{target_currency}', ['v2_1Private'], 'POST', params, { 'cost': 1 });
     }
     v2_1PrivatePostOrderLimit(params = {}) {
-        return this.request("order/limit", "v2_1Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/limit', ['v2_1Private'], 'POST', params, { 'cost': 1 });
     }
     v2_1PrivatePostOrderCancel(params = {}) {
-        return this.request("order/cancel", "v2_1Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/cancel', ['v2_1Private'], 'POST', params, { 'cost': 1 });
     }
     v2_1PrivatePostOrderCancelAll(params = {}) {
-        return this.request("order/cancel/all", "v2_1Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/cancel/all', ['v2_1Private'], 'POST', params, { 'cost': 1 });
     }
     v2_1PrivatePostOrderOpenOrders(params = {}) {
-        return this.request("order/open_orders", "v2_1Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/open_orders', ['v2_1Private'], 'POST', params, { 'cost': 1 });
     }
     v2_1PrivatePostOrderOpenOrdersAll(params = {}) {
-        return this.request("order/open_orders/all", "v2_1Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/open_orders/all', ['v2_1Private'], 'POST', params, { 'cost': 1 });
     }
     v2_1PrivatePostOrderCompleteOrders(params = {}) {
-        return this.request("order/complete_orders", "v2_1Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/complete_orders', ['v2_1Private'], 'POST', params, { 'cost': 1 });
     }
     v2_1PrivatePostOrderCompleteOrdersAll(params = {}) {
-        return this.request("order/complete_orders/all", "v2_1Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/complete_orders/all', ['v2_1Private'], 'POST', params, { 'cost': 1 });
     }
     v2_1PrivatePostOrderInfo(params = {}) {
-        return this.request("order/info", "v2_1Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/info', ['v2_1Private'], 'POST', params, { 'cost': 1 });
     }
     v2_1PrivatePostTransactionKrwHistory(params = {}) {
-        return this.request("transaction/krw/history", "v2_1Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('transaction/krw/history', ['v2_1Private'], 'POST', params, { 'cost': 1 });
     }
     v2_1PrivatePostTransactionCoinHistory(params = {}) {
-        return this.request("transaction/coin/history", "v2_1Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('transaction/coin/history', ['v2_1Private'], 'POST', params, { 'cost': 1 });
     }
     v2_1PrivatePostTransactionCoinWithdrawalLimit(params = {}) {
-        return this.request("transaction/coin/withdrawal/limit", "v2_1Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('transaction/coin/withdrawal/limit', ['v2_1Private'], 'POST', params, { 'cost': 1 });
     }
     v2_1PrivatePostEventOrderRewardPrograms(params = {}) {
-        return this.request("event/order-reward/programs", "v2_1Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('event/order-reward/programs', ['v2_1Private'], 'POST', params, { 'cost': 1 });
     }
     v2_1PrivatePostEventOrderRewardHistory(params = {}) {
-        return this.request("event/order-reward/history", "v2_1Private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('event/order-reward/history', ['v2_1Private'], 'POST', params, { 'cost': 1 });
     }
 }
 export default Exchange;

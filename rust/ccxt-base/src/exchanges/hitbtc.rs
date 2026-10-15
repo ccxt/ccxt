@@ -1220,7 +1220,7 @@ impl HitbtcCore {
         m.insert("defaultNetwork".to_string(), Value::Str("ERC20".into()));
         m.insert("defaultNetworks".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ETH".to_string(), Value::Str("ETH".into()));
+        m.insert("ETH".to_string(), Value::Str("ERC20".into()));
         m.insert("USDT".to_string(), Value::Str("TRC20".into()));
     m
 }));
@@ -1228,7 +1228,6 @@ impl HitbtcCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("BTC".to_string(), Value::Str("btc".into()));
         m.insert("OMNI".to_string(), Value::Str("BTC".into()));
-        m.insert("ETH".to_string(), Value::Str("eth".into()));
         m.insert("ERC20".to_string(), Value::Str("ETH".into()));
         m.insert("ETC".to_string(), Value::Str("ETC".into()));
         m.insert("BEP20".to_string(), Value::Str("BSC".into()));
@@ -1615,7 +1614,8 @@ impl HitbtcCore {
             let mut rawNetwork: Value = rawNetworks.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut networkId: Value = self.safe_string2(rawNetwork.clone(), Value::Str("protocol".into()), Value::Str("network".into()), &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
-            networkCode = (if (networkCode != Value::Null) { to_upper(&networkCode) } else { code.clone() }); // as hitbtc is white label, ensure we safeguard from possible bugs
+            let mut networkCodeUpper: Value = (if (networkCode != Value::Null) { to_upper(&networkCode) } else { Value::Null });
+            networkCode = (if (networkCodeUpper != Value::Null) { self.safe_string(self.networkAliases.clone(), networkCodeUpper.clone(), &[networkCodeUpper.clone()]) } else { code.clone() }); // as hitbtc is white label, ensure we safeguard from possible bugs
             if (networkCode != Value::Null) {
                 if let Value::Dict(__d) = &mut networks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1694,7 +1694,8 @@ impl HitbtcCore {
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let mut network: Value = self.safe_string_upper_k(params.clone(), "network", &[]);
+        let mut networkInput: Value = self.safe_string_upper_k(params.clone(), "network", &[]);
+        let mut network: Value = (if (networkInput != Value::Null) { self.safe_string(self.networkAliases.clone(), networkInput.clone(), &[networkInput.clone()]) } else { Value::Null });
         if (network != Value::Null) && (code.as_str() == Some("USDT")) {
             let mut networks: Value = self.safe_dict_k(self.options.clone(), "networks", &[]);
             let mut parsedNetwork: Value = self.safe_string(networks, network.clone(), &[]);
@@ -1748,7 +1749,8 @@ impl HitbtcCore {
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let mut network: Value = self.safe_string_upper_k(params.clone(), "network", &[]);
+        let mut networkInput: Value = self.safe_string_upper_k(params.clone(), "network", &[]);
+        let mut network: Value = (if (networkInput != Value::Null) { self.safe_string(self.networkAliases.clone(), networkInput.clone(), &[networkInput.clone()]) } else { Value::Null });
         if (network != Value::Null) && (code.as_str() == Some("USDT")) {
             let mut networks: Value = self.safe_dict_k(self.options.clone(), "networks", &[]);
             let mut parsedNetwork: Value = self.safe_string(networks, network.clone(), &[]);
@@ -3715,10 +3717,12 @@ impl HitbtcCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut fromNetworkValue: Value = to_upper(&fromNetwork);
-        let mut toNetworkValue: Value = to_upper(&toNetwork);
-        let mut fromNetworkValue2: Value = self.safe_string(networks.clone(), fromNetworkValue, &[]); // handle ETH>ERC20 alias
-        let mut toNetworkValue2: Value = self.safe_string(networks.clone(), toNetworkValue, &[]); // handle ETH>ERC20 alias
+        let mut fromNetworkUpper: Value = to_upper(&fromNetwork);
+        let mut toNetworkUpper: Value = to_upper(&toNetwork);
+        let mut fromNetworkValue: Value = self.safe_string(self.networkAliases.clone(), fromNetworkUpper.clone(), &[fromNetworkUpper.clone()]);
+        let mut toNetworkValue: Value = self.safe_string(self.networkAliases.clone(), toNetworkUpper.clone(), &[toNetworkUpper.clone()]);
+        let mut fromNetworkValue2: Value = self.safe_string(networks.clone(), fromNetworkValue, &[]); // unified code to exchange id
+        let mut toNetworkValue2: Value = self.safe_string(networks.clone(), toNetworkValue, &[]); // unified code to exchange id
         if is_equal(&fromNetworkValue2, &toNetworkValue2) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" convertCurrencyNetwork() fromNetwork cannot be the same as toNetwork".into()))));
         }
@@ -3783,7 +3787,8 @@ impl HitbtcCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut network: Value = self.safe_string_upper_k(paramsWithdrawTag.clone(), "network", &[]);
+        let mut networkInput: Value = self.safe_string_upper_k(paramsWithdrawTag.clone(), "network", &[]);
+        let mut network: Value = (if (networkInput != Value::Null) { self.safe_string(self.networkAliases.clone(), networkInput.clone(), &[networkInput.clone()]) } else { Value::Null });
         if (network != Value::Null) && (code.as_str() == Some("USDT")) {
             let mut parsedNetwork: Value = self.safe_string(networks, network.clone(), &[]);
             if (parsedNetwork != Value::Null) {
@@ -4791,7 +4796,8 @@ impl HitbtcCore {
             let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "network", &[]);
             let mut code: Value = (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
             let mut networkCode: Value = self.network_id_to_code(&[networkId, code]);
-            networkCode = (if (networkCode != Value::Null) { to_upper(&networkCode) } else { Value::Null });
+            let mut networkCodeUpper: Value = (if (networkCode != Value::Null) { to_upper(&networkCode) } else { Value::Null });
+            networkCode = (if (networkCodeUpper != Value::Null) { self.safe_string(self.networkAliases.clone(), networkCodeUpper.clone(), &[networkCodeUpper.clone()]) } else { Value::Null });
             let mut withdrawFee: Value = self.safe_number_k(networkEntry.clone(), "payout_fee", &[]);
             let mut isDefault: Value = self.safe_bool_k(networkEntry, "default", &[]);
             let mut withdrawResult: Value = Value::Map({
@@ -4919,17 +4925,18 @@ impl HitbtcCore {
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
+        let __api_empty = Vec::new();
+        let api = api.as_array().unwrap_or(&__api_empty);
+        let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut implodedPath: Value = self.implode_params(path, params.clone());
-        let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), api.clone(), &[]);
+        let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone(), &[]);
         if (apiUrl == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
@@ -4948,8 +4955,8 @@ impl HitbtcCore {
                 url = Value::Str(format!("{}{}", url, getRequest).into());
             }
         }
-        let mut bodyResolved: Value = (if (method.as_str() == Some("GET")) { body } else { json_stringify(&params) });
-        if (api.as_str() == Some("private")) {
+        let mut bodyResolved: Value = (if (method.as_str() == Some("GET")) { Value::Null } else { json_stringify(&params) });
+        if (apiName.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut timestamp: Value = to_string_val(&self.nonce());
             let mut payload: Value = Value::from(vec![method.clone(), Value::Str(format!("{}{}", Value::Str("/api/3/".into()), implodedPath).into())]);

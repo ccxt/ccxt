@@ -1202,25 +1202,26 @@ class blockchaincom(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         requestPath = '/' + self.implode_params(path, params)
-        apiUrl = self.safe_string(self.urls['api'], api)
+        apiName = api[0]
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + requestPath
         query = self.omit(params, self.extract_params(path))
-        isPrivate = (api == 'private')
+        isPrivate = (apiName == 'private')
         privateHeaders = {
             'X-API-Token': self.secret,
         }
-        requestHeaders = headers
+        requestHeaders = None
         if isPrivate:
             requestHeaders = privateHeaders
         isPrivatePost = isPrivate and (method != 'GET')
-        requestBody = body
+        requestBody = None
         if isPrivatePost:
             requestBody = self.json(query)
-        if api == 'public':
+        if apiName == 'public':
             if len(query) > 0:
                 url += '?' + self.urlencode(query)
         elif isPrivate:

@@ -59,6 +59,9 @@ function test_currency($exchange, $skipped_properties, $method, $entry) {
     $networks = $exchange->safe_dict($entry, 'networks', array());
     $network_keys = is_array($networks) ? array_keys($networks) : array();
     $network_keys_length = count($network_keys);
+    for ($i = 0; $i < $network_keys_length; $i++) {
+        assert_unified_network_code($exchange, $skipped_properties, $method, $entry, $network_keys[$i]);
+    }
     if ($network_keys_length === 0 && (is_array($skipped_properties) && array_key_exists('skipCurrenciesWithoutNetworks', $skipped_properties))) {
         return;
     }

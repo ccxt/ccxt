@@ -517,9 +517,9 @@ class mexc extends Exchange {
                     ),
                 ),
                 'defaultType' => 'spot', // spot, swap
-                'defaultNetwork' => 'ETH',
+                'defaultNetwork' => 'ERC20',
                 'defaultNetworks' => array(
-                    'ETH' => 'ETH',
+                    'ETH' => 'ERC20',
                     'USDT' => 'ERC20',
                     'USDC' => 'ERC20',
                     'BTC' => 'BTC',
@@ -719,9 +719,9 @@ class mexc extends Exchange {
                     // OKB <> OKT (for usdt it's exception) for OKC, PMEER, FLARE, STRD, ZEL, FUND, "NONE", CRING, FREETON, QTZ  (probably unique network is meant), HT, BSC(RACAV1), BSC(RACAV2), AMBROSUS, BAJUN, NOM. their individual info is at https://www.mexc.com/api/platform/asset/spot/{COINNAME}
                 ),
                 'networksById' => array(
-                    'BNB Smart Chain(BEP20-RACAV1)' => 'BSC',
-                    'BNB Smart Chain(BEP20-RACAV2)' => 'BSC',
-                    'BNB Smart Chain(BEP20)' => 'BSC',
+                    'BNB Smart Chain(BEP20-RACAV1)' => 'BEP20',
+                    'BNB Smart Chain(BEP20-RACAV2)' => 'BEP20',
+                    'BNB Smart Chain(BEP20)' => 'BEP20',
                     'Ethereum(ERC20)' => 'ERC20',
                     // TODO: unified names undecided for PEPE COIN BSC, SMART BLOCKCHAIN, f(x)Core, Syscoin Rollux, Syscoin UTXO,
                     // zkSync Era, zkSync Lite, Darwinia Smart Chain, Arbitrum One(ARB-Bridged), Optimism(OP-Bridged), Polygon(MATIC-Bridged)
@@ -6333,9 +6333,9 @@ class mexc extends Exchange {
         return $this->milliseconds() - $this->safe_integer($this->options, 'timeDifference', 0);
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $requestHeaders = $headers;
-        $requestBody = $body;
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $requestHeaders = null;
+        $requestBody = null;
         $section = $this->safe_string($api, 0);
         $access = $this->safe_string($api, 1);
         $pathValue = $this->implode_params($path, $params);

@@ -3354,7 +3354,7 @@ class whitebit extends Exchange {
             'txid' => $this->safe_string($transaction, 'transactionId'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => $this->safe_string($transaction, 'network'),
+            'network' => $this->network_id_to_code($this->safe_string($transaction, 'network'), $this->safe_currency_code($currencyId, $currencyResolved)),
             'addressFrom' => ($method === '1') ? $address : null,
             'address' => $address,
             'addressTo' => ($method === '2') ? $address : null,
@@ -4467,11 +4467,11 @@ class whitebit extends Exchange {
         return $this->milliseconds() - $this->safe_integer($this->options, 'timeDifference', 0);
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $query = $this->omit($params, $this->extract_params($path));
         $version = $this->safe_value($api, 0);
         $accessibility = $this->safe_string($api, 1);
-        $publicHeaders = ($headers === null) ? array() : $headers;
+        $publicHeaders = array();
         $publicHeaders['User-Agent'] = 'ccxt/' . $this->id . '-' . $this->version;
         $pathWithParams = '/' . $this->implode_params($path, $params);
         $apiUrl = $this->safe_string($this->urls['api'][$version], $accessibility);
@@ -4504,7 +4504,7 @@ class whitebit extends Exchange {
             );
         }
         $isPrivate = ($accessibility === 'private');
-        $requestBody = $body;
+        $requestBody = null;
         if ($isPrivate) {
             $requestBody = $privateBody;
         }

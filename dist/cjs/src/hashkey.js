@@ -381,7 +381,7 @@ class hashkey extends hashkey$1["default"] {
                     'TRC20': 'TRC20',
                     'Tron': 'TRC20',
                     'TON': 'TON',
-                    'BSC(BEP20)': 'BSC',
+                    'BSC(BEP20)': 'BEP20',
                     'Klaytn': 'KLAYTN',
                 },
                 'defaultNetwork': 'ERC20',
@@ -1198,7 +1198,7 @@ class hashkey extends hashkey$1["default"] {
         for (let j = 0; j < networks.length; j++) {
             const network = networks[j];
             const networkId = this.safeString(network, 'chainType');
-            const networkCode = this.networkCodeToId(networkId, code);
+            const networkCode = this.networkIdToCode(networkId, code);
             if (networkCode !== undefined) {
                 parsedNetworks[networkCode] = {
                     'id': networkId,
@@ -1903,7 +1903,7 @@ class hashkey extends hashkey$1["default"] {
      * @see https://hashkeyglobal-apidoc.readme.io/reference/get-deposit-address
      * @param {string} code unified currency code (default is 'USDT')
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.network] network for fetch deposit address (default is 'ETH')
+     * @param {string} [params.network] network for fetch deposit address (default is 'ERC20')
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress(code, params = {}) {
@@ -1915,7 +1915,7 @@ class hashkey extends hashkey$1["default"] {
             'coin': currency['id'],
         };
         const [networkCodeInParams, paramsNetworkCode] = this.handleNetworkCodeAndParams(params);
-        const networkCode = (networkCodeInParams === undefined) ? this.defaultNetworkCode(code) : networkCodeInParams;
+        const networkCode = (networkCodeInParams === undefined) ? this.safeString(this.safeDict(this.options, 'defaultNetworks', {}), code, this.safeString(this.options, 'defaultNetwork')) : networkCodeInParams;
         request['chainType'] = this.networkCodeToId(networkCode, code);
         const response = await this.privateGetApiV1AccountDepositAddress(this.extend(request, paramsNetworkCode));
         //
@@ -4492,14 +4492,15 @@ class hashkey extends hashkey$1["default"] {
             'tierBased': true,
         };
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const apiUrl = this.safeString(this.urls['api'], api);
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         let url = apiUrl + '/' + path;
         let query = undefined;
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             const timestamp = this.milliseconds();
             const additionalParams = {
@@ -4536,7 +4537,7 @@ class hashkey extends hashkey$1["default"] {
             }
             headersSigned['INPUT-SOURCE'] = this.safeString(this.options, 'broker', '10000700011');
             headersSigned['broker_sign'] = signature;
-            const bodyResolved = (method === 'GET') ? body : bodySigned;
+            const bodyResolved = (method === 'GET') ? undefined : bodySigned;
             return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersSigned };
         }
         else {
@@ -4545,7 +4546,7 @@ class hashkey extends hashkey$1["default"] {
                 url += '?' + query;
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     customUrlencode(params = {}) {
         let result = this.urlencode(params);

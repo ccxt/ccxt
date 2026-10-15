@@ -719,7 +719,7 @@ export default class coinmate extends Exchange {
             'txid': this.safeString(transaction, 'txid'),
             'type': this.safeStringLower(transaction, 'transferType'),
             'currency': code,
-            'network': this.safeString(transaction, 'walletType'),
+            'network': this.networkIdToCode(this.safeString(transaction, 'walletType'), code),
             'amount': this.safeNumber(transaction, 'amount'),
             'status': this.parseTransactionStatus(this.safeString(transaction, 'transferStatus')),
             'timestamp': timestamp,
@@ -1271,7 +1271,8 @@ export default class coinmate extends Exchange {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         let bodySigned = undefined;
         let headersSigned = undefined;
         const apiUrl = this.safeString(this.urls['api'], 'rest');
@@ -1279,7 +1280,7 @@ export default class coinmate extends Exchange {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         let url = apiUrl + '/' + path;
-        if (api === 'public') {
+        if (apiName === 'public') {
             if (Object.keys(params).length > 0) {
                 url += '?' + this.urlencode(params);
             }
@@ -1300,8 +1301,8 @@ export default class coinmate extends Exchange {
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
         }
-        const headersResolved = (headersSigned === undefined) ? headers : headersSigned;
-        const bodyResolved = (bodySigned === undefined) ? body : bodySigned;
+        const headersResolved = headersSigned;
+        const bodyResolved = bodySigned;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

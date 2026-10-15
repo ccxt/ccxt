@@ -2970,8 +2970,9 @@ export default class bydfi extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        const apiUrl = this.safeString (this.urls['api'], api);
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
+        const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
@@ -2987,7 +2988,7 @@ export default class bydfi extends Exchange {
         }
         let requestBody: Str = undefined;
         let requestHeaders: NullableDict = undefined;
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ().toString ();
             if (method === 'GET') {
@@ -3011,8 +3012,8 @@ export default class bydfi extends Exchange {
             }
         }
         url += endpoint;
-        const bodyResolved = (requestBody === undefined) ? body : requestBody;
-        const headersResolved = (requestHeaders === undefined) ? headers : requestHeaders;
+        const bodyResolved = requestBody;
+        const headersResolved = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 

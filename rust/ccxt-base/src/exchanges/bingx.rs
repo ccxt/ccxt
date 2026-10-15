@@ -1965,7 +1965,7 @@ impl BingxCore {
         m.insert("broker".to_string(), Value::Str("CCXT".into()));
         m.insert("defaultNetworks".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ETH".to_string(), Value::Str("ETH".into()));
+        m.insert("ETH".to_string(), Value::Str("ERC20".into()));
         m.insert("USDT".to_string(), Value::Str("ERC20".into()));
         m.insert("USDC".to_string(), Value::Str("ERC20".into()));
         m.insert("BTC".to_string(), Value::Str("BTC".into()));
@@ -6894,7 +6894,7 @@ impl BingxCore {
         // the 0x prefix on the evm networks, see https://github.com/ccxt/ccxt/issues/24331
         if (address != Value::Null) {
             let mut isPrefixed: bool = (starts_with(&address, &Value::Str("0x".into()))) || (starts_with(&address, &Value::Str("0X".into())));
-            let mut evmNetworks: Value = Value::from(vec![Value::Str("BEP20".into()), Value::Str("BSC".into()), Value::Str("ERC20".into()), Value::Str("ETH".into()), Value::Str("HECO".into()), Value::Str("MATIC".into()), Value::Str("POLYGON".into()), Value::Str("ARBITRUM".into()), Value::Str("ARB".into()), Value::Str("OPTIMISM".into()), Value::Str("AVAXC".into()), Value::Str("BASE".into()), Value::Str("FTM".into()), Value::Str("LINEA".into()), Value::Str("ZKSYNC".into()), Value::Str("OPBNB".into())]);
+            let mut evmNetworks: Value = Value::from(vec![Value::Str("BEP20".into()), Value::Str("ERC20".into()), Value::Str("HECO".into()), Value::Str("MATIC".into()), Value::Str("POLYGON".into()), Value::Str("ARBITRUM".into()), Value::Str("OPTIMISM".into()), Value::Str("AVAXC".into()), Value::Str("BASE".into()), Value::Str("FTM".into()), Value::Str("LINEA".into()), Value::Str("ZKSYNC".into()), Value::Str("OPBNB".into())]);
             if !isPrefixed && self.in_array(networkCode.clone(), evmNetworks).as_bool() == Some(true) {
                 address = Value::Str(format!("{}{}", Value::Str("0x".into()), address).into());
             }
@@ -8538,17 +8538,17 @@ impl BingxCore {
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut section = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut section = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut type_var: Value = get_value(&section, &Value::Int(0));
-        let mut version: Value = get_value(&section, &Value::Int(1));
-        let mut access: Value = get_value(&section, &Value::Int(2));
+        let __section_empty = Vec::new();
+        let section = section.as_array().unwrap_or(&__section_empty);
+        let mut type_var: Value = section.get(0).cloned().unwrap_or(Value::Null);
+        let mut version: Value = section.get(1).cloned().unwrap_or(Value::Null);
+        let mut access: Value = section.get(2).cloned().unwrap_or(Value::Null);
         let mut isSandbox: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
         let mut url: Value = self.implode_hostname(get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &type_var));
         if (isSandbox.as_bool() == Some(true)) && (url == Value::Null) {
@@ -8563,8 +8563,8 @@ impl BingxCore {
             }  else {
                 type_var = Value::Str("api/asset".into());
             }
-            version = get_value(&section, &Value::Int(2));
-            access = get_value(&section, &Value::Int(3));
+            version = section.get(2).cloned().unwrap_or(Value::Null);
+            access = section.get(3).cloned().unwrap_or(Value::Null);
         }
         let mut flatAccountPaths: Value = Value::from(vec![Value::Str("account/apiPermissions".into()), Value::Str("account/apiRestrictions".into())]);
         if !(self.in_array(pathValue.clone(), flatAccountPaths).as_bool() == Some(true)) {
@@ -8612,8 +8612,8 @@ impl BingxCore {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("?".into()), query).into()), Value::Str("&".into())).into()), Value::Str("signature=".into())).into()), signature).into())).into());
             }
         }
-        let mut bodyResult: Value = (if (requestBody != Value::Null) { requestBody } else { body });
-        let mut headersResult: Value = (if (requestHeaders != Value::Null) { requestHeaders } else { headers });
+        let mut bodyResult: Value = requestBody;
+        let mut headersResult: Value = requestHeaders;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);

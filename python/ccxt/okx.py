@@ -1195,15 +1195,11 @@ class okx(Exchange, ImplicitAPI):
                 'networks': {
                     'BTC': 'Bitcoin',
                     'BTCLIGHTNING': 'Lightning',
-                    'BSC': 'BSC',
                     'BEP20': 'BSC',
                     'BRC20': 'BRC20',
-                    'ETH': 'ERC20',
                     'ERC20': 'ERC20',
-                    'TRX': 'TRC20',
                     'TRC20': 'TRC20',
                     'CRC20': 'Crypto',
-                    'CRONOS': 'Crypto',
                     'ACA': 'Acala',
                     'ALGO': 'Algorand',
                     'APT': 'Aptos',
@@ -5355,7 +5351,9 @@ class okx(Exchange, ImplicitAPI):
         network = self.safe_string(paramsWithdrawTag, 'network')  # this line allows the user to specify either ERC20 or ETH
         if network is not None:
             networks = self.safe_dict(self.options, 'networks', {})
-            network = self.safe_string(networks, network.upper(), network)  # handle ETH>ERC20 alias
+            networkUpper = network.upper()
+            networkKey = self.safe_string(self.networkAliases, networkUpper, networkUpper)
+            network = self.safe_string(networks, networkKey, network)  # resolve aliases to the unified key
             request['chain'] = currency['id'] + '-' + network
         omitKeys = ['fee']
         if network is not None:
@@ -6406,7 +6404,8 @@ class okx(Exchange, ImplicitAPI):
         transfers = self.safe_list(response, 'data', [])
         return self.parse_transfers(transfers, currency, since, limit, params)
 
-    def sign(self, path: str, api: object = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
         isArray = isinstance(params, list)
         request = '/api/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
@@ -6418,10 +6417,10 @@ class okx(Exchange, ImplicitAPI):
         hasJsonBody = False
         jsonBody = None
         # const type = this.getPathAuthenticationType (path);
-        if api == 'public':
+        if apiName == 'public':
             if len(query) > 0:
                 url += '?' + self.urlencode(query)
-        elif api == 'private':
+        elif apiName == 'private':
             self.check_required_credentials()
             # inject id in implicit api call
             if method == 'POST' and (path == 'trade/batch-orders' or path == 'trade/order-algo' or path == 'trade/order'):
@@ -6462,10 +6461,10 @@ class okx(Exchange, ImplicitAPI):
                 privateHeaders['Content-Type'] = 'application/json'
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
             privateHeaders['OK-ACCESS-SIGN'] = signature
-        requestBody = body
+        requestBody = None
         if hasJsonBody:
             requestBody = jsonBody
-        requestHeaders = privateHeaders if (api == 'private') else headers
+        requestHeaders = privateHeaders if (apiName == 'private') else None
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
     def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
@@ -7315,8 +7314,8 @@ class okx(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         type = 'MARGIN' if (market['spot'] is True) else self.convert_to_instrument_type(market['type'])
-        uly = self.safe_string(market['info'], 'uly')
-        if (uly is None) or (uly == ''):
+        instFamily = self.safe_string(market['info'], 'instFamily')
+        if (instFamily is None) or (instFamily == ''):
             if type != 'MARGIN':
                 raise BadRequest(self.id + ' fetchMarketLeverageTiers() cannot fetch leverage tiers for ' + symbol)
         # cross as default marginMode
@@ -7325,7 +7324,7 @@ class okx(Exchange, ImplicitAPI):
         request = {
             'instType': type,
             'tdMode': marginMode,
-            'uly': uly,
+            'instFamily': instFamily,
         }
         if type == 'MARGIN':
             request['instId'] = market['id']

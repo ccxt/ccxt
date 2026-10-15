@@ -3368,14 +3368,14 @@ func (this *Bullish) fetchDepositAddressBody(ch chan AsyncResult[any], code stri
 	var data any = this.SafeDict(safeResponse, 0, map[string]any{})
 	var network any = nil
 	network = GetValue(this.HandleNetworkCodeAndParams(params), 0)
-	var networkDefinedByUser bool = (network != nil)
+	var networkDefinedByUser bool = !IsEqual(network, nil)
 	if (length > 1) || (networkDefinedByUser) {
 		// some currencies have multiple networks
-		if network == nil {
+		if IsEqual(network, nil) {
 			// use default network if not specified and multiple are available
-			network = this.DefaultNetworkCode(code)
+			network = this.SafeString(this.SafeDict(this.Options, "defaultNetworks", map[string]any{}), code, this.SafeString(this.Options, "defaultNetwork"))
 		}
-		if network != nil {
+		if !IsEqual(network, nil) {
 			// find the entry that matches the network or return first entry if not found and user did not specify a network
 			for i := 0; i < len(safeResponse); i++ {
 				var entry any = this.SafeDict(safeResponse, i, map[string]any{})
@@ -4109,26 +4109,23 @@ func (this *Bullish) ParseOpenInterest(interest any, optionalArgs ...any) map[st
 	}, market)
 }
 func (this *Bullish) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
-	var requestHeaders any = headers
-	var requestBody any = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var requestHeaders any = nil
+	var requestBody *string = nil
 	var request any = this.Omit(params, this.ExtractParams(path))
 	var endpoint string = "/" + this.ImplodeParams(path, params)
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *apiUrl + endpoint
-	if api == "private" {
+	if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		var nonce string = strconv.FormatInt(this.Microseconds(), 10)
 		var timestamp string = ToString(this.GetTimestamp())
@@ -4141,8 +4138,8 @@ func (this *Bullish) Sign(path string, optionalArgs ...any) any {
 				"BX-SIGNATURE": signature,
 			}
 		} else if method == "POST" {
-			requestBody = this.Json(params)
-			var payload *string = SafeStringPtr(Add(timestamp+nonce+method+"/trading-api/"+path, requestBody))
+			requestBody = SafeStringPtr(this.Json(params))
+			var payload string = timestamp + nonce + method + "/trading-api/" + path + *requestBody
 			var digest any = this.Hash(this.Encode(payload), sha256, "hex")
 			var signature string = this.Hmac(this.Encode(digest), this.Encode(this.Secret), sha256, "hex")
 			requestHeaders = map[string]any{

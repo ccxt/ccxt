@@ -392,10 +392,7 @@ public class Kraken extends KrakenApi
                 put( "marketsByAltname", new HashMap<String, Object>() {{}} );
                 put( "delistedMarketsById", new HashMap<String, Object>() {{}} );
                 put( "inactiveCurrencies", new ArrayList<Object>(Arrays.asList("CAD", "USD", "JPY", "GBP")) );
-                put( "networks", new HashMap<String, Object>() {{
-                    put( "ETH", "ERC20" );
-                    put( "TRX", "TRC20" );
-                }} );
+                put( "networks", new HashMap<String, Object>() {{}} );
                 put( "depositMethods", new HashMap<String, Object>() {{
                     put( "1INCH", (("1inch" + " ") + "(1INCH)") );
                     put( "AAVE", "Aave" );
@@ -3905,8 +3902,10 @@ public class Kraken extends KrakenApi
             }
             Map<String, Object> currency = this.currency((String) (code));
             String network = this.safeStringUpper(parameters, "network");
-            Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
-            network = this.safeString(networks, network, network); // support ETH > ERC20 aliases
+            if (!java.util.Objects.equals(network, null))
+            {
+                network = this.safeString(this.networkAliases, network, network);
+            }
             Map<String, Object> paramsOmitted = this.omit(parameters, "network");
             String codeResolved = code;
             if ((java.util.Objects.equals(code, "USDT")) && (java.util.Objects.equals(network, "TRC20")))
@@ -4281,17 +4280,18 @@ public class Kraken extends KrakenApi
         }};
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        String url = ((((("/" + this.version) + "/") + java.util.Objects.requireNonNullElse(api, "public")) + "/") + path);
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String url = ((((("/" + this.version) + "/") + apiName) + "/") + path);
+        if (java.util.Objects.equals(apiName, "public"))
         {
             if (((Map<String, Object>)parameters).size() > 0)
             {
                 // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
                 url = (url + ("?" + this.urlencodeNested(parameters)));
             }
-        } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        } else if (java.util.Objects.equals(apiName, "private"))
         {
             String price = this.safeString(parameters, "price");
             Boolean isTriggerPercent = false;
@@ -4335,7 +4335,7 @@ public class Kraken extends KrakenApi
             {
                 headersSigned.put("Content-Type", "application/x-www-form-urlencoded");
             }
-            String baseApiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+            String baseApiUrl = this.safeString(this.urls.get("api"), apiName);
             if (java.util.Objects.equals(baseApiUrl, null))
             {
                 throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -4353,7 +4353,7 @@ public class Kraken extends KrakenApi
         {
             url = ("/" + path);
         }
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -4362,8 +4362,8 @@ public class Kraken extends KrakenApi
             HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
             h2kMap3.put("url", (apiUrl + url));
             h2kMap3.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap3.put("body", body);
-            h2kMap3.put("headers", headers);
+            h2kMap3.put("body", null);
+            h2kMap3.put("headers", null);
             return h2kMap3;
         }
     }

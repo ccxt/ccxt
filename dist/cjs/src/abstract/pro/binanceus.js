@@ -7,2638 +7,2638 @@ var binance$1 = require('../../pro/binance.js');
 // ----------------------------------------------------------------------------
 class binance extends binance$1["default"] {
     sapiGetCopyTradingFuturesUserStatus(params = {}) {
-        return this.request("copyTrading/futures/userStatus", "sapi", 'GET', params, undefined, undefined, { "cost": 2 });
+        return this.request('copyTrading/futures/userStatus', ['sapi'], 'GET', params, { 'cost': 2 });
     }
     sapiGetCopyTradingFuturesLeadSymbol(params = {}) {
-        return this.request("copyTrading/futures/leadSymbol", "sapi", 'GET', params, undefined, undefined, { "cost": 2 });
+        return this.request('copyTrading/futures/leadSymbol', ['sapi'], 'GET', params, { 'cost': 2 });
     }
     sapiGetSystemStatus(params = {}) {
-        return this.request("system/status", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('system/status', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetAccountSnapshot(params = {}) {
-        return this.request("accountSnapshot", "sapi", 'GET', params, undefined, undefined, { "cost": 240 });
+        return this.request('accountSnapshot', ['sapi'], 'GET', params, { 'cost': 240 });
     }
     sapiGetAccountInfo(params = {}) {
-        return this.request("account/info", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('account/info', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetMarginAsset(params = {}) {
-        return this.request("margin/asset", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('margin/asset', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetMarginPair(params = {}) {
-        return this.request("margin/pair", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('margin/pair', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetMarginAllAssets(params = {}) {
-        return this.request("margin/allAssets", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('margin/allAssets', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetMarginAllPairs(params = {}) {
-        return this.request("margin/allPairs", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('margin/allPairs', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetMarginPriceIndex(params = {}) {
-        return this.request("margin/priceIndex", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('margin/priceIndex', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetSpotDelistSchedule(params = {}) {
-        return this.request("spot/delist-schedule", "sapi", 'GET', params, undefined, undefined, { "cost": 10 });
+        return this.request('spot/delist-schedule', ['sapi'], 'GET', params, { 'cost': 10 });
     }
     sapiGetAssetAssetDividend(params = {}) {
-        return this.request("asset/assetDividend", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('asset/assetDividend', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetAssetDribblet(params = {}) {
-        return this.request("asset/dribblet", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('asset/dribblet', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetAssetTransfer(params = {}) {
-        return this.request("asset/transfer", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('asset/transfer', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetAssetAssetDetail(params = {}) {
-        return this.request("asset/assetDetail", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('asset/assetDetail', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetAssetTradeFee(params = {}) {
-        return this.request("asset/tradeFee", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('asset/tradeFee', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetAssetLedgerTransferCloudMiningQueryByPage(params = {}) {
-        return this.request("asset/ledger-transfer/cloud-mining/queryByPage", "sapi", 'GET', params, undefined, undefined, { "cost": 4.0002 });
+        return this.request('asset/ledger-transfer/cloud-mining/queryByPage', ['sapi'], 'GET', params, { 'cost': 4.0002 });
     }
     sapiGetAssetConvertTransferQueryByPage(params = {}) {
-        return this.request("asset/convert-transfer/queryByPage", "sapi", 'GET', params, undefined, undefined, { "cost": 0.033335 });
+        return this.request('asset/convert-transfer/queryByPage', ['sapi'], 'GET', params, { 'cost': 0.033335 });
     }
     sapiGetAssetWalletBalance(params = {}) {
-        return this.request("asset/wallet/balance", "sapi", 'GET', params, undefined, undefined, { "cost": 6 });
+        return this.request('asset/wallet/balance', ['sapi'], 'GET', params, { 'cost': 6 });
     }
     sapiGetAssetCustodyTransferHistory(params = {}) {
-        return this.request("asset/custody/transfer-history", "sapi", 'GET', params, undefined, undefined, { "cost": 6 });
+        return this.request('asset/custody/transfer-history', ['sapi'], 'GET', params, { 'cost': 6 });
     }
     sapiGetMarginBorrowRepay(params = {}) {
-        return this.request("margin/borrow-repay", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('margin/borrow-repay', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetMarginLoan(params = {}) {
-        return this.request("margin/loan", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('margin/loan', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetMarginRepay(params = {}) {
-        return this.request("margin/repay", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('margin/repay', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetMarginAccount(params = {}) {
-        return this.request("margin/account", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('margin/account', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetMarginTransfer(params = {}) {
-        return this.request("margin/transfer", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('margin/transfer', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetMarginInterestHistory(params = {}) {
-        return this.request("margin/interestHistory", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('margin/interestHistory', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetMarginForceLiquidationRec(params = {}) {
-        return this.request("margin/forceLiquidationRec", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('margin/forceLiquidationRec', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetMarginOrder(params = {}) {
-        return this.request("margin/order", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('margin/order', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetMarginOpenOrders(params = {}) {
-        return this.request("margin/openOrders", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('margin/openOrders', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetMarginAllOrders(params = {}) {
-        return this.request("margin/allOrders", "sapi", 'GET', params, undefined, undefined, { "cost": 20 });
+        return this.request('margin/allOrders', ['sapi'], 'GET', params, { 'cost': 20 });
     }
     sapiGetMarginMyTrades(params = {}) {
-        return this.request("margin/myTrades", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('margin/myTrades', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetMarginMaxBorrowable(params = {}) {
-        return this.request("margin/maxBorrowable", "sapi", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('margin/maxBorrowable', ['sapi'], 'GET', params, { 'cost': 5 });
     }
     sapiGetMarginMaxTransferable(params = {}) {
-        return this.request("margin/maxTransferable", "sapi", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('margin/maxTransferable', ['sapi'], 'GET', params, { 'cost': 5 });
     }
     sapiGetMarginTradeCoeff(params = {}) {
-        return this.request("margin/tradeCoeff", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('margin/tradeCoeff', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetMarginIsolatedTransfer(params = {}) {
-        return this.request("margin/isolated/transfer", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('margin/isolated/transfer', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetMarginIsolatedAccount(params = {}) {
-        return this.request("margin/isolated/account", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('margin/isolated/account', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetMarginIsolatedPair(params = {}) {
-        return this.request("margin/isolated/pair", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('margin/isolated/pair', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetMarginIsolatedAllPairs(params = {}) {
-        return this.request("margin/isolated/allPairs", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('margin/isolated/allPairs', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetMarginIsolatedAccountLimit(params = {}) {
-        return this.request("margin/isolated/accountLimit", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('margin/isolated/accountLimit', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetMarginInterestRateHistory(params = {}) {
-        return this.request("margin/interestRateHistory", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('margin/interestRateHistory', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetMarginOrderList(params = {}) {
-        return this.request("margin/orderList", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('margin/orderList', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetMarginAllOrderList(params = {}) {
-        return this.request("margin/allOrderList", "sapi", 'GET', params, undefined, undefined, { "cost": 20 });
+        return this.request('margin/allOrderList', ['sapi'], 'GET', params, { 'cost': 20 });
     }
     sapiGetMarginOpenOrderList(params = {}) {
-        return this.request("margin/openOrderList", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('margin/openOrderList', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetMarginCrossMarginData(params = {}) {
-        return this.request("margin/crossMarginData", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1, "noCoin": 0.5 });
+        return this.request('margin/crossMarginData', ['sapi'], 'GET', params, { 'cost': 0.1, 'noCoin': 0.5 });
     }
     sapiGetMarginIsolatedMarginData(params = {}) {
-        return this.request("margin/isolatedMarginData", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1, "noCoin": 1 });
+        return this.request('margin/isolatedMarginData', ['sapi'], 'GET', params, { 'cost': 0.1, 'noCoin': 1 });
     }
     sapiGetMarginIsolatedMarginTier(params = {}) {
-        return this.request("margin/isolatedMarginTier", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('margin/isolatedMarginTier', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetMarginRateLimitOrder(params = {}) {
-        return this.request("margin/rateLimit/order", "sapi", 'GET', params, undefined, undefined, { "cost": 2 });
+        return this.request('margin/rateLimit/order', ['sapi'], 'GET', params, { 'cost': 2 });
     }
     sapiGetMarginDribblet(params = {}) {
-        return this.request("margin/dribblet", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('margin/dribblet', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetMarginDust(params = {}) {
-        return this.request("margin/dust", "sapi", 'GET', params, undefined, undefined, { "cost": 20.001 });
+        return this.request('margin/dust', ['sapi'], 'GET', params, { 'cost': 20.001 });
     }
     sapiGetMarginCrossMarginCollateralRatio(params = {}) {
-        return this.request("margin/crossMarginCollateralRatio", "sapi", 'GET', params, undefined, undefined, { "cost": 10 });
+        return this.request('margin/crossMarginCollateralRatio', ['sapi'], 'GET', params, { 'cost': 10 });
     }
     sapiGetMarginExchangeSmallLiability(params = {}) {
-        return this.request("margin/exchange-small-liability", "sapi", 'GET', params, undefined, undefined, { "cost": 0.6667 });
+        return this.request('margin/exchange-small-liability', ['sapi'], 'GET', params, { 'cost': 0.6667 });
     }
     sapiGetMarginExchangeSmallLiabilityHistory(params = {}) {
-        return this.request("margin/exchange-small-liability-history", "sapi", 'GET', params, undefined, undefined, { "cost": 0.6667 });
+        return this.request('margin/exchange-small-liability-history', ['sapi'], 'GET', params, { 'cost': 0.6667 });
     }
     sapiGetMarginNextHourlyInterestRate(params = {}) {
-        return this.request("margin/next-hourly-interest-rate", "sapi", 'GET', params, undefined, undefined, { "cost": 0.6667 });
+        return this.request('margin/next-hourly-interest-rate', ['sapi'], 'GET', params, { 'cost': 0.6667 });
     }
     sapiGetMarginCapitalFlow(params = {}) {
-        return this.request("margin/capital-flow", "sapi", 'GET', params, undefined, undefined, { "cost": 10 });
+        return this.request('margin/capital-flow', ['sapi'], 'GET', params, { 'cost': 10 });
     }
     sapiGetMarginDelistSchedule(params = {}) {
-        return this.request("margin/delist-schedule", "sapi", 'GET', params, undefined, undefined, { "cost": 10 });
+        return this.request('margin/delist-schedule', ['sapi'], 'GET', params, { 'cost': 10 });
     }
     sapiGetMarginAvailableInventory(params = {}) {
-        return this.request("margin/available-inventory", "sapi", 'GET', params, undefined, undefined, { "cost": 0.3334 });
+        return this.request('margin/available-inventory', ['sapi'], 'GET', params, { 'cost': 0.3334 });
     }
     sapiGetMarginLeverageBracket(params = {}) {
-        return this.request("margin/leverageBracket", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('margin/leverageBracket', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetLoanVipLoanableData(params = {}) {
-        return this.request("loan/vip/loanable/data", "sapi", 'GET', params, undefined, undefined, { "cost": 40 });
+        return this.request('loan/vip/loanable/data', ['sapi'], 'GET', params, { 'cost': 40 });
     }
     sapiGetLoanVipCollateralData(params = {}) {
-        return this.request("loan/vip/collateral/data", "sapi", 'GET', params, undefined, undefined, { "cost": 40 });
+        return this.request('loan/vip/collateral/data', ['sapi'], 'GET', params, { 'cost': 40 });
     }
     sapiGetLoanVipRequestData(params = {}) {
-        return this.request("loan/vip/request/data", "sapi", 'GET', params, undefined, undefined, { "cost": 2.6668 });
+        return this.request('loan/vip/request/data', ['sapi'], 'GET', params, { 'cost': 2.6668 });
     }
     sapiGetLoanVipRequestInterestRate(params = {}) {
-        return this.request("loan/vip/request/interestRate", "sapi", 'GET', params, undefined, undefined, { "cost": 2.6668 });
+        return this.request('loan/vip/request/interestRate', ['sapi'], 'GET', params, { 'cost': 2.6668 });
     }
     sapiGetLoanIncome(params = {}) {
-        return this.request("loan/income", "sapi", 'GET', params, undefined, undefined, { "cost": 40.002 });
+        return this.request('loan/income', ['sapi'], 'GET', params, { 'cost': 40.002 });
     }
     sapiGetLoanOngoingOrders(params = {}) {
-        return this.request("loan/ongoing/orders", "sapi", 'GET', params, undefined, undefined, { "cost": 40 });
+        return this.request('loan/ongoing/orders', ['sapi'], 'GET', params, { 'cost': 40 });
     }
     sapiGetLoanLtvAdjustmentHistory(params = {}) {
-        return this.request("loan/ltv/adjustment/history", "sapi", 'GET', params, undefined, undefined, { "cost": 40 });
+        return this.request('loan/ltv/adjustment/history', ['sapi'], 'GET', params, { 'cost': 40 });
     }
     sapiGetLoanBorrowHistory(params = {}) {
-        return this.request("loan/borrow/history", "sapi", 'GET', params, undefined, undefined, { "cost": 40 });
+        return this.request('loan/borrow/history', ['sapi'], 'GET', params, { 'cost': 40 });
     }
     sapiGetLoanRepayHistory(params = {}) {
-        return this.request("loan/repay/history", "sapi", 'GET', params, undefined, undefined, { "cost": 40 });
+        return this.request('loan/repay/history', ['sapi'], 'GET', params, { 'cost': 40 });
     }
     sapiGetLoanLoanableData(params = {}) {
-        return this.request("loan/loanable/data", "sapi", 'GET', params, undefined, undefined, { "cost": 40 });
+        return this.request('loan/loanable/data', ['sapi'], 'GET', params, { 'cost': 40 });
     }
     sapiGetLoanCollateralData(params = {}) {
-        return this.request("loan/collateral/data", "sapi", 'GET', params, undefined, undefined, { "cost": 40 });
+        return this.request('loan/collateral/data', ['sapi'], 'GET', params, { 'cost': 40 });
     }
     sapiGetLoanRepayCollateralRate(params = {}) {
-        return this.request("loan/repay/collateral/rate", "sapi", 'GET', params, undefined, undefined, { "cost": 600 });
+        return this.request('loan/repay/collateral/rate', ['sapi'], 'GET', params, { 'cost': 600 });
     }
     sapiGetLoanFlexibleOngoingOrders(params = {}) {
-        return this.request("loan/flexible/ongoing/orders", "sapi", 'GET', params, undefined, undefined, { "cost": 30 });
+        return this.request('loan/flexible/ongoing/orders', ['sapi'], 'GET', params, { 'cost': 30 });
     }
     sapiGetLoanFlexibleBorrowHistory(params = {}) {
-        return this.request("loan/flexible/borrow/history", "sapi", 'GET', params, undefined, undefined, { "cost": 40 });
+        return this.request('loan/flexible/borrow/history', ['sapi'], 'GET', params, { 'cost': 40 });
     }
     sapiGetLoanFlexibleRepayHistory(params = {}) {
-        return this.request("loan/flexible/repay/history", "sapi", 'GET', params, undefined, undefined, { "cost": 40 });
+        return this.request('loan/flexible/repay/history', ['sapi'], 'GET', params, { 'cost': 40 });
     }
     sapiGetLoanFlexibleLtvAdjustmentHistory(params = {}) {
-        return this.request("loan/flexible/ltv/adjustment/history", "sapi", 'GET', params, undefined, undefined, { "cost": 40 });
+        return this.request('loan/flexible/ltv/adjustment/history', ['sapi'], 'GET', params, { 'cost': 40 });
     }
     sapiGetLoanVipOngoingOrders(params = {}) {
-        return this.request("loan/vip/ongoing/orders", "sapi", 'GET', params, undefined, undefined, { "cost": 40 });
+        return this.request('loan/vip/ongoing/orders', ['sapi'], 'GET', params, { 'cost': 40 });
     }
     sapiGetLoanVipRepayHistory(params = {}) {
-        return this.request("loan/vip/repay/history", "sapi", 'GET', params, undefined, undefined, { "cost": 40 });
+        return this.request('loan/vip/repay/history', ['sapi'], 'GET', params, { 'cost': 40 });
     }
     sapiGetLoanVipCollateralAccount(params = {}) {
-        return this.request("loan/vip/collateral/account", "sapi", 'GET', params, undefined, undefined, { "cost": 600 });
+        return this.request('loan/vip/collateral/account', ['sapi'], 'GET', params, { 'cost': 600 });
     }
     sapiGetFiatOrders(params = {}) {
-        return this.request("fiat/orders", "sapi", 'GET', params, undefined, undefined, { "cost": 600.03 });
+        return this.request('fiat/orders', ['sapi'], 'GET', params, { 'cost': 600.03 });
     }
     sapiGetFiatPayments(params = {}) {
-        return this.request("fiat/payments", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('fiat/payments', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetFuturesTransfer(params = {}) {
-        return this.request("futures/transfer", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('futures/transfer', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetFuturesHistDataLink(params = {}) {
-        return this.request("futures/histDataLink", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('futures/histDataLink', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetRebateTaxQuery(params = {}) {
-        return this.request("rebate/taxQuery", "sapi", 'GET', params, undefined, undefined, { "cost": 80.004 });
+        return this.request('rebate/taxQuery', ['sapi'], 'GET', params, { 'cost': 80.004 });
     }
     sapiGetCapitalConfigGetall(params = {}) {
-        return this.request("capital/config/getall", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('capital/config/getall', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetCapitalDepositAddress(params = {}) {
-        return this.request("capital/deposit/address", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('capital/deposit/address', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetCapitalDepositAddressList(params = {}) {
-        return this.request("capital/deposit/address/list", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('capital/deposit/address/list', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetCapitalDepositHisrec(params = {}) {
-        return this.request("capital/deposit/hisrec", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('capital/deposit/hisrec', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetCapitalDepositSubAddress(params = {}) {
-        return this.request("capital/deposit/subAddress", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('capital/deposit/subAddress', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetCapitalDepositSubHisrec(params = {}) {
-        return this.request("capital/deposit/subHisrec", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('capital/deposit/subHisrec', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetCapitalWithdrawHistory(params = {}) {
-        return this.request("capital/withdraw/history", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('capital/withdraw/history', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetCapitalWithdrawAddressList(params = {}) {
-        return this.request("capital/withdraw/address/list", "sapi", 'GET', params, undefined, undefined, { "cost": 10 });
+        return this.request('capital/withdraw/address/list', ['sapi'], 'GET', params, { 'cost': 10 });
     }
     sapiGetCapitalContractConvertibleCoins(params = {}) {
-        return this.request("capital/contract/convertible-coins", "sapi", 'GET', params, undefined, undefined, { "cost": 4.0002 });
+        return this.request('capital/contract/convertible-coins', ['sapi'], 'GET', params, { 'cost': 4.0002 });
     }
     sapiGetConvertTradeFlow(params = {}) {
-        return this.request("convert/tradeFlow", "sapi", 'GET', params, undefined, undefined, { "cost": 20.001 });
+        return this.request('convert/tradeFlow', ['sapi'], 'GET', params, { 'cost': 20.001 });
     }
     sapiGetConvertExchangeInfo(params = {}) {
-        return this.request("convert/exchangeInfo", "sapi", 'GET', params, undefined, undefined, { "cost": 50 });
+        return this.request('convert/exchangeInfo', ['sapi'], 'GET', params, { 'cost': 50 });
     }
     sapiGetConvertAssetInfo(params = {}) {
-        return this.request("convert/assetInfo", "sapi", 'GET', params, undefined, undefined, { "cost": 10 });
+        return this.request('convert/assetInfo', ['sapi'], 'GET', params, { 'cost': 10 });
     }
     sapiGetConvertOrderStatus(params = {}) {
-        return this.request("convert/orderStatus", "sapi", 'GET', params, undefined, undefined, { "cost": 0.6667 });
+        return this.request('convert/orderStatus', ['sapi'], 'GET', params, { 'cost': 0.6667 });
     }
     sapiGetConvertLimitQueryOpenOrders(params = {}) {
-        return this.request("convert/limit/queryOpenOrders", "sapi", 'GET', params, undefined, undefined, { "cost": 20.001 });
+        return this.request('convert/limit/queryOpenOrders', ['sapi'], 'GET', params, { 'cost': 20.001 });
     }
     sapiGetAccountStatus(params = {}) {
-        return this.request("account/status", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('account/status', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetAccountApiTradingStatus(params = {}) {
-        return this.request("account/apiTradingStatus", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('account/apiTradingStatus', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetAccountApiRestrictionsIpRestriction(params = {}) {
-        return this.request("account/apiRestrictions/ipRestriction", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('account/apiRestrictions/ipRestriction', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetBnbBurn(params = {}) {
-        return this.request("bnbBurn", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('bnbBurn', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetSubAccountFuturesAccount(params = {}) {
-        return this.request("sub-account/futures/account", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('sub-account/futures/account', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetSubAccountFuturesAccountSummary(params = {}) {
-        return this.request("sub-account/futures/accountSummary", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('sub-account/futures/accountSummary', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetSubAccountFuturesPositionRisk(params = {}) {
-        return this.request("sub-account/futures/positionRisk", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('sub-account/futures/positionRisk', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetSubAccountFuturesInternalTransfer(params = {}) {
-        return this.request("sub-account/futures/internalTransfer", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('sub-account/futures/internalTransfer', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetSubAccountList(params = {}) {
-        return this.request("sub-account/list", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('sub-account/list', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetSubAccountMarginAccount(params = {}) {
-        return this.request("sub-account/margin/account", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('sub-account/margin/account', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetSubAccountMarginAccountSummary(params = {}) {
-        return this.request("sub-account/margin/accountSummary", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('sub-account/margin/accountSummary', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetSubAccountSpotSummary(params = {}) {
-        return this.request("sub-account/spotSummary", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('sub-account/spotSummary', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetSubAccountStatus(params = {}) {
-        return this.request("sub-account/status", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('sub-account/status', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetSubAccountSubTransferHistory(params = {}) {
-        return this.request("sub-account/sub/transfer/history", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('sub-account/sub/transfer/history', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetSubAccountTransferSubUserHistory(params = {}) {
-        return this.request("sub-account/transfer/subUserHistory", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('sub-account/transfer/subUserHistory', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetSubAccountUniversalTransfer(params = {}) {
-        return this.request("sub-account/universalTransfer", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('sub-account/universalTransfer', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetSubAccountApiRestrictionsIpRestrictionThirdPartyList(params = {}) {
-        return this.request("sub-account/apiRestrictions/ipRestriction/thirdPartyList", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('sub-account/apiRestrictions/ipRestriction/thirdPartyList', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetSubAccountTransactionStatistics(params = {}) {
-        return this.request("sub-account/transaction-statistics", "sapi", 'GET', params, undefined, undefined, { "cost": 0.40002 });
+        return this.request('sub-account/transaction-statistics', ['sapi'], 'GET', params, { 'cost': 0.40002 });
     }
     sapiGetSubAccountSubAccountApiIpRestriction(params = {}) {
-        return this.request("sub-account/subAccountApi/ipRestriction", "sapi", 'GET', params, undefined, undefined, { "cost": 20.001 });
+        return this.request('sub-account/subAccountApi/ipRestriction', ['sapi'], 'GET', params, { 'cost': 20.001 });
     }
     sapiGetManagedSubaccountAsset(params = {}) {
-        return this.request("managed-subaccount/asset", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('managed-subaccount/asset', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetManagedSubaccountAccountSnapshot(params = {}) {
-        return this.request("managed-subaccount/accountSnapshot", "sapi", 'GET', params, undefined, undefined, { "cost": 240 });
+        return this.request('managed-subaccount/accountSnapshot', ['sapi'], 'GET', params, { 'cost': 240 });
     }
     sapiGetManagedSubaccountQueryTransLogForInvestor(params = {}) {
-        return this.request("managed-subaccount/queryTransLogForInvestor", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('managed-subaccount/queryTransLogForInvestor', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetManagedSubaccountQueryTransLogForTradeParent(params = {}) {
-        return this.request("managed-subaccount/queryTransLogForTradeParent", "sapi", 'GET', params, undefined, undefined, { "cost": 0.40002 });
+        return this.request('managed-subaccount/queryTransLogForTradeParent', ['sapi'], 'GET', params, { 'cost': 0.40002 });
     }
     sapiGetManagedSubaccountFetchFutureAsset(params = {}) {
-        return this.request("managed-subaccount/fetch-future-asset", "sapi", 'GET', params, undefined, undefined, { "cost": 0.40002 });
+        return this.request('managed-subaccount/fetch-future-asset', ['sapi'], 'GET', params, { 'cost': 0.40002 });
     }
     sapiGetManagedSubaccountMarginAsset(params = {}) {
-        return this.request("managed-subaccount/marginAsset", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('managed-subaccount/marginAsset', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetManagedSubaccountInfo(params = {}) {
-        return this.request("managed-subaccount/info", "sapi", 'GET', params, undefined, undefined, { "cost": 0.40002 });
+        return this.request('managed-subaccount/info', ['sapi'], 'GET', params, { 'cost': 0.40002 });
     }
     sapiGetManagedSubaccountDepositAddress(params = {}) {
-        return this.request("managed-subaccount/deposit/address", "sapi", 'GET', params, undefined, undefined, { "cost": 0.006667 });
+        return this.request('managed-subaccount/deposit/address', ['sapi'], 'GET', params, { 'cost': 0.006667 });
     }
     sapiGetManagedSubaccountQueryTransLog(params = {}) {
-        return this.request("managed-subaccount/query-trans-log", "sapi", 'GET', params, undefined, undefined, { "cost": 0.40002 });
+        return this.request('managed-subaccount/query-trans-log', ['sapi'], 'GET', params, { 'cost': 0.40002 });
     }
     sapiGetLendingDailyProductList(params = {}) {
-        return this.request("lending/daily/product/list", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('lending/daily/product/list', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetLendingDailyUserLeftQuota(params = {}) {
-        return this.request("lending/daily/userLeftQuota", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('lending/daily/userLeftQuota', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetLendingDailyUserRedemptionQuota(params = {}) {
-        return this.request("lending/daily/userRedemptionQuota", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('lending/daily/userRedemptionQuota', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetLendingDailyTokenPosition(params = {}) {
-        return this.request("lending/daily/token/position", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('lending/daily/token/position', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetLendingUnionAccount(params = {}) {
-        return this.request("lending/union/account", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('lending/union/account', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetLendingUnionPurchaseRecord(params = {}) {
-        return this.request("lending/union/purchaseRecord", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('lending/union/purchaseRecord', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetLendingUnionRedemptionRecord(params = {}) {
-        return this.request("lending/union/redemptionRecord", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('lending/union/redemptionRecord', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetLendingUnionInterestHistory(params = {}) {
-        return this.request("lending/union/interestHistory", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('lending/union/interestHistory', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetLendingProjectList(params = {}) {
-        return this.request("lending/project/list", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('lending/project/list', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetLendingProjectPositionList(params = {}) {
-        return this.request("lending/project/position/list", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('lending/project/position/list', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetEthStakingEthHistoryStakingHistory(params = {}) {
-        return this.request("eth-staking/eth/history/stakingHistory", "sapi", 'GET', params, undefined, undefined, { "cost": 15 });
+        return this.request('eth-staking/eth/history/stakingHistory', ['sapi'], 'GET', params, { 'cost': 15 });
     }
     sapiGetEthStakingEthHistoryRedemptionHistory(params = {}) {
-        return this.request("eth-staking/eth/history/redemptionHistory", "sapi", 'GET', params, undefined, undefined, { "cost": 15 });
+        return this.request('eth-staking/eth/history/redemptionHistory', ['sapi'], 'GET', params, { 'cost': 15 });
     }
     sapiGetEthStakingEthHistoryRewardsHistory(params = {}) {
-        return this.request("eth-staking/eth/history/rewardsHistory", "sapi", 'GET', params, undefined, undefined, { "cost": 15 });
+        return this.request('eth-staking/eth/history/rewardsHistory', ['sapi'], 'GET', params, { 'cost': 15 });
     }
     sapiGetEthStakingEthQuota(params = {}) {
-        return this.request("eth-staking/eth/quota", "sapi", 'GET', params, undefined, undefined, { "cost": 15 });
+        return this.request('eth-staking/eth/quota', ['sapi'], 'GET', params, { 'cost': 15 });
     }
     sapiGetEthStakingEthHistoryRateHistory(params = {}) {
-        return this.request("eth-staking/eth/history/rateHistory", "sapi", 'GET', params, undefined, undefined, { "cost": 15 });
+        return this.request('eth-staking/eth/history/rateHistory', ['sapi'], 'GET', params, { 'cost': 15 });
     }
     sapiGetEthStakingAccount(params = {}) {
-        return this.request("eth-staking/account", "sapi", 'GET', params, undefined, undefined, { "cost": 15 });
+        return this.request('eth-staking/account', ['sapi'], 'GET', params, { 'cost': 15 });
     }
     sapiGetEthStakingWbethHistoryWrapHistory(params = {}) {
-        return this.request("eth-staking/wbeth/history/wrapHistory", "sapi", 'GET', params, undefined, undefined, { "cost": 15 });
+        return this.request('eth-staking/wbeth/history/wrapHistory', ['sapi'], 'GET', params, { 'cost': 15 });
     }
     sapiGetEthStakingWbethHistoryUnwrapHistory(params = {}) {
-        return this.request("eth-staking/wbeth/history/unwrapHistory", "sapi", 'GET', params, undefined, undefined, { "cost": 15 });
+        return this.request('eth-staking/wbeth/history/unwrapHistory', ['sapi'], 'GET', params, { 'cost': 15 });
     }
     sapiGetEthStakingEthHistoryWbethRewardsHistory(params = {}) {
-        return this.request("eth-staking/eth/history/wbethRewardsHistory", "sapi", 'GET', params, undefined, undefined, { "cost": 15 });
+        return this.request('eth-staking/eth/history/wbethRewardsHistory', ['sapi'], 'GET', params, { 'cost': 15 });
     }
     sapiGetSolStakingSolHistoryStakingHistory(params = {}) {
-        return this.request("sol-staking/sol/history/stakingHistory", "sapi", 'GET', params, undefined, undefined, { "cost": 15 });
+        return this.request('sol-staking/sol/history/stakingHistory', ['sapi'], 'GET', params, { 'cost': 15 });
     }
     sapiGetSolStakingSolHistoryRedemptionHistory(params = {}) {
-        return this.request("sol-staking/sol/history/redemptionHistory", "sapi", 'GET', params, undefined, undefined, { "cost": 15 });
+        return this.request('sol-staking/sol/history/redemptionHistory', ['sapi'], 'GET', params, { 'cost': 15 });
     }
     sapiGetSolStakingSolHistoryBnsolRewardsHistory(params = {}) {
-        return this.request("sol-staking/sol/history/bnsolRewardsHistory", "sapi", 'GET', params, undefined, undefined, { "cost": 15 });
+        return this.request('sol-staking/sol/history/bnsolRewardsHistory', ['sapi'], 'GET', params, { 'cost': 15 });
     }
     sapiGetSolStakingSolHistoryRateHistory(params = {}) {
-        return this.request("sol-staking/sol/history/rateHistory", "sapi", 'GET', params, undefined, undefined, { "cost": 15 });
+        return this.request('sol-staking/sol/history/rateHistory', ['sapi'], 'GET', params, { 'cost': 15 });
     }
     sapiGetSolStakingAccount(params = {}) {
-        return this.request("sol-staking/account", "sapi", 'GET', params, undefined, undefined, { "cost": 15 });
+        return this.request('sol-staking/account', ['sapi'], 'GET', params, { 'cost': 15 });
     }
     sapiGetSolStakingSolQuota(params = {}) {
-        return this.request("sol-staking/sol/quota", "sapi", 'GET', params, undefined, undefined, { "cost": 15 });
+        return this.request('sol-staking/sol/quota', ['sapi'], 'GET', params, { 'cost': 15 });
     }
     sapiGetMiningPubAlgoList(params = {}) {
-        return this.request("mining/pub/algoList", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('mining/pub/algoList', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetMiningPubCoinList(params = {}) {
-        return this.request("mining/pub/coinList", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('mining/pub/coinList', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetMiningWorkerDetail(params = {}) {
-        return this.request("mining/worker/detail", "sapi", 'GET', params, undefined, undefined, { "cost": 0.5 });
+        return this.request('mining/worker/detail', ['sapi'], 'GET', params, { 'cost': 0.5 });
     }
     sapiGetMiningWorkerList(params = {}) {
-        return this.request("mining/worker/list", "sapi", 'GET', params, undefined, undefined, { "cost": 0.5 });
+        return this.request('mining/worker/list', ['sapi'], 'GET', params, { 'cost': 0.5 });
     }
     sapiGetMiningPaymentList(params = {}) {
-        return this.request("mining/payment/list", "sapi", 'GET', params, undefined, undefined, { "cost": 0.5 });
+        return this.request('mining/payment/list', ['sapi'], 'GET', params, { 'cost': 0.5 });
     }
     sapiGetMiningStatisticsUserStatus(params = {}) {
-        return this.request("mining/statistics/user/status", "sapi", 'GET', params, undefined, undefined, { "cost": 0.5 });
+        return this.request('mining/statistics/user/status', ['sapi'], 'GET', params, { 'cost': 0.5 });
     }
     sapiGetMiningStatisticsUserList(params = {}) {
-        return this.request("mining/statistics/user/list", "sapi", 'GET', params, undefined, undefined, { "cost": 0.5 });
+        return this.request('mining/statistics/user/list', ['sapi'], 'GET', params, { 'cost': 0.5 });
     }
     sapiGetMiningPaymentUid(params = {}) {
-        return this.request("mining/payment/uid", "sapi", 'GET', params, undefined, undefined, { "cost": 0.5 });
+        return this.request('mining/payment/uid', ['sapi'], 'GET', params, { 'cost': 0.5 });
     }
     sapiGetBswapPools(params = {}) {
-        return this.request("bswap/pools", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('bswap/pools', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetBswapLiquidity(params = {}) {
-        return this.request("bswap/liquidity", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1, "noPoolId": 1 });
+        return this.request('bswap/liquidity', ['sapi'], 'GET', params, { 'cost': 0.1, 'noPoolId': 1 });
     }
     sapiGetBswapLiquidityOps(params = {}) {
-        return this.request("bswap/liquidityOps", "sapi", 'GET', params, undefined, undefined, { "cost": 20.001 });
+        return this.request('bswap/liquidityOps', ['sapi'], 'GET', params, { 'cost': 20.001 });
     }
     sapiGetBswapQuote(params = {}) {
-        return this.request("bswap/quote", "sapi", 'GET', params, undefined, undefined, { "cost": 1.00005 });
+        return this.request('bswap/quote', ['sapi'], 'GET', params, { 'cost': 1.00005 });
     }
     sapiGetBswapSwap(params = {}) {
-        return this.request("bswap/swap", "sapi", 'GET', params, undefined, undefined, { "cost": 20.001 });
+        return this.request('bswap/swap', ['sapi'], 'GET', params, { 'cost': 20.001 });
     }
     sapiGetBswapPoolConfigure(params = {}) {
-        return this.request("bswap/poolConfigure", "sapi", 'GET', params, undefined, undefined, { "cost": 1.00005 });
+        return this.request('bswap/poolConfigure', ['sapi'], 'GET', params, { 'cost': 1.00005 });
     }
     sapiGetBswapAddLiquidityPreview(params = {}) {
-        return this.request("bswap/addLiquidityPreview", "sapi", 'GET', params, undefined, undefined, { "cost": 1.00005 });
+        return this.request('bswap/addLiquidityPreview', ['sapi'], 'GET', params, { 'cost': 1.00005 });
     }
     sapiGetBswapRemoveLiquidityPreview(params = {}) {
-        return this.request("bswap/removeLiquidityPreview", "sapi", 'GET', params, undefined, undefined, { "cost": 1.00005 });
+        return this.request('bswap/removeLiquidityPreview', ['sapi'], 'GET', params, { 'cost': 1.00005 });
     }
     sapiGetBswapUnclaimedRewards(params = {}) {
-        return this.request("bswap/unclaimedRewards", "sapi", 'GET', params, undefined, undefined, { "cost": 6.667 });
+        return this.request('bswap/unclaimedRewards', ['sapi'], 'GET', params, { 'cost': 6.667 });
     }
     sapiGetBswapClaimedHistory(params = {}) {
-        return this.request("bswap/claimedHistory", "sapi", 'GET', params, undefined, undefined, { "cost": 6.667 });
+        return this.request('bswap/claimedHistory', ['sapi'], 'GET', params, { 'cost': 6.667 });
     }
     sapiGetBlvtTokenInfo(params = {}) {
-        return this.request("blvt/tokenInfo", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('blvt/tokenInfo', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetBlvtSubscribeRecord(params = {}) {
-        return this.request("blvt/subscribe/record", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('blvt/subscribe/record', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetBlvtRedeemRecord(params = {}) {
-        return this.request("blvt/redeem/record", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('blvt/redeem/record', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetBlvtUserLimit(params = {}) {
-        return this.request("blvt/userLimit", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('blvt/userLimit', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetApiReferralIfNewUser(params = {}) {
-        return this.request("apiReferral/ifNewUser", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('apiReferral/ifNewUser', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetApiReferralCustomization(params = {}) {
-        return this.request("apiReferral/customization", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('apiReferral/customization', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetApiReferralUserCustomization(params = {}) {
-        return this.request("apiReferral/userCustomization", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('apiReferral/userCustomization', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetApiReferralRebateRecentRecord(params = {}) {
-        return this.request("apiReferral/rebate/recentRecord", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('apiReferral/rebate/recentRecord', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetApiReferralRebateHistoricalRecord(params = {}) {
-        return this.request("apiReferral/rebate/historicalRecord", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('apiReferral/rebate/historicalRecord', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetApiReferralKickbackRecentRecord(params = {}) {
-        return this.request("apiReferral/kickback/recentRecord", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('apiReferral/kickback/recentRecord', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetApiReferralKickbackHistoricalRecord(params = {}) {
-        return this.request("apiReferral/kickback/historicalRecord", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('apiReferral/kickback/historicalRecord', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetBrokerSubAccountApi(params = {}) {
-        return this.request("broker/subAccountApi", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('broker/subAccountApi', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetBrokerSubAccount(params = {}) {
-        return this.request("broker/subAccount", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('broker/subAccount', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetBrokerSubAccountApiCommissionFutures(params = {}) {
-        return this.request("broker/subAccountApi/commission/futures", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('broker/subAccountApi/commission/futures', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetBrokerSubAccountApiCommissionCoinFutures(params = {}) {
-        return this.request("broker/subAccountApi/commission/coinFutures", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('broker/subAccountApi/commission/coinFutures', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetBrokerInfo(params = {}) {
-        return this.request("broker/info", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('broker/info', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetBrokerTransfer(params = {}) {
-        return this.request("broker/transfer", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('broker/transfer', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetBrokerTransferFutures(params = {}) {
-        return this.request("broker/transfer/futures", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('broker/transfer/futures', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetBrokerRebateRecentRecord(params = {}) {
-        return this.request("broker/rebate/recentRecord", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('broker/rebate/recentRecord', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetBrokerRebateHistoricalRecord(params = {}) {
-        return this.request("broker/rebate/historicalRecord", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('broker/rebate/historicalRecord', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetBrokerSubAccountBnbBurnStatus(params = {}) {
-        return this.request("broker/subAccount/bnbBurn/status", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('broker/subAccount/bnbBurn/status', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetBrokerSubAccountDepositHist(params = {}) {
-        return this.request("broker/subAccount/depositHist", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('broker/subAccount/depositHist', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetBrokerSubAccountSpotSummary(params = {}) {
-        return this.request("broker/subAccount/spotSummary", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('broker/subAccount/spotSummary', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetBrokerSubAccountMarginSummary(params = {}) {
-        return this.request("broker/subAccount/marginSummary", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('broker/subAccount/marginSummary', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetBrokerSubAccountFuturesSummary(params = {}) {
-        return this.request("broker/subAccount/futuresSummary", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('broker/subAccount/futuresSummary', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetBrokerRebateFuturesRecentRecord(params = {}) {
-        return this.request("broker/rebate/futures/recentRecord", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('broker/rebate/futures/recentRecord', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetBrokerSubAccountApiIpRestriction(params = {}) {
-        return this.request("broker/subAccountApi/ipRestriction", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('broker/subAccountApi/ipRestriction', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetBrokerUniversalTransfer(params = {}) {
-        return this.request("broker/universalTransfer", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('broker/universalTransfer', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetAccountApiRestrictions(params = {}) {
-        return this.request("account/apiRestrictions", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('account/apiRestrictions', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetC2cOrderMatchListUserOrderHistory(params = {}) {
-        return this.request("c2c/orderMatch/listUserOrderHistory", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('c2c/orderMatch/listUserOrderHistory', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetNftHistoryTransactions(params = {}) {
-        return this.request("nft/history/transactions", "sapi", 'GET', params, undefined, undefined, { "cost": 20.001 });
+        return this.request('nft/history/transactions', ['sapi'], 'GET', params, { 'cost': 20.001 });
     }
     sapiGetNftHistoryDeposit(params = {}) {
-        return this.request("nft/history/deposit", "sapi", 'GET', params, undefined, undefined, { "cost": 20.001 });
+        return this.request('nft/history/deposit', ['sapi'], 'GET', params, { 'cost': 20.001 });
     }
     sapiGetNftHistoryWithdraw(params = {}) {
-        return this.request("nft/history/withdraw", "sapi", 'GET', params, undefined, undefined, { "cost": 20.001 });
+        return this.request('nft/history/withdraw', ['sapi'], 'GET', params, { 'cost': 20.001 });
     }
     sapiGetNftUserGetAsset(params = {}) {
-        return this.request("nft/user/getAsset", "sapi", 'GET', params, undefined, undefined, { "cost": 20.001 });
+        return this.request('nft/user/getAsset', ['sapi'], 'GET', params, { 'cost': 20.001 });
     }
     sapiGetPayTransactions(params = {}) {
-        return this.request("pay/transactions", "sapi", 'GET', params, undefined, undefined, { "cost": 20.001 });
+        return this.request('pay/transactions', ['sapi'], 'GET', params, { 'cost': 20.001 });
     }
     sapiGetGiftcardVerify(params = {}) {
-        return this.request("giftcard/verify", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('giftcard/verify', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetGiftcardCryptographyRsaPublicKey(params = {}) {
-        return this.request("giftcard/cryptography/rsa-public-key", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('giftcard/cryptography/rsa-public-key', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetGiftcardBuyCodeTokenLimit(params = {}) {
-        return this.request("giftcard/buyCode/token-limit", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('giftcard/buyCode/token-limit', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetAlgoSpotOpenOrders(params = {}) {
-        return this.request("algo/spot/openOrders", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('algo/spot/openOrders', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetAlgoSpotHistoricalOrders(params = {}) {
-        return this.request("algo/spot/historicalOrders", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('algo/spot/historicalOrders', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetAlgoSpotSubOrders(params = {}) {
-        return this.request("algo/spot/subOrders", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('algo/spot/subOrders', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetAlgoFuturesOpenOrders(params = {}) {
-        return this.request("algo/futures/openOrders", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('algo/futures/openOrders', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetAlgoFuturesHistoricalOrders(params = {}) {
-        return this.request("algo/futures/historicalOrders", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('algo/futures/historicalOrders', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetAlgoFuturesSubOrders(params = {}) {
-        return this.request("algo/futures/subOrders", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('algo/futures/subOrders', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetPortfolioAccount(params = {}) {
-        return this.request("portfolio/account", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('portfolio/account', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetPortfolioCollateralRate(params = {}) {
-        return this.request("portfolio/collateralRate", "sapi", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('portfolio/collateralRate', ['sapi'], 'GET', params, { 'cost': 5 });
     }
     sapiGetPortfolioPmLoan(params = {}) {
-        return this.request("portfolio/pmLoan", "sapi", 'GET', params, undefined, undefined, { "cost": 3.3335 });
+        return this.request('portfolio/pmLoan', ['sapi'], 'GET', params, { 'cost': 3.3335 });
     }
     sapiGetPortfolioInterestHistory(params = {}) {
-        return this.request("portfolio/interest-history", "sapi", 'GET', params, undefined, undefined, { "cost": 0.6667 });
+        return this.request('portfolio/interest-history', ['sapi'], 'GET', params, { 'cost': 0.6667 });
     }
     sapiGetPortfolioAssetIndexPrice(params = {}) {
-        return this.request("portfolio/asset-index-price", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('portfolio/asset-index-price', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetPortfolioRepayFuturesSwitch(params = {}) {
-        return this.request("portfolio/repay-futures-switch", "sapi", 'GET', params, undefined, undefined, { "cost": 3 });
+        return this.request('portfolio/repay-futures-switch', ['sapi'], 'GET', params, { 'cost': 3 });
     }
     sapiGetPortfolioMarginAssetLeverage(params = {}) {
-        return this.request("portfolio/margin-asset-leverage", "sapi", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('portfolio/margin-asset-leverage', ['sapi'], 'GET', params, { 'cost': 5 });
     }
     sapiGetPortfolioBalance(params = {}) {
-        return this.request("portfolio/balance", "sapi", 'GET', params, undefined, undefined, { "cost": 2 });
+        return this.request('portfolio/balance', ['sapi'], 'GET', params, { 'cost': 2 });
     }
     sapiGetPortfolioNegativeBalanceExchangeRecord(params = {}) {
-        return this.request("portfolio/negative-balance-exchange-record", "sapi", 'GET', params, undefined, undefined, { "cost": 2 });
+        return this.request('portfolio/negative-balance-exchange-record', ['sapi'], 'GET', params, { 'cost': 2 });
     }
     sapiGetPortfolioPmloanHistory(params = {}) {
-        return this.request("portfolio/pmloan-history", "sapi", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('portfolio/pmloan-history', ['sapi'], 'GET', params, { 'cost': 5 });
     }
     sapiGetPortfolioEarnAssetBalance(params = {}) {
-        return this.request("portfolio/earn-asset-balance", "sapi", 'GET', params, undefined, undefined, { "cost": 150 });
+        return this.request('portfolio/earn-asset-balance', ['sapi'], 'GET', params, { 'cost': 150 });
     }
     sapiGetPortfolioDeltaMode(params = {}) {
-        return this.request("portfolio/delta-mode", "sapi", 'GET', params, undefined, undefined, { "cost": 150 });
+        return this.request('portfolio/delta-mode', ['sapi'], 'GET', params, { 'cost': 150 });
     }
     sapiGetPortfolioMarginCallLevel(params = {}) {
-        return this.request("portfolio/margin-call-level", "sapi", 'GET', params, undefined, undefined, { "cost": 150 });
+        return this.request('portfolio/margin-call-level', ['sapi'], 'GET', params, { 'cost': 150 });
     }
     sapiGetStakingProductList(params = {}) {
-        return this.request("staking/productList", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('staking/productList', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetStakingPosition(params = {}) {
-        return this.request("staking/position", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('staking/position', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetStakingStakingRecord(params = {}) {
-        return this.request("staking/stakingRecord", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('staking/stakingRecord', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetStakingPersonalLeftQuota(params = {}) {
-        return this.request("staking/personalLeftQuota", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('staking/personalLeftQuota', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetLendingAutoInvestTargetAssetList(params = {}) {
-        return this.request("lending/auto-invest/target-asset/list", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('lending/auto-invest/target-asset/list', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetLendingAutoInvestTargetAssetRoiList(params = {}) {
-        return this.request("lending/auto-invest/target-asset/roi/list", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('lending/auto-invest/target-asset/roi/list', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetLendingAutoInvestAllAsset(params = {}) {
-        return this.request("lending/auto-invest/all/asset", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('lending/auto-invest/all/asset', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetLendingAutoInvestSourceAssetList(params = {}) {
-        return this.request("lending/auto-invest/source-asset/list", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('lending/auto-invest/source-asset/list', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetLendingAutoInvestPlanList(params = {}) {
-        return this.request("lending/auto-invest/plan/list", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('lending/auto-invest/plan/list', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetLendingAutoInvestPlanId(params = {}) {
-        return this.request("lending/auto-invest/plan/id", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('lending/auto-invest/plan/id', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetLendingAutoInvestHistoryList(params = {}) {
-        return this.request("lending/auto-invest/history/list", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('lending/auto-invest/history/list', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetLendingAutoInvestIndexInfo(params = {}) {
-        return this.request("lending/auto-invest/index/info", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('lending/auto-invest/index/info', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetLendingAutoInvestIndexUserSummary(params = {}) {
-        return this.request("lending/auto-invest/index/user-summary", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('lending/auto-invest/index/user-summary', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetLendingAutoInvestOneOffStatus(params = {}) {
-        return this.request("lending/auto-invest/one-off/status", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('lending/auto-invest/one-off/status', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetLendingAutoInvestRedeemHistory(params = {}) {
-        return this.request("lending/auto-invest/redeem/history", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('lending/auto-invest/redeem/history', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetLendingAutoInvestRebalanceHistory(params = {}) {
-        return this.request("lending/auto-invest/rebalance/history", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('lending/auto-invest/rebalance/history', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetSimpleEarnFlexibleList(params = {}) {
-        return this.request("simple-earn/flexible/list", "sapi", 'GET', params, undefined, undefined, { "cost": 15 });
+        return this.request('simple-earn/flexible/list', ['sapi'], 'GET', params, { 'cost': 15 });
     }
     sapiGetSimpleEarnLockedList(params = {}) {
-        return this.request("simple-earn/locked/list", "sapi", 'GET', params, undefined, undefined, { "cost": 15 });
+        return this.request('simple-earn/locked/list', ['sapi'], 'GET', params, { 'cost': 15 });
     }
     sapiGetSimpleEarnFlexiblePersonalLeftQuota(params = {}) {
-        return this.request("simple-earn/flexible/personalLeftQuota", "sapi", 'GET', params, undefined, undefined, { "cost": 15 });
+        return this.request('simple-earn/flexible/personalLeftQuota', ['sapi'], 'GET', params, { 'cost': 15 });
     }
     sapiGetSimpleEarnLockedPersonalLeftQuota(params = {}) {
-        return this.request("simple-earn/locked/personalLeftQuota", "sapi", 'GET', params, undefined, undefined, { "cost": 15 });
+        return this.request('simple-earn/locked/personalLeftQuota', ['sapi'], 'GET', params, { 'cost': 15 });
     }
     sapiGetSimpleEarnFlexibleSubscriptionPreview(params = {}) {
-        return this.request("simple-earn/flexible/subscriptionPreview", "sapi", 'GET', params, undefined, undefined, { "cost": 15 });
+        return this.request('simple-earn/flexible/subscriptionPreview', ['sapi'], 'GET', params, { 'cost': 15 });
     }
     sapiGetSimpleEarnLockedSubscriptionPreview(params = {}) {
-        return this.request("simple-earn/locked/subscriptionPreview", "sapi", 'GET', params, undefined, undefined, { "cost": 15 });
+        return this.request('simple-earn/locked/subscriptionPreview', ['sapi'], 'GET', params, { 'cost': 15 });
     }
     sapiGetSimpleEarnFlexibleHistoryRateHistory(params = {}) {
-        return this.request("simple-earn/flexible/history/rateHistory", "sapi", 'GET', params, undefined, undefined, { "cost": 15 });
+        return this.request('simple-earn/flexible/history/rateHistory', ['sapi'], 'GET', params, { 'cost': 15 });
     }
     sapiGetSimpleEarnFlexiblePosition(params = {}) {
-        return this.request("simple-earn/flexible/position", "sapi", 'GET', params, undefined, undefined, { "cost": 15 });
+        return this.request('simple-earn/flexible/position', ['sapi'], 'GET', params, { 'cost': 15 });
     }
     sapiGetSimpleEarnLockedPosition(params = {}) {
-        return this.request("simple-earn/locked/position", "sapi", 'GET', params, undefined, undefined, { "cost": 15 });
+        return this.request('simple-earn/locked/position', ['sapi'], 'GET', params, { 'cost': 15 });
     }
     sapiGetSimpleEarnAccount(params = {}) {
-        return this.request("simple-earn/account", "sapi", 'GET', params, undefined, undefined, { "cost": 15 });
+        return this.request('simple-earn/account', ['sapi'], 'GET', params, { 'cost': 15 });
     }
     sapiGetSimpleEarnFlexibleHistorySubscriptionRecord(params = {}) {
-        return this.request("simple-earn/flexible/history/subscriptionRecord", "sapi", 'GET', params, undefined, undefined, { "cost": 15 });
+        return this.request('simple-earn/flexible/history/subscriptionRecord', ['sapi'], 'GET', params, { 'cost': 15 });
     }
     sapiGetSimpleEarnLockedHistorySubscriptionRecord(params = {}) {
-        return this.request("simple-earn/locked/history/subscriptionRecord", "sapi", 'GET', params, undefined, undefined, { "cost": 15 });
+        return this.request('simple-earn/locked/history/subscriptionRecord', ['sapi'], 'GET', params, { 'cost': 15 });
     }
     sapiGetSimpleEarnFlexibleHistoryRedemptionRecord(params = {}) {
-        return this.request("simple-earn/flexible/history/redemptionRecord", "sapi", 'GET', params, undefined, undefined, { "cost": 15 });
+        return this.request('simple-earn/flexible/history/redemptionRecord', ['sapi'], 'GET', params, { 'cost': 15 });
     }
     sapiGetSimpleEarnLockedHistoryRedemptionRecord(params = {}) {
-        return this.request("simple-earn/locked/history/redemptionRecord", "sapi", 'GET', params, undefined, undefined, { "cost": 15 });
+        return this.request('simple-earn/locked/history/redemptionRecord', ['sapi'], 'GET', params, { 'cost': 15 });
     }
     sapiGetSimpleEarnFlexibleHistoryRewardsRecord(params = {}) {
-        return this.request("simple-earn/flexible/history/rewardsRecord", "sapi", 'GET', params, undefined, undefined, { "cost": 15 });
+        return this.request('simple-earn/flexible/history/rewardsRecord', ['sapi'], 'GET', params, { 'cost': 15 });
     }
     sapiGetSimpleEarnLockedHistoryRewardsRecord(params = {}) {
-        return this.request("simple-earn/locked/history/rewardsRecord", "sapi", 'GET', params, undefined, undefined, { "cost": 15 });
+        return this.request('simple-earn/locked/history/rewardsRecord', ['sapi'], 'GET', params, { 'cost': 15 });
     }
     sapiGetSimpleEarnFlexibleHistoryCollateralRecord(params = {}) {
-        return this.request("simple-earn/flexible/history/collateralRecord", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('simple-earn/flexible/history/collateralRecord', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetDciProductList(params = {}) {
-        return this.request("dci/product/list", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('dci/product/list', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetDciProductPositions(params = {}) {
-        return this.request("dci/product/positions", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('dci/product/positions', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetDciProductAccounts(params = {}) {
-        return this.request("dci/product/accounts", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('dci/product/accounts', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetAccumulatorProductList(params = {}) {
-        return this.request("accumulator/product/list", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('accumulator/product/list', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetAccumulatorProductPositionList(params = {}) {
-        return this.request("accumulator/product/position/list", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('accumulator/product/position/list', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetAccumulatorProductSumHolding(params = {}) {
-        return this.request("accumulator/product/sum-holding", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('accumulator/product/sum-holding', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetEquityMarketExchangeInfo(params = {}) {
-        return this.request("equity/market/exchangeInfo", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('equity/market/exchangeInfo', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetEquityMarketTokenizedAssets(params = {}) {
-        return this.request("equity/market/tokenized-assets", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('equity/market/tokenized-assets', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetEquityMarketQuote(params = {}) {
-        return this.request("equity/market/quote", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('equity/market/quote', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetEquityOrderOpenOrders(params = {}) {
-        return this.request("equity/order/open-orders", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('equity/order/open-orders', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetEquityOrderHistory(params = {}) {
-        return this.request("equity/order/history", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('equity/order/history', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetEquityOrderDetail(params = {}) {
-        return this.request("equity/order/detail", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('equity/order/detail', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetEquityTradeHistory(params = {}) {
-        return this.request("equity/trade/history", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('equity/trade/history', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetEquityTokenizedConvertStatus(params = {}) {
-        return this.request("equity/tokenized/convert-status", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('equity/tokenized/convert-status', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetEquityTokenizedHistory(params = {}) {
-        return this.request("equity/tokenized/history", "sapi", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('equity/tokenized/history', ['sapi'], 'GET', params, { 'cost': 0.1 });
     }
     sapiGetAssetAssetDistributionHistory(params = {}) {
-        return this.request("asset/assetDistributionHistory", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('asset/assetDistributionHistory', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetAssetQueryTradingFee(params = {}) {
-        return this.request("asset/query/trading-fee", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('asset/query/trading-fee', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetAssetQueryTradingVolume(params = {}) {
-        return this.request("asset/query/trading-volume", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('asset/query/trading-volume', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetOtcCoinPairs(params = {}) {
-        return this.request("otc/coinPairs", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('otc/coinPairs', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetOtcOrdersOrderId(params = {}) {
-        return this.request("otc/orders/{orderId}", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('otc/orders/{orderId}', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetOtcOrders(params = {}) {
-        return this.request("otc/orders", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('otc/orders', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetOcbsOrders(params = {}) {
-        return this.request("ocbs/orders", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('ocbs/orders', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetFiatpaymentQueryWithdrawHistory(params = {}) {
-        return this.request("fiatpayment/query/withdraw/history", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('fiatpayment/query/withdraw/history', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetFiatpaymentQueryDepositHistory(params = {}) {
-        return this.request("fiatpayment/query/deposit/history", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('fiatpayment/query/deposit/history', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetCapitalSubAccountDepositAddress(params = {}) {
-        return this.request("capital/sub-account/deposit/address", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('capital/sub-account/deposit/address', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetCapitalSubAccountDepositHistory(params = {}) {
-        return this.request("capital/sub-account/deposit/history", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('capital/sub-account/deposit/history', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetAssetQueryDustLogs(params = {}) {
-        return this.request("asset/query/dust-logs", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('asset/query/dust-logs', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetAssetQueryDustAssets(params = {}) {
-        return this.request("asset/query/dust-assets", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('asset/query/dust-assets', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetMarketingReferralRewardHistory(params = {}) {
-        return this.request("marketing/referral/reward/history", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('marketing/referral/reward/history', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetStakingAsset(params = {}) {
-        return this.request("staking/asset", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('staking/asset', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetStakingStakingBalance(params = {}) {
-        return this.request("staking/stakingBalance", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('staking/stakingBalance', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetStakingHistory(params = {}) {
-        return this.request("staking/history", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('staking/history', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetStakingStakingRewardsHistory(params = {}) {
-        return this.request("staking/stakingRewardsHistory", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('staking/stakingRewardsHistory', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetCustodianBalance(params = {}) {
-        return this.request("custodian/balance", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('custodian/balance', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetCustodianSupportedAssetList(params = {}) {
-        return this.request("custodian/supportedAssetList", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('custodian/supportedAssetList', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetCustodianWalletTransferHistory(params = {}) {
-        return this.request("custodian/walletTransferHistory", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('custodian/walletTransferHistory', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetCustodianCustodianTransferHistory(params = {}) {
-        return this.request("custodian/custodianTransferHistory", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('custodian/custodianTransferHistory', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetCustodianOpenOrders(params = {}) {
-        return this.request("custodian/openOrders", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('custodian/openOrders', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetCustodianOrder(params = {}) {
-        return this.request("custodian/order", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('custodian/order', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetCustodianOrderHistory(params = {}) {
-        return this.request("custodian/orderHistory", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('custodian/orderHistory', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetCustodianTradeHistory(params = {}) {
-        return this.request("custodian/tradeHistory", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('custodian/tradeHistory', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetCustodianSettlementSetting(params = {}) {
-        return this.request("custodian/settlementSetting", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('custodian/settlementSetting', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetCustodianSettlementHistory(params = {}) {
-        return this.request("custodian/settlementHistory", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('custodian/settlementHistory', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetClTransferHistory(params = {}) {
-        return this.request("cl/transferHistory", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('cl/transferHistory', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetApipartnerCheckEligibility(params = {}) {
-        return this.request("apipartner/checkEligibility", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('apipartner/checkEligibility', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiGetApipartnerRebateHistory(params = {}) {
-        return this.request("apipartner/rebateHistory", "sapi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('apipartner/rebateHistory', ['sapi'], 'GET', params, { 'cost': 1 });
     }
     sapiPostAssetDust(params = {}) {
-        return this.request("asset/dust", "sapi", 'POST', params, undefined, undefined, { "cost": 10 });
+        return this.request('asset/dust', ['sapi'], 'POST', params, { 'cost': 10 });
     }
     sapiPostAssetDustBtc(params = {}) {
-        return this.request("asset/dust-btc", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('asset/dust-btc', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostAssetTransfer(params = {}) {
-        return this.request("asset/transfer", "sapi", 'POST', params, undefined, undefined, { "cost": 6.0003 });
+        return this.request('asset/transfer', ['sapi'], 'POST', params, { 'cost': 6.0003 });
     }
     sapiPostAssetGetFundingAsset(params = {}) {
-        return this.request("asset/get-funding-asset", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('asset/get-funding-asset', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostAssetConvertTransfer(params = {}) {
-        return this.request("asset/convert-transfer", "sapi", 'POST', params, undefined, undefined, { "cost": 0.033335 });
+        return this.request('asset/convert-transfer', ['sapi'], 'POST', params, { 'cost': 0.033335 });
     }
     sapiPostAccountDisableFastWithdrawSwitch(params = {}) {
-        return this.request("account/disableFastWithdrawSwitch", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('account/disableFastWithdrawSwitch', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostAccountEnableFastWithdrawSwitch(params = {}) {
-        return this.request("account/enableFastWithdrawSwitch", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('account/enableFastWithdrawSwitch', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostCapitalWithdrawApply(params = {}) {
-        return this.request("capital/withdraw/apply", "sapi", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('capital/withdraw/apply', ['sapi'], 'POST', params, { 'cost': 1 });
     }
     sapiPostCapitalContractConvertibleCoins(params = {}) {
-        return this.request("capital/contract/convertible-coins", "sapi", 'POST', params, undefined, undefined, { "cost": 4.0002 });
+        return this.request('capital/contract/convertible-coins', ['sapi'], 'POST', params, { 'cost': 4.0002 });
     }
     sapiPostCapitalDepositCreditApply(params = {}) {
-        return this.request("capital/deposit/credit-apply", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('capital/deposit/credit-apply', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostMarginBorrowRepay(params = {}) {
-        return this.request("margin/borrow-repay", "sapi", 'POST', params, undefined, undefined, { "cost": 20.001 });
+        return this.request('margin/borrow-repay', ['sapi'], 'POST', params, { 'cost': 20.001 });
     }
     sapiPostMarginTransfer(params = {}) {
-        return this.request("margin/transfer", "sapi", 'POST', params, undefined, undefined, { "cost": 4.0002 });
+        return this.request('margin/transfer', ['sapi'], 'POST', params, { 'cost': 4.0002 });
     }
     sapiPostMarginLoan(params = {}) {
-        return this.request("margin/loan", "sapi", 'POST', params, undefined, undefined, { "cost": 20.001 });
+        return this.request('margin/loan', ['sapi'], 'POST', params, { 'cost': 20.001 });
     }
     sapiPostMarginRepay(params = {}) {
-        return this.request("margin/repay", "sapi", 'POST', params, undefined, undefined, { "cost": 20.001 });
+        return this.request('margin/repay', ['sapi'], 'POST', params, { 'cost': 20.001 });
     }
     sapiPostMarginOrder(params = {}) {
-        return this.request("margin/order", "sapi", 'POST', params, undefined, undefined, { "cost": 0.040002 });
+        return this.request('margin/order', ['sapi'], 'POST', params, { 'cost': 0.040002 });
     }
     sapiPostMarginOrderOco(params = {}) {
-        return this.request("margin/order/oco", "sapi", 'POST', params, undefined, undefined, { "cost": 0.040002 });
+        return this.request('margin/order/oco', ['sapi'], 'POST', params, { 'cost': 0.040002 });
     }
     sapiPostMarginDust(params = {}) {
-        return this.request("margin/dust", "sapi", 'POST', params, undefined, undefined, { "cost": 20.001 });
+        return this.request('margin/dust', ['sapi'], 'POST', params, { 'cost': 20.001 });
     }
     sapiPostMarginExchangeSmallLiability(params = {}) {
-        return this.request("margin/exchange-small-liability", "sapi", 'POST', params, undefined, undefined, { "cost": 20.001 });
+        return this.request('margin/exchange-small-liability', ['sapi'], 'POST', params, { 'cost': 20.001 });
     }
     sapiPostMarginIsolatedTransfer(params = {}) {
-        return this.request("margin/isolated/transfer", "sapi", 'POST', params, undefined, undefined, { "cost": 4.0002 });
+        return this.request('margin/isolated/transfer', ['sapi'], 'POST', params, { 'cost': 4.0002 });
     }
     sapiPostMarginIsolatedAccount(params = {}) {
-        return this.request("margin/isolated/account", "sapi", 'POST', params, undefined, undefined, { "cost": 2.0001 });
+        return this.request('margin/isolated/account', ['sapi'], 'POST', params, { 'cost': 2.0001 });
     }
     sapiPostMarginMaxLeverage(params = {}) {
-        return this.request("margin/max-leverage", "sapi", 'POST', params, undefined, undefined, { "cost": 300 });
+        return this.request('margin/max-leverage', ['sapi'], 'POST', params, { 'cost': 300 });
     }
     sapiPostBnbBurn(params = {}) {
-        return this.request("bnbBurn", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('bnbBurn', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostSubAccountVirtualSubAccount(params = {}) {
-        return this.request("sub-account/virtualSubAccount", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('sub-account/virtualSubAccount', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostSubAccountMarginTransfer(params = {}) {
-        return this.request("sub-account/margin/transfer", "sapi", 'POST', params, undefined, undefined, { "cost": 4.0002 });
+        return this.request('sub-account/margin/transfer', ['sapi'], 'POST', params, { 'cost': 4.0002 });
     }
     sapiPostSubAccountMarginEnable(params = {}) {
-        return this.request("sub-account/margin/enable", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('sub-account/margin/enable', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostSubAccountFuturesEnable(params = {}) {
-        return this.request("sub-account/futures/enable", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('sub-account/futures/enable', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostSubAccountFuturesTransfer(params = {}) {
-        return this.request("sub-account/futures/transfer", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('sub-account/futures/transfer', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostSubAccountFuturesInternalTransfer(params = {}) {
-        return this.request("sub-account/futures/internalTransfer", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('sub-account/futures/internalTransfer', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostSubAccountTransferSubToSub(params = {}) {
-        return this.request("sub-account/transfer/subToSub", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('sub-account/transfer/subToSub', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostSubAccountTransferSubToMaster(params = {}) {
-        return this.request("sub-account/transfer/subToMaster", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('sub-account/transfer/subToMaster', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostSubAccountUniversalTransfer(params = {}) {
-        return this.request("sub-account/universalTransfer", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('sub-account/universalTransfer', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostSubAccountOptionsEnable(params = {}) {
-        return this.request("sub-account/options/enable", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('sub-account/options/enable', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostManagedSubaccountDeposit(params = {}) {
-        return this.request("managed-subaccount/deposit", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('managed-subaccount/deposit', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostManagedSubaccountWithdraw(params = {}) {
-        return this.request("managed-subaccount/withdraw", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('managed-subaccount/withdraw', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostUserDataStream(params = {}) {
-        return this.request("userDataStream", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('userDataStream', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostUserDataStreamIsolated(params = {}) {
-        return this.request("userDataStream/isolated", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('userDataStream/isolated', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostUserListenToken(params = {}) {
-        return this.request("userListenToken", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('userListenToken', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostFuturesTransfer(params = {}) {
-        return this.request("futures/transfer", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('futures/transfer', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostLendingCustomizedFixedPurchase(params = {}) {
-        return this.request("lending/customizedFixed/purchase", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('lending/customizedFixed/purchase', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostLendingDailyPurchase(params = {}) {
-        return this.request("lending/daily/purchase", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('lending/daily/purchase', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostLendingDailyRedeem(params = {}) {
-        return this.request("lending/daily/redeem", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('lending/daily/redeem', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostBswapLiquidityAdd(params = {}) {
-        return this.request("bswap/liquidityAdd", "sapi", 'POST', params, undefined, undefined, { "cost": 60 });
+        return this.request('bswap/liquidityAdd', ['sapi'], 'POST', params, { 'cost': 60 });
     }
     sapiPostBswapLiquidityRemove(params = {}) {
-        return this.request("bswap/liquidityRemove", "sapi", 'POST', params, undefined, undefined, { "cost": 60 });
+        return this.request('bswap/liquidityRemove', ['sapi'], 'POST', params, { 'cost': 60 });
     }
     sapiPostBswapSwap(params = {}) {
-        return this.request("bswap/swap", "sapi", 'POST', params, undefined, undefined, { "cost": 60 });
+        return this.request('bswap/swap', ['sapi'], 'POST', params, { 'cost': 60 });
     }
     sapiPostBswapClaimRewards(params = {}) {
-        return this.request("bswap/claimRewards", "sapi", 'POST', params, undefined, undefined, { "cost": 6.667 });
+        return this.request('bswap/claimRewards', ['sapi'], 'POST', params, { 'cost': 6.667 });
     }
     sapiPostBlvtSubscribe(params = {}) {
-        return this.request("blvt/subscribe", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('blvt/subscribe', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostBlvtRedeem(params = {}) {
-        return this.request("blvt/redeem", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('blvt/redeem', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostApiReferralCustomization(params = {}) {
-        return this.request("apiReferral/customization", "sapi", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('apiReferral/customization', ['sapi'], 'POST', params, { 'cost': 1 });
     }
     sapiPostApiReferralUserCustomization(params = {}) {
-        return this.request("apiReferral/userCustomization", "sapi", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('apiReferral/userCustomization', ['sapi'], 'POST', params, { 'cost': 1 });
     }
     sapiPostApiReferralRebateHistoricalRecord(params = {}) {
-        return this.request("apiReferral/rebate/historicalRecord", "sapi", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('apiReferral/rebate/historicalRecord', ['sapi'], 'POST', params, { 'cost': 1 });
     }
     sapiPostApiReferralKickbackHistoricalRecord(params = {}) {
-        return this.request("apiReferral/kickback/historicalRecord", "sapi", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('apiReferral/kickback/historicalRecord', ['sapi'], 'POST', params, { 'cost': 1 });
     }
     sapiPostBrokerSubAccount(params = {}) {
-        return this.request("broker/subAccount", "sapi", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('broker/subAccount', ['sapi'], 'POST', params, { 'cost': 1 });
     }
     sapiPostBrokerSubAccountMargin(params = {}) {
-        return this.request("broker/subAccount/margin", "sapi", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('broker/subAccount/margin', ['sapi'], 'POST', params, { 'cost': 1 });
     }
     sapiPostBrokerSubAccountFutures(params = {}) {
-        return this.request("broker/subAccount/futures", "sapi", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('broker/subAccount/futures', ['sapi'], 'POST', params, { 'cost': 1 });
     }
     sapiPostBrokerSubAccountApi(params = {}) {
-        return this.request("broker/subAccountApi", "sapi", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('broker/subAccountApi', ['sapi'], 'POST', params, { 'cost': 1 });
     }
     sapiPostBrokerSubAccountApiPermission(params = {}) {
-        return this.request("broker/subAccountApi/permission", "sapi", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('broker/subAccountApi/permission', ['sapi'], 'POST', params, { 'cost': 1 });
     }
     sapiPostBrokerSubAccountApiCommission(params = {}) {
-        return this.request("broker/subAccountApi/commission", "sapi", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('broker/subAccountApi/commission', ['sapi'], 'POST', params, { 'cost': 1 });
     }
     sapiPostBrokerSubAccountApiCommissionFutures(params = {}) {
-        return this.request("broker/subAccountApi/commission/futures", "sapi", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('broker/subAccountApi/commission/futures', ['sapi'], 'POST', params, { 'cost': 1 });
     }
     sapiPostBrokerSubAccountApiCommissionCoinFutures(params = {}) {
-        return this.request("broker/subAccountApi/commission/coinFutures", "sapi", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('broker/subAccountApi/commission/coinFutures', ['sapi'], 'POST', params, { 'cost': 1 });
     }
     sapiPostBrokerTransfer(params = {}) {
-        return this.request("broker/transfer", "sapi", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('broker/transfer', ['sapi'], 'POST', params, { 'cost': 1 });
     }
     sapiPostBrokerTransferFutures(params = {}) {
-        return this.request("broker/transfer/futures", "sapi", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('broker/transfer/futures', ['sapi'], 'POST', params, { 'cost': 1 });
     }
     sapiPostBrokerRebateHistoricalRecord(params = {}) {
-        return this.request("broker/rebate/historicalRecord", "sapi", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('broker/rebate/historicalRecord', ['sapi'], 'POST', params, { 'cost': 1 });
     }
     sapiPostBrokerSubAccountBnbBurnSpot(params = {}) {
-        return this.request("broker/subAccount/bnbBurn/spot", "sapi", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('broker/subAccount/bnbBurn/spot', ['sapi'], 'POST', params, { 'cost': 1 });
     }
     sapiPostBrokerSubAccountBnbBurnMarginInterest(params = {}) {
-        return this.request("broker/subAccount/bnbBurn/marginInterest", "sapi", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('broker/subAccount/bnbBurn/marginInterest', ['sapi'], 'POST', params, { 'cost': 1 });
     }
     sapiPostBrokerSubAccountBlvt(params = {}) {
-        return this.request("broker/subAccount/blvt", "sapi", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('broker/subAccount/blvt', ['sapi'], 'POST', params, { 'cost': 1 });
     }
     sapiPostBrokerSubAccountApiIpRestriction(params = {}) {
-        return this.request("broker/subAccountApi/ipRestriction", "sapi", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('broker/subAccountApi/ipRestriction', ['sapi'], 'POST', params, { 'cost': 1 });
     }
     sapiPostBrokerSubAccountApiIpRestrictionIpList(params = {}) {
-        return this.request("broker/subAccountApi/ipRestriction/ipList", "sapi", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('broker/subAccountApi/ipRestriction/ipList', ['sapi'], 'POST', params, { 'cost': 1 });
     }
     sapiPostBrokerUniversalTransfer(params = {}) {
-        return this.request("broker/universalTransfer", "sapi", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('broker/universalTransfer', ['sapi'], 'POST', params, { 'cost': 1 });
     }
     sapiPostBrokerSubAccountApiPermissionUniversalTransfer(params = {}) {
-        return this.request("broker/subAccountApi/permission/universalTransfer", "sapi", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('broker/subAccountApi/permission/universalTransfer', ['sapi'], 'POST', params, { 'cost': 1 });
     }
     sapiPostBrokerSubAccountApiPermissionVanillaOptions(params = {}) {
-        return this.request("broker/subAccountApi/permission/vanillaOptions", "sapi", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('broker/subAccountApi/permission/vanillaOptions', ['sapi'], 'POST', params, { 'cost': 1 });
     }
     sapiPostGiftcardCreateCode(params = {}) {
-        return this.request("giftcard/createCode", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('giftcard/createCode', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostGiftcardRedeemCode(params = {}) {
-        return this.request("giftcard/redeemCode", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('giftcard/redeemCode', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostGiftcardBuyCode(params = {}) {
-        return this.request("giftcard/buyCode", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('giftcard/buyCode', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostAlgoSpotNewOrderTwap(params = {}) {
-        return this.request("algo/spot/newOrderTwap", "sapi", 'POST', params, undefined, undefined, { "cost": 20.001 });
+        return this.request('algo/spot/newOrderTwap', ['sapi'], 'POST', params, { 'cost': 20.001 });
     }
     sapiPostAlgoFuturesNewOrderVp(params = {}) {
-        return this.request("algo/futures/newOrderVp", "sapi", 'POST', params, undefined, undefined, { "cost": 20.001 });
+        return this.request('algo/futures/newOrderVp', ['sapi'], 'POST', params, { 'cost': 20.001 });
     }
     sapiPostAlgoFuturesNewOrderTwap(params = {}) {
-        return this.request("algo/futures/newOrderTwap", "sapi", 'POST', params, undefined, undefined, { "cost": 20.001 });
+        return this.request('algo/futures/newOrderTwap', ['sapi'], 'POST', params, { 'cost': 20.001 });
     }
     sapiPostStakingPurchase(params = {}) {
-        return this.request("staking/purchase", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('staking/purchase', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostStakingRedeem(params = {}) {
-        return this.request("staking/redeem", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('staking/redeem', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostStakingSetAutoStaking(params = {}) {
-        return this.request("staking/setAutoStaking", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('staking/setAutoStaking', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostEthStakingEthStake(params = {}) {
-        return this.request("eth-staking/eth/stake", "sapi", 'POST', params, undefined, undefined, { "cost": 15 });
+        return this.request('eth-staking/eth/stake', ['sapi'], 'POST', params, { 'cost': 15 });
     }
     sapiPostEthStakingEthRedeem(params = {}) {
-        return this.request("eth-staking/eth/redeem", "sapi", 'POST', params, undefined, undefined, { "cost": 15 });
+        return this.request('eth-staking/eth/redeem', ['sapi'], 'POST', params, { 'cost': 15 });
     }
     sapiPostEthStakingWbethWrap(params = {}) {
-        return this.request("eth-staking/wbeth/wrap", "sapi", 'POST', params, undefined, undefined, { "cost": 15 });
+        return this.request('eth-staking/wbeth/wrap', ['sapi'], 'POST', params, { 'cost': 15 });
     }
     sapiPostSolStakingSolStake(params = {}) {
-        return this.request("sol-staking/sol/stake", "sapi", 'POST', params, undefined, undefined, { "cost": 15 });
+        return this.request('sol-staking/sol/stake', ['sapi'], 'POST', params, { 'cost': 15 });
     }
     sapiPostSolStakingSolRedeem(params = {}) {
-        return this.request("sol-staking/sol/redeem", "sapi", 'POST', params, undefined, undefined, { "cost": 15 });
+        return this.request('sol-staking/sol/redeem', ['sapi'], 'POST', params, { 'cost': 15 });
     }
     sapiPostMiningHashTransferConfig(params = {}) {
-        return this.request("mining/hash-transfer/config", "sapi", 'POST', params, undefined, undefined, { "cost": 0.5 });
+        return this.request('mining/hash-transfer/config', ['sapi'], 'POST', params, { 'cost': 0.5 });
     }
     sapiPostMiningHashTransferConfigCancel(params = {}) {
-        return this.request("mining/hash-transfer/config/cancel", "sapi", 'POST', params, undefined, undefined, { "cost": 0.5 });
+        return this.request('mining/hash-transfer/config/cancel', ['sapi'], 'POST', params, { 'cost': 0.5 });
     }
     sapiPostPortfolioRepay(params = {}) {
-        return this.request("portfolio/repay", "sapi", 'POST', params, undefined, undefined, { "cost": 20.001 });
+        return this.request('portfolio/repay', ['sapi'], 'POST', params, { 'cost': 20.001 });
     }
     sapiPostLoanVipRenew(params = {}) {
-        return this.request("loan/vip/renew", "sapi", 'POST', params, undefined, undefined, { "cost": 40.002 });
+        return this.request('loan/vip/renew', ['sapi'], 'POST', params, { 'cost': 40.002 });
     }
     sapiPostLoanVipBorrow(params = {}) {
-        return this.request("loan/vip/borrow", "sapi", 'POST', params, undefined, undefined, { "cost": 40.002 });
+        return this.request('loan/vip/borrow', ['sapi'], 'POST', params, { 'cost': 40.002 });
     }
     sapiPostLoanBorrow(params = {}) {
-        return this.request("loan/borrow", "sapi", 'POST', params, undefined, undefined, { "cost": 40.002 });
+        return this.request('loan/borrow', ['sapi'], 'POST', params, { 'cost': 40.002 });
     }
     sapiPostLoanRepay(params = {}) {
-        return this.request("loan/repay", "sapi", 'POST', params, undefined, undefined, { "cost": 40.002 });
+        return this.request('loan/repay', ['sapi'], 'POST', params, { 'cost': 40.002 });
     }
     sapiPostLoanAdjustLtv(params = {}) {
-        return this.request("loan/adjust/ltv", "sapi", 'POST', params, undefined, undefined, { "cost": 40.002 });
+        return this.request('loan/adjust/ltv', ['sapi'], 'POST', params, { 'cost': 40.002 });
     }
     sapiPostLoanCustomizeMarginCall(params = {}) {
-        return this.request("loan/customize/margin_call", "sapi", 'POST', params, undefined, undefined, { "cost": 40.002 });
+        return this.request('loan/customize/margin_call', ['sapi'], 'POST', params, { 'cost': 40.002 });
     }
     sapiPostLoanFlexibleRepay(params = {}) {
-        return this.request("loan/flexible/repay", "sapi", 'POST', params, undefined, undefined, { "cost": 40.002 });
+        return this.request('loan/flexible/repay', ['sapi'], 'POST', params, { 'cost': 40.002 });
     }
     sapiPostLoanFlexibleAdjustLtv(params = {}) {
-        return this.request("loan/flexible/adjust/ltv", "sapi", 'POST', params, undefined, undefined, { "cost": 40.002 });
+        return this.request('loan/flexible/adjust/ltv', ['sapi'], 'POST', params, { 'cost': 40.002 });
     }
     sapiPostLoanVipRepay(params = {}) {
-        return this.request("loan/vip/repay", "sapi", 'POST', params, undefined, undefined, { "cost": 40.002 });
+        return this.request('loan/vip/repay', ['sapi'], 'POST', params, { 'cost': 40.002 });
     }
     sapiPostConvertGetQuote(params = {}) {
-        return this.request("convert/getQuote", "sapi", 'POST', params, undefined, undefined, { "cost": 1.3334 });
+        return this.request('convert/getQuote', ['sapi'], 'POST', params, { 'cost': 1.3334 });
     }
     sapiPostConvertAcceptQuote(params = {}) {
-        return this.request("convert/acceptQuote", "sapi", 'POST', params, undefined, undefined, { "cost": 3.3335 });
+        return this.request('convert/acceptQuote', ['sapi'], 'POST', params, { 'cost': 3.3335 });
     }
     sapiPostConvertLimitPlaceOrder(params = {}) {
-        return this.request("convert/limit/placeOrder", "sapi", 'POST', params, undefined, undefined, { "cost": 3.3335 });
+        return this.request('convert/limit/placeOrder', ['sapi'], 'POST', params, { 'cost': 3.3335 });
     }
     sapiPostConvertLimitCancelOrder(params = {}) {
-        return this.request("convert/limit/cancelOrder", "sapi", 'POST', params, undefined, undefined, { "cost": 1.3334 });
+        return this.request('convert/limit/cancelOrder', ['sapi'], 'POST', params, { 'cost': 1.3334 });
     }
     sapiPostPortfolioAutoCollection(params = {}) {
-        return this.request("portfolio/auto-collection", "sapi", 'POST', params, undefined, undefined, { "cost": 150 });
+        return this.request('portfolio/auto-collection', ['sapi'], 'POST', params, { 'cost': 150 });
     }
     sapiPostPortfolioAssetCollection(params = {}) {
-        return this.request("portfolio/asset-collection", "sapi", 'POST', params, undefined, undefined, { "cost": 6 });
+        return this.request('portfolio/asset-collection', ['sapi'], 'POST', params, { 'cost': 6 });
     }
     sapiPostPortfolioBnbTransfer(params = {}) {
-        return this.request("portfolio/bnb-transfer", "sapi", 'POST', params, undefined, undefined, { "cost": 150 });
+        return this.request('portfolio/bnb-transfer', ['sapi'], 'POST', params, { 'cost': 150 });
     }
     sapiPostPortfolioRepayFuturesSwitch(params = {}) {
-        return this.request("portfolio/repay-futures-switch", "sapi", 'POST', params, undefined, undefined, { "cost": 150 });
+        return this.request('portfolio/repay-futures-switch', ['sapi'], 'POST', params, { 'cost': 150 });
     }
     sapiPostPortfolioRepayFuturesNegativeBalance(params = {}) {
-        return this.request("portfolio/repay-futures-negative-balance", "sapi", 'POST', params, undefined, undefined, { "cost": 150 });
+        return this.request('portfolio/repay-futures-negative-balance', ['sapi'], 'POST', params, { 'cost': 150 });
     }
     sapiPostPortfolioMint(params = {}) {
-        return this.request("portfolio/mint", "sapi", 'POST', params, undefined, undefined, { "cost": 20 });
+        return this.request('portfolio/mint', ['sapi'], 'POST', params, { 'cost': 20 });
     }
     sapiPostPortfolioRedeem(params = {}) {
-        return this.request("portfolio/redeem", "sapi", 'POST', params, undefined, undefined, { "cost": 20 });
+        return this.request('portfolio/redeem', ['sapi'], 'POST', params, { 'cost': 20 });
     }
     sapiPostPortfolioEarnAssetTransfer(params = {}) {
-        return this.request("portfolio/earn-asset-transfer", "sapi", 'POST', params, undefined, undefined, { "cost": 150 });
+        return this.request('portfolio/earn-asset-transfer', ['sapi'], 'POST', params, { 'cost': 150 });
     }
     sapiPostPortfolioDeltaMode(params = {}) {
-        return this.request("portfolio/delta-mode", "sapi", 'POST', params, undefined, undefined, { "cost": 150 });
+        return this.request('portfolio/delta-mode', ['sapi'], 'POST', params, { 'cost': 150 });
     }
     sapiPostPortfolioMarginCallLevel(params = {}) {
-        return this.request("portfolio/margin-call-level", "sapi", 'POST', params, undefined, undefined, { "cost": 150 });
+        return this.request('portfolio/margin-call-level', ['sapi'], 'POST', params, { 'cost': 150 });
     }
     sapiPostLendingAutoInvestPlanAdd(params = {}) {
-        return this.request("lending/auto-invest/plan/add", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('lending/auto-invest/plan/add', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostLendingAutoInvestPlanEdit(params = {}) {
-        return this.request("lending/auto-invest/plan/edit", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('lending/auto-invest/plan/edit', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostLendingAutoInvestPlanEditStatus(params = {}) {
-        return this.request("lending/auto-invest/plan/edit-status", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('lending/auto-invest/plan/edit-status', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostLendingAutoInvestOneOff(params = {}) {
-        return this.request("lending/auto-invest/one-off", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('lending/auto-invest/one-off', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostLendingAutoInvestRedeem(params = {}) {
-        return this.request("lending/auto-invest/redeem", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('lending/auto-invest/redeem', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostSimpleEarnFlexibleSubscribe(params = {}) {
-        return this.request("simple-earn/flexible/subscribe", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('simple-earn/flexible/subscribe', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostSimpleEarnLockedSubscribe(params = {}) {
-        return this.request("simple-earn/locked/subscribe", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('simple-earn/locked/subscribe', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostSimpleEarnFlexibleRedeem(params = {}) {
-        return this.request("simple-earn/flexible/redeem", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('simple-earn/flexible/redeem', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostSimpleEarnLockedRedeem(params = {}) {
-        return this.request("simple-earn/locked/redeem", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('simple-earn/locked/redeem', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostSimpleEarnFlexibleSetAutoSubscribe(params = {}) {
-        return this.request("simple-earn/flexible/setAutoSubscribe", "sapi", 'POST', params, undefined, undefined, { "cost": 15 });
+        return this.request('simple-earn/flexible/setAutoSubscribe', ['sapi'], 'POST', params, { 'cost': 15 });
     }
     sapiPostSimpleEarnLockedSetAutoSubscribe(params = {}) {
-        return this.request("simple-earn/locked/setAutoSubscribe", "sapi", 'POST', params, undefined, undefined, { "cost": 15 });
+        return this.request('simple-earn/locked/setAutoSubscribe', ['sapi'], 'POST', params, { 'cost': 15 });
     }
     sapiPostSimpleEarnLockedSetRedeemOption(params = {}) {
-        return this.request("simple-earn/locked/setRedeemOption", "sapi", 'POST', params, undefined, undefined, { "cost": 5 });
+        return this.request('simple-earn/locked/setRedeemOption', ['sapi'], 'POST', params, { 'cost': 5 });
     }
     sapiPostDciProductSubscribe(params = {}) {
-        return this.request("dci/product/subscribe", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('dci/product/subscribe', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostDciProductAutoCompoundEdit(params = {}) {
-        return this.request("dci/product/auto_compound/edit", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('dci/product/auto_compound/edit', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostAccumulatorProductSubscribe(params = {}) {
-        return this.request("accumulator/product/subscribe", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('accumulator/product/subscribe', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostEquityOrderPlace(params = {}) {
-        return this.request("equity/order/place", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('equity/order/place', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostEquityOrderCancel(params = {}) {
-        return this.request("equity/order/cancel", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('equity/order/cancel', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostEquityOrderCancelAll(params = {}) {
-        return this.request("equity/order/cancel-all", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('equity/order/cancel-all', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostEquityTokenizedMint(params = {}) {
-        return this.request("equity/tokenized/mint", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('equity/tokenized/mint', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostEquityTokenizedRedeem(params = {}) {
-        return this.request("equity/tokenized/redeem", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('equity/tokenized/redeem', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostEquityAccountDisclaimer(params = {}) {
-        return this.request("equity/account/disclaimer", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('equity/account/disclaimer', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostEquityListenKey(params = {}) {
-        return this.request("equity/listenKey", "sapi", 'POST', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('equity/listenKey', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
     sapiPostOtcQuotes(params = {}) {
-        return this.request("otc/quotes", "sapi", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('otc/quotes', ['sapi'], 'POST', params, { 'cost': 1 });
     }
     sapiPostOtcOrders(params = {}) {
-        return this.request("otc/orders", "sapi", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('otc/orders', ['sapi'], 'POST', params, { 'cost': 1 });
     }
     sapiPostFiatpaymentWithdrawApply(params = {}) {
-        return this.request("fiatpayment/withdraw/apply", "sapi", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('fiatpayment/withdraw/apply', ['sapi'], 'POST', params, { 'cost': 1 });
     }
     sapiPostStakingStake(params = {}) {
-        return this.request("staking/stake", "sapi", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('staking/stake', ['sapi'], 'POST', params, { 'cost': 1 });
     }
     sapiPostStakingUnstake(params = {}) {
-        return this.request("staking/unstake", "sapi", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('staking/unstake', ['sapi'], 'POST', params, { 'cost': 1 });
     }
     sapiPostCustodianWalletTransfer(params = {}) {
-        return this.request("custodian/walletTransfer", "sapi", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('custodian/walletTransfer', ['sapi'], 'POST', params, { 'cost': 1 });
     }
     sapiPostCustodianCustodianTransfer(params = {}) {
-        return this.request("custodian/custodianTransfer", "sapi", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('custodian/custodianTransfer', ['sapi'], 'POST', params, { 'cost': 1 });
     }
     sapiPostCustodianUndoTransfer(params = {}) {
-        return this.request("custodian/undoTransfer", "sapi", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('custodian/undoTransfer', ['sapi'], 'POST', params, { 'cost': 1 });
     }
     sapiPostCustodianOrder(params = {}) {
-        return this.request("custodian/order", "sapi", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('custodian/order', ['sapi'], 'POST', params, { 'cost': 1 });
     }
     sapiPostCustodianOcoOrder(params = {}) {
-        return this.request("custodian/ocoOrder", "sapi", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('custodian/ocoOrder', ['sapi'], 'POST', params, { 'cost': 1 });
     }
     sapiPostClTransfer(params = {}) {
-        return this.request("cl/transfer", "sapi", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('cl/transfer', ['sapi'], 'POST', params, { 'cost': 1 });
     }
     sapiPutUserDataStream(params = {}) {
-        return this.request("userDataStream", "sapi", 'PUT', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('userDataStream', ['sapi'], 'PUT', params, { 'cost': 0.1 });
     }
     sapiPutUserDataStreamIsolated(params = {}) {
-        return this.request("userDataStream/isolated", "sapi", 'PUT', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('userDataStream/isolated', ['sapi'], 'PUT', params, { 'cost': 0.1 });
     }
     sapiDeletePortfolioMarginCallLevel(params = {}) {
-        return this.request("portfolio/margin-call-level", "sapi", 'DELETE', params, undefined, undefined, { "cost": 150 });
+        return this.request('portfolio/margin-call-level', ['sapi'], 'DELETE', params, { 'cost': 150 });
     }
     sapiDeleteMarginOpenOrders(params = {}) {
-        return this.request("margin/openOrders", "sapi", 'DELETE', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('margin/openOrders', ['sapi'], 'DELETE', params, { 'cost': 0.1 });
     }
     sapiDeleteMarginOrder(params = {}) {
-        return this.request("margin/order", "sapi", 'DELETE', params, undefined, undefined, { "cost": 0.006667 });
+        return this.request('margin/order', ['sapi'], 'DELETE', params, { 'cost': 0.006667 });
     }
     sapiDeleteMarginOrderList(params = {}) {
-        return this.request("margin/orderList", "sapi", 'DELETE', params, undefined, undefined, { "cost": 0.006667 });
+        return this.request('margin/orderList', ['sapi'], 'DELETE', params, { 'cost': 0.006667 });
     }
     sapiDeleteMarginIsolatedAccount(params = {}) {
-        return this.request("margin/isolated/account", "sapi", 'DELETE', params, undefined, undefined, { "cost": 2.0001 });
+        return this.request('margin/isolated/account', ['sapi'], 'DELETE', params, { 'cost': 2.0001 });
     }
     sapiDeleteUserDataStream(params = {}) {
-        return this.request("userDataStream", "sapi", 'DELETE', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('userDataStream', ['sapi'], 'DELETE', params, { 'cost': 0.1 });
     }
     sapiDeleteUserDataStreamIsolated(params = {}) {
-        return this.request("userDataStream/isolated", "sapi", 'DELETE', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('userDataStream/isolated', ['sapi'], 'DELETE', params, { 'cost': 0.1 });
     }
     sapiDeleteBrokerSubAccountApi(params = {}) {
-        return this.request("broker/subAccountApi", "sapi", 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('broker/subAccountApi', ['sapi'], 'DELETE', params, { 'cost': 1 });
     }
     sapiDeleteBrokerSubAccountApiIpRestrictionIpList(params = {}) {
-        return this.request("broker/subAccountApi/ipRestriction/ipList", "sapi", 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('broker/subAccountApi/ipRestriction/ipList', ['sapi'], 'DELETE', params, { 'cost': 1 });
     }
     sapiDeleteAlgoSpotOrder(params = {}) {
-        return this.request("algo/spot/order", "sapi", 'DELETE', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('algo/spot/order', ['sapi'], 'DELETE', params, { 'cost': 0.1 });
     }
     sapiDeleteAlgoFuturesOrder(params = {}) {
-        return this.request("algo/futures/order", "sapi", 'DELETE', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('algo/futures/order', ['sapi'], 'DELETE', params, { 'cost': 0.1 });
     }
     sapiDeleteSubAccountSubAccountApiIpRestrictionIpList(params = {}) {
-        return this.request("sub-account/subAccountApi/ipRestriction/ipList", "sapi", 'DELETE', params, undefined, undefined, { "cost": 20.001 });
+        return this.request('sub-account/subAccountApi/ipRestriction/ipList', ['sapi'], 'DELETE', params, { 'cost': 20.001 });
     }
     sapiDeleteCustodianCancelOrder(params = {}) {
-        return this.request("custodian/cancelOrder", "sapi", 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('custodian/cancelOrder', ['sapi'], 'DELETE', params, { 'cost': 1 });
     }
     sapiDeleteCustodianCancelOrdersBySymbol(params = {}) {
-        return this.request("custodian/cancelOrdersBySymbol", "sapi", 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('custodian/cancelOrdersBySymbol', ['sapi'], 'DELETE', params, { 'cost': 1 });
     }
     sapiDeleteCustodianCancelOcoOrder(params = {}) {
-        return this.request("custodian/cancelOcoOrder", "sapi", 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('custodian/cancelOcoOrder', ['sapi'], 'DELETE', params, { 'cost': 1 });
     }
     sapiV2GetEthStakingAccount(params = {}) {
-        return this.request("eth-staking/account", "sapiV2", 'GET', params, undefined, undefined, { "cost": 15 });
+        return this.request('eth-staking/account', ['sapiV2'], 'GET', params, { 'cost': 15 });
     }
     sapiV2GetSubAccountFuturesAccount(params = {}) {
-        return this.request("sub-account/futures/account", "sapiV2", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('sub-account/futures/account', ['sapiV2'], 'GET', params, { 'cost': 0.1 });
     }
     sapiV2GetSubAccountFuturesAccountSummary(params = {}) {
-        return this.request("sub-account/futures/accountSummary", "sapiV2", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('sub-account/futures/accountSummary', ['sapiV2'], 'GET', params, { 'cost': 1 });
     }
     sapiV2GetSubAccountFuturesPositionRisk(params = {}) {
-        return this.request("sub-account/futures/positionRisk", "sapiV2", 'GET', params, undefined, undefined, { "cost": 0.1 });
+        return this.request('sub-account/futures/positionRisk', ['sapiV2'], 'GET', params, { 'cost': 0.1 });
     }
     sapiV2GetLoanFlexibleOngoingOrders(params = {}) {
-        return this.request("loan/flexible/ongoing/orders", "sapiV2", 'GET', params, undefined, undefined, { "cost": 30 });
+        return this.request('loan/flexible/ongoing/orders', ['sapiV2'], 'GET', params, { 'cost': 30 });
     }
     sapiV2GetLoanFlexibleBorrowHistory(params = {}) {
-        return this.request("loan/flexible/borrow/history", "sapiV2", 'GET', params, undefined, undefined, { "cost": 40 });
+        return this.request('loan/flexible/borrow/history', ['sapiV2'], 'GET', params, { 'cost': 40 });
     }
     sapiV2GetLoanFlexibleRepayHistory(params = {}) {
-        return this.request("loan/flexible/repay/history", "sapiV2", 'GET', params, undefined, undefined, { "cost": 40 });
+        return this.request('loan/flexible/repay/history', ['sapiV2'], 'GET', params, { 'cost': 40 });
     }
     sapiV2GetLoanFlexibleLtvAdjustmentHistory(params = {}) {
-        return this.request("loan/flexible/ltv/adjustment/history", "sapiV2", 'GET', params, undefined, undefined, { "cost": 40 });
+        return this.request('loan/flexible/ltv/adjustment/history', ['sapiV2'], 'GET', params, { 'cost': 40 });
     }
     sapiV2GetLoanFlexibleLoanableData(params = {}) {
-        return this.request("loan/flexible/loanable/data", "sapiV2", 'GET', params, undefined, undefined, { "cost": 40 });
+        return this.request('loan/flexible/loanable/data', ['sapiV2'], 'GET', params, { 'cost': 40 });
     }
     sapiV2GetLoanFlexibleCollateralData(params = {}) {
-        return this.request("loan/flexible/collateral/data", "sapiV2", 'GET', params, undefined, undefined, { "cost": 40 });
+        return this.request('loan/flexible/collateral/data', ['sapiV2'], 'GET', params, { 'cost': 40 });
     }
     sapiV2GetPortfolioAccount(params = {}) {
-        return this.request("portfolio/account", "sapiV2", 'GET', params, undefined, undefined, { "cost": 2 });
+        return this.request('portfolio/account', ['sapiV2'], 'GET', params, { 'cost': 2 });
     }
     sapiV2GetClAccount(params = {}) {
-        return this.request("cl/account", "sapiV2", 'GET', params, undefined, undefined, { "cost": 10 });
+        return this.request('cl/account', ['sapiV2'], 'GET', params, { 'cost': 10 });
     }
     sapiV2GetClAlertHistory(params = {}) {
-        return this.request("cl/alertHistory", "sapiV2", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('cl/alertHistory', ['sapiV2'], 'GET', params, { 'cost': 1 });
     }
     sapiV2PostEthStakingEthStake(params = {}) {
-        return this.request("eth-staking/eth/stake", "sapiV2", 'POST', params, undefined, undefined, { "cost": 15 });
+        return this.request('eth-staking/eth/stake', ['sapiV2'], 'POST', params, { 'cost': 15 });
     }
     sapiV2PostSubAccountSubAccountApiIpRestriction(params = {}) {
-        return this.request("sub-account/subAccountApi/ipRestriction", "sapiV2", 'POST', params, undefined, undefined, { "cost": 20.001 });
+        return this.request('sub-account/subAccountApi/ipRestriction', ['sapiV2'], 'POST', params, { 'cost': 20.001 });
     }
     sapiV2PostLoanFlexibleBorrow(params = {}) {
-        return this.request("loan/flexible/borrow", "sapiV2", 'POST', params, undefined, undefined, { "cost": 40.002 });
+        return this.request('loan/flexible/borrow', ['sapiV2'], 'POST', params, { 'cost': 40.002 });
     }
     sapiV2PostLoanFlexibleRepay(params = {}) {
-        return this.request("loan/flexible/repay", "sapiV2", 'POST', params, undefined, undefined, { "cost": 40.002 });
+        return this.request('loan/flexible/repay', ['sapiV2'], 'POST', params, { 'cost': 40.002 });
     }
     sapiV2PostLoanFlexibleAdjustLtv(params = {}) {
-        return this.request("loan/flexible/adjust/ltv", "sapiV2", 'POST', params, undefined, undefined, { "cost": 40.002 });
+        return this.request('loan/flexible/adjust/ltv', ['sapiV2'], 'POST', params, { 'cost': 40.002 });
     }
     sapiV3GetSubAccountAssets(params = {}) {
-        return this.request("sub-account/assets", "sapiV3", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('sub-account/assets', ['sapiV3'], 'GET', params, { 'cost': 1 });
     }
     sapiV3GetAccountStatus(params = {}) {
-        return this.request("accountStatus", "sapiV3", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('accountStatus', ['sapiV3'], 'GET', params, { 'cost': 1 });
     }
     sapiV3GetApiTradingStatus(params = {}) {
-        return this.request("apiTradingStatus", "sapiV3", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('apiTradingStatus', ['sapiV3'], 'GET', params, { 'cost': 1 });
     }
     sapiV3GetSubAccountList(params = {}) {
-        return this.request("sub-account/list", "sapiV3", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('sub-account/list', ['sapiV3'], 'GET', params, { 'cost': 1 });
     }
     sapiV3GetSubAccountTransferHistory(params = {}) {
-        return this.request("sub-account/transfer/history", "sapiV3", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('sub-account/transfer/history', ['sapiV3'], 'GET', params, { 'cost': 1 });
     }
     sapiV3PostAssetGetUserAsset(params = {}) {
-        return this.request("asset/getUserAsset", "sapiV3", 'POST', params, undefined, undefined, { "cost": 0.5 });
+        return this.request('asset/getUserAsset', ['sapiV3'], 'POST', params, { 'cost': 0.5 });
     }
     sapiV3PostSubAccountTransfer(params = {}) {
-        return this.request("sub-account/transfer", "sapiV3", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('sub-account/transfer', ['sapiV3'], 'POST', params, { 'cost': 1 });
     }
     sapiV4GetSubAccountAssets(params = {}) {
-        return this.request("sub-account/assets", "sapiV4", 'GET', params, undefined, undefined, { "cost": 0.40002 });
+        return this.request('sub-account/assets', ['sapiV4'], 'GET', params, { 'cost': 0.40002 });
     }
     dapiPublicGetPing(params = {}) {
-        return this.request("ping", "dapiPublic", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('ping', ['dapiPublic'], 'GET', params, { 'cost': 1 });
     }
     dapiPublicGetTime(params = {}) {
-        return this.request("time", "dapiPublic", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('time', ['dapiPublic'], 'GET', params, { 'cost': 1 });
     }
     dapiPublicGetExchangeInfo(params = {}) {
-        return this.request("exchangeInfo", "dapiPublic", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('exchangeInfo', ['dapiPublic'], 'GET', params, { 'cost': 1 });
     }
     dapiPublicGetDepth(params = {}) {
-        return this.request("depth", "dapiPublic", 'GET', params, undefined, undefined, { "cost": 2, "byLimit": [[50, 2], [100, 5], [500, 10], [1000, 20]] });
+        return this.request('depth', ['dapiPublic'], 'GET', params, { 'cost': 2, 'byLimit': [[50, 2], [100, 5], [500, 10], [1000, 20]] });
     }
     dapiPublicGetTrades(params = {}) {
-        return this.request("trades", "dapiPublic", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('trades', ['dapiPublic'], 'GET', params, { 'cost': 5 });
     }
     dapiPublicGetHistoricalTrades(params = {}) {
-        return this.request("historicalTrades", "dapiPublic", 'GET', params, undefined, undefined, { "cost": 200 });
+        return this.request('historicalTrades', ['dapiPublic'], 'GET', params, { 'cost': 200 });
     }
     dapiPublicGetAggTrades(params = {}) {
-        return this.request("aggTrades", "dapiPublic", 'GET', params, undefined, undefined, { "cost": 20 });
+        return this.request('aggTrades', ['dapiPublic'], 'GET', params, { 'cost': 20 });
     }
     dapiPublicGetPremiumIndex(params = {}) {
-        return this.request("premiumIndex", "dapiPublic", 'GET', params, undefined, undefined, { "cost": 10 });
+        return this.request('premiumIndex', ['dapiPublic'], 'GET', params, { 'cost': 10 });
     }
     dapiPublicGetFundingRate(params = {}) {
-        return this.request("fundingRate", "dapiPublic", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('fundingRate', ['dapiPublic'], 'GET', params, { 'cost': 1 });
     }
     dapiPublicGetKlines(params = {}) {
-        return this.request("klines", "dapiPublic", 'GET', params, undefined, undefined, { "cost": 1, "byLimit": [[99, 1], [499, 2], [1000, 5], [10000, 10]] });
+        return this.request('klines', ['dapiPublic'], 'GET', params, { 'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]] });
     }
     dapiPublicGetContinuousKlines(params = {}) {
-        return this.request("continuousKlines", "dapiPublic", 'GET', params, undefined, undefined, { "cost": 1, "byLimit": [[99, 1], [499, 2], [1000, 5], [10000, 10]] });
+        return this.request('continuousKlines', ['dapiPublic'], 'GET', params, { 'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]] });
     }
     dapiPublicGetIndexPriceKlines(params = {}) {
-        return this.request("indexPriceKlines", "dapiPublic", 'GET', params, undefined, undefined, { "cost": 1, "byLimit": [[99, 1], [499, 2], [1000, 5], [10000, 10]] });
+        return this.request('indexPriceKlines', ['dapiPublic'], 'GET', params, { 'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]] });
     }
     dapiPublicGetMarkPriceKlines(params = {}) {
-        return this.request("markPriceKlines", "dapiPublic", 'GET', params, undefined, undefined, { "cost": 1, "byLimit": [[99, 1], [499, 2], [1000, 5], [10000, 10]] });
+        return this.request('markPriceKlines', ['dapiPublic'], 'GET', params, { 'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]] });
     }
     dapiPublicGetPremiumIndexKlines(params = {}) {
-        return this.request("premiumIndexKlines", "dapiPublic", 'GET', params, undefined, undefined, { "cost": 1, "byLimit": [[99, 1], [499, 2], [1000, 5], [10000, 10]] });
+        return this.request('premiumIndexKlines', ['dapiPublic'], 'GET', params, { 'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]] });
     }
     dapiPublicGetTicker24hr(params = {}) {
-        return this.request("ticker/24hr", "dapiPublic", 'GET', params, undefined, undefined, { "cost": 1, "noSymbol": 40 });
+        return this.request('ticker/24hr', ['dapiPublic'], 'GET', params, { 'cost': 1, 'noSymbol': 40 });
     }
     dapiPublicGetTickerPrice(params = {}) {
-        return this.request("ticker/price", "dapiPublic", 'GET', params, undefined, undefined, { "cost": 1, "noSymbol": 2 });
+        return this.request('ticker/price', ['dapiPublic'], 'GET', params, { 'cost': 1, 'noSymbol': 2 });
     }
     dapiPublicGetTickerBookTicker(params = {}) {
-        return this.request("ticker/bookTicker", "dapiPublic", 'GET', params, undefined, undefined, { "cost": 2, "noSymbol": 5 });
+        return this.request('ticker/bookTicker', ['dapiPublic'], 'GET', params, { 'cost': 2, 'noSymbol': 5 });
     }
     dapiPublicGetConstituents(params = {}) {
-        return this.request("constituents", "dapiPublic", 'GET', params, undefined, undefined, { "cost": 2 });
+        return this.request('constituents', ['dapiPublic'], 'GET', params, { 'cost': 2 });
     }
     dapiPublicGetOpenInterest(params = {}) {
-        return this.request("openInterest", "dapiPublic", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('openInterest', ['dapiPublic'], 'GET', params, { 'cost': 1 });
     }
     dapiPublicGetFundingInfo(params = {}) {
-        return this.request("fundingInfo", "dapiPublic", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('fundingInfo', ['dapiPublic'], 'GET', params, { 'cost': 1 });
     }
     dapiDataGetDeliveryPrice(params = {}) {
-        return this.request("delivery-price", "dapiData", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('delivery-price', ['dapiData'], 'GET', params, { 'cost': 1 });
     }
     dapiDataGetOpenInterestHist(params = {}) {
-        return this.request("openInterestHist", "dapiData", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('openInterestHist', ['dapiData'], 'GET', params, { 'cost': 1 });
     }
     dapiDataGetTopLongShortAccountRatio(params = {}) {
-        return this.request("topLongShortAccountRatio", "dapiData", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('topLongShortAccountRatio', ['dapiData'], 'GET', params, { 'cost': 1 });
     }
     dapiDataGetTopLongShortPositionRatio(params = {}) {
-        return this.request("topLongShortPositionRatio", "dapiData", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('topLongShortPositionRatio', ['dapiData'], 'GET', params, { 'cost': 1 });
     }
     dapiDataGetGlobalLongShortAccountRatio(params = {}) {
-        return this.request("globalLongShortAccountRatio", "dapiData", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('globalLongShortAccountRatio', ['dapiData'], 'GET', params, { 'cost': 1 });
     }
     dapiDataGetTakerBuySellVol(params = {}) {
-        return this.request("takerBuySellVol", "dapiData", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('takerBuySellVol', ['dapiData'], 'GET', params, { 'cost': 1 });
     }
     dapiDataGetBasis(params = {}) {
-        return this.request("basis", "dapiData", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('basis', ['dapiData'], 'GET', params, { 'cost': 1 });
     }
     dapiPrivateGetPositionSideDual(params = {}) {
-        return this.request("positionSide/dual", "dapiPrivate", 'GET', params, undefined, undefined, { "cost": 30 });
+        return this.request('positionSide/dual', ['dapiPrivate'], 'GET', params, { 'cost': 30 });
     }
     dapiPrivateGetOrderAmendment(params = {}) {
-        return this.request("orderAmendment", "dapiPrivate", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('orderAmendment', ['dapiPrivate'], 'GET', params, { 'cost': 1 });
     }
     dapiPrivateGetOrder(params = {}) {
-        return this.request("order", "dapiPrivate", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('order', ['dapiPrivate'], 'GET', params, { 'cost': 1 });
     }
     dapiPrivateGetOpenOrder(params = {}) {
-        return this.request("openOrder", "dapiPrivate", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('openOrder', ['dapiPrivate'], 'GET', params, { 'cost': 1 });
     }
     dapiPrivateGetOpenOrders(params = {}) {
-        return this.request("openOrders", "dapiPrivate", 'GET', params, undefined, undefined, { "cost": 1, "noSymbol": 5 });
+        return this.request('openOrders', ['dapiPrivate'], 'GET', params, { 'cost': 1, 'noSymbol': 5 });
     }
     dapiPrivateGetOpenAlgoOrders(params = {}) {
-        return this.request("openAlgoOrders", "dapiPrivate", 'GET', params, undefined, undefined, { "cost": 1, "noSymbol": 40 });
+        return this.request('openAlgoOrders', ['dapiPrivate'], 'GET', params, { 'cost': 1, 'noSymbol': 40 });
     }
     dapiPrivateGetAlgoOrder(params = {}) {
-        return this.request("algoOrder", "dapiPrivate", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('algoOrder', ['dapiPrivate'], 'GET', params, { 'cost': 1 });
     }
     dapiPrivateGetAllAlgoOrders(params = {}) {
-        return this.request("allAlgoOrders", "dapiPrivate", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('allAlgoOrders', ['dapiPrivate'], 'GET', params, { 'cost': 5 });
     }
     dapiPrivateGetAllOrders(params = {}) {
-        return this.request("allOrders", "dapiPrivate", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('allOrders', ['dapiPrivate'], 'GET', params, { 'cost': 5 });
     }
     dapiPrivateGetBalance(params = {}) {
-        return this.request("balance", "dapiPrivate", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('balance', ['dapiPrivate'], 'GET', params, { 'cost': 1 });
     }
     dapiPrivateGetAccount(params = {}) {
-        return this.request("account", "dapiPrivate", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('account', ['dapiPrivate'], 'GET', params, { 'cost': 5 });
     }
     dapiPrivateGetPositionMarginHistory(params = {}) {
-        return this.request("positionMargin/history", "dapiPrivate", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('positionMargin/history', ['dapiPrivate'], 'GET', params, { 'cost': 1 });
     }
     dapiPrivateGetPositionRisk(params = {}) {
-        return this.request("positionRisk", "dapiPrivate", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('positionRisk', ['dapiPrivate'], 'GET', params, { 'cost': 1 });
     }
     dapiPrivateGetUserTrades(params = {}) {
-        return this.request("userTrades", "dapiPrivate", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('userTrades', ['dapiPrivate'], 'GET', params, { 'cost': 5 });
     }
     dapiPrivateGetIncome(params = {}) {
-        return this.request("income", "dapiPrivate", 'GET', params, undefined, undefined, { "cost": 20 });
+        return this.request('income', ['dapiPrivate'], 'GET', params, { 'cost': 20 });
     }
     dapiPrivateGetLeverageBracket(params = {}) {
-        return this.request("leverageBracket", "dapiPrivate", 'GET', params, undefined, undefined, { "cost": 2, "noSymbol": 2 });
+        return this.request('leverageBracket', ['dapiPrivate'], 'GET', params, { 'cost': 2, 'noSymbol': 2 });
     }
     dapiPrivateGetForceOrders(params = {}) {
-        return this.request("forceOrders", "dapiPrivate", 'GET', params, undefined, undefined, { "cost": 20, "noSymbol": 50 });
+        return this.request('forceOrders', ['dapiPrivate'], 'GET', params, { 'cost': 20, 'noSymbol': 50 });
     }
     dapiPrivateGetAdlQuantile(params = {}) {
-        return this.request("adlQuantile", "dapiPrivate", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('adlQuantile', ['dapiPrivate'], 'GET', params, { 'cost': 5 });
     }
     dapiPrivateGetCommissionRate(params = {}) {
-        return this.request("commissionRate", "dapiPrivate", 'GET', params, undefined, undefined, { "cost": 20 });
+        return this.request('commissionRate', ['dapiPrivate'], 'GET', params, { 'cost': 20 });
     }
     dapiPrivateGetIncomeAsyn(params = {}) {
-        return this.request("income/asyn", "dapiPrivate", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('income/asyn', ['dapiPrivate'], 'GET', params, { 'cost': 5 });
     }
     dapiPrivateGetIncomeAsynId(params = {}) {
-        return this.request("income/asyn/id", "dapiPrivate", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('income/asyn/id', ['dapiPrivate'], 'GET', params, { 'cost': 5 });
     }
     dapiPrivateGetTradeAsyn(params = {}) {
-        return this.request("trade/asyn", "dapiPrivate", 'GET', params, undefined, undefined, { "cost": 0.5 });
+        return this.request('trade/asyn', ['dapiPrivate'], 'GET', params, { 'cost': 0.5 });
     }
     dapiPrivateGetTradeAsynId(params = {}) {
-        return this.request("trade/asyn/id", "dapiPrivate", 'GET', params, undefined, undefined, { "cost": 0.5 });
+        return this.request('trade/asyn/id', ['dapiPrivate'], 'GET', params, { 'cost': 0.5 });
     }
     dapiPrivateGetOrderAsyn(params = {}) {
-        return this.request("order/asyn", "dapiPrivate", 'GET', params, undefined, undefined, { "cost": 0.5 });
+        return this.request('order/asyn', ['dapiPrivate'], 'GET', params, { 'cost': 0.5 });
     }
     dapiPrivateGetOrderAsynId(params = {}) {
-        return this.request("order/asyn/id", "dapiPrivate", 'GET', params, undefined, undefined, { "cost": 0.5 });
+        return this.request('order/asyn/id', ['dapiPrivate'], 'GET', params, { 'cost': 0.5 });
     }
     dapiPrivateGetPmExchangeInfo(params = {}) {
-        return this.request("pmExchangeInfo", "dapiPrivate", 'GET', params, undefined, undefined, { "cost": 0.5 });
+        return this.request('pmExchangeInfo', ['dapiPrivate'], 'GET', params, { 'cost': 0.5 });
     }
     dapiPrivateGetPmAccountInfo(params = {}) {
-        return this.request("pmAccountInfo", "dapiPrivate", 'GET', params, undefined, undefined, { "cost": 0.5 });
+        return this.request('pmAccountInfo', ['dapiPrivate'], 'GET', params, { 'cost': 0.5 });
     }
     dapiPrivatePostPositionSideDual(params = {}) {
-        return this.request("positionSide/dual", "dapiPrivate", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('positionSide/dual', ['dapiPrivate'], 'POST', params, { 'cost': 1 });
     }
     dapiPrivatePostOrder(params = {}) {
-        return this.request("order", "dapiPrivate", 'POST', params, undefined, undefined, { "cost": 4 });
+        return this.request('order', ['dapiPrivate'], 'POST', params, { 'cost': 4 });
     }
     dapiPrivatePostAlgoOrder(params = {}) {
-        return this.request("algoOrder", "dapiPrivate", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('algoOrder', ['dapiPrivate'], 'POST', params, { 'cost': 1 });
     }
     dapiPrivatePostBatchOrders(params = {}) {
-        return this.request("batchOrders", "dapiPrivate", 'POST', params, undefined, undefined, { "cost": 5 });
+        return this.request('batchOrders', ['dapiPrivate'], 'POST', params, { 'cost': 5 });
     }
     dapiPrivatePostCountdownCancelAll(params = {}) {
-        return this.request("countdownCancelAll", "dapiPrivate", 'POST', params, undefined, undefined, { "cost": 10 });
+        return this.request('countdownCancelAll', ['dapiPrivate'], 'POST', params, { 'cost': 10 });
     }
     dapiPrivatePostLeverage(params = {}) {
-        return this.request("leverage", "dapiPrivate", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('leverage', ['dapiPrivate'], 'POST', params, { 'cost': 1 });
     }
     dapiPrivatePostMarginType(params = {}) {
-        return this.request("marginType", "dapiPrivate", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('marginType', ['dapiPrivate'], 'POST', params, { 'cost': 1 });
     }
     dapiPrivatePostPositionMargin(params = {}) {
-        return this.request("positionMargin", "dapiPrivate", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('positionMargin', ['dapiPrivate'], 'POST', params, { 'cost': 1 });
     }
     dapiPrivatePostListenKey(params = {}) {
-        return this.request("listenKey", "dapiPrivate", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('listenKey', ['dapiPrivate'], 'POST', params, { 'cost': 1 });
     }
     dapiPrivatePutListenKey(params = {}) {
-        return this.request("listenKey", "dapiPrivate", 'PUT', params, undefined, undefined, { "cost": 1 });
+        return this.request('listenKey', ['dapiPrivate'], 'PUT', params, { 'cost': 1 });
     }
     dapiPrivatePutOrder(params = {}) {
-        return this.request("order", "dapiPrivate", 'PUT', params, undefined, undefined, { "cost": 1 });
+        return this.request('order', ['dapiPrivate'], 'PUT', params, { 'cost': 1 });
     }
     dapiPrivatePutBatchOrders(params = {}) {
-        return this.request("batchOrders", "dapiPrivate", 'PUT', params, undefined, undefined, { "cost": 5 });
+        return this.request('batchOrders', ['dapiPrivate'], 'PUT', params, { 'cost': 5 });
     }
     dapiPrivateDeleteOrder(params = {}) {
-        return this.request("order", "dapiPrivate", 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('order', ['dapiPrivate'], 'DELETE', params, { 'cost': 1 });
     }
     dapiPrivateDeleteAlgoOrder(params = {}) {
-        return this.request("algoOrder", "dapiPrivate", 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('algoOrder', ['dapiPrivate'], 'DELETE', params, { 'cost': 1 });
     }
     dapiPrivateDeleteAlgoOpenOrders(params = {}) {
-        return this.request("algoOpenOrders", "dapiPrivate", 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('algoOpenOrders', ['dapiPrivate'], 'DELETE', params, { 'cost': 1 });
     }
     dapiPrivateDeleteAllOpenOrders(params = {}) {
-        return this.request("allOpenOrders", "dapiPrivate", 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('allOpenOrders', ['dapiPrivate'], 'DELETE', params, { 'cost': 1 });
     }
     dapiPrivateDeleteBatchOrders(params = {}) {
-        return this.request("batchOrders", "dapiPrivate", 'DELETE', params, undefined, undefined, { "cost": 5 });
+        return this.request('batchOrders', ['dapiPrivate'], 'DELETE', params, { 'cost': 5 });
     }
     dapiPrivateDeleteListenKey(params = {}) {
-        return this.request("listenKey", "dapiPrivate", 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('listenKey', ['dapiPrivate'], 'DELETE', params, { 'cost': 1 });
     }
     dapiPrivateV2GetLeverageBracket(params = {}) {
-        return this.request("leverageBracket", "dapiPrivateV2", 'GET', params, undefined, undefined, { "cost": 1, "noSymbol": 2 });
+        return this.request('leverageBracket', ['dapiPrivateV2'], 'GET', params, { 'cost': 1, 'noSymbol': 2 });
     }
     fapiPublicGetPing(params = {}) {
-        return this.request("ping", "fapiPublic", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('ping', ['fapiPublic'], 'GET', params, { 'cost': 1 });
     }
     fapiPublicGetTime(params = {}) {
-        return this.request("time", "fapiPublic", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('time', ['fapiPublic'], 'GET', params, { 'cost': 1 });
     }
     fapiPublicGetExchangeInfo(params = {}) {
-        return this.request("exchangeInfo", "fapiPublic", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('exchangeInfo', ['fapiPublic'], 'GET', params, { 'cost': 1 });
     }
     fapiPublicGetDepth(params = {}) {
-        return this.request("depth", "fapiPublic", 'GET', params, undefined, undefined, { "cost": 2, "byLimit": [[50, 2], [100, 5], [500, 10], [1000, 20]] });
+        return this.request('depth', ['fapiPublic'], 'GET', params, { 'cost': 2, 'byLimit': [[50, 2], [100, 5], [500, 10], [1000, 20]] });
     }
     fapiPublicGetRpiDepth(params = {}) {
-        return this.request("rpiDepth", "fapiPublic", 'GET', params, undefined, undefined, { "cost": 20 });
+        return this.request('rpiDepth', ['fapiPublic'], 'GET', params, { 'cost': 20 });
     }
     fapiPublicGetTrades(params = {}) {
-        return this.request("trades", "fapiPublic", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('trades', ['fapiPublic'], 'GET', params, { 'cost': 5 });
     }
     fapiPublicGetHistoricalTrades(params = {}) {
-        return this.request("historicalTrades", "fapiPublic", 'GET', params, undefined, undefined, { "cost": 200 });
+        return this.request('historicalTrades', ['fapiPublic'], 'GET', params, { 'cost': 200 });
     }
     fapiPublicGetAggTrades(params = {}) {
-        return this.request("aggTrades", "fapiPublic", 'GET', params, undefined, undefined, { "cost": 20 });
+        return this.request('aggTrades', ['fapiPublic'], 'GET', params, { 'cost': 20 });
     }
     fapiPublicGetKlines(params = {}) {
-        return this.request("klines", "fapiPublic", 'GET', params, undefined, undefined, { "cost": 1, "byLimit": [[99, 1], [499, 2], [1000, 5], [10000, 10]] });
+        return this.request('klines', ['fapiPublic'], 'GET', params, { 'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]] });
     }
     fapiPublicGetContinuousKlines(params = {}) {
-        return this.request("continuousKlines", "fapiPublic", 'GET', params, undefined, undefined, { "cost": 1, "byLimit": [[99, 1], [499, 2], [1000, 5], [10000, 10]] });
+        return this.request('continuousKlines', ['fapiPublic'], 'GET', params, { 'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]] });
     }
     fapiPublicGetMarkPriceKlines(params = {}) {
-        return this.request("markPriceKlines", "fapiPublic", 'GET', params, undefined, undefined, { "cost": 1, "byLimit": [[99, 1], [499, 2], [1000, 5], [10000, 10]] });
+        return this.request('markPriceKlines', ['fapiPublic'], 'GET', params, { 'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]] });
     }
     fapiPublicGetIndexPriceKlines(params = {}) {
-        return this.request("indexPriceKlines", "fapiPublic", 'GET', params, undefined, undefined, { "cost": 1, "byLimit": [[99, 1], [499, 2], [1000, 5], [10000, 10]] });
+        return this.request('indexPriceKlines', ['fapiPublic'], 'GET', params, { 'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]] });
     }
     fapiPublicGetPremiumIndexKlines(params = {}) {
-        return this.request("premiumIndexKlines", "fapiPublic", 'GET', params, undefined, undefined, { "cost": 1, "byLimit": [[99, 1], [499, 2], [1000, 5], [10000, 10]] });
+        return this.request('premiumIndexKlines', ['fapiPublic'], 'GET', params, { 'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]] });
     }
     fapiPublicGetFundingRate(params = {}) {
-        return this.request("fundingRate", "fapiPublic", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('fundingRate', ['fapiPublic'], 'GET', params, { 'cost': 1 });
     }
     fapiPublicGetFundingInfo(params = {}) {
-        return this.request("fundingInfo", "fapiPublic", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('fundingInfo', ['fapiPublic'], 'GET', params, { 'cost': 1 });
     }
     fapiPublicGetPremiumIndex(params = {}) {
-        return this.request("premiumIndex", "fapiPublic", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('premiumIndex', ['fapiPublic'], 'GET', params, { 'cost': 1 });
     }
     fapiPublicGetTicker24hr(params = {}) {
-        return this.request("ticker/24hr", "fapiPublic", 'GET', params, undefined, undefined, { "cost": 1, "noSymbol": 40 });
+        return this.request('ticker/24hr', ['fapiPublic'], 'GET', params, { 'cost': 1, 'noSymbol': 40 });
     }
     fapiPublicGetTickerPrice(params = {}) {
-        return this.request("ticker/price", "fapiPublic", 'GET', params, undefined, undefined, { "cost": 1, "noSymbol": 2 });
+        return this.request('ticker/price', ['fapiPublic'], 'GET', params, { 'cost': 1, 'noSymbol': 2 });
     }
     fapiPublicGetTickerBookTicker(params = {}) {
-        return this.request("ticker/bookTicker", "fapiPublic", 'GET', params, undefined, undefined, { "cost": 2, "noSymbol": 5 });
+        return this.request('ticker/bookTicker', ['fapiPublic'], 'GET', params, { 'cost': 2, 'noSymbol': 5 });
     }
     fapiPublicGetOpenInterest(params = {}) {
-        return this.request("openInterest", "fapiPublic", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('openInterest', ['fapiPublic'], 'GET', params, { 'cost': 1 });
     }
     fapiPublicGetIndexInfo(params = {}) {
-        return this.request("indexInfo", "fapiPublic", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('indexInfo', ['fapiPublic'], 'GET', params, { 'cost': 1 });
     }
     fapiPublicGetAssetIndex(params = {}) {
-        return this.request("assetIndex", "fapiPublic", 'GET', params, undefined, undefined, { "cost": 1, "noSymbol": 10 });
+        return this.request('assetIndex', ['fapiPublic'], 'GET', params, { 'cost': 1, 'noSymbol': 10 });
     }
     fapiPublicGetConstituents(params = {}) {
-        return this.request("constituents", "fapiPublic", 'GET', params, undefined, undefined, { "cost": 2 });
+        return this.request('constituents', ['fapiPublic'], 'GET', params, { 'cost': 2 });
     }
     fapiPublicGetApiTradingStatus(params = {}) {
-        return this.request("apiTradingStatus", "fapiPublic", 'GET', params, undefined, undefined, { "cost": 1, "noSymbol": 10 });
+        return this.request('apiTradingStatus', ['fapiPublic'], 'GET', params, { 'cost': 1, 'noSymbol': 10 });
     }
     fapiPublicGetLvtKlines(params = {}) {
-        return this.request("lvtKlines", "fapiPublic", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('lvtKlines', ['fapiPublic'], 'GET', params, { 'cost': 1 });
     }
     fapiPublicGetConvertExchangeInfo(params = {}) {
-        return this.request("convert/exchangeInfo", "fapiPublic", 'GET', params, undefined, undefined, { "cost": 4 });
+        return this.request('convert/exchangeInfo', ['fapiPublic'], 'GET', params, { 'cost': 4 });
     }
     fapiPublicGetInsuranceBalance(params = {}) {
-        return this.request("insuranceBalance", "fapiPublic", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('insuranceBalance', ['fapiPublic'], 'GET', params, { 'cost': 1 });
     }
     fapiPublicGetSymbolAdlRisk(params = {}) {
-        return this.request("symbolAdlRisk", "fapiPublic", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('symbolAdlRisk', ['fapiPublic'], 'GET', params, { 'cost': 1 });
     }
     fapiPublicGetTradingSchedule(params = {}) {
-        return this.request("tradingSchedule", "fapiPublic", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('tradingSchedule', ['fapiPublic'], 'GET', params, { 'cost': 5 });
     }
     fapiDataGetDeliveryPrice(params = {}) {
-        return this.request("delivery-price", "fapiData", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('delivery-price', ['fapiData'], 'GET', params, { 'cost': 1 });
     }
     fapiDataGetOpenInterestHist(params = {}) {
-        return this.request("openInterestHist", "fapiData", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('openInterestHist', ['fapiData'], 'GET', params, { 'cost': 1 });
     }
     fapiDataGetTopLongShortAccountRatio(params = {}) {
-        return this.request("topLongShortAccountRatio", "fapiData", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('topLongShortAccountRatio', ['fapiData'], 'GET', params, { 'cost': 1 });
     }
     fapiDataGetTopLongShortPositionRatio(params = {}) {
-        return this.request("topLongShortPositionRatio", "fapiData", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('topLongShortPositionRatio', ['fapiData'], 'GET', params, { 'cost': 1 });
     }
     fapiDataGetGlobalLongShortAccountRatio(params = {}) {
-        return this.request("globalLongShortAccountRatio", "fapiData", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('globalLongShortAccountRatio', ['fapiData'], 'GET', params, { 'cost': 1 });
     }
     fapiDataGetTakerlongshortRatio(params = {}) {
-        return this.request("takerlongshortRatio", "fapiData", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('takerlongshortRatio', ['fapiData'], 'GET', params, { 'cost': 1 });
     }
     fapiDataGetBasis(params = {}) {
-        return this.request("basis", "fapiData", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('basis', ['fapiData'], 'GET', params, { 'cost': 1 });
     }
     fapiPrivateGetForceOrders(params = {}) {
-        return this.request("forceOrders", "fapiPrivate", 'GET', params, undefined, undefined, { "cost": 20, "noSymbol": 50 });
+        return this.request('forceOrders', ['fapiPrivate'], 'GET', params, { 'cost': 20, 'noSymbol': 50 });
     }
     fapiPrivateGetAllOrders(params = {}) {
-        return this.request("allOrders", "fapiPrivate", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('allOrders', ['fapiPrivate'], 'GET', params, { 'cost': 5 });
     }
     fapiPrivateGetOpenOrder(params = {}) {
-        return this.request("openOrder", "fapiPrivate", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('openOrder', ['fapiPrivate'], 'GET', params, { 'cost': 1 });
     }
     fapiPrivateGetOpenOrders(params = {}) {
-        return this.request("openOrders", "fapiPrivate", 'GET', params, undefined, undefined, { "cost": 1, "noSymbol": 40 });
+        return this.request('openOrders', ['fapiPrivate'], 'GET', params, { 'cost': 1, 'noSymbol': 40 });
     }
     fapiPrivateGetOrder(params = {}) {
-        return this.request("order", "fapiPrivate", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('order', ['fapiPrivate'], 'GET', params, { 'cost': 1 });
     }
     fapiPrivateGetAccount(params = {}) {
-        return this.request("account", "fapiPrivate", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('account', ['fapiPrivate'], 'GET', params, { 'cost': 5 });
     }
     fapiPrivateGetBalance(params = {}) {
-        return this.request("balance", "fapiPrivate", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('balance', ['fapiPrivate'], 'GET', params, { 'cost': 5 });
     }
     fapiPrivateGetLeverageBracket(params = {}) {
-        return this.request("leverageBracket", "fapiPrivate", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('leverageBracket', ['fapiPrivate'], 'GET', params, { 'cost': 1 });
     }
     fapiPrivateGetPositionMarginHistory(params = {}) {
-        return this.request("positionMargin/history", "fapiPrivate", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('positionMargin/history', ['fapiPrivate'], 'GET', params, { 'cost': 1 });
     }
     fapiPrivateGetPositionRisk(params = {}) {
-        return this.request("positionRisk", "fapiPrivate", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('positionRisk', ['fapiPrivate'], 'GET', params, { 'cost': 5 });
     }
     fapiPrivateGetPositionSideDual(params = {}) {
-        return this.request("positionSide/dual", "fapiPrivate", 'GET', params, undefined, undefined, { "cost": 30 });
+        return this.request('positionSide/dual', ['fapiPrivate'], 'GET', params, { 'cost': 30 });
     }
     fapiPrivateGetUserTrades(params = {}) {
-        return this.request("userTrades", "fapiPrivate", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('userTrades', ['fapiPrivate'], 'GET', params, { 'cost': 5 });
     }
     fapiPrivateGetIncome(params = {}) {
-        return this.request("income", "fapiPrivate", 'GET', params, undefined, undefined, { "cost": 30 });
+        return this.request('income', ['fapiPrivate'], 'GET', params, { 'cost': 30 });
     }
     fapiPrivateGetCommissionRate(params = {}) {
-        return this.request("commissionRate", "fapiPrivate", 'GET', params, undefined, undefined, { "cost": 20 });
+        return this.request('commissionRate', ['fapiPrivate'], 'GET', params, { 'cost': 20 });
     }
     fapiPrivateGetRateLimitOrder(params = {}) {
-        return this.request("rateLimit/order", "fapiPrivate", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('rateLimit/order', ['fapiPrivate'], 'GET', params, { 'cost': 1 });
     }
     fapiPrivateGetApiTradingStatus(params = {}) {
-        return this.request("apiTradingStatus", "fapiPrivate", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('apiTradingStatus', ['fapiPrivate'], 'GET', params, { 'cost': 1 });
     }
     fapiPrivateGetMultiAssetsMargin(params = {}) {
-        return this.request("multiAssetsMargin", "fapiPrivate", 'GET', params, undefined, undefined, { "cost": 30 });
+        return this.request('multiAssetsMargin', ['fapiPrivate'], 'GET', params, { 'cost': 30 });
     }
     fapiPrivateGetApiReferralIfNewUser(params = {}) {
-        return this.request("apiReferral/ifNewUser", "fapiPrivate", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('apiReferral/ifNewUser', ['fapiPrivate'], 'GET', params, { 'cost': 1 });
     }
     fapiPrivateGetApiReferralCustomization(params = {}) {
-        return this.request("apiReferral/customization", "fapiPrivate", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('apiReferral/customization', ['fapiPrivate'], 'GET', params, { 'cost': 1 });
     }
     fapiPrivateGetApiReferralUserCustomization(params = {}) {
-        return this.request("apiReferral/userCustomization", "fapiPrivate", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('apiReferral/userCustomization', ['fapiPrivate'], 'GET', params, { 'cost': 1 });
     }
     fapiPrivateGetApiReferralTraderNum(params = {}) {
-        return this.request("apiReferral/traderNum", "fapiPrivate", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('apiReferral/traderNum', ['fapiPrivate'], 'GET', params, { 'cost': 1 });
     }
     fapiPrivateGetApiReferralOverview(params = {}) {
-        return this.request("apiReferral/overview", "fapiPrivate", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('apiReferral/overview', ['fapiPrivate'], 'GET', params, { 'cost': 1 });
     }
     fapiPrivateGetApiReferralTradeVol(params = {}) {
-        return this.request("apiReferral/tradeVol", "fapiPrivate", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('apiReferral/tradeVol', ['fapiPrivate'], 'GET', params, { 'cost': 1 });
     }
     fapiPrivateGetApiReferralRebateVol(params = {}) {
-        return this.request("apiReferral/rebateVol", "fapiPrivate", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('apiReferral/rebateVol', ['fapiPrivate'], 'GET', params, { 'cost': 1 });
     }
     fapiPrivateGetApiReferralTraderSummary(params = {}) {
-        return this.request("apiReferral/traderSummary", "fapiPrivate", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('apiReferral/traderSummary', ['fapiPrivate'], 'GET', params, { 'cost': 1 });
     }
     fapiPrivateGetAdlQuantile(params = {}) {
-        return this.request("adlQuantile", "fapiPrivate", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('adlQuantile', ['fapiPrivate'], 'GET', params, { 'cost': 5 });
     }
     fapiPrivateGetPmAccountInfo(params = {}) {
-        return this.request("pmAccountInfo", "fapiPrivate", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('pmAccountInfo', ['fapiPrivate'], 'GET', params, { 'cost': 5 });
     }
     fapiPrivateGetOrderAmendment(params = {}) {
-        return this.request("orderAmendment", "fapiPrivate", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('orderAmendment', ['fapiPrivate'], 'GET', params, { 'cost': 1 });
     }
     fapiPrivateGetIncomeAsyn(params = {}) {
-        return this.request("income/asyn", "fapiPrivate", 'GET', params, undefined, undefined, { "cost": 1000 });
+        return this.request('income/asyn', ['fapiPrivate'], 'GET', params, { 'cost': 1000 });
     }
     fapiPrivateGetIncomeAsynId(params = {}) {
-        return this.request("income/asyn/id", "fapiPrivate", 'GET', params, undefined, undefined, { "cost": 10 });
+        return this.request('income/asyn/id', ['fapiPrivate'], 'GET', params, { 'cost': 10 });
     }
     fapiPrivateGetOrderAsyn(params = {}) {
-        return this.request("order/asyn", "fapiPrivate", 'GET', params, undefined, undefined, { "cost": 1000 });
+        return this.request('order/asyn', ['fapiPrivate'], 'GET', params, { 'cost': 1000 });
     }
     fapiPrivateGetOrderAsynId(params = {}) {
-        return this.request("order/asyn/id", "fapiPrivate", 'GET', params, undefined, undefined, { "cost": 10 });
+        return this.request('order/asyn/id', ['fapiPrivate'], 'GET', params, { 'cost': 10 });
     }
     fapiPrivateGetTradeAsyn(params = {}) {
-        return this.request("trade/asyn", "fapiPrivate", 'GET', params, undefined, undefined, { "cost": 1000 });
+        return this.request('trade/asyn', ['fapiPrivate'], 'GET', params, { 'cost': 1000 });
     }
     fapiPrivateGetTradeAsynId(params = {}) {
-        return this.request("trade/asyn/id", "fapiPrivate", 'GET', params, undefined, undefined, { "cost": 10 });
+        return this.request('trade/asyn/id', ['fapiPrivate'], 'GET', params, { 'cost': 10 });
     }
     fapiPrivateGetFeeBurn(params = {}) {
-        return this.request("feeBurn", "fapiPrivate", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('feeBurn', ['fapiPrivate'], 'GET', params, { 'cost': 1 });
     }
     fapiPrivateGetSymbolConfig(params = {}) {
-        return this.request("symbolConfig", "fapiPrivate", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('symbolConfig', ['fapiPrivate'], 'GET', params, { 'cost': 5 });
     }
     fapiPrivateGetAccountConfig(params = {}) {
-        return this.request("accountConfig", "fapiPrivate", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('accountConfig', ['fapiPrivate'], 'GET', params, { 'cost': 5 });
     }
     fapiPrivateGetConvertOrderStatus(params = {}) {
-        return this.request("convert/orderStatus", "fapiPrivate", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('convert/orderStatus', ['fapiPrivate'], 'GET', params, { 'cost': 5 });
     }
     fapiPrivateGetAlgoOrder(params = {}) {
-        return this.request("algoOrder", "fapiPrivate", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('algoOrder', ['fapiPrivate'], 'GET', params, { 'cost': 1 });
     }
     fapiPrivateGetOpenAlgoOrders(params = {}) {
-        return this.request("openAlgoOrders", "fapiPrivate", 'GET', params, undefined, undefined, { "cost": 1, "noSymbol": 40 });
+        return this.request('openAlgoOrders', ['fapiPrivate'], 'GET', params, { 'cost': 1, 'noSymbol': 40 });
     }
     fapiPrivateGetAllAlgoOrders(params = {}) {
-        return this.request("allAlgoOrders", "fapiPrivate", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('allAlgoOrders', ['fapiPrivate'], 'GET', params, { 'cost': 5 });
     }
     fapiPrivateGetStockContract(params = {}) {
-        return this.request("stock/contract", "fapiPrivate", 'GET', params, undefined, undefined, { "cost": 50 });
+        return this.request('stock/contract', ['fapiPrivate'], 'GET', params, { 'cost': 50 });
     }
     fapiPrivatePostBatchOrders(params = {}) {
-        return this.request("batchOrders", "fapiPrivate", 'POST', params, undefined, undefined, { "cost": 5 });
+        return this.request('batchOrders', ['fapiPrivate'], 'POST', params, { 'cost': 5 });
     }
     fapiPrivatePostPositionSideDual(params = {}) {
-        return this.request("positionSide/dual", "fapiPrivate", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('positionSide/dual', ['fapiPrivate'], 'POST', params, { 'cost': 1 });
     }
     fapiPrivatePostPositionMargin(params = {}) {
-        return this.request("positionMargin", "fapiPrivate", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('positionMargin', ['fapiPrivate'], 'POST', params, { 'cost': 1 });
     }
     fapiPrivatePostMarginType(params = {}) {
-        return this.request("marginType", "fapiPrivate", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('marginType', ['fapiPrivate'], 'POST', params, { 'cost': 1 });
     }
     fapiPrivatePostOrder(params = {}) {
-        return this.request("order", "fapiPrivate", 'POST', params, undefined, undefined, { "cost": 4 });
+        return this.request('order', ['fapiPrivate'], 'POST', params, { 'cost': 4 });
     }
     fapiPrivatePostOrderTest(params = {}) {
-        return this.request("order/test", "fapiPrivate", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/test', ['fapiPrivate'], 'POST', params, { 'cost': 1 });
     }
     fapiPrivatePostLeverage(params = {}) {
-        return this.request("leverage", "fapiPrivate", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('leverage', ['fapiPrivate'], 'POST', params, { 'cost': 1 });
     }
     fapiPrivatePostListenKey(params = {}) {
-        return this.request("listenKey", "fapiPrivate", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('listenKey', ['fapiPrivate'], 'POST', params, { 'cost': 1 });
     }
     fapiPrivatePostCountdownCancelAll(params = {}) {
-        return this.request("countdownCancelAll", "fapiPrivate", 'POST', params, undefined, undefined, { "cost": 10 });
+        return this.request('countdownCancelAll', ['fapiPrivate'], 'POST', params, { 'cost': 10 });
     }
     fapiPrivatePostMultiAssetsMargin(params = {}) {
-        return this.request("multiAssetsMargin", "fapiPrivate", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('multiAssetsMargin', ['fapiPrivate'], 'POST', params, { 'cost': 1 });
     }
     fapiPrivatePostApiReferralCustomization(params = {}) {
-        return this.request("apiReferral/customization", "fapiPrivate", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('apiReferral/customization', ['fapiPrivate'], 'POST', params, { 'cost': 1 });
     }
     fapiPrivatePostApiReferralUserCustomization(params = {}) {
-        return this.request("apiReferral/userCustomization", "fapiPrivate", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('apiReferral/userCustomization', ['fapiPrivate'], 'POST', params, { 'cost': 1 });
     }
     fapiPrivatePostFeeBurn(params = {}) {
-        return this.request("feeBurn", "fapiPrivate", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('feeBurn', ['fapiPrivate'], 'POST', params, { 'cost': 1 });
     }
     fapiPrivatePostConvertGetQuote(params = {}) {
-        return this.request("convert/getQuote", "fapiPrivate", 'POST', params, undefined, undefined, { "cost": 200 });
+        return this.request('convert/getQuote', ['fapiPrivate'], 'POST', params, { 'cost': 200 });
     }
     fapiPrivatePostConvertAcceptQuote(params = {}) {
-        return this.request("convert/acceptQuote", "fapiPrivate", 'POST', params, undefined, undefined, { "cost": 20 });
+        return this.request('convert/acceptQuote', ['fapiPrivate'], 'POST', params, { 'cost': 20 });
     }
     fapiPrivatePostAlgoOrder(params = {}) {
-        return this.request("algoOrder", "fapiPrivate", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('algoOrder', ['fapiPrivate'], 'POST', params, { 'cost': 1 });
     }
     fapiPrivatePutListenKey(params = {}) {
-        return this.request("listenKey", "fapiPrivate", 'PUT', params, undefined, undefined, { "cost": 1 });
+        return this.request('listenKey', ['fapiPrivate'], 'PUT', params, { 'cost': 1 });
     }
     fapiPrivatePutOrder(params = {}) {
-        return this.request("order", "fapiPrivate", 'PUT', params, undefined, undefined, { "cost": 1 });
+        return this.request('order', ['fapiPrivate'], 'PUT', params, { 'cost': 1 });
     }
     fapiPrivatePutBatchOrders(params = {}) {
-        return this.request("batchOrders", "fapiPrivate", 'PUT', params, undefined, undefined, { "cost": 5 });
+        return this.request('batchOrders', ['fapiPrivate'], 'PUT', params, { 'cost': 5 });
     }
     fapiPrivateDeleteBatchOrders(params = {}) {
-        return this.request("batchOrders", "fapiPrivate", 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('batchOrders', ['fapiPrivate'], 'DELETE', params, { 'cost': 1 });
     }
     fapiPrivateDeleteOrder(params = {}) {
-        return this.request("order", "fapiPrivate", 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('order', ['fapiPrivate'], 'DELETE', params, { 'cost': 1 });
     }
     fapiPrivateDeleteAllOpenOrders(params = {}) {
-        return this.request("allOpenOrders", "fapiPrivate", 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('allOpenOrders', ['fapiPrivate'], 'DELETE', params, { 'cost': 1 });
     }
     fapiPrivateDeleteListenKey(params = {}) {
-        return this.request("listenKey", "fapiPrivate", 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('listenKey', ['fapiPrivate'], 'DELETE', params, { 'cost': 1 });
     }
     fapiPrivateDeleteAlgoOrder(params = {}) {
-        return this.request("algoOrder", "fapiPrivate", 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('algoOrder', ['fapiPrivate'], 'DELETE', params, { 'cost': 1 });
     }
     fapiPrivateDeleteAlgoOpenOrders(params = {}) {
-        return this.request("algoOpenOrders", "fapiPrivate", 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('algoOpenOrders', ['fapiPrivate'], 'DELETE', params, { 'cost': 1 });
     }
     fapiPublicV2GetTickerPrice(params = {}) {
-        return this.request("ticker/price", "fapiPublicV2", 'GET', params, undefined, undefined, { "cost": 0 });
+        return this.request('ticker/price', ['fapiPublicV2'], 'GET', params, { 'cost': 0 });
     }
     fapiPrivateV2GetAccount(params = {}) {
-        return this.request("account", "fapiPrivateV2", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('account', ['fapiPrivateV2'], 'GET', params, { 'cost': 1 });
     }
     fapiPrivateV2GetBalance(params = {}) {
-        return this.request("balance", "fapiPrivateV2", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('balance', ['fapiPrivateV2'], 'GET', params, { 'cost': 1 });
     }
     fapiPrivateV2GetPositionRisk(params = {}) {
-        return this.request("positionRisk", "fapiPrivateV2", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('positionRisk', ['fapiPrivateV2'], 'GET', params, { 'cost': 1 });
     }
     fapiPrivateV3GetAccount(params = {}) {
-        return this.request("account", "fapiPrivateV3", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('account', ['fapiPrivateV3'], 'GET', params, { 'cost': 1 });
     }
     fapiPrivateV3GetBalance(params = {}) {
-        return this.request("balance", "fapiPrivateV3", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('balance', ['fapiPrivateV3'], 'GET', params, { 'cost': 1 });
     }
     fapiPrivateV3GetPositionRisk(params = {}) {
-        return this.request("positionRisk", "fapiPrivateV3", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('positionRisk', ['fapiPrivateV3'], 'GET', params, { 'cost': 1 });
     }
     eapiPublicGetPing(params = {}) {
-        return this.request("ping", "eapiPublic", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('ping', ['eapiPublic'], 'GET', params, { 'cost': 1 });
     }
     eapiPublicGetTime(params = {}) {
-        return this.request("time", "eapiPublic", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('time', ['eapiPublic'], 'GET', params, { 'cost': 1 });
     }
     eapiPublicGetExchangeInfo(params = {}) {
-        return this.request("exchangeInfo", "eapiPublic", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('exchangeInfo', ['eapiPublic'], 'GET', params, { 'cost': 1 });
     }
     eapiPublicGetIndex(params = {}) {
-        return this.request("index", "eapiPublic", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('index', ['eapiPublic'], 'GET', params, { 'cost': 1 });
     }
     eapiPublicGetTicker(params = {}) {
-        return this.request("ticker", "eapiPublic", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('ticker', ['eapiPublic'], 'GET', params, { 'cost': 5 });
     }
     eapiPublicGetMark(params = {}) {
-        return this.request("mark", "eapiPublic", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('mark', ['eapiPublic'], 'GET', params, { 'cost': 5 });
     }
     eapiPublicGetDepth(params = {}) {
-        return this.request("depth", "eapiPublic", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('depth', ['eapiPublic'], 'GET', params, { 'cost': 1 });
     }
     eapiPublicGetKlines(params = {}) {
-        return this.request("klines", "eapiPublic", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('klines', ['eapiPublic'], 'GET', params, { 'cost': 1 });
     }
     eapiPublicGetTrades(params = {}) {
-        return this.request("trades", "eapiPublic", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('trades', ['eapiPublic'], 'GET', params, { 'cost': 5 });
     }
     eapiPublicGetHistoricalTrades(params = {}) {
-        return this.request("historicalTrades", "eapiPublic", 'GET', params, undefined, undefined, { "cost": 20 });
+        return this.request('historicalTrades', ['eapiPublic'], 'GET', params, { 'cost': 20 });
     }
     eapiPublicGetExerciseHistory(params = {}) {
-        return this.request("exerciseHistory", "eapiPublic", 'GET', params, undefined, undefined, { "cost": 3 });
+        return this.request('exerciseHistory', ['eapiPublic'], 'GET', params, { 'cost': 3 });
     }
     eapiPublicGetOpenInterest(params = {}) {
-        return this.request("openInterest", "eapiPublic", 'GET', params, undefined, undefined, { "cost": 3 });
+        return this.request('openInterest', ['eapiPublic'], 'GET', params, { 'cost': 3 });
     }
     eapiPrivateGetAccount(params = {}) {
-        return this.request("account", "eapiPrivate", 'GET', params, undefined, undefined, { "cost": 3 });
+        return this.request('account', ['eapiPrivate'], 'GET', params, { 'cost': 3 });
     }
     eapiPrivateGetPosition(params = {}) {
-        return this.request("position", "eapiPrivate", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('position', ['eapiPrivate'], 'GET', params, { 'cost': 5 });
     }
     eapiPrivateGetOpenOrders(params = {}) {
-        return this.request("openOrders", "eapiPrivate", 'GET', params, undefined, undefined, { "cost": 1, "noSymbol": 40 });
+        return this.request('openOrders', ['eapiPrivate'], 'GET', params, { 'cost': 1, 'noSymbol': 40 });
     }
     eapiPrivateGetHistoryOrders(params = {}) {
-        return this.request("historyOrders", "eapiPrivate", 'GET', params, undefined, undefined, { "cost": 3 });
+        return this.request('historyOrders', ['eapiPrivate'], 'GET', params, { 'cost': 3 });
     }
     eapiPrivateGetUserTrades(params = {}) {
-        return this.request("userTrades", "eapiPrivate", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('userTrades', ['eapiPrivate'], 'GET', params, { 'cost': 5 });
     }
     eapiPrivateGetExerciseRecord(params = {}) {
-        return this.request("exerciseRecord", "eapiPrivate", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('exerciseRecord', ['eapiPrivate'], 'GET', params, { 'cost': 5 });
     }
     eapiPrivateGetBill(params = {}) {
-        return this.request("bill", "eapiPrivate", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('bill', ['eapiPrivate'], 'GET', params, { 'cost': 1 });
     }
     eapiPrivateGetIncomeAsyn(params = {}) {
-        return this.request("income/asyn", "eapiPrivate", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('income/asyn', ['eapiPrivate'], 'GET', params, { 'cost': 5 });
     }
     eapiPrivateGetIncomeAsynId(params = {}) {
-        return this.request("income/asyn/id", "eapiPrivate", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('income/asyn/id', ['eapiPrivate'], 'GET', params, { 'cost': 5 });
     }
     eapiPrivateGetMarginAccount(params = {}) {
-        return this.request("marginAccount", "eapiPrivate", 'GET', params, undefined, undefined, { "cost": 3 });
+        return this.request('marginAccount', ['eapiPrivate'], 'GET', params, { 'cost': 3 });
     }
     eapiPrivateGetMmp(params = {}) {
-        return this.request("mmp", "eapiPrivate", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('mmp', ['eapiPrivate'], 'GET', params, { 'cost': 1 });
     }
     eapiPrivateGetCountdownCancelAll(params = {}) {
-        return this.request("countdownCancelAll", "eapiPrivate", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('countdownCancelAll', ['eapiPrivate'], 'GET', params, { 'cost': 1 });
     }
     eapiPrivateGetOrder(params = {}) {
-        return this.request("order", "eapiPrivate", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('order', ['eapiPrivate'], 'GET', params, { 'cost': 1 });
     }
     eapiPrivateGetBlockOrderOrders(params = {}) {
-        return this.request("block/order/orders", "eapiPrivate", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('block/order/orders', ['eapiPrivate'], 'GET', params, { 'cost': 5 });
     }
     eapiPrivateGetBlockOrderExecute(params = {}) {
-        return this.request("block/order/execute", "eapiPrivate", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('block/order/execute', ['eapiPrivate'], 'GET', params, { 'cost': 5 });
     }
     eapiPrivateGetBlockUserTrades(params = {}) {
-        return this.request("block/user-trades", "eapiPrivate", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('block/user-trades', ['eapiPrivate'], 'GET', params, { 'cost': 5 });
     }
     eapiPrivateGetBlockTrades(params = {}) {
-        return this.request("blockTrades", "eapiPrivate", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('blockTrades', ['eapiPrivate'], 'GET', params, { 'cost': 5 });
     }
     eapiPrivateGetComission(params = {}) {
-        return this.request("comission", "eapiPrivate", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('comission', ['eapiPrivate'], 'GET', params, { 'cost': 5 });
     }
     eapiPrivatePostOrder(params = {}) {
-        return this.request("order", "eapiPrivate", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order', ['eapiPrivate'], 'POST', params, { 'cost': 1 });
     }
     eapiPrivatePostBatchOrders(params = {}) {
-        return this.request("batchOrders", "eapiPrivate", 'POST', params, undefined, undefined, { "cost": 5 });
+        return this.request('batchOrders', ['eapiPrivate'], 'POST', params, { 'cost': 5 });
     }
     eapiPrivatePostListenKey(params = {}) {
-        return this.request("listenKey", "eapiPrivate", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('listenKey', ['eapiPrivate'], 'POST', params, { 'cost': 1 });
     }
     eapiPrivatePostMmpSet(params = {}) {
-        return this.request("mmpSet", "eapiPrivate", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('mmpSet', ['eapiPrivate'], 'POST', params, { 'cost': 1 });
     }
     eapiPrivatePostMmpReset(params = {}) {
-        return this.request("mmpReset", "eapiPrivate", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('mmpReset', ['eapiPrivate'], 'POST', params, { 'cost': 1 });
     }
     eapiPrivatePostCountdownCancelAll(params = {}) {
-        return this.request("countdownCancelAll", "eapiPrivate", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('countdownCancelAll', ['eapiPrivate'], 'POST', params, { 'cost': 1 });
     }
     eapiPrivatePostCountdownCancelAllHeartBeat(params = {}) {
-        return this.request("countdownCancelAllHeartBeat", "eapiPrivate", 'POST', params, undefined, undefined, { "cost": 10 });
+        return this.request('countdownCancelAllHeartBeat', ['eapiPrivate'], 'POST', params, { 'cost': 10 });
     }
     eapiPrivatePostBlockOrderCreate(params = {}) {
-        return this.request("block/order/create", "eapiPrivate", 'POST', params, undefined, undefined, { "cost": 5 });
+        return this.request('block/order/create', ['eapiPrivate'], 'POST', params, { 'cost': 5 });
     }
     eapiPrivatePostBlockOrderExecute(params = {}) {
-        return this.request("block/order/execute", "eapiPrivate", 'POST', params, undefined, undefined, { "cost": 5 });
+        return this.request('block/order/execute', ['eapiPrivate'], 'POST', params, { 'cost': 5 });
     }
     eapiPrivatePostStockContract(params = {}) {
-        return this.request("stock/contract", "eapiPrivate", 'POST', params, undefined, undefined, { "cost": 50 });
+        return this.request('stock/contract', ['eapiPrivate'], 'POST', params, { 'cost': 50 });
     }
     eapiPrivatePutListenKey(params = {}) {
-        return this.request("listenKey", "eapiPrivate", 'PUT', params, undefined, undefined, { "cost": 1 });
+        return this.request('listenKey', ['eapiPrivate'], 'PUT', params, { 'cost': 1 });
     }
     eapiPrivatePutBlockOrderCreate(params = {}) {
-        return this.request("block/order/create", "eapiPrivate", 'PUT', params, undefined, undefined, { "cost": 5 });
+        return this.request('block/order/create', ['eapiPrivate'], 'PUT', params, { 'cost': 5 });
     }
     eapiPrivateDeleteOrder(params = {}) {
-        return this.request("order", "eapiPrivate", 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('order', ['eapiPrivate'], 'DELETE', params, { 'cost': 1 });
     }
     eapiPrivateDeleteBatchOrders(params = {}) {
-        return this.request("batchOrders", "eapiPrivate", 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('batchOrders', ['eapiPrivate'], 'DELETE', params, { 'cost': 1 });
     }
     eapiPrivateDeleteAllOpenOrders(params = {}) {
-        return this.request("allOpenOrders", "eapiPrivate", 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('allOpenOrders', ['eapiPrivate'], 'DELETE', params, { 'cost': 1 });
     }
     eapiPrivateDeleteAllOpenOrdersByUnderlying(params = {}) {
-        return this.request("allOpenOrdersByUnderlying", "eapiPrivate", 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('allOpenOrdersByUnderlying', ['eapiPrivate'], 'DELETE', params, { 'cost': 1 });
     }
     eapiPrivateDeleteListenKey(params = {}) {
-        return this.request("listenKey", "eapiPrivate", 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('listenKey', ['eapiPrivate'], 'DELETE', params, { 'cost': 1 });
     }
     eapiPrivateDeleteBlockOrderCreate(params = {}) {
-        return this.request("block/order/create", "eapiPrivate", 'DELETE', params, undefined, undefined, { "cost": 5 });
+        return this.request('block/order/create', ['eapiPrivate'], 'DELETE', params, { 'cost': 5 });
     }
     publicGetPing(params = {}) {
-        return this.request("ping", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('ping', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetTime(params = {}) {
-        return this.request("time", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('time', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetDepth(params = {}) {
-        return this.request("depth", "public", 'GET', params, undefined, undefined, { "cost": 1, "byLimit": [[100, 1], [500, 5], [1000, 10], [5000, 50]] });
+        return this.request('depth', ['public'], 'GET', params, { 'cost': 1, 'byLimit': [[100, 1], [500, 5], [1000, 10], [5000, 50]] });
     }
     publicGetTrades(params = {}) {
-        return this.request("trades", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('trades', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetAggTrades(params = {}) {
-        return this.request("aggTrades", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('aggTrades', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetHistoricalTrades(params = {}) {
-        return this.request("historicalTrades", "public", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('historicalTrades', ['public'], 'GET', params, { 'cost': 5 });
     }
     publicGetKlines(params = {}) {
-        return this.request("klines", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('klines', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetUiKlines(params = {}) {
-        return this.request("uiKlines", "public", 'GET', params, undefined, undefined, { "cost": 0.4 });
+        return this.request('uiKlines', ['public'], 'GET', params, { 'cost': 0.4 });
     }
     publicGetTicker24hr(params = {}) {
-        return this.request("ticker/24hr", "public", 'GET', params, undefined, undefined, { "cost": 1, "noSymbol": 40 });
+        return this.request('ticker/24hr', ['public'], 'GET', params, { 'cost': 1, 'noSymbol': 40 });
     }
     publicGetTicker(params = {}) {
-        return this.request("ticker", "public", 'GET', params, undefined, undefined, { "cost": 2, "noSymbol": 100 });
+        return this.request('ticker', ['public'], 'GET', params, { 'cost': 2, 'noSymbol': 100 });
     }
     publicGetTickerTradingDay(params = {}) {
-        return this.request("ticker/tradingDay", "public", 'GET', params, undefined, undefined, { "cost": 4 });
+        return this.request('ticker/tradingDay', ['public'], 'GET', params, { 'cost': 4 });
     }
     publicGetTickerPrice(params = {}) {
-        return this.request("ticker/price", "public", 'GET', params, undefined, undefined, { "cost": 1, "noSymbol": 2 });
+        return this.request('ticker/price', ['public'], 'GET', params, { 'cost': 1, 'noSymbol': 2 });
     }
     publicGetTickerBookTicker(params = {}) {
-        return this.request("ticker/bookTicker", "public", 'GET', params, undefined, undefined, { "cost": 1, "noSymbol": 2 });
+        return this.request('ticker/bookTicker', ['public'], 'GET', params, { 'cost': 1, 'noSymbol': 2 });
     }
     publicGetExchangeInfo(params = {}) {
-        return this.request("exchangeInfo", "public", 'GET', params, undefined, undefined, { "cost": 10 });
+        return this.request('exchangeInfo', ['public'], 'GET', params, { 'cost': 10 });
     }
     publicGetExecutionRules(params = {}) {
-        return this.request("executionRules", "public", 'GET', params, undefined, undefined, { "cost": 0.4, "noSymbol": 8 });
+        return this.request('executionRules', ['public'], 'GET', params, { 'cost': 0.4, 'noSymbol': 8 });
     }
     publicGetAvgPrice(params = {}) {
-        return this.request("avgPrice", "public", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('avgPrice', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetReferencePrice(params = {}) {
-        return this.request("referencePrice", "public", 'GET', params, undefined, undefined, { "cost": 0.4 });
+        return this.request('referencePrice', ['public'], 'GET', params, { 'cost': 0.4 });
     }
     publicGetReferencePriceCalculation(params = {}) {
-        return this.request("referencePrice/calculation", "public", 'GET', params, undefined, undefined, { "cost": 0.4 });
+        return this.request('referencePrice/calculation', ['public'], 'GET', params, { 'cost': 0.4 });
     }
     publicGetHistoricalBlockTrades(params = {}) {
-        return this.request("historicalBlockTrades", "public", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('historicalBlockTrades', ['public'], 'GET', params, { 'cost': 5 });
     }
     publicPutUserDataStream(params = {}) {
-        return this.request("userDataStream", "public", 'PUT', params, undefined, undefined, { "cost": 0.4 });
+        return this.request('userDataStream', ['public'], 'PUT', params, { 'cost': 0.4 });
     }
     publicPostUserDataStream(params = {}) {
-        return this.request("userDataStream", "public", 'POST', params, undefined, undefined, { "cost": 0.4 });
+        return this.request('userDataStream', ['public'], 'POST', params, { 'cost': 0.4 });
     }
     publicDeleteUserDataStream(params = {}) {
-        return this.request("userDataStream", "public", 'DELETE', params, undefined, undefined, { "cost": 0.4 });
+        return this.request('userDataStream', ['public'], 'DELETE', params, { 'cost': 0.4 });
     }
     privateGetAllOrderList(params = {}) {
-        return this.request("allOrderList", "private", 'GET', params, undefined, undefined, { "cost": 10 });
+        return this.request('allOrderList', ['private'], 'GET', params, { 'cost': 10 });
     }
     privateGetOpenOrderList(params = {}) {
-        return this.request("openOrderList", "private", 'GET', params, undefined, undefined, { "cost": 3 });
+        return this.request('openOrderList', ['private'], 'GET', params, { 'cost': 3 });
     }
     privateGetOrderList(params = {}) {
-        return this.request("orderList", "private", 'GET', params, undefined, undefined, { "cost": 2 });
+        return this.request('orderList', ['private'], 'GET', params, { 'cost': 2 });
     }
     privateGetOrder(params = {}) {
-        return this.request("order", "private", 'GET', params, undefined, undefined, { "cost": 2 });
+        return this.request('order', ['private'], 'GET', params, { 'cost': 2 });
     }
     privateGetOpenOrders(params = {}) {
-        return this.request("openOrders", "private", 'GET', params, undefined, undefined, { "cost": 3, "noSymbol": 40 });
+        return this.request('openOrders', ['private'], 'GET', params, { 'cost': 3, 'noSymbol': 40 });
     }
     privateGetAllOrders(params = {}) {
-        return this.request("allOrders", "private", 'GET', params, undefined, undefined, { "cost": 10 });
+        return this.request('allOrders', ['private'], 'GET', params, { 'cost': 10 });
     }
     privateGetAccount(params = {}) {
-        return this.request("account", "private", 'GET', params, undefined, undefined, { "cost": 10 });
+        return this.request('account', ['private'], 'GET', params, { 'cost': 10 });
     }
     privateGetMyTrades(params = {}) {
-        return this.request("myTrades", "private", 'GET', params, undefined, undefined, { "cost": 10 });
+        return this.request('myTrades', ['private'], 'GET', params, { 'cost': 10 });
     }
     privateGetRateLimitOrder(params = {}) {
-        return this.request("rateLimit/order", "private", 'GET', params, undefined, undefined, { "cost": 20 });
+        return this.request('rateLimit/order', ['private'], 'GET', params, { 'cost': 20 });
     }
     privateGetMyPreventedMatches(params = {}) {
-        return this.request("myPreventedMatches", "private", 'GET', params, undefined, undefined, { "cost": 10 });
+        return this.request('myPreventedMatches', ['private'], 'GET', params, { 'cost': 10 });
     }
     privateGetMyAllocations(params = {}) {
-        return this.request("myAllocations", "private", 'GET', params, undefined, undefined, { "cost": 4 });
+        return this.request('myAllocations', ['private'], 'GET', params, { 'cost': 4 });
     }
     privateGetAccountCommission(params = {}) {
-        return this.request("account/commission", "private", 'GET', params, undefined, undefined, { "cost": 20 });
+        return this.request('account/commission', ['private'], 'GET', params, { 'cost': 20 });
     }
     privateGetMyFilters(params = {}) {
-        return this.request("myFilters", "private", 'GET', params, undefined, undefined, { "cost": 40 });
+        return this.request('myFilters', ['private'], 'GET', params, { 'cost': 40 });
     }
     privatePostOrderOco(params = {}) {
-        return this.request("order/oco", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/oco', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostOrderListOco(params = {}) {
-        return this.request("orderList/oco", "private", 'POST', params, undefined, undefined, { "cost": 0.2 });
+        return this.request('orderList/oco', ['private'], 'POST', params, { 'cost': 0.2 });
     }
     privatePostOrderListOto(params = {}) {
-        return this.request("orderList/oto", "private", 'POST', params, undefined, undefined, { "cost": 0.2 });
+        return this.request('orderList/oto', ['private'], 'POST', params, { 'cost': 0.2 });
     }
     privatePostOrderListOtoco(params = {}) {
-        return this.request("orderList/otoco", "private", 'POST', params, undefined, undefined, { "cost": 0.2 });
+        return this.request('orderList/otoco', ['private'], 'POST', params, { 'cost': 0.2 });
     }
     privatePostOrderListOpo(params = {}) {
-        return this.request("orderList/opo", "private", 'POST', params, undefined, undefined, { "cost": 0.2 });
+        return this.request('orderList/opo', ['private'], 'POST', params, { 'cost': 0.2 });
     }
     privatePostOrderListOpoco(params = {}) {
-        return this.request("orderList/opoco", "private", 'POST', params, undefined, undefined, { "cost": 0.2 });
+        return this.request('orderList/opoco', ['private'], 'POST', params, { 'cost': 0.2 });
     }
     privatePostSorOrder(params = {}) {
-        return this.request("sor/order", "private", 'POST', params, undefined, undefined, { "cost": 0.2 });
+        return this.request('sor/order', ['private'], 'POST', params, { 'cost': 0.2 });
     }
     privatePostSorOrderTest(params = {}) {
-        return this.request("sor/order/test", "private", 'POST', params, undefined, undefined, { "cost": 0.2 });
+        return this.request('sor/order/test', ['private'], 'POST', params, { 'cost': 0.2 });
     }
     privatePostOrder(params = {}) {
-        return this.request("order", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostOrderCancelReplace(params = {}) {
-        return this.request("order/cancelReplace", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/cancelReplace', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostOrderTest(params = {}) {
-        return this.request("order/test", "private", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('order/test', ['private'], 'POST', params, { 'cost': 1 });
     }
     privateDeleteOpenOrders(params = {}) {
-        return this.request("openOrders", "private", 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('openOrders', ['private'], 'DELETE', params, { 'cost': 1 });
     }
     privateDeleteOrderList(params = {}) {
-        return this.request("orderList", "private", 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('orderList', ['private'], 'DELETE', params, { 'cost': 1 });
     }
     privateDeleteOrder(params = {}) {
-        return this.request("order", "private", 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('order', ['private'], 'DELETE', params, { 'cost': 1 });
     }
     papiGetPing(params = {}) {
-        return this.request("ping", "papi", 'GET', params, undefined, undefined, { "cost": 0.2 });
+        return this.request('ping', ['papi'], 'GET', params, { 'cost': 0.2 });
     }
     papiGetUmOrder(params = {}) {
-        return this.request("um/order", "papi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('um/order', ['papi'], 'GET', params, { 'cost': 1 });
     }
     papiGetUmOpenOrder(params = {}) {
-        return this.request("um/openOrder", "papi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('um/openOrder', ['papi'], 'GET', params, { 'cost': 1 });
     }
     papiGetUmOpenOrders(params = {}) {
-        return this.request("um/openOrders", "papi", 'GET', params, undefined, undefined, { "cost": 1, "noSymbol": 40 });
+        return this.request('um/openOrders', ['papi'], 'GET', params, { 'cost': 1, 'noSymbol': 40 });
     }
     papiGetUmAllOrders(params = {}) {
-        return this.request("um/allOrders", "papi", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('um/allOrders', ['papi'], 'GET', params, { 'cost': 5 });
     }
     papiGetCmOrder(params = {}) {
-        return this.request("cm/order", "papi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('cm/order', ['papi'], 'GET', params, { 'cost': 1 });
     }
     papiGetCmOpenOrder(params = {}) {
-        return this.request("cm/openOrder", "papi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('cm/openOrder', ['papi'], 'GET', params, { 'cost': 1 });
     }
     papiGetCmOpenOrders(params = {}) {
-        return this.request("cm/openOrders", "papi", 'GET', params, undefined, undefined, { "cost": 1, "noSymbol": 40 });
+        return this.request('cm/openOrders', ['papi'], 'GET', params, { 'cost': 1, 'noSymbol': 40 });
     }
     papiGetCmAllOrders(params = {}) {
-        return this.request("cm/allOrders", "papi", 'GET', params, undefined, undefined, { "cost": 20 });
+        return this.request('cm/allOrders', ['papi'], 'GET', params, { 'cost': 20 });
     }
     papiGetUmConditionalOpenOrder(params = {}) {
-        return this.request("um/conditional/openOrder", "papi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('um/conditional/openOrder', ['papi'], 'GET', params, { 'cost': 1 });
     }
     papiGetUmConditionalOpenOrders(params = {}) {
-        return this.request("um/conditional/openOrders", "papi", 'GET', params, undefined, undefined, { "cost": 1, "noSymbol": 40 });
+        return this.request('um/conditional/openOrders', ['papi'], 'GET', params, { 'cost': 1, 'noSymbol': 40 });
     }
     papiGetUmConditionalOrderHistory(params = {}) {
-        return this.request("um/conditional/orderHistory", "papi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('um/conditional/orderHistory', ['papi'], 'GET', params, { 'cost': 1 });
     }
     papiGetUmConditionalAllOrders(params = {}) {
-        return this.request("um/conditional/allOrders", "papi", 'GET', params, undefined, undefined, { "cost": 1, "noSymbol": 40 });
+        return this.request('um/conditional/allOrders', ['papi'], 'GET', params, { 'cost': 1, 'noSymbol': 40 });
     }
     papiGetUmAlgoAlgoOrder(params = {}) {
-        return this.request("um/algo/algoOrder", "papi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('um/algo/algoOrder', ['papi'], 'GET', params, { 'cost': 1 });
     }
     papiGetUmAlgoOpenAlgoOrders(params = {}) {
-        return this.request("um/algo/openAlgoOrders", "papi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('um/algo/openAlgoOrders', ['papi'], 'GET', params, { 'cost': 1 });
     }
     papiGetUmAlgoAllAlgoOrders(params = {}) {
-        return this.request("um/algo/allAlgoOrders", "papi", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('um/algo/allAlgoOrders', ['papi'], 'GET', params, { 'cost': 5 });
     }
     papiGetCmConditionalOpenOrder(params = {}) {
-        return this.request("cm/conditional/openOrder", "papi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('cm/conditional/openOrder', ['papi'], 'GET', params, { 'cost': 1 });
     }
     papiGetCmConditionalOpenOrders(params = {}) {
-        return this.request("cm/conditional/openOrders", "papi", 'GET', params, undefined, undefined, { "cost": 1, "noSymbol": 40 });
+        return this.request('cm/conditional/openOrders', ['papi'], 'GET', params, { 'cost': 1, 'noSymbol': 40 });
     }
     papiGetCmConditionalOrderHistory(params = {}) {
-        return this.request("cm/conditional/orderHistory", "papi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('cm/conditional/orderHistory', ['papi'], 'GET', params, { 'cost': 1 });
     }
     papiGetCmConditionalAllOrders(params = {}) {
-        return this.request("cm/conditional/allOrders", "papi", 'GET', params, undefined, undefined, { "cost": 40 });
+        return this.request('cm/conditional/allOrders', ['papi'], 'GET', params, { 'cost': 40 });
     }
     papiGetMarginOrder(params = {}) {
-        return this.request("margin/order", "papi", 'GET', params, undefined, undefined, { "cost": 10 });
+        return this.request('margin/order', ['papi'], 'GET', params, { 'cost': 10 });
     }
     papiGetMarginOpenOrders(params = {}) {
-        return this.request("margin/openOrders", "papi", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('margin/openOrders', ['papi'], 'GET', params, { 'cost': 5 });
     }
     papiGetMarginAllOrders(params = {}) {
-        return this.request("margin/allOrders", "papi", 'GET', params, undefined, undefined, { "cost": 100 });
+        return this.request('margin/allOrders', ['papi'], 'GET', params, { 'cost': 100 });
     }
     papiGetMarginOrderList(params = {}) {
-        return this.request("margin/orderList", "papi", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('margin/orderList', ['papi'], 'GET', params, { 'cost': 5 });
     }
     papiGetMarginAllOrderList(params = {}) {
-        return this.request("margin/allOrderList", "papi", 'GET', params, undefined, undefined, { "cost": 100 });
+        return this.request('margin/allOrderList', ['papi'], 'GET', params, { 'cost': 100 });
     }
     papiGetMarginOpenOrderList(params = {}) {
-        return this.request("margin/openOrderList", "papi", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('margin/openOrderList', ['papi'], 'GET', params, { 'cost': 5 });
     }
     papiGetMarginMyTrades(params = {}) {
-        return this.request("margin/myTrades", "papi", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('margin/myTrades', ['papi'], 'GET', params, { 'cost': 5 });
     }
     papiGetBalance(params = {}) {
-        return this.request("balance", "papi", 'GET', params, undefined, undefined, { "cost": 4 });
+        return this.request('balance', ['papi'], 'GET', params, { 'cost': 4 });
     }
     papiGetAccount(params = {}) {
-        return this.request("account", "papi", 'GET', params, undefined, undefined, { "cost": 4 });
+        return this.request('account', ['papi'], 'GET', params, { 'cost': 4 });
     }
     papiGetMarginMaxBorrowable(params = {}) {
-        return this.request("margin/maxBorrowable", "papi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('margin/maxBorrowable', ['papi'], 'GET', params, { 'cost': 1 });
     }
     papiGetMarginMaxWithdraw(params = {}) {
-        return this.request("margin/maxWithdraw", "papi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('margin/maxWithdraw', ['papi'], 'GET', params, { 'cost': 1 });
     }
     papiGetUmPositionRisk(params = {}) {
-        return this.request("um/positionRisk", "papi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('um/positionRisk', ['papi'], 'GET', params, { 'cost': 1 });
     }
     papiGetCmPositionRisk(params = {}) {
-        return this.request("cm/positionRisk", "papi", 'GET', params, undefined, undefined, { "cost": 0.2 });
+        return this.request('cm/positionRisk', ['papi'], 'GET', params, { 'cost': 0.2 });
     }
     papiGetUmPositionSideDual(params = {}) {
-        return this.request("um/positionSide/dual", "papi", 'GET', params, undefined, undefined, { "cost": 6 });
+        return this.request('um/positionSide/dual', ['papi'], 'GET', params, { 'cost': 6 });
     }
     papiGetCmPositionSideDual(params = {}) {
-        return this.request("cm/positionSide/dual", "papi", 'GET', params, undefined, undefined, { "cost": 6 });
+        return this.request('cm/positionSide/dual', ['papi'], 'GET', params, { 'cost': 6 });
     }
     papiGetUmUserTrades(params = {}) {
-        return this.request("um/userTrades", "papi", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('um/userTrades', ['papi'], 'GET', params, { 'cost': 5 });
     }
     papiGetCmUserTrades(params = {}) {
-        return this.request("cm/userTrades", "papi", 'GET', params, undefined, undefined, { "cost": 20 });
+        return this.request('cm/userTrades', ['papi'], 'GET', params, { 'cost': 20 });
     }
     papiGetUmLeverageBracket(params = {}) {
-        return this.request("um/leverageBracket", "papi", 'GET', params, undefined, undefined, { "cost": 0.2 });
+        return this.request('um/leverageBracket', ['papi'], 'GET', params, { 'cost': 0.2 });
     }
     papiGetCmLeverageBracket(params = {}) {
-        return this.request("cm/leverageBracket", "papi", 'GET', params, undefined, undefined, { "cost": 0.2 });
+        return this.request('cm/leverageBracket', ['papi'], 'GET', params, { 'cost': 0.2 });
     }
     papiGetMarginForceOrders(params = {}) {
-        return this.request("margin/forceOrders", "papi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('margin/forceOrders', ['papi'], 'GET', params, { 'cost': 1 });
     }
     papiGetUmForceOrders(params = {}) {
-        return this.request("um/forceOrders", "papi", 'GET', params, undefined, undefined, { "cost": 20, "noSymbol": 50 });
+        return this.request('um/forceOrders', ['papi'], 'GET', params, { 'cost': 20, 'noSymbol': 50 });
     }
     papiGetCmForceOrders(params = {}) {
-        return this.request("cm/forceOrders", "papi", 'GET', params, undefined, undefined, { "cost": 20, "noSymbol": 50 });
+        return this.request('cm/forceOrders', ['papi'], 'GET', params, { 'cost': 20, 'noSymbol': 50 });
     }
     papiGetUmApiTradingStatus(params = {}) {
-        return this.request("um/apiTradingStatus", "papi", 'GET', params, undefined, undefined, { "cost": 0.2, "noSymbol": 2 });
+        return this.request('um/apiTradingStatus', ['papi'], 'GET', params, { 'cost': 0.2, 'noSymbol': 2 });
     }
     papiGetUmCommissionRate(params = {}) {
-        return this.request("um/commissionRate", "papi", 'GET', params, undefined, undefined, { "cost": 4 });
+        return this.request('um/commissionRate', ['papi'], 'GET', params, { 'cost': 4 });
     }
     papiGetCmCommissionRate(params = {}) {
-        return this.request("cm/commissionRate", "papi", 'GET', params, undefined, undefined, { "cost": 4 });
+        return this.request('cm/commissionRate', ['papi'], 'GET', params, { 'cost': 4 });
     }
     papiGetMarginMarginLoan(params = {}) {
-        return this.request("margin/marginLoan", "papi", 'GET', params, undefined, undefined, { "cost": 2 });
+        return this.request('margin/marginLoan', ['papi'], 'GET', params, { 'cost': 2 });
     }
     papiGetMarginRepayLoan(params = {}) {
-        return this.request("margin/repayLoan", "papi", 'GET', params, undefined, undefined, { "cost": 2 });
+        return this.request('margin/repayLoan', ['papi'], 'GET', params, { 'cost': 2 });
     }
     papiGetMarginMarginInterestHistory(params = {}) {
-        return this.request("margin/marginInterestHistory", "papi", 'GET', params, undefined, undefined, { "cost": 0.2 });
+        return this.request('margin/marginInterestHistory', ['papi'], 'GET', params, { 'cost': 0.2 });
     }
     papiGetPortfolioInterestHistory(params = {}) {
-        return this.request("portfolio/interest-history", "papi", 'GET', params, undefined, undefined, { "cost": 10 });
+        return this.request('portfolio/interest-history', ['papi'], 'GET', params, { 'cost': 10 });
     }
     papiGetUmIncome(params = {}) {
-        return this.request("um/income", "papi", 'GET', params, undefined, undefined, { "cost": 6 });
+        return this.request('um/income', ['papi'], 'GET', params, { 'cost': 6 });
     }
     papiGetCmIncome(params = {}) {
-        return this.request("cm/income", "papi", 'GET', params, undefined, undefined, { "cost": 6 });
+        return this.request('cm/income', ['papi'], 'GET', params, { 'cost': 6 });
     }
     papiGetUmAccount(params = {}) {
-        return this.request("um/account", "papi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('um/account', ['papi'], 'GET', params, { 'cost': 1 });
     }
     papiGetCmAccount(params = {}) {
-        return this.request("cm/account", "papi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('cm/account', ['papi'], 'GET', params, { 'cost': 1 });
     }
     papiGetRepayFuturesSwitch(params = {}) {
-        return this.request("repay-futures-switch", "papi", 'GET', params, undefined, undefined, { "cost": 6 });
+        return this.request('repay-futures-switch', ['papi'], 'GET', params, { 'cost': 6 });
     }
     papiGetUmAdlQuantile(params = {}) {
-        return this.request("um/adlQuantile", "papi", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('um/adlQuantile', ['papi'], 'GET', params, { 'cost': 5 });
     }
     papiGetCmAdlQuantile(params = {}) {
-        return this.request("cm/adlQuantile", "papi", 'GET', params, undefined, undefined, { "cost": 5 });
+        return this.request('cm/adlQuantile', ['papi'], 'GET', params, { 'cost': 5 });
     }
     papiGetUmTradeAsyn(params = {}) {
-        return this.request("um/trade/asyn", "papi", 'GET', params, undefined, undefined, { "cost": 300 });
+        return this.request('um/trade/asyn', ['papi'], 'GET', params, { 'cost': 300 });
     }
     papiGetUmTradeAsynId(params = {}) {
-        return this.request("um/trade/asyn/id", "papi", 'GET', params, undefined, undefined, { "cost": 2 });
+        return this.request('um/trade/asyn/id', ['papi'], 'GET', params, { 'cost': 2 });
     }
     papiGetUmOrderAsyn(params = {}) {
-        return this.request("um/order/asyn", "papi", 'GET', params, undefined, undefined, { "cost": 300 });
+        return this.request('um/order/asyn', ['papi'], 'GET', params, { 'cost': 300 });
     }
     papiGetUmOrderAsynId(params = {}) {
-        return this.request("um/order/asyn/id", "papi", 'GET', params, undefined, undefined, { "cost": 2 });
+        return this.request('um/order/asyn/id', ['papi'], 'GET', params, { 'cost': 2 });
     }
     papiGetUmIncomeAsyn(params = {}) {
-        return this.request("um/income/asyn", "papi", 'GET', params, undefined, undefined, { "cost": 300 });
+        return this.request('um/income/asyn', ['papi'], 'GET', params, { 'cost': 300 });
     }
     papiGetUmIncomeAsynId(params = {}) {
-        return this.request("um/income/asyn/id", "papi", 'GET', params, undefined, undefined, { "cost": 2 });
+        return this.request('um/income/asyn/id', ['papi'], 'GET', params, { 'cost': 2 });
     }
     papiGetUmOrderAmendment(params = {}) {
-        return this.request("um/orderAmendment", "papi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('um/orderAmendment', ['papi'], 'GET', params, { 'cost': 1 });
     }
     papiGetCmOrderAmendment(params = {}) {
-        return this.request("cm/orderAmendment", "papi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('cm/orderAmendment', ['papi'], 'GET', params, { 'cost': 1 });
     }
     papiGetUmFeeBurn(params = {}) {
-        return this.request("um/feeBurn", "papi", 'GET', params, undefined, undefined, { "cost": 30 });
+        return this.request('um/feeBurn', ['papi'], 'GET', params, { 'cost': 30 });
     }
     papiGetUmAccountConfig(params = {}) {
-        return this.request("um/accountConfig", "papi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('um/accountConfig', ['papi'], 'GET', params, { 'cost': 1 });
     }
     papiGetUmSymbolConfig(params = {}) {
-        return this.request("um/symbolConfig", "papi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('um/symbolConfig', ['papi'], 'GET', params, { 'cost': 1 });
     }
     papiGetCmAccountConfig(params = {}) {
-        return this.request("cm/accountConfig", "papi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('cm/accountConfig', ['papi'], 'GET', params, { 'cost': 1 });
     }
     papiGetCmSymbolConfig(params = {}) {
-        return this.request("cm/symbolConfig", "papi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('cm/symbolConfig', ['papi'], 'GET', params, { 'cost': 1 });
     }
     papiGetRateLimitOrder(params = {}) {
-        return this.request("rateLimit/order", "papi", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('rateLimit/order', ['papi'], 'GET', params, { 'cost': 1 });
     }
     papiPostUmOrder(params = {}) {
-        return this.request("um/order", "papi", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('um/order', ['papi'], 'POST', params, { 'cost': 1 });
     }
     papiPostUmConditionalOrder(params = {}) {
-        return this.request("um/conditional/order", "papi", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('um/conditional/order', ['papi'], 'POST', params, { 'cost': 1 });
     }
     papiPostUmAlgoOrder(params = {}) {
-        return this.request("um/algo/order", "papi", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('um/algo/order', ['papi'], 'POST', params, { 'cost': 1 });
     }
     papiPostCmOrder(params = {}) {
-        return this.request("cm/order", "papi", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('cm/order', ['papi'], 'POST', params, { 'cost': 1 });
     }
     papiPostCmConditionalOrder(params = {}) {
-        return this.request("cm/conditional/order", "papi", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('cm/conditional/order', ['papi'], 'POST', params, { 'cost': 1 });
     }
     papiPostMarginOrder(params = {}) {
-        return this.request("margin/order", "papi", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('margin/order', ['papi'], 'POST', params, { 'cost': 1 });
     }
     papiPostMarginLoan(params = {}) {
-        return this.request("marginLoan", "papi", 'POST', params, undefined, undefined, { "cost": 100 });
+        return this.request('marginLoan', ['papi'], 'POST', params, { 'cost': 100 });
     }
     papiPostRepayLoan(params = {}) {
-        return this.request("repayLoan", "papi", 'POST', params, undefined, undefined, { "cost": 100 });
+        return this.request('repayLoan', ['papi'], 'POST', params, { 'cost': 100 });
     }
     papiPostMarginOrderOco(params = {}) {
-        return this.request("margin/order/oco", "papi", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('margin/order/oco', ['papi'], 'POST', params, { 'cost': 1 });
     }
     papiPostUmLeverage(params = {}) {
-        return this.request("um/leverage", "papi", 'POST', params, undefined, undefined, { "cost": 0.2 });
+        return this.request('um/leverage', ['papi'], 'POST', params, { 'cost': 0.2 });
     }
     papiPostCmLeverage(params = {}) {
-        return this.request("cm/leverage", "papi", 'POST', params, undefined, undefined, { "cost": 0.2 });
+        return this.request('cm/leverage', ['papi'], 'POST', params, { 'cost': 0.2 });
     }
     papiPostUmPositionSideDual(params = {}) {
-        return this.request("um/positionSide/dual", "papi", 'POST', params, undefined, undefined, { "cost": 0.2 });
+        return this.request('um/positionSide/dual', ['papi'], 'POST', params, { 'cost': 0.2 });
     }
     papiPostCmPositionSideDual(params = {}) {
-        return this.request("cm/positionSide/dual", "papi", 'POST', params, undefined, undefined, { "cost": 0.2 });
+        return this.request('cm/positionSide/dual', ['papi'], 'POST', params, { 'cost': 0.2 });
     }
     papiPostAutoCollection(params = {}) {
-        return this.request("auto-collection", "papi", 'POST', params, undefined, undefined, { "cost": 150 });
+        return this.request('auto-collection', ['papi'], 'POST', params, { 'cost': 150 });
     }
     papiPostBnbTransfer(params = {}) {
-        return this.request("bnb-transfer", "papi", 'POST', params, undefined, undefined, { "cost": 150 });
+        return this.request('bnb-transfer', ['papi'], 'POST', params, { 'cost': 150 });
     }
     papiPostRepayFuturesSwitch(params = {}) {
-        return this.request("repay-futures-switch", "papi", 'POST', params, undefined, undefined, { "cost": 150 });
+        return this.request('repay-futures-switch', ['papi'], 'POST', params, { 'cost': 150 });
     }
     papiPostRepayFuturesNegativeBalance(params = {}) {
-        return this.request("repay-futures-negative-balance", "papi", 'POST', params, undefined, undefined, { "cost": 150 });
+        return this.request('repay-futures-negative-balance', ['papi'], 'POST', params, { 'cost': 150 });
     }
     papiPostListenKey(params = {}) {
-        return this.request("listenKey", "papi", 'POST', params, undefined, undefined, { "cost": 0.2 });
+        return this.request('listenKey', ['papi'], 'POST', params, { 'cost': 0.2 });
     }
     papiPostAssetCollection(params = {}) {
-        return this.request("asset-collection", "papi", 'POST', params, undefined, undefined, { "cost": 6 });
+        return this.request('asset-collection', ['papi'], 'POST', params, { 'cost': 6 });
     }
     papiPostMarginRepayDebt(params = {}) {
-        return this.request("margin/repay-debt", "papi", 'POST', params, undefined, undefined, { "cost": 3000 });
+        return this.request('margin/repay-debt', ['papi'], 'POST', params, { 'cost': 3000 });
     }
     papiPostUmFeeBurn(params = {}) {
-        return this.request("um/feeBurn", "papi", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('um/feeBurn', ['papi'], 'POST', params, { 'cost': 1 });
     }
     papiPostUmStockContract(params = {}) {
-        return this.request("um/stock/contract", "papi", 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('um/stock/contract', ['papi'], 'POST', params, { 'cost': 1 });
     }
     papiPutListenKey(params = {}) {
-        return this.request("listenKey", "papi", 'PUT', params, undefined, undefined, { "cost": 0.2 });
+        return this.request('listenKey', ['papi'], 'PUT', params, { 'cost': 0.2 });
     }
     papiPutUmOrder(params = {}) {
-        return this.request("um/order", "papi", 'PUT', params, undefined, undefined, { "cost": 1 });
+        return this.request('um/order', ['papi'], 'PUT', params, { 'cost': 1 });
     }
     papiPutCmOrder(params = {}) {
-        return this.request("cm/order", "papi", 'PUT', params, undefined, undefined, { "cost": 1 });
+        return this.request('cm/order', ['papi'], 'PUT', params, { 'cost': 1 });
     }
     papiDeleteUmOrder(params = {}) {
-        return this.request("um/order", "papi", 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('um/order', ['papi'], 'DELETE', params, { 'cost': 1 });
     }
     papiDeleteUmConditionalOrder(params = {}) {
-        return this.request("um/conditional/order", "papi", 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('um/conditional/order', ['papi'], 'DELETE', params, { 'cost': 1 });
     }
     papiDeleteUmAllOpenOrders(params = {}) {
-        return this.request("um/allOpenOrders", "papi", 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('um/allOpenOrders', ['papi'], 'DELETE', params, { 'cost': 1 });
     }
     papiDeleteUmConditionalAllOpenOrders(params = {}) {
-        return this.request("um/conditional/allOpenOrders", "papi", 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('um/conditional/allOpenOrders', ['papi'], 'DELETE', params, { 'cost': 1 });
     }
     papiDeleteUmAlgoOrder(params = {}) {
-        return this.request("um/algo/order", "papi", 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('um/algo/order', ['papi'], 'DELETE', params, { 'cost': 1 });
     }
     papiDeleteUmAlgoAllOpenOrders(params = {}) {
-        return this.request("um/algo/allOpenOrders", "papi", 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('um/algo/allOpenOrders', ['papi'], 'DELETE', params, { 'cost': 1 });
     }
     papiDeleteCmOrder(params = {}) {
-        return this.request("cm/order", "papi", 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('cm/order', ['papi'], 'DELETE', params, { 'cost': 1 });
     }
     papiDeleteCmConditionalOrder(params = {}) {
-        return this.request("cm/conditional/order", "papi", 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('cm/conditional/order', ['papi'], 'DELETE', params, { 'cost': 1 });
     }
     papiDeleteCmAllOpenOrders(params = {}) {
-        return this.request("cm/allOpenOrders", "papi", 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('cm/allOpenOrders', ['papi'], 'DELETE', params, { 'cost': 1 });
     }
     papiDeleteCmConditionalAllOpenOrders(params = {}) {
-        return this.request("cm/conditional/allOpenOrders", "papi", 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('cm/conditional/allOpenOrders', ['papi'], 'DELETE', params, { 'cost': 1 });
     }
     papiDeleteMarginOrder(params = {}) {
-        return this.request("margin/order", "papi", 'DELETE', params, undefined, undefined, { "cost": 2 });
+        return this.request('margin/order', ['papi'], 'DELETE', params, { 'cost': 2 });
     }
     papiDeleteMarginAllOpenOrders(params = {}) {
-        return this.request("margin/allOpenOrders", "papi", 'DELETE', params, undefined, undefined, { "cost": 5 });
+        return this.request('margin/allOpenOrders', ['papi'], 'DELETE', params, { 'cost': 5 });
     }
     papiDeleteMarginOrderList(params = {}) {
-        return this.request("margin/orderList", "papi", 'DELETE', params, undefined, undefined, { "cost": 2 });
+        return this.request('margin/orderList', ['papi'], 'DELETE', params, { 'cost': 2 });
     }
     papiDeleteListenKey(params = {}) {
-        return this.request("listenKey", "papi", 'DELETE', params, undefined, undefined, { "cost": 0.2 });
+        return this.request('listenKey', ['papi'], 'DELETE', params, { 'cost': 0.2 });
     }
     papiV2GetUmAccount(params = {}) {
-        return this.request("um/account", "papiV2", 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('um/account', ['papiV2'], 'GET', params, { 'cost': 1 });
     }
 }
 

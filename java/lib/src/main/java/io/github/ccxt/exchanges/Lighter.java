@@ -4157,10 +4157,11 @@ public class Lighter extends LighterApi
         }};
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, Object body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Object url = null;
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "root"))
+        if (java.util.Objects.equals(apiName, "root"))
         {
             String baseApiUrl = this.safeString(this.urls.get("api"), "public");
             if (java.util.Objects.equals(baseApiUrl, null))
@@ -4170,7 +4171,7 @@ public class Lighter extends LighterApi
             url = this.implodeHostname(baseApiUrl);
         } else
         {
-            String baseApiUrl2 = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+            String baseApiUrl2 = this.safeString(this.urls.get("api"), apiName);
             if (java.util.Objects.equals(baseApiUrl2, null))
             {
                 throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -4178,7 +4179,7 @@ public class Lighter extends LighterApi
             url = ((((this.implodeHostname(baseApiUrl2) + "/api/") + this.version) + "/") + path);
         }
         Map<String, Object> authHeaders = null;
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        if (java.util.Objects.equals(apiName, "private"))
         {
             authHeaders = new HashMap<String, Object>() {{
                 put( "Authorization", Lighter.this.createAuth(Helpers.toMapArg(parameters)) );
@@ -4202,13 +4203,13 @@ public class Lighter extends LighterApi
             }
             url = (url + ("?" + this.rawencode(parameters)));
         }
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        if (java.util.Objects.equals(apiName, "private"))
         {
             {
                 HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
                 h2kMap4.put("url", url);
                 h2kMap4.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-                h2kMap4.put("body", body);
+                h2kMap4.put("body", null);
                 h2kMap4.put("headers", authHeaders);
                 return h2kMap4;
             }
@@ -4217,14 +4218,10 @@ public class Lighter extends LighterApi
             HashMap<String, Object> h2kMap5 = new HashMap<String, Object>();
             h2kMap5.put("url", url);
             h2kMap5.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap5.put("body", body);
-            h2kMap5.put("headers", headers);
+            h2kMap5.put("body", null);
+            h2kMap5.put("headers", null);
             return h2kMap5;
         }
-    }
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
-    {
-        return this.sign(path, api, method, parameters, headers, (Object) (body));
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

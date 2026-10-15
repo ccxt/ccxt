@@ -489,11 +489,8 @@ impl BitoproCore {
         m.insert("networks".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("ERC20".to_string(), Value::Str("ERC20".into()));
-        m.insert("ETH".to_string(), Value::Str("ERC20".into()));
-        m.insert("TRX".to_string(), Value::Str("TRX".into()));
         m.insert("TRC20".to_string(), Value::Str("TRX".into()));
         m.insert("BEP20".to_string(), Value::Str("BSC".into()));
-        m.insert("BSC".to_string(), Value::Str("BSC".into()));
     m
 }));
         m.insert("fetchCurrencies".to_string(), Value::Map({
@@ -2197,7 +2194,7 @@ impl BitoproCore {
     m
 })]);
             let mut requestedNetwork: Value = self.safe_string_upper_k(paramsWithdrawTag, "network", &[]);
-            let mut networkId: Value = (if (requestedNetwork == Value::Null) { Value::Null } else { self.safe_string(networks, requestedNetwork.clone(), &[]) });
+            let mut networkId: Value = (if (requestedNetwork == Value::Null) { Value::Null } else { self.safe_string(networks, self.safe_string(self.networkAliases.clone(), requestedNetwork.clone(), &[requestedNetwork.clone()]), &[]) });
             if (networkId == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" invalid network ".into())).into()), requestedNetwork)));
             }
@@ -2286,35 +2283,36 @@ impl BitoproCore {
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
+        let __api_empty = Vec::new();
+        let api = api.as_array().unwrap_or(&__api_empty);
+        let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
         let mut url: Value = Value::Str(format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone())).into());
         let mut query: Value = self.omit(params.clone(), self.extract_params(path), &[]);
-        let mut requestHeaders: Value = (if (headers == Value::Null) { Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) } else { headers });
-        let mut isSignedBody: bool = (api.as_str() == Some("private")) && ((method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")));
+        let mut requestHeaders: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
+        let mut isSignedBody: bool = (apiName.as_str() == Some("private")) && ((method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")));
         let mut signedBody: Value = json_stringify(&params);
-        let mut requestBody: Value = body;
+        let mut requestBody: Value = Value::Null;
         if isSignedBody {
             requestBody = signedBody.clone();
         }
-        add_element_to_object(&mut requestHeaders, &Value::Str("X-BITOPRO-API".into()), Value::Str("ccxt".into()));
-        if (api.as_str() == Some("private")) {
+        if let Value::Dict(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("X-BITOPRO-API".into(), Value::Str("ccxt".into())); }
+        if (apiName.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             if (method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")) {
                 let mut payload: Value = self.string_to_base64(signedBody, &[]);
                 let mut signature: Value = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]);
-                add_element_to_object(&mut requestHeaders, &Value::Str("X-BITOPRO-APIKEY".into()), self.apiKey.clone());
-                add_element_to_object(&mut requestHeaders, &Value::Str("X-BITOPRO-PAYLOAD".into()), payload.clone());
-                add_element_to_object(&mut requestHeaders, &Value::Str("X-BITOPRO-SIGNATURE".into()), signature.clone());
+                if let Value::Dict(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("X-BITOPRO-APIKEY".into(), self.apiKey.clone()); }
+                if let Value::Dict(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("X-BITOPRO-PAYLOAD".into(), payload.clone()); }
+                if let Value::Dict(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("X-BITOPRO-SIGNATURE".into(), signature.clone()); }
             }  else if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
                 if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
                     url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
@@ -2328,11 +2326,11 @@ impl BitoproCore {
                 let mut data: Value = json_stringify(&rawData);
                 let mut payload: Value = self.string_to_base64(data, &[]);
                 let mut signature: Value = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]);
-                add_element_to_object(&mut requestHeaders, &Value::Str("X-BITOPRO-APIKEY".into()), self.apiKey.clone());
-                add_element_to_object(&mut requestHeaders, &Value::Str("X-BITOPRO-PAYLOAD".into()), payload);
-                add_element_to_object(&mut requestHeaders, &Value::Str("X-BITOPRO-SIGNATURE".into()), signature);
+                if let Value::Dict(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("X-BITOPRO-APIKEY".into(), self.apiKey.clone()); }
+                if let Value::Dict(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("X-BITOPRO-PAYLOAD".into(), payload); }
+                if let Value::Dict(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("X-BITOPRO-SIGNATURE".into(), signature); }
             }
-        }  else if (api.as_str() == Some("public")) && (method.as_str() == Some("GET")) {
+        }  else if (apiName.as_str() == Some("public")) && (method.as_str() == Some("GET")) {
             if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
             }

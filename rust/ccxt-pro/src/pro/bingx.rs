@@ -1602,10 +1602,7 @@ impl BingxCore {
         }
         let mut uuid: Value = self.uuid(&[]);
         let mut baseUrl: Value = Value::Null;
-        let mut request: Value = Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        });
+        let mut request: Value = Value::Null;
         if (type_var.as_str() == Some("swap")) {
             if (subType.as_str() == Some("inverse")) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchMyTrades is not supported for inverse swap markets yet".into()))));

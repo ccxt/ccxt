@@ -4529,20 +4529,21 @@ public partial class deribit : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string request = (((((("/" + "api/") + this.version) + "/") + (api)) + "/") + path);
-        if ((api is "public"))
+        object apiName = getValue(api, 0);
+        string request = (((((("/" + "api/") + this.version) + "/") + (apiName)) + "/") + path);
+        if ((apiName is "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
                 request = request + ("?" + this.urlencode(parameters));
             }
         }
-        if ((api is "private"))
+        if ((apiName is "private"))
         {
             this.checkRequiredCredentials();
             string nonce = this.nonce().ToString();
@@ -4567,7 +4568,7 @@ public partial class deribit : Exchange
             return new Dictionary<string, object>() {
                 { "url", signedUrl },
                 { "method", method },
-                { "body", body },
+                { "body", null },
                 { "headers", signedHeaders },
             };
         }
@@ -4580,8 +4581,8 @@ public partial class deribit : Exchange
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", null },
+            { "headers", null },
         };
     }
 

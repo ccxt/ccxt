@@ -2630,13 +2630,17 @@ public partial class cryptocom : Exchange
     public async override Task<ccxt.DepositAddress> FetchDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string? network = this.safeStringUpper(parameters, "network");
+        string? networkParam = this.safeStringUpper(parameters, "network");
         object paramsOmitted = this.omit(parameters, new List<object>() {"network"});
         Dictionary<string, object> depositAddressesRaw = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(code, paramsOmitted));
         Dictionary<string, object> depositAddresses = depositAddressesRaw;
-        if (((network != null) && depositAddresses.ContainsKey(network)))
+        if ((networkParam != null))
         {
-            return ccxt.BaseExchange.ToDepositAddress((depositAddresses != null && network != null && depositAddresses.ContainsKey(network) ? depositAddresses[network] : null));
+            string? network = this.safeString(this.networkAliases, networkParam, networkParam);
+            if (((network != null) && depositAddresses.ContainsKey(network)))
+            {
+                return ccxt.BaseExchange.ToDepositAddress((depositAddresses != null && network != null && depositAddresses.ContainsKey(network) ? depositAddresses[network] : null));
+            }
         }
         List<object> keys = new List<object>(depositAddresses.Keys);
         return ccxt.BaseExchange.ToDepositAddress(getValue(depositAddresses, (keys != null && 0 < keys.Count ? keys[0] : null)));
@@ -4223,13 +4227,13 @@ public partial class cryptocom : Exchange
         };
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object requestHeaders = headers;
-        object requestBody = body;
+        Dictionary<string, object> requestHeaders = null;
+        string? requestBody = null;
         string? type = this.safeString(api, 0);
         string? access = this.safeString(api, 1);
         string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), type);
@@ -4272,7 +4276,7 @@ public partial class cryptocom : Exchange
             {
                 string paramsString = "{}";
                 string arrayString = "[]";
-                requestBody = ((string)requestBody).Replace(arrayString, (string)paramsString);
+                requestBody = requestBody.Replace(arrayString, (string)paramsString);
             }
             requestHeaders = new Dictionary<string, object>() {
                 { "Content-Type", "application/json" },

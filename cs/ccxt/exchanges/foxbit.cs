@@ -245,7 +245,7 @@ public partial class foxbit : Exchange
                     { "cardano", "ADA" },
                     { "cosmos", "ATOM" },
                     { "dogecoin", "DOGE" },
-                    { "erc20", "ETH" },
+                    { "erc20", "ERC20" },
                     { "hedera", "HBAR" },
                     { "litecoin", "LTC" },
                     { "near", "NEAR" },
@@ -269,7 +269,7 @@ public partial class foxbit : Exchange
                     { "ADA", "cardano" },
                     { "ATOM", "cosmos" },
                     { "DOGE", "dogecoin" },
-                    { "ETH", "erc20" },
+                    { "ERC20", "erc20" },
                     { "HBAR", "hedera" },
                     { "LTC", "litecoin" },
                     { "NEAR", "near" },
@@ -2141,7 +2141,7 @@ public partial class foxbit : Exchange
             { "txid", this.safeString(cryptoDetails, "transaction_id") },
             { "timestamp", timestamp },
             { "datetime", datetime },
-            { "network", this.safeString(transaction, "network_code") },
+            { "network", this.networkIdToCode(this.safeString(transaction, "network_code"), currencyCode) },
             { "address", address },
             { "addressTo", address },
             { "addressFrom", null },
@@ -2239,7 +2239,7 @@ public partial class foxbit : Exchange
         };
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -2285,12 +2285,12 @@ public partial class foxbit : Exchange
                 }
             }
         }
-        object requestBody = body;
+        string? requestBody = null;
         if ((method == "POST") || (method == "PUT"))
         {
             requestBody = this.json(paramsOmitted);
         }
-        object bodyToSignature = "";
+        string? bodyToSignature = "";
         if ((requestBody != null))
         {
             bodyToSignature = requestBody;
@@ -2303,7 +2303,7 @@ public partial class foxbit : Exchange
         if ((urlPath is "private"))
         {
             this.checkRequiredCredentials();
-            string preHash = ((((this.numberToString(timestamp) + method) + fullPath) + (signatureQuery)) + (bodyToSignature));
+            string preHash = ((((this.numberToString(timestamp) + method) + fullPath) + (signatureQuery)) + bodyToSignature);
             string signature = this.hmac(this.encode(preHash), this.encode(this.secret), sha256, "hex");
             headersValue["X-FB-ACCESS-KEY"] = this.apiKey;
             headersValue["X-FB-ACCESS-TIMESTAMP"] = this.numberToString(timestamp);

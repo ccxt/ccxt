@@ -319,7 +319,6 @@ export default class poloniex extends Exchange {
                     'ERC20': 'ETH',
                     // v2 withdraw accepts only the blockchain id: 'TRX' passes validation, 'TRON' is rejected with 830111 (live-verified)
                     'TRC20': 'TRX',
-                    'TRX': 'TRX',
                 },
                 'networksById': {
                     'TRX': 'TRC20',
@@ -2933,7 +2932,7 @@ export default class poloniex extends Exchange {
             exchangeNetworkId = networkEntry['id'];
         }
         else {
-            exchangeNetworkId = networkCode;
+            exchangeNetworkId = this.networkCodeToId(networkCode, code);
         }
         const request = {
             'currency': exchangeNetworkId,
@@ -3820,10 +3819,11 @@ export default class poloniex extends Exchange {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         const isArray = Array.isArray(params);
         let url = this.urls['api']['spot'];
-        if (this.inArray(api, ['swapPublic', 'swapPrivate'])) {
+        if (this.inArray(apiName, ['swapPublic', 'swapPrivate'])) {
             url = this.urls['api']['swap'];
         }
         if (method === 'GET' && ('symbol' in params)) {
@@ -3833,7 +3833,7 @@ export default class poloniex extends Exchange {
         const implodedPath = this.implodeParams(path, params);
         let bodyJson = undefined;
         let signedHeaders = undefined;
-        if (api === 'public' || api === 'swapPublic') {
+        if (apiName === 'public' || apiName === 'swapPublic') {
             url += '/' + implodedPath;
             if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
@@ -3869,8 +3869,8 @@ export default class poloniex extends Exchange {
                 'signature': signature,
             };
         }
-        const bodyResolved = (bodyJson === undefined) ? body : bodyJson;
-        const headersResolved = (signedHeaders === undefined) ? headers : signedHeaders;
+        const bodyResolved = bodyJson;
+        const headersResolved = signedHeaders;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

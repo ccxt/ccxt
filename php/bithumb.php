@@ -2714,7 +2714,7 @@ class bithumb extends Exchange {
                 }
                 $request['address'] = $address;
                 $request['currency'] = $currency['id'];
-                $request['net_type'] = $network;
+                $request['net_type'] = $this->network_code_to_id($network, $code);
                 $request['amount'] = $this->number_to_string($amount);
                 if ($destinationRequest !== null) {
                     $request['secondary_address'] = $destinationRequest;
@@ -2745,7 +2745,7 @@ class bithumb extends Exchange {
             $request['currency'] = $currency['id'];
             $request['units'] = $amount;
             if ($network !== null) {
-                $request['net_type'] = $network;
+                $request['net_type'] = $this->network_code_to_id($network, $code);
             }
             if ($destinationRequest !== null) {
                 $request['destination'] = $destinationRequest;
@@ -2809,7 +2809,7 @@ class bithumb extends Exchange {
             'txid' => $this->safe_string($transaction, 'txid'),
             'timestamp' => $timestamp,
             'datetime' => $datetime,
-            'network' => $this->safe_string($transaction, 'net_type'),
+            'network' => $this->network_id_to_code($this->safe_string($transaction, 'net_type'), $currencyResolved['code']),
             'addressFrom' => null,
             'address' => null,
             'addressTo' => null,
@@ -3143,7 +3143,7 @@ class bithumb extends Exchange {
         if ($network === null) {
             throw new ArgumentsRequired($this->id . ' ' . $code . ' createDepositAddress() requires a network parameter');
         }
-        $request['net_type'] = $network;
+        $request['net_type'] = $this->network_code_to_id($network, $code);
         $response = $this->privatePostV1DepositsGenerateCoinAddress($this->extend($request, $paramsOmitted));
         //
         //     {
@@ -3184,7 +3184,7 @@ class bithumb extends Exchange {
         if ($network === null) {
             throw new ArgumentsRequired($this->id . ' ' . $code . ' fetchDepositAddress() requires a network parameter');
         }
-        $request['net_type'] = $network;
+        $request['net_type'] = $this->network_code_to_id($network, $code);
         $response = $this->privateGetV1DepositsCoinAddress($this->extend($request, $paramsOmitted));
         //
         //     {
@@ -3250,7 +3250,7 @@ class bithumb extends Exchange {
         return array(
             'info' => $response,
             'currency' => $code,
-            'network' => $this->safe_string($response, 'net_type'),
+            'network' => $this->network_id_to_code($this->safe_string($response, 'net_type'), $code),
             'address' => $address,
             'tag' => $this->safe_string($response, 'secondary_address'),
         );
@@ -3304,11 +3304,12 @@ class bithumb extends Exchange {
         return $result;
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $requestHeaders = null;
         $requestBody = null;
         $endpoint = '/' . $this->implode_params($path, $params);
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
@@ -3317,7 +3318,7 @@ class bithumb extends Exchange {
         $queryKeys = is_array($query) ? array_keys($query) : array();
         $queryKeysLength = count($queryKeys);
         $hasQuery = ($queryKeysLength > 0);
-        if ($api === 'public') {
+        if ($apiName === 'public') {
             $requestHeaders = array(
                 'OPEN-API-PARTNER' => 'CCXT',
             );
@@ -3376,8 +3377,8 @@ class bithumb extends Exchange {
                 );
             }
         }
-        $headersResult = ($requestHeaders !== null) ? $requestHeaders : $headers;
-        $bodyResult = ($requestBody !== null) ? $requestBody : $body;
+        $headersResult = $requestHeaders;
+        $bodyResult = $requestBody;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
     }
 

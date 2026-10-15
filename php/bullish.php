@@ -2419,7 +2419,7 @@ class bullish extends Exchange {
             // some currencies have multiple networks
             if ($network === null) {
                 // use default network if not specified and multiple are available
-                $network = $this->default_network_code($code);
+                $network = $this->safe_string($this->safe_dict($this->options, 'defaultNetworks', array()), $code, $this->safe_string($this->options, 'defaultNetwork'));
             }
             if ($network !== null) {
                 // find the entry that matches the network or return first entry if not found and user did not specify a network
@@ -2974,17 +2974,18 @@ class bullish extends Exchange {
         ), $market);
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $requestHeaders = $headers;
-        $requestBody = $body;
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
+        $requestHeaders = null;
+        $requestBody = null;
         $request = $this->omit($params, $this->extract_params($path));
         $endpoint = '/' . $this->implode_params($path, $params);
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $apiUrl . $endpoint;
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->microseconds();
             $timestamp = (string) $this->get_timestamp();

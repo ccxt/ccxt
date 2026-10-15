@@ -4141,6 +4141,9 @@ class aster extends Exchange {
         // TODO: check how ARBI signature would work
         $networks = $this->safe_dict($this->options, 'networks', array());
         $network = $this->safe_string_upper($paramsWithdrawTag, 'network');
+        if ($network !== null) {
+            $network = $this->safe_string($this->networkAliases, $network, $network); // accepts aliases like ETH for ERC20
+        }
         $network = $this->safe_string($networks, $network, $network);
         if (($chainId === null) && ($network !== null)) {
             $chainIds = $this->safe_dict($this->options, 'networksToChainId', array());
@@ -4272,17 +4275,18 @@ class aster extends Exchange {
         return '0x' . str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($s, 64, '0', STR_PAD_LEFT) . $v;
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $baseApiUrl = $this->safe_string($this->urls['api'], $api);
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
+        $baseApiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($baseApiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $baseApiUrl . '/' . $path;
-        if ($api === 'fapiPublic' || $api === 'sapiPublic') {
+        if ($apiName === 'fapiPublic' || $apiName === 'sapiPublic') {
             if (count($params) > 0) {
                 $url .= '?' . $this->rawencode($params);
             }
-        } elseif ($api === 'fapiPrivate' || $api === 'sapiPrivate') {
+        } elseif ($apiName === 'fapiPrivate' || $apiName === 'sapiPrivate') {
             $this->check_required_credentials();
             $nonce = $this->milliseconds() * 1000;
             // Sign using EIP-712 typed data per the AsterSignTransaction spec
@@ -4351,7 +4355,7 @@ class aster extends Exchange {
                 return array( 'url' => $url, 'method' => $method, 'body' => $queryString, 'headers' => $formHeaders );
             }
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
     public function encode_values_with_json(array $values): string {

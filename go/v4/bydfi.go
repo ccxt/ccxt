@@ -3938,17 +3938,14 @@ func (this *Bydfi) ParseTransactionStatus(status *string) *string {
 	return this.SafeString(statuses, status, status)
 }
 func (this *Bydfi) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -3962,9 +3959,9 @@ func (this *Bydfi) Sign(path string, optionalArgs ...any) any {
 			endpoint += "?" + query
 		}
 	}
-	var requestBody any = nil
+	var requestBody *string = nil
 	var requestHeaders any = nil
-	if api == "private" {
+	if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		var timestamp string = strconv.FormatInt(this.Milliseconds(), 10)
 		if method == "GET" {
@@ -3976,7 +3973,7 @@ func (this *Bydfi) Sign(path string, optionalArgs ...any) any {
 				"X-API-SIGNATURE": signature,
 			}
 		} else {
-			requestBody = this.Json(sortedParams)
+			requestBody = SafeStringPtr(this.Json(sortedParams))
 			var payload any = Add(Add(this.ApiKey, timestamp), requestBody)
 			var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "hex")
 			requestHeaders = map[string]any{
@@ -3988,18 +3985,8 @@ func (this *Bydfi) Sign(path string, optionalArgs ...any) any {
 		}
 	}
 	url = Add(url, endpoint)
-	var bodyResolved any = func() any {
-		if requestBody == nil {
-			return body
-		}
-		return requestBody
-	}()
-	var headersResolved any = func() any {
-		if requestHeaders == nil {
-			return headers
-		}
-		return requestHeaders
-	}()
+	var bodyResolved *string = requestBody
+	var headersResolved any = requestHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,

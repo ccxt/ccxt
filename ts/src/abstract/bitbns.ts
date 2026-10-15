@@ -10,127 +10,168 @@ import { Exchange as _Exchange } from '../base/Exchange.js';
 
 abstract class Exchange extends _Exchange {
     wwwGetOrderFetchMarkets (params = {}): Promise<List> {
-        return this.request ("order/fetchMarkets", "www", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('order/fetchMarkets', [ 'www' ], 'GET', params, { 'cost': 1 });
     }
+
     wwwGetOrderFetchTickers (params = {}): Promise<Dict> {
-        return this.request ("order/fetchTickers", "www", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('order/fetchTickers', [ 'www' ], 'GET', params, { 'cost': 1 });
     }
+
     wwwGetOrderFetchOrderbook (params = {}): Promise<Dict> {
-        return this.request ("order/fetchOrderbook", "www", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('order/fetchOrderbook', [ 'www' ], 'GET', params, { 'cost': 1 });
     }
+
     wwwGetOrderGetTickerWithVolume (params = {}): Promise<Dict> {
-        return this.request ("order/getTickerWithVolume", "www", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('order/getTickerWithVolume', [ 'www' ], 'GET', params, { 'cost': 1 });
     }
+
     wwwGetExchangeDataOhlc (params = {}): Promise<List> {
-        return this.request ("exchangeData/ohlc", "www", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('exchangeData/ohlc', [ 'www' ], 'GET', params, { 'cost': 1 });
     }
+
     wwwGetExchangeDataOrderBook (params = {}): Promise<Dict> {
-        return this.request ("exchangeData/orderBook", "www", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('exchangeData/orderBook', [ 'www' ], 'GET', params, { 'cost': 1 });
     }
+
     wwwGetExchangeDataTradedetails (params = {}): Promise<List> {
-        return this.request ("exchangeData/tradedetails", "www", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('exchangeData/tradedetails', [ 'www' ], 'GET', params, { 'cost': 1 });
     }
+
     v1GetPlatformStatus (params = {}): Promise<Dict> {
-        return this.request ("platform/status", "v1", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('platform/status', [ 'v1' ], 'GET', params, { 'cost': 1 });
     }
+
     v1GetTickers (params = {}): Promise<Dict> {
-        return this.request ("tickers", "v1", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('tickers', [ 'v1' ], 'GET', params, { 'cost': 1 });
     }
+
     v1GetOrderbookSellSymbol (params = {}): Promise<Dict> {
-        return this.request ("orderbook/sell/{symbol}", "v1", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('orderbook/sell/{symbol}', [ 'v1' ], 'GET', params, { 'cost': 1 });
     }
+
     v1GetOrderbookBuySymbol (params = {}): Promise<Dict> {
-        return this.request ("orderbook/buy/{symbol}", "v1", 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('orderbook/buy/{symbol}', [ 'v1' ], 'GET', params, { 'cost': 1 });
     }
+
     v1PostCurrentCoinBalanceEVERYTHING (params = {}): Promise<Dict> {
-        return this.request ("currentCoinBalance/EVERYTHING", "v1", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('currentCoinBalance/EVERYTHING', [ 'v1' ], 'POST', params, { 'cost': 1 });
     }
+
     v1PostGetApiUsageStatusUSAGE (params = {}): Promise<Dict> {
-        return this.request ("getApiUsageStatus/USAGE", "v1", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('getApiUsageStatus/USAGE', [ 'v1' ], 'POST', params, { 'cost': 1 });
     }
+
     v1PostGetOrderSocketTokenUSAGE (params = {}): Promise<Dict> {
-        return this.request ("getOrderSocketToken/USAGE", "v1", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('getOrderSocketToken/USAGE', [ 'v1' ], 'POST', params, { 'cost': 1 });
     }
+
     v1PostCurrentCoinBalanceSymbol (params = {}): Promise<Dict> {
-        return this.request ("currentCoinBalance/{symbol}", "v1", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('currentCoinBalance/{symbol}', [ 'v1' ], 'POST', params, { 'cost': 1 });
     }
+
     v1PostOrderStatusSymbol (params = {}): Promise<Dict> {
-        return this.request ("orderStatus/{symbol}", "v1", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('orderStatus/{symbol}', [ 'v1' ], 'POST', params, { 'cost': 1 });
     }
+
     v1PostDepositHistorySymbol (params = {}): Promise<Dict> {
-        return this.request ("depositHistory/{symbol}", "v1", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('depositHistory/{symbol}', [ 'v1' ], 'POST', params, { 'cost': 1 });
     }
+
     v1PostWithdrawHistorySymbol (params = {}): Promise<Dict> {
-        return this.request ("withdrawHistory/{symbol}", "v1", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('withdrawHistory/{symbol}', [ 'v1' ], 'POST', params, { 'cost': 1 });
     }
+
     v1PostWithdrawHistoryAllSymbol (params = {}): Promise<Dict> {
-        return this.request ("withdrawHistoryAll/{symbol}", "v1", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('withdrawHistoryAll/{symbol}', [ 'v1' ], 'POST', params, { 'cost': 1 });
     }
+
     v1PostDepositHistoryAllSymbol (params = {}): Promise<Dict> {
-        return this.request ("depositHistoryAll/{symbol}", "v1", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('depositHistoryAll/{symbol}', [ 'v1' ], 'POST', params, { 'cost': 1 });
     }
+
     v1PostUserHistoryNew (params = {}): Promise<Dict> {
-        return this.request ("userHistoryNew", "v1", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('userHistoryNew', [ 'v1' ], 'POST', params, { 'cost': 1 });
     }
+
     v1PostListOpenOrdersSymbol (params = {}): Promise<Dict> {
-        return this.request ("listOpenOrders/{symbol}", "v1", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('listOpenOrders/{symbol}', [ 'v1' ], 'POST', params, { 'cost': 1 });
     }
+
     v1PostListOpenOrdersOtherSymbol (params = {}): Promise<Dict> {
-        return this.request ("listOpenOrdersOther/{symbol}", "v1", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('listOpenOrdersOther/{symbol}', [ 'v1' ], 'POST', params, { 'cost': 1 });
     }
+
     v1PostListOpenStopOrdersSymbol (params = {}): Promise<Dict> {
-        return this.request ("listOpenStopOrders/{symbol}", "v1", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('listOpenStopOrders/{symbol}', [ 'v1' ], 'POST', params, { 'cost': 1 });
     }
+
     v1PostGetCoinAddressSymbol (params = {}): Promise<Dict> {
-        return this.request ("getCoinAddress/{symbol}", "v1", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('getCoinAddress/{symbol}', [ 'v1' ], 'POST', params, { 'cost': 1 });
     }
+
     v1PostPlaceSellOrderSymbol (params = {}): Promise<Dict> {
-        return this.request ("placeSellOrder/{symbol}", "v1", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('placeSellOrder/{symbol}', [ 'v1' ], 'POST', params, { 'cost': 1 });
     }
+
     v1PostPlaceSellOrderOtherSymbol (params = {}): Promise<Dict> {
-        return this.request ("placeSellOrderOther/{symbol}", "v1", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('placeSellOrderOther/{symbol}', [ 'v1' ], 'POST', params, { 'cost': 1 });
     }
+
     v1PostPlaceBuyOrderSymbol (params = {}): Promise<Dict> {
-        return this.request ("placeBuyOrder/{symbol}", "v1", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('placeBuyOrder/{symbol}', [ 'v1' ], 'POST', params, { 'cost': 1 });
     }
+
     v1PostPlaceBuyOrderOtherSymbol (params = {}): Promise<Dict> {
-        return this.request ("placeBuyOrderOther/{symbol}", "v1", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('placeBuyOrderOther/{symbol}', [ 'v1' ], 'POST', params, { 'cost': 1 });
     }
+
     v1PostBuyStopLossSymbol (params = {}): Promise<Dict> {
-        return this.request ("buyStopLoss/{symbol}", "v1", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('buyStopLoss/{symbol}', [ 'v1' ], 'POST', params, { 'cost': 1 });
     }
+
     v1PostSellStopLossSymbol (params = {}): Promise<Dict> {
-        return this.request ("sellStopLoss/{symbol}", "v1", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('sellStopLoss/{symbol}', [ 'v1' ], 'POST', params, { 'cost': 1 });
     }
+
     v1PostCancelOrderSymbol (params = {}): Promise<Dict> {
-        return this.request ("cancelOrder/{symbol}", "v1", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('cancelOrder/{symbol}', [ 'v1' ], 'POST', params, { 'cost': 1 });
     }
+
     v1PostCancelOrderOtherSymbol (params = {}): Promise<Dict> {
-        return this.request ("cancelOrderOther/{symbol}", "v1", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('cancelOrderOther/{symbol}', [ 'v1' ], 'POST', params, { 'cost': 1 });
     }
+
     v1PostCancelStopLossOrderSymbol (params = {}): Promise<Dict> {
-        return this.request ("cancelStopLossOrder/{symbol}", "v1", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('cancelStopLossOrder/{symbol}', [ 'v1' ], 'POST', params, { 'cost': 1 });
     }
+
     v1PostListExecutedOrdersSymbol (params = {}): Promise<Dict> {
-        return this.request ("listExecutedOrders/{symbol}", "v1", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('listExecutedOrders/{symbol}', [ 'v1' ], 'POST', params, { 'cost': 1 });
     }
+
     v1PostPlaceMarketOrderSymbol (params = {}): Promise<Dict> {
-        return this.request ("placeMarketOrder/{symbol}", "v1", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('placeMarketOrder/{symbol}', [ 'v1' ], 'POST', params, { 'cost': 1 });
     }
+
     v1PostPlaceMarketOrderQntySymbol (params = {}): Promise<Dict> {
-        return this.request ("placeMarketOrderQnty/{symbol}", "v1", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('placeMarketOrderQnty/{symbol}', [ 'v1' ], 'POST', params, { 'cost': 1 });
     }
+
     v2PostOrders (params = {}): Promise<Dict> {
-        return this.request ("orders", "v2", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('orders', [ 'v2' ], 'POST', params, { 'cost': 1 });
     }
+
     v2PostCancel (params = {}): Promise<Dict> {
-        return this.request ("cancel", "v2", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('cancel', [ 'v2' ], 'POST', params, { 'cost': 1 });
     }
+
     v2PostGetordersnew (params = {}): Promise<Dict> {
-        return this.request ("getordersnew", "v2", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('getordersnew', [ 'v2' ], 'POST', params, { 'cost': 1 });
     }
+
     v2PostMarginOrders (params = {}): Promise<Dict> {
-        return this.request ("marginOrders", "v2", 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('marginOrders', [ 'v2' ], 'POST', params, { 'cost': 1 });
     }
 }
-export default Exchange
+
+export default Exchange;

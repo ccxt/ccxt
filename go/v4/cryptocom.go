@@ -3026,7 +3026,7 @@ func (this *Cryptocom) fetchDepositAddressBody(ch chan AsyncResult[any], code st
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var network *string = this.SafeStringUpper(params, "network")
+	var networkParam *string = this.SafeStringUpper(params, "network")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"network"})
 
 	r := <-this.FetchDepositAddressesByNetworkAsync(code, paramsOmitted)
@@ -3035,10 +3035,13 @@ func (this *Cryptocom) fetchDepositAddressBody(ch chan AsyncResult[any], code st
 	}
 	depositAddressesRaw := r.Raw
 	var depositAddresses any = depositAddressesRaw
-	if InOp(depositAddresses, network) {
+	if networkParam != nil {
+		var network *string = this.SafeString(this.NetworkAliases, networkParam, networkParam)
+		if InOp(depositAddresses, network) {
 
-		ch <- AsyncResult[any]{Value: GetValue(depositAddresses, network)}
-		return nil
+			ch <- AsyncResult[any]{Value: GetValue(depositAddresses, network)}
+			return nil
+		}
 	}
 	var keys []string = ObjectKeys(depositAddresses)
 
@@ -4285,11 +4288,11 @@ func (this *Cryptocom) fetchFundingRateHistoryBody(ch chan AsyncResult[any], opt
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes319619 []any = ListTyped(r1.Value)
-		if retRes319619 == nil {
+		var retRes319919 []any = ListTyped(r1.Value)
+		if retRes319919 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes319619}
+			ch <- AsyncResult[any]{Value: retRes319919}
 		}
 		return nil
 	}
@@ -4849,18 +4852,14 @@ func (this *Cryptocom) ParseTradingFee(fee any, optionalArgs ...any) map[string]
 	}
 }
 func (this *Cryptocom) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
-	var requestHeaders any = headers
-	var requestBody any = body
+	var requestHeaders map[string]any = nil
+	var requestBody any = nil
 	var typeVar *string = this.SafeString(api, 0)
 	var access *string = this.SafeString(api, 1)
 	var apiUrl *string = this.SafeString(this.Urls["api"], typeVar)

@@ -5386,32 +5386,29 @@ func (this *Deribit) Nonce() any {
 	return this.Milliseconds()
 }
 func (this *Deribit) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
-	var request any = Add(Add(Add("/"+"api/"+this.Version+"/", api), "/"), path)
-	if api == "public" {
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var request string = "/" + "api/" + this.Version + "/" + *apiName + "/" + path
+	if apiName != nil && *apiName == "public" {
 		if len(ObjectKeys(params)) > 0 {
-			request = Add(request, "?"+this.Urlencode(params))
+			request += "?" + this.Urlencode(params)
 		}
 	}
-	if api == "private" {
+	if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		var nonce string = ToString(this.Nonce())
 		var timestamp string = strconv.FormatInt(this.Milliseconds(), 10)
 		var requestBody string = ""
 		if len(ObjectKeys(params)) > 0 {
-			request = Add(request, "?"+this.Urlencode(params))
+			request += "?" + this.Urlencode(params)
 		}
-		var requestData any = Add(Add(Add(Add(method+"\n", request), "\n"), requestBody), "\n") // eslint-disable-line quotes
-		var auth *string = SafeStringPtr(Add(timestamp+"\n"+nonce+"\n", requestData))           // eslint-disable-line quotes
+		var requestData string = method + "\n" + request + "\n" + requestBody + "\n" // eslint-disable-line quotes
+		var auth string = timestamp + "\n" + nonce + "\n" + requestData              // eslint-disable-line quotes
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 		var signedHeaders map[string]any = map[string]any{
 			"Authorization": Add(Add(Add(Add(Add(Add(Add(Add("deri-hmac-sha256 id=", this.ApiKey), ",ts="), timestamp), ",sig="), signature), ","), "nonce="), nonce),
@@ -5420,11 +5417,11 @@ func (this *Deribit) Sign(path string, optionalArgs ...any) any {
 		if baseApiUrl == nil {
 			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 		}
-		var signedUrl *string = SafeStringPtr(Add(baseApiUrl, request))
+		var signedUrl string = *baseApiUrl + request
 		return map[string]any{
 			"url":     signedUrl,
 			"method":  method,
-			"body":    body,
+			"body":    nil,
 			"headers": signedHeaders,
 		}
 	}
@@ -5432,12 +5429,12 @@ func (this *Deribit) Sign(path string, optionalArgs ...any) any {
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url *string = SafeStringPtr(Add(apiUrl, request))
+	var url string = *apiUrl + request
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    nil,
+		"headers": nil,
 	}
 }
 func (this *Deribit) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {

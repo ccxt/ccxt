@@ -829,7 +829,7 @@ impl DeepcoinCore {
         m.insert("ERC20".to_string(), Value::Str("ERC20".into()));
         m.insert("TRC20".to_string(), Value::Str("TRC20".into()));
         m.insert("ARBITRUM".to_string(), Value::Str("ARBITRUM".into()));
-        m.insert("BSC".to_string(), Value::Str("BSC(BEP20)".into()));
+        m.insert("BEP20".to_string(), Value::Str("BSC(BEP20)".into()));
         m.insert("SOL".to_string(), Value::Str("SOL".into()));
         m.insert("BTC".to_string(), Value::Str("Bitcoin".into()));
         m.insert("ADA".to_string(), Value::Str("Cardano".into()));
@@ -1994,6 +1994,9 @@ impl DeepcoinCore {
         if (network == Value::Null) || (network.as_str() == Some("")) {
             network = defaultNetwork;
         }
+        if (network != Value::Null) {
+            network = self.safe_string(self.networkAliases.clone(), network.clone(), &[network.clone()]);
+        }
         let mut paramsOmitted: Value = (if (network != Value::Null) { self.omit(params.clone(), Value::Str("network".into()), &[]) } else { params });
         let mut addressess: Value = self.fetch_deposit_addresses(&[Value::from(vec![code]), paramsOmitted]).await;
         let mut length: f64 = ((addressess.len() as i64) as f64);
@@ -2007,8 +2010,8 @@ impl DeepcoinCore {
                 let mut __for_first_594: bool = true;
                 while { if !__for_first_594 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_594 = false; i.as_f64().unwrap_or(f64::NAN) < length } {
                 let mut entry: Value = addressess.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-                if (entry.as_map().and_then(|__m| __m.get("network")).cloned().unwrap_or(Value::Null).as_str() == network.as_str()) {
-                    address = entry;
+                if is_equal(&entry.as_map().and_then(|__m| __m.get("network")).cloned().unwrap_or(Value::Null), &network) {
+                    address = entry.clone();
                 }
             }
             }
@@ -4260,14 +4263,15 @@ impl DeepcoinCore {
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
+        let __api_empty = Vec::new();
+        let api = api.as_array().unwrap_or(&__api_empty);
+        let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
         let mut requestPath: Value = path;
         if (method.as_str() == Some("GET")) {
             let mut query: Value = self.urlencode(params.clone(), &[]);
@@ -4275,12 +4279,12 @@ impl DeepcoinCore {
                 requestPath = Value::Str(format!("{}{}", requestPath, Value::Str(format!("{}{}", Value::Str("?".into()), query).into())).into());
             }
         }
-        let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), api.clone(), &[]);
+        let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone(), &[]);
         if (apiUrl == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl, Value::Str("/".into())).into()), requestPath).into());
-        if (api.as_str() == Some("private")) {
+        if (apiName.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut timestamp: Value = self.milliseconds();
             let mut dateTime: Value = self.iso8601(timestamp);
@@ -4293,7 +4297,7 @@ impl DeepcoinCore {
                     m.insert("appid".to_string(), Value::Str("200103".into()));
                 m
             });
-            let mut requestBody: Value = (if (method.as_str() != Some("GET")) { json_stringify(&params) } else { body.clone() });
+            let mut requestBody: Value = (if (method.as_str() != Some("GET")) { json_stringify(&params) } else { Value::Null });
             if (method.as_str() != Some("GET")) {
                 if let Value::Dict(__d) = &mut privateHeaders { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
                 payload = Value::Str(format!("{}{}", payload, requestBody).into());
@@ -4313,8 +4317,8 @@ impl DeepcoinCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), body);
-        m.insert("headers".to_string(), headers);
+        m.insert("body".to_string(), Value::Null);
+        m.insert("headers".to_string(), Value::Null);
     m
 });
 

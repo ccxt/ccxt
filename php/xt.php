@@ -612,10 +612,8 @@ class xt extends Exchange {
                 'networks' => array(
                     'ERC20' => 'Ethereum',
                     'TRC20' => 'Tron',
-                    'TRX' => 'Tron',
                     'BEP20' => 'BNB Smart Chain',
                     'BEP2' => 'BNB-BEP2',
-                    'ETH' => 'Ethereum',
                     'AVAX' => 'AVAX C-Chain',
                     'GAL' => 'GAL(FT)',
                     'ALEO' => 'ALEO(IOU)',
@@ -5846,7 +5844,7 @@ class xt extends Exchange {
         return null;
     }
 
-    public function sign(string $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(string $path, array $api = array(), $method = 'GET', $params = array()) {
         $signed = $api[0] === 'private';
         $endpoint = $api[1];
         $request = '/' . $this->implode_params($path, $params);
@@ -5932,7 +5930,7 @@ class xt extends Exchange {
                 $url .= '?' . $urlencoded;
             }
         }
-        $bodyValue = $body;
+        $bodyValue = null;
         if ($signed) {
             $bodyValue = $signedBody;
         }

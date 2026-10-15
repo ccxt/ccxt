@@ -208,12 +208,11 @@ class grvt(Exchange, ImplicitAPI):
                     'ARBITRUM': '42161',
                     'AVAXC': '43114',
                     'BASE': '8453',
-                    'BSC': '56',
-                    'ETH': '1',
+                    'BEP20': '56',
                     'ERC20': '1',
                     'OP': '10',
                     'SOL': '900',
-                    'TRX': '728126428',
+                    'TRC20': '728126428',
                     'ZKSYNCERA': '324',
                     'KAIA': '8217',
                 },
@@ -3142,12 +3141,13 @@ class grvt(Exchange, ImplicitAPI):
         self.options['requestId'] = requestId
         return requestId
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        requestHeaders = headers
-        requestBody = body
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        requestHeaders = None
+        requestBody = None
         requestPath = path
         query = self.omit(params, self.extract_params(requestPath))
-        apiUrl = self.safe_string(self.urls['api'], api)
+        apiName = api[0]
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + requestPath
@@ -3170,7 +3170,7 @@ class grvt(Exchange, ImplicitAPI):
                 requestBody = '{}'
             else:
                 requestBody = self.json(params)
-        isPrivate = api.startswith('private')
+        isPrivate = apiName.startswith('private')
         if isPrivate is True:
             self.check_required_credentials()
             if queryString != '':

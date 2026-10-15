@@ -388,8 +388,8 @@ class bittrade(Exchange, ImplicitAPI):
             'options': {
                 'defaultNetwork': 'ERC20',
                 'networks': {
-                    'ETH': 'erc20',
-                    'TRX': 'trc20',
+                    'ERC20': 'erc20',
+                    'TRC20': 'trc20',
                     'HRC20': 'hrc20',
                     'HECO': 'hrc20',
                     'HT': 'hrc20',
@@ -1852,7 +1852,7 @@ class bittrade(Exchange, ImplicitAPI):
             'txid': self.safe_string(transaction, 'tx-hash'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': self.safe_string_upper(transaction, 'chain'),
+            'network': self.network_id_to_code(self.safe_string_upper(transaction, 'chain'), code),
             'address': self.safe_string(transaction, 'address'),
             'addressTo': None,
             'addressFrom': None,
@@ -1919,7 +1919,9 @@ class bittrade(Exchange, ImplicitAPI):
         if tagWithdrawTag is not None:
             request['addr-tag'] = tagWithdrawTag  # only for XRP?
         networks = self.safe_dict(self.options, 'networks', {})
-        network = self.safe_string_upper(paramsWithdrawTag, 'network')  # this line allows the user to specify either ERC20 or ETH
+        network = self.safe_string_upper(paramsWithdrawTag, 'network')
+        if network is not None:
+            network = self.safe_string(self.networkAliases, network, network)  # accepts aliases like ETH for ERC20
         network = self.safe_string_lower(networks, network, network)  # handle ETH>ERC20 alias
         if network is not None:
             # possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
@@ -1937,19 +1939,20 @@ class bittrade(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
         requestHeaders = None
         requestBody = None
         url = '/'
-        if api == 'market':
+        if apiName == 'market':
             url += 'market'
-        elif (api == 'public') or (api == 'private'):
+        elif (apiName == 'public') or (apiName == 'private'):
             url += self.version
-        elif (api == 'v2Public') or (api == 'v2Private'):
+        elif (apiName == 'v2Public') or (apiName == 'v2Private'):
             url += 'v2'
         url += '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        if api == 'private' or api == 'v2Private':
+        if apiName == 'private' or apiName == 'v2Private':
             self.check_required_credentials()
             timestamp = self.ymdhms(self.milliseconds(), 'T')
             request = {
@@ -1981,14 +1984,14 @@ class bittrade(Exchange, ImplicitAPI):
         else:
             if len(params) > 0:
                 url += '?' + self.urlencode(params)
-        baseApiUrl = self.safe_string(self.urls['api'], api)
+        baseApiUrl = self.safe_string(self.urls['api'], apiName)
         if baseApiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = self.implode_params(baseApiUrl, {
             'hostname': self.hostname,
         }) + url
-        headersResult = requestHeaders if (requestHeaders is not None) else headers
-        bodyResult = requestBody if (requestBody is not None) else body
+        headersResult = requestHeaders
+        bodyResult = requestBody
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

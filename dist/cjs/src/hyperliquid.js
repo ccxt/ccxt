@@ -5139,8 +5139,9 @@ class hyperliquid extends hyperliquid$1["default"] {
         }
         return undefined;
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const apiUrl = this.safeString(this.urls['api'], api);
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
@@ -5149,11 +5150,11 @@ class hyperliquid extends hyperliquid$1["default"] {
         const postHeaders = {
             'Content-Type': 'application/json',
         };
-        let requestHeaders = headers;
+        let requestHeaders = undefined;
         if (isPost) {
             requestHeaders = postHeaders;
         }
-        let requestBody = body;
+        let requestBody = undefined;
         if (isPost) {
             requestBody = this.json(params);
         }

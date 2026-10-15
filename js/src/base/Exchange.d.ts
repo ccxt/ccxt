@@ -56,6 +56,7 @@ export declare class BaseExchange {
     httpAgent: any;
     httpsAgent: any;
     minFundingAddressLength: number;
+    networkAliases: Dictionary<string>;
     substituteCommonCurrencyCodes: boolean;
     quoteJsonNumbers: boolean;
     number: (numberString: string) => number;
@@ -601,7 +602,7 @@ export declare class BaseExchange {
      * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
      */
     enableDemoTrading(enable: boolean): void;
-    sign(path: string, api?: any, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     fetchAccounts(params?: Dict): Promise<Account[]>;
     watchLiquidations(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Liquidation[]>;
     watchLiquidationsForSymbols(symbols: string[], since?: Int, limit?: Int, params?: Dict): Promise<Liquidation[]>;
@@ -685,35 +686,7 @@ export declare class BaseExchange {
     featureValue(symbol: string, methodName?: Str, paramName?: Str, defaultValue?: any): any;
     featureValueByType(marketType: string, subType: Str, methodName?: Str, paramName?: Str, defaultValue?: any): any;
     orderbookChecksumMessage(symbol: Str): string;
-    createNetworksByIdObject(): void;
     getDefaultOptions(): {
-        defaultNetworkCodeReplacements: {
-            ETH: {
-                primary: string;
-                secondary: string;
-                default: string;
-            };
-            CRO: {
-                primary: string;
-                secondary: string;
-                default: string;
-            };
-            TRX: {
-                primary: string;
-                secondary: string;
-                default: string;
-            };
-            BTC: {
-                primary: string;
-                secondary: string;
-                default: string;
-            };
-        };
-        backwardSupportedNetworkCodes: {
-            ARB: string;
-            ARBONE: string;
-            ARBNOVA: string;
-        };
         withdrawTagRequiredCurrencies: string[];
     };
     safeLedgerEntry(entry: object, currency?: Currency): LedgerEntry;
@@ -797,13 +770,9 @@ export declare class BaseExchange {
             };
         };
     };
-    prioritizedNetworkAliases(networkCode?: Str, currencyCode?: Str, allowDefault?: boolean): Strings;
     networkCodeToId(networkCode: Str, currencyCode?: Str): Str;
     networkIdToCode(networkId?: Str, currencyCode?: Str): Str;
     handleNetworkCodeAndParams(params: Dict): [Str, Dict];
-    defaultNetworkCode(currencyCode: string): Str;
-    selectNetworkCodeFromUnifiedNetworks(currencyCode: string, networkCode: any, indexedNetworkEntries: any): Str;
-    selectNetworkIdFromRawNetworks(currencyCode: string, networkCode: any, indexedNetworkEntries: any): Str;
     selectNetworkKeyFromNetworks(currencyCode: string, networkCode: Str, indexedNetworkEntries: any, isIndexedByUnifiedNetworkCode?: boolean): Str;
     safeNumber2(dictionary: object | undefined, key1: NullableIndexType, key2: NullableIndexType, d?: Num): number;
     parseOrderBook(orderbook: object | undefined, symbol: Str, timestamp?: Int, bidsKey?: string, asksKey?: string, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): OrderBook;
@@ -842,22 +811,13 @@ export declare class BaseExchange {
     handleParamInteger2(params: object, paramName1: string, paramName2: string, defaultValue?: Int): [Int, Dict];
     handleParamBool(params: object, paramName: string, defaultValue?: Bool): [Bool, object];
     handleParamBool2(params: object, paramName1: string, paramName2: string, defaultValue?: Bool): [Bool, object];
-    /**
-     * @param {object} params - extra parameters
-     * @param {object} request - existing dictionary of request
-     * @param {string} exchangeSpecificKey - the key for chain id to be set in request
-     * @param {object} currencyCode - (optional) existing dictionary of request
-     * @param {boolean} isRequired - (optional) whether that param is required to be present
-     * @returns {object[]} - returns [request, params] where request is the modified request object and params is the modified params object
-     */
-    handleRequestNetwork(params: Dict, request: Dict, exchangeSpecificKey: string, currencyCode?: Str, isRequired?: boolean): Dict[];
     resolvePath(path: any, params: any): any[];
     getListFromObjectValues(objects: any, key: IndexType): string[];
     getSymbolsForMarketType(marketType?: Str, subType?: Str, symbolWithActiveStatus?: boolean, symbolWithUnknownStatus?: boolean): string[];
     filterByArray(objects: any, key: IndexType, values?: any, indexed?: boolean): any;
     filterOutByArray(objects: any, key: IndexType, values?: any, indexed?: boolean): any;
-    fetch2(path: string, api?: any, method?: string, params?: Dict, headers?: any, body?: any, config?: Dict): Promise<any>;
-    request(path: string, api?: any, method?: string, params?: Dict, headers?: any, body?: any, config?: Dict): Promise<any>;
+    fetch2(path: string, api?: string[], method?: string, params?: Dict, config?: Dict): Promise<any>;
+    request(path: string, api?: string[], method?: string, params?: Dict, config?: Dict): Promise<any>;
     loadAccounts(reload?: boolean, params?: Dict): Promise<Account[]>;
     buildOHLCVC(trades: Trade[], timeframe?: string, since?: number, limit?: number): OHLCVC[];
     parseTradingViewOHLCV(ohlcvs: any, market?: Market, timeframe?: string, since?: Int, limit?: Int): OHLCV[];
@@ -911,7 +871,7 @@ export declare class BaseExchange {
     throwBroadlyMatchedException(broad: any, string: any, message: any): void;
     findBroadlyMatchedKey(broad: any, string: Str): Str;
     handleErrors(statusCode: int, statusText: string, url: string, method: string, responseHeaders: Dict, responseBody: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: Dict): any;
+    calculateRateLimiterCost(api: string[], method: any, path: any, params: any, config?: Dict): any;
     fetchSpotTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     fetchContractTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     fetchOrderBooks(symbols?: Strings, limit?: Int, params?: Dict): Promise<OrderBooks>;

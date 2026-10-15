@@ -3410,7 +3410,7 @@ func (this *Bithumb) withdrawBody(ch chan EndpointResult[map[string]any], code s
 			}
 			request["address"] = address
 			request["currency"] = currency["id"]
-			request["net_type"] = network
+			request["net_type"] = this.NetworkCodeToId(network, code)
 			request["amount"] = this.NumberToString(amount)
 			if !IsEqual(destinationRequest, nil) {
 				request["secondary_address"] = destinationRequest
@@ -3430,7 +3430,7 @@ func (this *Bithumb) withdrawBody(ch chan EndpointResult[map[string]any], code s
 		request["currency"] = currency["id"]
 		request["units"] = amount
 		if network != nil {
-			request["net_type"] = network
+			request["net_type"] = this.NetworkCodeToId(network, code)
 		}
 		if !IsEqual(destinationRequest, nil) {
 			request["destination"] = destinationRequest
@@ -3506,7 +3506,7 @@ func (this *Bithumb) ParseTransaction(transaction any, optionalArgs ...any) map[
 		"txid":        this.SafeString(transaction, "txid"),
 		"timestamp":   timestamp,
 		"datetime":    datetime,
-		"network":     this.SafeString(transaction, "net_type"),
+		"network":     this.NetworkIdToCode(this.SafeString(transaction, "net_type"), currencyResolved["code"]),
 		"addressFrom": nil,
 		"address":     nil,
 		"addressTo":   nil,
@@ -3980,7 +3980,7 @@ func (this *Bithumb) createDepositAddressBody(ch chan AsyncResult[any], code str
 	if network == nil {
 		panic(ArgumentsRequired(this.Id + " " + code + " createDepositAddress() requires a network parameter"))
 	}
-	request["net_type"] = network
+	request["net_type"] = this.NetworkCodeToId(network, code)
 
 	r1 := <-this.PrivatePostV1DepositsGenerateCoinAddress(this.Extend(request, paramsOmitted))
 	if r1.Err != nil {
@@ -4041,7 +4041,7 @@ func (this *Bithumb) fetchDepositAddressBody(ch chan AsyncResult[any], code stri
 	if network == nil {
 		panic(ArgumentsRequired(this.Id + " " + code + " fetchDepositAddress() requires a network parameter"))
 	}
-	request["net_type"] = network
+	request["net_type"] = this.NetworkCodeToId(network, code)
 
 	r1 := <-this.PrivateGetV1DepositsCoinAddress(this.Extend(request, paramsOmitted))
 	if r1.Err != nil {
@@ -4137,7 +4137,7 @@ func (this *Bithumb) ParseDepositAddress(response any, optionalArgs ...any) map[
 	return map[string]any{
 		"info":     response,
 		"currency": code,
-		"network":  this.SafeString(response, "net_type"),
+		"network":  this.NetworkIdToCode(this.SafeString(response, "net_type"), code),
 		"address":  address,
 		"tag":      this.SafeString(response, "secondary_address"),
 	}
@@ -4188,20 +4188,17 @@ func (this *Bithumb) UrlencodeWithArrayBrackets(query any) any {
 	return result
 }
 func (this *Bithumb) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var requestHeaders map[string]any = nil
 	var requestBody any = nil
 	var endpoint string = "/" + this.ImplodeParams(path, params)
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -4210,7 +4207,7 @@ func (this *Bithumb) Sign(path string, optionalArgs ...any) any {
 	var queryKeys []string = ObjectKeys(query)
 	var queryKeysLength int = len(queryKeys)
 	var hasQuery bool = (queryKeysLength > 0)
-	if api == "public" {
+	if apiName != nil && *apiName == "public" {
 		requestHeaders = map[string]any{
 			"OPEN-API-PARTNER": "CCXT",
 		}
@@ -4274,18 +4271,8 @@ func (this *Bithumb) Sign(path string, optionalArgs ...any) any {
 			}
 		}
 	}
-	var headersResult any = func() any {
-		if requestHeaders != nil {
-			return requestHeaders
-		}
-		return headers
-	}()
-	var bodyResult any = func() any {
-		if requestBody != nil {
-			return requestBody
-		}
-		return body
-	}()
+	var headersResult any = requestHeaders
+	var bodyResult any = requestBody
 	return map[string]any{
 		"url":     url,
 		"method":  method,

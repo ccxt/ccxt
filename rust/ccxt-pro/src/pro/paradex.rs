@@ -182,20 +182,28 @@ impl crate::exchange_generated::ExchangeBase for ParadexCore {
                 "handle_ticker" => self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_trade" => self.handle_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "parse_funding_rate_ws" => self.parse_funding_rate_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_sbe_account" => self.parse_sbe_account(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
+                "parse_sbe_fill" => self.parse_sbe_fill(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "parse_sbe_funding_data" => self.parse_sbe_funding_data(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "parse_sbe_market_summary" => self.parse_sbe_market_summary(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "parse_sbe_message" => self.parse_sbe_message(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_sbe_order" => self.parse_sbe_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "parse_sbe_order_book" => self.parse_sbe_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
+                "parse_sbe_position" => self.parse_sbe_position(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "parse_sbe_trade" => self.parse_sbe_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
+                "parse_ws_balance" => self.parse_ws_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "request_id" => self.request_id(),
+                "sbe_read_flags" => self.sbe_read_flags(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "sbe_read_timestamp" => self.sbe_read_timestamp(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "sbe_read_uint" => self.sbe_read_uint(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "sbe_read_var_strings" => self.sbe_read_var_strings(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null)),
+                "watch_balance" => self.watch_balance(&args[..]).await,
                 "watch_funding_rate" => self.watch_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "watch_funding_rates" => self.watch_funding_rates(&args[..]).await,
+                "watch_my_trades" => self.watch_my_trades(&args[..]).await,
                 "watch_order_book" => self.watch_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "watch_orders" => self.watch_orders(&args[..]).await,
+                "watch_positions" => self.watch_positions(&args[..]).await,
                 "watch_ticker" => self.watch_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "watch_tickers" => self.watch_tickers(&args[..]).await,
                 "watch_trades" => self.watch_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
@@ -215,28 +223,39 @@ impl ParadexCore {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
             "get_ws_url" => self.get_ws_url(),
             "handle_authentication_message" => { self.handle_authentication_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_funding_rate" => { self.handle_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_my_trade" => { self.handle_my_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_order" => { self.handle_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_positions" => { self.handle_positions(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_ticker" => self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_trade" => self.handle_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "parse_funding_rate_ws" => self.parse_funding_rate_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+            "parse_sbe_account" => self.parse_sbe_account(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
+            "parse_sbe_fill" => self.parse_sbe_fill(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
             "parse_sbe_funding_data" => self.parse_sbe_funding_data(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
             "parse_sbe_market_summary" => self.parse_sbe_market_summary(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
             "parse_sbe_message" => self.parse_sbe_message(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_sbe_order" => self.parse_sbe_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
             "parse_sbe_order_book" => self.parse_sbe_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
+            "parse_sbe_position" => self.parse_sbe_position(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
             "parse_sbe_trade" => self.parse_sbe_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
+            "parse_ws_balance" => self.parse_ws_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "request_id" => self.request_id(),
+            "sbe_read_flags" => self.sbe_read_flags(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
             "sbe_read_timestamp" => self.sbe_read_timestamp(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "sbe_read_uint" => self.sbe_read_uint(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
             "sbe_read_var_strings" => self.sbe_read_var_strings(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null)),
+            "watch_balance" => { crate::exchange_stubs::enqueue_spawn("watch_balance", args.to_vec()); crate::Value::Null },
             "watch_funding_rate" => { crate::exchange_stubs::enqueue_spawn("watch_funding_rate", args.to_vec()); crate::Value::Null },
             "watch_funding_rates" => { crate::exchange_stubs::enqueue_spawn("watch_funding_rates", args.to_vec()); crate::Value::Null },
+            "watch_my_trades" => { crate::exchange_stubs::enqueue_spawn("watch_my_trades", args.to_vec()); crate::Value::Null },
             "watch_order_book" => { crate::exchange_stubs::enqueue_spawn("watch_order_book", args.to_vec()); crate::Value::Null },
             "watch_orders" => { crate::exchange_stubs::enqueue_spawn("watch_orders", args.to_vec()); crate::Value::Null },
+            "watch_positions" => { crate::exchange_stubs::enqueue_spawn("watch_positions", args.to_vec()); crate::Value::Null },
             "watch_ticker" => { crate::exchange_stubs::enqueue_spawn("watch_ticker", args.to_vec()); crate::Value::Null },
             "watch_tickers" => { crate::exchange_stubs::enqueue_spawn("watch_tickers", args.to_vec()); crate::Value::Null },
             "watch_trades" => { crate::exchange_stubs::enqueue_spawn("watch_trades", args.to_vec()); crate::Value::Null },
@@ -267,9 +286,11 @@ impl ParadexCore {
         m.insert("watchTickers".to_string(), Value::Bool(true));
         m.insert("watchOrderBook".to_string(), Value::Bool(true));
         m.insert("watchOrders".to_string(), Value::Bool(true));
+        m.insert("watchMyTrades".to_string(), Value::Bool(true));
+        m.insert("watchPositions".to_string(), Value::Bool(true));
         m.insert("watchTrades".to_string(), Value::Bool(true));
         m.insert("watchTradesForSymbols".to_string(), Value::Bool(false));
-        m.insert("watchBalance".to_string(), Value::Bool(false));
+        m.insert("watchBalance".to_string(), Value::Bool(true));
         m.insert("watchOHLCV".to_string(), Value::Bool(false));
     m
 }));
@@ -388,7 +409,7 @@ impl ParadexCore {
  * @method
  * @name paradex#watchTrades
  * @description get the list of most recent trades for a particular symbol
- * @see https://docs.paradex.trade/ws/web-socket-channels/trades/trades
+ * @see https://docs.paradex.trade/ws/web-socket-channels/trades-market-symbol/trades-market-symbol
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
@@ -489,7 +510,7 @@ impl ParadexCore {
  * @method
  * @name paradex#watchOrderBook
  * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://docs.paradex.trade/ws/web-socket-channels/order-book/order-book
+ * @see https://docs.paradex.trade/ws/web-socket-channels/order-book-market-symbol-feed-type-15-refresh-rate-price-tick/order-book-market-symbol-feed-type-15-refresh-rate-price-tick
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -609,7 +630,7 @@ impl ParadexCore {
  * @method
  * @name paradex#watchTicker
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary/markets-summary
+ * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-symbol
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -649,7 +670,7 @@ impl ParadexCore {
  * @method
  * @name paradex#watchTickers
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
- * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary/markets-summary
+ * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-symbol
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -712,7 +733,7 @@ impl ParadexCore {
  * @method
  * @name paradex#watchOrders
  * @description watches information on multiple orders made by the user
- * @see https://docs.paradex.trade/ws/web-socket-channels/orders/orders
+ * @see https://docs.paradex.trade/ws/web-socket-channels/orders-market-symbol/orders-market-symbol
  * @param {string} [symbol] unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -817,6 +838,348 @@ impl ParadexCore {
         }
 }
 
+/*
+ * @method
+ * @name paradex#watchMyTrades
+ * @description watches information on multiple trades made by the user
+ * @see https://docs.paradex.trade/ws/web-socket-channels/fills-market-symbol/fills-market-symbol
+ * @param {string} [symbol] unified market symbol of the market trades were made in
+ * @param {int} [since] the earliest time in ms to fetch trades for
+ * @param {int} [limit] the maximum number of trade structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+ */
+    pub async fn watch_my_trades(&mut self, optional_args: &[Value]) -> Value {
+        let mut symbol = get_arg(optional_args, 0, Value::Null);
+        let mut since = get_arg(optional_args, 1, Value::Null);
+        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut params = get_arg(optional_args, 3, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if (self.markets.clone() == Value::Null) {
+            self.load_markets(&[]).await;
+        }
+        self.authenticate(&[]).await;
+        let mut messageHash: Value = Value::Str("myTrades".into());
+        let mut channel: Value = Value::Str("fills.".into());
+        let mut symbolResolved: Value = (if (symbol != Value::Null) { self.symbol(symbol.clone()) } else { symbol.clone() });
+        if (symbol != Value::Null) {
+            let mut market: Value = self.market(symbol);
+            channel = Value::Str(format!("{}{}", channel, market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into());
+            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), symbolResolved).into())).into());
+        }  else {
+            channel = Value::Str(format!("{}{}", channel, Value::Str("ALL".into())).into());
+        }
+        let mut url: Value = self.get_ws_url();
+        let mut request: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
+                m.insert("method".to_string(), Value::Str("subscribe".into()));
+                m.insert("params".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("channel".to_string(), channel.clone());
+    m
+}));
+            m
+        });
+        let __ws_arg_6 = self.deep_extend(request, &[params]);
+        let mut trades: Value = self.watch(url, messageHash, &[__ws_arg_6, channel]).await;
+        let mut limitResolved: Value = limit.clone();
+        if is_true(&self.newUpdates) {
+            limitResolved = trades.get_limit(symbolResolved.clone(), limit);
+        }
+        return self.filter_by_symbol_since_limit(trades, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
+
+    Value::Null
+}
+
+    pub fn handle_my_trade(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "fills.ALL",
+        //             "data": {
+        //                 "id": "1718947571560201703986670001",
+        //                 "side": "BUY",
+        //                 "liquidity": "TAKER",
+        //                 "market": "BTC-USD-PERP",
+        //                 "order_id": "1718947571540201703992340000",
+        //                 "price": "64852.9",
+        //                 "size": "0.01",
+        //                 "fee": "0.1945587",
+        //                 "fee_currency": "USDC",
+        //                 "created_at": 1718947571569,
+        //                 "remaining_size": "0",
+        //                 "client_id": "",
+        //                 "fill_type": "FILL"
+        //             }
+        //         }
+        //     }
+        //
+        let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) });
+        let mut data: Value = self.safe_dict_k(params, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
+        let mut trade: Value = self.parse_trade(data, &[]);
+        let mut symbol: Value = self.safe_string_k(trade.clone(), "symbol", &[]);
+        if (self.myTrades.clone() == Value::Null) {
+            let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
+            self.myTrades = ArrayCacheBySymbolById::new(limit);
+        }
+        let mut trades: Value = self.myTrades.clone();
+        trades.append(trade);
+        let mut messageHash: Value = Value::Str("myTrades".into());
+        client.resolve(&[trades.clone(), messageHash.clone()]);
+        if (symbol != Value::Null) {
+            client.resolve(&[trades, Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol).into())]);
+        }
+}
+
+/*
+ * @method
+ * @name paradex#watchPositions
+ * @description watch all open positions
+ * @see https://docs.paradex.trade/ws/web-socket-channels/positions/positions
+ * @param {string[]} [symbols] list of unified market symbols
+ * @param {int} [since] the earliest time in ms to fetch positions for
+ * @param {int} [limit] the maximum number of positions to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+ */
+    pub async fn watch_positions(&mut self, optional_args: &[Value]) -> Value {
+        let mut symbols = get_arg(optional_args, 0, Value::Null);
+        let mut since = get_arg(optional_args, 1, Value::Null);
+        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut params = get_arg(optional_args, 3, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if (self.markets.clone() == Value::Null) {
+            self.load_markets(&[]).await;
+        }
+        self.authenticate(&[]).await;
+        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        // one channel carries every market
+        let mut channel: Value = Value::Str("positions".into());
+        let mut url: Value = self.get_ws_url();
+        let mut request: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
+                m.insert("method".to_string(), Value::Str("subscribe".into()));
+                m.insert("params".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("channel".to_string(), channel.clone());
+    m
+}));
+            m
+        });
+        let mut messageHashes: Value = Value::from(vec![]);
+        let mut symbolsLength: Value = Value::Int(0);
+        if (symbolsNormalized != Value::Null) {
+            symbolsLength = Value::Int(symbolsNormalized.len() as i64);
+        }
+        if (symbolsLength.as_f64() == Some(0.0)) {
+            append_to_array(&mut messageHashes, channel.clone());
+        }  else {
+            {
+                                let mut i: Value = Value::Int(0);
+                let mut __for_first_571: bool = true;
+                while { if !__for_first_571 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_571 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength.as_f64().unwrap_or(f64::NAN) } {
+                append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).into()));
+            }
+            }
+        }
+        let __ws_arg_7 = self.deep_extend(request, &[params]);
+        let mut newPositions: Value = self.watch_multiple(url, messageHashes, &[__ws_arg_7, Value::from(vec![channel])]).await;
+        if is_true(&self.newUpdates) {
+            return newPositions;
+        }
+        return self.filter_by_symbols_since_limit(self.positions.clone(), &[symbolsNormalized, since, limit, Value::Bool(true)]);
+
+    Value::Null
+}
+
+    pub fn handle_positions(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "positions",
+        //             "data": {
+        //                 "id": "0x49ddd7a564c978f6e4089ff8355b56a42b7e2d48ba282cb5aad60f04bea0ec3-BTC-USD-PERP",
+        //                 "market": "BTC-USD-PERP",
+        //                 "status": "OPEN",
+        //                 "side": "LONG",
+        //                 "size": "0.01",
+        //                 "average_entry_price": "64839.96053748",
+        //                 "unrealized_pnl": "-2.39677214",
+        //                 "leverage": "5",
+        //                 "cost_usd": "648.529",
+        //                 "created_at": 1718947571560,
+        //                 "last_updated_at": 1718950074249,
+        //                 "liquidation_price": ""
+        //             }
+        //         }
+        //     }
+        //
+        let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) });
+        let mut data: Value = self.safe_dict_k(params, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
+        if (self.positions.clone() == Value::Null) {
+            self.positions = ArrayCacheBySymbolBySide::new(Value::Null);
+        }
+        let mut cache: Value = self.positions.clone();
+        let mut position: Value = self.parse_position(data, &[]);
+        let mut symbol: Value = position.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut newPositions: Value = Value::from(vec![]);
+        // one position per market, so a fill through zero flips its side: the cache keys by
+        // symbol and side, and the opposite side it still holds is flattened here
+        let mut side: Value = self.safe_string_k(position.clone(), "side", &[]);
+        let mut cached: Value = self.filter_by_symbol_since_limit(cache.clone(), &[symbol.clone(), Value::Null, Value::Null, Value::Bool(true)]);
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_572: bool = true;
+            while { if !__for_first_572 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_572 = false; i.as_f64().unwrap_or(f64::NAN) < ((cached.len() as i64) as f64) } {
+            let mut previous: Value = cached.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut previousSide: Value = self.safe_string_k(previous.clone(), "side", &[]);
+            let mut previousContracts: Value = self.safe_string_k(previous.clone(), "contracts", &[]);
+            let mut isOpposite: bool = (side != Value::Null) && (previousSide != Value::Null) && (previousSide.as_str() != side.as_str());
+            if isOpposite && (previousContracts != Value::Null) && !is_true(&crate::precise::Precise::stringEq(&previousContracts, &Value::Str("0".into()))) {
+                let __ws_arg_8 = self.parse_number(Value::Str("0".into()), &[]);
+                let __ws_arg_9 = self.safe_integer_k(position.clone(), "lastUpdateTimestamp", &[]);
+                let mut flattened: Value = self.extend(previous, &[Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                        m.insert("contracts".to_string(), __ws_arg_8);
+                        m.insert("lastUpdateTimestamp".to_string(), __ws_arg_9);
+                    m
+                })]);
+                cache.append(flattened.clone());
+                append_to_array(&mut newPositions, flattened);
+            }
+        }
+        }
+        cache.append(position.clone());
+        append_to_array(&mut newPositions, position);
+        client.resolve(&[newPositions.clone(), Value::Str("positions".into())]);
+        client.resolve(&[newPositions, Value::Str(format!("{}{}", Value::Str("positions:".into()), symbol).into())]);
+}
+
+/*
+ * @method
+ * @name paradex#watchBalance
+ * @description watch the margin balance of the account in its settlement asset: total is the account
+ * value, free the free collateral and used the initial margin requirement
+ * @see https://docs.paradex.trade/ws/web-socket-channels/account/account
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+ */
+    pub async fn watch_balance(&mut self, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if (self.markets.clone() == Value::Null) {
+            self.load_markets(&[]).await;
+        }
+        self.authenticate(&[]).await;
+        let mut channel: Value = Value::Str("account".into());
+        let mut url: Value = self.get_ws_url();
+        let mut request: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
+                m.insert("method".to_string(), Value::Str("subscribe".into()));
+                m.insert("params".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("channel".to_string(), channel.clone());
+    m
+}));
+            m
+        });
+        let __ws_arg_10 = self.deep_extend(request, &[params]);
+        return self.watch(url, Value::Str("balance".into()), &[__ws_arg_10, channel]).await;
+
+    Value::Null
+}
+
+    pub fn handle_balance(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "account",
+        //             "data": {
+        //                 "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b",
+        //                 "account_value": "1000.5",
+        //                 "free_collateral": "900.5",
+        //                 "initial_margin_requirement": "100",
+        //                 "maintenance_margin_requirement": "50",
+        //                 "margin_cushion": "950.5",
+        //                 "seq_no": 20,
+        //                 "settlement_asset": "USDC",
+        //                 "status": "ACTIVE",
+        //                 "total_collateral": "1000",
+        //                 "updated_at": 1718950074249
+        //             }
+        //         }
+        //     }
+        //
+        let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) });
+        let mut data: Value = self.safe_dict_k(params, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
+        { let __t = self.parse_ws_balance(data); self.balance = __t; }
+        client.resolve(&[self.balance.clone(), Value::Str("balance".into())]);
+}
+
+    pub fn parse_ws_balance(&self, mut data: Value) -> Value {
+        // the account channel carries margin, not token holdings: the account value (collateral with
+        // unrealized pnl) is the total, the free collateral what can still back a new position, and the
+        // initial margin the part the open positions hold, free + used = total as the venue computes them
+        let mut timestamp: Value = self.safe_integer_k(data.clone(), "updated_at", &[]);
+        let mut result: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("info".to_string(), data.clone());
+                m.insert("timestamp".to_string(), timestamp.clone());
+                m.insert("datetime".to_string(), self.iso8601(timestamp));
+            m
+        });
+        let mut code: Value = self.safe_currency_code(self.safe_string_k(data.clone(), "settlement_asset", &[]), &[]);
+        let mut account: Value = self.account();
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(data.clone(), "account_value", &[])); }
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(data.clone(), "free_collateral", &[])); }
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(data, "initial_margin_requirement", &[])); }
+        if (code != Value::Null) {
+            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
+        }
+        return self.safe_balance(result);
+
+    Value::Null
+}
+
     pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) -> Value {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
@@ -899,8 +1262,8 @@ impl ParadexCore {
             m
         });
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(".".into())).into()), symbolValue).into());
-        let __ws_arg_6 = self.deep_extend(request, &[params]);
-        return self.watch(url, messageHash.clone(), &[__ws_arg_6, messageHash.clone()]).await;
+        let __ws_arg_11 = self.deep_extend(request, &[params]);
+        return self.watch(url, messageHash.clone(), &[__ws_arg_11, messageHash.clone()]).await;
 
     Value::Null
 }
@@ -909,7 +1272,7 @@ impl ParadexCore {
  * @method
  * @name paradex#watchFundingRates
  * @description watch the funding rate for multiple markets
- * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary/markets-summary
+ * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-symbol
  * @param {string[]} [symbols] a list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -943,8 +1306,8 @@ impl ParadexCore {
             if symbolsLength > ((0i64) as f64) {
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_571: bool = true;
-                    while { if !__for_first_571 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_571 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+                    let mut __for_first_573: bool = true;
+                    while { if !__for_first_573 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_573 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
                     let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(".".into())).into()), symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).into());
                     append_to_array(&mut messageHashes, messageHash);
                 }
@@ -955,8 +1318,8 @@ impl ParadexCore {
         }  else {
             append_to_array(&mut messageHashes, channel);
         }
-        let __ws_arg_7 = self.deep_extend(request, &[params]);
-        let mut newFundingRates: Value = self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_7, messageHashes.clone()]).await;
+        let __ws_arg_12 = self.deep_extend(request, &[params]);
+        let mut newFundingRates: Value = self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_12, messageHashes.clone()]).await;
         if is_true(&self.newUpdates) {
             let mut result: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1102,10 +1465,21 @@ impl ParadexCore {
             data = self.parse_sbe_funding_data(frameHex.clone(), blockLength.clone(), frameLength.clone());
             channel = Value::Str("funding_data".into());
         }  else if is_equal(&templateId, &Value::Int(20)) {
-            data = self.parse_sbe_order(frameHex, blockLength, frameLength);
+            data = self.parse_sbe_order(frameHex.clone(), blockLength.clone(), frameLength.clone());
             if (data != Value::Null) {
                 channel = add(&Value::Str("orders.".into()), &crate::value::get_value_k(&data, "market"));
             }
+        }  else if is_equal(&templateId, &Value::Int(21)) {
+            data = self.parse_sbe_fill(frameHex.clone(), blockLength.clone(), frameLength.clone());
+            if (data != Value::Null) {
+                channel = add(&Value::Str("fills.".into()), &crate::value::get_value_k(&data, "market"));
+            }
+        }  else if is_equal(&templateId, &Value::Int(22)) {
+            data = self.parse_sbe_position(frameHex.clone(), blockLength.clone(), frameLength.clone());
+            channel = Value::Str("positions".into());
+        }  else if is_equal(&templateId, &Value::Int(23)) {
+            data = self.parse_sbe_account(frameHex, blockLength, frameLength);
+            channel = Value::Str("account".into());
         }
         if (data == Value::Null) {
             return Value::Null;
@@ -1133,8 +1507,8 @@ impl ParadexCore {
         let mut position: Value = (match (&(offset), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_572: bool = true;
-            while { if !__for_first_572 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_572 = false; i.as_f64().unwrap_or(f64::NAN) < length.as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_574: bool = true;
+            while { if !__for_first_574 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_574 = false; i.as_f64().unwrap_or(f64::NAN) < length.as_f64().unwrap_or(f64::NAN) } {
             // plain variables as slice bounds, php gets end - start unparenthesized
             let mut middle: Value = (match (&(position), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
             let mut next: Value = (match (&(position), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
@@ -1221,8 +1595,8 @@ impl ParadexCore {
         let mut position: Value = offset;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_573: bool = true;
-            while { if !__for_first_573 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_573 = false; i.as_f64().unwrap_or(f64::NAN) < count.as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_575: bool = true;
+            while { if !__for_first_575 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_575 = false; i.as_f64().unwrap_or(f64::NAN) < count.as_f64().unwrap_or(f64::NAN) } {
             if position.as_f64().unwrap_or(f64::NAN) >= frameLength.as_f64().unwrap_or(f64::NAN) {
                 return result;
             }
@@ -1305,8 +1679,8 @@ impl ParadexCore {
         let mut position: Value = self.sum(&[blockLength, Value::Int(8)]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_575: bool = true;
-            while { if !__for_first_575 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_575 = false; i.as_f64().unwrap_or(f64::NAN) < ((sides.len() as i64) as f64) } {
+            let mut __for_first_577: bool = true;
+            while { if !__for_first_577 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_577 = false; i.as_f64().unwrap_or(f64::NAN) < ((sides.len() as i64) as f64) } {
             if add(&position, &Value::Int(4)).as_f64().unwrap_or(f64::NAN) > frameLength.as_f64().unwrap_or(f64::NAN) {
                 return Value::Null;
             }
@@ -1318,8 +1692,8 @@ impl ParadexCore {
             }
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_574: bool = true;
-                while { if !__for_first_574 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_574 = false; j.as_f64().unwrap_or(f64::NAN) < numInGroup.as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_576: bool = true;
+                while { if !__for_first_576 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_576 = false; j.as_f64().unwrap_or(f64::NAN) < numInGroup.as_f64().unwrap_or(f64::NAN) } {
                 append_to_array(&mut inserts, Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("side".to_string(), sides.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
@@ -1483,20 +1857,7 @@ impl ParadexCore {
                 m.insert("3".to_string(), Value::Str("EXPIRE_BOTH".into()));
             m
         });
-        let mut flagNames: Value = Value::from(vec![Value::Str("REDUCE_ONLY".into()), Value::Str("STOP_CONDITION_BELOW_TRIGGER".into()), Value::Str("STOP_CONDITION_ABOVE_TRIGGER".into()), Value::Str("INTERACTIVE".into()), Value::Str("TARGET_STRATEGY_VWAP".into()), Value::Str("MMP".into())]);
-        let mut flags: Value = Value::from(vec![]);
-        let mut flagBits: Value = self.sbe_read_uint(frameHex.clone(), Value::Int(133), Value::Int(1));
-        {
-                        let mut i: Value = Value::Int(0);
-            let mut __for_first_576: bool = true;
-            while { if !__for_first_576 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_576 = false; i.as_f64().unwrap_or(f64::NAN) < ((flagNames.len() as i64) as f64) } {
-            let mut bit: Value = self.parse_to_int(mod_val(&flagBits, &Value::Int(2)));
-            if (bit.as_f64() == Some(1.0)) {
-                append_to_array(&mut flags, flagNames.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
-            }
-            flagBits = self.parse_to_int((match (((subtract(&flagBits, &bit))).as_f64(), (Value::Int(2)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
-        }
-        }
+        let mut flags: Value = self.sbe_read_flags(frameHex.clone(), Value::Int(133), Value::from(vec![Value::Str("REDUCE_ONLY".into()), Value::Str("STOP_CONDITION_BELOW_TRIGGER".into()), Value::Str("STOP_CONDITION_ABOVE_TRIGGER".into()), Value::Str("INTERACTIVE".into()), Value::Str("TARGET_STRATEGY_VWAP".into()), Value::Str("MMP".into())]));
         let mut order: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("account".to_string(), self.sbe_read_address(frameHex.clone(), Value::Int(84)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
@@ -1527,6 +1888,205 @@ impl ParadexCore {
             if let Value::Dict(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("cancel_reason".into(), get_value(&strings, &Value::Int(3))); }
         }
         return order;
+
+    Value::Null
+}
+
+    pub fn sbe_read_flags(&self, mut frameHex: Value, mut offset: Value, mut names: Value) -> Value {
+        // a uint8 bitset, names[bit] for each set bit, an empty name for a bit the schema leaves unused
+        let mut flags: Value = Value::from(vec![]);
+        let mut bits: Value = self.sbe_read_uint(frameHex, offset, Value::Int(1));
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_578: bool = true;
+            while { if !__for_first_578 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_578 = false; i.as_f64().unwrap_or(f64::NAN) < ((names.len() as i64) as f64) } {
+            let mut bit: Value = self.parse_to_int(mod_val(&bits, &Value::Int(2)));
+            if (bit.as_f64() == Some(1.0)) && (names.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null).as_str() != Some("")) {
+                append_to_array(&mut flags, names.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
+            }
+            bits = self.parse_to_int((match (((subtract(&bits, &bit))).as_f64(), (Value::Int(2)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+        }
+        }
+        return flags;
+
+    Value::Null
+}
+
+    pub fn parse_sbe_fill(&self, mut frameHex: Value, mut blockLength: Value, mut frameLength: Value) -> Value {
+        //
+        // FillEvent (templateId 21), 116-byte block (107 before the 1:2 flags and orderbookSeqNo)
+        //
+        //     ts int64, seq int64 (nullable), fillType uint8, side uint8, liquidity uint8, price int64,
+        //     size int64, fee int64, realizedPnl int64 (nullable), createdAt int64, account [32]byte,
+        //     underlyingPrice int64, realizedFunding int64, flags uint8, orderbookSeqNo uint64, then the
+        //     fillId, orderId, clientOrderId, tradeId, market and feeCurrency (1:2) strings
+        //
+        if blockLength.as_f64().unwrap_or(f64::NAN) < ((107i64) as f64) {
+            return Value::Null;
+        }
+        let mut strings: Value = self.sbe_read_var_strings(frameHex.clone(), self.sum(&[blockLength.clone(), Value::Int(8)]), Value::Int(6), frameLength);
+        let mut stringsLength: Value = (if (strings == Value::Null) { Value::Int(0) } else { get_array_length(&strings) });
+        if stringsLength.as_f64().unwrap_or(f64::NAN) < ((5i64) as f64) {
+            return Value::Null;
+        }
+        let mut fillTypes: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("1".to_string(), Value::Str("FILL".into()));
+                m.insert("2".to_string(), Value::Str("LIQUIDATION".into()));
+                m.insert("3".to_string(), Value::Str("UNWIND_TRANSFER".into()));
+                m.insert("4".to_string(), Value::Str("SETTLE_MARKET".into()));
+                m.insert("5".to_string(), Value::Str("RPI".into()));
+                m.insert("6".to_string(), Value::Str("BLOCK_TRADE".into()));
+            m
+        });
+        let mut sides: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("1".to_string(), Value::Str("BUY".into()));
+                m.insert("2".to_string(), Value::Str("SELL".into()));
+            m
+        });
+        let mut liquidities: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("1".to_string(), Value::Str("MAKER".into()));
+                m.insert("2".to_string(), Value::Str("TAKER".into()));
+            m
+        });
+        let mut fill: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("account".to_string(), self.sbe_read_address(frameHex.clone(), Value::Int(67)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+                m.insert("client_id".to_string(), get_value(&strings, &Value::Int(2)));
+                m.insert("created_at".to_string(), self.sbe_read_timestamp(frameHex.clone(), Value::Int(59)));
+                m.insert("fee".to_string(), self.sbe_read_decimal(frameHex.clone(), Value::Int(43)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+                m.insert("fee_currency".to_string(), self.safe_string(strings.clone(), Value::Int(5), &[]));
+                m.insert("fill_type".to_string(), self.sbe_read_enum(frameHex.clone(), Value::Int(24), fillTypes).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+                m.insert("id".to_string(), get_value(&strings, &Value::Int(0)));
+                m.insert("liquidity".to_string(), self.sbe_read_enum(frameHex.clone(), Value::Int(26), liquidities).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+                m.insert("market".to_string(), get_value(&strings, &Value::Int(4)));
+                m.insert("order_id".to_string(), get_value(&strings, &Value::Int(1)));
+                m.insert("price".to_string(), self.sbe_read_decimal(frameHex.clone(), Value::Int(27)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+                m.insert("realized_funding".to_string(), self.sbe_read_decimal(frameHex.clone(), Value::Int(107)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+                m.insert("realized_pnl".to_string(), self.sbe_read_decimal(frameHex.clone(), Value::Int(51)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+                m.insert("side".to_string(), self.sbe_read_enum(frameHex.clone(), Value::Int(25), sides).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+                m.insert("size".to_string(), self.sbe_read_decimal(frameHex.clone(), Value::Int(35)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+                m.insert("underlying_price".to_string(), self.sbe_read_decimal(frameHex.clone(), Value::Int(99)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+            m
+        });
+        if blockLength.as_f64().unwrap_or(f64::NAN) >= ((116i64) as f64) {
+            // lowercase, as the JSON feed spells fill flags
+            if let Value::Dict(__d) = &mut fill { std::sync::Arc::make_mut(__d).insert("flags".into(), self.sbe_read_flags(frameHex.clone(), Value::Int(115), Value::from(vec![Value::Str("interactive".into()), Value::Str("rpi".into()), Value::Str("fastfill".into()), Value::Str("".into()), Value::Str("".into()), Value::Str("".into()), Value::Str("".into()), Value::Str("unknown".into())]))); }
+            if let Value::Dict(__d) = &mut fill { std::sync::Arc::make_mut(__d).insert("orderbook_seq_no".into(), self.sbe_read_int64(frameHex, Value::Int(116)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)); }
+        }
+        return fill;
+
+    Value::Null
+}
+
+    pub fn parse_sbe_position(&self, mut frameHex: Value, mut blockLength: Value, mut frameLength: Value) -> Value {
+        //
+        // PositionEvent (templateId 22), 154-byte block
+        //
+        //     ts int64, seq int64, side uint8, size int64 (absolute), avgEntryPrice int64,
+        //     unrealizedPnl int64, realizedPnl int64, markPrice int64 (always null), liquidationPrice
+        //     int64 (nullable), leverage int64, updatedAt int64, account [32]byte, avgEntryPriceUsd
+        //     int64, cost int64, costUsd int64, cachedFundingIndex int64, unrealizedFundingPnl int64,
+        //     status uint8, then the market and lastFillId strings
+        //
+        if blockLength.as_f64().unwrap_or(f64::NAN) < ((154i64) as f64) {
+            return Value::Null;
+        }
+        let mut strings: Value = self.sbe_read_var_strings(frameHex.clone(), self.sum(&[blockLength, Value::Int(8)]), Value::Int(2), frameLength);
+        let mut stringsLength: Value = (if (strings == Value::Null) { Value::Int(0) } else { get_array_length(&strings) });
+        if stringsLength.as_f64().unwrap_or(f64::NAN) < ((1i64) as f64) {
+            return Value::Null;
+        }
+        let mut sides: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("1".to_string(), Value::Str("LONG".into()));
+                m.insert("2".to_string(), Value::Str("SHORT".into()));
+            m
+        });
+        let mut statuses: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("1".to_string(), Value::Str("OPEN".into()));
+                m.insert("2".to_string(), Value::Str("CLOSED".into()));
+            m
+        });
+        let mut side: Value = self.sbe_read_enum(frameHex.clone(), Value::Int(24), sides).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+        let mut account: Value = self.sbe_read_address(frameHex.clone(), Value::Int(89)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+        // the frame carries the size unsigned, the JSON channel signs it negative for a short
+        let mut size: Value = self.sbe_read_decimal(frameHex.clone(), Value::Int(25)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+        if (side.as_str() == Some("SHORT")) && (size.as_str() != Some("0")) {
+            size = crate::precise::Precise::stringNeg(&size);
+        }
+        return Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("account".to_string(), account.clone());
+        m.insert("average_entry_price".to_string(), self.sbe_read_decimal(frameHex.clone(), Value::Int(33)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+        m.insert("average_entry_price_usd".to_string(), self.sbe_read_decimal(frameHex.clone(), Value::Int(121)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+        m.insert("cached_funding_index".to_string(), self.sbe_read_decimal(frameHex.clone(), Value::Int(145)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+        m.insert("cost".to_string(), self.sbe_read_decimal(frameHex.clone(), Value::Int(129)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+        m.insert("cost_usd".to_string(), self.sbe_read_decimal(frameHex.clone(), Value::Int(137)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+        m.insert("id".to_string(), add(&Value::Str(format!("{}{}", account, Value::Str("-".into())).into()), &get_value(&strings, &Value::Int(0))));
+        m.insert("last_fill_id".to_string(), self.safe_string(strings.clone(), Value::Int(1), &[]));
+        m.insert("last_updated_at".to_string(), self.sbe_read_timestamp(frameHex.clone(), Value::Int(81)));
+        m.insert("leverage".to_string(), self.sbe_read_decimal(frameHex.clone(), Value::Int(73)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+        m.insert("liquidation_price".to_string(), self.sbe_read_decimal(frameHex.clone(), Value::Int(65)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+        m.insert("market".to_string(), get_value(&strings, &Value::Int(0)));
+        m.insert("realized_positional_pnl".to_string(), self.sbe_read_decimal(frameHex.clone(), Value::Int(49)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+        m.insert("seq_no".to_string(), self.sbe_read_int64(frameHex.clone(), Value::Int(16)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+        m.insert("side".to_string(), side);
+        m.insert("size".to_string(), size);
+        m.insert("status".to_string(), self.sbe_read_enum(frameHex.clone(), Value::Int(161), statuses).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+        m.insert("unrealized_funding_pnl".to_string(), self.sbe_read_decimal(frameHex.clone(), Value::Int(153)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+        m.insert("unrealized_pnl".to_string(), self.sbe_read_decimal(frameHex, Value::Int(41)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+    m
+});
+
+    Value::Null
+}
+
+    pub fn parse_sbe_account(&self, mut frameHex: Value, mut blockLength: Value, mut frameLength: Value) -> Value {
+        //
+        // AccountEvent (templateId 23), 121-byte block (113 before the 1:2 lastSeenNotification)
+        //
+        //     ts int64, seq int64, totalCollateral int64, freeCollateral int64, initialMarginReq int64,
+        //     maintenanceMarginReq int64, accountValue int64, unrealizedPnl int64 (nullable), updatedAt
+        //     int64, account [32]byte, marginCushion int64, status uint8, lastSeenNotification int64,
+        //     then the settlementAsset string
+        //
+        if blockLength.as_f64().unwrap_or(f64::NAN) < ((113i64) as f64) {
+            return Value::Null;
+        }
+        let mut strings: Value = self.sbe_read_var_strings(frameHex.clone(), self.sum(&[blockLength.clone(), Value::Int(8)]), Value::Int(1), frameLength);
+        let mut stringsLength: Value = (if (strings == Value::Null) { Value::Int(0) } else { get_array_length(&strings) });
+        if stringsLength.as_f64().unwrap_or(f64::NAN) < ((1i64) as f64) {
+            return Value::Null;
+        }
+        let mut statuses: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("1".to_string(), Value::Str("ACTIVE".into()));
+                m.insert("2".to_string(), Value::Str("LIQUIDATION".into()));
+            m
+        });
+        let mut account: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("account".to_string(), self.sbe_read_address(frameHex.clone(), Value::Int(80)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+                m.insert("account_value".to_string(), self.sbe_read_decimal(frameHex.clone(), Value::Int(56)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+                m.insert("free_collateral".to_string(), self.sbe_read_decimal(frameHex.clone(), Value::Int(32)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+                m.insert("initial_margin_requirement".to_string(), self.sbe_read_decimal(frameHex.clone(), Value::Int(40)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+                m.insert("maintenance_margin_requirement".to_string(), self.sbe_read_decimal(frameHex.clone(), Value::Int(48)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+                m.insert("margin_cushion".to_string(), self.sbe_read_decimal(frameHex.clone(), Value::Int(112)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+                m.insert("seq_no".to_string(), self.sbe_read_int64(frameHex.clone(), Value::Int(16)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+                m.insert("settlement_asset".to_string(), get_value(&strings, &Value::Int(0)));
+                m.insert("status".to_string(), self.sbe_read_enum(frameHex.clone(), Value::Int(120), statuses).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+                m.insert("total_collateral".to_string(), self.sbe_read_decimal(frameHex.clone(), Value::Int(24)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+                m.insert("updated_at".to_string(), self.sbe_read_timestamp(frameHex.clone(), Value::Int(72)));
+            m
+        });
+        if blockLength.as_f64().unwrap_or(f64::NAN) >= ((121i64) as f64) {
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("last_seen_notification".into(), self.sbe_read_timestamp(frameHex, Value::Int(121))); }
+        }
+        return account;
 
     Value::Null
 }
@@ -1623,6 +2183,9 @@ impl ParadexCore {
                     m.insert("markets_summary".to_string(), Value::Str("handle_ticker".into()).clone());
                     m.insert("orders".to_string(), Value::Str("handle_order".into()).clone());
                     m.insert("funding_data".to_string(), Value::Str("handle_funding_rate".into()).clone());
+                    m.insert("fills".to_string(), Value::Str("handle_my_trade".into()).clone());
+                    m.insert("positions".to_string(), Value::Str("handle_positions".into()).clone());
+                    m.insert("account".to_string(), Value::Str("handle_balance".into()).clone());
                 m
             });
             let mut method: Value = self.safe_value(methods, name, &[]);

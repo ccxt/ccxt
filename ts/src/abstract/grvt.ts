@@ -10,223 +10,296 @@ import { Exchange as _Exchange } from '../base/Exchange.js';
 
 abstract class Exchange extends _Exchange {
     privateEdgeGetApiV1DepositAddresses (params = {}): Promise<Dict> {
-        return this.request ("api/v1/deposit/addresses", "privateEdge", 'GET', params, undefined, undefined, {"cost":40});
+        return this.request ('api/v1/deposit/addresses', [ 'privateEdge' ], 'GET', params, { 'cost': 40 });
     }
+
     privateEdgeGetApiV1BridgeWithdrawalInfo (params = {}): Promise<Dict> {
-        return this.request ("api/v1/bridge/withdrawal-info", "privateEdge", 'GET', params, undefined, undefined, {"cost":40});
+        return this.request ('api/v1/bridge/withdrawal-info', [ 'privateEdge' ], 'GET', params, { 'cost': 40 });
     }
+
     privateEdgeGetApiV1BridgeWithdrawalStatus (params = {}): Promise<Dict> {
-        return this.request ("api/v1/bridge/withdrawal-status", "privateEdge", 'GET', params, undefined, undefined, {"cost":40});
+        return this.request ('api/v1/bridge/withdrawal-status', [ 'privateEdge' ], 'GET', params, { 'cost': 40 });
     }
+
     privateEdgeGetApiV1ReferralEpochs (params = {}): Promise<Dict> {
-        return this.request ("api/v1/referral/epochs", "privateEdge", 'GET', params, undefined, undefined, {"cost":40});
+        return this.request ('api/v1/referral/epochs', [ 'privateEdge' ], 'GET', params, { 'cost': 40 });
     }
+
     privateEdgeGetApiV1ReferralPoints (params = {}): Promise<Dict> {
-        return this.request ("api/v1/referral/points", "privateEdge", 'GET', params, undefined, undefined, {"cost":40});
+        return this.request ('api/v1/referral/points', [ 'privateEdge' ], 'GET', params, { 'cost': 40 });
     }
+
     privateEdgeGetApiV1ReferralData (params = {}): Promise<Dict> {
-        return this.request ("api/v1/referral/data", "privateEdge", 'GET', params, undefined, undefined, {"cost":40});
+        return this.request ('api/v1/referral/data', [ 'privateEdge' ], 'GET', params, { 'cost': 40 });
     }
+
     privateEdgeGetApiV1ReferralIndirectData (params = {}): Promise<Dict> {
-        return this.request ("api/v1/referral/indirect_data", "privateEdge", 'GET', params, undefined, undefined, {"cost":40});
+        return this.request ('api/v1/referral/indirect_data', [ 'privateEdge' ], 'GET', params, { 'cost': 40 });
     }
+
     privateEdgePostAuthApiKeyLogin (params = {}): Promise<Dict> {
-        return this.request ("auth/api_key/login", "privateEdge", 'POST', params, undefined, undefined, {"cost":100});
+        return this.request ('auth/api_key/login', [ 'privateEdge' ], 'POST', params, { 'cost': 100 });
     }
+
     privateEdgePostAuthWalletLogin (params = {}): Promise<Dict> {
-        return this.request ("auth/wallet/login", "privateEdge", 'POST', params, undefined, undefined, {"cost":100});
+        return this.request ('auth/wallet/login', [ 'privateEdge' ], 'POST', params, { 'cost': 100 });
     }
+
     privateEdgePostAuthBuilderAuthorize (params = {}): Promise<Dict> {
-        return this.request ("auth/builder/authorize", "privateEdge", 'POST', params, undefined, undefined, {"cost":100});
+        return this.request ('auth/builder/authorize', [ 'privateEdge' ], 'POST', params, { 'cost': 100 });
     }
+
     privateEdgePostApiV1DepositGenerateAddress (params = {}): Promise<Dict> {
-        return this.request ("api/v1/deposit/generate-address", "privateEdge", 'POST', params, undefined, undefined, {"cost":100});
+        return this.request ('api/v1/deposit/generate-address', [ 'privateEdge' ], 'POST', params, { 'cost': 100 });
     }
+
     privateEdgePostApiV1BridgeWithdrawalQuote (params = {}): Promise<Dict> {
-        return this.request ("api/v1/bridge/withdrawal-quote", "privateEdge", 'POST', params, undefined, undefined, {"cost":100});
+        return this.request ('api/v1/bridge/withdrawal-quote', [ 'privateEdge' ], 'POST', params, { 'cost': 100 });
     }
+
     privateEdgePostApiV1BridgeWithdraw (params = {}): Promise<Dict> {
-        return this.request ("api/v1/bridge/withdraw", "privateEdge", 'POST', params, undefined, undefined, {"cost":100});
+        return this.request ('api/v1/bridge/withdraw', [ 'privateEdge' ], 'POST', params, { 'cost': 100 });
     }
+
     publicMarketPostFullV1Instrument (params = {}): Promise<Dict> {
-        return this.request ("full/v1/instrument", "publicMarket", 'POST', params, undefined, undefined, {"cost":4});
+        return this.request ('full/v1/instrument', [ 'publicMarket' ], 'POST', params, { 'cost': 4 });
     }
+
     publicMarketPostFullV1AllInstruments (params = {}): Promise<Dict> {
-        return this.request ("full/v1/all_instruments", "publicMarket", 'POST', params, undefined, undefined, {"cost":4});
+        return this.request ('full/v1/all_instruments', [ 'publicMarket' ], 'POST', params, { 'cost': 4 });
     }
+
     publicMarketPostFullV1Instruments (params = {}): Promise<Dict> {
-        return this.request ("full/v1/instruments", "publicMarket", 'POST', params, undefined, undefined, {"cost":4});
+        return this.request ('full/v1/instruments', [ 'publicMarket' ], 'POST', params, { 'cost': 4 });
     }
+
     publicMarketPostFullV1Currency (params = {}): Promise<Dict> {
-        return this.request ("full/v1/currency", "publicMarket", 'POST', params, undefined, undefined, {"cost":12});
+        return this.request ('full/v1/currency', [ 'publicMarket' ], 'POST', params, { 'cost': 12 });
     }
+
     publicMarketPostFullV1MarginRules (params = {}): Promise<Dict> {
-        return this.request ("full/v1/margin_rules", "publicMarket", 'POST', params, undefined, undefined, {"cost":12});
+        return this.request ('full/v1/margin_rules', [ 'publicMarket' ], 'POST', params, { 'cost': 12 });
     }
+
     publicMarketPostFullV1Mini (params = {}): Promise<Dict> {
-        return this.request ("full/v1/mini", "publicMarket", 'POST', params, undefined, undefined, {"cost":4});
+        return this.request ('full/v1/mini', [ 'publicMarket' ], 'POST', params, { 'cost': 4 });
     }
+
     publicMarketPostFullV1Ticker (params = {}): Promise<Dict> {
-        return this.request ("full/v1/ticker", "publicMarket", 'POST', params, undefined, undefined, {"cost":4});
+        return this.request ('full/v1/ticker', [ 'publicMarket' ], 'POST', params, { 'cost': 4 });
     }
+
     publicMarketPostFullV1Book (params = {}): Promise<Dict> {
-        return this.request ("full/v1/book", "publicMarket", 'POST', params, undefined, undefined, {"cost":12});
+        return this.request ('full/v1/book', [ 'publicMarket' ], 'POST', params, { 'cost': 12 });
     }
+
     publicMarketPostFullV1Trade (params = {}): Promise<Dict> {
-        return this.request ("full/v1/trade", "publicMarket", 'POST', params, undefined, undefined, {"cost":12});
+        return this.request ('full/v1/trade', [ 'publicMarket' ], 'POST', params, { 'cost': 12 });
     }
+
     publicMarketPostFullV1TradeHistory (params = {}): Promise<Dict> {
-        return this.request ("full/v1/trade_history", "publicMarket", 'POST', params, undefined, undefined, {"cost":12});
+        return this.request ('full/v1/trade_history', [ 'publicMarket' ], 'POST', params, { 'cost': 12 });
     }
+
     publicMarketPostFullV1Kline (params = {}): Promise<Dict> {
-        return this.request ("full/v1/kline", "publicMarket", 'POST', params, undefined, undefined, {"cost":12});
+        return this.request ('full/v1/kline', [ 'publicMarket' ], 'POST', params, { 'cost': 12 });
     }
+
     publicMarketPostFullV1Funding (params = {}): Promise<Dict> {
-        return this.request ("full/v1/funding", "publicMarket", 'POST', params, undefined, undefined, {"cost":12});
+        return this.request ('full/v1/funding', [ 'publicMarket' ], 'POST', params, { 'cost': 12 });
     }
+
     publicMarketPostFullV1SupportedAssets (params = {}): Promise<Dict> {
-        return this.request ("full/v1/supported_assets", "publicMarket", 'POST', params, undefined, undefined, {"cost":12});
+        return this.request ('full/v1/supported_assets', [ 'publicMarket' ], 'POST', params, { 'cost': 12 });
     }
+
     publicMarketPostFullV1GetAllCollateralAssetInfo (params = {}): Promise<Dict> {
-        return this.request ("full/v1/get_all_collateral_asset_info", "publicMarket", 'POST', params, undefined, undefined, {"cost":12});
+        return this.request ('full/v1/get_all_collateral_asset_info', [ 'publicMarket' ], 'POST', params, { 'cost': 12 });
     }
+
     privateTradingPostFullV1CreateOrder (params = {}): Promise<Dict> {
-        return this.request ("full/v1/create_order", "privateTrading", 'POST', params, undefined, undefined, {"cost":5});
+        return this.request ('full/v1/create_order', [ 'privateTrading' ], 'POST', params, { 'cost': 5 });
     }
+
     privateTradingPostFullV1CancelOrder (params = {}): Promise<Dict> {
-        return this.request ("full/v1/cancel_order", "privateTrading", 'POST', params, undefined, undefined, {"cost":5});
+        return this.request ('full/v1/cancel_order', [ 'privateTrading' ], 'POST', params, { 'cost': 5 });
     }
+
     privateTradingPostFullV1CancelOnDisconnect (params = {}): Promise<Dict> {
-        return this.request ("full/v1/cancel_on_disconnect", "privateTrading", 'POST', params, undefined, undefined, {"cost":100});
+        return this.request ('full/v1/cancel_on_disconnect', [ 'privateTrading' ], 'POST', params, { 'cost': 100 });
     }
+
     privateTradingPostFullV1CancelAllOrders (params = {}): Promise<Dict> {
-        return this.request ("full/v1/cancel_all_orders", "privateTrading", 'POST', params, undefined, undefined, {"cost":50});
+        return this.request ('full/v1/cancel_all_orders', [ 'privateTrading' ], 'POST', params, { 'cost': 50 });
     }
+
     privateTradingPostFullV1Order (params = {}): Promise<Dict> {
-        return this.request ("full/v1/order", "privateTrading", 'POST', params, undefined, undefined, {"cost":20});
+        return this.request ('full/v1/order', [ 'privateTrading' ], 'POST', params, { 'cost': 20 });
     }
+
     privateTradingPostFullV1OrderHistory (params = {}): Promise<Dict> {
-        return this.request ("full/v1/order_history", "privateTrading", 'POST', params, undefined, undefined, {"cost":20});
+        return this.request ('full/v1/order_history', [ 'privateTrading' ], 'POST', params, { 'cost': 20 });
     }
+
     privateTradingPostFullV1OpenOrders (params = {}): Promise<Dict> {
-        return this.request ("full/v1/open_orders", "privateTrading", 'POST', params, undefined, undefined, {"cost":20});
+        return this.request ('full/v1/open_orders', [ 'privateTrading' ], 'POST', params, { 'cost': 20 });
     }
+
     privateTradingPostFullV1FillHistory (params = {}): Promise<Dict> {
-        return this.request ("full/v1/fill_history", "privateTrading", 'POST', params, undefined, undefined, {"cost":20});
+        return this.request ('full/v1/fill_history', [ 'privateTrading' ], 'POST', params, { 'cost': 20 });
     }
+
     privateTradingPostFullV1Positions (params = {}): Promise<Dict> {
-        return this.request ("full/v1/positions", "privateTrading", 'POST', params, undefined, undefined, {"cost":20});
+        return this.request ('full/v1/positions', [ 'privateTrading' ], 'POST', params, { 'cost': 20 });
     }
+
     privateTradingPostFullV1FundingPaymentHistory (params = {}): Promise<Dict> {
-        return this.request ("full/v1/funding_payment_history", "privateTrading", 'POST', params, undefined, undefined, {"cost":40});
+        return this.request ('full/v1/funding_payment_history', [ 'privateTrading' ], 'POST', params, { 'cost': 40 });
     }
+
     privateTradingPostFullV1GetSubAccounts (params = {}): Promise<Dict> {
-        return this.request ("full/v1/get_sub_accounts", "privateTrading", 'POST', params, undefined, undefined, {"cost":40});
+        return this.request ('full/v1/get_sub_accounts', [ 'privateTrading' ], 'POST', params, { 'cost': 40 });
     }
+
     privateTradingPostFullV1AccountSummary (params = {}): Promise<Dict> {
-        return this.request ("full/v1/account_summary", "privateTrading", 'POST', params, undefined, undefined, {"cost":40});
+        return this.request ('full/v1/account_summary', [ 'privateTrading' ], 'POST', params, { 'cost': 40 });
     }
+
     privateTradingPostFullV1AccountHistory (params = {}): Promise<Dict> {
-        return this.request ("full/v1/account_history", "privateTrading", 'POST', params, undefined, undefined, {"cost":40});
+        return this.request ('full/v1/account_history', [ 'privateTrading' ], 'POST', params, { 'cost': 40 });
     }
+
     privateTradingPostFullV1AggregatedAccountSummary (params = {}): Promise<Dict> {
-        return this.request ("full/v1/aggregated_account_summary", "privateTrading", 'POST', params, undefined, undefined, {"cost":40});
+        return this.request ('full/v1/aggregated_account_summary', [ 'privateTrading' ], 'POST', params, { 'cost': 40 });
     }
+
     privateTradingPostFullV1FundingAccountSummary (params = {}): Promise<Dict> {
-        return this.request ("full/v1/funding_account_summary", "privateTrading", 'POST', params, undefined, undefined, {"cost":40});
+        return this.request ('full/v1/funding_account_summary', [ 'privateTrading' ], 'POST', params, { 'cost': 40 });
     }
+
     privateTradingPostFullV1Transfer (params = {}): Promise<Dict> {
-        return this.request ("full/v1/transfer", "privateTrading", 'POST', params, undefined, undefined, {"cost":100});
+        return this.request ('full/v1/transfer', [ 'privateTrading' ], 'POST', params, { 'cost': 100 });
     }
+
     privateTradingPostFullV1DepositHistory (params = {}): Promise<Dict> {
-        return this.request ("full/v1/deposit_history", "privateTrading", 'POST', params, undefined, undefined, {"cost":100});
+        return this.request ('full/v1/deposit_history', [ 'privateTrading' ], 'POST', params, { 'cost': 100 });
     }
+
     privateTradingPostFullV1TransferHistory (params = {}): Promise<Dict> {
-        return this.request ("full/v1/transfer_history", "privateTrading", 'POST', params, undefined, undefined, {"cost":100});
+        return this.request ('full/v1/transfer_history', [ 'privateTrading' ], 'POST', params, { 'cost': 100 });
     }
+
     privateTradingPostFullV1Withdrawal (params = {}): Promise<Dict> {
-        return this.request ("full/v1/withdrawal", "privateTrading", 'POST', params, undefined, undefined, {"cost":100});
+        return this.request ('full/v1/withdrawal', [ 'privateTrading' ], 'POST', params, { 'cost': 100 });
     }
+
     privateTradingPostFullV1WithdrawalHistory (params = {}): Promise<Dict> {
-        return this.request ("full/v1/withdrawal_history", "privateTrading", 'POST', params, undefined, undefined, {"cost":100});
+        return this.request ('full/v1/withdrawal_history', [ 'privateTrading' ], 'POST', params, { 'cost': 100 });
     }
+
     privateTradingPostFullV1AddPositionMargin (params = {}): Promise<Dict> {
-        return this.request ("full/v1/add_position_margin", "privateTrading", 'POST', params, undefined, undefined, {"cost":40});
+        return this.request ('full/v1/add_position_margin', [ 'privateTrading' ], 'POST', params, { 'cost': 40 });
     }
+
     privateTradingPostFullV1GetPositionMarginLimits (params = {}): Promise<Dict> {
-        return this.request ("full/v1/get_position_margin_limits", "privateTrading", 'POST', params, undefined, undefined, {"cost":40});
+        return this.request ('full/v1/get_position_margin_limits', [ 'privateTrading' ], 'POST', params, { 'cost': 40 });
     }
+
     privateTradingPostFullV1SetPositionConfig (params = {}): Promise<Dict> {
-        return this.request ("full/v1/set_position_config", "privateTrading", 'POST', params, undefined, undefined, {"cost":40});
+        return this.request ('full/v1/set_position_config', [ 'privateTrading' ], 'POST', params, { 'cost': 40 });
     }
+
     privateTradingPostFullV1SetInitialLeverage (params = {}): Promise<Dict> {
-        return this.request ("full/v1/set_initial_leverage", "privateTrading", 'POST', params, undefined, undefined, {"cost":40});
+        return this.request ('full/v1/set_initial_leverage', [ 'privateTrading' ], 'POST', params, { 'cost': 40 });
     }
+
     privateTradingPostFullV1GetAllInitialLeverage (params = {}): Promise<Dict> {
-        return this.request ("full/v1/get_all_initial_leverage", "privateTrading", 'POST', params, undefined, undefined, {"cost":40});
+        return this.request ('full/v1/get_all_initial_leverage', [ 'privateTrading' ], 'POST', params, { 'cost': 40 });
     }
+
     privateTradingPostFullV1SetDeriskMmRatio (params = {}): Promise<Dict> {
-        return this.request ("full/v1/set_derisk_mm_ratio", "privateTrading", 'POST', params, undefined, undefined, {"cost":40});
+        return this.request ('full/v1/set_derisk_mm_ratio', [ 'privateTrading' ], 'POST', params, { 'cost': 40 });
     }
+
     privateTradingPostFullV1VaultBurnTokens (params = {}): Promise<Dict> {
-        return this.request ("full/v1/vault_burn_tokens", "privateTrading", 'POST', params, undefined, undefined, {"cost":40});
+        return this.request ('full/v1/vault_burn_tokens', [ 'privateTrading' ], 'POST', params, { 'cost': 40 });
     }
+
     privateTradingPostFullV1VaultInvest (params = {}): Promise<Dict> {
-        return this.request ("full/v1/vault_invest", "privateTrading", 'POST', params, undefined, undefined, {"cost":40});
+        return this.request ('full/v1/vault_invest', [ 'privateTrading' ], 'POST', params, { 'cost': 40 });
     }
+
     privateTradingPostFullV1VaultInvestorSummary (params = {}): Promise<Dict> {
-        return this.request ("full/v1/vault_investor_summary", "privateTrading", 'POST', params, undefined, undefined, {"cost":40});
+        return this.request ('full/v1/vault_investor_summary', [ 'privateTrading' ], 'POST', params, { 'cost': 40 });
     }
+
     privateTradingPostFullV1VaultRedeem (params = {}): Promise<Dict> {
-        return this.request ("full/v1/vault_redeem", "privateTrading", 'POST', params, undefined, undefined, {"cost":40});
+        return this.request ('full/v1/vault_redeem', [ 'privateTrading' ], 'POST', params, { 'cost': 40 });
     }
+
     privateTradingPostFullV1VaultRedeemCancel (params = {}): Promise<Dict> {
-        return this.request ("full/v1/vault_redeem_cancel", "privateTrading", 'POST', params, undefined, undefined, {"cost":40});
+        return this.request ('full/v1/vault_redeem_cancel', [ 'privateTrading' ], 'POST', params, { 'cost': 40 });
     }
+
     privateTradingPostFullV1VaultViewRedemptionQueue (params = {}): Promise<Dict> {
-        return this.request ("full/v1/vault_view_redemption_queue", "privateTrading", 'POST', params, undefined, undefined, {"cost":40});
+        return this.request ('full/v1/vault_view_redemption_queue', [ 'privateTrading' ], 'POST', params, { 'cost': 40 });
     }
+
     privateTradingPostFullV1VaultManagerInvestorHistory (params = {}): Promise<Dict> {
-        return this.request ("full/v1/vault_manager_investor_history", "privateTrading", 'POST', params, undefined, undefined, {"cost":40});
+        return this.request ('full/v1/vault_manager_investor_history', [ 'privateTrading' ], 'POST', params, { 'cost': 40 });
     }
+
     privateTradingPostFullV1AuthorizeBuilder (params = {}): Promise<Dict> {
-        return this.request ("full/v1/authorize_builder", "privateTrading", 'POST', params, undefined, undefined, {"cost":40});
+        return this.request ('full/v1/authorize_builder', [ 'privateTrading' ], 'POST', params, { 'cost': 40 });
     }
+
     privateTradingPostFullV1GetAuthorizedBuilders (params = {}): Promise<Dict> {
-        return this.request ("full/v1/get_authorized_builders", "privateTrading", 'POST', params, undefined, undefined, {"cost":40});
+        return this.request ('full/v1/get_authorized_builders', [ 'privateTrading' ], 'POST', params, { 'cost': 40 });
     }
+
     privateTradingPostFullV1BuilderFillHistory (params = {}): Promise<Dict> {
-        return this.request ("full/v1/builder_fill_history", "privateTrading", 'POST', params, undefined, undefined, {"cost":40});
+        return this.request ('full/v1/builder_fill_history', [ 'privateTrading' ], 'POST', params, { 'cost': 40 });
     }
+
     privateTradingPostFullV1CreateRfq (params = {}): Promise<Dict> {
-        return this.request ("full/v1/create_rfq", "privateTrading", 'POST', params, undefined, undefined, {"cost":5});
+        return this.request ('full/v1/create_rfq', [ 'privateTrading' ], 'POST', params, { 'cost': 5 });
     }
+
     privateTradingPostFullV1CancelRfq (params = {}): Promise<Dict> {
-        return this.request ("full/v1/cancel_rfq", "privateTrading", 'POST', params, undefined, undefined, {"cost":5});
+        return this.request ('full/v1/cancel_rfq', [ 'privateTrading' ], 'POST', params, { 'cost': 5 });
     }
+
     privateTradingPostFullV1EcnFromBroker (params = {}): Promise<Dict> {
-        return this.request ("full/v1/ecn_from_broker", "privateTrading", 'POST', params, undefined, undefined, {"cost":40});
+        return this.request ('full/v1/ecn_from_broker', [ 'privateTrading' ], 'POST', params, { 'cost': 40 });
     }
+
     privateTradingPostFullV2BulkOrders (params = {}): Promise<Dict> {
-        return this.request ("full/v2/bulk_orders", "privateTrading", 'POST', params, undefined, undefined, {"cost":50});
+        return this.request ('full/v2/bulk_orders', [ 'privateTrading' ], 'POST', params, { 'cost': 50 });
     }
+
     privateTradingPostFullV1PositionHistory (params = {}): Promise<Dict> {
-        return this.request ("full/v1/position_history", "privateTrading", 'POST', params, undefined, undefined, {"cost":20});
+        return this.request ('full/v1/position_history', [ 'privateTrading' ], 'POST', params, { 'cost': 20 });
     }
+
     privateTradingPostFullV1InterestPaymentHistory (params = {}): Promise<Dict> {
-        return this.request ("full/v1/interest_payment_history", "privateTrading", 'POST', params, undefined, undefined, {"cost":40});
+        return this.request ('full/v1/interest_payment_history', [ 'privateTrading' ], 'POST', params, { 'cost': 40 });
     }
+
     privateTradingPostFullV1GetCollateralPreference (params = {}): Promise<Dict> {
-        return this.request ("full/v1/get_collateral_preference", "privateTrading", 'POST', params, undefined, undefined, {"cost":40});
+        return this.request ('full/v1/get_collateral_preference', [ 'privateTrading' ], 'POST', params, { 'cost': 40 });
     }
+
     privateTradingPostFullV1SpotAccountSummary (params = {}): Promise<Dict> {
-        return this.request ("full/v1/spot_account_summary", "privateTrading", 'POST', params, undefined, undefined, {"cost":40});
+        return this.request ('full/v1/spot_account_summary', [ 'privateTrading' ], 'POST', params, { 'cost': 40 });
     }
+
     privateTradingPostFullV1SetIndicativePrices (params = {}): Promise<Dict> {
-        return this.request ("full/v1/set_indicative_prices", "privateTrading", 'POST', params, undefined, undefined, {"cost":40});
+        return this.request ('full/v1/set_indicative_prices', [ 'privateTrading' ], 'POST', params, { 'cost': 40 });
     }
+
     privateTradingPostFullV1WithdrawalFee (params = {}): Promise<Dict> {
-        return this.request ("full/v1/withdrawal_fee", "privateTrading", 'POST', params, undefined, undefined, {"cost":100});
+        return this.request ('full/v1/withdrawal_fee', [ 'privateTrading' ], 'POST', params, { 'cost': 100 });
     }
 }
-export default Exchange
+
+export default Exchange;

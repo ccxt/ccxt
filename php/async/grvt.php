@@ -204,12 +204,11 @@ class grvt extends Exchange {
                     'ARBITRUM' => '42161',
                     'AVAXC' => '43114',
                     'BASE' => '8453',
-                    'BSC' => '56',
-                    'ETH' => '1',
+                    'BEP20' => '56',
                     'ERC20' => '1',
                     'OP' => '10',
                     'SOL' => '900',
-                    'TRX' => '728126428',
+                    'TRC20' => '728126428',
                     'ZKSYNCERA' => '324',
                     'KAIA' => '8217',
                 ),
@@ -3431,12 +3430,13 @@ class grvt extends Exchange {
         return $requestId;
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $requestHeaders = $headers;
-        $requestBody = $body;
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $requestHeaders = null;
+        $requestBody = null;
         $requestPath = $path;
         $query = $this->omit($params, $this->extract_params($requestPath));
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        $apiName = $api[0];
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
@@ -3463,7 +3463,7 @@ class grvt extends Exchange {
                 $requestBody = $this->json($params);
             }
         }
-        $isPrivate = str_starts_with($api, 'private');
+        $isPrivate = str_starts_with($apiName, 'private');
         if ($isPrivate === true) {
             $this->check_required_credentials();
             if ($queryString !== '') {

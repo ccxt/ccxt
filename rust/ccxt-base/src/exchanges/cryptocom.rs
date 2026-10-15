@@ -3325,12 +3325,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut network: Value = self.safe_string_upper_k(params.clone(), "network", &[]);
+        let mut networkParam: Value = self.safe_string_upper_k(params.clone(), "network", &[]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("network".into())]), &[]);
         let mut depositAddressesRaw: Value = self.fetch_deposit_addresses_by_network(code, &[paramsOmitted]).await;
         let mut depositAddresses: Value = depositAddressesRaw;
-        if (in_op(&depositAddresses, &network)) {
-            return depositAddresses.as_map().and_then(|__m| network.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+        if (networkParam != Value::Null) {
+            let mut network: Value = self.safe_string(self.networkAliases.clone(), networkParam.clone(), &[networkParam.clone()]);
+            if (in_op(&depositAddresses, &network)) {
+                return depositAddresses.as_map().and_then(|__m| network.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            }
         }
         let mut keys: Value = object_keys(&depositAddresses);
         return get_value(&depositAddresses, &keys.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
@@ -5079,16 +5082,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut requestHeaders: Value = headers;
-        let mut requestBody: Value = body;
+        let mut requestHeaders: Value = Value::Null;
+        let mut requestBody: Value = Value::Null;
         let mut type_var: Value = self.safe_string(api.clone(), Value::Int(0), &[]);
         let mut access: Option<String> = self.safe_string(api, Value::Int(1), &[]).as_str().map(str::to_owned);
         let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), type_var, &[]);

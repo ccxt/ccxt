@@ -2117,7 +2117,6 @@ class alpaca extends Exchange {
             $txid = $this->safe_string($transaction, 'tx_hash');
             $datetime = $this->safe_string($transaction, 'created_at');
             $timestamp = $this->parse8601($datetime);
-            $network = $this->safe_string($transaction, 'chain');
             $address = $this->safe_string($transaction, 'to_address');
             $addressTo = $this->safe_string($transaction, 'to_address');
             $addressFrom = $this->safe_string($transaction, 'from_address');
@@ -2125,6 +2124,7 @@ class alpaca extends Exchange {
             $amount = $this->safe_number($transaction, 'amount');
             $currencyId = $this->safe_string($transaction, 'asset');
             $code = $this->safe_currency_code($currencyId, $currency);
+            $network = $this->network_id_to_code($this->safe_string($transaction, 'chain'), $code);
             $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
             $fees = $this->safe_string($transaction, 'fees');
             $networkFee = $this->safe_string($transaction, 'network_fee');
@@ -2325,16 +2325,13 @@ class alpaca extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $endpoint = '/' . $this->implode_params($path, $params);
         $baseApiUrl = $this->safe_string($this->urls['api'], $api[0]);
         if ($baseApiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $headersValue = array();
-        if ($headers !== null) {
-            $headersValue = $headers;
-        }
         if ($api[1] === 'private') {
             $this->check_required_credentials();
             $headersValue['APCA-API-KEY-ID'] = $this->apiKey;
@@ -2351,7 +2348,7 @@ class alpaca extends Exchange {
             }
         }
         $url = $this->implode_hostname($baseApiUrl) . $endpoint;
-        $bodyResolved = ($bodyJson === null) ? $body : $bodyJson;
+        $bodyResolved = $bodyJson;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersValue );
     }
 

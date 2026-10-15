@@ -255,13 +255,10 @@ export default class lbank extends Exchange {
                 },
                 'networks': {
                     'ERC20': 'erc20',
-                    'ETH': 'erc20',
                     'TRC20': 'trc20',
-                    'TRX': 'trc20',
                     'OMNI': 'omni',
                     'ASA': 'asa',
                     'BEP20': 'bep20(bsc)',
-                    'BSC': 'bep20(bsc)',
                     'HT': 'heco',
                     'BNB': 'bep2',
                     'BTC': 'btc',
@@ -2294,9 +2291,9 @@ export default class lbank extends Exchange {
         const defaultNetworks = this.safeDict (this.options, 'defaultNetworks');
         const defaultNetwork = this.safeStringUpper (defaultNetworks, currencyCode);
         const networks = this.safeDict (this.options, 'networks', {});
-        let network = this.safeStringUpper (params, 'network', defaultNetwork); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
-        return network;
+        const networkParam = this.safeStringUpper (params, 'network', defaultNetwork); // accepts unified codes and aliases
+        const networkCode = (networkParam !== undefined) ? this.safeString (this.networkAliases, networkParam, networkParam) : undefined;
+        return this.safeString (networks, networkCode, networkCode);
     }
 
     /**
@@ -2376,6 +2373,9 @@ export default class lbank extends Exchange {
         };
         const networks = this.safeDict (this.options, 'networks');
         let network = this.safeStringUpper (params, 'network');
+        if (network !== undefined) {
+            network = this.safeString (this.networkAliases, network, network);
+        }
         network = this.safeString (networks, network, network);
         const paramsOmitted: Dict = (network !== undefined) ? this.omit (params, 'network') : params;
         if (network !== undefined) {
@@ -2444,7 +2444,10 @@ export default class lbank extends Exchange {
         if (tagWithdrawTag !== undefined) {
             request['memo'] = tagWithdrawTag;
         }
-        const network = this.safeStringUpper2 (paramsOmitted, 'network', 'networkName');
+        let network = this.safeStringUpper2 (paramsOmitted, 'network', 'networkName');
+        if (network !== undefined) {
+            network = this.safeString (this.networkAliases, network, network);
+        }
         const paramsOmitted2: Dict = this.omit (paramsOmitted, [ 'network', 'networkName' ]);
         const networks = this.safeDict (this.options, 'networks');
         const networkId = this.safeString (networks, network, network);
@@ -3076,7 +3079,7 @@ export default class lbank extends Exchange {
         return result;
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
         let query = this.omit (params, this.extractParams (path));
         const apiUrl = this.safeString (this.urls['api'], 'rest');
         if (apiUrl === undefined) {
@@ -3146,7 +3149,7 @@ export default class lbank extends Exchange {
             };
             return { 'url': url, 'method': method, 'body': bodySigned, 'headers': headersSigned };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
     convertSecretToPem (secret: any) {

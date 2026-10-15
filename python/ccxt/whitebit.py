@@ -3009,7 +3009,7 @@ class whitebit(Exchange, ImplicitAPI):
             'txid': self.safe_string(transaction, 'transactionId'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': self.safe_string(transaction, 'network'),
+            'network': self.network_id_to_code(self.safe_string(transaction, 'network'), self.safe_currency_code(currencyId, currencyResolved)),
             'addressFrom': address if (method == '1') else None,
             'address': address,
             'addressTo': address if (method == '2') else None,
@@ -4006,11 +4006,11 @@ class whitebit(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         query = self.omit(params, self.extract_params(path))
         version = self.safe_value(api, 0)
         accessibility = self.safe_string(api, 1)
-        publicHeaders = {} if (headers is None) else headers
+        publicHeaders = {}
         publicHeaders['User-Agent'] = 'ccxt/' + self.id + '-' + self.version
         pathWithParams = '/' + self.implode_params(path, params)
         apiUrl = self.safe_string(self.urls['api'][version], accessibility)
@@ -4039,7 +4039,7 @@ class whitebit(Exchange, ImplicitAPI):
                 'X-TXC-SIGNATURE': signature,
             }
         isPrivate = (accessibility == 'private')
-        requestBody = body
+        requestBody = None
         if isPrivate:
             requestBody = privateBody
         requestHeaders = publicHeaders

@@ -3361,9 +3361,10 @@ export default class lighter extends Exchange {
             'datetime': this.iso8601(timestamp),
         };
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         let url = undefined;
-        if (api === 'root') {
+        if (apiName === 'root') {
             const baseApiUrl = this.safeString(this.urls['api'], 'public');
             if (baseApiUrl === undefined) {
                 throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
@@ -3371,14 +3372,14 @@ export default class lighter extends Exchange {
             url = this.implodeHostname(baseApiUrl);
         }
         else {
-            const baseApiUrl2 = this.safeString(this.urls['api'], api);
+            const baseApiUrl2 = this.safeString(this.urls['api'], apiName);
             if (baseApiUrl2 === undefined) {
                 throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
             }
             url = this.implodeHostname(baseApiUrl2) + '/api/' + this.version + '/' + path;
         }
         let authHeaders = undefined;
-        if (api === 'private') {
+        if (apiName === 'private') {
             authHeaders = {
                 'Authorization': this.createAuth(params),
             };
@@ -3392,10 +3393,10 @@ export default class lighter extends Exchange {
             }
             url += '?' + this.rawencode(params);
         }
-        if (api === 'private') {
-            return { 'url': url, 'method': method, 'body': body, 'headers': authHeaders };
+        if (apiName === 'private') {
+            return { 'url': url, 'method': method, 'body': undefined, 'headers': authHeaders };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if ((response === undefined) || (response === null)) {

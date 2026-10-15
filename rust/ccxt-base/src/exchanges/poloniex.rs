@@ -959,7 +959,6 @@ impl PoloniexCore {
         m.insert("BEP20".to_string(), Value::Str("BSC".into()));
         m.insert("ERC20".to_string(), Value::Str("ETH".into()));
         m.insert("TRC20".to_string(), Value::Str("TRX".into()));
-        m.insert("TRX".to_string(), Value::Str("TRX".into()));
     m
 }));
         m.insert("networksById".to_string(), Value::Map({
@@ -3903,12 +3902,12 @@ impl PoloniexCore {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress requires a network parameter for ".into())).into()), code).into()), Value::Str(".".into()))));
         }
         let mut exchangeNetworkId: Value = Value::Null;
-        networkCode = self.network_id_to_code(&[networkCode.clone(), code]);
+        networkCode = self.network_id_to_code(&[networkCode.clone(), code.clone()]);
         let mut networkEntry: Value = (if (networkCode == Value::Null) { Value::Null } else { self.safe_dict(currency.as_map().and_then(|__m| __m.get("networks")).cloned().unwrap_or(Value::Null), networkCode.clone(), &[]) });
         if (networkEntry != Value::Null) {
             exchangeNetworkId = networkEntry.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
         }  else {
-            exchangeNetworkId = networkCode;
+            exchangeNetworkId = self.network_code_to_id(networkCode, &[code]);
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4931,17 +4930,18 @@ impl PoloniexCore {
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
+        let __api_empty = Vec::new();
+        let api = api.as_array().unwrap_or(&__api_empty);
+        let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
         let mut isArray: bool = matches!(&params, Value::Arr(_));
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null);
-        if self.in_array(api.clone(), Value::from(vec![Value::Str("swapPublic".into()), Value::Str("swapPrivate".into())])).as_bool() == Some(true) {
+        if self.in_array(apiName.clone(), Value::from(vec![Value::Str("swapPublic".into()), Value::Str("swapPrivate".into())])).as_bool() == Some(true) {
             url = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null);
         }
         if (method.as_str() == Some("GET")) && (matches!(&params, Value::Dict(__d) if __d.contains_key("symbol"))) {
@@ -4951,7 +4951,7 @@ impl PoloniexCore {
         let mut implodedPath: Value = self.implode_params(path, params);
         let mut bodyJson: Value = Value::Null;
         let mut signedHeaders: Value = Value::Null;
-        if (api.as_str() == Some("public")) || (api.as_str() == Some("swapPublic")) {
+        if (apiName.as_str() == Some("public")) || (apiName.as_str() == Some("swapPublic")) {
             url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("/".into()), implodedPath).into())).into());
             if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
@@ -4991,8 +4991,8 @@ impl PoloniexCore {
                 m
             });
         }
-        let mut bodyResolved: Value = (if (bodyJson == Value::Null) { body } else { bodyJson });
-        let mut headersResolved: Value = (if (signedHeaders == Value::Null) { headers } else { signedHeaders });
+        let mut bodyResolved: Value = bodyJson;
+        let mut headersResolved: Value = signedHeaders;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);

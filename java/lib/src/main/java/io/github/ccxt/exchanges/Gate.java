@@ -1640,13 +1640,10 @@ public class Gate extends GateApi
                 put( "networks", new HashMap<String, Object>() {{
                     put( "BTC", "BTC" );
                     put( "BRC20", "BTCBRC" );
-                    put( "ETH", "ETH" );
                     put( "ERC20", "ETH" );
-                    put( "TRX", "TRX" );
                     put( "TRC20", "TRX" );
                     put( "HECO", "HT" );
                     put( "HRC20", "HT" );
-                    put( "BSC", "BSC" );
                     put( "BEP20", "BSC" );
                     put( "SOL", "SOL" );
                     put( "MATIC", "MATIC" );
@@ -1658,7 +1655,7 @@ public class Gate extends GateApi
                     put( "ARBITRUM_NOVA", "ARBNOVA" );
                     put( "BASE", "BASEEVM" );
                     put( "SUI", "SUI" );
-                    put( "CRONOS", "CRO" );
+                    put( "CRC20", "CRO" );
                     put( "CRO", "CRO" );
                     put( "APT", "APT" );
                     put( "SCROLL", "SCROLLETH" );
@@ -3397,7 +3394,7 @@ public class Gate extends GateApi
             Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             Object chainsIndexedByIdRaw = (this.fetchDepositAddressesByNetwork(code, paramsNetworkCode)).join();
             Object chainsIndexedById = chainsIndexedByIdRaw;
-            Object selectedNetworkIdOrCode = this.selectNetworkCodeFromUnifiedNetworks(code, networkCode, chainsIndexedById);
+            Object selectedNetworkIdOrCode = this.selectNetworkKeyFromNetworks(code, networkCode, chainsIndexedById, true);
             return Helpers.GetValue(chainsIndexedById, ((String)selectedNetworkIdOrCode));
         }).thenApply(DepositAddress::new);
 
@@ -8496,7 +8493,7 @@ public class Gate extends GateApi
             ((List<Object>)tiers).add(Helpers.newMap(
                 "tier", this.sum(i, 1),
                 "symbol", this.safeString(market, "symbol"),
-                "currency", this.safeString(market, "base"),
+                "currency", this.safeString(market, "settle"),
                 "minNotional", minNotional,
                 "maxNotional", maxNotional,
                 "maintenanceMarginRate", this.safeNumber(item, "maintenance_rate", (Object) null),
@@ -8863,10 +8860,10 @@ public class Gate extends GateApi
         return (this.milliseconds() - timeDifference);
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object authentication = Helpers.GetValue(api, 0); // public, private
-        Object type = Helpers.GetValue(api, 1); // spot, margin, future, delivery
+        Object authentication = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)); // public, private
+        Object type = (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1)); // spot, margin, future, delivery
         Object query = this.omit(parameters, this.extractParams(path));
         Object pathImploded = null;
         String bodyJson = null;
@@ -8965,7 +8962,7 @@ public class Gate extends GateApi
                 query = this.omit(query, "query");
                 bodyJson = this.json(query);
             }
-            String bodySigned = (((java.util.Objects.equals(bodyJson, null)))) ? body : bodyJson;
+            String bodySigned = bodyJson;
             String bodyPayload = (((java.util.Objects.equals(bodySigned, null)))) ? "" : bodySigned;
             Object bodySignature = this.hash(this.encode(bodyPayload), sha512());
             Long nonce = this.nonce();
@@ -8983,8 +8980,8 @@ public class Gate extends GateApi
                 put( "Content-Type", "application/json" );
             }};
         }
-        String bodyResolved = (((java.util.Objects.equals(bodyJson, null)))) ? body : bodyJson;
-        Object headersResolved = (((java.util.Objects.equals(signedHeaders, null)))) ? headers : signedHeaders;
+        String bodyResolved = bodyJson;
+        Map<String, Object> headersResolved = signedHeaders;
         {
             HashMap<String, Object> h2kMap5 = new HashMap<String, Object>();
             h2kMap5.put("url", url);

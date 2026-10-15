@@ -710,7 +710,7 @@ impl CoinbaseinternationalCore {
 }));
         m.insert("networksById".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ethereum".to_string(), Value::Str("ETH".into()));
+        m.insert("ethereum".to_string(), Value::Str("ERC20".into()));
         m.insert("arbitrum".to_string(), Value::Str("ARBITRUM".into()));
         m.insert("avacchain".to_string(), Value::Str("AVAX".into()));
         m.insert("optimism".to_string(), Value::Str("OPTIMISM".into()));
@@ -3140,8 +3140,6 @@ impl CoinbaseinternationalCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let mut version: Value = self.safe_string(api.clone(), Value::Int(0), &[]);
         let mut signed: bool = self.safe_string(api, Value::Int(1), &[]).as_str() == Some("private");
         let mut fullPath: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), version).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())).into());
@@ -3162,7 +3160,7 @@ impl CoinbaseinternationalCore {
         if hasSignedBody {
             signedBody = json_stringify(&query);
         }
-        let mut requestBody: Value = body;
+        let mut requestBody: Value = Value::Null;
         if hasSignedBody {
             requestBody = signedBody.clone();
         }
@@ -3182,7 +3180,7 @@ impl CoinbaseinternationalCore {
                 m
             });
         }
-        let mut requestHeaders: Value = headers;
+        let mut requestHeaders: Value = Value::Null;
         if signed {
             requestHeaders = signedHeaders;
         }

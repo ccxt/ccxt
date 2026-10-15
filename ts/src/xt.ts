@@ -618,10 +618,8 @@ export default class xt extends Exchange {
                 'networks': {
                     'ERC20': 'Ethereum',
                     'TRC20': 'Tron',
-                    'TRX': 'Tron',
                     'BEP20': 'BNB Smart Chain',
                     'BEP2': 'BNB-BEP2',
-                    'ETH': 'Ethereum',
                     'AVAX': 'AVAX C-Chain',
                     'GAL': 'GAL(FT)',
                     'ALEO': 'ALEO(IOU)',
@@ -5856,7 +5854,7 @@ export default class xt extends Exchange {
         return undefined;
     }
 
-    override sign (path: string, api: any = [], method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    override sign (path: string, api: string[] = [], method = 'GET', params = {}) {
         const signed = api[0] === 'private';
         const endpoint = api[1];
         const request = '/' + this.implodeParams (path, params);
@@ -5942,7 +5940,7 @@ export default class xt extends Exchange {
                 url += '?' + urlencoded;
             }
         }
-        let bodyValue = body;
+        let bodyValue = undefined;
         if (signed) {
             bodyValue = signedBody;
         }

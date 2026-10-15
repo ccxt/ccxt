@@ -572,7 +572,7 @@ func (this *Backpack) Describe() any {
 				"BERA":        "Berachain",
 				"BTC":         "Bitcoin",
 				"BCH":         "BitcoinCash",
-				"BSC":         "Bsc",
+				"BEP20":       "Bsc",
 				"ADA":         "Cardano",
 				"DOGE":        "Dogecoin",
 				"ECLIPSE":     "Eclipse",
@@ -597,7 +597,7 @@ func (this *Backpack) Describe() any {
 				"berachain":   "BERA",
 				"bitcoin":     "BTC",
 				"bitcoincash": "BCH",
-				"bsc":         "BSC",
+				"bsc":         "BEP20",
 				"cardano":     "ADA",
 				"dogecoin":    "DOGE",
 				"eclipse":     "ECLIPSE",
@@ -3171,18 +3171,15 @@ func (this *Backpack) Nonce() any {
 	return this.Milliseconds() - *timeDifference
 }
 func (this *Backpack) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var endpoint string = "/" + path
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -3195,7 +3192,7 @@ func (this *Backpack) Sign(path string, optionalArgs ...any) any {
 	}()
 	var headersSigned any = nil
 	var bodySigned *string = nil
-	if api == "private" {
+	if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		var ts string = ToString(this.Nonce())
 		var recvWindow *string = this.SafeString2(this.Options, "recvWindow", "X-Window", "5000")
@@ -3235,13 +3232,13 @@ func (this *Backpack) Sign(path string, optionalArgs ...any) any {
 	}
 	url = Add(url, endpoint)
 	var headersResolved any = func() any {
-		if api == "private" {
+		if apiName != nil && *apiName == "private" {
 			return headersSigned
 		}
-		return headers
+		return nil
 	}()
-	var bodyResolved *string = body
-	if (api == "private") && (method != "GET") {
+	var bodyResolved *string = nil
+	if (apiName != nil && *apiName == "private") && (method != "GET") {
 		bodyResolved = bodySigned
 	}
 	return map[string]any{

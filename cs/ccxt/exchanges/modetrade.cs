@@ -3581,9 +3581,9 @@ public partial class modetrade : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object section = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object section = null, string method = null, object parameters = null)
     {
-        section ??= "public";
+        section ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object version = getValue(section, 0);
@@ -3646,7 +3646,7 @@ public partial class modetrade : Exchange
                 { "orderly-timestamp", ts },
             };
             auth = (((((ts + method) + "/") + (version)) + "/") + pathWithParams);
-            object signedBody = null;
+            string? signedBody = null;
             if ((method == "POST") || (method == "PUT"))
             {
                 signedBody = this.json(paramsSigned);
@@ -3660,7 +3660,7 @@ public partial class modetrade : Exchange
                     auth = add(auth, ("?" + this.rawencode(paramsSigned)));
                 }
                 signedHeaders["content-type"] = "application/x-www-form-urlencoded";
-                signedBody = ((method == "DELETE")) ? "" : body;
+                signedBody = ((method == "DELETE")) ? "" : null;
             }
             object secret = this.secret;
             if (getIndexOf(secret, "ed25519:") >= 0)
@@ -3680,8 +3680,8 @@ public partial class modetrade : Exchange
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", null },
+            { "headers", null },
         };
     }
 

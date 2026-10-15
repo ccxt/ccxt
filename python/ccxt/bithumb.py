@@ -2550,7 +2550,7 @@ class bithumb(Exchange, ImplicitAPI):
                     raise ArgumentsRequired(self.id + ' ' + code + ' withdraw() requires a network parameter')
                 request['address'] = address
                 request['currency'] = currency['id']
-                request['net_type'] = network
+                request['net_type'] = self.network_code_to_id(network, code)
                 request['amount'] = self.number_to_string(amount)
                 if destinationRequest is not None:
                     request['secondary_address'] = destinationRequest
@@ -2578,7 +2578,7 @@ class bithumb(Exchange, ImplicitAPI):
             request['currency'] = currency['id']
             request['units'] = amount
             if network is not None:
-                request['net_type'] = network
+                request['net_type'] = self.network_code_to_id(network, code)
             if destinationRequest is not None:
                 request['destination'] = destinationRequest
             if receiverType is not None:
@@ -2634,7 +2634,7 @@ class bithumb(Exchange, ImplicitAPI):
             'txid': self.safe_string(transaction, 'txid'),
             'timestamp': timestamp,
             'datetime': datetime,
-            'network': self.safe_string(transaction, 'net_type'),
+            'network': self.network_id_to_code(self.safe_string(transaction, 'net_type'), currencyResolved['code']),
             'addressFrom': None,
             'address': None,
             'addressTo': None,
@@ -2937,7 +2937,7 @@ class bithumb(Exchange, ImplicitAPI):
         paramsOmitted = self.omit(paramsGeneration, 'network')
         if network is None:
             raise ArgumentsRequired(self.id + ' ' + code + ' createDepositAddress() requires a network parameter')
-        request['net_type'] = network
+        request['net_type'] = self.network_code_to_id(network, code)
         response = self.privatePostV1DepositsGenerateCoinAddress(self.extend(request, paramsOmitted))
         #
         #     {
@@ -2974,7 +2974,7 @@ class bithumb(Exchange, ImplicitAPI):
         paramsOmitted = self.omit(paramsGeneration, 'network')
         if network is None:
             raise ArgumentsRequired(self.id + ' ' + code + ' fetchDepositAddress() requires a network parameter')
-        request['net_type'] = network
+        request['net_type'] = self.network_code_to_id(network, code)
         response = self.privateGetV1DepositsCoinAddress(self.extend(request, paramsOmitted))
         #
         #     {
@@ -3035,7 +3035,7 @@ class bithumb(Exchange, ImplicitAPI):
         return {
             'info': response,
             'currency': code,
-            'network': self.safe_string(response, 'net_type'),
+            'network': self.network_id_to_code(self.safe_string(response, 'net_type'), code),
             'address': address,
             'tag': self.safe_string(response, 'secondary_address'),
         }
@@ -3077,11 +3077,12 @@ class bithumb(Exchange, ImplicitAPI):
                 result += encodedKey + '=' + encodedValue
         return result
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
         requestHeaders = None
         requestBody = None
         endpoint = '/' + self.implode_params(path, params)
-        apiUrl = self.safe_string(self.urls['api'], api)
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = self.implode_hostname(apiUrl) + endpoint
@@ -3089,7 +3090,7 @@ class bithumb(Exchange, ImplicitAPI):
         queryKeys = list(query.keys())
         queryKeysLength = len(queryKeys)
         hasQuery = (queryKeysLength > 0)
-        if api == 'public':
+        if apiName == 'public':
             requestHeaders = {
                 'OPEN-API-PARTNER': 'CCXT',
             }
@@ -3142,8 +3143,8 @@ class bithumb(Exchange, ImplicitAPI):
                     'Api-Nonce': nonce,
                     'OPEN-API-PARTNER': 'CCXT',
                 }
-        headersResult = requestHeaders if (requestHeaders is not None) else headers
-        bodyResult = requestBody if (requestBody is not None) else body
+        headersResult = requestHeaders
+        bodyResult = requestBody
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

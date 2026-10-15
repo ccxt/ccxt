@@ -327,7 +327,7 @@ export default class deepcoin extends Exchange {
                     'ERC20': 'ERC20',
                     'TRC20': 'TRC20',
                     'ARBITRUM': 'ARBITRUM',
-                    'BSC': 'BSC(BEP20)',
+                    'BEP20': 'BSC(BEP20)',
                     'SOL': 'SOL',
                     'BTC': 'Bitcoin',
                     'ADA': 'Cardano',
@@ -1213,6 +1213,9 @@ export default class deepcoin extends Exchange {
         const defaultNetwork = this.safeString(defaultNetworks, code);
         if ((network === undefined) || (network === '')) {
             network = defaultNetwork;
+        }
+        if (network !== undefined) {
+            network = this.safeString(this.networkAliases, network, network);
         }
         const paramsOmitted = (network !== undefined) ? this.omit(params, 'network') : params;
         const addressess = await this.fetchDepositAddresses([code], paramsOmitted);
@@ -3047,7 +3050,8 @@ export default class deepcoin extends Exchange {
         const data = this.safeList(response, 'data', []);
         return this.parseOrder(data, market);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         let requestPath = path;
         if (method === 'GET') {
             const query = this.urlencode(params);
@@ -3055,12 +3059,12 @@ export default class deepcoin extends Exchange {
                 requestPath += '?' + query;
             }
         }
-        const apiUrl = this.safeString(this.urls['api'], api);
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         const url = apiUrl + '/' + requestPath;
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             const timestamp = this.milliseconds();
             const dateTime = this.iso8601(timestamp);
@@ -3071,7 +3075,7 @@ export default class deepcoin extends Exchange {
                 'DC-ACCESS-PASSPHRASE': this.password,
                 'appid': '200103',
             };
-            const requestBody = (method !== 'GET') ? this.json(params) : body;
+            const requestBody = (method !== 'GET') ? this.json(params) : undefined;
             if (method !== 'GET') {
                 privateHeaders['Content-Type'] = 'application/json';
                 payload += requestBody;
@@ -3080,7 +3084,7 @@ export default class deepcoin extends Exchange {
             privateHeaders['DC-ACCESS-SIGN'] = signature;
             return { 'url': url, 'method': method, 'body': requestBody, 'headers': privateHeaders };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         const data = this.safeDict(response, 'data', {});

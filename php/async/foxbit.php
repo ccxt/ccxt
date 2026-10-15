@@ -211,7 +211,7 @@ class foxbit extends Exchange {
                     'cardano' => 'ADA',
                     'cosmos' => 'ATOM',
                     'dogecoin' => 'DOGE',
-                    'erc20' => 'ETH',
+                    'erc20' => 'ERC20',
                     'hedera' => 'HBAR',
                     'litecoin' => 'LTC',
                     'near' => 'NEAR',
@@ -235,7 +235,7 @@ class foxbit extends Exchange {
                     'ADA' => 'cardano',
                     'ATOM' => 'cosmos',
                     'DOGE' => 'dogecoin',
-                    'ETH' => 'erc20',
+                    'ERC20' => 'erc20',
                     'HBAR' => 'hedera',
                     'LTC' => 'litecoin',
                     'NEAR' => 'near',
@@ -2064,7 +2064,7 @@ class foxbit extends Exchange {
             'txid' => $this->safe_string($cryptoDetails, 'transaction_id'),
             'timestamp' => $timestamp,
             'datetime' => $datetime,
-            'network' => $this->safe_string($transaction, 'network_code'),
+            'network' => $this->network_id_to_code($this->safe_string($transaction, 'network_code'), $currencyCode),
             'address' => $address,
             'addressTo' => $address,
             'addressFrom' => null,
@@ -2155,7 +2155,7 @@ class foxbit extends Exchange {
         );
     }
 
-    public function sign(string $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array(), $method = 'GET', $params = array()): array {
         $version = $api[0];
         $urlPath = $api[1];
         $fullPath = '/rest/' . $version . '/' . $this->implode_params($path, $params);
@@ -2190,7 +2190,7 @@ class foxbit extends Exchange {
                 }
             }
         }
-        $requestBody = $body;
+        $requestBody = null;
         if ($method === 'POST' || $method === 'PUT') {
             $requestBody = $this->json($paramsOmitted);
         }

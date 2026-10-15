@@ -1974,7 +1974,8 @@ export default class blofin extends Exchange {
     }
     networkCodeToChainId(networkCode, currency = undefined) {
         const aliases = this.safeDict(this.options, 'networkCodeAliases', {});
-        const unifiedCode = this.safeString(aliases, networkCode, networkCode);
+        const aliasedCode = this.safeString(aliases, networkCode, networkCode);
+        const unifiedCode = this.safeString(this.networkAliases, aliasedCode, aliasedCode);
         // prefer the exact chain id from the currencies registry when it is
         // loaded, since some ids are currency-specific (USDT on Optimism)
         if (currency !== undefined) {
@@ -3482,7 +3483,8 @@ export default class blofin extends Exchange {
         }
         return undefined;
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         let request = '/api/' + this.version + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         const apiUrl = this.safeString(this.urls['api'], 'rest');
@@ -3491,12 +3493,12 @@ export default class blofin extends Exchange {
         }
         let url = apiUrl + request;
         // const type = this.getPathAuthenticationType (path);
-        if (api === 'public') {
+        if (apiName === 'public') {
             if (!this.isEmpty(query)) {
                 url += '?' + this.urlencode(query);
             }
         }
-        else if (api === 'private') {
+        else if (apiName === 'private') {
             this.checkRequiredCredentials();
             const timestamp = this.milliseconds().toString();
             const signedHeaders = {
@@ -3524,9 +3526,9 @@ export default class blofin extends Exchange {
             const auth = request + method + timestamp + timestamp + sign_body;
             const signature = this.stringToBase64(this.hmac(this.encode(auth), this.encode(this.secret), sha256));
             signedHeaders['ACCESS-SIGN'] = signature;
-            const bodyResolved = (signedBody === undefined) ? body : signedBody;
+            const bodyResolved = signedBody;
             return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': signedHeaders };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 }

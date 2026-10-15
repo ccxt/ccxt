@@ -4133,15 +4133,8 @@ func (this *Nado) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var headers map[string]any = GetArgMap(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
-	var requestBody any = nil
-	var endpoint any = GetValue(api, 0)
-	if IsString(api) {
-		endpoint = api
-	}
+	var requestBody *string = nil
+	var endpoint *string = SafeStringPtr(GetValue(api, 0))
 	var baseApiUrl *string = this.SafeString(this.Urls["api"], endpoint)
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
@@ -4152,7 +4145,7 @@ func (this *Nado) Sign(path string, optionalArgs ...any) any {
 	}
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var headersValue map[string]any = map[string]any{}
-	if (endpoint == "gateway") || (endpoint == "archive") {
+	if (endpoint != nil && *endpoint == "gateway") || (endpoint != nil && *endpoint == "archive") {
 		headersValue["Accept-Encoding"] = "gzip, br, deflate"
 	}
 	if method == "GET" {
@@ -4161,14 +4154,9 @@ func (this *Nado) Sign(path string, optionalArgs ...any) any {
 		}
 	} else {
 		headersValue["Content-Type"] = "application/json"
-		requestBody = this.Json(query)
+		requestBody = SafeStringPtr(this.Json(query))
 	}
-	var bodyResult any = func() any {
-		if requestBody != nil {
-			return requestBody
-		}
-		return body
-	}()
+	var bodyResult *string = requestBody
 	return map[string]any{
 		"url":     url,
 		"method":  method,

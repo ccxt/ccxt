@@ -671,7 +671,7 @@ class bingx extends Exchange {
                 'recvWindow' => 5 * 1000, // 5 sec
                 'broker' => 'CCXT',
                 'defaultNetworks' => array(
-                    'ETH' => 'ETH',
+                    'ETH' => 'ERC20',
                     'USDT' => 'ERC20',
                     'USDC' => 'ERC20',
                     'BTC' => 'BTC',
@@ -5538,7 +5538,7 @@ class bingx extends Exchange {
         // the 0x prefix on the evm networks, see https://github.com/ccxt/ccxt/issues/24331
         if ($address !== null) {
             $isPrefixed = str_starts_with($address, '0x') || str_starts_with($address, '0X');
-            $evmNetworks = array( 'BEP20', 'BSC', 'ERC20', 'ETH', 'HECO', 'MATIC', 'POLYGON', 'ARBITRUM', 'ARB', 'OPTIMISM', 'AVAXC', 'BASE', 'FTM', 'LINEA', 'ZKSYNC', 'OPBNB' );
+            $evmNetworks = array( 'BEP20', 'ERC20', 'HECO', 'MATIC', 'POLYGON', 'ARBITRUM', 'OPTIMISM', 'AVAXC', 'BASE', 'FTM', 'LINEA', 'ZKSYNC', 'OPBNB' );
             if (!$isPrefixed && $this->in_array($networkCode, $evmNetworks)) {
                 $address = '0x' . $address;
             }
@@ -7140,7 +7140,7 @@ class bingx extends Exchange {
         return $tiers;
     }
 
-    public function sign(string $path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $section = array('public'), $method = 'GET', $params = array()): array {
         $type = $section[0];
         $version = $section[1];
         $access = $section[2];
@@ -7205,8 +7205,8 @@ class bingx extends Exchange {
                 $url .= '?' . $query . '&' . 'signature=' . $signature;
             }
         }
-        $bodyResult = ($requestBody !== null) ? $requestBody : $body;
-        $headersResult = ($requestHeaders !== null) ? $requestHeaders : $headers;
+        $bodyResult = $requestBody;
+        $headersResult = $requestHeaders;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
     }
 

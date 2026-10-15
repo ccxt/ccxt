@@ -4472,7 +4472,7 @@ func (this *Whitebit) ParseTransaction(transaction any, optionalArgs ...any) map
 		"txid":      this.SafeString(transaction, "transactionId"),
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
-		"network":   this.SafeString(transaction, "network"),
+		"network":   this.NetworkIdToCode(this.SafeString(transaction, "network"), this.SafeCurrencyCode(currencyId, currencyResolved)),
 		"addressFrom": func() any {
 			if method != nil && *method == "1" {
 				return address
@@ -5897,26 +5897,17 @@ func (this *Whitebit) Nonce() any {
 	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 func (this *Whitebit) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var headers map[string]any = GetArgMap(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var version any = this.SafeValue(api, 0)
 	var accessibility *string = this.SafeString(api, 1)
-	var publicHeaders map[string]any = func() map[string]any {
-		if headers == nil {
-			return map[string]any{}
-		}
-		return headers
-	}()
-	AddElementToObject(publicHeaders, "User-Agent", "ccxt/"+this.Id+"-"+this.Version)
+	var publicHeaders map[string]any = map[string]any{}
+	publicHeaders["User-Agent"] = "ccxt/" + this.Id + "-" + this.Version
 	var pathWithParams string = "/" + this.ImplodeParams(path, params)
 	var apiUrl *string = this.SafeString(GetValue(this.Urls["api"], version), accessibility)
 	if apiUrl == nil {
@@ -5952,11 +5943,11 @@ func (this *Whitebit) Sign(path string, optionalArgs ...any) any {
 		}
 	}
 	var isPrivate bool = (accessibility != nil && *accessibility == "private")
-	var requestBody any = body
+	var requestBody any = nil
 	if isPrivate {
 		requestBody = privateBody
 	}
-	var requestHeaders any = publicHeaders
+	var requestHeaders map[string]any = publicHeaders
 	if isPrivate {
 		requestHeaders = privateHeaders
 	}

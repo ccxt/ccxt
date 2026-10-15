@@ -678,7 +678,7 @@ export default class bingx extends Exchange {
                 'recvWindow': 5 * 1000, // 5 sec
                 'broker': 'CCXT',
                 'defaultNetworks': {
-                    'ETH': 'ETH',
+                    'ETH': 'ERC20',
                     'USDT': 'ERC20',
                     'USDC': 'ERC20',
                     'BTC': 'BTC',
@@ -5598,7 +5598,7 @@ export default class bingx extends Exchange {
         // the 0x prefix on the evm networks, see https://github.com/ccxt/ccxt/issues/24331
         if (address !== undefined) {
             const isPrefixed = address.startsWith('0x') || address.startsWith('0X');
-            const evmNetworks = ['BEP20', 'BSC', 'ERC20', 'ETH', 'HECO', 'MATIC', 'POLYGON', 'ARBITRUM', 'ARB', 'OPTIMISM', 'AVAXC', 'BASE', 'FTM', 'LINEA', 'ZKSYNC', 'OPBNB'];
+            const evmNetworks = ['BEP20', 'ERC20', 'HECO', 'MATIC', 'POLYGON', 'ARBITRUM', 'OPTIMISM', 'AVAXC', 'BASE', 'FTM', 'LINEA', 'ZKSYNC', 'OPBNB'];
             if (!isPrefixed && this.inArray(networkCode, evmNetworks)) {
                 address = '0x' + address;
             }
@@ -7194,7 +7194,7 @@ export default class bingx extends Exchange {
         }
         return tiers;
     }
-    sign(path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, section = ['public'], method = 'GET', params = {}) {
         let type = section[0];
         let version = section[1];
         let access = section[2];
@@ -7264,8 +7264,8 @@ export default class bingx extends Exchange {
                 url += '?' + query + '&' + 'signature=' + signature;
             }
         }
-        const bodyResult = (requestBody !== undefined) ? requestBody : body;
-        const headersResult = (requestHeaders !== undefined) ? requestHeaders : headers;
+        const bodyResult = requestBody;
+        const headersResult = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
     nonce() {

@@ -952,10 +952,8 @@ public partial class xt : Exchange
                 { "networks", new Dictionary<string, object>() {
                     { "ERC20", "Ethereum" },
                     { "TRC20", "Tron" },
-                    { "TRX", "Tron" },
                     { "BEP20", "BNB Smart Chain" },
                     { "BEP2", "BNB-BEP2" },
-                    { "ETH", "Ethereum" },
                     { "AVAX", "AVAX C-Chain" },
                     { "GAL", "GAL(FT)" },
                     { "ALEO", "ALEO(IOU)" },
@@ -6775,7 +6773,7 @@ public partial class xt : Exchange
         return null;
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -6889,7 +6887,7 @@ public partial class xt : Exchange
                 url = url + ("?" + urlencoded);
             }
         }
-        object bodyValue = body;
+        string? bodyValue = null;
         if (signed)
         {
             bodyValue = signedBody;

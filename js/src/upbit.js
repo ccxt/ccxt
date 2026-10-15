@@ -2416,8 +2416,9 @@ export default class upbit extends Exchange {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const baseApiUrl = this.safeString(this.urls['api'], api);
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        const baseApiUrl = this.safeString(this.urls['api'], apiName);
         if (baseApiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
@@ -2431,13 +2432,13 @@ export default class upbit extends Exchange {
                 url += '?' + this.urlencode(query);
             }
         }
-        const hasBody = (api === 'private') && (method !== 'GET') && (method !== 'DELETE');
-        let requestBody = body;
+        const hasBody = (apiName === 'private') && (method !== 'GET') && (method !== 'DELETE');
+        let requestBody = undefined;
         if (hasBody) {
             requestBody = this.json(params);
         }
         let privateHeaders = undefined;
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             privateHeaders = {};
             const nonce = this.uuid();
@@ -2461,7 +2462,7 @@ export default class upbit extends Exchange {
             const token = jwt(request, this.encode(this.secret), sha256);
             privateHeaders['Authorization'] = 'Bearer ' + token;
         }
-        const requestHeaders = (api === 'private') ? privateHeaders : headers;
+        const requestHeaders = (apiName === 'private') ? privateHeaders : undefined;
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

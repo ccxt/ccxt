@@ -2321,7 +2321,6 @@ public partial class alpaca : Exchange
             txid = this.safeString(transaction, "tx_hash");
             datetime = this.safeString(transaction, "created_at");
             timestamp = this.parse8601(datetime);
-            network = this.safeString(transaction, "chain");
             address = this.safeString(transaction, "to_address");
             addressTo = this.safeString(transaction, "to_address");
             addressFrom = this.safeString(transaction, "from_address");
@@ -2329,6 +2328,7 @@ public partial class alpaca : Exchange
             amount = this.safeNumber(transaction, "amount");
             string? currencyId = this.safeString(transaction, "asset");
             code = this.safeCurrencyCode(currencyId, currency);
+            network = this.networkIdToCode(this.safeString(transaction, "chain"), code);
             status = this.parseTransactionStatus(this.safeString(transaction, "status"));
             string? fees = this.safeString(transaction, "fees");
             string? networkFee = this.safeString(transaction, "network_fee");
@@ -2539,9 +2539,9 @@ public partial class alpaca : Exchange
         return this.safeBalance(result);
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         string endpoint = ("/" + this.implodeParams(path, parameters));
@@ -2550,16 +2550,12 @@ public partial class alpaca : Exchange
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        object headersValue = new Dictionary<string, object>() {};
-        if ((headers != null))
-        {
-            headersValue = headers;
-        }
+        Dictionary<string, object> headersValue = new Dictionary<string, object>() {};
         if (isEqual(getValue(api, 1), "private"))
         {
             this.checkRequiredCredentials();
-            ((IDictionary<string,object>)headersValue)["APCA-API-KEY-ID"] = this.apiKey;
-            ((IDictionary<string,object>)headersValue)["APCA-API-SECRET-KEY"] = this.secret;
+            headersValue["APCA-API-KEY-ID"] = this.apiKey;
+            headersValue["APCA-API-SECRET-KEY"] = this.secret;
         }
         object query = this.omit(parameters, this.extractParams(path));
         string? bodyJson = null;
@@ -2571,11 +2567,11 @@ public partial class alpaca : Exchange
             } else
             {
                 bodyJson = this.json(query);
-                ((IDictionary<string,object>)headersValue)["Content-Type"] = "application/json";
+                headersValue["Content-Type"] = "application/json";
             }
         }
         string url = (this.implodeHostname(baseApiUrl) + endpoint);
-        object bodyResolved = ((bodyJson == null)) ? body : bodyJson;
+        string? bodyResolved = bodyJson;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

@@ -1981,25 +1981,23 @@ class opinion(PredictionExchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path: str, api: object = 'opinion', method='GET', params: dict = {}, headers: object = None, body: object = None):
+    def sign(self, path: str, api: list[str] = ['opinion'], method='GET', params: dict = {}):
         """
  @ignore
         builds the request url and attaches the apikey/EIP-712 authentication headers for private endpoints
         :param str path: the endpoint path
-        :param string|str[] api: the api group and access level
+        :param str[] api: the api group and access level
         :param str method: the http method
         :param dict params: the request parameters
-        :param dict [headers]: request headers
-        :param str [body]: the request body
         :returns dict: a dict with url, method, body and headers
         """
-        apiGroup = api if isinstance(api, str) else api[0]
-        access = 'public' if isinstance(api, str) else api[1]
+        apiGroup = api[0]
+        access = self.safe_string(api, 1, 'public')
         baseUrls = self.urls['api']
         baseUrl = self.safe_string(baseUrls, apiGroup, baseUrls['opinion'])
         url = baseUrl + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        existingHeaders = headers if (headers is not None) else {}
+        existingHeaders = {}
         headersExtended = self.extend({
             'Accept': 'application/json',
             'Content-Type': 'application/json',
@@ -2023,7 +2021,7 @@ class opinion(PredictionExchange, ImplicitAPI):
                 if apiKey is None:
                     raise AuthenticationError(self.id + ' ' + path + ' requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first')
                 headersExtended['apikey'] = apiKey
-        bodyValue = body
+        bodyValue = None
         if method == 'GET':
             if len(query) > 0:
                 url += '?' + self.urlencode(query)

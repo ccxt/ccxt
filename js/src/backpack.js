@@ -429,7 +429,7 @@ export default class backpack extends Exchange {
                     'BERA': 'Berachain',
                     'BTC': 'Bitcoin',
                     'BCH': 'BitcoinCash',
-                    'BSC': 'Bsc',
+                    'BEP20': 'Bsc',
                     'ADA': 'Cardano',
                     'DOGE': 'Dogecoin',
                     'ECLIPSE': 'Eclipse',
@@ -454,7 +454,7 @@ export default class backpack extends Exchange {
                     'berachain': 'BERA',
                     'bitcoin': 'BTC',
                     'bitcoincash': 'BCH',
-                    'bsc': 'BSC',
+                    'bsc': 'BEP20',
                     'cardano': 'ADA',
                     'dogecoin': 'DOGE',
                     'eclipse': 'ECLIPSE',
@@ -2332,9 +2332,10 @@ export default class backpack extends Exchange {
         }
         return this.milliseconds() - timeDifference;
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         let endpoint = '/' + path;
-        const apiUrl = this.safeString(this.urls['api'], api);
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
@@ -2342,7 +2343,7 @@ export default class backpack extends Exchange {
         const sortedParams = Array.isArray(params) ? params : this.keysort(params);
         let headersSigned = undefined;
         let bodySigned = undefined;
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             const ts = this.nonce().toString();
             const recvWindow = this.safeString2(this.options, 'recvWindow', 'X-Window', '5000');
@@ -2382,9 +2383,9 @@ export default class backpack extends Exchange {
             }
         }
         url += endpoint;
-        const headersResolved = (api === 'private') ? headersSigned : headers;
-        let bodyResolved = body;
-        if ((api === 'private') && (method !== 'GET')) {
+        const headersResolved = (apiName === 'private') ? headersSigned : undefined;
+        let bodyResolved = undefined;
+        if ((apiName === 'private') && (method !== 'GET')) {
             bodyResolved = bodySigned;
         }
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };

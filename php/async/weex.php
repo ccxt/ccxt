@@ -529,9 +529,7 @@ class weex extends Exchange {
                 ),
                 'networks' => array(
                     'BEP20' => 'BEP20(BSC)',
-                    'BSC' => 'BEP20(BSC)',
                     'ERC20' => 'ERC20',
-                    'ETH' => 'ERC20',
                     'POLYGON' => 'POLYGON(MATIC)',
                     'MATIC' => 'POLYGON(MATIC)',
                     'ARBITRUM' => 'ARBITRUM(ARB)',
@@ -4572,7 +4570,8 @@ class weex extends Exchange {
         $this->options['sandboxMode'] = $enable;
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $endpoint = $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $isBatch = (mb_strpos($path, 'batch') !== false);
@@ -4581,9 +4580,9 @@ class weex extends Exchange {
                 $endpoint .= '?' . $this->urlencode($query);
             }
         }
-        $isPrivate = ($api === 'private') || ($api === 'contractPrivate');
+        $isPrivate = ($apiName === 'private') || ($apiName === 'contractPrivate');
         $hasJsonBody = $isPrivate && (($method === 'POST') || $isBatch);
-        $requestBody = $body;
+        $requestBody = null;
         if ($hasJsonBody) {
             $requestBody = $this->json($query);
         }
@@ -4615,7 +4614,7 @@ class weex extends Exchange {
                 'User-Agent' => 'ccxt',
             );
         }
-        $baseApiUrl = $this->safe_string($this->urls['api'], $api);
+        $baseApiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($baseApiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }

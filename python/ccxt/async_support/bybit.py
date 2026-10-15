@@ -1238,11 +1238,8 @@ class bybit(Exchange, ImplicitAPI):
                 'networks': {
                     'BTC': 'BTC',
                     'BRC20': 'BTC',
-                    'ETH': 'ETH',
                     'ERC20': 'ETH',
-                    'TRX': 'TRX',
                     'TRC20': 'TRX',
-                    'BSC': 'BSC',
                     'BEP20': 'BSC',
                     'SOL': 'SOL',
                     'ACA': 'ACA',
@@ -1309,6 +1306,7 @@ class bybit(Exchange, ImplicitAPI):
                     # 'LUNA1': 'LUNA' (Terra)
                 },
                 'networksById': {
+                    'BTC': 'BTC',  # BTC and BRC20 share the id 'BTC', the native chain wins
                     'ETH': 'ERC20',
                     'TRX': 'TRC20',
                     'BSC': 'BEP20',
@@ -5729,7 +5727,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         currency = self.currency(code)
         networkCode, paramsOmited = self.handle_network_code_and_params(params)
         indexedAddresses = await self.fetch_deposit_addresses_by_network(code, paramsOmited)
-        selectedNetworkCode = self.select_network_code_from_unified_networks(currency['code'], networkCode, indexedAddresses)
+        selectedNetworkCode = self.select_network_key_from_networks(currency['code'], networkCode, indexedAddresses, True)
         return self.safe_value(indexedAddresses, selectedNetworkCode)
 
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
@@ -9431,17 +9429,18 @@ classic accounts only/ spot not supported*  fetches information on an order made
         }
         return self.safe_string(marginModes, marginMode, marginMode)
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
         requestBody = None
         requestHeaders = None
-        apiUrl = self.safe_string(self.urls['api'], api)
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = self.implode_hostname(apiUrl) + '/' + path
-        if api == 'public':
+        if apiName == 'public':
             if len(params) > 0:
                 url += '?' + self.rawencode(params)
-        elif api == 'private':
+        elif apiName == 'private':
             self.check_required_credentials()
             isOpenapi = url.find('openapi') >= 0
             isV3UnifiedMargin = url.find('unified/v3') >= 0
@@ -9521,11 +9520,11 @@ classic accounts only/ spot not supported*  fetches information on an order made
                     url += '&sign=' + signature
         if method == 'POST':
             brokerId = self.safe_string(self.options, 'brokerId', 'CCXT')
-            headersBase = headers if (requestHeaders is None) else requestHeaders
+            headersBase = requestHeaders
             requestHeaders = {} if (headersBase is None) else headersBase
             requestHeaders['Referer'] = brokerId
-        bodyResolved = body if (requestBody is None) else requestBody
-        headersResolved = headers if (requestHeaders is None) else requestHeaders
+        bodyResolved = requestBody
+        headersResolved = requestHeaders
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

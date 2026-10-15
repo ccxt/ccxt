@@ -2681,12 +2681,13 @@ public partial class upbit : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        object apiName = getValue(api, 0);
+        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((baseApiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -2703,14 +2704,14 @@ public partial class upbit : Exchange
                 url = url + ("?" + this.urlencode(query));
             }
         }
-        bool hasBody = ((api is "private")) && ((method != "GET")) && ((method != "DELETE"));
-        object requestBody = body;
+        bool hasBody = ((apiName is "private")) && ((method != "GET")) && ((method != "DELETE"));
+        string? requestBody = null;
         if (hasBody)
         {
             requestBody = this.json(parameters);
         }
         Dictionary<string, object> privateHeaders = null;
-        if ((api is "private"))
+        if ((apiName is "private"))
         {
             this.checkRequiredCredentials();
             privateHeaders = new Dictionary<string, object>() {};
@@ -2738,7 +2739,7 @@ public partial class upbit : Exchange
             string token = jwt(request, this.encode(this.secret), sha256);
             privateHeaders["Authorization"] = ("Bearer " + token);
         }
-        object requestHeaders = ((api is "private")) ? privateHeaders : headers;
+        Dictionary<string, object> requestHeaders = ((apiName is "private")) ? privateHeaders : null;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

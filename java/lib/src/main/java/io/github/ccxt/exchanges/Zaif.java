@@ -1017,8 +1017,9 @@ public class Zaif extends ZaifApi
         return toFixed(nonce, 8);
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String baseApiUrl = this.safeString(this.urls.get("api"), "rest");
         if (java.util.Objects.equals(baseApiUrl, null))
         {
@@ -1026,19 +1027,19 @@ public class Zaif extends ZaifApi
         }
         String baseUrl = baseApiUrl;
         String url = (baseUrl + "/");
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
+        if (java.util.Objects.equals(apiName, "public"))
         {
             url = (url + ((("api/" + this.version) + "/") + this.implodeParams(path, parameters)));
-        } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "fapi"))
+        } else if (java.util.Objects.equals(apiName, "fapi"))
         {
             url = (url + ((("fapi/" + this.version) + "/") + this.implodeParams(path, parameters)));
         } else
         {
             this.checkRequiredCredentials(true);
-            if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "ecapi"))
+            if (java.util.Objects.equals(apiName, "ecapi"))
             {
                 url = (url + "ecapi");
-            } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "tlapi"))
+            } else if (java.util.Objects.equals(apiName, "tlapi"))
             {
                 url = (url + "tlapi");
             } else
@@ -1068,8 +1069,8 @@ public class Zaif extends ZaifApi
             HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
             h2kMap2.put("url", url);
             h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap2.put("body", body);
-            h2kMap2.put("headers", headers);
+            h2kMap2.put("body", null);
+            h2kMap2.put("headers", null);
             return h2kMap2;
         }
     }

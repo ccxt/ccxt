@@ -2112,15 +2112,11 @@ public class Okx extends OkxApi
                 put( "networks", new HashMap<String, Object>() {{
                     put( "BTC", "Bitcoin" );
                     put( "BTCLIGHTNING", "Lightning" );
-                    put( "BSC", "BSC" );
                     put( "BEP20", "BSC" );
                     put( "BRC20", "BRC20" );
-                    put( "ETH", "ERC20" );
                     put( "ERC20", "ERC20" );
-                    put( "TRX", "TRC20" );
                     put( "TRC20", "TRC20" );
                     put( "CRC20", "Crypto" );
-                    put( "CRONOS", "Crypto" );
                     put( "ACA", "Acala" );
                     put( "ALGO", "Algorand" );
                     put( "APT", "Aptos" );
@@ -7100,7 +7096,9 @@ public class Okx extends OkxApi
             if (!java.util.Objects.equals(network, null))
             {
                 Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
-                network = this.safeString(networks, network.toUpperCase(), network); // handle ETH>ERC20 alias
+                String networkUpper = network.toUpperCase();
+                String networkKey = this.safeString(this.networkAliases, networkUpper, networkUpper);
+                network = this.safeString(networks, networkKey, network); // resolve aliases to the unified key
                 request.put("chain", ((currency.get("id") + "-") + network));
             }
             List<Object> omitKeys = new ArrayList<Object>(Arrays.asList("fee"));
@@ -8360,8 +8358,9 @@ public class Okx extends OkxApi
 
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Boolean isArray = (parameters instanceof List);
         String request = ((("/api/" + this.version) + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
@@ -8375,13 +8374,13 @@ public class Okx extends OkxApi
         Boolean hasJsonBody = false;
         String jsonBody = null;
         // const type = this.getPathAuthenticationType (path);
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
+        if (java.util.Objects.equals(apiName, "public"))
         {
             if (Helpers.objectKeys(query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
-        } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        } else if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
             // inject id in implicit api call
@@ -8439,12 +8438,12 @@ public class Okx extends OkxApi
             String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");
             privateHeaders.put("OK-ACCESS-SIGN", signature);
         }
-        String requestBody = body;
+        String requestBody = null;
         if (Boolean.TRUE.equals(hasJsonBody))
         {
             requestBody = jsonBody;
         }
-        Object requestHeaders = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private")))) ? privateHeaders : headers;
+        Map<String, Object> requestHeaders = (((java.util.Objects.equals(apiName, "private")))) ? privateHeaders : null;
         {
             HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
             h2kMap4.put("url", url);
@@ -9438,8 +9437,8 @@ public class Okx extends OkxApi
             }
             Map<String, Object> market = this.market(symbol);
             String type = (((java.util.Objects.equals(market.get("spot"), true)))) ? "MARGIN" : this.convertToInstrumentType(market.get("type"));
-            String uly = this.safeString(market.get("info"), "uly");
-            if ((java.util.Objects.equals(uly, null)) || (java.util.Objects.equals(uly, "")))
+            String instFamily = this.safeString(market.get("info"), "instFamily");
+            if ((java.util.Objects.equals(instFamily, null)) || (java.util.Objects.equals(instFamily, "")))
             {
                 if (!java.util.Objects.equals(type, "MARGIN"))
                 {
@@ -9454,7 +9453,7 @@ public class Okx extends OkxApi
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("instType", type);
             request.put("tdMode", marginMode);
-            request.put("uly", uly);
+            request.put("instFamily", instFamily);
             if (java.util.Objects.equals(type, "MARGIN"))
             {
                 request.put("instId", market.get("id"));

@@ -463,7 +463,7 @@ func (this *Deepcoin) Describe() any {
 				"ERC20":    "ERC20",
 				"TRC20":    "TRC20",
 				"ARBITRUM": "ARBITRUM",
-				"BSC":      "BSC(BEP20)",
+				"BEP20":    "BSC(BEP20)",
 				"SOL":      "SOL",
 				"BTC":      "Bitcoin",
 				"ADA":      "Cardano",
@@ -1696,6 +1696,9 @@ func (this *Deepcoin) fetchDepositAddressBody(ch chan AsyncResult[any], code str
 	if (network == nil) || (network != nil && *network == "") {
 		network = defaultNetwork
 	}
+	if network != nil {
+		network = this.SafeString(this.NetworkAliases, network, network)
+	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if network != nil {
 			return this.OmitDict(params, "network")
@@ -2367,11 +2370,11 @@ func (this *Deepcoin) createMarketOrderWithCostBody(ch chan AsyncResult[map[stri
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes180915 map[string]any = r.Value
-	if retRes180915 == nil {
+	var retRes181215 map[string]any = r.Value
+	if retRes181215 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes180915}
+		ch <- AsyncResult[map[string]any]{Value: retRes181215}
 	}
 	return nil
 }
@@ -2403,11 +2406,11 @@ func (this *Deepcoin) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any],
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes182315 map[string]any = r.Value
-	if retRes182315 == nil {
+	var retRes182615 map[string]any = r.Value
+	if retRes182615 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes182315}
+		ch <- AsyncResult[any]{Value: retRes182615}
 	}
 	return nil
 }
@@ -2439,11 +2442,11 @@ func (this *Deepcoin) createMarketSellOrderWithCostBody(ch chan AsyncResult[any]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes183715 map[string]any = r.Value
-	if retRes183715 == nil {
+	var retRes184015 map[string]any = r.Value
+	if retRes184015 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes183715}
+		ch <- AsyncResult[any]{Value: retRes184015}
 	}
 	return nil
 }
@@ -2645,11 +2648,11 @@ func (this *Deepcoin) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]any
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes196919 []any = ListTyped(r1.Value)
-		if retRes196919 == nil {
+		var retRes197219 []any = ListTyped(r1.Value)
+		if retRes197219 == nil {
 			ch <- AsyncResult[[]any]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]any]{Value: retRes196919}
+			ch <- AsyncResult[[]any]{Value: retRes197219}
 		}
 		return nil
 	}
@@ -2811,11 +2814,11 @@ func (this *Deepcoin) fetchCanceledOrdersBody(ch chan AsyncResult[[]any], option
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes209115 []any = r.Value
-	if retRes209115 == nil {
+	var retRes209415 []any = r.Value
+	if retRes209415 == nil {
 		ch <- AsyncResult[[]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]any]{Value: retRes209115}
+		ch <- AsyncResult[[]any]{Value: retRes209415}
 	}
 	return nil
 }
@@ -2860,11 +2863,11 @@ func (this *Deepcoin) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes211015 []any = r.Value
-	if retRes211015 == nil {
+	var retRes211315 []any = r.Value
+	if retRes211315 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes211015}
+		ch <- AsyncResult[any]{Value: retRes211315}
 	}
 	return nil
 }
@@ -4046,11 +4049,11 @@ func (this *Deepcoin) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs .
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes297019 []any = ListTyped(r1.Value)
-		if retRes297019 == nil {
+		var retRes297319 []any = ListTyped(r1.Value)
+		if retRes297319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes297019}
+			ch <- AsyncResult[any]{Value: retRes297319}
 		}
 		return nil
 	}
@@ -4166,11 +4169,11 @@ func (this *Deepcoin) fetchOrderTradesBody(ch chan AsyncResult[any], id string, 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes304615 []any = ListTyped(r1.Value)
-	if retRes304615 == nil {
+	var retRes304915 []any = ListTyped(r1.Value)
+	if retRes304915 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes304615}
+		ch <- AsyncResult[any]{Value: retRes304915}
 	}
 	return nil
 }
@@ -4246,16 +4249,13 @@ func (this *Deepcoin) closePositionBody(ch chan AsyncResult[any], symbol string,
 	return nil
 }
 func (this *Deepcoin) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var requestPath string = path
 	if method == "GET" {
 		var query string = this.Urlencode(params)
@@ -4263,12 +4263,12 @@ func (this *Deepcoin) Sign(path string, optionalArgs ...any) any {
 			requestPath += "?" + query
 		}
 	}
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *apiUrl + "/" + requestPath
-	if api == "private" {
+	if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		var timestamp int64 = this.Milliseconds()
 		var dateTime *string = this.Iso8601(timestamp)
@@ -4283,7 +4283,7 @@ func (this *Deepcoin) Sign(path string, optionalArgs ...any) any {
 			if method != "GET" {
 				return this.Json(params)
 			}
-			return body
+			return nil
 		}()
 		if method != "GET" {
 			privateHeaders["Content-Type"] = "application/json"
@@ -4301,8 +4301,8 @@ func (this *Deepcoin) Sign(path string, optionalArgs ...any) any {
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    nil,
+		"headers": nil,
 	}
 }
 func (this *Deepcoin) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {

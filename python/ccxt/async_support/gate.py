@@ -825,13 +825,10 @@ class gate(Exchange, ImplicitAPI):
                 'networks': {
                     'BTC': 'BTC',
                     'BRC20': 'BTCBRC',  # for eg: ORDI, RATS, ...
-                    'ETH': 'ETH',
                     'ERC20': 'ETH',
-                    'TRX': 'TRX',
                     'TRC20': 'TRX',
                     'HECO': 'HT',
                     'HRC20': 'HT',
-                    'BSC': 'BSC',
                     'BEP20': 'BSC',
                     'SOL': 'SOL',
                     'MATIC': 'MATIC',
@@ -843,7 +840,7 @@ class gate(Exchange, ImplicitAPI):
                     'ARBITRUM_NOVA': 'ARBNOVA',
                     'BASE': 'BASEEVM',
                     'SUI': 'SUI',
-                    'CRONOS': 'CRO',
+                    'CRC20': 'CRO',
                     'CRO': 'CRO',
                     'APT': 'APT',
                     'SCROLL': 'SCROLLETH',
@@ -2391,7 +2388,7 @@ class gate(Exchange, ImplicitAPI):
         networkCode, paramsNetworkCode = self.handle_network_code_and_params(params)
         chainsIndexedByIdRaw = await self.fetch_deposit_addresses_by_network(code, paramsNetworkCode)
         chainsIndexedById = chainsIndexedByIdRaw
-        selectedNetworkIdOrCode = self.select_network_code_from_unified_networks(code, networkCode, chainsIndexedById)
+        selectedNetworkIdOrCode = self.select_network_key_from_networks(code, networkCode, chainsIndexedById, True)
         return chainsIndexedById[selectedNetworkIdOrCode]
 
     def parse_deposit_address(self, depositAddress: dict, currency: Currency = None) -> DepositAddress:
@@ -6421,7 +6418,7 @@ class gate(Exchange, ImplicitAPI):
             tiers.append({
                 'tier': self.sum(i, 1),
                 'symbol': self.safe_string(market, 'symbol'),
-                'currency': self.safe_string(market, 'base'),
+                'currency': self.safe_string(market, 'settle'),
                 'minNotional': minNotional,
                 'maxNotional': maxNotional,
                 'maintenanceMarginRate': self.safe_number(item, 'maintenance_rate'),
@@ -6725,7 +6722,7 @@ class gate(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' nonce() requires a numeric options["timeDifference"]')
         return self.milliseconds() - timeDifference
 
-    def sign(self, path: str, api: object = [], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = [], method='GET', params: dict = {}) -> dict:
         authentication = api[0]  # public, private
         type = api[1]  # spot, margin, future, delivery
         query = self.omit(params, self.extract_params(path))
@@ -6796,7 +6793,7 @@ class gate(Exchange, ImplicitAPI):
                     url += '?' + queryString
                 query = self.omit(query, 'query')
                 bodyJson = self.json(query)
-            bodySigned = body if (bodyJson is None) else bodyJson
+            bodySigned = bodyJson
             bodyPayload = '' if (bodySigned is None) else bodySigned
             bodySignature = self.hash(self.encode(bodyPayload), 'sha512')
             nonce = self.nonce()
@@ -6813,8 +6810,8 @@ class gate(Exchange, ImplicitAPI):
                 'SIGN': signature,
                 'Content-Type': 'application/json',
             }
-        bodyResolved = body if (bodyJson is None) else bodyJson
-        headersResolved = headers if (signedHeaders is None) else signedHeaders
+        bodyResolved = bodyJson
+        headersResolved = signedHeaders
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
     async def modify_margin_helper(self, symbol: str, amount: Num, params: dict = {}) -> MarginModification:

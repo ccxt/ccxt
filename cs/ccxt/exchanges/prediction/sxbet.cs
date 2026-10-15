@@ -3146,21 +3146,19 @@ public partial class sxbet : PredictionExchange
      * @name sxbet#sign
      * @description builds the request url and attaches the x-sx-api-key header; every private v3 route authenticates with the apiKey credential, so its absence fails fast instead of surfacing a raw 401
      * @param {string} path the endpoint path
-     * @param {string|string[]} api the api group and access level
+     * @param {string[]} api the api group and access level
      * @param {string} method the http method
      * @param {object} params the request parameters
-     * @param {object} [headers] request headers
-     * @param {string} [body] the request body
      * @returns {object} a dict with url, method, body and headers
      */
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "sxbet";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object apiGroup = (api is string) ? api : getValue(api, 0);
-        object accessLevel = (api is string) ? "public" : getValue(api, 1);
-        if (((accessLevel is "private")) && ((this.apiKey == null)))
+        object apiGroup = getValue(api, 0);
+        string? accessLevel = this.safeString(api, 1, "public");
+        if ((accessLevel == "private") && ((this.apiKey == null)))
         {
             throw new AuthenticationError ((((this.id + " ") + path) + " is a private endpoint and requires the apiKey credential (the x-sx-api-key header)")) ;
         }
@@ -3168,7 +3166,7 @@ public partial class sxbet : PredictionExchange
         string baseUrl = this.safeString(baseUrls, apiGroup, ((string)getValue(baseUrls, "sxbet")));
         string url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
-        object existingHeaders = ((headers != null)) ? headers : new Dictionary<string, object>() {};
+        Dictionary<string, object> existingHeaders = new Dictionary<string, object>() {};
         Dictionary<string, object> headersExtended = this.extend(new Dictionary<string, object>() {
             { "Accept", "application/json" },
             { "Content-Type", "application/json" },
@@ -3185,7 +3183,7 @@ public partial class sxbet : PredictionExchange
             bool hasOrdersList = (inOp(query, "orders"));
             sendAsQuery = !hasOrdersList;
         }
-        object bodyValue = body;
+        string? bodyValue = null;
         if (sendAsQuery)
         {
             string querystring = this.urlencode(query);

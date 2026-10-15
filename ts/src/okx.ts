@@ -1171,15 +1171,11 @@ export default class okx extends Exchange {
                 'networks': {
                     'BTC': 'Bitcoin',
                     'BTCLIGHTNING': 'Lightning',
-                    'BSC': 'BSC',
                     'BEP20': 'BSC',
                     'BRC20': 'BRC20',
-                    'ETH': 'ERC20',
                     'ERC20': 'ERC20',
-                    'TRX': 'TRC20',
                     'TRC20': 'TRC20',
                     'CRC20': 'Crypto',
-                    'CRONOS': 'Crypto',
                     'ACA': 'Acala',
                     'ALGO': 'Algorand',
                     'APT': 'Aptos',
@@ -5644,7 +5640,9 @@ export default class okx extends Exchange {
         let network = this.safeString (paramsWithdrawTag, 'network'); // this line allows the user to specify either ERC20 or ETH
         if (network !== undefined) {
             const networks = this.safeDict (this.options, 'networks', {});
-            network = this.safeString (networks, network.toUpperCase (), network); // handle ETH>ERC20 alias
+            const networkUpper = network.toUpperCase ();
+            const networkKey = this.safeString (this.networkAliases, networkUpper, networkUpper);
+            network = this.safeString (networks, networkKey, network); // resolve aliases to the unified key
             request['chain'] = currency['id'] + '-' + network;
         }
         const omitKeys: string[] = [ 'fee' ];
@@ -6769,7 +6767,8 @@ export default class okx extends Exchange {
         return this.parseTransfers (transfers, currency, since, limit, params);
     }
 
-    override sign (path: string, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
         const isArray = Array.isArray (params);
         const request = '/api/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
@@ -6782,11 +6781,11 @@ export default class okx extends Exchange {
         let hasJsonBody = false;
         let jsonBody: Str = undefined;
         // const type = this.getPathAuthenticationType (path);
-        if (api === 'public') {
+        if (apiName === 'public') {
             if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
-        } else if (api === 'private') {
+        } else if (apiName === 'private') {
             this.checkRequiredCredentials ();
             // inject id in implicit api call
             if (method === 'POST' && (path === 'trade/batch-orders' || path === 'trade/order-algo' || path === 'trade/order')) {
@@ -6836,11 +6835,11 @@ export default class okx extends Exchange {
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256, 'base64');
             privateHeaders['OK-ACCESS-SIGN'] = signature;
         }
-        let requestBody: Str = body;
+        let requestBody: Str = undefined;
         if (hasJsonBody) {
             requestBody = jsonBody;
         }
-        const requestHeaders: NullableDict = (api === 'private') ? privateHeaders : headers;
+        const requestHeaders: NullableDict = (apiName === 'private') ? privateHeaders : undefined;
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
@@ -7755,8 +7754,8 @@ export default class okx extends Exchange {
         }
         const market = this.market (symbol);
         const type = (market['spot'] === true) ? 'MARGIN' : this.convertToInstrumentType (market['type']);
-        const uly = this.safeString (market['info'], 'uly');
-        if ((uly === undefined) || (uly === '')) {
+        const instFamily = this.safeString (market['info'], 'instFamily');
+        if ((instFamily === undefined) || (instFamily === '')) {
             if (type !== 'MARGIN') {
                 throw new BadRequest (this.id + ' fetchMarketLeverageTiers() cannot fetch leverage tiers for ' + symbol);
             }
@@ -7767,7 +7766,7 @@ export default class okx extends Exchange {
         const request: Dict = {
             'instType': type,
             'tdMode': marginMode,
-            'uly': uly,
+            'instFamily': instFamily,
         };
         if (type === 'MARGIN') {
             request['instId'] = market['id'];

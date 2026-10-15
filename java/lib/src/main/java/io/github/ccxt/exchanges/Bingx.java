@@ -1116,7 +1116,7 @@ public class Bingx extends BingxApi
                 put( "recvWindow", (5L * 1000L) );
                 put( "broker", "CCXT" );
                 put( "defaultNetworks", new HashMap<String, Object>() {{
-                    put( "ETH", "ETH" );
+                    put( "ETH", "ERC20" );
                     put( "USDT", "ERC20" );
                     put( "USDC", "ERC20" );
                     put( "BTC", "BTC" );
@@ -5993,7 +5993,7 @@ public class Bingx extends BingxApi
         if (!java.util.Objects.equals(address, null))
         {
             Boolean isPrefixed = (address.startsWith(((String)"0x"))) || (address.startsWith(((String)"0X")));
-            List<String> evmNetworks = new ArrayList<String>(Arrays.asList("BEP20", "BSC", "ERC20", "ETH", "HECO", "MATIC", "POLYGON", "ARBITRUM", "ARB", "OPTIMISM", "AVAXC", "BASE", "FTM", "LINEA", "ZKSYNC", "OPBNB"));
+            List<String> evmNetworks = new ArrayList<String>(Arrays.asList("BEP20", "ERC20", "HECO", "MATIC", "POLYGON", "ARBITRUM", "OPTIMISM", "AVAXC", "BASE", "FTM", "LINEA", "ZKSYNC", "OPBNB"));
             if (!Boolean.TRUE.equals(isPrefixed) && this.inArray(networkCode, evmNetworks))
             {
                 address = ("0x" + address);
@@ -7571,11 +7571,11 @@ public class Bingx extends BingxApi
         return tiers;
     }
 
-    public Object sign(Object path, Object section, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object section, Object method, Object parameters)
     {
-        Object type = Helpers.GetValue(java.util.Objects.requireNonNullElse(section, "public"), 0);
-        Object version = Helpers.GetValue(java.util.Objects.requireNonNullElse(section, "public"), 1);
-        Object access = Helpers.GetValue(java.util.Objects.requireNonNullElse(section, "public"), 2);
+        Object type = (section == null || 0 >= ((List<?>)section).size() ? null : ((List<?>)section).get(0));
+        Object version = (section == null || 1 >= ((List<?>)section).size() ? null : ((List<?>)section).get(1));
+        Object access = (section == null || 2 >= ((List<?>)section).size() ? null : ((List<?>)section).get(2));
         Boolean isSandbox = (Boolean) this.safeBool(this.options, "sandboxMode", false);
         String url = (String) this.implodeHostname(Helpers.GetValue(this.urls.get("api"), type));
         if ((java.util.Objects.equals(isSandbox, true)) && java.util.Objects.equals(url, null))
@@ -7594,8 +7594,8 @@ public class Bingx extends BingxApi
             {
                 type = "api/asset";
             }
-            version = Helpers.GetValue(java.util.Objects.requireNonNullElse(section, "public"), 2);
-            access = Helpers.GetValue(java.util.Objects.requireNonNullElse(section, "public"), 3);
+            version = (section == null || 2 >= ((List<?>)section).size() ? null : ((List<?>)section).get(2));
+            access = (section == null || 3 >= ((List<?>)section).size() ? null : ((List<?>)section).get(3));
         }
         List<String> flatAccountPaths = new ArrayList<String>(Arrays.asList("account/apiPermissions", "account/apiRestrictions"));
         if (!this.inArray(pathValue, flatAccountPaths))
@@ -7651,8 +7651,8 @@ public class Bingx extends BingxApi
                 url = (url + (((("?" + query) + "&") + "signature=") + signature));
             }
         }
-        String bodyResult = (((!java.util.Objects.equals(requestBody, null)))) ? requestBody : body;
-        Object headersResult = (((!java.util.Objects.equals(requestHeaders, null)))) ? requestHeaders : headers;
+        String bodyResult = requestBody;
+        Map<String, Object> headersResult = requestHeaders;
         {
             HashMap<String, Object> h2kMap7 = new HashMap<String, Object>();
             h2kMap7.put("url", url);

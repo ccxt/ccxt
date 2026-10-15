@@ -2851,13 +2851,10 @@ impl GateCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("BTC".to_string(), Value::Str("BTC".into()));
         m.insert("BRC20".to_string(), Value::Str("BTCBRC".into()));
-        m.insert("ETH".to_string(), Value::Str("ETH".into()));
         m.insert("ERC20".to_string(), Value::Str("ETH".into()));
-        m.insert("TRX".to_string(), Value::Str("TRX".into()));
         m.insert("TRC20".to_string(), Value::Str("TRX".into()));
         m.insert("HECO".to_string(), Value::Str("HT".into()));
         m.insert("HRC20".to_string(), Value::Str("HT".into()));
-        m.insert("BSC".to_string(), Value::Str("BSC".into()));
         m.insert("BEP20".to_string(), Value::Str("BSC".into()));
         m.insert("SOL".to_string(), Value::Str("SOL".into()));
         m.insert("MATIC".to_string(), Value::Str("MATIC".into()));
@@ -2869,7 +2866,7 @@ impl GateCore {
         m.insert("ARBITRUM_NOVA".to_string(), Value::Str("ARBNOVA".into()));
         m.insert("BASE".to_string(), Value::Str("BASEEVM".into()));
         m.insert("SUI".to_string(), Value::Str("SUI".into()));
-        m.insert("CRONOS".to_string(), Value::Str("CRO".into()));
+        m.insert("CRC20".to_string(), Value::Str("CRO".into()));
         m.insert("CRO".to_string(), Value::Str("CRO".into()));
         m.insert("APT".to_string(), Value::Str("APT".into()));
         m.insert("SCROLL".to_string(), Value::Str("SCROLLETH".into()));
@@ -4659,7 +4656,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut paramsNetworkCode: Value = networkCodeparamsNetworkCodeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut chainsIndexedByIdRaw: Value = self.fetch_deposit_addresses_by_network(code.clone(), &[paramsNetworkCode]).await;
         let mut chainsIndexedById: Value = chainsIndexedByIdRaw;
-        let mut selectedNetworkIdOrCode: Value = self.select_network_code_from_unified_networks(code, networkCode, chainsIndexedById.clone());
+        let mut selectedNetworkIdOrCode: Value = self.select_network_key_from_networks(code, networkCode, chainsIndexedById.clone(), &[Value::Bool(true)]);
         return chainsIndexedById.as_map().and_then(|__m| selectedNetworkIdOrCode.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
 
     Value::Null
@@ -9231,7 +9228,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut m = indexmap::IndexMap::new();
                     m.insert("tier".to_string(), self.sum(&[i.clone(), Value::Int(1)]));
                     m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
-                    m.insert("currency".to_string(), self.safe_string_k(market.clone(), "base", &[]));
+                    m.insert("currency".to_string(), self.safe_string_k(market.clone(), "settle", &[]));
                     m.insert("minNotional".to_string(), minNotional.clone());
                     m.insert("maxNotional".to_string(), maxNotional.clone());
                     m.insert("maintenanceMarginRate".to_string(), self.safe_number_k(item.clone(), "maintenance_rate", &[]));
@@ -9596,10 +9593,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut authentication: Value = get_value(&api, &Value::Int(0)); // public, private
-        let mut type_var: Value = get_value(&api, &Value::Int(1)); // spot, margin, future, delivery
+        let __api_empty = Vec::new();
+        let api = api.as_array().unwrap_or(&__api_empty);
+        let mut authentication: Value = api.get(0).cloned().unwrap_or(Value::Null); // public, private
+        let mut type_var: Value = api.get(1).cloned().unwrap_or(Value::Null); // spot, margin, future, delivery
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut pathImploded: Value = Value::Null;
         let mut bodyJson: Value = Value::Null;
@@ -9639,13 +9636,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }  else {
             endPart = (Value::Str(format!("{}{}", Value::Str("/".into()), pathImploded).into()));
         }
-        let mut entirePath: Value = Value::Str(format!("{}{}", add(&Value::Str("/".into()), &type_var), endPart).into());
+        let mut entirePath: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), type_var).into()), endPart).into());
         if (type_var.as_str() == Some("subAccounts")) || (type_var.as_str() == Some("withdrawals")) {
             entirePath = endPart;
         }
         let mut url: Value = get_value(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &authentication), &type_var);
         if (url == Value::Null) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" does not have a testnet for the ".into())).into()), &type_var), Value::Str(" market type.".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" does not have a testnet for the ".into())).into()), type_var).into()), Value::Str(" market type.".into()))));
         }
         url = add(&url, &entirePath);
         if (authentication.as_str() == Some("public")) {
@@ -9690,7 +9687,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 query = self.omit(query.clone(), Value::Str("query".into()), &[]);
                 bodyJson = json_stringify(&query);
             }
-            let mut bodySigned: Value = (if (bodyJson == Value::Null) { body.clone() } else { bodyJson.clone() });
+            let mut bodySigned: Value = bodyJson.clone();
             let mut bodyPayload: Value = (if (bodySigned == Value::Null) { Value::Str("".into()) } else { bodySigned });
             let mut bodySignature: Value = self.hash(self.encode(bodyPayload), Value::Str("sha512".into()), &[]);
             let mut nonce: Value = self.nonce();
@@ -9710,8 +9707,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             });
         }
-        let mut bodyResolved: Value = (if (bodyJson == Value::Null) { body } else { bodyJson });
-        let mut headersResolved: Value = (if (signedHeaders == Value::Null) { headers } else { signedHeaders });
+        let mut bodyResolved: Value = bodyJson;
+        let mut headersResolved: Value = signedHeaders;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);

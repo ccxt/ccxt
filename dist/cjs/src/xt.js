@@ -618,10 +618,8 @@ class xt extends xt$1["default"] {
                 'networks': {
                     'ERC20': 'Ethereum',
                     'TRC20': 'Tron',
-                    'TRX': 'Tron',
                     'BEP20': 'BNB Smart Chain',
                     'BEP2': 'BNB-BEP2',
-                    'ETH': 'Ethereum',
                     'AVAX': 'AVAX C-Chain',
                     'GAL': 'GAL(FT)',
                     'ALEO': 'ALEO(IOU)',
@@ -5904,7 +5902,7 @@ class xt extends xt$1["default"] {
         }
         return undefined;
     }
-    sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = [], method = 'GET', params = {}) {
         const signed = api[0] === 'private';
         const endpoint = api[1];
         const request = '/' + this.implodeParams(path, params);
@@ -5999,7 +5997,7 @@ class xt extends xt$1["default"] {
                 url += '?' + urlencoded;
             }
         }
-        let bodyValue = body;
+        let bodyValue = undefined;
         if (signed) {
             bodyValue = signedBody;
         }

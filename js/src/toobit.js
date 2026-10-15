@@ -451,7 +451,6 @@ export default class toobit extends Exchange {
                 'networks': {
                     'BTC': 'BTC',
                     'ERC20': 'ETH',
-                    'ETH': 'ETH',
                     'BEP20': 'BSC',
                     'TRC20': 'TRX',
                     'SOL': 'SOL',
@@ -3229,8 +3228,9 @@ export default class toobit extends Exchange {
             'percentage': undefined,
         });
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const baseApiUrl = this.safeString(this.urls['api'], api);
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        const baseApiUrl = this.safeString(this.urls['api'], apiName);
         if (baseApiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
@@ -3240,7 +3240,7 @@ export default class toobit extends Exchange {
         const isDelete = method === 'DELETE';
         const extraQuery = {};
         const query = this.omit(params, this.extractParams(path));
-        if (api !== 'private') {
+        if (apiName !== 'private') {
             // Public endpoints
             if (!isPost) {
                 if (Object.keys(query).length > 0) {
@@ -3270,7 +3270,7 @@ export default class toobit extends Exchange {
             else {
                 queryString = this.urlencode(queryExtended);
             }
-            let payloadBody = body;
+            let payloadBody = undefined;
             if (isPost || isDelete) {
                 payloadBody = privateBody;
             }
@@ -3292,13 +3292,13 @@ export default class toobit extends Exchange {
                 'X-BB-API-PLATFORM': this.safeString(this.options, 'brokerId', '177321641268789'),
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
-            let requestBody = body;
+            let requestBody = undefined;
             if (isPost || isDelete) {
                 requestBody = privateBody;
             }
             return { 'url': url, 'method': method, 'body': requestBody, 'headers': privateHeaders };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

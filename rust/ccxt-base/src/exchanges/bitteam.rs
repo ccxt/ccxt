@@ -489,10 +489,10 @@ impl BitteamCore {
         m.insert("ethereum".to_string(), Value::Str("ERC20".into()));
         m.insert("Tron".to_string(), Value::Str("TRC20".into()));
         m.insert("tron".to_string(), Value::Str("TRC20".into()));
-        m.insert("Binance".to_string(), Value::Str("BSC".into()));
-        m.insert("binance".to_string(), Value::Str("BSC".into()));
-        m.insert("Binance Smart Chain".to_string(), Value::Str("BSC".into()));
-        m.insert("bscscan".to_string(), Value::Str("BSC".into()));
+        m.insert("Binance".to_string(), Value::Str("BEP20".into()));
+        m.insert("binance".to_string(), Value::Str("BEP20".into()));
+        m.insert("Binance Smart Chain".to_string(), Value::Str("BEP20".into()));
+        m.insert("bscscan".to_string(), Value::Str("BEP20".into()));
         m.insert("Bitcoin".to_string(), Value::Str("BTC".into()));
         m.insert("bitcoin".to_string(), Value::Str("BTC".into()));
         m.insert("Litecoin".to_string(), Value::Str("LTC".into()));
@@ -3049,17 +3049,18 @@ impl BitteamCore {
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
+        let __api_empty = Vec::new();
+        let api = api.as_array().unwrap_or(&__api_empty);
+        let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
         let mut request: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut endpoint: Value = Value::Str(format!("{}{}", Value::Str("/".into()), self.implode_params(path, params)).into());
-        let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), api.clone(), &[]);
+        let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone(), &[]);
         if (apiUrl == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
@@ -3067,7 +3068,7 @@ impl BitteamCore {
         let mut query: Value = self.urlencode(request.clone(), &[]);
         let mut requestBody: Value = Value::Null;
         let mut requestHeaders: Value = Value::Null;
-        if (api.as_str() == Some("private")) {
+        if (apiName.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             if (method.as_str() == Some("POST")) {
                 requestBody = json_stringify(&request);
@@ -3086,8 +3087,8 @@ impl BitteamCore {
         }  else if (Value::Int(query.len() as i64).as_f64() != Some(0.0)) {
             url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), query).into())).into());
         }
-        let mut bodyResolved: Value = (if (requestBody == Value::Null) { body } else { requestBody });
-        let mut headersResolved: Value = (if (requestHeaders == Value::Null) { headers } else { requestHeaders });
+        let mut bodyResolved: Value = requestBody;
+        let mut headersResolved: Value = requestHeaders;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);

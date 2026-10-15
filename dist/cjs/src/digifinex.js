@@ -419,16 +419,13 @@ class digifinex extends digifinex$1["default"] {
                     'AVALANCEC': 'AVAX-CCHAIN',
                     'AVALANCEX': 'AVAX-XCHAIN',
                     'BEP20': 'BEP20',
-                    'BSC': 'BEP20',
                     'CARDANO': 'Cardano',
                     'CELO': 'Celo',
                     'CHILIZ': 'Chiliz',
                     'COSMOS': 'COSMOS',
                     'CRC20': 'Crypto.com',
-                    'CRONOS': 'Crypto.com',
                     'DOGECOIN': 'DogeChain',
                     'ERC20': 'ERC20',
-                    'ETH': 'ERC20',
                     'ETHW': 'ETHW',
                     'IOTA': 'MIOTA',
                     'KLAYTN': 'KLAY',
@@ -445,7 +442,6 @@ class digifinex extends digifinex$1["default"] {
                     'TERRA': 'Terra',
                     'TON': 'Ton',
                     'TRC20': 'TRC20',
-                    'TRX': 'TRC20',
                     'VECHAIN': 'Vechain', // VET
                 },
                 'networksById': {
@@ -456,7 +452,7 @@ class digifinex extends digifinex$1["default"] {
                     'ERC20': 'ERC20',
                     'ETH': 'ERC20',
                     'Polygon': 'POLYGON',
-                    'Crypto.com': 'CRONOS',
+                    'Crypto.com': 'CRC20',
                 },
             },
             'commonCurrencies': {
@@ -3218,7 +3214,7 @@ class digifinex extends digifinex$1["default"] {
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
-        const network = this.safeString(transaction, 'chain');
+        const network = this.networkIdToCode(this.safeString(transaction, 'chain'), code);
         return {
             'info': transaction,
             'id': id,
@@ -4692,7 +4688,7 @@ class digifinex extends digifinex$1["default"] {
         };
         return await this.privateSwapPostAccountPositionMode(this.extend(request, params));
     }
-    sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = [], method = 'GET', params = {}) {
         const signed = this.safeString(api, 0) === 'private';
         const endpoint = this.safeString(api, 1);
         let pathPart = '/swap/v2';
@@ -4740,7 +4736,7 @@ class digifinex extends digifinex$1["default"] {
                 }
             }
             const hasPostBody = (method === 'POST') && (urlencoded !== undefined) && (urlencoded !== '');
-            let requestBody = body;
+            let requestBody = undefined;
             if (hasPostBody) {
                 requestBody = urlencoded;
             }
@@ -4756,7 +4752,7 @@ class digifinex extends digifinex$1["default"] {
                 url += '?' + urlencoded;
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     handleErrors(statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
         if (response === undefined) {

@@ -341,9 +341,7 @@ func (this *Hollaex) Describe() any {
 			"api-expires": this.ParseToInt(Divide(this.Timeout, 1000)),
 			"networks": map[string]any{
 				"BTC":   "btc",
-				"ETH":   "eth",
 				"ERC20": "eth",
-				"TRX":   "trx",
 				"TRC20": "trx",
 				"XRP":   "xrp",
 				"XLM":   "xlm",
@@ -1222,11 +1220,11 @@ func (this *Hollaex) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opt
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes95219 []any = ListTyped(r1.Value)
-		if retRes95219 == nil {
+		var retRes95019 []any = ListTyped(r1.Value)
+		if retRes95019 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes95219}
+			ch <- AsyncResult[any]{Value: retRes95019}
 		}
 		return nil
 	}
@@ -1244,11 +1242,11 @@ func (this *Hollaex) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opt
 	request["to"] = this.ParseToInt(Divide(until, 1000))   // convert to seconds
 	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, "until")
 
-	listEp1189 := <-this.PublicGetChart(this.Extend(request, paramsOmitted))
-	if listEp1189.Err != nil {
-		panic(listEp1189.Err)
+	listEp1187 := <-this.PublicGetChart(this.Extend(request, paramsOmitted))
+	if listEp1187.Err != nil {
+		panic(listEp1187.Err)
 	}
-	var response []any = listEp1189.Value
+	var response []any = listEp1187.Value
 
 	//
 	//     [
@@ -1457,11 +1455,11 @@ func (this *Hollaex) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes111915 []any = ListTyped(r.Value)
-	if retRes111915 == nil {
+	var retRes111715 []any = ListTyped(r.Value)
+	if retRes111715 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes111915}
+		ch <- AsyncResult[any]{Value: retRes111715}
 	}
 	return nil
 }
@@ -1501,11 +1499,11 @@ func (this *Hollaex) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArg
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes113715 []any = ListTyped(r.Value)
-	if retRes113715 == nil {
+	var retRes113515 []any = ListTyped(r.Value)
+	if retRes113515 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes113715}
+		ch <- AsyncResult[any]{Value: retRes113515}
 	}
 	return nil
 }
@@ -1926,11 +1924,11 @@ func (this *Hollaex) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs 
 	market = this.Market(symbol)
 	request["symbol"] = market["id"]
 
-	listEp1815 := <-this.PrivateDeleteOrderAll(this.Extend(request, params))
-	if listEp1815.Err != nil {
-		panic(listEp1815.Err)
+	listEp1813 := <-this.PrivateDeleteOrderAll(this.Extend(request, params))
+	if listEp1813.Err != nil {
+		panic(listEp1813.Err)
 	}
-	var response []any = listEp1815.Value
+	var response []any = listEp1813.Value
 
 	//
 	//     [
@@ -2046,11 +2044,11 @@ func (this *Hollaex) ParseDepositAddress(depositAddress any, optionalArgs ...any
 	this.CheckAddress(address)
 	var currencyId *string = this.SafeString(depositAddress, "currency")
 	var currencyResolved map[string]any = this.SafeCurrency(currencyId, currency)
-	var network *string = this.SafeString(depositAddress, "network")
+	var networkId *string = this.SafeString(depositAddress, "network")
 	return map[string]any{
 		"info":     depositAddress,
 		"currency": currencyResolved["code"],
-		"network":  network,
+		"network":  this.NetworkIdToCode(networkId, currencyResolved["code"]),
 		"address":  address,
 		"tag":      tag,
 	}
@@ -2142,7 +2140,7 @@ func (this *Hollaex) fetchDepositAddressesBody(ch chan AsyncResult[any], optiona
 	if network == nil {
 		addresses = wallet
 	} else {
-		addresses = this.FilterBy(wallet, "network", network)
+		addresses = this.FilterBy(wallet, "network", this.NetworkCodeToId(network))
 	}
 
 	ch <- AsyncResult[any]{Value: this.ParseDepositAddresses(addresses, codes, false)}
@@ -2704,16 +2702,12 @@ func (this *Hollaex) fetchDepositWithdrawFeesBody(ch chan AsyncResult[any], opti
 	return nil
 }
 func (this *Hollaex) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var requestPath string = "/" + this.Version + "/" + this.ImplodeParams(path, params)
 	if (method == "GET") || (method == "DELETE") {
@@ -2728,7 +2722,7 @@ func (this *Hollaex) Sign(path string, optionalArgs ...any) any {
 	var url string = *apiUrl + requestPath
 	var requestBody any = nil
 	var requestHeaders any = nil
-	if api == "private" {
+	if GetValue(api, 0) == "private" {
 		this.CheckRequiredCredentials()
 		var defaultExpires *int64 = this.SafeInteger2(this.Options, "api-expires", "expires", this.ParseToInt(Divide(this.Timeout, 1000)))
 		var expires any = this.Sum(this.Seconds(), defaultExpires)
@@ -2748,18 +2742,8 @@ func (this *Hollaex) Sign(path string, optionalArgs ...any) any {
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 		AddElementToObject(requestHeaders, "api-signature", signature)
 	}
-	var bodyResult any = func() any {
-		if requestBody == nil {
-			return body
-		}
-		return requestBody
-	}()
-	var headersResult any = func() any {
-		if requestHeaders == nil {
-			return headers
-		}
-		return requestHeaders
-	}()
+	var bodyResult any = requestBody
+	var headersResult any = requestHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,

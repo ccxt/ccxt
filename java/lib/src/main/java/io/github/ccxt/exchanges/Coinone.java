@@ -1571,8 +1571,9 @@ public class Coinone extends CoinoneApi
 
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String request = (String) this.implodeParams(path, parameters);
         Object query = this.omit(parameters, this.extractParams(path));
         String apiUrl = this.safeString(this.urls.get("api"), "rest");
@@ -1581,8 +1582,8 @@ public class Coinone extends CoinoneApi
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = (apiUrl + "/");
-        Boolean isPublic = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "v2Public"));
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "v2Public"))
+        Boolean isPublic = (java.util.Objects.equals(apiName, "public")) || (java.util.Objects.equals(apiName, "v2Public"));
+        if (java.util.Objects.equals(apiName, "v2Public"))
         {
             String apiUrl2 = this.safeString(this.urls.get("api"), "v2Public");
             if (java.util.Objects.equals(apiUrl2, null))
@@ -1590,7 +1591,7 @@ public class Coinone extends CoinoneApi
                 throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
             }
             url = (apiUrl2 + "/");
-        } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "v2Private"))
+        } else if (java.util.Objects.equals(apiName, "v2Private"))
         {
             String apiUrl3 = this.safeString(this.urls.get("api"), "v2Private");
             if (java.util.Objects.equals(apiUrl3, null))
@@ -1598,7 +1599,7 @@ public class Coinone extends CoinoneApi
                 throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
             }
             url = (apiUrl3 + "/");
-        } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "v2_1Private"))
+        } else if (java.util.Objects.equals(apiName, "v2_1Private"))
         {
             String apiUrl4 = this.safeString(this.urls.get("api"), "v2_1Private");
             if (java.util.Objects.equals(apiUrl4, null))
@@ -1622,7 +1623,7 @@ public class Coinone extends CoinoneApi
             url = (url + request);
             // the v2.1 api requires a uuid nonce, the older apis use a numeric one
             String nonce = null;
-            if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "v2_1Private"))
+            if (java.util.Objects.equals(apiName, "v2_1Private"))
             {
                 nonce = this.uuid();
             } else
@@ -1643,8 +1644,8 @@ public class Coinone extends CoinoneApi
                 put( "X-COINONE-SIGNATURE", signature );
             }};
         }
-        String bodyResolved = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
-        Object headersResolved = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
+        String bodyResolved = requestBody;
+        Map<String, Object> headersResolved = requestHeaders;
         {
             HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
             h2kMap0.put("url", url);

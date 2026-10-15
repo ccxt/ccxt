@@ -257,7 +257,7 @@ public partial class indodax : Exchange
                 { "adjustForTimeDifference", false },
                 { "networks", new Dictionary<string, object>() {
                     { "XLM", "Stellar Token" },
-                    { "BSC", "bep20" },
+                    { "BEP20", "bep20" },
                     { "TRC20", "trc20" },
                     { "MATIC", "polygon" },
                 } },
@@ -1647,12 +1647,13 @@ public partial class indodax : Exchange
         return ccxt.BaseExchange.ToDepositAddressList(result);
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        object apiName = getValue(api, 0);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -1660,7 +1661,7 @@ public partial class indodax : Exchange
         string url = apiUrl;
         string? privateBody = null;
         Dictionary<string, object> privateHeaders = null;
-        bool isPublic = ((api is "public"));
+        bool isPublic = ((apiName is "public"));
         if (isPublic)
         {
             object query = this.omit(parameters, this.extractParams(path));
@@ -1684,15 +1685,15 @@ public partial class indodax : Exchange
                 { "Sign", this.hmac(this.encode(privateBody), this.encode(this.secret), sha512) },
             };
         }
-        object requestBody = privateBody;
+        string? requestBody = privateBody;
         if (isPublic)
         {
-            requestBody = body;
+            requestBody = null;
         }
-        object requestHeaders = privateHeaders;
+        Dictionary<string, object> requestHeaders = privateHeaders;
         if (isPublic)
         {
-            requestHeaders = headers;
+            requestHeaders = null;
         }
         return new Dictionary<string, object>() {
             { "url", url },

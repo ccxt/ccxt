@@ -287,7 +287,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                 'reverseNetworks': {
                     'tronscan.org': 'TRC20',
                     'etherscan.io': 'ERC20',
-                    'bscscan.com': 'BSC',
+                    'bscscan.com': 'BEP20',
                     'explorer.binance.org': 'BEP2',
                     'bithomp.com': 'XRP',
                     'bloks.io': 'EOS',
@@ -2268,7 +2268,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         return {
             'info': response,
             'currency': code,
-            'network': self.safe_string(data, 'network'),
+            'network': self.network_id_to_code(self.safe_string(data, 'network'), code),
             'address': address,
             'tag': tag,
         }
@@ -2495,7 +2495,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             'txid': txid,
             'type': type,
             'currency': code,
-            'network': self.safe_string(transaction, 'network'),
+            'network': self.network_id_to_code(self.safe_string(transaction, 'network'), code),
             'amount': self.safe_number(transaction, 'amount'),
             'status': self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'), type),
             'timestamp': timestamp,
@@ -2557,15 +2557,16 @@ class tokocrypto(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def sign(self, path: str, api='public', method: object = 'GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        if not (api in self.urls['api']['rest']):
-            raise NotSupported(self.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints')
-        baseApiUrl = self.safe_string(self.urls['api']['rest'], api)
+    def sign(self, path: str, api: list[str] = ['public'], method: object = 'GET', params: dict = {}) -> dict:
+        apiName = api[0]
+        if not (apiName in self.urls['api']['rest']):
+            raise NotSupported(self.id + ' does not have a testnet/sandbox URL for ' + apiName + ' endpoints')
+        baseApiUrl = self.safe_string(self.urls['api']['rest'], apiName)
         if baseApiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = baseApiUrl
         url += '/' + path
-        if api == 'wapi':
+        if apiName == 'wapi':
             url += '.html'
         userDataStream = (path == 'userDataStream') or (path == 'listenKey')
         if userDataStream:
@@ -2575,11 +2576,11 @@ class tokocrypto(Exchange, ImplicitAPI):
                     'X-MBX-APIKEY': self.apiKey,
                     'Content-Type': 'application/x-www-form-urlencoded',
                 }
-                bodyStream = self.urlencode(params) if (method != 'GET') else body
+                bodyStream = self.urlencode(params) if (method != 'GET') else None
                 return {'url': url, 'method': method, 'body': bodyStream, 'headers': headersStream}
             else:
                 raise AuthenticationError(self.id + ' userDataStream endpoint requires `apiKey` credential')
-        elif (api == 'private') or (api == 'sapi' and path != 'system/status') or (api == 'sapiV3') or (api == 'wapi' and path != 'systemStatus') or (api == 'dapiPrivate') or (api == 'dapiPrivateV2') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2'):
+        elif (apiName == 'private') or (apiName == 'sapi' and path != 'system/status') or (apiName == 'sapiV3') or (apiName == 'wapi' and path != 'systemStatus') or (apiName == 'dapiPrivate') or (apiName == 'dapiPrivateV2') or (apiName == 'fapiPrivate') or (apiName == 'fapiPrivateV2'):
             self.check_required_credentials()
             query = None
             defaultRecvWindow = self.safe_integer(self.options, 'recvWindow')
@@ -2591,7 +2592,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             recvWindow = self.safe_integer(params, 'recvWindow')
             if recvWindow is not None:
                 extendedParams['recvWindow'] = recvWindow
-            if (api == 'sapi') and (path == 'asset/dust'):
+            if (apiName == 'sapi') and (path == 'asset/dust'):
                 query = self.urlencode_with_array_repeat(extendedParams)
             elif (path == 'batchOrders') or (path.find('sub-account') >= 0) or (path == 'capital/withdraw/apply') or (path.find('staking') >= 0):
                 query = self.rawencode(extendedParams)
@@ -2602,10 +2603,10 @@ class tokocrypto(Exchange, ImplicitAPI):
             headersSigned = {
                 'X-MBX-APIKEY': self.apiKey,
             }
-            queryInUrl = (method == 'GET') or (method == 'DELETE') or (api == 'wapi')
+            queryInUrl = (method == 'GET') or (method == 'DELETE') or (apiName == 'wapi')
             bodySigned = query
             if queryInUrl:
-                bodySigned = body
+                bodySigned = None
             if queryInUrl:
                 url += '?' + query
             else:
@@ -2614,7 +2615,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         else:
             if len(params) > 0:
                 url += '?' + self.urlencode(params)
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if (code == 418) or (code == 429):
@@ -2674,7 +2675,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' ' + body)
         return None
 
-    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config: dict = {}):
+    def calculate_rate_limiter_cost(self, api: list[str], method: object, path: object, params: object, config: dict = {}):
         if ('noCoin' in config) and not ('coin' in params):
             return config['noCoin']
         elif ('noSymbol' in config) and not ('symbol' in params):

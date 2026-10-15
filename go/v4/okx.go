@@ -2064,15 +2064,11 @@ func (this *Okx) Describe() any {
 			"networks": map[string]any{
 				"BTC":          "Bitcoin",
 				"BTCLIGHTNING": "Lightning",
-				"BSC":          "BSC",
 				"BEP20":        "BSC",
 				"BRC20":        "BRC20",
-				"ETH":          "ERC20",
 				"ERC20":        "ERC20",
-				"TRX":          "TRC20",
 				"TRC20":        "TRC20",
 				"CRC20":        "Crypto",
-				"CRONOS":       "Crypto",
 				"ACA":          "Acala",
 				"ALGO":         "Algorand",
 				"APT":          "Aptos",
@@ -3838,11 +3834,11 @@ func (this *Okx) fetchTradesBody(ch chan AsyncResult[any], symbol any, optionalA
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes261019 []any = ListTyped(r1.Value)
-		if retRes261019 == nil {
+		var retRes260619 []any = ListTyped(r1.Value)
+		if retRes260619 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes261019}
+			ch <- AsyncResult[any]{Value: retRes260619}
 		}
 		return nil
 	}
@@ -3997,11 +3993,11 @@ func (this *Okx) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, optiona
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes272319 []any = ListTyped(r1.Value)
-		if retRes272319 == nil {
+		var retRes271919 []any = ListTyped(r1.Value)
+		if retRes271919 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes272319}
+			ch <- AsyncResult[any]{Value: retRes271919}
 		}
 		return nil
 	}
@@ -4184,11 +4180,11 @@ func (this *Okx) fetchFundingRateHistoryBody(ch chan AsyncResult[any], optionalA
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes283519 []any = ListTyped(r1.Value)
-		if retRes283519 == nil {
+		var retRes283119 []any = ListTyped(r1.Value)
+		if retRes283119 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes283519}
+			ch <- AsyncResult[any]{Value: retRes283119}
 		}
 		return nil
 	}
@@ -4597,11 +4593,11 @@ func (this *Okx) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any], symb
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes317115 map[string]any = r1.Value
-	if retRes317115 == nil {
+	var retRes316715 map[string]any = r1.Value
+	if retRes316715 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes317115}
+		ch <- AsyncResult[any]{Value: retRes316715}
 	}
 	return nil
 }
@@ -4646,11 +4642,11 @@ func (this *Okx) createMarketSellOrderWithCostBody(ch chan AsyncResult[any], sym
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes319615 map[string]any = r1.Value
-	if retRes319615 == nil {
+	var retRes319215 map[string]any = r1.Value
+	if retRes319215 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes319615}
+		ch <- AsyncResult[any]{Value: retRes319215}
 	}
 	return nil
 }
@@ -6380,11 +6376,11 @@ func (this *Okx) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...a
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes461119 []any = ListTyped(r1.Value)
-		if retRes461119 == nil {
+		var retRes460719 []any = ListTyped(r1.Value)
+		if retRes460719 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes461119}
+			ch <- AsyncResult[any]{Value: retRes460719}
 		}
 		return nil
 	}
@@ -6802,11 +6798,11 @@ func (this *Okx) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs ..
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes496719 []any = ListTyped(r1.Value)
-		if retRes496719 == nil {
+		var retRes496319 []any = ListTyped(r1.Value)
+		if retRes496319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes496719}
+			ch <- AsyncResult[any]{Value: retRes496319}
 		}
 		return nil
 	}
@@ -7025,11 +7021,11 @@ func (this *Okx) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...any
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes514719 []any = ListTyped(r1.Value)
-		if retRes514719 == nil {
+		var retRes514319 []any = ListTyped(r1.Value)
+		if retRes514319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes514719}
+			ch <- AsyncResult[any]{Value: retRes514319}
 		}
 		return nil
 	}
@@ -7121,11 +7117,11 @@ func (this *Okx) fetchOrderTradesBody(ch chan AsyncResult[any], id string, optio
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes522215 []any = ListTyped(r.Value)
-	if retRes522215 == nil {
+	var retRes521815 []any = ListTyped(r.Value)
+	if retRes521815 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes522215}
+		ch <- AsyncResult[any]{Value: retRes521815}
 	}
 	return nil
 }
@@ -7176,11 +7172,11 @@ func (this *Okx) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...any) 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes524719 []any = ListTyped(r1.Value)
-		if retRes524719 == nil {
+		var retRes524319 []any = ListTyped(r1.Value)
+		if retRes524319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes524719}
+			ch <- AsyncResult[any]{Value: retRes524319}
 		}
 		return nil
 	}
@@ -7657,7 +7653,9 @@ func (this *Okx) withdrawBody(ch chan EndpointResult[map[string]any], code strin
 	var network *string = this.SafeString(paramsWithdrawTag, "network") // this line allows the user to specify either ERC20 or ETH
 	if network != nil {
 		var networks map[string]any = SafeMapTyped(this.Options, "networks")
-		network = this.SafeString(networks, strings.ToUpper(*network), network) // handle ETH>ERC20 alias
+		var networkUpper string = strings.ToUpper(*network)
+		var networkKey *string = this.SafeString(this.NetworkAliases, networkUpper, networkUpper)
+		network = this.SafeString(networks, networkKey, network) // resolve aliases to the unified key
 		request["chain"] = Add(Add(currency["id"], "-"), network)
 	}
 	var omitKeys []any = []any{"fee"}
@@ -7757,11 +7755,11 @@ func (this *Okx) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ...any
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes570419 []any = ListTyped(r1.Value)
-		if retRes570419 == nil {
+		var retRes570219 []any = ListTyped(r1.Value)
+		if retRes570219 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes570419}
+			ch <- AsyncResult[any]{Value: retRes570219}
 		}
 		return nil
 	}
@@ -7921,11 +7919,11 @@ func (this *Okx) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs ...
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes581519 []any = ListTyped(r1.Value)
-		if retRes581519 == nil {
+		var retRes581319 []any = ListTyped(r1.Value)
+		if retRes581319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes581519}
+			ch <- AsyncResult[any]{Value: retRes581319}
 		}
 		return nil
 	}
@@ -8557,11 +8555,11 @@ func (this *Okx) fetchPositionsForSymbolBody(ch chan AsyncResult[[]any], symbol 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes633315 []any = ListTyped(r.Value)
-	if retRes633315 == nil {
+	var retRes633115 []any = ListTyped(r.Value)
+	if retRes633115 == nil {
 		ch <- AsyncResult[[]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]any]{Value: retRes633315}
+		ch <- AsyncResult[[]any]{Value: retRes633115}
 	}
 	return nil
 }
@@ -9102,16 +9100,13 @@ func (this *Okx) fetchTransfersBody(ch chan AsyncResult[any], optionalArgs ...an
 	return nil
 }
 func (this *Okx) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var isArray bool = IsArray(params)
 	var request string = "/api/" + this.Version + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
@@ -9124,11 +9119,11 @@ func (this *Okx) Sign(path string, optionalArgs ...any) any {
 	var hasJsonBody bool = false
 	var jsonBody any = nil
 	// const type = this.getPathAuthenticationType (path);
-	if api == "public" {
+	if apiName != nil && *apiName == "public" {
 		if len(ObjectKeys(query)) > 0 {
 			url += "?" + this.Urlencode(query)
 		}
-	} else if api == "private" {
+	} else if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		// inject id in implicit api call
 		if (method == "POST") && ((path == "trade/batch-orders") || (path == "trade/order-algo") || (path == "trade/order")) {
@@ -9180,15 +9175,15 @@ func (this *Okx) Sign(path string, optionalArgs ...any) any {
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256, "base64")
 		AddElementToObject(privateHeaders, "OK-ACCESS-SIGN", signature)
 	}
-	var requestBody any = body
+	var requestBody any = nil
 	if hasJsonBody {
 		requestBody = jsonBody
 	}
 	var requestHeaders any = func() any {
-		if api == "private" {
+		if apiName != nil && *apiName == "private" {
 			return privateHeaders
 		}
-		return headers
+		return nil
 	}()
 	return map[string]any{
 		"url":     url,
@@ -9295,11 +9290,11 @@ func (this *Okx) fetchFundingIntervalBody(ch chan AsyncResult[map[string]any], s
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes692915 map[string]any = r.Value
-	if retRes692915 == nil {
+	var retRes692815 map[string]any = r.Value
+	if retRes692815 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes692915}
+		ch <- AsyncResult[map[string]any]{Value: retRes692815}
 	}
 	return nil
 }
@@ -10337,11 +10332,11 @@ func (this *Okx) reduceMarginBody(ch chan EndpointResult[map[string]any], symbol
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes772415 map[string]any = MapTyped(r.Value)
-	if retRes772415 == nil {
+	var retRes772315 map[string]any = MapTyped(r.Value)
+	if retRes772315 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes772415, Raw: retRes772415}
+		ch <- EndpointResult[map[string]any]{Value: retRes772315, Raw: retRes772315}
 	}
 	return nil
 }
@@ -10371,11 +10366,11 @@ func (this *Okx) addMarginBody(ch chan AsyncResult[map[string]any], symbol strin
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes773815 map[string]any = MapTyped(r.Value)
-	if retRes773815 == nil {
+	var retRes773715 map[string]any = MapTyped(r.Value)
+	if retRes773715 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes773815}
+		ch <- AsyncResult[map[string]any]{Value: retRes773715}
 	}
 	return nil
 }
@@ -10414,8 +10409,8 @@ func (this *Okx) fetchMarketLeverageTiersBody(ch chan AsyncResult[any], symbol s
 		}
 		return this.ConvertToInstrumentType(market["type"])
 	}()
-	var uly *string = this.SafeString(market["info"], "uly")
-	if (uly == nil) || (uly != nil && *uly == "") {
+	var instFamily *string = this.SafeString(market["info"], "instFamily")
+	if (instFamily == nil) || (instFamily != nil && *instFamily == "") {
 		if !IsEqual(typeVar, "MARGIN") {
 			panic(BadRequest(this.Id + " fetchMarketLeverageTiers() cannot fetch leverage tiers for " + symbol))
 		}
@@ -10424,9 +10419,9 @@ func (this *Okx) fetchMarketLeverageTiersBody(ch chan AsyncResult[any], symbol s
 	var defaultMarginMode *string = this.SafeString(params, "tdMode", "cross")
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("fetchMarketLeverageTiers", params, defaultMarginMode)
 	var request map[string]any = map[string]any{
-		"instType": typeVar,
-		"tdMode":   marginMode,
-		"uly":      uly,
+		"instType":   typeVar,
+		"tdMode":     marginMode,
+		"instFamily": instFamily,
 	}
 	if IsEqual(typeVar, "MARGIN") {
 		request["instId"] = market["id"]

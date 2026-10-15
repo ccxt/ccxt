@@ -3113,7 +3113,7 @@ public class Bithumb extends BithumbApi
                     }
                     request.put("address", address);
                     request.put("currency", currency.get("id"));
-                    request.put("net_type", network);
+                    request.put("net_type", this.networkCodeToId(network, code));
                     request.put("amount", this.numberToString(amount));
                     if (!java.util.Objects.equals(destinationRequest, null))
                     {
@@ -3132,7 +3132,7 @@ public class Bithumb extends BithumbApi
                 request.put("units", amount);
                 if (!java.util.Objects.equals(network, null))
                 {
-                    request.put("net_type", network);
+                    request.put("net_type", this.networkCodeToId(network, code));
                 }
                 if (!java.util.Objects.equals(destinationRequest, null))
                 {
@@ -3202,7 +3202,7 @@ public class Bithumb extends BithumbApi
             h2kMap0.put("txid", this.safeString(transaction, "txid"));
             h2kMap0.put("timestamp", timestamp);
             h2kMap0.put("datetime", datetime);
-            h2kMap0.put("network", this.safeString(transaction, "net_type"));
+            h2kMap0.put("network", this.networkIdToCode(this.safeString(transaction, "net_type"), Helpers.toStringArg(currencyResolved.get("code"))));
             h2kMap0.put("addressFrom", null);
             h2kMap0.put("address", null);
             h2kMap0.put("addressTo", null);
@@ -3610,7 +3610,7 @@ public class Bithumb extends BithumbApi
             {
                 throw new ArgumentsRequired((((this.id + " ") + code) + " createDepositAddress() requires a network parameter")) ;
             }
-            request.put("net_type", network);
+            request.put("net_type", this.networkCodeToId(network, code));
             Map<String, Object> response = (this.privatePostV1DepositsGenerateCoinAddress(this.extend(request, paramsOmitted))).join();
             //
             //     {
@@ -3662,7 +3662,7 @@ public class Bithumb extends BithumbApi
             {
                 throw new ArgumentsRequired((((this.id + " ") + code) + " fetchDepositAddress() requires a network parameter")) ;
             }
-            request.put("net_type", network);
+            request.put("net_type", this.networkCodeToId(network, code));
             Map<String, Object> response = (this.privateGetV1DepositsCoinAddress(this.extend(request, paramsOmitted))).join();
             //
             //     {
@@ -3743,7 +3743,7 @@ public class Bithumb extends BithumbApi
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
             h2kMap1.put("info", response);
             h2kMap1.put("currency", code);
-            h2kMap1.put("network", this.safeString(response, "net_type"));
+            h2kMap1.put("network", this.networkIdToCode(this.safeString(response, "net_type"), code));
             h2kMap1.put("address", address);
             h2kMap1.put("tag", this.safeString(response, "secondary_address"));
             return h2kMap1;
@@ -3810,12 +3810,13 @@ public class Bithumb extends BithumbApi
         return result;
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Map<String, Object> requestHeaders = null;
         Object requestBody = null;
         String endpoint = ("/" + this.implodeParams(path, parameters));
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -3825,7 +3826,7 @@ public class Bithumb extends BithumbApi
         List<Object> queryKeys = Helpers.objectKeys(query);
         Integer queryKeysLength = ((List<?>)queryKeys).size();
         Boolean hasQuery = ((queryKeysLength != null && queryKeysLength > 0));
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
+        if (java.util.Objects.equals(apiName, "public"))
         {
             requestHeaders = new HashMap<String, Object>() {{
                 put( "OPEN-API-PARTNER", "CCXT" );
@@ -3893,8 +3894,8 @@ public class Bithumb extends BithumbApi
                 }};
             }
         }
-        Object headersResult = (((!java.util.Objects.equals(requestHeaders, null)))) ? requestHeaders : headers;
-        Object bodyResult = (((!java.util.Objects.equals(requestBody, null)))) ? requestBody : body;
+        Map<String, Object> headersResult = requestHeaders;
+        Object bodyResult = requestBody;
         {
             HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
             h2kMap2.put("url", url);
