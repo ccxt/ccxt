@@ -64,7 +64,9 @@ class backpack(ccxt.async_support.backpack):
         if self.markets is None:
             await self.load_markets()
         url = self.urls['api']['ws']['public']
-        method = 'UNSUBSCRIBE' if unwatch else 'SUBSCRIBE'
+        method = 'SUBSCRIBE'
+        if unwatch:
+            method = 'UNSUBSCRIBE'
         request = {
             'method': method,
             'params': topics,
@@ -80,7 +82,9 @@ class backpack(ccxt.async_support.backpack):
         url = self.urls['api']['ws']['private']
         instruction = 'subscribe'
         ts = str(self.nonce())
-        method = 'UNSUBSCRIBE' if unwatch else 'SUBSCRIBE'
+        method = 'SUBSCRIBE'
+        if unwatch:
+            method = 'UNSUBSCRIBE'
         recvWindow = self.safe_string_2(self.options, 'recvWindow', 'X-Window', '5000')
         payload = 'instruction=' + instruction + '&' + 'timestamp=' + ts + '&window=' + recvWindow
         secretBytes = self.base64_to_binary(self.secret)
@@ -165,9 +169,9 @@ class backpack(ccxt.async_support.backpack):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
+        symbolValue = market['symbol']
         topic = 'ticker' + '.' + market['id']
-        messageHash = 'ticker' + ':' + symbol
+        messageHash = 'ticker' + ':' + symbolValue
         return await self.watch_public([topic], [messageHash], params)
 
     def un_watch_ticker(self, symbol: str, params={}) -> object:
@@ -194,18 +198,18 @@ class backpack(ccxt.async_support.backpack):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols, None, False)
+        symbolsNormalized = self.market_symbols(symbols, None, False)
         messageHashes = []
         topics = []
-        for i in range(0, len(symbols)):
-            symbol = symbols[i]
+        for i in range(0, len(symbolsNormalized)):
+            symbol = symbolsNormalized[i]
             marketId = self.market_id(symbol)
             messageHashes.append('ticker:' + symbol)
             topics.append('ticker.' + marketId)
         await self.watch_public(topics, messageHashes, params)
-        return self.filter_by_array(self.tickers, 'symbol', symbols)
+        return self.filter_by_array(self.tickers, 'symbol', symbolsNormalized)
 
-    async def un_watch_tickers(self, symbols: Strings = None, params={}) -> object:
+    async def un_watch_tickers(self, symbols: Strings = None, params: dict = {}) -> object:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
@@ -217,11 +221,11 @@ class backpack(ccxt.async_support.backpack):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols, None, False)
+        symbolsNormalized = self.market_symbols(symbols, None, False)
         topics = []
         messageHashes = []
-        for i in range(0, len(symbols)):
-            symbol = symbols[i]
+        for i in range(0, len(symbolsNormalized)):
+            symbol = symbolsNormalized[i]
             marketId = self.market_id(symbol)
             topics.append('ticker.' + marketId)
             messageHashes.append('unsubscribe:ticker:' + symbol)
@@ -272,8 +276,8 @@ class backpack(ccxt.async_support.backpack):
         microseconds = self.safe_integer(ticker, 'E', 0)
         timestamp = self.parse_to_int(microseconds / 1000)
         marketId = self.safe_string(ticker, 's')
-        market = self.safe_market(marketId, market)
-        symbol = self.safe_symbol(marketId, market)
+        marketResolved = self.safe_market(marketId, market)
+        symbol = self.safe_symbol(marketId, marketResolved)
         last = self.safe_string(ticker, 'c')
         open = self.safe_string(ticker, 'o')
         return self.safe_ticker({
@@ -297,7 +301,7 @@ class backpack(ccxt.async_support.backpack):
             'baseVolume': self.safe_string(ticker, 'v'),
             'quoteVolume': self.safe_string(ticker, 'V'),
             'info': ticker,
-        }, market)
+        }, marketResolved)
 
     async def watch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
@@ -311,18 +315,18 @@ class backpack(ccxt.async_support.backpack):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols, None, False)
+        symbolsNormalized = self.market_symbols(symbols, None, False)
         topics = []
         messageHashes = []
-        for i in range(0, len(symbols)):
-            symbol = symbols[i]
+        for i in range(0, len(symbolsNormalized)):
+            symbol = symbolsNormalized[i]
             marketId = self.market_id(symbol)
             topics.append('bookTicker.' + marketId)
             messageHashes.append('bidask:' + symbol)
         await self.watch_public(topics, messageHashes, params)
-        return self.filter_by_array(self.bidsasks, 'symbol', symbols)
+        return self.filter_by_array(self.bidsasks, 'symbol', symbolsNormalized)
 
-    async def un_watch_bids_asks(self, symbols: Strings = None, params={}) -> object:
+    async def un_watch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> object:
         """
         unWatches best bid & ask for symbols
         :param str[] symbols: unified symbol of the market to fetch the ticker for
@@ -331,11 +335,11 @@ class backpack(ccxt.async_support.backpack):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols, None, False)
+        symbolsNormalized = self.market_symbols(symbols, None, False)
         topics = []
         messageHashes = []
-        for i in range(0, len(symbols)):
-            symbol = symbols[i]
+        for i in range(0, len(symbolsNormalized)):
+            symbol = symbolsNormalized[i]
             marketId = self.market_id(symbol)
             topics.append('bookTicker.' + marketId)
             messageHashes.append('unsubscribe:bidask:' + symbol)
@@ -381,8 +385,8 @@ class backpack(ccxt.async_support.backpack):
         #     }
         #
         marketId = self.safe_string(ticker, 's')
-        market = self.safe_market(marketId, market)
-        symbol = self.safe_string(market, 'symbol')
+        marketResolved = self.safe_market(marketId, market)
+        symbol = self.safe_string(marketResolved, 'symbol')
         microseconds = self.safe_integer(ticker, 'E', 0)
         timestamp = self.parse_to_int(microseconds / 1000)
         ask = self.safe_string(ticker, 'a')
@@ -398,7 +402,7 @@ class backpack(ccxt.async_support.backpack):
             'bid': bid,
             'bidVolume': bidVolume,
             'info': ticker,
-        }, market)
+        }, marketResolved)
 
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
@@ -449,7 +453,7 @@ class backpack(ccxt.async_support.backpack):
         topics = []
         messageHashes = []
         for i in range(0, len(symbolsAndTimeframes)):
-            symbolAndTimeframe = symbolsAndTimeframes[i]
+            symbolAndTimeframe = self.safe_list(symbolsAndTimeframes, i)
             marketId = self.safe_string(symbolAndTimeframe, 0)
             market = self.market(marketId)
             tf = self.safe_string(symbolAndTimeframe, 1)
@@ -457,12 +461,13 @@ class backpack(ccxt.async_support.backpack):
             topics.append('kline.' + interval + '.' + market['id'])
             messageHashes.append('candles:' + market['symbol'] + ':' + interval)
         symbol, timeframe, candles = await self.watch_public(topics, messageHashes, params)
+        limitResolved = limit
         if self.newUpdates:
-            limit = candles.getLimit(symbol, limit)
-        filtered = self.filter_by_since_limit(candles, since, limit, 0, True)
+            limitResolved = candles.getLimit(symbol, limit)
+        filtered = self.filter_by_since_limit(candles, since, limitResolved, 0, True)
         return self.create_ohlcv_object(symbol, timeframe, filtered)
 
-    async def un_watch_ohlcv_for_symbols(self, symbolsAndTimeframes: list[list[str]], params={}) -> object:
+    async def un_watch_ohlcv_for_symbols(self, symbolsAndTimeframes: list[list[str]], params: dict = {}) -> object:
         """
         unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -480,7 +485,7 @@ class backpack(ccxt.async_support.backpack):
         topics = []
         messageHashes = []
         for i in range(0, len(symbolsAndTimeframes)):
-            symbolAndTimeframe = symbolsAndTimeframes[i]
+            symbolAndTimeframe = self.safe_list(symbolsAndTimeframes, i)
             marketId = self.safe_string(symbolAndTimeframe, 0)
             market = self.market(marketId)
             tf = self.safe_string(symbolAndTimeframe, 1)
@@ -594,26 +599,27 @@ class backpack(ccxt.async_support.backpack):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols)
-        symbolsLength = len(symbols)
+        symbolsNormalized = self.market_symbols(symbols)
+        symbolsLength = len(symbolsNormalized)
         if symbolsLength == 0:
             raise ArgumentsRequired(self.id + ' watchTradesForSymbols() requires a non-empty array of symbols')
         topics = []
         messageHashes = []
-        for i in range(0, len(symbols)):
-            symbol = symbols[i]
+        for i in range(0, len(symbolsNormalized)):
+            symbol = symbolsNormalized[i]
             marketId = self.market_id(symbol)
             topics.append('trade.' + marketId)
             messageHashes.append('trades:' + symbol)
         trades = await self.watch_public(topics, messageHashes, params)
+        first = self.safe_dict(trades, 0)
+        tradeSymbol = self.safe_string(first, 'symbol')
+        limitResolved = limit
         if self.newUpdates:
-            first = self.safe_dict(trades, 0)
-            tradeSymbol = self.safe_string(first, 'symbol')
-            limit = trades.getLimit(tradeSymbol, limit)
-        result = self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+            limitResolved = trades.getLimit(tradeSymbol, limit)
+        result = self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)
         return self.sort_by(result, 'timestamp')  # needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599389/job/59597208008?pr=27624#step:10:537
 
-    async def un_watch_trades_for_symbols(self, symbols: list[str], params={}) -> object:
+    async def un_watch_trades_for_symbols(self, symbols: list[str], params: dict = {}) -> object:
         """
         unWatches from the stream channel
 
@@ -625,14 +631,14 @@ class backpack(ccxt.async_support.backpack):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols)
-        symbolsLength = len(symbols)
+        symbolsNormalized = self.market_symbols(symbols)
+        symbolsLength = len(symbolsNormalized)
         if symbolsLength == 0:
             raise ArgumentsRequired(self.id + ' unWatchTradesForSymbols() requires a non-empty array of symbols')
         topics = []
         messageHashes = []
-        for i in range(0, len(symbols)):
-            symbol = symbols[i]
+        for i in range(0, len(symbolsNormalized)):
+            symbol = symbolsNormalized[i]
             marketId = self.market_id(symbol)
             topics.append('trade.' + marketId)
             messageHashes.append('unsubscribe:trades:' + symbol)
@@ -690,7 +696,7 @@ class backpack(ccxt.async_support.backpack):
         timestamp = self.parse_to_int(microseconds / 1000)
         id = self.safe_string(trade, 't')
         marketId = self.safe_string(trade, 's')
-        market = self.safe_market(marketId, market)
+        marketResolved = self.safe_market(marketId, market)
         isBuyerMaker = self.safe_bool(trade, 'm')
         side = None
         takerOrMaker = None
@@ -712,7 +718,7 @@ class backpack(ccxt.async_support.backpack):
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'order': orderId,
             'type': None,
             'side': side,
@@ -724,7 +730,7 @@ class backpack(ccxt.async_support.backpack):
                 'currency': None,
                 'cost': None,
             },
-        }, market)
+        }, marketResolved)
 
     def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
@@ -753,12 +759,12 @@ class backpack(ccxt.async_support.backpack):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols, None, False)
-        marketIds = self.market_ids(symbols)
+        symbolsNormalized = self.market_symbols(symbols, None, False)
+        marketIds = self.market_ids(symbolsNormalized)
         messageHashes = []
         topics = []
-        for i in range(0, len(symbols)):
-            symbol = symbols[i]
+        for i in range(0, len(symbolsNormalized)):
+            symbol = symbolsNormalized[i]
             messageHashes.append('orderbook:' + symbol)
             marketId = marketIds[i]
             topic = 'depth.' + marketId
@@ -775,7 +781,7 @@ class backpack(ccxt.async_support.backpack):
         """
         return self.un_watch_order_book_for_symbols([symbol], params)
 
-    async def un_watch_order_book_for_symbols(self, symbols: list[str], params={}) -> object:
+    async def un_watch_order_book_for_symbols(self, symbols: list[str], params: dict = {}) -> object:
         """
         unWatches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str[] symbols: unified array of symbols
@@ -785,12 +791,12 @@ class backpack(ccxt.async_support.backpack):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols, None, False)
-        marketIds = self.market_ids(symbols)
+        symbolsNormalized = self.market_symbols(symbols, None, False)
+        marketIds = self.market_ids(symbolsNormalized)
         messageHashes = []
         topics = []
-        for i in range(0, len(symbols)):
-            symbol = symbols[i]
+        for i in range(0, len(symbolsNormalized)):
+            symbol = symbolsNormalized[i]
             messageHashes.append('unsubscribe:orderbook:' + symbol)
             marketId = marketIds[i]
             topic = 'depth.' + marketId
@@ -836,10 +842,10 @@ class backpack(ccxt.async_support.backpack):
             return
         elif (deltaNonce is not None) and (nonce > deltaNonce):
             return
-        self.handle_delta(storedOrderBook, data)
+        self.handle_book_delta(storedOrderBook, data)
         client.resolve(storedOrderBook, messageHash)
 
-    def handle_delta(self, orderbook: object, delta: object):
+    def handle_book_delta(self, orderbook: object, delta: object):
         timestamp = self.parse_to_int(self.safe_integer(delta, 'T', 0) / 1000)
         orderbook['timestamp'] = timestamp
         orderbook['datetime'] = self.iso8601(timestamp)
@@ -869,7 +875,7 @@ class backpack(ccxt.async_support.backpack):
         if nonce < firstDeltaStart - 1:
             return -1
         for i in range(0, len(cache)):
-            delta = cache[i]
+            delta = self.safe_dict(cache, i)
             deltaStart = self.safe_integer(delta, 'U')
             deltaEnd = self.safe_integer(delta, 'u')
             if (deltaStart is None) or (deltaEnd is None):
@@ -895,18 +901,19 @@ class backpack(ccxt.async_support.backpack):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-            symbol = market['symbol']
+        symbolResolved = self.safe_string(market, 'symbol') if (market is not None) else symbol
         topic = 'account.orderUpdate'
         messageHash = 'orders'
         if market is not None:
             topic = 'account.orderUpdate.' + market['id']
-            messageHash = 'orders:' + symbol
+            messageHash = 'orders:' + symbolResolved
         orders = await self.watch_private([topic], [messageHash], params)
+        limitResolved = limit
         if self.newUpdates:
-            limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+            limitResolved = orders.getLimit(symbolResolved, limit)
+        return self.filter_by_symbol_since_limit(orders, symbolResolved, since, limitResolved, True)
 
-    async def un_watch_orders(self, symbol: Str = None, params={}) -> object:
+    async def un_watch_orders(self, symbol: Str = None, params: dict = {}) -> object:
         """
         unWatches information on multiple orders made by the user
 
@@ -921,12 +928,12 @@ class backpack(ccxt.async_support.backpack):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-            symbol = market['symbol']
+        symbolResolved = market['symbol'] if (market is not None) else symbol
         topic = 'account.orderUpdate'
         messageHash = 'unsubscribe:orders'
         if market is not None:
             topic = 'account.orderUpdate.' + market['id']
-            messageHash = 'unsubscribe:orders:' + symbol
+            messageHash = 'unsubscribe:orders:' + symbolResolved
         return await self.watch_private([topic], [messageHash], params, True)
 
     def handle_order(self, client: Client, message: dict):
@@ -1003,8 +1010,8 @@ class backpack(ccxt.async_support.backpack):
         timestamp = self.parse_to_int(microseconds / 1000)
         status = self.parse_ws_order_status(self.safe_string(order, 'X'), market)
         marketId = self.safe_string(order, 's')
-        market = self.safe_market(marketId, market)
-        symbol = market['symbol']
+        marketResolved = self.safe_market(marketId, market)
+        symbol = marketResolved['symbol']
         type = self.safe_string_lower(order, 'o')
         timeInForce = self.safe_string(order, 'f')
         side = self.parse_ws_order_side(self.safe_string(order, 'S'))
@@ -1042,9 +1049,9 @@ class backpack(ccxt.async_support.backpack):
             'fee': fee,
             'trades': None,
             'info': order,
-        }, market)
+        }, marketResolved)
 
-    def parse_ws_order_status(self, status: Str, market: Market = None):
+    def parse_ws_order_status(self, status: Str, market: Market = None) -> Str:
         statuses = {
             'New': 'open',
             'Filled': 'closed',
@@ -1056,7 +1063,7 @@ class backpack(ccxt.async_support.backpack):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_ws_order_side(self, side: Str):
+    def parse_ws_order_side(self, side: Str) -> Str:
         sides = {
             'Bid': 'buy',
             'Ask': 'sell',
@@ -1077,12 +1084,12 @@ class backpack(ccxt.async_support.backpack):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols)
+        symbolsNormalized = self.market_symbols(symbols)
         messageHashes = []
         topics = []
-        if symbols is not None:
-            for i in range(0, len(symbols)):
-                symbol = symbols[i]
+        if symbolsNormalized is not None:
+            for i in range(0, len(symbolsNormalized)):
+                symbol = symbolsNormalized[i]
                 messageHashes.append('positions' + ':' + symbol)
                 topics.append('account.positionUpdate.' + self.market_id(symbol))
         else:
@@ -1091,7 +1098,7 @@ class backpack(ccxt.async_support.backpack):
         positions = await self.watch_private(topics, messageHashes, params)
         if self.newUpdates:
             return positions
-        return self.filter_by_symbols_since_limit(self.positions, symbols, since, limit, True)
+        return self.filter_by_symbols_since_limit(self.positions, symbolsNormalized, since, limit, True)
 
     async def un_watch_positions(self, symbols: Strings = None, params: dict = {}):
         """
@@ -1105,12 +1112,12 @@ class backpack(ccxt.async_support.backpack):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols)
+        symbolsNormalized = self.market_symbols(symbols)
         messageHashes = []
         topics = []
-        if symbols is not None:
-            for i in range(0, len(symbols)):
-                symbol = symbols[i]
+        if symbolsNormalized is not None:
+            for i in range(0, len(symbolsNormalized)):
+                symbol = symbolsNormalized[i]
                 messageHashes.append('unsubscribe:positions' + ':' + symbol)
                 topics.append('account.positionUpdate.' + self.market_id(symbol))
         else:
@@ -1181,7 +1188,6 @@ class backpack(ccxt.async_support.backpack):
         id = self.safe_string(position, 'i')
         marketId = self.safe_string(position, 's')
         marketResolved = self.safe_market(marketId, market)
-        market = marketResolved
         symbol = marketResolved['symbol']
         notional = self.safe_string(position, 'n')
         liquidationPrice = self.safe_string(position, 'l')

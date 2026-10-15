@@ -1,5 +1,6 @@
 import coinbaseinternationalRest from '../coinbaseinternational.js';
 import { Ticker, Int, Trade, OrderBook, Market, Dict, Strings, FundingRate, FundingRates, Tickers, OHLCV, Bool } from '../base/types.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 import Client from '../base/ws/Client.js';
 export default class coinbaseinternational extends coinbaseinternationalRest {
     describe(): any;
@@ -134,10 +135,10 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      */
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: Dict): Promise<OrderBook>;
     handleOrderBook(client: Client, message: Dict): void;
-    handleDelta(orderbook: any, delta: any): void;
-    handleDeltas(orderbook: any, deltas: any): void;
+    handleBookDelta(orderbook: WsOrderBook, delta: any): void;
+    handleBookDeltas(orderbook: WsOrderBook, deltas: any): void;
     handleSubscriptionStatus(client: Client, message: Dict): Dict;
-    handleFundingRate(client: Client, message: any): void;
+    handleFundingRate(client: Client, message: Dict): void;
     handleErrorMessage(client: Client, message: Dict): Bool;
     handleMessage(client: Client, message: Dict): void;
 }

@@ -8,153 +8,482 @@
 import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    publicGetGetAllCurrencies (params?: {}): Promise<Dict>;
-    publicPostBuildRegisterSessionKeyTx (params?: {}): Promise<Dict>;
-    publicPostRegisterSessionKey (params?: {}): Promise<Dict>;
-    publicPostDeregisterSessionKey (params?: {}): Promise<Dict>;
-    publicPostGetWalletsFromSessionKey (params?: {}): Promise<Dict>;
-    publicPostLogin (params?: {}): Promise<Dict>;
-    publicPostStatistics (params?: {}): Promise<Dict>;
-    publicPostAllStatistics (params?: {}): Promise<Dict>;
-    publicPostUserStatistics (params?: {}): Promise<Dict>;
-    publicPostAllUserStatistics (params?: {}): Promise<Dict>;
-    publicPostGetAllCurrencies (params?: {}): Promise<Dict>;
-    publicPostGetCurrency (params?: {}): Promise<Dict>;
-    publicPostGetAsset (params?: {}): Promise<Dict>;
-    publicPostGetAssets (params?: {}): Promise<Dict>;
-    publicPostGetInstrument (params?: {}): Promise<Dict>;
-    publicPostGetAllInstruments (params?: {}): Promise<Dict>;
-    publicPostGetInstruments (params?: {}): Promise<Dict>;
-    publicPostGetTicker (params?: {}): Promise<Dict>;
-    publicPostGetTickers (params?: {}): Promise<Dict>;
-    publicPostGetLatestSignedFeeds (params?: {}): Promise<Dict>;
-    publicPostGetOptionSettlementPrices (params?: {}): Promise<Dict>;
-    publicPostGetSpotFeedHistory (params?: {}): Promise<Dict>;
-    publicPostGetSpotFeedHistoryCandles (params?: {}): Promise<Dict>;
-    publicPostGetIndexChartData (params?: {}): Promise<Dict>;
-    publicPostGetTradingviewChartData (params?: {}): Promise<Dict>;
-    publicPostGetFundingRateHistory (params?: {}): Promise<Dict>;
-    publicPostGetTradeHistory (params?: {}): Promise<Dict>;
-    publicPostGetOptionSettlementHistory (params?: {}): Promise<Dict>;
-    publicPostGetLiquidationHistory (params?: {}): Promise<Dict>;
-    publicPostGetInterestRateHistory (params?: {}): Promise<Dict>;
-    publicPostGetPerpImpactTwap (params?: {}): Promise<Dict>;
-    publicPostGetTransaction (params?: {}): Promise<Dict>;
-    publicPostGetMargin (params?: {}): Promise<Dict>;
-    publicPostMarginWatch (params?: {}): Promise<Dict>;
-    publicPostOrderQuote (params?: {}): Promise<Dict>;
-    publicPostValidateInviteCode (params?: {}): Promise<Dict>;
-    publicPostGetPoints (params?: {}): Promise<Dict>;
-    publicPostGetAllPoints (params?: {}): Promise<Dict>;
-    publicPostGetPointsLeaderboard (params?: {}): Promise<Dict>;
-    publicPostGetDescendantTree (params?: {}): Promise<Dict>;
-    publicPostGetTreeRoots (params?: {}): Promise<Dict>;
-    publicPostGetSwellPercentPoints (params?: {}): Promise<Dict>;
-    publicPostGetStdrvSnapshots (params?: {}): Promise<Dict>;
-    publicPostGetVaultAssets (params?: {}): Promise<Dict>;
-    publicPostGetEtherfiEffectiveBalances (params?: {}): Promise<Dict>;
-    publicPostGetKelpEffectiveBalances (params?: {}): Promise<Dict>;
-    publicPostGetBridgeBalances (params?: {}): Promise<Dict>;
-    publicPostGetEthenaParticipants (params?: {}): Promise<Dict>;
-    publicPostGetVaultShare (params?: {}): Promise<Dict>;
-    publicPostGetVaultStatistics (params?: {}): Promise<Dict>;
-    publicPostGetVaultBalances (params?: {}): Promise<Dict>;
-    publicPostGetVaultPools (params?: {}): Promise<Dict>;
-    publicPostGetVaultRates (params?: {}): Promise<Dict>;
-    publicPostEstimateIntegratorPoints (params?: {}): Promise<Dict>;
-    publicPostCreateSubaccountDebug (params?: {}): Promise<Dict>;
-    publicPostCreateAccountWithSecret (params?: {}): Promise<Dict>;
-    publicPostDepositDebug (params?: {}): Promise<Dict>;
-    publicPostWithdrawDebug (params?: {}): Promise<Dict>;
-    publicPostSendQuoteDebug (params?: {}): Promise<Dict>;
-    publicPostExecuteQuoteDebug (params?: {}): Promise<Dict>;
-    publicPostGetInviteCode (params?: {}): Promise<Dict>;
-    publicPostRegisterInvite (params?: {}): Promise<Dict>;
-    publicPostGetAllReferralCodes (params?: {}): Promise<Dict>;
-    publicPostGetReferralPerformance (params?: {}): Promise<Dict>;
-    publicPostGetTime (params?: {}): Promise<Dict>;
-    publicPostGetLiveIncidents (params?: {}): Promise<Dict>;
-    publicPostGetMakerPrograms (params?: {}): Promise<Dict>;
-    publicPostGetMakerProgramScores (params?: {}): Promise<Dict>;
-    publicPostGetDetailedMakerSnapshotHistory (params?: {}): Promise<Dict>;
-    publicPostGetRateLimits (params?: {}): Promise<Dict>;
-    privatePostGetAccount (params?: {}): Promise<Dict>;
-    privatePostCreateSubaccount (params?: {}): Promise<Dict>;
-    privatePostGetSubaccount (params?: {}): Promise<Dict>;
-    privatePostGetSubaccounts (params?: {}): Promise<Dict>;
-    privatePostGetAllPortfolios (params?: {}): Promise<Dict>;
-    privatePostChangeSubaccountLabel (params?: {}): Promise<Dict>;
-    privatePostGetNotificationsv (params?: {}): Promise<Dict>;
-    privatePostGetNotifications (params?: {}): Promise<Dict>;
-    privatePostUpdateNotifications (params?: {}): Promise<Dict>;
-    privatePostDeposit (params?: {}): Promise<Dict>;
-    privatePostWithdraw (params?: {}): Promise<Dict>;
-    privatePostTransferErc20 (params?: {}): Promise<Dict>;
-    privatePostTransferPosition (params?: {}): Promise<Dict>;
-    privatePostTransferPositions (params?: {}): Promise<Dict>;
-    privatePostOrder (params?: {}): Promise<Dict>;
-    privatePostReplace (params?: {}): Promise<Dict>;
-    privatePostOrderDebug (params?: {}): Promise<Dict>;
-    privatePostGetOrder (params?: {}): Promise<Dict>;
-    privatePostGetOrders (params?: {}): Promise<Dict>;
-    privatePostGetOpenOrders (params?: {}): Promise<Dict>;
-    privatePostGetTriggerOrders (params?: {}): Promise<Dict>;
-    privatePostGetAlgoOrders (params?: {}): Promise<Dict>;
-    privatePostCancel (params?: {}): Promise<Dict>;
-    privatePostCancelByLabel (params?: {}): Promise<Dict>;
-    privatePostCancelByNonce (params?: {}): Promise<Dict>;
-    privatePostCancelByInstrument (params?: {}): Promise<Dict>;
-    privatePostCancelAll (params?: {}): Promise<Dict>;
-    privatePostCancelTriggerOrder (params?: {}): Promise<Dict>;
-    privatePostCancelAlgoOrder (params?: {}): Promise<Dict>;
-    privatePostCancelAllAlgoOrders (params?: {}): Promise<Dict>;
-    privatePostCancelAllTriggerOrders (params?: {}): Promise<Dict>;
-    privatePostGetOrderHistory (params?: {}): Promise<Dict>;
-    privatePostGetTradeHistory (params?: {}): Promise<Dict>;
-    privatePostGetDepositHistory (params?: {}): Promise<Dict>;
-    privatePostGetWithdrawalHistory (params?: {}): Promise<Dict>;
-    privatePostSendRfq (params?: {}): Promise<Dict>;
-    privatePostCancelRfq (params?: {}): Promise<Dict>;
-    privatePostCancelBatchRfqs (params?: {}): Promise<Dict>;
-    privatePostGetRfqs (params?: {}): Promise<Dict>;
-    privatePostPollRfqs (params?: {}): Promise<Dict>;
-    privatePostSendQuote (params?: {}): Promise<Dict>;
-    privatePostCancelQuote (params?: {}): Promise<Dict>;
-    privatePostCancelBatchQuotes (params?: {}): Promise<Dict>;
-    privatePostGetQuotes (params?: {}): Promise<Dict>;
-    privatePostPollQuotes (params?: {}): Promise<Dict>;
-    privatePostExecuteQuote (params?: {}): Promise<Dict>;
-    privatePostOrderQuote (params?: {}): Promise<Dict>;
-    privatePostReplaceQuote (params?: {}): Promise<Dict>;
-    privatePostRfqGetBestQuote (params?: {}): Promise<Dict>;
-    privatePostGetMargin (params?: {}): Promise<Dict>;
-    privatePostGetCollaterals (params?: {}): Promise<Dict>;
-    privatePostGetPositions (params?: {}): Promise<Dict>;
-    privatePostGetOptionSettlementHistory (params?: {}): Promise<Dict>;
-    privatePostGetSubaccountValueHistory (params?: {}): Promise<Dict>;
-    privatePostExpiredAndCancelledHistory (params?: {}): Promise<Dict>;
-    privatePostGetFundingHistory (params?: {}): Promise<Dict>;
-    privatePostGetInterestHistory (params?: {}): Promise<Dict>;
-    privatePostGetErc20TransferHistory (params?: {}): Promise<Dict>;
-    privatePostGetLiquidationHistory (params?: {}): Promise<Dict>;
-    privatePostLiquidate (params?: {}): Promise<Dict>;
-    privatePostGetLiquidatorHistory (params?: {}): Promise<Dict>;
-    privatePostSessionKeys (params?: {}): Promise<Dict>;
-    privatePostEditSessionKey (params?: {}): Promise<Dict>;
-    privatePostChangeSessionKeyLabel (params?: {}): Promise<Dict>;
-    privatePostRegisterScopedSessionKey (params?: {}): Promise<Dict>;
-    privatePostGetMmpConfig (params?: {}): Promise<Dict>;
-    privatePostSetMmpConfig (params?: {}): Promise<Dict>;
-    privatePostResetMmp (params?: {}): Promise<Dict>;
-    privatePostSetCancelOnDisconnect (params?: {}): Promise<Dict>;
-    privatePostGetInviteCode (params?: {}): Promise<Dict>;
-    privatePostRegisterInvite (params?: {}): Promise<Dict>;
-    privatePostGetContactInfo (params?: {}): Promise<Dict>;
-    privatePostCreateContactInfo (params?: {}): Promise<Dict>;
-    privatePostUpdateContactInfo (params?: {}): Promise<Dict>;
-    privatePostDeleteContactInfo (params?: {}): Promise<Dict>;
-}
-abstract class Exchange extends _Exchange {}
+abstract class Exchange extends _Exchange {
+    publicGetGetAllCurrencies (params = {}): Promise<Dict> {
+        return this.request ('get_all_currencies', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
 
-export default Exchange
+    publicPostDecodeAction (params = {}): Promise<Dict> {
+        return this.request ('decode_action', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostGetWalletsFromSessionKey (params = {}): Promise<Dict> {
+        return this.request ('get_wallets_from_session_key', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostGetAllCurrencies (params = {}): Promise<Dict> {
+        return this.request ('get_all_currencies', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostGetCurrency (params = {}): Promise<Dict> {
+        return this.request ('get_currency', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostGetRiskUniverses (params = {}): Promise<Dict> {
+        return this.request ('get_risk_universes', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostGetInstrument (params = {}): Promise<Dict> {
+        return this.request ('get_instrument', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostGetAllInstruments (params = {}): Promise<Dict> {
+        return this.request ('get_all_instruments', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostGetAllLiveInstruments (params = {}): Promise<Dict> {
+        return this.request ('get_all_live_instruments', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostGetTicker (params = {}): Promise<Dict> {
+        return this.request ('get_ticker', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostGetTickers (params = {}): Promise<Dict> {
+        return this.request ('get_tickers', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostGetLatestSignedFeeds (params = {}): Promise<Dict> {
+        return this.request ('get_latest_signed_feeds', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostGetOptionSettlementPrices (params = {}): Promise<Dict> {
+        return this.request ('get_option_settlement_prices', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostGetIndexChartData (params = {}): Promise<Dict> {
+        return this.request ('get_index_chart_data', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostGetTradingviewChartData (params = {}): Promise<Dict> {
+        return this.request ('get_tradingview_chart_data', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostGetFundingRateHistory (params = {}): Promise<Dict> {
+        return this.request ('get_funding_rate_history', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostGetTradeHistory (params = {}): Promise<Dict> {
+        return this.request ('get_trade_history', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostGetLiquidationHistory (params = {}): Promise<Dict> {
+        return this.request ('get_liquidation_history', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostGetInterestRateHistory (params = {}): Promise<Dict> {
+        return this.request ('get_interest_rate_history', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostGetTransaction (params = {}): Promise<Dict> {
+        return this.request ('get_transaction', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostGetOnchainActionHistory (params = {}): Promise<Dict> {
+        return this.request ('get_onchain_action_history', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostGetPendingDeposits (params = {}): Promise<Dict> {
+        return this.request ('get_pending_deposits', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostRegisterDepositAddress (params = {}): Promise<Dict> {
+        return this.request ('register_deposit_address', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostGetMargin (params = {}): Promise<Dict> {
+        return this.request ('get_margin', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostMarginWatch (params = {}): Promise<Dict> {
+        return this.request ('margin_watch', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostOrderQuote (params = {}): Promise<Dict> {
+        return this.request ('order_quote', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostGetLiveAuctions (params = {}): Promise<Dict> {
+        return this.request ('get_live_auctions', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostStartAuction (params = {}): Promise<Dict> {
+        return this.request ('start_auction', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostGetVault (params = {}): Promise<Dict> {
+        return this.request ('get_vault', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostGetVaults (params = {}): Promise<Dict> {
+        return this.request ('get_vaults', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostGetVaultActionHistory (params = {}): Promise<Dict> {
+        return this.request ('get_vault_action_history', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostGetVaultPerformanceHistory (params = {}): Promise<Dict> {
+        return this.request ('get_vault_performance_history', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostSetSocializationFeedData (params = {}): Promise<Dict> {
+        return this.request ('set_socialization_feed_data', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostWithdrawDebug (params = {}): Promise<Dict> {
+        return this.request ('withdraw_debug', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostSendQuoteDebug (params = {}): Promise<Dict> {
+        return this.request ('send_quote_debug', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostExecuteQuoteDebug (params = {}): Promise<Dict> {
+        return this.request ('execute_quote_debug', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostGetAllReferralCodes (params = {}): Promise<Dict> {
+        return this.request ('get_all_referral_codes', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostGetReferralPerformance (params = {}): Promise<Dict> {
+        return this.request ('get_referral_performance', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostGetTime (params = {}): Promise<Dict> {
+        return this.request ('get_time', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostGetLiveIncidents (params = {}): Promise<Dict> {
+        return this.request ('get_live_incidents', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostGetMakerPrograms (params = {}): Promise<Dict> {
+        return this.request ('get_maker_programs', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostGetMakerProgramScores (params = {}): Promise<Dict> {
+        return this.request ('get_maker_program_scores', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetAccount (params = {}): Promise<Dict> {
+        return this.request ('get_account', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetSubaccount (params = {}): Promise<Dict> {
+        return this.request ('get_subaccount', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetSubaccounts (params = {}): Promise<Dict> {
+        return this.request ('get_subaccounts', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostDeleteSubaccount (params = {}): Promise<Dict> {
+        return this.request ('delete_subaccount', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetAllPortfolios (params = {}): Promise<Dict> {
+        return this.request ('get_all_portfolios', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostChangeSubaccountLabel (params = {}): Promise<Dict> {
+        return this.request ('change_subaccount_label', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostWithdraw (params = {}): Promise<Dict> {
+        return this.request ('withdraw', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostTransferSpot (params = {}): Promise<Dict> {
+        return this.request ('transfer_spot', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostTransferSpotExternal (params = {}): Promise<Dict> {
+        return this.request ('transfer_spot_external', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostTransferPositions (params = {}): Promise<Dict> {
+        return this.request ('transfer_positions', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostRejectDepositRequest (params = {}): Promise<Dict> {
+        return this.request ('reject_deposit_request', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostUpdateWhitelistedRecipients (params = {}): Promise<Dict> {
+        return this.request ('update_whitelisted_recipients', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOrder (params = {}): Promise<Dict> {
+        return this.request ('order', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostReplace (params = {}): Promise<Dict> {
+        return this.request ('replace', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOrderDebug (params = {}): Promise<Dict> {
+        return this.request ('order_debug', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetOrder (params = {}): Promise<Dict> {
+        return this.request ('get_order', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetOpenOrders (params = {}): Promise<Dict> {
+        return this.request ('get_open_orders', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetTriggerOrders (params = {}): Promise<Dict> {
+        return this.request ('get_trigger_orders', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetAlgoOrders (params = {}): Promise<Dict> {
+        return this.request ('get_algo_orders', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostCancel (params = {}): Promise<Dict> {
+        return this.request ('cancel', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostCancelByLabel (params = {}): Promise<Dict> {
+        return this.request ('cancel_by_label', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostCancelByNonce (params = {}): Promise<Dict> {
+        return this.request ('cancel_by_nonce', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostCancelByInstrument (params = {}): Promise<Dict> {
+        return this.request ('cancel_by_instrument', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostCancelAll (params = {}): Promise<Dict> {
+        return this.request ('cancel_all', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostCancelTriggerOrder (params = {}): Promise<Dict> {
+        return this.request ('cancel_trigger_order', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostCancelAlgoOrder (params = {}): Promise<Dict> {
+        return this.request ('cancel_algo_order', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostCancelAllAlgoOrders (params = {}): Promise<Dict> {
+        return this.request ('cancel_all_algo_orders', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostCancelAllTriggerOrders (params = {}): Promise<Dict> {
+        return this.request ('cancel_all_trigger_orders', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetOrderHistory (params = {}): Promise<Dict> {
+        return this.request ('get_order_history', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetTradeHistory (params = {}): Promise<Dict> {
+        return this.request ('get_trade_history', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetDepositHistory (params = {}): Promise<Dict> {
+        return this.request ('get_deposit_history', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetWithdrawalHistory (params = {}): Promise<Dict> {
+        return this.request ('get_withdrawal_history', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostSendRfq (params = {}): Promise<Dict> {
+        return this.request ('send_rfq', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostCancelRfq (params = {}): Promise<Dict> {
+        return this.request ('cancel_rfq', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostCancelBatchRfqs (params = {}): Promise<Dict> {
+        return this.request ('cancel_batch_rfqs', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetRfqs (params = {}): Promise<Dict> {
+        return this.request ('get_rfqs', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostPollRfqs (params = {}): Promise<Dict> {
+        return this.request ('poll_rfqs', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostSendQuote (params = {}): Promise<Dict> {
+        return this.request ('send_quote', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostCancelQuote (params = {}): Promise<Dict> {
+        return this.request ('cancel_quote', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostCancelBatchQuotes (params = {}): Promise<Dict> {
+        return this.request ('cancel_batch_quotes', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetQuotes (params = {}): Promise<Dict> {
+        return this.request ('get_quotes', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostPollQuotes (params = {}): Promise<Dict> {
+        return this.request ('poll_quotes', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostExecuteQuote (params = {}): Promise<Dict> {
+        return this.request ('execute_quote', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOrderQuote (params = {}): Promise<Dict> {
+        return this.request ('order_quote', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostReplaceQuote (params = {}): Promise<Dict> {
+        return this.request ('replace_quote', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostRfqGetBestQuote (params = {}): Promise<Dict> {
+        return this.request ('rfq_get_best_quote', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetMargin (params = {}): Promise<Dict> {
+        return this.request ('get_margin', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetCollaterals (params = {}): Promise<Dict> {
+        return this.request ('get_collaterals', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetPositions (params = {}): Promise<Dict> {
+        return this.request ('get_positions', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetOptionSettlementHistory (params = {}): Promise<Dict> {
+        return this.request ('get_option_settlement_history', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetSubaccountValueHistory (params = {}): Promise<Dict> {
+        return this.request ('get_subaccount_value_history', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetFundingHistory (params = {}): Promise<Dict> {
+        return this.request ('get_funding_history', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetInterestHistory (params = {}): Promise<Dict> {
+        return this.request ('get_interest_history', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetErc20TransferHistory (params = {}): Promise<Dict> {
+        return this.request ('get_erc20_transfer_history', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetLiquidationHistory (params = {}): Promise<Dict> {
+        return this.request ('get_liquidation_history', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostLiquidate (params = {}): Promise<Dict> {
+        return this.request ('liquidate', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostSessionKeys (params = {}): Promise<Dict> {
+        return this.request ('session_keys', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostSetSessionKey (params = {}): Promise<Dict> {
+        return this.request ('set_session_key', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostEditSessionKey (params = {}): Promise<Dict> {
+        return this.request ('edit_session_key', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetMmpConfig (params = {}): Promise<Dict> {
+        return this.request ('get_mmp_config', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostSetMmpConfig (params = {}): Promise<Dict> {
+        return this.request ('set_mmp_config', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostResetMmp (params = {}): Promise<Dict> {
+        return this.request ('reset_mmp', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostCreateVault (params = {}): Promise<Dict> {
+        return this.request ('create_vault', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostUpdateVaultInfo (params = {}): Promise<Dict> {
+        return this.request ('update_vault_info', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostMintVaultShares (params = {}): Promise<Dict> {
+        return this.request ('mint_vault_shares', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostBurnVaultShares (params = {}): Promise<Dict> {
+        return this.request ('burn_vault_shares', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostForceBurn (params = {}): Promise<Dict> {
+        return this.request ('force_burn', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostRequestVaultDeposit (params = {}): Promise<Dict> {
+        return this.request ('request_vault_deposit', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostRequestVaultWithdraw (params = {}): Promise<Dict> {
+        return this.request ('request_vault_withdraw', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostCancelAllVaultRequests (params = {}): Promise<Dict> {
+        return this.request ('cancel_all_vault_requests', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetVaultShares (params = {}): Promise<Dict> {
+        return this.request ('get_vault_shares', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetCuratedVaults (params = {}): Promise<Dict> {
+        return this.request ('get_curated_vaults', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetShareholderVaults (params = {}): Promise<Dict> {
+        return this.request ('get_shareholder_vaults', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetLiveMintRequests (params = {}): Promise<Dict> {
+        return this.request ('get_live_mint_requests', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetLiveBurnRequests (params = {}): Promise<Dict> {
+        return this.request ('get_live_burn_requests', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetLiveVaultRequests (params = {}): Promise<Dict> {
+        return this.request ('get_live_vault_requests', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetVaultRequestHistory (params = {}): Promise<Dict> {
+        return this.request ('get_vault_request_history', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+}
+
+export default Exchange;

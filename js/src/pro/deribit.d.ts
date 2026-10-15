@@ -3,7 +3,7 @@ import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, 
 import Client from '../base/ws/Client.js';
 export default class deribit extends deribitRest {
     describe(): any;
-    requestId(): any;
+    requestId(): number;
     /**
      * @method
      * @name deribit#watchBalance

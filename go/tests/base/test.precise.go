@@ -49,7 +49,7 @@ func TestPrecise() {
 	Assert(ccxt.IsEqual(ccxt.Precise.StringMul(y, a), "6969690000000000000"))
 	Assert(ccxt.IsEqual(ccxt.Precise.StringMul(a, y), "6969690000000000000"))
 	Assert(ccxt.IsEqual(ccxt.Precise.StringDiv(y, a), "696.969"))
-	Assert(ccxt.IsEqual(ccxt.Precise.StringDiv(y, a, ccxt.OpNeg(1)), "690"))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringDiv(y, a, int64(-1)), "690"))
 	Assert(ccxt.IsEqual(ccxt.Precise.StringDiv(y, a, 0), "696"))
 	Assert(ccxt.IsEqual(ccxt.Precise.StringDiv(y, a, 1), "696.9"))
 	Assert(ccxt.IsEqual(ccxt.Precise.StringDiv(y, a, 2), "696.96"))

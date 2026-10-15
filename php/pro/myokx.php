@@ -16,7 +16,7 @@ class myokx extends \ccxt\pro\okx {
             'urls' => array(
                 'api' => array(
                     'rest' => 'https://{hostname}',
-                    'ws' => 'wss://wseea.okx.com:8443/ws/v5',
+                    'ws' => 'wss://wseea.okx.com:443/ws/v5',
                 ),
                 'www' => 'https://my.okx.com',
                 'doc' => 'https://my.okx.com/docs-v5/en/#overview',
@@ -26,7 +26,7 @@ class myokx extends \ccxt\pro\okx {
                     'discount' => 0.2,
                 ),
                 'test' => array(
-                    'ws' => 'wss://wseeapap.okx.com:8443/ws/v5',
+                    'ws' => 'wss://wseeapap.okx.com:443/ws/v5',
                 ),
             ),
             'has' => array(

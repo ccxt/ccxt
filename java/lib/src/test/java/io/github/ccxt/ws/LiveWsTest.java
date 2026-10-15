@@ -42,7 +42,7 @@ class LiveWsTest {
             exchange = Exchange.dynamicallyCreateInstance("binance", null);
         }
         exchange.verbose = false;
-        exchange.loadMarkets().join();
+        exchange.loadMarkets(false, new java.util.HashMap<String, Object>()).join();
     }
 
     @Test

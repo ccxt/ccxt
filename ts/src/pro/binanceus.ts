@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import binance from './binance.js';
+import binance from '../abstract/pro/binanceus.js';
 import binanceusRest from '../binanceus.js';
 
 // ---------------------------------------------------------------------------

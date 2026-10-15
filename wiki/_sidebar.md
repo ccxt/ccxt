@@ -47,7 +47,6 @@
 	- [coinbaseexchange](exchanges/coinbaseexchange.md)
 	- [coinbaseinternational](exchanges/coinbaseinternational.md)
 	- [coincheck](exchanges/coincheck.md)
-	- [coinex](exchanges/coinex.md)
 	- [coinmate](exchanges/coinmate.md)
 	- [coinone](exchanges/coinone.md)
 	- [coinsph](exchanges/coinsph.md)

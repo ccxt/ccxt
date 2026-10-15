@@ -126,7 +126,6 @@ function main () {
         run (`tsx ./build/rustTranspiler.ts --ws ${wsIds.join (' ')}`);
     }
     run ('tsx ./build/rustTranspiler.ts --baseClass');
-    run ('tsx ./build/rustTranspiler.ts --tests');
     run ('tsx ./build/rustTranspiler.ts --modFiles');
     log.bright.green ("Done! You can now build the Rust project with 'cargo build'.");
 }

@@ -178,7 +178,7 @@
         "react/cache": "1.2.0",
         "react/dns": "1.14.0",
         "react/event-loop": "1.6.0",
-        "react/http": "1.11.0",
+        "react/http": "1.11.1",
         "react/promise": "3.3.0",
         "react/promise-timer": "1.11.0",
         "react/socket": "1.17.0",

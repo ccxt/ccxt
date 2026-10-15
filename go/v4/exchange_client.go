@@ -20,17 +20,16 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"unicode/utf8"
 
 	"github.com/gorilla/websocket"
 )
 
 type ClientInterface interface {
 	Resolve(data any, subHash any) any
-	Future(messageHash any) <-chan any
+	Future(messageHash any) <-chan AsyncResult[any]
 	ReusableFuture(messageHash any) *Future
 	Reject(err any, messageHash ...any)
-	SendAsync(message any) <-chan any
+	SendAsync(message any) <-chan AsyncResult[any]
 	Reset(err any)
 	OnPong()
 	GetError() error
@@ -110,7 +109,7 @@ func (this *Client) Resolve(data any, subHash any) any {
 	return data
 }
 
-func (this *Client) Future(messageHash any) <-chan any {
+func (this *Client) Future(messageHash any) <-chan AsyncResult[any] {
 	future := this.NewFuture(messageHash)
 	return future.Await()
 }
@@ -394,7 +393,7 @@ func (this *Client) OnUpgrade(message any) {
 	}
 }
 
-func (this *Client) SendAsync(message any) <-chan any {
+func (this *Client) SendAsync(message any) <-chan AsyncResult[any] {
 	var msgStr string
 	if str, ok := message.(string); ok {
 		msgStr = str
@@ -408,7 +407,7 @@ func (this *Client) SendAsync(message any) <-chan any {
 	}
 
 	future := NewFuture()
-	ch := make(chan any)
+	ch := make(chan AsyncResult[any])
 	go func() {
 		this.ConnectionMu.Lock()
 		// ? if (isNode)
@@ -419,21 +418,21 @@ func (this *Client) SendAsync(message any) <-chan any {
 				this.MockSentMessages = append(this.MockSentMessages, parsed)
 			}
 			future.Resolve(true)
-			ch <- true
+			ch <- AsyncResult[any]{Value: true}
 		} else if this.Connection == nil {
 			err := NetworkError("not connected to " + this.Url)
 			future.Reject(err)
 			// the caller receives on ch (see Exchange.watch); without sending here
 			// it would block forever when the connection is not established
-			ch <- err
+			ch <- AsyncResult[any]{Err: err}
 		} else {
 			err := this.Connection.WriteMessage(websocket.TextMessage, []byte(msgStr))
 			if err != nil {
 				future.Reject(err)
-				ch <- err
+				ch <- AsyncResult[any]{Err: err}
 			} else {
 				future.Resolve(true)
-				ch <- true
+				ch <- AsyncResult[any]{Value: true}
 			}
 		}
 
@@ -494,9 +493,10 @@ func (this *Client) OnMessage(messageEvent any) {
 			// Would need to implement zlib inflation
 			messageStr = string(bytes)
 		} else {
-			// some exchanges send a regular json/string message as a binary frame
-			// so we check if it is json/string first to avoid unnecessary conversion
-			if this.DecompressBinary || IsJSON(bytes) || utf8.Valid(bytes) {
+			// some exchanges send a regular json message as a binary frame, so json
+			// is still read as text. text frames arrive here as strings, a utf-8 check
+			// would turn the binary payloads that happen to be valid utf-8 into text
+			if this.DecompressBinary || IsJSON(bytes) {
 				messageStr = string(bytes)
 			} else {
 				messageIsBinary = true

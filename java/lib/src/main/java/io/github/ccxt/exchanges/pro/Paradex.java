@@ -8,10 +8,12 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
+import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.FundingRate;
 import io.github.ccxt.types.FundingRates;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Position;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
 import io.github.ccxt.types.Trade;
@@ -44,9 +46,11 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 put( "watchTickers", true );
                 put( "watchOrderBook", true );
                 put( "watchOrders", true );
+                put( "watchMyTrades", true );
+                put( "watchPositions", true );
                 put( "watchTrades", true );
                 put( "watchTradesForSymbols", false );
-                put( "watchBalance", false );
+                put( "watchBalance", true );
                 put( "watchOHLCV", false );
             }} );
             put( "urls", new HashMap<String, Object>() {{
@@ -62,32 +66,51 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 put( "fees", "https://docs.paradex.trade/getting-started/trading-fees" );
                 put( "referral", "" );
             }} );
-            put( "options", new HashMap<String, Object>() {{}} );
+            put( "options", new HashMap<String, Object>() {{
+                put( "sbe", true );
+                put( "sbeSchemaVersion", "3" );
+                put( "decompressBinary", false );
+            }} );
             put( "streaming", new HashMap<String, Object>() {{}} );
         }});
     }
 
-    public Object requestId()
+    public Object getWsUrl()
+    {
+        Object url = ((Map<String, Object>)this.urls.get("api")).get("ws");
+        if (!Boolean.TRUE.equals(this.safeBool(this.options, "sbe", true)))
+        {
+            return url;
+        }
+        String schemaVersion = this.safeString(this.options, "sbeSchemaVersion", "3");
+        return Helpers.add(Helpers.add(url, "?sbeSchemaId=1&sbeSchemaVersion="), schemaVersion);
+    }
+
+    public String getOrderBookChannel(String marketId)
+    {
+        return (("order_book." + marketId) + ".snapshot@15@100ms");
+    }
+
+    public Long requestId()
     {
         Object requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         Helpers.addElementToObject(this.options, "requestId", requestId);
-        return requestId;
+        return Helpers.toLongOrNull(requestId);
     }
 
-    public CompletableFuture<Object> authenticate(Object... optionalArgs)
+    public CompletableFuture<Object> authenticate(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            Object url = this.getWsUrl();
             Client client = this.client(url);
             String messageHash = "authenticated";
             Object future = client.reusableFuture("authenticated");
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (java.util.Objects.equals(authenticated, null))
             {
-                Object token = (this.authenticateRest()).join();
+                String token = (this.authenticateRest(new HashMap<String, Object>() {{}})).join();
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "jsonrpc", "2.0" );
                     put( "id", Paradex.this.requestId() );
@@ -112,11 +135,11 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //         "result": { "node_id": "73cf456f7cb78d59" }
         //     }
         //
-        Map<String, Object> result = (Map<String, Object>) this.safeDict(message, "result");
+        Map<String, Object> result = (Map<String, Object>) this.safeDict(message, "result", (Object) null);
         if (!java.util.Objects.equals(result, null))
         {
             // client.resolve (true, messageHash);
-            Object future = this.safeValue(client.futures, "authenticated");
+            io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, "authenticated");
             if (!java.util.Objects.equals(future, null))
             {
                 ((io.github.ccxt.ws.Future)future).resolve(true);
@@ -128,49 +151,45 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
      * @method
      * @name paradex#watchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://docs.paradex.trade/ws/web-socket-channels/trades/trades
+     * @see https://docs.paradex.trade/ws/web-socket-channels/trades-market-symbol/trades-market-symbol
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> watchTrades(String symbol2, Object... optionalArgs)
+    public CompletableFuture<List<Trade>> watchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final Object symbol3 = symbol2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object messageHash = "trades.";
+            String messageHash = "trades.";
             if (!java.util.Objects.equals(symbol, null))
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                messageHash = Helpers.add(messageHash, ((Map<String, Object>)market).get("id"));
+                Map<String, Object> market = this.market(symbol);
+                messageHash = (messageHash + market.get("id"));
             } else
             {
                 messageHash = (messageHash + "ALL");
             }
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            final Object finalMessageHash = messageHash;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "jsonrpc", "2.0" );
-                put( "method", "subscribe" );
-                put( "params", new HashMap<String, Object>() {{
-                    put( "channel", finalMessageHash );
-                }} );
-            }};
-            Object trades = (this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null)).join();
+            Object url = this.getWsUrl();
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("jsonrpc", "2.0");
+            request.put("method", "subscribe");
+            HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+            mapLiteral1.put("channel", messageHash);
+            request.put("params", mapLiteral1);
+            List<Object> trades = (this.<List<Object>>watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null)).join();
+            Long limitResolved = limit;
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
+                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbol, limit);
             }
-            return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+            return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -197,17 +216,24 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> parsedTrade = (Map<String, Object>) this.parseTrade(data);
-        Object symbol = ((Map<String, Object>)parsedTrade).get("symbol");
+        Map<String, Object> parsedTrade = (Map<String, Object>) this.parseTrade(data, (Map<String, Object>) null);
+        Object symbol = parsedTrade.get("symbol");
         String messageHash = this.safeString(parameters, "channel");
-        Object stored = this.safeValue(this.trades, symbol);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
         {
             stored = new ArrayCache(((Number)this.safeInteger(this.options, "tradesLimit", 1000)).intValue());
             Helpers.addElementToObject(this.trades, ((String)symbol), stored);
         }
-        Helpers.callDynamically(stored, "append", new Object[]{parsedTrade});
+        stored.append(parsedTrade);
         client.resolve(stored, messageHash);
+        // an SBE frame names its market but not the subscription it was sent for,
+        // so the trades.ALL subscription is resolved from the per-market channel too
+        Boolean isSbe = (Boolean) this.safeBool(message, "sbe", false);
+        if (Boolean.TRUE.equals(isSbe) && (!java.util.Objects.equals(messageHash, "trades.ALL")))
+        {
+            client.resolve(stored, "trades.ALL");
+        }
         return message;
     }
 
@@ -215,26 +241,24 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
      * @method
      * @name paradex#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.paradex.trade/ws/web-socket-channels/order-book/order-book
+     * @see https://docs.paradex.trade/ws/web-socket-channels/order-book-market-symbol-feed-type-15-refresh-rate-price-tick/order-book-market-symbol-feed-type-15-refresh-rate-price-tick
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
+    public CompletableFuture<OrderBook> watchOrderBook(String symbol, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            String messageHash = (("order_book." + ((Map<String, Object>)market).get("id")) + ".snapshot@15@100ms");
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            Map<String, Object> market = this.market(symbol);
+            String messageHash = this.getOrderBookChannel((String) (market.get("id")));
+            Object url = this.getWsUrl();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
                 put( "method", "subscribe" );
@@ -242,8 +266,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                     put( "channel", messageHash );
                 }} );
             }};
-            Object orderbook = (this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null)).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -282,36 +306,39 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "market");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         Long timestamp = this.safeInteger(data, "last_updated_at");
-        Object symbol = ((Map<String, Object>)market).get("symbol");
+        String symbol = (String) market.get("symbol");
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         }
-        Map<String, Object> orderbookData = new HashMap<String, Object>() {{
-            put( "bids", new ArrayList<Object>(Arrays.asList()) );
-            put( "asks", new ArrayList<Object>(Arrays.asList()) );
-        }};
-        List<Object> inserts = (List<Object>) this.safeList(data, "inserts");
+        // levels go into local arrays first: pushing into orderbookData['bids'] appends to a copy in go
+        List<Object> bids = new ArrayList<Object>(Arrays.asList());
+        List<Object> asks = new ArrayList<Object>(Arrays.asList());
+        List<Object> inserts = (List<Object>) this.safeList(data, "inserts", (Object) null);
         for (var i = 0; i < ((List<?>)(List<Object>)(inserts)).size(); i++)
         {
-            Map<String, Object> insert = (Map<String, Object>) this.safeDict(inserts, i);
+            Map<String, Object> insert = (Map<String, Object>) this.safeDict(inserts, i, (Object) null);
             String side = this.safeString(insert, "side");
             String price = this.safeString(insert, "price");
             String size = this.safeString(insert, "size");
             if (java.util.Objects.equals(side, "BUY"))
             {
-                ((List<Object>)((Map<String, Object>)orderbookData).get("bids")).add(new ArrayList<Object>(Arrays.asList(price, size)));
+                ((List<Object>)bids).add(new ArrayList<Object>(Arrays.asList(price, size)));
             } else
             {
-                ((List<Object>)((Map<String, Object>)orderbookData).get("asks")).add(new ArrayList<Object>(Arrays.asList(price, size)));
+                ((List<Object>)asks).add(new ArrayList<Object>(Arrays.asList(price, size)));
             }
         }
+        Map<String, Object> orderbookData = new HashMap<String, Object>() {{
+            put( "bids", bids );
+            put( "asks", asks );
+        }};
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(orderbookData, symbol, timestamp, "bids", "asks");
-        ((Map<String, Object>)snapshot).put("nonce", this.safeInteger(data, "seq_no"));
-        Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
+        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(orderbookData, symbol, timestamp, "bids", "asks", 0, 1, 2);
+        snapshot.put("nonce", this.safeInteger(data, "seq_no"));
+        orderbook.reset(snapshot);
         String messageHash = this.safeString(parameters, "channel");
         client.resolve(orderbook, messageHash);
     }
@@ -320,34 +347,34 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
      * @method
      * @name paradex#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary/markets-summary
+     * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-symbol
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
+    public CompletableFuture<Ticker> watchTicker(String symbol, Map<String, Object> parameters)
     {
-        final Object symbol3 = symbol2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            symbol = this.symbol(symbol);
-            String channel = "markets_summary";
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            final Object finalChannel = channel;
+            Map<String, Object> market = this.market(symbol);
+            // the per-market channel: the all-markets one carries a summary for every listed
+            // option too, thousands of messages a second, all decoded only to be filtered out
+            String channel = ("markets_summary." + market.get("id"));
+            Object url = this.getWsUrl();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
                 put( "method", "subscribe" );
                 put( "params", new HashMap<String, Object>() {{
-                    put( "channel", finalChannel );
+                    put( "channel", channel );
                 }} );
             }};
-            String messageHash = ((channel + ".") + symbol);
-            return (this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null)).join();
+            String messageHash = ("markets_summary." + market.get("symbol"));
+            return (this.watch(url, messageHash, this.deepExtend(request, parameters), channel, null)).join();
         }).thenApply(Ticker::new);
 
     }
@@ -356,39 +383,35 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
      * @method
      * @name paradex#watchTickers
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-     * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary/markets-summary
+     * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-symbol
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> watchTickers(Object... optionalArgs)
+    public CompletableFuture<Tickers> watchTickers(List<String> symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            symbols = this.marketSymbols(symbols);
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             String channel = "markets_summary";
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            final Object finalChannel = channel;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "jsonrpc", "2.0" );
-                put( "method", "subscribe" );
-                put( "params", new HashMap<String, Object>() {{
-                    put( "channel", finalChannel );
-                }} );
-            }};
+            Object url = this.getWsUrl();
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("jsonrpc", "2.0");
+            request.put("method", "subscribe");
+            HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+            mapLiteral2.put("channel", channel);
+            request.put("params", mapLiteral2);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
-            if (!java.util.Objects.equals(symbols, null) && (symbols instanceof List))
+            if (!java.util.Objects.equals(symbolsNormalized, null) && (symbolsNormalized instanceof List))
             {
-                for (var i = 0; i < ((List<?>)symbols).size(); i++)
+                for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
                 {
-                    String messageHash = ((channel + ".") + (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
+                    String messageHash = ((channel + ".") + (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
                     ((List<Object>)messageHashes).add(messageHash);
                 }
             } else
@@ -399,10 +422,14 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(result, Helpers.GetValue(newTicker, "symbol"), newTicker);
+                String newTickerSymbol = this.safeString(newTicker, "symbol");
+                if (!java.util.Objects.equals(newTickerSymbol, null))
+                {
+                    result.put(newTickerSymbol, newTicker);
+                }
                 return result;
             }
-            return this.filterByArray(this.tickers, "symbol", symbols);
+            return this.filterByArray(this.tickers, "symbol", symbolsNormalized, true);
         }).thenApply(Tickers::new);
 
     }
@@ -411,54 +438,49 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
      * @method
      * @name paradex#watchOrders
      * @description watches information on multiple orders made by the user
-     * @see https://docs.paradex.trade/ws/web-socket-channels/orders/orders
+     * @see https://docs.paradex.trade/ws/web-socket-channels/orders-market-symbol/orders-market-symbol
      * @param {string} [symbol] unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> watchOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> watchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            (this.authenticate()).join();
+            (this.authenticate(new HashMap<String, Object>() {{}})).join();
             String messageHash = "orders";
-            Object channel = "orders.";
+            String channel = "orders.";
+            String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.symbol(symbol) : symbol;
             if (!java.util.Objects.equals(symbol, null))
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
-                channel = Helpers.add(channel, ((Map<String, Object>)market).get("id"));
-                messageHash = (messageHash + (":" + symbol));
+                Map<String, Object> market = this.market(symbol);
+                channel = (channel + market.get("id"));
+                messageHash = (messageHash + (":" + symbolResolved));
             } else
             {
                 channel = (channel + "ALL");
             }
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            final Object finalChannel = channel;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "jsonrpc", "2.0" );
-                put( "method", "subscribe" );
-                put( "params", new HashMap<String, Object>() {{
-                    put( "channel", finalChannel );
-                }} );
-            }};
-            Object orders = (this.watch(url, messageHash, this.deepExtend(request, parameters), channel, null)).join();
+            Object url = this.getWsUrl();
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("jsonrpc", "2.0");
+            request.put("method", "subscribe");
+            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+            mapLiteral3.put("channel", channel);
+            request.put("params", mapLiteral3);
+            List<Object> orders = (this.<List<Object>>watch(url, messageHash, this.deepExtend(request, parameters), channel, null)).join();
+            Long limitResolved = limit;
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
+                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+            return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -494,14 +516,14 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(data);
+        Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(data, (Map<String, Object>) null);
         String symbol = this.safeString(parsed, "symbol");
         if (java.util.Objects.equals(this.orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Helpers.callDynamically(this.orders, "append", new Object[]{parsed});
+        ((io.github.ccxt.ws.ArrayCache) this.orders).append(parsed);
         String messageHash = "orders";
         client.resolve(this.orders, messageHash);
         if (!java.util.Objects.equals(symbol, null))
@@ -509,6 +531,306 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             String symbolMessageHash = ((messageHash + ":") + symbol);
             client.resolve(this.orders, symbolMessageHash);
         }
+    }
+
+    /**
+     * @method
+     * @name paradex#watchMyTrades
+     * @description watches information on multiple trades made by the user
+     * @see https://docs.paradex.trade/ws/web-socket-channels/fills-market-symbol/fills-market-symbol
+     * @param {string} [symbol] unified market symbol of the market trades were made in
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    public CompletableFuture<List<Trade>> watchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            (this.authenticate(new HashMap<String, Object>() {{}})).join();
+            String messageHash = "myTrades";
+            String channel = "fills.";
+            String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.symbol(symbol) : symbol;
+            if (!java.util.Objects.equals(symbol, null))
+            {
+                Map<String, Object> market = this.market(symbol);
+                channel = (channel + market.get("id"));
+                messageHash = (messageHash + (":" + symbolResolved));
+            } else
+            {
+                channel = (channel + "ALL");
+            }
+            Object url = this.getWsUrl();
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("jsonrpc", "2.0");
+            request.put("method", "subscribe");
+            HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+            mapLiteral4.put("channel", channel);
+            request.put("params", mapLiteral4);
+            List<Object> trades = (this.<List<Object>>watch(url, messageHash, this.deepExtend(request, parameters), channel, null)).join();
+            Long limitResolved = limit;
+            if (this.newUpdates)
+            {
+                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolResolved, limit);
+            }
+            return this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true);
+        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+
+    }
+
+    public void handleMyTrade(Client client, Map<String, Object> message)
+    {
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "fills.ALL",
+        //             "data": {
+        //                 "id": "1718947571560201703986670001",
+        //                 "side": "BUY",
+        //                 "liquidity": "TAKER",
+        //                 "market": "BTC-USD-PERP",
+        //                 "order_id": "1718947571540201703992340000",
+        //                 "price": "64852.9",
+        //                 "size": "0.01",
+        //                 "fee": "0.1945587",
+        //                 "fee_currency": "USDC",
+        //                 "created_at": 1718947571569,
+        //                 "remaining_size": "0",
+        //                 "client_id": "",
+        //                 "fill_type": "FILL"
+        //             }
+        //         }
+        //     }
+        //
+        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> trade = (Map<String, Object>) this.parseTrade(data, (Map<String, Object>) null);
+        String symbol = this.safeString(trade, "symbol");
+        if (java.util.Objects.equals(this.myTrades, null))
+        {
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
+        }
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
+        trades.append(trade);
+        String messageHash = "myTrades";
+        client.resolve(trades, messageHash);
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            client.resolve(trades, ((messageHash + ":") + symbol));
+        }
+    }
+
+    /**
+     * @method
+     * @name paradex#watchPositions
+     * @description watch all open positions
+     * @see https://docs.paradex.trade/ws/web-socket-channels/positions/positions
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum number of positions to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    public CompletableFuture<List<Position>> watchPositions(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            (this.authenticate(new HashMap<String, Object>() {{}})).join();
+            Object symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+            // one channel carries every market
+            String channel = "positions";
+            Object url = this.getWsUrl();
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("jsonrpc", "2.0");
+            request.put("method", "subscribe");
+            HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+            mapLiteral5.put("channel", channel);
+            request.put("params", mapLiteral5);
+            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            Integer symbolsLength = 0;
+            if (!java.util.Objects.equals(symbolsNormalized, null))
+            {
+                symbolsLength = ((List<?>)symbolsNormalized).size();
+            }
+            if (java.util.Objects.equals(symbolsLength, 0))
+            {
+                ((List<Object>)messageHashes).add(channel);
+            } else
+            {
+                for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
+                {
+                    ((List<Object>)messageHashes).add(((channel + ":") + Helpers.GetValue((List<String>)(symbolsNormalized), i)));
+                }
+            }
+            List<Object> newPositions = (List<Object>) (this.watchMultiple((String) (url), messageHashes, this.deepExtend(request, parameters), new ArrayList<Object>(Arrays.asList(channel)), null)).join();
+            if (this.newUpdates)
+            {
+                return newPositions;
+            }
+            return this.filterBySymbolsSinceLimit(this.positions, Helpers.toStringListArg(symbolsNormalized), since, limit, true);
+        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
+
+    }
+
+    public void handlePositions(Client client, Map<String, Object> message)
+    {
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "positions",
+        //             "data": {
+        //                 "id": "0x49ddd7a564c978f6e4089ff8355b56a42b7e2d48ba282cb5aad60f04bea0ec3-BTC-USD-PERP",
+        //                 "market": "BTC-USD-PERP",
+        //                 "status": "OPEN",
+        //                 "side": "LONG",
+        //                 "size": "0.01",
+        //                 "average_entry_price": "64839.96053748",
+        //                 "unrealized_pnl": "-2.39677214",
+        //                 "leverage": "5",
+        //                 "cost_usd": "648.529",
+        //                 "created_at": 1718947571560,
+        //                 "last_updated_at": 1718950074249,
+        //                 "liquidation_price": ""
+        //             }
+        //         }
+        //     }
+        //
+        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
+        if (java.util.Objects.equals(this.positions, null))
+        {
+            this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
+        }
+        io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
+        Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (data), (Map<String, Object>) null);
+        String symbol = (String) position.get("symbol");
+        List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
+        // one position per market, so a fill through zero flips its side: the cache keys by
+        // symbol and side, and the opposite side it still holds is flattened here
+        String side = this.safeString(position, "side");
+        List<Object> cached = this.filterBySymbolSinceLimit(cache, symbol, (Long) null, (Long) null, true);
+        for (var i = 0; i < ((List<?>)cached).size(); i++)
+        {
+            Object previous = (cached == null || i < 0 || i >= cached.size() ? null : cached.get(i));
+            String previousSide = this.safeString(previous, "side");
+            String previousContracts = this.safeString(previous, "contracts");
+            Boolean isOpposite = (!java.util.Objects.equals(side, null)) && (!java.util.Objects.equals(previousSide, null)) && (!java.util.Objects.equals(previousSide, side));
+            if (Boolean.TRUE.equals(isOpposite) && (!java.util.Objects.equals(previousContracts, null)) && !Precise.stringEq(previousContracts, "0"))
+            {
+                Map<String, Object> flattened = this.extend(previous, new HashMap<String, Object>() {{
+                    put( "contracts", Paradex.this.parseNumber("0") );
+                    put( "lastUpdateTimestamp", Paradex.this.safeInteger(position, "lastUpdateTimestamp") );
+                }});
+                cache.append(flattened);
+                ((List<Object>)newPositions).add(flattened);
+            }
+        }
+        cache.append(position);
+        ((List<Object>)newPositions).add(position);
+        client.resolve(newPositions, "positions");
+        client.resolve(newPositions, ("positions:" + symbol));
+    }
+
+    /**
+     * @method
+     * @name paradex#watchBalance
+     * @description watch the margin balance of the account in its settlement asset: total is the account
+     * value, free the free collateral and used the initial margin requirement
+     * @see https://docs.paradex.trade/ws/web-socket-channels/account/account
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    public CompletableFuture<Balances> watchBalance(Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            (this.authenticate(new HashMap<String, Object>() {{}})).join();
+            String channel = "account";
+            Object url = this.getWsUrl();
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "jsonrpc", "2.0" );
+                put( "method", "subscribe" );
+                put( "params", new HashMap<String, Object>() {{
+                    put( "channel", channel );
+                }} );
+            }};
+            return (this.watch(url, "balance", this.deepExtend(request, parameters), channel, null)).join();
+        }).thenApply(Balances::new);
+
+    }
+
+    public void handleBalance(Client client, Map<String, Object> message)
+    {
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "account",
+        //             "data": {
+        //                 "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b",
+        //                 "account_value": "1000.5",
+        //                 "free_collateral": "900.5",
+        //                 "initial_margin_requirement": "100",
+        //                 "maintenance_margin_requirement": "50",
+        //                 "margin_cushion": "950.5",
+        //                 "seq_no": 20,
+        //                 "settlement_asset": "USDC",
+        //                 "status": "ACTIVE",
+        //                 "total_collateral": "1000",
+        //                 "updated_at": 1718950074249
+        //             }
+        //         }
+        //     }
+        //
+        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
+        this.balance = this.parseWsBalance((Map<String, Object>) (data));
+        client.resolve(this.balance, "balance");
+    }
+
+    public Object parseWsBalance(Map<String, Object> data)
+    {
+        // the account channel carries margin, not token holdings: the account value (collateral with
+        // unrealized pnl) is the total, the free collateral what can still back a new position, and the
+        // initial margin the part the open positions hold, free + used = total as the venue computes them
+        Long timestamp = this.safeInteger(data, "updated_at");
+        Map<String, Object> result = new HashMap<String, Object>() {{
+            put( "info", data );
+            put( "timestamp", timestamp );
+            put( "datetime", Paradex.this.iso8601(timestamp) );
+        }};
+        String code = this.safeCurrencyCode(this.safeString(data, "settlement_asset"), (Map<String, Object>) null);
+        Map<String, Object> account = this.account();
+        account.put("total", this.safeString(data, "account_value"));
+        account.put("free", this.safeString(data, "free_collateral"));
+        account.put("used", this.safeString(data, "initial_margin_requirement"));
+        if (!java.util.Objects.equals(code, null))
+        {
+            result.put(code, account);
+        }
+        return this.safeBalance(result);
     }
 
     public Map<String, Object> handleTicker(Client client, Map<String, Object> message)
@@ -540,13 +862,14 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "symbol");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-        Object symbol = ((Map<String, Object>)market).get("symbol");
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        String symbol = (String) market.get("symbol");
         String channel = this.safeString(parameters, "channel");
-        Object messageHash = Helpers.add((channel + "."), symbol);
         Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(data, market);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
         client.resolve(ticker, channel);
+        // watchTicker waits on the symbol whichever channel, per-market or all, carried it
+        String messageHash = ("markets_summary." + symbol);
         client.resolve(ticker, messageHash);
         return message;
     }
@@ -560,28 +883,25 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public CompletableFuture<FundingRate> watchFundingRate(String symbol2, Object... optionalArgs)
+    public CompletableFuture<FundingRate> watchFundingRate(String symbol, Map<String, Object> parameters)
     {
-        final Object symbol3 = symbol2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            symbol = this.symbol(symbol);
+            String symbolValue = this.symbol(symbol);
             String channel = "funding_data";
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            final Object finalChannel = channel;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "jsonrpc", "2.0" );
-                put( "method", "subscribe" );
-                put( "params", new HashMap<String, Object>() {{
-                    put( "channel", finalChannel );
-                }} );
-            }};
-            String messageHash = ((channel + ".") + symbol);
+            Object url = this.getWsUrl();
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("jsonrpc", "2.0");
+            request.put("method", "subscribe");
+            HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+            mapLiteral6.put("channel", channel);
+            request.put("params", mapLiteral6);
+            String messageHash = ((channel + ".") + symbolValue);
             return (this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null)).join();
         }).thenApply(FundingRate::new);
 
@@ -591,42 +911,38 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
      * @method
      * @name paradex#watchFundingRates
      * @description watch the funding rate for multiple markets
-     * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary/markets-summary
+     * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-symbol
      * @param {string[]} [symbols] a list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public CompletableFuture<FundingRates> watchFundingRates(Object... optionalArgs)
+    public CompletableFuture<FundingRates> watchFundingRates(List<String> symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            symbols = this.marketSymbols(symbols);
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             String channel = "funding_data";
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            final Object finalChannel = channel;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "jsonrpc", "2.0" );
-                put( "method", "subscribe" );
-                put( "params", new HashMap<String, Object>() {{
-                    put( "channel", finalChannel );
-                }} );
-            }};
+            Object url = this.getWsUrl();
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("jsonrpc", "2.0");
+            request.put("method", "subscribe");
+            HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+            mapLiteral7.put("channel", channel);
+            request.put("params", mapLiteral7);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
-            if (!java.util.Objects.equals(symbols, null))
+            if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                Object symbolsLength = ((List<?>)symbols).size();
-                if (Helpers.isGreaterThan(symbolsLength, 0))
+                Integer symbolsLength = ((List<?>)symbolsNormalized).size();
+                if ((symbolsLength != null && symbolsLength > 0))
                 {
-                    for (var i = 0; i < ((List<?>)symbols).size(); i++)
+                    for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
                     {
-                        String messageHash = ((channel + ".") + (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
+                        String messageHash = ((channel + ".") + (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
                         ((List<Object>)messageHashes).add(messageHash);
                     }
                 } else
@@ -641,10 +957,14 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(result, Helpers.GetValue(newFundingRates, "symbol"), newFundingRates);
+                String newFundingRatesSymbol = this.safeString(newFundingRates, "symbol");
+                if (!java.util.Objects.equals(newFundingRatesSymbol, null))
+                {
+                    result.put(newFundingRatesSymbol, newFundingRates);
+                }
                 return result;
             }
-            return this.filterByArray(this.fundingRates, "symbol", symbols);
+            return this.filterByArray(this.fundingRates, "symbol", symbolsNormalized, true);
         }).thenApply(FundingRates::new);
 
     }
@@ -671,15 +991,20 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> fundingRate = this.parseFundingRateWs((Map<String, Object>) (data));
-        Object symbol = ((Map<String, Object>)fundingRate).get("symbol");
+        Map<String, Object> fundingRate = this.parseFundingRateWs((Map<String, Object>) (data), (Map<String, Object>) null);
+        Object symbol = fundingRate.get("symbol");
         Helpers.addElementToObject(this.fundingRates, ((String)symbol), fundingRate);
         String channel = this.safeString(parameters, "channel");
-        Object messageHash = Helpers.add((channel + "."), symbol);
-        client.resolve(fundingRate, messageHash);
+        // watchFundingRates without symbols waits on the bare channel
+        client.resolve(fundingRate, channel);
+        if (!java.util.Objects.equals(channel, null))
+        {
+            String messageHash = ((channel + ".") + symbol);
+            client.resolve(fundingRate, messageHash);
+        }
     }
 
-    public Map<String, Object> parseFundingRateWs(Map<String, Object> contract, Object... optionalArgs)
+    public Map<String, Object> parseFundingRateWs(Map<String, Object> contract, Map<String, Object> market)
     {
         //
         //     {
@@ -692,32 +1017,690 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //         "created_at": 1771506636154
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(contract, "market");
-        String symbol = this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
         Long timestamp = this.safeInteger(contract, "created_at");
         String fundingPeriod = this.safeString(contract, "funding_period_hours");
-        final Object finalFundingPeriod = fundingPeriod;
-        return new HashMap<String, Object>() {{
-            put( "info", contract );
-            put( "symbol", symbol );
-            put( "markPrice", null );
-            put( "indexPrice", null );
-            put( "interestRate", Paradex.this.parseNumber("0") );
-            put( "estimatedSettlePrice", null );
-            put( "timestamp", timestamp );
-            put( "datetime", Paradex.this.iso8601(timestamp) );
-            put( "fundingRate", Paradex.this.safeNumber(contract, "funding_rate") );
-            put( "fundingTimestamp", null );
-            put( "fundingDatetime", null );
-            put( "nextFundingRate", null );
-            put( "nextFundingTimestamp", null );
-            put( "nextFundingDatetime", null );
-            put( "previousFundingRate", null );
-            put( "previousFundingTimestamp", null );
-            put( "previousFundingDatetime", null );
-            put( "interval", (finalFundingPeriod + "h") );
+        String interval = null;
+        if (!java.util.Objects.equals(fundingPeriod, null))
+        {
+            interval = (fundingPeriod + "h");
+        }
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("info", contract);
+            h2kMap0.put("symbol", symbol);
+            h2kMap0.put("markPrice", null);
+            h2kMap0.put("indexPrice", null);
+            h2kMap0.put("interestRate", this.parseNumber("0"));
+            h2kMap0.put("estimatedSettlePrice", null);
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", this.iso8601(timestamp));
+            h2kMap0.put("fundingRate", this.safeNumber(contract, "funding_rate", (Object) null));
+            h2kMap0.put("fundingTimestamp", null);
+            h2kMap0.put("fundingDatetime", null);
+            h2kMap0.put("nextFundingRate", null);
+            h2kMap0.put("nextFundingTimestamp", null);
+            h2kMap0.put("nextFundingDatetime", null);
+            h2kMap0.put("previousFundingRate", null);
+            h2kMap0.put("previousFundingTimestamp", null);
+            h2kMap0.put("previousFundingDatetime", null);
+            h2kMap0.put("interval", interval);
+            return h2kMap0;
+        }
+    }
+
+    public Object parseSbeMessage(Object message)
+    {
+        //
+        // Paradex SBE schema 1:3 (https://docs.paradex.trade), little-endian. Every frame is an 8-byte
+        // header (blockLength, templateId, schemaId, version as uint16) followed by a fixed block of
+        // blockLength bytes, then repeating groups and length-prefixed strings. The frame is rebuilt in
+        // the shape of the matching JSON subscription message, so the JSON handlers parse both.
+        // Requests, subscribe acks and errors stay JSON text frames.
+        //
+        // Returns undefined for frames that carry nothing to route: heartbeats, binary acks, template
+        // ids this decoder does not know (the schema says to skip them), and malformed frames.
+        //
+        String frameHex = this.binaryToBase16(message);
+        Long frameLength = this.parseToInt((((double) frameHex.length()) / ((double) 2)));
+        if (((frameLength == null || frameLength < 8)))
+        {
+            return null;
+        }
+        Object blockLength = this.sbeReadUint(frameHex, 0, 2);
+        Object templateId = this.sbeReadUint(frameHex, 2, 2);
+        Object schemaId = this.sbeReadUint(frameHex, 4, 2);
+        if ((!Helpers.isEqual(schemaId, 1)) || (Helpers.isLessThan(frameLength, this.sum(blockLength, 8))))
+        {
+            return null;
+        }
+        Object channel = null;
+        Object data = null;
+        if (Helpers.isEqual(templateId, 1))
+        {
+            data = this.parseSbeTrade(frameHex, blockLength, frameLength);
+            if (!java.util.Objects.equals(data, null))
+            {
+                channel = ("trades." + Helpers.GetValue(data, "market"));
+            }
+        } else if (Helpers.isEqual(templateId, 3))
+        {
+            data = this.parseSbeOrderBook(frameHex, blockLength, frameLength);
+            if (!java.util.Objects.equals(data, null))
+            {
+                channel = this.getOrderBookChannel((String) (Helpers.GetValue(data, "market")));
+            }
+        } else if (Helpers.isEqual(templateId, 4))
+        {
+            data = this.parseSbeMarketSummary(frameHex, blockLength, frameLength);
+            channel = "markets_summary";
+        } else if (Helpers.isEqual(templateId, 5))
+        {
+            data = this.parseSbeFundingData(frameHex, blockLength, frameLength);
+            channel = "funding_data";
+        } else if (Helpers.isEqual(templateId, 20))
+        {
+            data = this.parseSbeOrder(frameHex, blockLength, frameLength);
+            if (!java.util.Objects.equals(data, null))
+            {
+                channel = ("orders." + Helpers.GetValue(data, "market"));
+            }
+        } else if (Helpers.isEqual(templateId, 21))
+        {
+            data = this.parseSbeFill(frameHex, blockLength, frameLength);
+            if (!java.util.Objects.equals(data, null))
+            {
+                channel = ("fills." + Helpers.GetValue(data, "market"));
+            }
+        } else if (Helpers.isEqual(templateId, 22))
+        {
+            data = this.parseSbePosition(frameHex, blockLength, frameLength);
+            channel = "positions";
+        } else if (Helpers.isEqual(templateId, 23))
+        {
+            data = this.parseSbeAccount(frameHex, blockLength, frameLength);
+            channel = "account";
+        }
+        if (java.util.Objects.equals(data, null))
+        {
+            return null;
+        }
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("sbe", true);
+            HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+            mapLiteral8.put("channel", channel);
+            mapLiteral8.put("data", data);
+            h2kMap1.put("params", mapLiteral8);
+            return h2kMap1;
+        }
+    }
+
+    public Object sbeReadUint(Object frameHex, Object offset, Object length)
+    {
+        // a little-endian unsigned integer of at most 4 bytes, so that it stays exact in every language
+        String digits = "0123456789abcdef";
+        Object result = 0;
+        Object factor = 1;
+        Object position = Helpers.multiply(offset, 2);
+        for (var i = 0; Helpers.isLessThan(i, length); i++)
+        {
+            // plain variables as slice bounds, php gets end - start unparenthesized
+            Object middle = Helpers.add(position, 1);
+            Object next = Helpers.add(position, 2);
+            Integer high = Helpers.getIndexOf(digits, Helpers.slice(frameHex, position, middle));
+            Integer low = Helpers.getIndexOf(digits, Helpers.slice(frameHex, middle, next));
+            result = this.sum(result, Helpers.multiply((((long) high) * 16L), factor), Helpers.multiply(low, factor));
+            factor = Helpers.multiply(factor, 256);
+            position = next;
+        }
+        return result;
+    }
+
+    public Object sbeReadInt64(Object frameHex, Object offset)
+    {
+        // a signed int64 as a decimal string, undefined for INT64_MIN which the schema uses as null
+        Object low = this.sbeReadUint(frameHex, offset, 4);
+        Object high = this.sbeReadUint(frameHex, Helpers.add(offset, 4), 4);
+        if ((Helpers.isEqual(high, 2147483648L)) && (Helpers.isEqual(low, 0)))
+        {
+            return null;
+        }
+        if (Helpers.isEqual(high, 0))
+        {
+            return this.numberToString(low);
+        }
+        String result = Precise.stringAdd(Precise.stringMul(this.numberToString(high), "4294967296"), this.numberToString(low));
+        if (Helpers.isGreaterThanOrEqual(high, 2147483648L))
+        {
+            result = Precise.stringSub(result, "18446744073709551616");
+        }
+        return result;
+    }
+
+    public Object sbeReadDecimal(Object frameHex, Object offset)
+    {
+        // prices, sizes and rates are int64 mantissas with a fixed exponent of -8
+        Object mantissa = this.sbeReadInt64(frameHex, offset);
+        if (java.util.Objects.equals(mantissa, null))
+        {
+            return null;
+        }
+        return Precise.stringDiv(mantissa, "100000000", 8);
+    }
+
+    public Object sbeReadTimestamp(Object frameHex, Object offset)
+    {
+        // timestamps are microseconds, truncated to milliseconds with Precise: a float
+        // quotient like 1791906071000.999 is rounded up when php converts it to an int
+        Object microseconds = this.sbeReadInt64(frameHex, offset);
+        if (java.util.Objects.equals(microseconds, null))
+        {
+            return null;
+        }
+        return this.parseToInt(Precise.stringDiv(microseconds, "1000", 0));
+    }
+
+    public String sbeReadEnum(Object frameHex, Object offset, Map<String, Object> values)
+    {
+        Object value = this.sbeReadUint(frameHex, offset, 1);
+        return this.safeString(values, this.numberToString(value));
+    }
+
+    public Object sbeReadString(Object frameHex, Object offset, Object length)
+    {
+        Object start = Helpers.multiply(offset, 2);
+        Object end = this.sum(start, Helpers.multiply(length, 2));
+        return this.binaryToString(this.base16ToBinary(Helpers.slice(frameHex, start, end)));
+    }
+
+    public String sbeReadAddress(Object frameHex, Object offset)
+    {
+        // a 32-byte big-endian account address, printed without leading zeros like the JSON feed
+        Object rawStart = Helpers.multiply(offset, 2);
+        Object rawEnd = Helpers.add(rawStart, 64);
+        String raw = Helpers.slice(frameHex, rawStart, rawEnd);
+        Object start = 0;
+        Object next = 1;
+        while ((Helpers.isLessThan(start, 63)) && (java.util.Objects.equals(Helpers.slice(raw, start, next), "0")))
+        {
+            start = next;
+            next = Helpers.add(start, 1);
+        }
+        return ("0x" + Helpers.slice(raw, start, 64));
+    }
+
+    public Object sbeReadVarStrings(Object frameHex, Object offset, Object count, Object frameLength)
+    {
+        // the var-data section: count strings, each prefixed with a uint8 length. Returns undefined
+        // when the frame ends before all of them, and only the strings present when a trailing one is
+        // absent, which is how a field appended to var-data reads on a frame from before it
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        Object position = offset;
+        for (var i = 0; Helpers.isLessThan(i, count); i++)
+        {
+            if (Helpers.isGreaterThanOrEqual(position, frameLength))
+            {
+                return result;
+            }
+            Object length = this.sbeReadUint(frameHex, position, 1);
+            if (Helpers.isGreaterThan(this.sum(position, 1, length), frameLength))
+            {
+                return null;
+            }
+            ((List<Object>)result).add(this.sbeReadString(frameHex, Helpers.add(position, 1), length));
+            position = this.sum(position, 1, length);
+        }
+        return result;
+    }
+
+    public Object parseSbeTrade(Object frameHex, Object blockLength, Object frameLength)
+    {
+        //
+        // TradeEvent (templateId 1), 50-byte block
+        //
+        //     ts int64, seq int64, tradeId int64 (deprecated, truncated), side uint8, price int64,
+        //     size int64, createdAt int64, tradeType uint8, then market and tradeIdStr strings
+        //
+        if (Helpers.isLessThan(blockLength, 50))
+        {
+            return null;
+        }
+        Object strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 2, frameLength);
+        Integer stringsLength = (((java.util.Objects.equals(strings, null)))) ? 0 : Helpers.getArrayLength(strings);
+        if (((stringsLength == null || stringsLength < 1)))
+        {
+            return null;
+        }
+        Map<String, Object> sides = new HashMap<String, Object>() {{
+            put( "1", "BUY" );
+            put( "2", "SELL" );
         }};
+        Map<String, Object> tradeTypes = new HashMap<String, Object>() {{
+            put( "1", "FILL" );
+            put( "2", "LIQUIDATION" );
+            put( "3", "UNWIND_TRANSFER" );
+            put( "4", "SETTLE_MARKET" );
+            put( "5", "RPI" );
+            put( "6", "BLOCK_TRADE" );
+        }};
+        {
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("id", this.safeString(strings, 1));
+            h2kMap2.put("market", Helpers.GetValue(strings, 0));
+            h2kMap2.put("side", this.sbeReadEnum(frameHex, 32, (Map<String, Object>) (sides)));
+            h2kMap2.put("size", this.sbeReadDecimal(frameHex, 41));
+            h2kMap2.put("price", this.sbeReadDecimal(frameHex, 33));
+            h2kMap2.put("created_at", this.sbeReadTimestamp(frameHex, 49));
+            h2kMap2.put("trade_type", this.sbeReadEnum(frameHex, 57, (Map<String, Object>) (tradeTypes)));
+            return h2kMap2;
+        }
+    }
+
+    public Object parseSbeOrderBook(Object frameHex, Object blockLength, Object frameLength)
+    {
+        //
+        // BookEvent (templateId 3), 89-byte block
+        //
+        //     ts int64, seq int64, pkgType uint8, nine best bid/ask int64 fields, then the bids and asks
+        //     groups of (price int64, size int64) entries and the market string
+        //
+        if (Helpers.isLessThan(blockLength, 17))
+        {
+            return null;
+        }
+        // watchOrderBook subscribes to the snapshot channel, a delta would need a book to apply it to
+        Object pkgType = this.sbeReadUint(frameHex, 24, 1);
+        if (!Helpers.isEqual(pkgType, 0))
+        {
+            return null;
+        }
+        List<Object> inserts = new ArrayList<Object>(Arrays.asList());
+        List<String> sides = new ArrayList<String>(Arrays.asList("BUY", "SELL"));
+        Object position = this.sum(blockLength, 8);
+        for (var i = 0; i < ((List<?>)sides).size(); i++)
+        {
+            if (Helpers.isGreaterThan(Helpers.add(position, 4), frameLength))
+            {
+                return null;
+            }
+            Object entryLength = this.sbeReadUint(frameHex, position, 2);
+            Object numInGroup = this.sbeReadUint(frameHex, Helpers.add(position, 2), 2);
+            position = Helpers.add(position, 4);
+            if ((Helpers.isLessThan(entryLength, 16)) || (Helpers.isGreaterThan(this.sum(position, Helpers.multiply(numInGroup, entryLength)), frameLength)))
+            {
+                return null;
+            }
+            for (var j = 0; Helpers.isLessThan(j, numInGroup); j++)
+            {
+                ((List<Object>)inserts).add(Helpers.newMap(
+                    "side", (sides == null || i < 0 || i >= sides.size() ? null : sides.get(i)),
+                    "price", this.sbeReadDecimal(frameHex, position),
+                    "size", this.sbeReadDecimal(frameHex, Helpers.add(position, 8))
+                ));
+                position = this.sum(position, entryLength);
+            }
+        }
+        Object strings = this.sbeReadVarStrings(frameHex, position, 1, frameLength);
+        Integer stringsLength = (((java.util.Objects.equals(strings, null)))) ? 0 : Helpers.getArrayLength(strings);
+        if (((stringsLength == null || stringsLength < 1)))
+        {
+            return null;
+        }
+        {
+            HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
+            h2kMap3.put("seq_no", this.sbeReadInt64(frameHex, 16));
+            h2kMap3.put("market", Helpers.GetValue(strings, 0));
+            h2kMap3.put("last_updated_at", this.sbeReadTimestamp(frameHex, 8));
+            h2kMap3.put("update_type", "s");
+            h2kMap3.put("inserts", inserts);
+            h2kMap3.put("updates", new ArrayList<Object>(Arrays.asList()));
+            h2kMap3.put("deletes", new ArrayList<Object>(Arrays.asList()));
+            return h2kMap3;
+        }
+    }
+
+    public Object parseSbeMarketSummary(Object frameHex, Object blockLength, Object frameLength)
+    {
+        //
+        // MarketSummaryEvent (templateId 4), 248-byte block (240 before 1:3), of which the first
+        // 12 int64 fields and settlementTwapEstimate are read
+        //
+        //     ts, seq, markPrice, indexPrice, lastPrice, volumeUsd24h, openInterest, fundingRate, bid,
+        //     ask, totalVolume, priceChangeRate24h, ..., settlementTwapEstimate (1:3, at 240), then the
+        //     market string
+        //
+        if (Helpers.isLessThan(blockLength, 96))
+        {
+            return null;
+        }
+        Object strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 1, frameLength);
+        Integer stringsLength = (((java.util.Objects.equals(strings, null)))) ? 0 : Helpers.getArrayLength(strings);
+        if (((stringsLength == null || stringsLength < 1)))
+        {
+            return null;
+        }
+        // appended in 1:3: null outside the pre-expiry settlement window and for undated markets
+        Object settlementTwapEstimate = null;
+        if (Helpers.isGreaterThanOrEqual(blockLength, 248))
+        {
+            settlementTwapEstimate = this.sbeReadDecimal(frameHex, 248);
+        }
+        {
+            HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
+            h2kMap4.put("symbol", Helpers.GetValue(strings, 0));
+            h2kMap4.put("mark_price", this.sbeReadDecimal(frameHex, 24));
+            h2kMap4.put("last_traded_price", this.sbeReadDecimal(frameHex, 40));
+            h2kMap4.put("bid", this.sbeReadDecimal(frameHex, 72));
+            h2kMap4.put("ask", this.sbeReadDecimal(frameHex, 80));
+            h2kMap4.put("volume_24h", this.sbeReadDecimal(frameHex, 48));
+            h2kMap4.put("total_volume", this.sbeReadDecimal(frameHex, 88));
+            h2kMap4.put("created_at", this.sbeReadTimestamp(frameHex, 8));
+            h2kMap4.put("open_interest", this.sbeReadDecimal(frameHex, 56));
+            h2kMap4.put("funding_rate", this.sbeReadDecimal(frameHex, 64));
+            h2kMap4.put("price_change_rate_24h", this.sbeReadDecimal(frameHex, 96));
+            h2kMap4.put("settlement_twap_estimate", settlementTwapEstimate);
+            return h2kMap4;
+        }
+    }
+
+    public Object parseSbeFundingData(Object frameHex, Object blockLength, Object frameLength)
+    {
+        //
+        // FundingDataEvent (templateId 5), 66-byte block
+        //
+        //     ts int64, seq int64, fundingRate int64, fundingIndex int64, createdAt int64,
+        //     fundingPremium int64, fundingRate8h int64, fundingPeriodHours int16, ... then the market
+        //
+        if (Helpers.isLessThan(blockLength, 58))
+        {
+            return null;
+        }
+        Object strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 1, frameLength);
+        Integer stringsLength = (((java.util.Objects.equals(strings, null)))) ? 0 : Helpers.getArrayLength(strings);
+        if (((stringsLength == null || stringsLength < 1)))
+        {
+            return null;
+        }
+        {
+            HashMap<String, Object> h2kMap5 = new HashMap<String, Object>();
+            h2kMap5.put("market", Helpers.GetValue(strings, 0));
+            h2kMap5.put("funding_index", this.sbeReadDecimal(frameHex, 32));
+            h2kMap5.put("funding_premium", this.sbeReadDecimal(frameHex, 48));
+            h2kMap5.put("funding_rate", this.sbeReadDecimal(frameHex, 24));
+            h2kMap5.put("funding_rate_8h", this.sbeReadDecimal(frameHex, 56));
+            h2kMap5.put("funding_period_hours", this.sbeReadUint(frameHex, 64, 2));
+            h2kMap5.put("created_at", this.sbeReadTimestamp(frameHex, 40));
+            return h2kMap5;
+        }
+    }
+
+    public Object parseSbeOrder(Object frameHex, Object blockLength, Object frameLength)
+    {
+        //
+        // OrderEvent (templateId 20), 128-byte block (126 before the 1:2 request fields)
+        //
+        //     ts int64, seq int64, status uint8, side uint8, orderType uint8, timeInForce uint8,
+        //     price int64, triggerPrice int64, size int64, sizeOpen int64, avgFillPrice int64,
+        //     createdAt int64, updatedAt int64, account [32]byte, receivedAt int64, publishedAt int64,
+        //     stp uint8, flags uint8, ... then the orderId, clientOrderId, market and cancelReason strings
+        //
+        if (Helpers.isLessThan(blockLength, 126))
+        {
+            return null;
+        }
+        Object strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 4, frameLength);
+        Integer stringsLength = (((java.util.Objects.equals(strings, null)))) ? 0 : Helpers.getArrayLength(strings);
+        if (((stringsLength == null || stringsLength < 4)))
+        {
+            return null;
+        }
+        Map<String, Object> statuses = new HashMap<String, Object>() {{
+            put( "1", "NEW" );
+            put( "2", "UNTRIGGERED" );
+            put( "3", "OPEN" );
+            put( "4", "CLOSED" );
+        }};
+        Map<String, Object> sides = new HashMap<String, Object>() {{
+            put( "1", "BUY" );
+            put( "2", "SELL" );
+        }};
+        Map<String, Object> orderTypes = new HashMap<String, Object>() {{
+            put( "1", "LIMIT" );
+            put( "2", "MARKET" );
+            put( "3", "STOP_LIMIT" );
+            put( "4", "STOP_MARKET" );
+            put( "5", "TAKE_PROFIT_LIMIT" );
+            put( "6", "TAKE_PROFIT_MARKET" );
+            put( "7", "STOP_LOSS_LIMIT" );
+            put( "8", "STOP_LOSS_MARKET" );
+        }};
+        Map<String, Object> timeInForces = new HashMap<String, Object>() {{
+            put( "1", "GTC" );
+            put( "2", "IOC" );
+            put( "3", "POST_ONLY" );
+            put( "4", "RPI" );
+        }};
+        Map<String, Object> stpModes = new HashMap<String, Object>() {{
+            put( "0", "NONE" );
+            put( "1", "EXPIRE_MAKER" );
+            put( "2", "EXPIRE_TAKER" );
+            put( "3", "EXPIRE_BOTH" );
+        }};
+        Object flags = this.sbeReadFlags(frameHex, 133, new ArrayList<Object>(Arrays.asList("REDUCE_ONLY", "STOP_CONDITION_BELOW_TRIGGER", "STOP_CONDITION_ABOVE_TRIGGER", "INTERACTIVE", "TARGET_STRATEGY_VWAP", "MMP")));
+        Map<String, Object> order = new HashMap<String, Object>();
+        order.put("account", this.sbeReadAddress(frameHex, 84));
+        order.put("avg_fill_price", this.sbeReadDecimal(frameHex, 60));
+        order.put("client_id", Helpers.GetValue(strings, 1));
+        order.put("created_at", this.sbeReadTimestamp(frameHex, 68));
+        order.put("flags", flags);
+        order.put("id", Helpers.GetValue(strings, 0));
+        order.put("instruction", this.sbeReadEnum(frameHex, 27, (Map<String, Object>) (timeInForces)));
+        order.put("last_updated_at", this.sbeReadTimestamp(frameHex, 76));
+        order.put("market", Helpers.GetValue(strings, 2));
+        order.put("price", this.sbeReadDecimal(frameHex, 28));
+        order.put("published_at", this.sbeReadTimestamp(frameHex, 124));
+        order.put("received_at", this.sbeReadTimestamp(frameHex, 116));
+        order.put("remaining_size", this.sbeReadDecimal(frameHex, 52));
+        order.put("seq_no", this.sbeReadInt64(frameHex, 16));
+        order.put("side", this.sbeReadEnum(frameHex, 25, (Map<String, Object>) (sides)));
+        order.put("size", this.sbeReadDecimal(frameHex, 44));
+        order.put("status", this.sbeReadEnum(frameHex, 24, (Map<String, Object>) (statuses)));
+        order.put("stp", this.sbeReadEnum(frameHex, 132, (Map<String, Object>) (stpModes)));
+        order.put("timestamp", this.sbeReadTimestamp(frameHex, 8));
+        order.put("trigger_price", this.sbeReadDecimal(frameHex, 36));
+        order.put("type", this.sbeReadEnum(frameHex, 26, (Map<String, Object>) (orderTypes)));
+        // an empty cancel reason is sent for every live order, parseOrder reads any reason as canceled
+        if (!java.util.Objects.equals(Helpers.GetValue(strings, 3), ""))
+        {
+            order.put("cancel_reason", Helpers.GetValue(strings, 3));
+        }
+        return order;
+    }
+
+    public Object sbeReadFlags(Object frameHex, Object offset, Object names)
+    {
+        // a uint8 bitset, names[bit] for each set bit, an empty name for a bit the schema leaves unused
+        List<Object> flags = new ArrayList<Object>(Arrays.asList());
+        Object bits = this.sbeReadUint(frameHex, offset, 1);
+        for (var i = 0; i < ((List<?>)names).size(); i++)
+        {
+            Long bit = this.parseToInt(Helpers.mod(bits, 2));
+            if (((bit != null && bit == 1)) && (!java.util.Objects.equals((names == null || i < 0 || i >= ((List<?>)names).size() ? null : ((List<?>)names).get(i)), "")))
+            {
+                ((List<Object>)flags).add((names == null || i < 0 || i >= ((List<?>)names).size() ? null : ((List<?>)names).get(i)));
+            }
+            bits = this.parseToInt(Helpers.divide((Helpers.subtract(bits, bit)), 2));
+        }
+        return flags;
+    }
+
+    public Object parseSbeFill(Object frameHex, Object blockLength, Object frameLength)
+    {
+        //
+        // FillEvent (templateId 21), 116-byte block (107 before the 1:2 flags and orderbookSeqNo)
+        //
+        //     ts int64, seq int64 (nullable), fillType uint8, side uint8, liquidity uint8, price int64,
+        //     size int64, fee int64, realizedPnl int64 (nullable), createdAt int64, account [32]byte,
+        //     underlyingPrice int64, realizedFunding int64, flags uint8, orderbookSeqNo uint64, then the
+        //     fillId, orderId, clientOrderId, tradeId, market and feeCurrency (1:2) strings
+        //
+        if (Helpers.isLessThan(blockLength, 107))
+        {
+            return null;
+        }
+        Object strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 6, frameLength);
+        Integer stringsLength = (((java.util.Objects.equals(strings, null)))) ? 0 : Helpers.getArrayLength(strings);
+        if (((stringsLength == null || stringsLength < 5)))
+        {
+            return null;
+        }
+        Map<String, Object> fillTypes = new HashMap<String, Object>() {{
+            put( "1", "FILL" );
+            put( "2", "LIQUIDATION" );
+            put( "3", "UNWIND_TRANSFER" );
+            put( "4", "SETTLE_MARKET" );
+            put( "5", "RPI" );
+            put( "6", "BLOCK_TRADE" );
+        }};
+        Map<String, Object> sides = new HashMap<String, Object>() {{
+            put( "1", "BUY" );
+            put( "2", "SELL" );
+        }};
+        Map<String, Object> liquidities = new HashMap<String, Object>() {{
+            put( "1", "MAKER" );
+            put( "2", "TAKER" );
+        }};
+        Map<String, Object> fill = new HashMap<String, Object>();
+        fill.put("account", this.sbeReadAddress(frameHex, 67));
+        fill.put("client_id", Helpers.GetValue(strings, 2));
+        fill.put("created_at", this.sbeReadTimestamp(frameHex, 59));
+        fill.put("fee", this.sbeReadDecimal(frameHex, 43));
+        fill.put("fee_currency", this.safeString(strings, 5));
+        fill.put("fill_type", this.sbeReadEnum(frameHex, 24, (Map<String, Object>) (fillTypes)));
+        fill.put("id", Helpers.GetValue(strings, 0));
+        fill.put("liquidity", this.sbeReadEnum(frameHex, 26, (Map<String, Object>) (liquidities)));
+        fill.put("market", Helpers.GetValue(strings, 4));
+        fill.put("order_id", Helpers.GetValue(strings, 1));
+        fill.put("price", this.sbeReadDecimal(frameHex, 27));
+        fill.put("realized_funding", this.sbeReadDecimal(frameHex, 107));
+        fill.put("realized_pnl", this.sbeReadDecimal(frameHex, 51));
+        fill.put("side", this.sbeReadEnum(frameHex, 25, (Map<String, Object>) (sides)));
+        fill.put("size", this.sbeReadDecimal(frameHex, 35));
+        fill.put("underlying_price", this.sbeReadDecimal(frameHex, 99));
+        if (Helpers.isGreaterThanOrEqual(blockLength, 116))
+        {
+            // lowercase, as the JSON feed spells fill flags
+            fill.put("flags", this.sbeReadFlags(frameHex, 115, new ArrayList<Object>(Arrays.asList("interactive", "rpi", "fastfill", "", "", "", "", "unknown"))));
+            fill.put("orderbook_seq_no", this.sbeReadInt64(frameHex, 116));
+        }
+        return fill;
+    }
+
+    public Object parseSbePosition(Object frameHex, Object blockLength, Object frameLength)
+    {
+        //
+        // PositionEvent (templateId 22), 154-byte block
+        //
+        //     ts int64, seq int64, side uint8, size int64 (absolute), avgEntryPrice int64,
+        //     unrealizedPnl int64, realizedPnl int64, markPrice int64 (always null), liquidationPrice
+        //     int64 (nullable), leverage int64, updatedAt int64, account [32]byte, avgEntryPriceUsd
+        //     int64, cost int64, costUsd int64, cachedFundingIndex int64, unrealizedFundingPnl int64,
+        //     status uint8, then the market and lastFillId strings
+        //
+        if (Helpers.isLessThan(blockLength, 154))
+        {
+            return null;
+        }
+        Object strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 2, frameLength);
+        Integer stringsLength = (((java.util.Objects.equals(strings, null)))) ? 0 : Helpers.getArrayLength(strings);
+        if (((stringsLength == null || stringsLength < 1)))
+        {
+            return null;
+        }
+        Map<String, Object> sides = new HashMap<String, Object>() {{
+            put( "1", "LONG" );
+            put( "2", "SHORT" );
+        }};
+        Map<String, Object> statuses = new HashMap<String, Object>() {{
+            put( "1", "OPEN" );
+            put( "2", "CLOSED" );
+        }};
+        String side = this.sbeReadEnum(frameHex, 24, (Map<String, Object>) (sides));
+        Object account = this.sbeReadAddress(frameHex, 89);
+        // the frame carries the size unsigned, the JSON channel signs it negative for a short
+        Object size = this.sbeReadDecimal(frameHex, 25);
+        if ((java.util.Objects.equals(side, "SHORT")) && (!java.util.Objects.equals(size, "0")))
+        {
+            size = Precise.stringNeg(size);
+        }
+        {
+            HashMap<String, Object> h2kMap6 = new HashMap<String, Object>();
+            h2kMap6.put("account", account);
+            h2kMap6.put("average_entry_price", this.sbeReadDecimal(frameHex, 33));
+            h2kMap6.put("average_entry_price_usd", this.sbeReadDecimal(frameHex, 121));
+            h2kMap6.put("cached_funding_index", this.sbeReadDecimal(frameHex, 145));
+            h2kMap6.put("cost", this.sbeReadDecimal(frameHex, 129));
+            h2kMap6.put("cost_usd", this.sbeReadDecimal(frameHex, 137));
+            h2kMap6.put("id", ((account + "-") + Helpers.GetValue(strings, 0)));
+            h2kMap6.put("last_fill_id", this.safeString(strings, 1));
+            h2kMap6.put("last_updated_at", this.sbeReadTimestamp(frameHex, 81));
+            h2kMap6.put("leverage", this.sbeReadDecimal(frameHex, 73));
+            h2kMap6.put("liquidation_price", this.sbeReadDecimal(frameHex, 65));
+            h2kMap6.put("market", Helpers.GetValue(strings, 0));
+            h2kMap6.put("realized_positional_pnl", this.sbeReadDecimal(frameHex, 49));
+            h2kMap6.put("seq_no", this.sbeReadInt64(frameHex, 16));
+            h2kMap6.put("side", side);
+            h2kMap6.put("size", size);
+            h2kMap6.put("status", this.sbeReadEnum(frameHex, 161, (Map<String, Object>) (statuses)));
+            h2kMap6.put("unrealized_funding_pnl", this.sbeReadDecimal(frameHex, 153));
+            h2kMap6.put("unrealized_pnl", this.sbeReadDecimal(frameHex, 41));
+            return h2kMap6;
+        }
+    }
+
+    public Object parseSbeAccount(Object frameHex, Object blockLength, Object frameLength)
+    {
+        //
+        // AccountEvent (templateId 23), 121-byte block (113 before the 1:2 lastSeenNotification)
+        //
+        //     ts int64, seq int64, totalCollateral int64, freeCollateral int64, initialMarginReq int64,
+        //     maintenanceMarginReq int64, accountValue int64, unrealizedPnl int64 (nullable), updatedAt
+        //     int64, account [32]byte, marginCushion int64, status uint8, lastSeenNotification int64,
+        //     then the settlementAsset string
+        //
+        if (Helpers.isLessThan(blockLength, 113))
+        {
+            return null;
+        }
+        Object strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 1, frameLength);
+        Integer stringsLength = (((java.util.Objects.equals(strings, null)))) ? 0 : Helpers.getArrayLength(strings);
+        if (((stringsLength == null || stringsLength < 1)))
+        {
+            return null;
+        }
+        Map<String, Object> statuses = new HashMap<String, Object>() {{
+            put( "1", "ACTIVE" );
+            put( "2", "LIQUIDATION" );
+        }};
+        Map<String, Object> account = new HashMap<String, Object>();
+        account.put("account", this.sbeReadAddress(frameHex, 80));
+        account.put("account_value", this.sbeReadDecimal(frameHex, 56));
+        account.put("free_collateral", this.sbeReadDecimal(frameHex, 32));
+        account.put("initial_margin_requirement", this.sbeReadDecimal(frameHex, 40));
+        account.put("maintenance_margin_requirement", this.sbeReadDecimal(frameHex, 48));
+        account.put("margin_cushion", this.sbeReadDecimal(frameHex, 112));
+        account.put("seq_no", this.sbeReadInt64(frameHex, 16));
+        account.put("settlement_asset", Helpers.GetValue(strings, 0));
+        account.put("status", this.sbeReadEnum(frameHex, 120, (Map<String, Object>) (statuses)));
+        account.put("total_collateral", this.sbeReadDecimal(frameHex, 24));
+        account.put("updated_at", this.sbeReadTimestamp(frameHex, 72));
+        if (Helpers.isGreaterThanOrEqual(blockLength, 121))
+        {
+            account.put("last_seen_notification", this.sbeReadTimestamp(frameHex, 121));
+        }
+        return account;
     }
 
     public Boolean handleErrorMessage(Client client, Object message)
@@ -736,7 +1719,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //         "usOut": 1718179125962495
         //     }
         //
-        Map<String, Object> error = (Map<String, Object>) this.safeDict(message, "error");
+        Map<String, Object> error = (Map<String, Object>) this.safeDict(message, "error", (Object) null);
         if (java.util.Objects.equals(error, null))
         {
             return true;
@@ -746,11 +1729,11 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             if (!java.util.Objects.equals(errorCode, null))
             {
                 String feedback = ((this.id + " ") + this.json(error));
-                this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), "-32600", feedback);
-                Object messageString = this.safeValue(error, "message");
+                this.throwExactlyMatchedException(this.exceptions.get("exact"), "-32600", feedback);
+                String messageString = this.safeString(error, "message");
                 if (!java.util.Objects.equals(messageString, null))
                 {
-                    this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), messageString, feedback);
+                    this.throwBroadlyMatchedException(this.exceptions.get("broad"), messageString, feedback);
                 }
             }
             return false;
@@ -759,7 +1742,16 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
 
     public void handleMessage(Client client, Object message)
     {
-        if (!java.util.Objects.equals(this.handleErrorMessage(client, message), true))
+        Object parsedMessage = message;
+        if (this.isBinaryMessage(message))
+        {
+            parsedMessage = this.parseSbeMessage(message);
+            if (java.util.Objects.equals(parsedMessage, null))
+            {
+                return;
+            }
+        }
+        if (!java.util.Objects.equals(this.handleErrorMessage(client, parsedMessage), true))
         {
             return;
         }
@@ -791,17 +1783,17 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //         }
         //     }
         //
-        Map<String, Object> result = (Map<String, Object>) this.safeDict(message, "result");
+        Map<String, Object> result = (Map<String, Object>) this.safeDict(parsedMessage, "result", (Object) null);
         if (!java.util.Objects.equals(result, null))
         {
-            this.handleAuthenticationMessage(client, (Map<String, Object>) (message));
+            this.handleAuthenticationMessage(client, (Map<String, Object>) (parsedMessage));
             return;
         }
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "params");
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(parsedMessage, "params", (Object) null);
         if (!java.util.Objects.equals(data, null))
         {
             String channel = this.safeString(data, "channel");
-            Object parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("."))));
+            List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("."))));
             String name = this.safeString(parts, 0);
             Map<String, Object> methods = new HashMap<String, Object>() {{
                 put( "trades", "handleTrade");
@@ -809,11 +1801,14 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 put( "markets_summary", "handleTicker");
                 put( "orders", "handleOrder");
                 put( "funding_data", "handleFundingRate");
+                put( "fills", "handleMyTrade");
+                put( "positions", "handlePositions");
+                put( "account", "handleBalance");
             }};
             Object method = this.safeValue(methods, name);
             if (!java.util.Objects.equals(method, null))
             {
-                Helpers.callDynamically(this, method, new Object[] {client, message});
+                Helpers.callDynamically(this, method, new Object[] {client, parsedMessage});
             }
         }
     }

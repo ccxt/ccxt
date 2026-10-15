@@ -137,10 +137,11 @@ export default class lbank extends lbankRest {
         };
         const request = this.deepExtend(subscribe, params);
         const ohlcv = await this.watch(url, messageHash, request, messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = ohlcv.getLimit(symbol, limit);
+            limitResolved = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
     }
     handleOHLCV(client, message) {
         //
@@ -398,14 +399,12 @@ export default class lbank extends lbankRest {
         this.checkContractMarket(market, 'fetchTradesWs');
         const url = this.urls['api']['ws'];
         const messageHash = 'fetchTrades:' + market['symbol'];
-        if (limit === undefined) {
-            limit = 10;
-        }
+        const limitResolved = (limit === undefined) ? 10 : limit;
         const message = {
             'action': 'request',
             'request': 'trade',
             'pair': market['id'],
-            'size': limit,
+            'size': limitResolved,
         };
         const request = this.deepExtend(message, params);
         const requestId = this.requestId();
@@ -476,7 +475,7 @@ export default class lbank extends lbankRest {
             stored = new ArrayCache(limit);
             this.trades[symbol] = stored;
         }
-        const rawTrade = this.safeValue(message, 'trade');
+        const rawTrade = this.safeDict(message, 'trade');
         const rawTrades = this.safeList(message, 'trades', [rawTrade]);
         for (let i = 0; i < rawTrades.length; i++) {
             const trade = this.parseWsTrade(rawTrades[i], market);
@@ -503,7 +502,13 @@ export default class lbank extends lbankRest {
         //    }
         //
         let timestamp = this.safeInteger(trade, 0);
-        const datetime = (timestamp !== undefined) ? (this.iso8601(timestamp)) : (this.safeString(trade, 'TS'));
+        let datetime = undefined;
+        if (timestamp !== undefined) {
+            datetime = (this.iso8601(timestamp));
+        }
+        else {
+            datetime = (this.safeString(trade, 'TS'));
+        }
         if (timestamp === undefined) {
             timestamp = this.parse8601(datetime);
         }
@@ -551,12 +556,12 @@ export default class lbank extends lbankRest {
         const url = this.urls['api']['ws'];
         let messageHash = undefined;
         let pair = 'all';
+        const symbolResolved = (symbol === undefined) ? undefined : this.symbol(symbol);
         if (symbol === undefined) {
             messageHash = 'orders:all';
         }
         else {
             const market = this.market(symbol);
-            symbol = this.symbol(symbol);
             messageHash = 'orders:' + market['symbol'];
             pair = market['id'];
         }
@@ -568,7 +573,7 @@ export default class lbank extends lbankRest {
         };
         const request = this.deepExtend(message, params);
         const orders = await this.watch(url, messageHash, request, messageHash, request);
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limit, true);
     }
     handleOrders(client, message) {
         //
@@ -774,13 +779,11 @@ export default class lbank extends lbankRest {
         this.checkContractMarket(market, 'fetchOrderBookWs');
         const url = this.urls['api']['ws'];
         const messageHash = 'fetchOrderbook:' + market['symbol'];
-        if (limit === undefined) {
-            limit = 100;
-        }
+        const limitResolved = (limit === undefined) ? 100 : limit;
         const subscribe = {
             'action': 'request',
             'request': 'depth',
-            'depth': limit,
+            'depth': limitResolved,
             'pair': market['id'],
         };
         const request = this.deepExtend(subscribe, params);
@@ -805,17 +808,15 @@ export default class lbank extends lbankRest {
         this.checkContractMarket(market, 'watchOrderBook');
         const url = this.urls['api']['ws'];
         const messageHash = 'orderbook:' + market['symbol'];
-        params = this.omit(params, 'aggregation');
-        if (limit === undefined) {
-            limit = 100;
-        }
+        const paramsOmitted = this.omit(params, 'aggregation');
+        const limitResolved = (limit === undefined) ? 100 : limit;
         const subscribe = {
             'action': 'subscribe',
             'subscribe': 'depth',
-            'depth': limit,
+            'depth': limitResolved,
             'pair': market['id'],
         };
-        const request = this.deepExtend(subscribe, params);
+        const request = this.deepExtend(subscribe, paramsOmitted);
         const orderbook = await this.watch(url, messageHash, request, messageHash);
         return orderbook.limit();
     }
@@ -963,7 +964,7 @@ export default class lbank extends lbankRest {
             // a flight is already in progress - wake when the leader settles
             // it: the subscribeKey is then in the bucket
             await client.future(messageHash);
-            return client.subscriptions['authenticated']['key'];
+            return this.safeString(this.safeDict(client.subscriptions, 'authenticated'), 'key');
         }
         const future = client.reusableFuture(messageHash);
         try {
@@ -1011,6 +1012,6 @@ export default class lbank extends lbankRest {
         // rethrows a rejected flight to the leader and attaches the handler
         // that keeps an alone leader from crashing on an unhandled rejection
         await future;
-        return client.subscriptions['authenticated']['key'];
+        return this.safeString(this.safeDict(client.subscriptions, 'authenticated'), 'key');
     }
 }

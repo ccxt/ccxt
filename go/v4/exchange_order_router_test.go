@@ -1055,12 +1055,12 @@ func (this *orderRouterStubVenue) GetFeatures() map[string]any {
 	return this.features
 }
 
-func (this *orderRouterStubVenue) AmountToPrecision(symbol any, amount any) any {
-	return strconv.FormatFloat(routerToNumber(amount, 0), 'f', -1, 64)
+func (this *orderRouterStubVenue) AmountToPrecision(symbol any, amount any) *string {
+	return SafeStringPtr(strconv.FormatFloat(routerToNumber(amount, 0), 'f', -1, 64))
 }
 
-func (this *orderRouterStubVenue) PriceToPrecision(symbol any, price any) any {
-	return strconv.FormatFloat(routerToNumber(price, 0), 'f', -1, 64)
+func (this *orderRouterStubVenue) PriceToPrecision(symbol any, price any) *string {
+	return SafeStringPtr(strconv.FormatFloat(routerToNumber(price, 0), 'f', -1, 64))
 }
 
 func (this *orderRouterStubVenue) FetchBalance(params ...any) (Balances, error) {

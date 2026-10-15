@@ -78,21 +78,9 @@
                 "event_time": "2024-03-07T11:00:00Z"
               },
               "symbol": "BTC/USDC:USDC",
-              "markPrice": 52900,
-              "indexPrice": null,
-              "interestRate": null,
-              "estimatedSettlePrice": null,
               "timestamp": 1709809200000,
               "datetime": "2024-03-07T11:00:00Z",
-              "fundingRate": -0.008642,
-              "fundingTimestamp": 1709809200000,
-              "fundingDatetime": "2024-03-07T11:00:00Z",
-              "nextFundingRate": null,
-              "nextFundingTimestamp": null,
-              "nextFundingDatetime": null,
-              "previousFundingRate": null,
-              "previousFundingTimestamp": null,
-              "previousFundingDatetime": null
+              "fundingRate": -0.008642
             }
           ]
         }

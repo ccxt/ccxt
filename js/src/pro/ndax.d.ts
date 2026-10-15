@@ -3,7 +3,7 @@ import type { Int, OrderBook, Trade, Ticker, OHLCV, Dict } from '../base/types.j
 import Client from '../base/ws/Client.js';
 export default class ndax extends ndaxRest {
     describe(): any;
-    requestId(): any;
+    requestId(): number;
     /**
      * @method
      * @name ndax#watchTicker

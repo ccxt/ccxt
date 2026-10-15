@@ -3294,6 +3294,20 @@ public partial class binancecoinm : binance
         return await this.callAsync<List<object>> ("dapiPrivateGetOpenAlgoOrders",parameters);
     }
 
+    /// <summary>Calls the dapiPrivateGetAlgoOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> dapiPrivateGetAlgoOrder (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("dapiPrivateGetAlgoOrder",parameters);
+    }
+
+    /// <summary>Calls the dapiPrivateGetAllAlgoOrders endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dapiPrivateGetAllAlgoOrders (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("dapiPrivateGetAllAlgoOrders",parameters);
+    }
+
     /// <summary>Calls the dapiPrivateGetAllOrders endpoint.</summary>
     /// <returns>a JSON array</returns>
     public async Task<List<object>> dapiPrivateGetAllOrders (object parameters = null)
@@ -3523,6 +3537,13 @@ public partial class binancecoinm : binance
     public async Task<Dictionary<string, object>> dapiPrivateDeleteAlgoOrder (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("dapiPrivateDeleteAlgoOrder",parameters);
+    }
+
+    /// <summary>Calls the dapiPrivateDeleteAlgoOpenOrders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> dapiPrivateDeleteAlgoOpenOrders (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("dapiPrivateDeleteAlgoOpenOrders",parameters);
     }
 
     /// <summary>Calls the dapiPrivateDeleteAllOpenOrders endpoint.</summary>

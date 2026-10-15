@@ -5,7 +5,7 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import bybit from './bybit.js';
+import bybit from './abstract/bybitid.js';
 import { PermissionDenied } from './base/errors.js';
 //  ---------------------------------------------------------------------------
 export default class bybitid extends bybit {

@@ -165,10 +165,6 @@ pub mod coinbaseinternational_api;
 pub mod coincheck;
 #[cfg(feature = "coincheck")]
 pub mod coincheck_api;
-#[cfg(feature = "coinex")]
-pub mod coinex;
-#[cfg(feature = "coinex")]
-pub mod coinex_api;
 #[cfg(feature = "coinmate")]
 pub mod coinmate;
 #[cfg(feature = "coinmate")]

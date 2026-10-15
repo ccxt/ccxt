@@ -1,6 +1,6 @@
 import { Dict } from '../base/types.js';
 import _bybit from '../bybit.js';
-interface bybit {
+declare abstract class bybit extends _bybit {
     publicGetSpotV3PublicSymbols(params?: {}): Promise<Dict>;
     publicGetSpotV3PublicQuoteDepth(params?: {}): Promise<Dict>;
     publicGetSpotV3PublicQuoteDepthMerged(params?: {}): Promise<Dict>;
@@ -443,7 +443,5 @@ interface bybit {
     privatePostV5AlphaPredictionSideMarketList(params?: {}): Promise<Dict>;
     privatePostV5AlphaPredictionSportsMatchList(params?: {}): Promise<Dict>;
     privatePostV5AlphaPredictionSportsGroupStageDetail(params?: {}): Promise<Dict>;
-}
-declare abstract class bybit extends _bybit {
 }
 export default bybit;

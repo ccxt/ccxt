@@ -554,7 +554,7 @@
                 "description": "cancelOrder",
                 "method": "cancelOrder",
                 "input": [
-                    562948516578403,
+                    "562948516578403",
                     "ETH/USDC:USDC"
                 ],
                 "httpResponse": {
@@ -960,7 +960,6 @@
                     "quoteVolume": 1671431095.263844,
                     "markPrice": null,
                     "indexPrice": null,
-                    "openInterest": "39559.3278",
                     "info": {
                         "symbol": "ETH",
                         "market_id": 0,
@@ -1071,7 +1070,6 @@
                         "quoteVolume": 1671431095.263844,
                         "markPrice": null,
                         "indexPrice": null,
-                        "openInterest": "39559.3278",
                         "info": {
                             "symbol": "ETH",
                             "market_id": 0,

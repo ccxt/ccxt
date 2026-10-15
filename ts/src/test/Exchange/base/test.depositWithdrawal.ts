@@ -9,7 +9,7 @@ function testDepositWithdrawal (exchange: Exchange, skippedProperties: object, m
         'txid': '0x1345FEG45EAEF7',
         'timestamp': 1502962946216,
         'datetime': '2017-08-17 12:42:48.000',
-        'network': 'ETH',
+        'network': 'ERC20',
         'address': '0xEFE3487358AEF352345345',
         'addressTo': '0xEFE3487358AEF352345123',
         'addressFrom': '0xEFE3487358AEF352345456',
@@ -27,6 +27,7 @@ function testDepositWithdrawal (exchange: Exchange, skippedProperties: object, m
     testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
     testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, entry, now);
     testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, (entry as Dict)['currency'], requestedCode);
+    testSharedMethods.assertUnifiedNetworkCode (exchange, skippedProperties, method, entry, exchange.safeString (entry, 'network'));
     //
     testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'status', [ 'ok', 'pending', 'failed', 'rejected', 'canceled' ]);
     testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'type', [ 'deposit', 'withdrawal' ]);

@@ -1,6 +1,6 @@
 import { Dict, List } from '../../base/types.js';
 import { default as _Exchange } from '../../base/PredictionExchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     myriadPublicGetQuestions(params?: {}): Promise<Dict>;
     myriadPublicGetQuestionsId(params?: {}): Promise<Dict>;
     myriadPublicGetMarkets(params?: {}): Promise<Dict>;
@@ -33,7 +33,5 @@ interface Exchange {
     myriadPublicPostPositionsNegRiskMerge(params?: {}): Promise<Dict>;
     myriadPublicDeleteOrdersHash(params?: {}): Promise<Dict>;
     myriadPrivatePostMarketsQuoteWithFee(params?: {}): Promise<Dict>;
-}
-declare abstract class Exchange extends _Exchange {
 }
 export default Exchange;

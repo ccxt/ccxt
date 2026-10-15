@@ -1,0 +1,96 @@
+{
+    "exchange": "derive",
+    "skipKeys": [
+        "timestamp",
+        "signature"
+    ],
+    "options": {
+        "subaccount_id": 74412,
+        "watchBalance": {
+            "fetchBalanceSnapshot": false
+        }
+    },
+    "methods": {
+        "watchBalance": [
+            {
+                "description": "subaccount balance total replaced by a transfer delta",
+                "input": [],
+                "url": "wss://api.derive.xyz/v3/ws",
+                "messages": [
+                    {
+                        "id": 1,
+                        "result": [
+                            74412,
+                            86126
+                        ]
+                    },
+                    {
+                        "id": 2,
+                        "result": {
+                            "status": {
+                                "74412.balances": "ok"
+                            },
+                            "current_subscriptions": [
+                                "74412.balances"
+                            ]
+                        }
+                    },
+                    {
+                        "method": "subscription",
+                        "params": {
+                            "channel": "74412.balances",
+                            "data": [
+                                {
+                                    "name": "USDC",
+                                    "previous_balance": "40.002873808976",
+                                    "new_balance": "35.003062880558",
+                                    "update_type": "transfer"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": 1,
+                        "method": "public/login",
+                        "params": {
+                            "wallet": "wallet",
+                            "timestamp": "1791315116263",
+                            "signature": "0xe20e00c8fe0faa28f84f597876298743ba37066b2d58f8f49b1cae655bf52084223d205e1de8b8c9e0b3ec4398f9ad611af5ee90008b3247bc4221cdcc1bbfe61c"
+                        }
+                    },
+                    {
+                        "method": "subscribe",
+                        "params": {
+                            "channels": [
+                                "74412.balances"
+                            ]
+                        },
+                        "id": 2
+                    }
+                ],
+                "sentSkipKeys": [
+                    "timestamp",
+                    "signature"
+                ],
+                "parsedResponse": {
+                    "USDC": {
+                        "free": null,
+                        "used": null,
+                        "total": 35.003062880558
+                    },
+                    "free": {
+                        "USDC": null
+                    },
+                    "used": {
+                        "USDC": null
+                    },
+                    "total": {
+                        "USDC": 35.003062880558
+                    }
+                }
+            }
+        ]
+    }
+}

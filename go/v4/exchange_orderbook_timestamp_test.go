@@ -37,3 +37,12 @@ func TestAddElementToObjectOrderBookPointerFields(t *testing.T) {
 		t.Fatalf("typed-nil timestamp must be a no-op, got %v", ob.Timestamp)
 	}
 }
+
+func TestAddElementToObjectOrderBookUndefinedClears(t *testing.T) {
+	ob := NewWsOrderBook(snapshotFixture(), nil)
+	AddElementToObject(ob, "nonce", int64(601))
+	AddElementToObject(ob, "nonce", nil)
+	if ob.Nonce != nil {
+		t.Fatalf("undefined nonce must clear the field, got %v", ob.Nonce)
+	}
+}

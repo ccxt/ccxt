@@ -109,7 +109,7 @@
                     "last": 73578.655,
                     "previousClose": 71126.14598036,
                     "change": 2452.50901964,
-                    "percentage": 3.44811178,
+                    "percentage": 3.448111782012214,
                     "average": 72352.40049018,
                     "baseVolume": 7.03935349,
                     "quoteVolume": 506342.98398488,
@@ -143,6 +143,302 @@
                         "lowest_52_week_date": "2023-03-16",
                         "timestamp": "1710328237828"
                     }
+                }
+            },
+            {
+                "description": "rising from open despite falling from previous close",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "market": "USDT-BTC",
+                        "trade_timestamp": "1789399190794",
+                        "opening_price": "100",
+                        "trade_price": "110",
+                        "prev_closing_price": "120",
+                        "signed_change_price": "-10",
+                        "signed_change_rate": "-0.08333333"
+                    }
+                ],
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1789399190794,
+                    "datetime": "2026-09-14T15:19:50.794Z",
+                    "high": null,
+                    "low": null,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": 100,
+                    "close": 110,
+                    "last": 110,
+                    "previousClose": 120,
+                    "change": 10,
+                    "percentage": 10,
+                    "average": 105,
+                    "baseVolume": null,
+                    "quoteVolume": null,
+                    "info": {
+                        "market": "USDT-BTC",
+                        "trade_timestamp": "1789399190794",
+                        "opening_price": "100",
+                        "trade_price": "110",
+                        "prev_closing_price": "120",
+                        "signed_change_price": "-10",
+                        "signed_change_rate": "-0.08333333"
+                    },
+                    "indexPrice": null,
+                    "markPrice": null
+                }
+            },
+            {
+                "description": "falling from open despite rising from previous close",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "market": "USDT-BTC",
+                        "trade_timestamp": "1789399190794",
+                        "opening_price": "100",
+                        "trade_price": "90",
+                        "prev_closing_price": "80",
+                        "signed_change_price": "10",
+                        "signed_change_rate": "0.125"
+                    }
+                ],
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1789399190794,
+                    "datetime": "2026-09-14T15:19:50.794Z",
+                    "high": null,
+                    "low": null,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": 100,
+                    "close": 90,
+                    "last": 90,
+                    "previousClose": 80,
+                    "change": -10,
+                    "percentage": -10,
+                    "average": 95,
+                    "baseVolume": null,
+                    "quoteVolume": null,
+                    "info": {
+                        "market": "USDT-BTC",
+                        "trade_timestamp": "1789399190794",
+                        "opening_price": "100",
+                        "trade_price": "90",
+                        "prev_closing_price": "80",
+                        "signed_change_price": "10",
+                        "signed_change_rate": "0.125"
+                    },
+                    "indexPrice": null,
+                    "markPrice": null
+                }
+            },
+            {
+                "description": "flat from open despite changing from previous close",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "market": "USDT-BTC",
+                        "trade_timestamp": "1789399190794",
+                        "opening_price": "100",
+                        "trade_price": "100",
+                        "prev_closing_price": "80",
+                        "signed_change_price": "20",
+                        "signed_change_rate": "0.25"
+                    }
+                ],
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1789399190794,
+                    "datetime": "2026-09-14T15:19:50.794Z",
+                    "high": null,
+                    "low": null,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": 100,
+                    "close": 100,
+                    "last": 100,
+                    "previousClose": 80,
+                    "change": 0,
+                    "percentage": 0,
+                    "average": 100,
+                    "baseVolume": null,
+                    "quoteVolume": null,
+                    "info": {
+                        "market": "USDT-BTC",
+                        "trade_timestamp": "1789399190794",
+                        "opening_price": "100",
+                        "trade_price": "100",
+                        "prev_closing_price": "80",
+                        "signed_change_price": "20",
+                        "signed_change_rate": "0.25"
+                    },
+                    "indexPrice": null,
+                    "markPrice": null
+                }
+            },
+            {
+                "description": "missing open does not become previous close",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "market": "USDT-BTC",
+                        "trade_timestamp": "1789399190794",
+                        "trade_price": "110",
+                        "prev_closing_price": "120",
+                        "signed_change_price": "-10",
+                        "signed_change_rate": "-0.08333333"
+                    }
+                ],
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1789399190794,
+                    "datetime": "2026-09-14T15:19:50.794Z",
+                    "high": null,
+                    "low": null,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": null,
+                    "close": 110,
+                    "last": 110,
+                    "previousClose": 120,
+                    "change": null,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": null,
+                    "quoteVolume": null,
+                    "info": {
+                        "market": "USDT-BTC",
+                        "trade_timestamp": "1789399190794",
+                        "trade_price": "110",
+                        "prev_closing_price": "120",
+                        "signed_change_price": "-10",
+                        "signed_change_rate": "-0.08333333"
+                    },
+                    "indexPrice": null,
+                    "markPrice": null
+                }
+            },
+            {
+                "description": "zero open does not become previous close",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "market": "USDT-BTC",
+                        "trade_timestamp": "1789399190794",
+                        "opening_price": "0",
+                        "trade_price": "110",
+                        "prev_closing_price": "120",
+                        "signed_change_price": "-10",
+                        "signed_change_rate": "-0.08333333"
+                    }
+                ],
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1789399190794,
+                    "datetime": "2026-09-14T15:19:50.794Z",
+                    "high": null,
+                    "low": null,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": null,
+                    "close": 110,
+                    "last": 110,
+                    "previousClose": 120,
+                    "change": null,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": null,
+                    "quoteVolume": null,
+                    "info": {
+                        "market": "USDT-BTC",
+                        "trade_timestamp": "1789399190794",
+                        "opening_price": "0",
+                        "trade_price": "110",
+                        "prev_closing_price": "120",
+                        "signed_change_price": "-10",
+                        "signed_change_rate": "-0.08333333"
+                    },
+                    "indexPrice": null,
+                    "markPrice": null
+                }
+            },
+            {
+                "description": "missing last is not reconstructed from previous-close change",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "market": "USDT-BTC",
+                        "trade_timestamp": "1789399190794",
+                        "opening_price": "100",
+                        "prev_closing_price": "120",
+                        "signed_change_price": "-10",
+                        "signed_change_rate": "-0.08333333"
+                    }
+                ],
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1789399190794,
+                    "datetime": "2026-09-14T15:19:50.794Z",
+                    "high": null,
+                    "low": null,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": 100,
+                    "close": null,
+                    "last": null,
+                    "previousClose": 120,
+                    "change": null,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": null,
+                    "quoteVolume": null,
+                    "info": {
+                        "market": "USDT-BTC",
+                        "trade_timestamp": "1789399190794",
+                        "opening_price": "100",
+                        "prev_closing_price": "120",
+                        "signed_change_price": "-10",
+                        "signed_change_rate": "-0.08333333"
+                    },
+                    "indexPrice": null,
+                    "markPrice": null
                 }
             }
         ],

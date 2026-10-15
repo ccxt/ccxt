@@ -9,14 +9,14 @@ func TestCryptography() {
 	// const exchange = new Exchange ();
 	// ---------------------------------------------------------------------------------------------------------------------
 
-	Assert(IsEqual(Hash(Encode(""), sha256, "hex"), "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"))
-	Assert(IsEqual(Hash(Encode("cheese"), sha256, "hex"), "873ac9ffea4dd04fa719e8920cd6938f0c23cd678af330939cff53c3d2855f34"))
-	Assert(IsEqual(Hash(Encode(""), md5, "hex"), "d41d8cd98f00b204e9800998ecf8427e"))
-	Assert(IsEqual(Hash(Encode("sexyfish"), md5, "hex"), "c8a35464aa9d5683585786f44d5889f8"))
-	Assert(IsEqual(Hash(Encode(""), sha1, "hex"), "da39a3ee5e6b4b0d3255bfef95601890afd80709"))
-	Assert(IsEqual(Hash(Encode("nutella"), sha1, "hex"), "b3d60a34b744159793c483b067c56d8affc5111a"))
-	Assert(IsEqual(Hmac(Encode("hello"), Encode("there"), sha256, "hex"), "551e1c1ecbce0fe9b643745a376584a6289f5f43a46861b315fac9edc8d52a26"))
-	Assert(IsEqual(Hmac(Encode("a message"), Encode("a secret"), md5, "hex"), "0bfa503bdbc7358185fcd49b4869e23d"))
+	Assert((Hash(Encode(""), sha256, "hex") == "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"))
+	Assert((Hash(Encode("cheese"), sha256, "hex") == "873ac9ffea4dd04fa719e8920cd6938f0c23cd678af330939cff53c3d2855f34"))
+	Assert((Hash(Encode(""), md5, "hex") == "d41d8cd98f00b204e9800998ecf8427e"))
+	Assert((Hash(Encode("sexyfish"), md5, "hex") == "c8a35464aa9d5683585786f44d5889f8"))
+	Assert((Hash(Encode(""), sha1, "hex") == "da39a3ee5e6b4b0d3255bfef95601890afd80709"))
+	Assert((Hash(Encode("nutella"), sha1, "hex") == "b3d60a34b744159793c483b067c56d8affc5111a"))
+	Assert((Hmac(Encode("hello"), Encode("there"), sha256, "hex") == "551e1c1ecbce0fe9b643745a376584a6289f5f43a46861b315fac9edc8d52a26"))
+	Assert((Hmac(Encode("a message"), Encode("a secret"), md5, "hex") == "0bfa503bdbc7358185fcd49b4869e23d"))
 	// ---------------------------------------------------------------------------------------------------------------------
 
 	var privateKey string = "1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a"

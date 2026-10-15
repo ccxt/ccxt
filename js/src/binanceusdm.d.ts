@@ -1,4 +1,4 @@
-import binance from './binance.js';
+import binance from './abstract/binanceusdm.js';
 import type { Dict, TransferEntry } from './base/types.js';
 export default class binanceusdm extends binance {
     describe(): any;

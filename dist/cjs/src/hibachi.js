@@ -134,6 +134,7 @@ class hibachi extends hibachi$1["default"] {
                     'private': 'https://api.hibachi.xyz',
                 },
                 'www': 'https://www.hibachi.xyz/',
+                'doc': 'https://api-doc.hibachi.xyz/',
                 'referral': {
                     'url': 'https://hibachi.xyz/r/ZBL2YFWIHU',
                 },
@@ -288,6 +289,9 @@ class hibachi extends hibachi$1["default"] {
         const quoteId = this.safeString(market, 'settlementSymbol');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const settleId = this.safeString(market, 'settlementSymbol');
         const settle = this.safeCurrencyCode(settleId);
         const symbol = base + '/' + quote + ':' + settle;
@@ -536,8 +540,8 @@ class hibachi extends hibachi$1["default"] {
         //          "timestamp": 1752543391
         //      }
         const marketId = this.safeString(trade, 'symbol');
-        market = this.safeMarket(marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market);
+        const symbol = marketResolved['symbol'];
         const id = this.safeString(trade, 'id');
         const price = this.safeString(trade, 'price');
         const amount = this.safeString(trade, 'quantity');
@@ -579,7 +583,7 @@ class hibachi extends hibachi$1["default"] {
             'type': orderType,
             'fee': fee,
             'info': trade,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -686,7 +690,7 @@ class hibachi extends hibachi$1["default"] {
     }
     parseOrder(order, market = undefined) {
         const marketId = this.safeString(order, 'symbol');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         const status = this.safeString(order, 'status');
         const type = this.safeStringLower(order, 'orderType');
         const price = this.safeString2(order, 'price', 'avgFillPrice');
@@ -738,7 +742,7 @@ class hibachi extends hibachi$1["default"] {
             'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': lastUpdateTimestamp,
             'status': this.parseOrderStatus(status),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'timeInForce': timeInForce,
             'side': side,
@@ -753,7 +757,7 @@ class hibachi extends hibachi$1["default"] {
             'reduceOnly': reduceOnly,
             'postOnly': postOnly,
             'triggerPrice': this.safeNumber(order, 'triggerPrice'),
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -924,8 +928,8 @@ class hibachi extends hibachi$1["default"] {
         if (triggerPrice !== undefined) {
             request['triggerPrice'] = triggerPrice;
         }
-        params = this.omit(params, ['reduceOnly', 'reduce_only', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice']);
-        return this.extend(request, params);
+        const paramsOmitted = this.omit(params, ['reduceOnly', 'reduce_only', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice']);
+        return this.extend(request, paramsOmitted);
     }
     /**
      * @method
@@ -974,7 +978,7 @@ class hibachi extends hibachi$1["default"] {
         const nonce = this.incrementingNonce();
         const requestOrders = [];
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict(orders, i);
             const symbol = this.safeString(rawOrder, 'symbol');
             const type = this.safeString(rawOrder, 'type');
             const side = this.safeString(rawOrder, 'side');
@@ -1077,7 +1081,7 @@ class hibachi extends hibachi$1["default"] {
         const nonce = this.incrementingNonce();
         const requestOrders = [];
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict(orders, i);
             const id = this.safeString(rawOrder, 'id');
             const symbol = this.safeString(rawOrder, 'symbol');
             const type = this.safeString(rawOrder, 'type');
@@ -1253,11 +1257,11 @@ class hibachi extends hibachi$1["default"] {
      * @param {string} code unified currency code, only support USDT
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
+    async withdraw(code, amount, address, params = {}) {
         const withdrawAddress = address.slice(-40);
         // Get the withdraw fees
         const exchangeInfo = await this.publicGetMarketExchangeInfo(params);
@@ -1550,12 +1554,11 @@ class hibachi extends hibachi$1["default"] {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        let until = undefined;
-        [until, params] = this.handleOptionAndParams(params, 'fetchOrdersByStatus', 'until');
+        const [until, paramsUntil] = this.handleOptionIntegerAndParams(params, 'fetchOrdersByStatus', 'until');
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const response = await this.privateGetTradeOrdersHistory(this.extend(request, params));
+        const response = await this.privateGetTradeOrdersHistory(this.extend(request, paramsUntil));
         //
         //     {
         //         "hasMore": false,
@@ -1640,20 +1643,19 @@ class hibachi extends hibachi$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        timeframe = this.safeString(this.timeframes, timeframe, timeframe);
+        const timeframeValue = this.safeString(this.timeframes, timeframe, timeframe);
         const request = {
             'symbol': market['id'],
-            'interval': timeframe,
+            'interval': timeframeValue,
         };
         if (since !== undefined) {
             request['fromMs'] = since;
         }
-        let until = undefined;
-        [until, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'until');
+        const [until, paramsUntil] = this.handleOptionIntegerAndParams(params, 'fetchOHLCV', 'until');
         if (until !== undefined) {
             request['toMs'] = until;
         }
-        const response = await this.publicGetMarketDataKlines(this.extend(request, params));
+        const response = await this.publicGetMarketDataKlines(this.extend(request, paramsUntil));
         //
         // [
         //     {
@@ -1668,7 +1670,7 @@ class hibachi extends hibachi$1["default"] {
         //   ]
         //
         const klines = this.safeList(response, 'klines', []);
-        return this.parseOHLCVs(klines, market, timeframe, since, limit);
+        return this.parseOHLCVs(klines, market, timeframeValue, since, limit);
     }
     /**
      * @method
@@ -1683,7 +1685,7 @@ class hibachi extends hibachi$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        const symbolsNormalized = this.marketSymbols(symbols);
         const request = {
             'accountId': this.getAccountId(),
         };
@@ -1731,7 +1733,7 @@ class hibachi extends hibachi$1["default"] {
         //   }
         //
         const data = this.safeList(response, 'positions', []);
-        return this.parsePositions(data, symbols);
+        return this.parsePositions(data, symbolsNormalized);
     }
     parsePosition(position, market = undefined) {
         //
@@ -1746,8 +1748,8 @@ class hibachi extends hibachi$1["default"] {
         // }
         //
         const marketId = this.safeString(position, 'symbol');
-        market = this.safeMarket(marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market);
+        const symbol = marketResolved['symbol'];
         const side = this.safeStringLower(position, 'direction');
         const quantity = this.safeString(position, 'quantity');
         const unrealizedFunding = this.safeString(position, 'unrealizedFundingPnl', '0');
@@ -1779,10 +1781,15 @@ class hibachi extends hibachi$1["default"] {
             'percentage': undefined,
         });
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         const endpoint = '/' + this.implodeParams(path, params);
-        let url = this.urls['api'][api] + endpoint;
-        headers = { 'Hibachi-Client': 'HibachiCCXT/unversioned' };
+        const apiUrl = this.safeString(this.urls['api'], apiName);
+        if (apiUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + endpoint;
+        const headersValue = { 'Hibachi-Client': 'HibachiCCXT/unversioned' };
         if (method === 'GET') {
             const request = this.omit(params, this.extractParams(path));
             const query = this.urlencode(request);
@@ -1790,15 +1797,19 @@ class hibachi extends hibachi$1["default"] {
                 url += '?' + query;
             }
         }
-        if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
-            headers['Content-Type'] = 'application/json';
-            body = this.json(params);
+        const hasJsonBody = (method === 'POST' || method === 'PUT' || method === 'DELETE');
+        if (hasJsonBody) {
+            headersValue['Content-Type'] = 'application/json';
         }
-        if (api === 'private') {
+        let bodyResult = undefined;
+        if (hasJsonBody) {
+            bodyResult = this.json(params);
+        }
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
-            headers['Authorization'] = this.apiKey;
+            headersValue['Authorization'] = this.apiKey;
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersValue };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
@@ -1920,7 +1931,7 @@ class hibachi extends hibachi$1["default"] {
             this.privateGetTradeAccountTradingHistory(this.extend(request, params)),
         ];
         const promises = await Promise.all(rawPromises);
-        const responseCapitalHistory = promises[0];
+        const responseCapitalHistory = this.safeDict(promises, 0);
         //
         // {
         //     "transactions": [
@@ -1975,7 +1986,7 @@ class hibachi extends hibachi$1["default"] {
         // }
         //
         const rowsCapitalHistory = this.safeList(responseCapitalHistory, 'transactions', []);
-        const responseTradingHistory = promises[1];
+        const responseTradingHistory = this.safeDict(promises, 1);
         //
         // {
         //     "tradingHistory": [
@@ -2193,10 +2204,11 @@ class hibachi extends hibachi$1["default"] {
         const request = {
             'accountId': this.getAccountId(),
         };
+        let symbolResolved = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['contractId'] = market['numericId'];
-            symbol = market['symbol'];
+            symbolResolved = this.safeString(market, 'symbol');
         }
         if (since !== undefined) {
             request['startTime'] = this.parseToInt(since / 1000);
@@ -2204,12 +2216,11 @@ class hibachi extends hibachi$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let until = undefined;
-        [until, params] = this.handleOptionAndParams(params, 'fetchMySettlementHistory', 'until');
+        const [until, paramsUntil] = this.handleOptionIntegerAndParams(params, 'fetchMySettlementHistory', 'until');
         if (until !== undefined) {
             request['endTime'] = this.parseToInt(until / 1000);
         }
-        const response = await this.privateGetTradeAccountSettlementsHistory(this.extend(request, params));
+        const response = await this.privateGetTradeAccountSettlementsHistory(this.extend(request, paramsUntil));
         //
         //     {
         //         "settlements": [
@@ -2228,7 +2239,7 @@ class hibachi extends hibachi$1["default"] {
         const data = this.safeList(response, 'settlements', []);
         const settlements = this.parseSettlements(data, market);
         const sorted = this.sortBy(settlements, 'timestamp');
-        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit);
     }
     /**
      * @method

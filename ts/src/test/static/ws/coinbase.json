@@ -380,6 +380,180 @@
                 ],
                 "disabledCS": "the replayed coinbase frames do not resolve the watch future in c# - message routing parity, investigate separately"
             }
+        ],
+        "watchOrderBook": [
+            {
+                "description": "resnapshot resets the held orderbook in place",
+                "input": [
+                    "BTC/USD"
+                ],
+                "url": "wss://advanced-trade-ws.coinbase.com",
+                "messages": [
+                    {
+                        "channel": "l2_data",
+                        "client_id": "",
+                        "timestamp": "2026-08-12T19:30:00.500Z",
+                        "sequence_num": 0,
+                        "events": [
+                            {
+                                "type": "snapshot",
+                                "product_id": "BTC-USD",
+                                "updates": [
+                                    {
+                                        "side": "bid",
+                                        "event_time": "2026-08-12T19:30:00.500Z",
+                                        "price_level": "63310.5",
+                                        "new_quantity": "0.5"
+                                    },
+                                    {
+                                        "side": "bid",
+                                        "event_time": "2026-08-12T19:30:00.500Z",
+                                        "price_level": "63310.1",
+                                        "new_quantity": "1.2"
+                                    },
+                                    {
+                                        "side": "offer",
+                                        "event_time": "2026-08-12T19:30:00.500Z",
+                                        "price_level": "63311.3",
+                                        "new_quantity": "0.8"
+                                    },
+                                    {
+                                        "side": "offer",
+                                        "event_time": "2026-08-12T19:30:00.500Z",
+                                        "price_level": "63311.9",
+                                        "new_quantity": "1.9"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "channel": "l2_data",
+                        "client_id": "",
+                        "timestamp": "2026-08-12T19:30:01.700Z",
+                        "sequence_num": 1,
+                        "events": [
+                            {
+                                "type": "update",
+                                "product_id": "BTC-USD",
+                                "updates": [
+                                    {
+                                        "side": "bid",
+                                        "event_time": "2026-08-12T19:30:01.700Z",
+                                        "price_level": "63310.5",
+                                        "new_quantity": "0.25"
+                                    },
+                                    {
+                                        "side": "offer",
+                                        "event_time": "2026-08-12T19:30:01.700Z",
+                                        "price_level": "63311.3",
+                                        "new_quantity": "0"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "channel": "l2_data",
+                        "client_id": "",
+                        "timestamp": "2026-08-12T19:30:05.100Z",
+                        "sequence_num": 2,
+                        "events": [
+                            {
+                                "type": "snapshot",
+                                "product_id": "BTC-USD",
+                                "updates": [
+                                    {
+                                        "side": "bid",
+                                        "event_time": "2026-08-12T19:30:05.100Z",
+                                        "price_level": "63400.1",
+                                        "new_quantity": "0.6"
+                                    },
+                                    {
+                                        "side": "bid",
+                                        "event_time": "2026-08-12T19:30:05.100Z",
+                                        "price_level": "63399.5",
+                                        "new_quantity": "1.1"
+                                    },
+                                    {
+                                        "side": "offer",
+                                        "event_time": "2026-08-12T19:30:05.100Z",
+                                        "price_level": "63400.7",
+                                        "new_quantity": "0.9"
+                                    },
+                                    {
+                                        "side": "offer",
+                                        "event_time": "2026-08-12T19:30:05.100Z",
+                                        "price_level": "63401.1",
+                                        "new_quantity": "1.4"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "channel": "l2_data",
+                        "client_id": "",
+                        "timestamp": "2026-08-12T19:30:06.900Z",
+                        "sequence_num": 3,
+                        "events": [
+                            {
+                                "type": "update",
+                                "product_id": "BTC-USD",
+                                "updates": [
+                                    {
+                                        "side": "bid",
+                                        "event_time": "2026-08-12T19:30:06.900Z",
+                                        "price_level": "63400.1",
+                                        "new_quantity": "0.45"
+                                    },
+                                    {
+                                        "side": "offer",
+                                        "event_time": "2026-08-12T19:30:06.900Z",
+                                        "price_level": "63400.7",
+                                        "new_quantity": "0.3"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "type": "subscribe",
+                        "product_ids": [
+                            "BTC-USD"
+                        ],
+                        "channel": "level2"
+                    }
+                ],
+                "parsedResponse": {
+                    "bids": [
+                        [
+                            63400.1,
+                            0.45
+                        ],
+                        [
+                            63399.5,
+                            1.1
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            63400.7,
+                            0.3
+                        ],
+                        [
+                            63401.1,
+                            1.4
+                        ]
+                    ],
+                    "timestamp": 1786563006900,
+                    "datetime": "2026-08-12T19:30:06.900Z",
+                    "nonce": null,
+                    "symbol": "BTC/USD"
+                }
+            }
         ]
     }
 }

@@ -1337,7 +1337,7 @@
                 "description": "Fetch an order by id",
                 "method": "fetchOrder",
                 "input": [
-                    1234567890123
+                    "1234567890123"
                 ],
                 "httpResponse": {
                     "id": "1234567890123",

@@ -95,17 +95,23 @@ function decodeOid (bytes: Uint8Array): string {
 
 /*  .............................................   */
 
-const hash = (request: Input, hash: CHash, digest: Digest = 'hex') => {
+function hash (request: Input, hash: CHash, digest: 'binary'): Uint8Array;
+function hash (request: Input, hash: CHash, digest?: 'hex' | 'base64'): string;
+function hash (request: Input, hash: CHash, digest?: Digest): string | Uint8Array;
+function hash (request: Input, hash: CHash, digest: Digest = 'hex'): string | Uint8Array {
     const binary = hash (utf8Bytes (request))
     return encoders[digest] (binary)
-};
+}
 
 /*  .............................................   */
 
-const hmac = (request: Input, secret: Input, hash: CHash, digest: Digest = 'hex') => {
+function hmac (request: Input, secret: Input, hash: CHash, digest: 'binary'): Uint8Array;
+function hmac (request: Input, secret: Input, hash: CHash, digest?: 'hex' | 'base64'): string;
+function hmac (request: Input, secret: Input, hash: CHash, digest?: Digest): string | Uint8Array;
+function hmac (request: Input, secret: Input, hash: CHash, digest: Digest = 'hex'): string | Uint8Array {
     const binary = _hmac (hash, utf8Bytes (secret), utf8Bytes (request))
     return encoders[digest] (binary)
-};
+}
 
 /*  .............................................   */
 

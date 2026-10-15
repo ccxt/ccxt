@@ -4051,27 +4051,6 @@
     "percentage": true,
     "feeSide": "get"
   },
-  "BTC/USDT:USDT-231229": {
-    "id": "BTCUSDT_231229",
-    "symbol": "BTC/USDT:USDT-231229",
-    "base": "BTC",
-    "quote": "USDT",
-    "baseId": "BTC",
-    "quoteId": "USDT",
-    "active": true,
-    "type": "future",
-    "linear": true,
-    "inverse": false,
-    "spot": false,
-    "swap": false,
-    "future": true,
-    "option": false,
-    "margin": false,
-    "contract": true,
-    "contractSize": 1,
-    "settle": "USDT",
-    "settleId": "USDT"
-  },
   "ETH/USDT:USDT-231229-800-C": {
     "id": "ETH-231229-800-C",
     "symbol": "ETH/USDT:USDT-231229-800-C",
@@ -4918,6 +4897,301 @@
         "PSB"
       ]
     },
+    "stock": false
+  },
+  "ETH/USDT:USDT-261225": {
+    "id": "ETHUSDT_261225",
+    "lowercaseId": "ethusdt_261225",
+    "symbol": "ETH/USDT:USDT-261225",
+    "base": "ETH",
+    "quote": "USDT",
+    "settle": "USDT",
+    "baseId": "ETH",
+    "quoteId": "USDT",
+    "settleId": "USDT",
+    "type": "future",
+    "spot": false,
+    "margin": false,
+    "swap": false,
+    "future": true,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": true,
+    "linear": true,
+    "inverse": false,
+    "subType": "linear",
+    "taker": 0.0005,
+    "maker": 0.0002,
+    "contractSize": 1,
+    "expiry": 1798185600000,
+    "expiryDatetime": "2026-12-25T08:00:00.000Z",
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.001,
+      "price": 0.01,
+      "base": 1e-8,
+      "quote": 1e-8
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 0.001,
+        "max": 10000
+      },
+      "price": {
+        "min": 41.1,
+        "max": 100000
+      },
+      "cost": {
+        "min": 5,
+        "max": null
+      },
+      "market": {
+        "min": 0.001,
+        "max": 10
+      }
+    },
+    "marginModes": {
+      "cross": true,
+      "isolated": true
+    },
+    "created": 1782460800000,
+    "info": {
+      "symbol": "ETHUSDT_261225",
+      "pair": "ETHUSDT",
+      "contractType": "CURRENT_QUARTER",
+      "deliveryDate": 1798185600000,
+      "onboardDate": 1782460800000,
+      "status": "TRADING",
+      "maintMarginPercent": "2.5000",
+      "requiredMarginPercent": "5.0000",
+      "baseAsset": "ETH",
+      "quoteAsset": "USDT",
+      "marginAsset": "USDT",
+      "pricePrecision": 2,
+      "quantityPrecision": 3,
+      "baseAssetPrecision": 8,
+      "quotePrecision": 8,
+      "underlyingType": "COIN",
+      "underlyingSubType": [],
+      "triggerProtect": "0.0500",
+      "liquidationFee": "0.012500",
+      "marketTakeBound": "0.05",
+      "maxMoveOrderLimit": 10000,
+      "filters": [
+        {
+          "minPrice": "41.10",
+          "filterType": "PRICE_FILTER",
+          "maxPrice": "100000",
+          "tickSize": "0.01"
+        },
+        {
+          "minQty": "0.001",
+          "filterType": "LOT_SIZE",
+          "maxQty": "10000",
+          "stepSize": "0.001"
+        },
+        {
+          "filterType": "MARKET_LOT_SIZE",
+          "minQty": "0.001",
+          "maxQty": "10",
+          "stepSize": "0.001"
+        },
+        {
+          "limit": 200,
+          "filterType": "MAX_NUM_ORDERS"
+        },
+        {
+          "notional": "5",
+          "filterType": "MIN_NOTIONAL"
+        },
+        {
+          "multiplierUp": "1.0500",
+          "multiplierDown": "0.9500",
+          "filterType": "PERCENT_PRICE",
+          "multiplierDecimal": "4"
+        },
+        {
+          "filterType": "POSITION_RISK_CONTROL",
+          "positionControlSide": "NONE"
+        }
+      ],
+      "orderTypes": [
+        "LIMIT",
+        "MARKET",
+        "STOP",
+        "STOP_MARKET",
+        "TAKE_PROFIT",
+        "TAKE_PROFIT_MARKET",
+        "TRAILING_STOP_MARKET"
+      ],
+      "timeInForce": [
+        "GTC",
+        "IOC",
+        "FOK",
+        "GTX",
+        "GTD"
+      ],
+      "permissionSets": [
+        "GRID",
+        "COPY",
+        "DCA"
+      ]
+    },
+    "tierBased": false,
+    "percentage": true,
+    "feeSide": "get",
+    "stock": false
+  },
+  "ETH/USD:ETH-261225": {
+    "id": "ETHUSD_261225",
+    "lowercaseId": "ethusd_261225",
+    "symbol": "ETH/USD:ETH-261225",
+    "base": "ETH",
+    "quote": "USD",
+    "settle": "ETH",
+    "baseId": "ETH",
+    "quoteId": "USD",
+    "settleId": "ETH",
+    "type": "future",
+    "spot": false,
+    "margin": false,
+    "swap": false,
+    "future": true,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": true,
+    "linear": false,
+    "inverse": true,
+    "subType": "inverse",
+    "taker": 0.0005,
+    "maker": 0.0001,
+    "contractSize": 10,
+    "expiry": 1798185600000,
+    "expiryDatetime": "2026-12-25T08:00:00.000Z",
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 1,
+      "price": 0.01,
+      "base": 1e-8,
+      "quote": 1e-8
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 1,
+        "max": 1000000
+      },
+      "price": {
+        "min": 50,
+        "max": 316265
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      },
+      "market": {
+        "min": 1,
+        "max": 5000
+      }
+    },
+    "marginModes": {
+      "cross": true,
+      "isolated": true
+    },
+    "created": 1782460800000,
+    "info": {
+      "symbol": "ETHUSD_261225",
+      "pair": "ETHUSD",
+      "contractType": "CURRENT_QUARTER",
+      "deliveryDate": 1798185600000,
+      "onboardDate": 1782460800000,
+      "contractStatus": "TRADING",
+      "maintMarginPercent": "2.5000",
+      "requiredMarginPercent": "5.0000",
+      "baseAsset": "ETH",
+      "quoteAsset": "USD",
+      "marginAsset": "ETH",
+      "pricePrecision": 2,
+      "quantityPrecision": 0,
+      "baseAssetPrecision": 8,
+      "quotePrecision": 8,
+      "underlyingType": "COIN",
+      "underlyingSubType": [
+        "Layer-1"
+      ],
+      "triggerProtect": "0.0500",
+      "liquidationFee": "0.010000",
+      "marketTakeBound": "0.05",
+      "maxMoveOrderLimit": 10000,
+      "contractSize": 10,
+      "equalQtyPrecision": 4,
+      "filters": [
+        {
+          "maxPrice": "316265",
+          "filterType": "PRICE_FILTER",
+          "minPrice": "50",
+          "tickSize": "0.01"
+        },
+        {
+          "filterType": "LOT_SIZE",
+          "minQty": "1",
+          "stepSize": "1",
+          "maxQty": "1000000"
+        },
+        {
+          "minQty": "1",
+          "stepSize": "1",
+          "maxQty": "5000",
+          "filterType": "MARKET_LOT_SIZE"
+        },
+        {
+          "limit": 200,
+          "filterType": "MAX_NUM_ORDERS"
+        },
+        {
+          "filterType": "MAX_NUM_ALGO_ORDERS",
+          "limit": 20
+        },
+        {
+          "multiplierUp": "1.0500",
+          "multiplierDecimal": "4",
+          "filterType": "PERCENT_PRICE",
+          "multiplierDown": "0.9500"
+        }
+      ],
+      "orderTypes": [
+        "LIMIT",
+        "MARKET",
+        "STOP",
+        "STOP_MARKET",
+        "TAKE_PROFIT",
+        "TAKE_PROFIT_MARKET",
+        "TRAILING_STOP_MARKET"
+      ],
+      "timeInForce": [
+        "GTC",
+        "IOC",
+        "FOK",
+        "GTX"
+      ],
+      "permissionSets": [
+        "GRID"
+      ]
+    },
+    "tierBased": false,
+    "percentage": true,
+    "feeSide": "get",
     "stock": false
   }
 }

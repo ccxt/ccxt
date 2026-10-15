@@ -999,7 +999,6 @@
                         "lastPrice": null,
                         "collateral": null,
                         "marginMode": "cross",
-                        "marginType": null,
                         "side": "short",
                         "percentage": null,
                         "hedged": null,

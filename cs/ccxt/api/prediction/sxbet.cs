@@ -12,31 +12,31 @@ public partial class sxbet : PredictionExchange
     public sxbet (object args = null): base(args) {}
 
     /// <summary>Calls the sxbetPublicGetMetadataObv3 endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> sxbetPublicGetMetadataObv3 (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sxbetPublicGetMetadataObv3 (object parameters = null)
     {
-        return await this.callAsync<object> ("sxbetPublicGetMetadataObv3",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sxbetPublicGetMetadataObv3",parameters);
     }
 
     /// <summary>Calls the sxbetPublicGetOrderbookV3Snapshot endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> sxbetPublicGetOrderbookV3Snapshot (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sxbetPublicGetOrderbookV3Snapshot (object parameters = null)
     {
-        return await this.callAsync<object> ("sxbetPublicGetOrderbookV3Snapshot",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sxbetPublicGetOrderbookV3Snapshot",parameters);
     }
 
     /// <summary>Calls the sxbetPublicGetTradesV3Public endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> sxbetPublicGetTradesV3Public (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sxbetPublicGetTradesV3Public (object parameters = null)
     {
-        return await this.callAsync<object> ("sxbetPublicGetTradesV3Public",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sxbetPublicGetTradesV3Public",parameters);
     }
 
     /// <summary>Calls the sxbetPublicGetMarketsActive endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> sxbetPublicGetMarketsActive (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sxbetPublicGetMarketsActive (object parameters = null)
     {
-        return await this.callAsync<object> ("sxbetPublicGetMarketsActive",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sxbetPublicGetMarketsActive",parameters);
     }
 
     /// <summary>Calls the sxbetPublicGetMarketsFind endpoint.</summary>
@@ -124,24 +124,24 @@ public partial class sxbet : PredictionExchange
     }
 
     /// <summary>Calls the sxbetPrivateGetUserRealtimeTokenV3ApiKey endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> sxbetPrivateGetUserRealtimeTokenV3ApiKey (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sxbetPrivateGetUserRealtimeTokenV3ApiKey (object parameters = null)
     {
-        return await this.callAsync<object> ("sxbetPrivateGetUserRealtimeTokenV3ApiKey",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sxbetPrivateGetUserRealtimeTokenV3ApiKey",parameters);
     }
 
     /// <summary>Calls the sxbetPrivateGetUserProxy endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> sxbetPrivateGetUserProxy (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sxbetPrivateGetUserProxy (object parameters = null)
     {
-        return await this.callAsync<object> ("sxbetPrivateGetUserProxy",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sxbetPrivateGetUserProxy",parameters);
     }
 
     /// <summary>Calls the sxbetPrivateGetUserBalanceV3 endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> sxbetPrivateGetUserBalanceV3 (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sxbetPrivateGetUserBalanceV3 (object parameters = null)
     {
-        return await this.callAsync<object> ("sxbetPrivateGetUserBalanceV3",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sxbetPrivateGetUserBalanceV3",parameters);
     }
 
     /// <summary>Calls the sxbetPrivateGetUserTransferToProxyPending endpoint.</summary>
@@ -159,73 +159,73 @@ public partial class sxbet : PredictionExchange
     }
 
     /// <summary>Calls the sxbetPrivateGetOrdersV3 endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> sxbetPrivateGetOrdersV3 (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sxbetPrivateGetOrdersV3 (object parameters = null)
     {
-        return await this.callAsync<object> ("sxbetPrivateGetOrdersV3",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sxbetPrivateGetOrdersV3",parameters);
     }
 
     /// <summary>Calls the sxbetPrivateGetOrdersV3OrderId endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> sxbetPrivateGetOrdersV3OrderId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sxbetPrivateGetOrdersV3OrderId (object parameters = null)
     {
-        return await this.callAsync<object> ("sxbetPrivateGetOrdersV3OrderId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sxbetPrivateGetOrdersV3OrderId",parameters);
     }
 
     /// <summary>Calls the sxbetPrivateGetOrdersV3OddsBest endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> sxbetPrivateGetOrdersV3OddsBest (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sxbetPrivateGetOrdersV3OddsBest (object parameters = null)
     {
-        return await this.callAsync<object> ("sxbetPrivateGetOrdersV3OddsBest",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sxbetPrivateGetOrdersV3OddsBest",parameters);
     }
 
     /// <summary>Calls the sxbetPrivateGetTradesV3 endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> sxbetPrivateGetTradesV3 (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sxbetPrivateGetTradesV3 (object parameters = null)
     {
-        return await this.callAsync<object> ("sxbetPrivateGetTradesV3",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sxbetPrivateGetTradesV3",parameters);
     }
 
     /// <summary>Calls the sxbetPrivateGetFillsV3 endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> sxbetPrivateGetFillsV3 (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sxbetPrivateGetFillsV3 (object parameters = null)
     {
-        return await this.callAsync<object> ("sxbetPrivateGetFillsV3",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sxbetPrivateGetFillsV3",parameters);
     }
 
     /// <summary>Calls the sxbetPrivateGetPositionsV3 endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> sxbetPrivateGetPositionsV3 (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sxbetPrivateGetPositionsV3 (object parameters = null)
     {
-        return await this.callAsync<object> ("sxbetPrivateGetPositionsV3",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sxbetPrivateGetPositionsV3",parameters);
     }
 
     /// <summary>Calls the sxbetPrivateDeleteOrdersV3 endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> sxbetPrivateDeleteOrdersV3 (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sxbetPrivateDeleteOrdersV3 (object parameters = null)
     {
-        return await this.callAsync<object> ("sxbetPrivateDeleteOrdersV3",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sxbetPrivateDeleteOrdersV3",parameters);
     }
 
     /// <summary>Calls the sxbetPrivateDeleteOrdersV3Event endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> sxbetPrivateDeleteOrdersV3Event (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sxbetPrivateDeleteOrdersV3Event (object parameters = null)
     {
-        return await this.callAsync<object> ("sxbetPrivateDeleteOrdersV3Event",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sxbetPrivateDeleteOrdersV3Event",parameters);
     }
 
     /// <summary>Calls the sxbetPrivateDeleteOrdersV3All endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> sxbetPrivateDeleteOrdersV3All (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sxbetPrivateDeleteOrdersV3All (object parameters = null)
     {
-        return await this.callAsync<object> ("sxbetPrivateDeleteOrdersV3All",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sxbetPrivateDeleteOrdersV3All",parameters);
     }
 
     /// <summary>Calls the sxbetPrivatePostOrdersV3 endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> sxbetPrivatePostOrdersV3 (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sxbetPrivatePostOrdersV3 (object parameters = null)
     {
-        return await this.callAsync<object> ("sxbetPrivatePostOrdersV3",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sxbetPrivatePostOrdersV3",parameters);
     }
 
     /// <summary>Calls the sxbetPrivatePostUserDeployProxy endpoint.</summary>
@@ -236,10 +236,10 @@ public partial class sxbet : PredictionExchange
     }
 
     /// <summary>Calls the sxbetPrivatePostUserTransferToProxy endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> sxbetPrivatePostUserTransferToProxy (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sxbetPrivatePostUserTransferToProxy (object parameters = null)
     {
-        return await this.callAsync<object> ("sxbetPrivatePostUserTransferToProxy",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sxbetPrivatePostUserTransferToProxy",parameters);
     }
 
     /// <summary>Calls the sxbetPrivatePostHeartbeatV3 endpoint.</summary>

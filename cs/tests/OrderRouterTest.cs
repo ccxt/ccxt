@@ -1542,7 +1542,7 @@ public class OrderRouterTest
             return new ccxt.Order(new dict() { { "id", id }, { "status", "canceled" } });
         }
 
-        public override Task<IDictionary<string, object>> loadMarkets(object reload2 = null, object parameters2 = null)
+        public override Task<IDictionary<string, object>> loadMarkets(bool? reload2 = null, object parameters2 = null)
         {
             this.calls.Add("loadMarkets");
             return Task.FromResult((IDictionary<string, object>)this.markets);

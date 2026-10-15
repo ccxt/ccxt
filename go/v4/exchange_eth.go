@@ -832,10 +832,10 @@ func SafeInt(v any) int64 {
 
 // it's necessary to load lighter library in python
 // we create client with the given api credential in this function
-func (this *BaseExchange) LoadLighterLibraryAsync(path any, chainId any, privateKey any, apiKeyIndex any, accountIndex any, createClient bool) <-chan any {
-	ch := make(chan any)
+func (this *BaseExchange) LoadLighterLibraryAsync(path any, chainId any, privateKey any, apiKeyIndex any, accountIndex any, createClient bool) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any])
 	go func() {
-		ch <- this.loadLighterLibraryHelper(derefScalar(path).(string), uint32(SafeInt(chainId)), derefScalar(privateKey).(string), uint8(SafeInt(apiKeyIndex)), int64(SafeInt(accountIndex)), createClient)
+		ch <- AsyncResult[any]{Value: this.loadLighterLibraryHelper(derefScalar(path).(string), uint32(SafeInt(chainId)), derefScalar(privateKey).(string), uint8(SafeInt(apiKeyIndex)), int64(SafeInt(accountIndex)), createClient)}
 	}()
 	return ch
 }
@@ -853,7 +853,7 @@ func (this *BaseExchange) LighterCreateClient(signer any, chainId any, privateKe
 }
 
 func (this *BaseExchange) lighterCreateClient(signer any, chainId uint32, privateKey string, apiKeyIndex uint8, accountIndex int64) any {
-	url := this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), "public")).(string)
+	url := this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), "public"))
 
 	httpClient := http.NewClient(url)
 

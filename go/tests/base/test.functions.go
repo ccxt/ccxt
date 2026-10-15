@@ -16,6 +16,7 @@ var FunctionsMap = map[string]any{
 	"binaryToBase58":                  TestBinaryToBase58,
 	"binaryToBase64":                  TestBinaryToBase64,
 	"capitalize":                      TestCapitalize,
+	"checkAddress":                    TestCheckAddress,
 	"clone":                           TestClone,
 	"constants":                       TestConstants,
 	"datetime":                        TestDatetime,

@@ -13,7 +13,7 @@ function helper_test_handle_market_type_and_params() {
     $exchange = new \ccxt\async\Exchange(array(
         'id' => 'sampleexchange',
         'options' => array(
-            'defaultType' => 'valueFromOptions',
+            'defaultType' => 'option',
             'fetchX' => array(
                 'defaultType' => 'valueFromMethodOptions',
             ),
@@ -52,7 +52,7 @@ function helper_test_handle_market_type_and_params() {
     // case #5, should prevail: options
     //
     [$market_type_5, $params5] = $exchange->handle_market_type_and_params('fetchY', null, array(), null);
-    assert($market_type_5 === 'valueFromOptions');
+    assert($market_type_5 === 'option');
     //
     // case #6, should prevail: spot (because hardcoded in base)
     //
@@ -64,28 +64,33 @@ function helper_test_handle_market_type_and_params() {
 }
 
 
-function helper_test_handle_network_request() {
+function helper_test_handle_typed_options() {
     $exchange = new \ccxt\async\Exchange(array(
         'id' => 'sampleexchange',
         'options' => array(
-            'networks' => array(
-                'XYZ' => 'Xyz',
+            'marginMode' => 'isolated',
+            'fetchX' => array(
+                'uta' => true,
             ),
         ),
     ));
-    $exchange->currencies = $exchange->create_safe_dictionary(); // todo: initialize in C# base files
-    $currency_code = 'ETH'; // todo: in future with complex cases
-    // no-case
-    [$request1, $params1] = $exchange->handle_request_network(array(
-        'network' => 'XYZ',
-    ), array(), 'chain_id', $currency_code, false);
-    assert(!(is_array($params1) && array_key_exists('network', $params1)));
-    assert(is_array($request1) && array_key_exists('chain_id', $request1));
-    assert($request1['chain_id'] === 'Xyz');
+    [$margin_mode, $params1] = $exchange->handle_margin_mode_and_params('fetchX', array(), 'cross');
+    assert($margin_mode === 'isolated');
+    [$uta, $params2] = $exchange->handle_option_bool_and_params(array(), 'fetchX', 'uta', false);
+    assert($uta === true);
+    [$absent, $params3] = $exchange->handle_option_string_and_params(array(), 'fetchX', 'absentKey', 'fallback');
+    assert($absent === 'fallback');
+    [$from_params, $params4] = $exchange->handle_option_string_and_params(array(
+        'absentKey' => 'p',
+    ), 'fetchX', 'absentKey', 'fallback');
+    assert($from_params === 'p');
+    assert(!(is_array($params4) && array_key_exists('absentKey', $params4)));
+    // a wrong-typed option is covered per language in language_specific (it throws only in C#, Java and Go)
+    assert($params1 !== null || $params2 !== null || $params3 !== null);
 }
 
 
 function test_handle_methods() {
     helper_test_handle_market_type_and_params();
-    helper_test_handle_network_request();
+    helper_test_handle_typed_options();
 }

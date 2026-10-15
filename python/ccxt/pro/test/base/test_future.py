@@ -227,7 +227,7 @@ async def test_race_precompleted_cancels_quiet_waiters():
                 winner.resolve('result')
             elif outcome == 'cancel':
                 winner.cancel()
-            raced = Future.race([winner, quiet])
+            raced = Future.race([winner, quiet] if i % 2 == 0 else [quiet, winner])
             assert quiet.cancelled(), 'precompleted race left a quiet waiter pending'
             assert not shared_quiet.done(), 'private waiter cancellation affected shared subscription'
             try:
@@ -373,6 +373,20 @@ async def test_watch_caller_cancellation():
         await exchange.close()
 
 
+async def test_race_pending_loser_callbacks_bounded():
+    # a cached pending future raced repeatedly must not accumulate done-callbacks
+    print("test_race_pending_loser_callbacks_bounded")
+    stuck = Future()
+    for i in range(50):
+        winner = Future()
+        raced = Future.race([winner, stuck])
+        winner.resolve(i)
+        assert await raced == i
+    assert len(stuck._callbacks) == 1, f"pending loser kept {len(stuck._callbacks)} callbacks"
+    stuck.reject(ExchangeClosedByUser('closed'))
+    await asyncio.sleep(0)
+
+
 async def test_ws_future():
     await test_resolve_before()
     await test_reject()
@@ -391,4 +405,5 @@ async def test_ws_future():
     await test_client_future_caller_cancellation_and_replay()
     await test_load_markets_caller_cancellation()
     await test_watch_caller_cancellation()
+    await test_race_pending_loser_callbacks_bounded()
 

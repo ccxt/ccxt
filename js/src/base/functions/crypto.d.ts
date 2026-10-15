@@ -5,8 +5,12 @@ type Input = string | Uint8Array;
 type Hex = string | Uint8Array;
 type Digest = 'binary' | 'hex' | 'base64';
 declare function pemToDer(pem: string): Uint8Array;
-declare const hash: (request: Input, hash: CHash, digest?: Digest) => any;
-declare const hmac: (request: Input, secret: Input, hash: CHash, digest?: Digest) => any;
+declare function hash(request: Input, hash: CHash, digest: 'binary'): Uint8Array;
+declare function hash(request: Input, hash: CHash, digest?: 'hex' | 'base64'): string;
+declare function hash(request: Input, hash: CHash, digest?: Digest): string | Uint8Array;
+declare function hmac(request: Input, secret: Input, hash: CHash, digest: 'binary'): Uint8Array;
+declare function hmac(request: Input, secret: Input, hash: CHash, digest?: 'hex' | 'base64'): string;
+declare function hmac(request: Input, secret: Input, hash: CHash, digest?: Digest): string | Uint8Array;
 declare function ecdsa(request: Hex, secret: Hex, curve: CurveFn, prehash?: CHash | null, fixedLength?: boolean): {
     r: string;
     s: string;

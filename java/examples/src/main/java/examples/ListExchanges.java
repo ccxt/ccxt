@@ -27,7 +27,7 @@ public class ListExchanges {
         System.out.println("Rate limit:  " + (int) exchange.rateLimit + " ms");
 
         // Load and summarize markets (untyped: returns CompletableFuture<Object>)
-        Map<String, Object> markets = (Map<String, Object>) exchange.loadMarkets(false).join();
+        Map<String, Object> markets = (Map<String, Object>) exchange.loadMarkets(false, new java.util.HashMap<String, Object>()).join();
         long spotCount = markets.values().stream()
                 .filter(m -> Boolean.TRUE.equals(((Map<String, Object>) m).get("spot"))).count();
         long futuresCount = markets.values().stream()

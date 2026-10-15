@@ -50,7 +50,10 @@ public partial class BaseExchange
 #endif
     }
 
-    public object parseDate(object datetime2)
+    // null (a non-string box, or an input DateTime.Parse rejects) or the Int64 ms value of
+    // the parsed date — every non-null path returns the `Int64 timestamp` local, so the
+    // nullable spelling names the box the call already produced (same as parse8601)
+    public Int64? parseDate(object datetime2)
     {
         if (datetime2 == null || datetime2.GetType() != typeof(string))
         {

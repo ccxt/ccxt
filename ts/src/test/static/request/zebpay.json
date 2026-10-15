@@ -47,7 +47,7 @@
                 "method": "cancelOrder",
                 "url": "https://dev-futuresbe.zebstage.com/api/v1/trade/order",
                 "input": [
-                    41549,
+                    "41549",
                     "ETH/USDT:USDT",
                     {
                         "clientOrderId": "c25a8b2db0089e6e867b-161-zeb"
@@ -60,7 +60,7 @@
                 "method": "cancelOrder",
                 "url": "https://www.zebstage.com/api/v2/ex/order?orderId=8226482&timestamp=1756204652003",
                 "input": [
-                    8226482,
+                    "8226482",
                     "ETH/USDT"
                 ],
                 "output": null

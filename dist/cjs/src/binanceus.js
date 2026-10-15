@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var binance = require('./binance.js');
+var binanceus$1 = require('./abstract/binanceus.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class binanceus extends binance["default"] {
+class binanceus extends binanceus$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'binanceus',

@@ -27,7 +27,7 @@ func (this *Myokx) Describe() any {
 		"urls": map[string]any{
 			"api": map[string]any{
 				"rest": "https://{hostname}",
-				"ws":   "wss://wseea.okx.com:8443/ws/v5",
+				"ws":   "wss://wseea.okx.com:443/ws/v5",
 			},
 			"www":  "https://my.okx.com",
 			"doc":  "https://my.okx.com/docs-v5/en/#overview",
@@ -37,7 +37,7 @@ func (this *Myokx) Describe() any {
 				"discount": 0.2,
 			},
 			"test": map[string]any{
-				"ws": "wss://wseeapap.okx.com:8443/ws/v5",
+				"ws": "wss://wseeapap.okx.com:443/ws/v5",
 			},
 		},
 		"has": map[string]any{

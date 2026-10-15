@@ -1,6 +1,6 @@
 import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     publicGetDepthPair(params?: {}): Promise<Dict>;
     publicGetCurrenciesPair(params?: {}): Promise<List>;
     publicGetCurrenciesAll(params?: {}): Promise<List>;
@@ -38,7 +38,5 @@ interface Exchange {
     fapiGetTickerGroupIdPair(params?: {}): Promise<Dict>;
     fapiGetTradesGroupIdPair(params?: {}): Promise<List>;
     fapiGetDepthGroupIdPair(params?: {}): Promise<Dict>;
-}
-declare abstract class Exchange extends _Exchange {
 }
 export default Exchange;

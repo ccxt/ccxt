@@ -49,6 +49,20 @@
         ],
         "fetchOpenOrders": [
             {
+                "description": "open trigger orders do not leak the trigger param",
+                "method": "fetchOpenOrders",
+                "url": "https://api.latoken.com/v2/auth/stopOrder/pair/0d02fdfc-9555-4cd9-8398-006003033a9e/0c3a106d-bde3-4c13-a26e-3fd2394529e5/active",
+                "input": [
+                    "LTC/USDT",
+                    null,
+                    null,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "Spot open orders",
                 "method": "fetchOpenOrders",
                 "url": "https://api.latoken.com/v2/auth/order/pair/0d02fdfc-9555-4cd9-8398-006003033a9e/0c3a106d-bde3-4c13-a26e-3fd2394529e5/active",
@@ -72,7 +86,7 @@
             {
                 "description": "Fetch spot Balance",
                 "method": "fetchBalance",
-                "url": "https://api.latoken.com/v2/auth/account?type=spot",
+                "url": "https://api.latoken.com/v2/auth/account",
                 "input": [
                     {
                         "type": "spot"
@@ -82,7 +96,7 @@
             {
                 "description": "Fetch swap Balance",
                 "method": "fetchBalance",
-                "url": "https://api.latoken.com/v2/auth/account?type=swap",
+                "url": "https://api.latoken.com/v2/auth/account",
                 "input": [
                     {
                         "type": "swap"

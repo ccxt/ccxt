@@ -5,7 +5,7 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import gate from './gate.js';
+import gate from '../abstract/pro/gateeu.js';
 import gateeuRest from '../gateeu.js';
 // ---------------------------------------------------------------------------
 export default class gateeu extends gate {

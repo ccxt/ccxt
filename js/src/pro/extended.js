@@ -60,15 +60,15 @@ export default class extended extends extendedRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
-        const messageHash = 'orderbook:' + symbol;
+        const symbolValue = market['symbol'];
+        const messageHash = 'orderbook:' + symbolValue;
         const query = this.urlencode(params);
-        let url = this.urls['api']['ws'] + '/orderbooks/' + market['id'];
+        let url = this.safeString(this.urls['api'], 'ws') + '/orderbooks/' + market['id'];
         if (query.length > 0) {
             url += '?' + query;
         }
         const orderbook = await this.watch(url, messageHash, undefined, messageHash, {
-            'symbol': symbol,
+            'symbol': symbolValue,
             'limit': limit,
         });
         return orderbook.limit();
@@ -139,7 +139,7 @@ export default class extended extends extendedRest {
     }
     async watchPrivate(messageHash, subscription = undefined) {
         this.checkRequiredCredentials();
-        const url = this.urls['api']['ws'] + '/account';
+        const url = this.safeString(this.urls['api'], 'ws') + '/account';
         if ((this.clients === undefined) || !(url in this.clients)) {
             const defaultOptions = {
                 'ws': {
@@ -179,19 +179,21 @@ export default class extended extends extendedRest {
             await this.loadMarkets();
         }
         let messageHash = 'orders';
+        let symbolResolved = undefined;
         if (symbol !== undefined) {
             const market = this.market(symbol);
-            symbol = market['symbol'];
-            messageHash += ':' + symbol;
+            symbolResolved = this.safeString(market, 'symbol');
+            messageHash += ':' + symbolResolved;
         }
         const orders = await this.watchPrivate(messageHash, {
-            'symbol': symbol,
+            'symbol': symbolResolved,
             'limit': limit,
         });
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit(symbol, limit);
+            limitResolved = orders.getLimit(symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
     }
     /**
      * @method
@@ -288,19 +290,21 @@ export default class extended extends extendedRest {
             await this.loadMarkets();
         }
         let messageHash = 'myTrades';
+        let symbolResolved = undefined;
         if (symbol !== undefined) {
             const market = this.market(symbol);
-            symbol = market['symbol'];
-            messageHash += ':' + symbol;
+            symbolResolved = this.safeString(market, 'symbol');
+            messageHash += ':' + symbolResolved;
         }
         const trades = await this.watchPrivate(messageHash, {
-            'symbol': symbol,
+            'symbol': symbolResolved,
             'limit': limit,
         });
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+            limitResolved = trades.getLimit(symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true);
     }
     handleMyTrades(client, message) {
         //
@@ -376,19 +380,19 @@ export default class extended extends extendedRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        const symbolsNormalized = this.marketSymbols(symbols);
         let messageHash = 'positions';
-        if (symbols !== undefined) {
-            messageHash += '::' + symbols.join(',');
+        if (symbolsNormalized !== undefined) {
+            messageHash += '::' + symbolsNormalized.join(',');
         }
         const positions = await this.watchPrivate(messageHash, {
-            'symbols': symbols,
+            'symbols': symbolsNormalized,
             'limit': limit,
         });
         if (this.newUpdates) {
             return positions;
         }
-        return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit(this.positions, symbolsNormalized, since, limit, true);
     }
     handlePositions(client, message) {
         //
@@ -525,15 +529,15 @@ export default class extended extends extendedRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
-        const messageHash = 'fundingRate:' + symbol;
+        const symbolValue = market['symbol'];
+        const messageHash = 'fundingRate:' + symbolValue;
         const query = this.urlencode(params);
-        let url = this.urls['api']['ws'] + '/funding/' + market['id'];
+        let url = this.safeString(this.urls['api'], 'ws') + '/funding/' + market['id'];
         if (query.length > 0) {
             url += '?' + query;
         }
         return await this.watch(url, messageHash, undefined, messageHash, {
-            'symbol': symbol,
+            'symbol': symbolValue,
             'messageHash': messageHash,
         });
     }
@@ -558,12 +562,12 @@ export default class extended extends extendedRest {
     }
     parseWsFundingRate(fundingRate, market = undefined, message = undefined) {
         const marketId = this.safeString(fundingRate, 'm');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(message, 'ts');
         const fundingTimestamp = this.safeInteger(fundingRate, 'T');
         return {
             'info': fundingRate,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'markPrice': undefined,
             'indexPrice': undefined,
             'interestRate': undefined,
@@ -596,16 +600,16 @@ export default class extended extends extendedRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
-        const messageHash = 'markPrice:' + symbol;
+        const symbolValue = market['symbol'];
+        const messageHash = 'markPrice:' + symbolValue;
         const query = this.urlencode(params);
-        let url = this.urls['api']['ws'] + '/prices/mark/' + market['id'];
+        let url = this.safeString(this.urls['api'], 'ws') + '/prices/mark/' + market['id'];
         if (query.length > 0) {
             url += '?' + query;
         }
         return await this.watch(url, messageHash, undefined, messageHash, {
             'name': 'markPrice',
-            'symbol': symbol,
+            'symbol': symbolValue,
             'messageHash': messageHash,
         });
     }
@@ -657,21 +661,22 @@ export default class extended extends extendedRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
-        const messageHash = 'trades:' + symbol;
+        const symbolValue = market['symbol'];
+        const messageHash = 'trades:' + symbolValue;
         const query = this.urlencode(params);
-        let url = this.urls['api']['ws'] + '/publicTrades/' + market['id'];
+        let url = this.safeString(this.urls['api'], 'ws') + '/publicTrades/' + market['id'];
         if (query.length > 0) {
             url += '?' + query;
         }
         const trades = await this.watch(url, messageHash, undefined, messageHash, {
-            'symbol': symbol,
+            'symbol': symbolValue,
             'limit': limit,
         });
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+            limitResolved = trades.getLimit(symbolValue, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
     }
     handleTrades(client, message) {
         //
@@ -739,7 +744,7 @@ export default class extended extends extendedRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = market['symbol'];
         const price = this.safeString(params, 'price');
         let candleType = this.safeString(params, 'candleType');
         if (candleType === undefined) {
@@ -753,23 +758,24 @@ export default class extended extends extendedRest {
                 candleType = 'trades';
             }
         }
-        params = this.omit(params, ['candleType', 'price']);
+        const paramsOmitted = this.omit(params, ['candleType', 'price']);
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
-        const messageHash = 'ohlcv:' + symbol + ':' + timeframe + ':' + candleType;
-        const query = this.urlencode(this.extend({ 'interval': interval }, params));
-        const url = this.urls['api']['ws'] + '/candles/' + market['id'] + '/' + candleType + '?' + query;
+        const messageHash = 'ohlcv:' + symbolValue + ':' + timeframe + ':' + candleType;
+        const query = this.urlencode(this.extend({ 'interval': interval }, paramsOmitted));
+        const url = this.safeString(this.urls['api'], 'ws') + '/candles/' + market['id'] + '/' + candleType + '?' + query;
         const ohlcv = await this.watch(url, messageHash, undefined, messageHash, {
             'name': 'ohlcv',
-            'symbol': symbol,
+            'symbol': symbolValue,
             'timeframe': timeframe,
             'candleType': candleType,
             'limit': limit,
             'messageHash': messageHash,
         });
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = ohlcv.getLimit(symbol, limit);
+            limitResolved = ohlcv.getLimit(symbolValue, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
     }
     handleOHLCV(client, message) {
         //
@@ -795,7 +801,13 @@ export default class extended extends extendedRest {
         const symbol = this.safeString(subscription, 'symbol');
         const timeframe = this.safeString(subscription, 'timeframe');
         const candleType = this.safeString(subscription, 'candleType');
-        const cacheKey = (candleType === 'trades') ? timeframe : timeframe + ':' + candleType;
+        let cacheKey = undefined;
+        if (candleType === 'trades') {
+            cacheKey = timeframe;
+        }
+        else {
+            cacheKey = timeframe + ':' + candleType;
+        }
         const messageHash = this.safeString(subscription, 'messageHash');
         this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
         let stored = this.safeValue(this.ohlcvs[symbol], cacheKey);

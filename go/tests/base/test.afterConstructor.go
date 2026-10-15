@@ -26,7 +26,7 @@ func HelperTestInitThrottler() {
 	Assert(!(ccxt.InOp(tokenBucket, "maxCapacity")) || ccxt.EvalTruthy(exchange.InArray(ccxt.GetValue(tokenBucket, "maxCapacity"), []any{1000, 1000})))
 }
 func HelperTestSandboxState(exchange *ccxt.Exchange, optionalArgs ...any) {
-	expectEnabled := ccxt.GetArg(optionalArgs, 0, true)
+	var expectEnabled bool = ccxt.GetArgBool(optionalArgs, 0, true)
 	_ = expectEnabled
 	Assert(!ccxt.IsEqual(exchange.Urls, nil))
 	Assert(ccxt.InOp(exchange.Urls, "test"))
@@ -76,6 +76,18 @@ func HelperTestInitSandbox() {
 	HelperTestSandboxState(exchange4, true)
 	exchange4.SetSandboxMode(false)
 	HelperTestSandboxState(exchange4, false)
+	//
+	// CASE C: passed 'sandbox' within userConfig
+	//
+	ccxt.AddElementToObject(opts["options"], "sandbox", false)
+	// @ts-expect-error
+	opts["sandbox"] = true
+	exchange5 := ccxt.NewExchange().(*ccxt.Exchange)
+	exchange5.DerivedExchange = exchange5
+	exchange5.InitParent(opts, map[string]any{}, exchange5)
+	HelperTestSandboxState(exchange5, true)
+	exchange5.SetSandboxMode(false)
+	HelperTestSandboxState(exchange5, false)
 }
 func HelperTestInitMarket() {
 	// ############# markets ############# //
@@ -109,12 +121,12 @@ func HelperTestProperties() {
 	var keys []any = []any{"chrome", "chrome39", "chrome100"}
 	Assert(!ccxt.IsEqual(ExchangeProp(exchange, "userAgents"), nil))
 	for i := 0; i < len(keys); i++ {
-		var key any = func() any {
+		var key *string = ccxt.SafeStringPtr(func() any {
 			if i >= 0 && i < len(keys) {
 				return ccxt.DerefScalar(keys[i])
 			}
 			return nil
-		}()
+		}())
 		var userAgent any = ccxt.GetValue(ExchangeProp(exchange, "userAgents"), key)
 		Assert(!ccxt.IsEqual(userAgent, nil))
 	}
@@ -122,13 +134,6 @@ func HelperTestProperties() {
 	// options
 	//
 	Assert(!ccxt.IsEqual(exchange.Options, nil))
-	// const defaultNetworkCodeReplacements = [
-	//     { 'baseCoin': 'ETH', 'primary': 'ETH', 'secondary': 'ERC20' },
-	//     { 'baseCoin': 'CRO', 'primary': 'CRONOS', 'secondary': 'CRC20' },
-	//     { 'baseCoin': 'TRX', 'primary': 'TRX', 'secondary': 'TRC20' },
-	//     { 'baseCoin': 'BTC', 'primary': 'BTC', 'secondary': 'BRC20' },
-	// ];
-	// assertDeepEqual (exchange, {}, 'options', exchange.options['defaultNetworkCodeReplacements'], defaultNetworkCodeReplacements);
 	//
 	// credentials
 	//

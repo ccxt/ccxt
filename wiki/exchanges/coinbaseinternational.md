@@ -642,14 +642,14 @@ make a withdrawal
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | the amount to withdraw |
 | address | <code>string</code> | Yes | the address to withdraw to |
-| tag | <code>string</code> | No | an optional tag for the withdrawal |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
 | params.add_network_fee_to_total | <code>boolean</code> | No | if true, deducts network fee from the portfolio, otherwise deduct fee from the withdrawal |
 | params.network_arn_id | <code>string</code> | No | Identifies the blockchain network (e.g., networks/ethereum-mainnet/assets/313ef8a9-ae5a-5f2f-8a56-572c0e2a4d5a) |
 | params.nonce | <code>string</code> | No | a unique integer representing the withdrawal request |
 
 
 ```javascript
-coinbaseinternational.withdraw (code, amount, address, tag?, params?)
+coinbaseinternational.withdraw (code, amount, address, params?)
 ```
 

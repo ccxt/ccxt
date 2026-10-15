@@ -7,5 +7,197 @@
 // -------------------------------------------------------------------------------
 import { Exchange as _Exchange } from '../base/Exchange.js';
 class Exchange extends _Exchange {
+    spotPublicGetCurrencyPairs(params = {}) {
+        return this.request('currencyPairs', ['spot', 'public'], 'GET', params, { 'cost': 2.5 });
+    }
+    spotPublicGetAccuracy(params = {}) {
+        return this.request('accuracy', ['spot', 'public'], 'GET', params, { 'cost': 2.5 });
+    }
+    spotPublicGetUsdToCny(params = {}) {
+        return this.request('usdToCny', ['spot', 'public'], 'GET', params, { 'cost': 2.5 });
+    }
+    spotPublicGetAssetConfigs(params = {}) {
+        return this.request('assetConfigs', ['spot', 'public'], 'GET', params, { 'cost': 2.5 });
+    }
+    spotPublicGetWithdrawConfigs(params = {}) {
+        return this.request('withdrawConfigs', ['spot', 'public'], 'GET', params, { 'cost': 3.75 });
+    }
+    spotPublicGetTimestamp(params = {}) {
+        return this.request('timestamp', ['spot', 'public'], 'GET', params, { 'cost': 2.5 });
+    }
+    spotPublicGetTicker24hr(params = {}) {
+        return this.request('ticker/24hr', ['spot', 'public'], 'GET', params, { 'cost': 2.5 });
+    }
+    spotPublicGetTicker(params = {}) {
+        return this.request('ticker', ['spot', 'public'], 'GET', params, { 'cost': 2.5 });
+    }
+    spotPublicGetDepth(params = {}) {
+        return this.request('depth', ['spot', 'public'], 'GET', params, { 'cost': 2.5 });
+    }
+    spotPublicGetIncrDepth(params = {}) {
+        return this.request('incrDepth', ['spot', 'public'], 'GET', params, { 'cost': 2.5 });
+    }
+    spotPublicGetTrades(params = {}) {
+        return this.request('trades', ['spot', 'public'], 'GET', params, { 'cost': 2.5 });
+    }
+    spotPublicGetKline(params = {}) {
+        return this.request('kline', ['spot', 'public'], 'GET', params, { 'cost': 2.5 });
+    }
+    spotPublicGetSupplementSystemPing(params = {}) {
+        return this.request('supplement/system_ping', ['spot', 'public'], 'GET', params, { 'cost': 2.5 });
+    }
+    spotPublicGetSupplementIncrDepth(params = {}) {
+        return this.request('supplement/incrDepth', ['spot', 'public'], 'GET', params, { 'cost': 2.5 });
+    }
+    spotPublicGetSupplementTrades(params = {}) {
+        return this.request('supplement/trades', ['spot', 'public'], 'GET', params, { 'cost': 2.5 });
+    }
+    spotPublicGetSupplementTickerPrice(params = {}) {
+        return this.request('supplement/ticker/price', ['spot', 'public'], 'GET', params, { 'cost': 2.5 });
+    }
+    spotPublicGetSupplementTickerBookTicker(params = {}) {
+        return this.request('supplement/ticker/bookTicker', ['spot', 'public'], 'GET', params, { 'cost': 2.5 });
+    }
+    spotPublicPostSupplementSystemStatus(params = {}) {
+        return this.request('supplement/system_status', ['spot', 'public'], 'POST', params, { 'cost': 2.5 });
+    }
+    spotPrivatePostUserInfo(params = {}) {
+        return this.request('user_info', ['spot', 'private'], 'POST', params, { 'cost': 2.5 });
+    }
+    spotPrivatePostSubscribeGetKey(params = {}) {
+        return this.request('subscribe/get_key', ['spot', 'private'], 'POST', params, { 'cost': 2.5 });
+    }
+    spotPrivatePostSubscribeRefreshKey(params = {}) {
+        return this.request('subscribe/refresh_key', ['spot', 'private'], 'POST', params, { 'cost': 2.5 });
+    }
+    spotPrivatePostSubscribeDestroyKey(params = {}) {
+        return this.request('subscribe/destroy_key', ['spot', 'private'], 'POST', params, { 'cost': 2.5 });
+    }
+    spotPrivatePostGetDepositAddress(params = {}) {
+        return this.request('get_deposit_address', ['spot', 'private'], 'POST', params, { 'cost': 2.5 });
+    }
+    spotPrivatePostDepositHistory(params = {}) {
+        return this.request('deposit_history', ['spot', 'private'], 'POST', params, { 'cost': 2.5 });
+    }
+    spotPrivatePostCreateOrder(params = {}) {
+        return this.request('create_order', ['spot', 'private'], 'POST', params, { 'cost': 1 });
+    }
+    spotPrivatePostBatchCreateOrder(params = {}) {
+        return this.request('batch_create_order', ['spot', 'private'], 'POST', params, { 'cost': 1 });
+    }
+    spotPrivatePostCancelOrder(params = {}) {
+        return this.request('cancel_order', ['spot', 'private'], 'POST', params, { 'cost': 1 });
+    }
+    spotPrivatePostCancelClientOrders(params = {}) {
+        return this.request('cancel_clientOrders', ['spot', 'private'], 'POST', params, { 'cost': 1 });
+    }
+    spotPrivatePostOrdersInfo(params = {}) {
+        return this.request('orders_info', ['spot', 'private'], 'POST', params, { 'cost': 2.5 });
+    }
+    spotPrivatePostOrdersInfoHistory(params = {}) {
+        return this.request('orders_info_history', ['spot', 'private'], 'POST', params, { 'cost': 2.5 });
+    }
+    spotPrivatePostOrderTransactionDetail(params = {}) {
+        return this.request('order_transaction_detail', ['spot', 'private'], 'POST', params, { 'cost': 2.5 });
+    }
+    spotPrivatePostTransactionHistory(params = {}) {
+        return this.request('transaction_history', ['spot', 'private'], 'POST', params, { 'cost': 2.5 });
+    }
+    spotPrivatePostOrdersInfoNoDeal(params = {}) {
+        return this.request('orders_info_no_deal', ['spot', 'private'], 'POST', params, { 'cost': 2.5 });
+    }
+    spotPrivatePostWithdraw(params = {}) {
+        return this.request('withdraw', ['spot', 'private'], 'POST', params, { 'cost': 2.5 });
+    }
+    spotPrivatePostWithdrawCancel(params = {}) {
+        return this.request('withdrawCancel', ['spot', 'private'], 'POST', params, { 'cost': 2.5 });
+    }
+    spotPrivatePostWithdraws(params = {}) {
+        return this.request('withdraws', ['spot', 'private'], 'POST', params, { 'cost': 2.5 });
+    }
+    spotPrivatePostSupplementUserInfo(params = {}) {
+        return this.request('supplement/user_info', ['spot', 'private'], 'POST', params, { 'cost': 2.5 });
+    }
+    spotPrivatePostSupplementWithdraw(params = {}) {
+        return this.request('supplement/withdraw', ['spot', 'private'], 'POST', params, { 'cost': 2.5 });
+    }
+    spotPrivatePostSupplementDepositHistory(params = {}) {
+        return this.request('supplement/deposit_history', ['spot', 'private'], 'POST', params, { 'cost': 2.5 });
+    }
+    spotPrivatePostSupplementWithdraws(params = {}) {
+        return this.request('supplement/withdraws', ['spot', 'private'], 'POST', params, { 'cost': 2.5 });
+    }
+    spotPrivatePostSupplementGetDepositAddress(params = {}) {
+        return this.request('supplement/get_deposit_address', ['spot', 'private'], 'POST', params, { 'cost': 2.5 });
+    }
+    spotPrivatePostSupplementAddDepositAddress(params = {}) {
+        return this.request('supplement/add_deposit_address', ['spot', 'private'], 'POST', params, { 'cost': 2.5 });
+    }
+    spotPrivatePostSupplementAssetDetail(params = {}) {
+        return this.request('supplement/asset_detail', ['spot', 'private'], 'POST', params, { 'cost': 2.5 });
+    }
+    spotPrivatePostSupplementCustomerTradeFee(params = {}) {
+        return this.request('supplement/customer_trade_fee', ['spot', 'private'], 'POST', params, { 'cost': 2.5 });
+    }
+    spotPrivatePostSupplementApiRestrictions(params = {}) {
+        return this.request('supplement/api_Restrictions', ['spot', 'private'], 'POST', params, { 'cost': 2.5 });
+    }
+    spotPrivatePostSupplementSystemPing(params = {}) {
+        return this.request('supplement/system_ping', ['spot', 'private'], 'POST', params, { 'cost': 2.5 });
+    }
+    spotPrivatePostSupplementCreateOrderTest(params = {}) {
+        return this.request('supplement/create_order_test', ['spot', 'private'], 'POST', params, { 'cost': 1 });
+    }
+    spotPrivatePostSupplementCreateOrder(params = {}) {
+        return this.request('supplement/create_order', ['spot', 'private'], 'POST', params, { 'cost': 1 });
+    }
+    spotPrivatePostSupplementCancelOrder(params = {}) {
+        return this.request('supplement/cancel_order', ['spot', 'private'], 'POST', params, { 'cost': 1 });
+    }
+    spotPrivatePostSupplementCancelOrderBySymbol(params = {}) {
+        return this.request('supplement/cancel_order_by_symbol', ['spot', 'private'], 'POST', params, { 'cost': 1 });
+    }
+    spotPrivatePostSupplementOrdersInfo(params = {}) {
+        return this.request('supplement/orders_info', ['spot', 'private'], 'POST', params, { 'cost': 2.5 });
+    }
+    spotPrivatePostSupplementOrdersInfoNoDeal(params = {}) {
+        return this.request('supplement/orders_info_no_deal', ['spot', 'private'], 'POST', params, { 'cost': 2.5 });
+    }
+    spotPrivatePostSupplementOrdersInfoHistory(params = {}) {
+        return this.request('supplement/orders_info_history', ['spot', 'private'], 'POST', params, { 'cost': 2.5 });
+    }
+    spotPrivatePostSupplementUserInfoAccount(params = {}) {
+        return this.request('supplement/user_info_account', ['spot', 'private'], 'POST', params, { 'cost': 2.5 });
+    }
+    spotPrivatePostSupplementTransactionHistory(params = {}) {
+        return this.request('supplement/transaction_history', ['spot', 'private'], 'POST', params, { 'cost': 2.5 });
+    }
+    spotPrivatePostSpotWalletWithdraw(params = {}) {
+        return this.request('spot/wallet/withdraw', ['spot', 'private'], 'POST', params, { 'cost': 2.5 });
+    }
+    spotPrivatePostSpotWalletDepositHistory(params = {}) {
+        return this.request('spot/wallet/deposit_history', ['spot', 'private'], 'POST', params, { 'cost': 2.5 });
+    }
+    spotPrivatePostSpotWalletWithdraws(params = {}) {
+        return this.request('spot/wallet/withdraws', ['spot', 'private'], 'POST', params, { 'cost': 2.5 });
+    }
+    spotPrivatePostSpotTradeOrdersInfo(params = {}) {
+        return this.request('spot/trade/orders_info', ['spot', 'private'], 'POST', params, { 'cost': 2.5 });
+    }
+    spotPrivatePostSpotTradeOrdersInfoHistory(params = {}) {
+        return this.request('spot/trade/orders_info_history', ['spot', 'private'], 'POST', params, { 'cost': 2.5 });
+    }
+    contractPublicGetCfdOpenApiV1PubGetTime(params = {}) {
+        return this.request('cfd/openApi/v1/pub/getTime', ['contract', 'public'], 'GET', params, { 'cost': 2.5 });
+    }
+    contractPublicGetCfdOpenApiV1PubInstrument(params = {}) {
+        return this.request('cfd/openApi/v1/pub/instrument', ['contract', 'public'], 'GET', params, { 'cost': 2.5 });
+    }
+    contractPublicGetCfdOpenApiV1PubMarketData(params = {}) {
+        return this.request('cfd/openApi/v1/pub/marketData', ['contract', 'public'], 'GET', params, { 'cost': 2.5 });
+    }
+    contractPublicGetCfdOpenApiV1PubMarketOrder(params = {}) {
+        return this.request('cfd/openApi/v1/pub/marketOrder', ['contract', 'public'], 'GET', params, { 'cost': 2.5 });
+    }
 }
 export default Exchange;

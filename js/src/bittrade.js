@@ -376,8 +376,8 @@ export default class bittrade extends Exchange {
             'options': {
                 'defaultNetwork': 'ERC20',
                 'networks': {
-                    'ETH': 'erc20',
-                    'TRX': 'trc20',
+                    'ERC20': 'erc20',
+                    'TRC20': 'trc20',
                     'HRC20': 'hrc20',
                     'HECO': 'hrc20',
                     'HT': 'hrc20',
@@ -385,7 +385,7 @@ export default class bittrade extends Exchange {
                 },
                 // https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStates': {
-                    'method': 'private_get_order_orders', // 'private_get_order_history' // https://github.com/ccxt/ccxt/pull/5392
+                    'method': 'privateGetOrderOrders', // 'privateGetOrderHistory' // https://github.com/ccxt/ccxt/pull/5392
                 },
                 'fetchOpenOrders': {
                     'method': 'fetch_open_orders_v1', // 'fetch_open_orders_v2' // https://github.com/ccxt/ccxt/issues/5388
@@ -443,15 +443,13 @@ export default class bittrade extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        if (symbols === undefined) {
-            symbols = this.symbols;
-        }
-        if (symbols === undefined) {
+        const symbolsResolved = (symbols === undefined) ? this.symbols : symbols;
+        if (symbolsResolved === undefined) {
             throw new ExchangeError(this.id + ' markets not loaded');
         }
         const result = {};
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsResolved.length; i++) {
+            const symbol = symbolsResolved[i];
             result[symbol] = await this.fetchTradingLimitsById(this.marketId(symbol), params);
         }
         return result;
@@ -568,6 +566,9 @@ export default class bittrade extends Exchange {
             const quoteId = this.safeString(market, 'quote-currency');
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const state = this.safeString(market, 'state');
             const leverageRatio = this.safeString(market, 'leverage-ratio', '1');
             const superLeverageRatio = this.safeString(market, 'super-margin-leverage-ratio', '1');
@@ -830,7 +831,7 @@ export default class bittrade extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        const symbolsNormalized = this.marketSymbols(symbols);
         const response = await this.marketGetTickers(params);
         const tickers = this.safeList(response, 'data', []);
         const timestamp = this.safeInteger(response, 'ts');
@@ -844,7 +845,7 @@ export default class bittrade extends Exchange {
             ticker['datetime'] = this.iso8601(timestamp);
             result[symbol] = ticker;
         }
-        return this.filterByArrayTickers(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbolsNormalized);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -1037,7 +1038,7 @@ export default class bittrade extends Exchange {
             }
         }
         result = this.sortBy(result, 'timestamp');
-        return this.filterBySymbolSinceLimit(result, market['symbol'], since, limit);
+        return this.filterBySymbolSinceLimit(result, this.safeString(market, 'symbol'), since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
         //
@@ -1228,13 +1229,13 @@ export default class bittrade extends Exchange {
             if (account === undefined) {
                 throw new ExchangeError(this.id + ' parseBalance() could not resolve account');
             }
-            if (balance['type'] === 'trade') {
+            if (this.safeString(balance, 'type') === 'trade') {
                 account['free'] = this.safeString(balance, 'balance');
             }
             if (account === undefined) {
                 throw new ExchangeError(this.id + ' parseBalance() could not resolve account');
             }
-            if (balance['type'] === 'frozen') {
+            if (this.safeString(balance, 'type') === 'frozen') {
                 account['used'] = this.safeString(balance, 'balance');
             }
             if (code !== undefined) {
@@ -1280,7 +1281,7 @@ export default class bittrade extends Exchange {
             market = this.market(symbol);
             request['symbol'] = market['id'];
         }
-        const method = this.handleOption('fetchOrdersByStates', 'method', 'private_get_order_orders');
+        const method = this.handleOption('fetchOrdersByStates', 'method', 'privateGetOrderOrders');
         let response = undefined;
         if ((method === 'private_get_order_history') || (method === 'privateGetOrderHistory')) {
             response = await this.privateGetOrderHistory(this.extend(request, params));
@@ -1483,7 +1484,7 @@ export default class bittrade extends Exchange {
             status = this.parseOrderStatus(this.safeString(order, 'state'));
         }
         const marketId = this.safeString(order, 'symbol');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(order, 'created-at');
         const clientOrderId = this.safeString(order, 'client-order-id');
         const amount = this.safeString(order, 'amount');
@@ -1493,7 +1494,13 @@ export default class bittrade extends Exchange {
         const feeCost = this.safeString2(order, 'filled-fees', 'field-fees'); // typo in their API, filled fees
         let fee = undefined;
         if (feeCost !== undefined) {
-            const feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
+            let feeCurrency = undefined;
+            if (side === 'sell') {
+                feeCurrency = marketResolved['quote'];
+            }
+            else {
+                feeCurrency = marketResolved['base'];
+            }
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrency,
@@ -1506,7 +1513,7 @@ export default class bittrade extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
@@ -1521,7 +1528,7 @@ export default class bittrade extends Exchange {
             'status': status,
             'fee': fee,
             'trades': undefined,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -1575,13 +1582,13 @@ export default class bittrade extends Exchange {
         else {
             request['client-order-id'] = clientOrderId;
         }
-        params = this.omit(params, ['clientOrderId', 'client-order-id']);
+        const paramsOmitted = this.omit(params, ['clientOrderId', 'client-order-id']);
+        let paramsOrder = paramsOmitted;
         if ((type === 'market') && (side === 'buy')) {
             let quoteAmount = undefined;
-            let createMarketBuyOrderRequiresPrice = true;
-            [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-            const cost = this.safeNumber(params, 'cost');
-            params = this.omit(params, 'cost');
+            const [createMarketBuyOrderRequiresPrice, paramsRequiresPrice] = this.handleOptionBoolAndParams(paramsOmitted, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            const cost = this.safeNumber(paramsRequiresPrice, 'cost');
+            paramsOrder = this.omit(paramsRequiresPrice, 'cost');
             if (cost !== undefined) {
                 quoteAmount = this.amountToPrecision(symbol, cost);
             }
@@ -1615,7 +1622,7 @@ export default class bittrade extends Exchange {
         const method = this.handleOption('createOrder', 'method', 'privatePostOrderOrdersPlace');
         let response = undefined;
         if (method === 'privatePostOrderOrdersPlace') {
-            response = await this.privatePostOrderOrdersPlace(this.extend(request, params));
+            response = await this.privatePostOrderOrdersPlace(this.extend(request, paramsOrder));
         }
         else {
             throw new NotSupported(this.id + ' createOrder() does not support the ' + method + ' method');
@@ -1678,7 +1685,7 @@ export default class bittrade extends Exchange {
             await this.loadMarkets();
         }
         const clientOrderIds = this.safeValue2(params, 'clientOrderIds', 'client-order-ids');
-        params = this.omit(params, ['clientOrderIds', 'client-order-ids']);
+        const paramsOmitted = this.omit(params, ['clientOrderIds', 'client-order-ids']);
         const request = {};
         if (clientOrderIds === undefined) {
             request['order-ids'] = ids;
@@ -1686,7 +1693,7 @@ export default class bittrade extends Exchange {
         else {
             request['client-order-ids'] = clientOrderIds;
         }
-        const response = await this.privatePostOrderOrdersBatchcancel(this.extend(request, params));
+        const response = await this.privatePostOrderOrdersBatchcancel(this.extend(request, paramsOmitted));
         //
         //     {
         //         "status": "ok",
@@ -1833,10 +1840,10 @@ export default class bittrade extends Exchange {
         const address = this.safeString(depositAddress, 'address');
         const tag = this.safeString(depositAddress, 'addressTag');
         const currencyId = this.safeString(depositAddress, 'currency');
-        currency = this.safeCurrency(currencyId, currency);
-        const code = this.safeCurrencyCode(currencyId, currency);
+        const currencyResolved = this.safeCurrency(currencyId, currency);
+        const code = this.safeCurrencyCode(currencyId, currencyResolved);
         const networkId = this.safeString(depositAddress, 'chain');
-        const networks = this.safeDict(currency, 'networks', {});
+        const networks = this.safeDict(currencyResolved, 'networks', {});
         const networksById = this.indexBy(networks, 'id');
         const networkValue = this.safeValue(networksById, networkId, networkId);
         const network = this.safeString(networkValue, 'network');
@@ -1860,8 +1867,9 @@ export default class bittrade extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
+        let limitResolved = limit;
         if (limit === undefined || limit > 100) {
-            limit = 100;
+            limitResolved = 100;
         }
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -1877,13 +1885,13 @@ export default class bittrade extends Exchange {
         if (currency !== undefined) {
             request['currency'] = currency['id'];
         }
-        if (limit !== undefined) {
-            request['size'] = limit; // max 100
+        if (limitResolved !== undefined) {
+            request['size'] = limitResolved; // max 100
         }
         const response = await this.privateGetQueryDepositWithdraw(this.extend(request, params));
         // return response
         const data = this.safeList(response, 'data', []);
-        return this.parseTransactions(data, currency, since, limit);
+        return this.parseTransactions(data, currency, since, limitResolved);
     }
     /**
      * @method
@@ -1896,8 +1904,9 @@ export default class bittrade extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
+        let limitResolved = limit;
         if (limit === undefined || limit > 100) {
-            limit = 100;
+            limitResolved = 100;
         }
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -1913,13 +1922,13 @@ export default class bittrade extends Exchange {
         if (currency !== undefined) {
             request['currency'] = currency['id'];
         }
-        if (limit !== undefined) {
-            request['size'] = limit; // max 100
+        if (limitResolved !== undefined) {
+            request['size'] = limitResolved; // max 100
         }
         const response = await this.privateGetQueryDepositWithdraw(this.extend(request, params));
         // return response
         const data = this.safeList(response, 'data', []);
-        return this.parseTransactions(data, currency, since, limit);
+        return this.parseTransactions(data, currency, since, limitResolved);
     }
     parseTransaction(transaction, currency = undefined) {
         //
@@ -1980,7 +1989,7 @@ export default class bittrade extends Exchange {
             'txid': this.safeString(transaction, 'tx-hash'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'network': this.safeStringUpper(transaction, 'chain'),
+            'network': this.networkIdToCode(this.safeStringUpper(transaction, 'chain'), code),
             'address': this.safeString(transaction, 'address'),
             'addressTo': undefined,
             'addressFrom': undefined,
@@ -2031,27 +2040,30 @@ export default class bittrade extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
+    async withdraw(code, amount, address, params = {}) {
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        this.checkAddress(address);
+        this.checkAddress(address, code, tagWithdrawTag);
         const currency = this.currency(code);
         const request = {
             'address': address, // only supports existing addresses in your withdraw address list
             'amount': amount,
             'currency': currency['id'].toLowerCase(),
         };
-        if (tag !== undefined) {
-            request['addr-tag'] = tag; // only for XRP?
+        if (tagWithdrawTag !== undefined) {
+            request['addr-tag'] = tagWithdrawTag; // only for XRP?
         }
         const networks = this.safeDict(this.options, 'networks', {});
-        let network = this.safeStringUpper(params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        let network = this.safeStringUpper(paramsWithdrawTag, 'network');
+        if (network !== undefined) {
+            network = this.safeString(this.networkAliases, network, network); // accepts aliases like ETH for ERC20
+        }
         network = this.safeStringLower(networks, network, network); // handle ETH>ERC20 alias
         if (network !== undefined) {
             // possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
@@ -2061,9 +2073,9 @@ export default class bittrade extends Exchange {
             else {
                 request['chain'] = network + currency['id'];
             }
-            params = this.omit(params, 'network');
         }
-        const response = await this.privatePostDwWithdrawApiCreate(this.extend(request, params));
+        const paramsNetwork = (network !== undefined) ? this.omit(paramsWithdrawTag, 'network') : paramsWithdrawTag;
+        const response = await this.privatePostDwWithdrawApiCreate(this.extend(request, paramsNetwork));
         //
         //     {
         //         "status": "ok",
@@ -2072,20 +2084,23 @@ export default class bittrade extends Exchange {
         //
         return this.parseTransaction(response, currency);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        let requestHeaders = undefined;
+        let requestBody = undefined;
         let url = '/';
-        if (api === 'market') {
-            url += api;
+        if (apiName === 'market') {
+            url += 'market';
         }
-        else if ((api === 'public') || (api === 'private')) {
+        else if ((apiName === 'public') || (apiName === 'private')) {
             url += this.version;
         }
-        else if ((api === 'v2Public') || (api === 'v2Private')) {
+        else if ((apiName === 'v2Public') || (apiName === 'v2Private')) {
             url += 'v2';
         }
         url += '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
-        if (api === 'private' || api === 'v2Private') {
+        if (apiName === 'private' || apiName === 'v2Private') {
             this.checkRequiredCredentials();
             const timestamp = this.ymdhms(this.milliseconds(), 'T');
             let request = {
@@ -2107,13 +2122,13 @@ export default class bittrade extends Exchange {
             auth += '&' + this.urlencode({ 'Signature': signature });
             url += '?' + auth;
             if (method === 'POST') {
-                body = this.json(query);
-                headers = {
+                requestBody = this.json(query);
+                requestHeaders = {
                     'Content-Type': 'application/json',
                 };
             }
             else {
-                headers = {
+                requestHeaders = {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 };
             }
@@ -2123,10 +2138,16 @@ export default class bittrade extends Exchange {
                 url += '?' + this.urlencode(params);
             }
         }
-        url = this.implodeParams(this.urls['api'][api], {
+        const baseApiUrl = this.safeString(this.urls['api'], apiName);
+        if (baseApiUrl === undefined) {
+            throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        url = this.implodeParams(baseApiUrl, {
             'hostname': this.hostname,
         }) + url;
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const headersResult = requestHeaders;
+        const bodyResult = requestBody;
+        return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

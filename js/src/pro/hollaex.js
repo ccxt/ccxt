@@ -118,8 +118,10 @@ export default class hollaex extends hollaexRest {
             }
             orderbook.reset(snapshot);
         }
-        const messageHash = channel + ':' + marketId;
-        client.resolve(orderbook, messageHash);
+        if (channel !== undefined) {
+            const messageHash = channel + ':' + marketId;
+            client.resolve(orderbook, messageHash);
+        }
     }
     /**
      * @method
@@ -137,13 +139,14 @@ export default class hollaex extends hollaexRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = market['symbol'];
         const messageHash = 'trade' + ':' + market['id'];
         const trades = await this.watchPublic(messageHash, params);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+            limitResolved = trades.getLimit(symbolValue, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
     }
     handleTrades(client, message) {
         //
@@ -176,8 +179,10 @@ export default class hollaex extends hollaexRest {
         for (let j = 0; j < parsedTrades.length; j++) {
             stored.append(parsedTrades[j]);
         }
-        const messageHash = channel + ':' + marketId;
-        client.resolve(stored, messageHash);
+        if (channel !== undefined) {
+            const messageHash = channel + ':' + marketId;
+            client.resolve(stored, messageHash);
+        }
         client.resolve(stored, channel);
     }
     /**
@@ -197,16 +202,18 @@ export default class hollaex extends hollaexRest {
         }
         let messageHash = 'usertrade';
         let market = undefined;
+        let symbolResolved = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            symbol = market['symbol'];
+            symbolResolved = this.safeString(market, 'symbol');
             messageHash += ':' + market['id'];
         }
         const trades = await this.watchPrivate(messageHash, params);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+            limitResolved = trades.getLimit(symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true);
     }
     handleMyTrades(client, message, subscription = undefined) {
         //
@@ -261,8 +268,10 @@ export default class hollaex extends hollaexRest {
         const keys = Object.keys(marketIds);
         for (let i = 0; i < keys.length; i++) {
             const marketId = keys[i];
-            const messageHash = channel + ':' + marketId;
-            client.resolve(this.myTrades, messageHash);
+            if (channel !== undefined) {
+                const messageHash = channel + ':' + marketId;
+                client.resolve(this.myTrades, messageHash);
+            }
         }
     }
     /**
@@ -282,16 +291,18 @@ export default class hollaex extends hollaexRest {
         }
         let messageHash = 'order';
         let market = undefined;
+        let symbolResolved = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            symbol = market['symbol'];
+            symbolResolved = this.safeString(market, 'symbol');
             messageHash += ':' + market['id'];
         }
         const orders = await this.watchPrivate(messageHash, params);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit(symbol, limit);
+            limitResolved = orders.getLimit(symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
     }
     handleOrder(client, message, subscription = undefined) {
         //
@@ -387,8 +398,10 @@ export default class hollaex extends hollaexRest {
         const keys = Object.keys(marketIds);
         for (let i = 0; i < keys.length; i++) {
             const marketId = keys[i];
-            const messageHash = channel + ':' + marketId;
-            client.resolve(this.orders, messageHash);
+            if (channel !== undefined) {
+                const messageHash = channel + ':' + marketId;
+                client.resolve(this.orders, messageHash);
+            }
         }
     }
     /**

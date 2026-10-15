@@ -1,6 +1,6 @@
 import { List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     publicGetConfConfig(params?: {}): Promise<List>;
     publicGetConfPubActionObject(params?: {}): Promise<List>;
     publicGetConfPubActionObjectDetail(params?: {}): Promise<List>;
@@ -145,7 +145,5 @@ interface Exchange {
     privatePostAuthWExtWalletsDepositsRequest(params?: {}): Promise<List>;
     privatePostAuthWExtWalletsWithdrawalsRequest(params?: {}): Promise<List>;
     privatePostAuthRExtWalletsTransfersFreeCount(params?: {}): Promise<List>;
-}
-declare abstract class Exchange extends _Exchange {
 }
 export default Exchange;

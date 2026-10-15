@@ -1,6 +1,7 @@
 import gateRest from '../gate.js';
 import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, Liquidation, OrderType, OrderSide, Num, Market, OrderRequest, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class gate extends gateRest {
     describe(): any;
     describeData(): any;
@@ -164,13 +165,13 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
+    unWatchOrderBook(symbol: string, params?: Dict): Promise<any>;
     handleOrderBookSubscription(client: Client, message: Dict, subscription?: Dict | undefined): void;
     handleNewSpotOrderBook(client: Client, message: Dict): void;
     handleOrderBook(client: Client, message: Dict): void;
     getCacheIndex(orderBook: any, cache: any): number;
     handleBidAsks(bookSide: any, bidAsks: any[]): void;
-    handleDelta(orderbook: any, delta: any): void;
+    handleBookDelta(orderbook: WsOrderBook, delta: any): void;
     /**
      * @method
      * @name gate#watchTicker
@@ -249,7 +250,7 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    unWatchTradesForSymbols(symbols: string[], params?: {}): Promise<any>;
+    unWatchTradesForSymbols(symbols: string[], params?: Dict): Promise<any>;
     /**
      * @method
      * @name gate#unWatchTrades
@@ -319,8 +320,8 @@ export default class gate extends gateRest {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
-    setPositionsCache(client: Client, type: any, symbols?: Strings): void;
-    loadPositionsSnapshot(client: Client, messageHash: string, type: any): Promise<void>;
+    setPositionsCache(client: Client, type: string, symbols?: Strings): void;
+    loadPositionsSnapshot(client: Client, messageHash: string, type: string): Promise<void>;
     handlePositions(client: Client, message: Dict): void;
     /**
      * @method
@@ -377,11 +378,11 @@ export default class gate extends gateRest {
     handleSubscriptionStatus(client: Client, message: Dict): void;
     handleUnSubscribe(client: Client, message: Dict): void;
     handleMessage(client: Client, message: any): void;
-    getUrlByMarket(market: any): any;
-    getTypeByMarket(market: Market): "futures" | "options" | "spot" | undefined;
+    getUrlByMarket(market: any): string;
+    getTypeByMarket(market: Market): Str;
     getUrlByMarketType(type: Str, isInverse?: Bool): Str;
-    getMarketTypeByUrl(url: string): any;
-    requestId(): any;
+    getMarketTypeByUrl(url: string): string;
+    requestId(): number;
     subscribePublic(url: Str, messageHash: string, payload: any[], channel: Str, params?: Dict, subscription?: Dict | undefined): Promise<any>;
     subscribePublicMultiple(url: Str, messageHashes: string[], payload: any[], channel: Str, params?: Dict): Promise<any>;
     unSubscribePublicMultiple(url: Str, topic: string, symbols: string[], messageHashes: string[], subMessageHashes: string[], payload: any, channel: Str, params?: Dict): Promise<any>;

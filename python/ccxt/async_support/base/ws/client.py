@@ -16,11 +16,16 @@ except ImportError:
 
 from asyncio import sleep, ensure_future, wait_for, TimeoutError, BaseEventLoop, Future as asyncioFuture
 from ccxt import Exchange, NetworkError, RequestTimeout
-from ccxt.async_support.base.ws.future import Future
+from ccxt.async_support.base.ws.future import Future, FutureWaiter
 from ccxt.async_support.base.ws.functions import gunzip, inflate, is_json_encoded_object
 from typing import Dict
 
 from aiohttp import WSMsgType
+try:
+    # aiohttp >= 3.14.4 charges a fixed overhead per queued message
+    from aiohttp._websocket.reader_py import MSG_SIZE_OVERHEAD
+except ImportError:
+    MSG_SIZE_OVERHEAD = 0
 
 
 class Client(object):
@@ -126,7 +131,7 @@ class Client(object):
             shared_future.reject(self.rejections[message_hash])
             del self.rejections[message_hash]
         # Return a per-caller future so cancelling one caller doesn't cancel others
-        waiter = Future()
+        waiter = FutureWaiter()
         def _remove_waiter(_):
             if waiter in shared_future._waiters:
                 shared_future._waiters.remove(waiter)
@@ -226,7 +231,7 @@ class Client(object):
                 size_delta = 0
                 while len(self.buffer) > 1:
                     message, size = self.buffer.popleft()
-                    size_delta += size
+                    size_delta += size + MSG_SIZE_OVERHEAD
                     self.handle_message(message)
                 # we must update the size of the last message inside WebSocketDataQueue
                 # self.receive() calls WebSocketDataQueue.read() that calls WebSocketDataQueue._read_from_buffer()

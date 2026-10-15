@@ -76,6 +76,16 @@ function helper_test_init_sandbox() {
     helper_test_sandbox_state($exchange4, true);
     $exchange4->set_sandbox_mode(false);
     helper_test_sandbox_state($exchange4, false);
+    //
+    // CASE C: passed 'sandbox' within userConfig
+    //
+    $opts['options']['sandbox'] = false;
+    // @ts-expect-error
+    $opts['sandbox'] = true;
+    $exchange5 = new \ccxt\async\Exchange($opts);
+    helper_test_sandbox_state($exchange5, true);
+    $exchange5->set_sandbox_mode(false);
+    helper_test_sandbox_state($exchange5, false);
 }
 
 
@@ -117,13 +127,6 @@ function helper_test_properties() {
     // options
     //
     assert($exchange->options !== null);
-    // const defaultNetworkCodeReplacements = [
-    //     { 'baseCoin': 'ETH', 'primary': 'ETH', 'secondary': 'ERC20' },
-    //     { 'baseCoin': 'CRO', 'primary': 'CRONOS', 'secondary': 'CRC20' },
-    //     { 'baseCoin': 'TRX', 'primary': 'TRX', 'secondary': 'TRC20' },
-    //     { 'baseCoin': 'BTC', 'primary': 'BTC', 'secondary': 'BRC20' },
-    // ];
-    // testSharedMethods.assertDeepEqual (exchange, {}, 'options', exchange.options['defaultNetworkCodeReplacements'], defaultNetworkCodeReplacements);
     //
     // credentials
     //

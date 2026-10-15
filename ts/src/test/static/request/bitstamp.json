@@ -363,7 +363,7 @@
                     "USDT",
                     1,
                     "main",
-                    93482781
+                    "93482781"
                 ],
                 "output": "amount=1&currency=USDT&subAccount=93482781"
             }

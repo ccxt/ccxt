@@ -8,28 +8,86 @@
 import { Dict, List } from '../../base/types.js';
 import { default as _Exchange } from '../../base/PredictionExchange.js';
 
-interface Exchange {
-    opinionPublicGetMarket (params?: {}): Promise<Dict | List>;
-    opinionPublicGetMarketMarketId (params?: {}): Promise<Dict | List>;
-    opinionPublicGetMarketCategoricalMarketId (params?: {}): Promise<Dict | List>;
-    opinionPublicGetMarketSlugSlug (params?: {}): Promise<Dict | List>;
-    opinionPublicGetLabel (params?: {}): Promise<Dict | List>;
-    opinionPublicGetTokenLatestPrice (params?: {}): Promise<Dict | List>;
-    opinionPublicGetTokenOrderbook (params?: {}): Promise<Dict | List>;
-    opinionPublicGetTokenPriceHistory (params?: {}): Promise<Dict | List>;
-    opinionPublicGetQuoteToken (params?: {}): Promise<Dict | List>;
-    opinionPrivateGetOrder (params?: {}): Promise<Dict | List>;
-    opinionPrivateGetOrderOrderId (params?: {}): Promise<Dict | List>;
-    opinionPrivateGetPositionsUserWalletAddress (params?: {}): Promise<Dict | List>;
-    opinionPrivateGetTradeUserWalletAddress (params?: {}): Promise<Dict | List>;
-    opinionPrivateGetAuthApiKey (params?: {}): Promise<Dict | List>;
-    opinionPrivateGetUserAuth (params?: {}): Promise<Dict | List>;
-    opinionPrivateGetUserBalance (params?: {}): Promise<Dict | List>;
-    opinionPrivatePostAuthApiKey (params?: {}): Promise<Dict | List>;
-    opinionPrivatePostOrder (params?: {}): Promise<Dict | List>;
-    opinionPrivatePostOrderCancel (params?: {}): Promise<Dict | List>;
-    opinionPrivateDeleteAuthApiKey (params?: {}): Promise<Dict | List>;
-}
-abstract class Exchange extends _Exchange {}
+abstract class Exchange extends _Exchange {
+    opinionPublicGetMarket (params = {}): Promise<Dict> {
+        return this.request ('market', [ 'opinion', 'public' ], 'GET', params, { 'cost': 1 });
+    }
 
-export default Exchange
+    opinionPublicGetMarketMarketId (params = {}): Promise<Dict> {
+        return this.request ('market/{marketId}', [ 'opinion', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    opinionPublicGetMarketCategoricalMarketId (params = {}): Promise<Dict> {
+        return this.request ('market/categorical/{marketId}', [ 'opinion', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    opinionPublicGetMarketSlugSlug (params = {}): Promise<Dict> {
+        return this.request ('market/slug/{slug}', [ 'opinion', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    opinionPublicGetLabel (params = {}): Promise<Dict | List> {
+        return this.request ('label', [ 'opinion', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    opinionPublicGetTokenLatestPrice (params = {}): Promise<Dict> {
+        return this.request ('token/latest-price', [ 'opinion', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    opinionPublicGetTokenOrderbook (params = {}): Promise<Dict> {
+        return this.request ('token/orderbook', [ 'opinion', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    opinionPublicGetTokenPriceHistory (params = {}): Promise<Dict> {
+        return this.request ('token/price-history', [ 'opinion', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    opinionPublicGetQuoteToken (params = {}): Promise<Dict> {
+        return this.request ('quoteToken', [ 'opinion', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    opinionPrivateGetOrder (params = {}): Promise<Dict> {
+        return this.request ('order', [ 'opinion', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    opinionPrivateGetOrderOrderId (params = {}): Promise<Dict> {
+        return this.request ('order/{orderId}', [ 'opinion', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    opinionPrivateGetPositionsUserWalletAddress (params = {}): Promise<Dict> {
+        return this.request ('positions/user/{walletAddress}', [ 'opinion', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    opinionPrivateGetTradeUserWalletAddress (params = {}): Promise<Dict> {
+        return this.request ('trade/user/{walletAddress}', [ 'opinion', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    opinionPrivateGetAuthApiKey (params = {}): Promise<Dict> {
+        return this.request ('auth/api-key', [ 'opinion', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    opinionPrivateGetUserAuth (params = {}): Promise<Dict> {
+        return this.request ('user/auth', [ 'opinion', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    opinionPrivateGetUserBalance (params = {}): Promise<Dict> {
+        return this.request ('user/balance', [ 'opinion', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    opinionPrivatePostAuthApiKey (params = {}): Promise<Dict> {
+        return this.request ('auth/api-key', [ 'opinion', 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    opinionPrivatePostOrder (params = {}): Promise<Dict> {
+        return this.request ('order', [ 'opinion', 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    opinionPrivatePostOrderCancel (params = {}): Promise<Dict> {
+        return this.request ('order/cancel', [ 'opinion', 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    opinionPrivateDeleteAuthApiKey (params = {}): Promise<Dict> {
+        return this.request ('auth/api-key', [ 'opinion', 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+}
+
+export default Exchange;

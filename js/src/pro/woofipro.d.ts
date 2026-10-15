@@ -114,7 +114,7 @@ export default class woofipro extends woofiproRest {
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     parseWsOrder(order: Dict, market?: Market): Order;
     handleOrderUpdate(client: Client, message: Dict): void;
-    handleOrder(client: Client, message: Dict, topic: any): void;
+    handleOrder(client: Client, message: Dict, topic: Str): void;
     handleMyTrade(client: Client, message: Dict): void;
     /**
      * @method

@@ -172,7 +172,7 @@
                         "markPrice": null,
                         "lastPrice": 0.08105,
                         "collateral": null,
-                        "marginType": "cross",
+                        "marginMode": "cross",
                         "side": "long",
                         "percentage": null
                     },
@@ -218,7 +218,7 @@
                         "markPrice": null,
                         "lastPrice": 0.08085,
                         "collateral": null,
-                        "marginType": "cross",
+                        "marginMode": "cross",
                         "side": "long",
                         "percentage": null
                     },
@@ -264,7 +264,7 @@
                         "markPrice": null,
                         "lastPrice": 0.070914,
                         "collateral": null,
-                        "marginType": "cross",
+                        "marginMode": "cross",
                         "side": "long",
                         "percentage": null
                     },
@@ -310,7 +310,7 @@
                         "markPrice": null,
                         "lastPrice": 0.070956,
                         "collateral": null,
-                        "marginType": "cross",
+                        "marginMode": "cross",
                         "side": "long",
                         "percentage": null
                     }
@@ -423,7 +423,7 @@
                         "markPrice": null,
                         "lastPrice": 0.08105,
                         "collateral": null,
-                        "marginType": "cross",
+                        "marginMode": "cross",
                         "side": "long",
                         "percentage": null
                     },
@@ -469,7 +469,7 @@
                         "markPrice": null,
                         "lastPrice": 0.070914,
                         "collateral": null,
-                        "marginType": "cross",
+                        "marginMode": "cross",
                         "side": "long",
                         "percentage": null
                     }
@@ -1517,7 +1517,7 @@
                         "markPrice": null,
                         "lastPrice": null,
                         "collateral": null,
-                        "marginType": "cross",
+                        "marginMode": "cross",
                         "side": "long",
                         "percentage": null
                     }
@@ -1577,7 +1577,7 @@
                         "markPrice": null,
                         "lastPrice": null,
                         "collateral": null,
-                        "marginType": "isolated",
+                        "marginMode": "isolated",
                         "side": "long",
                         "percentage": null
                     }

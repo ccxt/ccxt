@@ -108,6 +108,10 @@ func (this *BaseExchange) GetMarkets() *sync.Map {
 	return this.Markets
 }
 
+func (this *BaseExchange) GetNetworkAliases() map[string]any {
+	return this.NetworkAliases
+}
+
 func (this *BaseExchange) SetPrivateKey(privateKey any) {
 	privateKey = derefScalar(privateKey) // generated callers may pass typed pointers; a typed nil is an absent value
 	if privateKey == nil {

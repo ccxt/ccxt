@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var gate = require('./gate.js');
+var gateeu$1 = require('./abstract/gateeu.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class gateeu extends gate["default"] {
+class gateeu extends gateeu$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'gateeu',

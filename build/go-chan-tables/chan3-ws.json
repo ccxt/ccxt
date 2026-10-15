@@ -1,0 +1,4 @@
+{
+  "WatchOrderBook": "OrderBookInterface",
+  "WatchOrderBookForSymbols": "OrderBookInterface"
+}

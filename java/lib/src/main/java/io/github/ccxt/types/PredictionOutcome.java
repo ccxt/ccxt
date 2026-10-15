@@ -23,6 +23,8 @@ public final class PredictionOutcome extends TypedMap {
     public Boolean winner;        // resolved true (the settleFraction == 1 case)
     public Double settleFraction; // 0..1 fractional settlement
     public Precision precision;   // outcome-level price/amount precision
+    public String id;
+    public Boolean negRisk;
     public Map<String, Object> info;
 
     public PredictionOutcome(Object raw) {
@@ -42,6 +44,8 @@ public final class PredictionOutcome extends TypedMap {
         this.settleFraction = TypeHelper.safeFloat(data, "settleFraction");
         Object precisionRaw = TypeHelper.safeValue(data, "precision");
         this.precision = precisionRaw != null ? new Precision(precisionRaw) : null;
+        this.id = TypeHelper.safeString(data, "id");
+        this.negRisk = TypeHelper.safeBool(data, "negRisk");
         this.info = TypeHelper.getInfo(data);
     }
 }

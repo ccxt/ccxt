@@ -4,6 +4,9 @@
 # Emits, for every struct family named by the table:
 #   ToX(object) / ToXList(object)     - untyped dict  -> typed struct
 #   FromX(object) / FromXList(object) - typed struct  -> untyped dict (pass-through when not an X)
+#   FromX(X) / FromXList(List<X>)     - the same conversion for the funnel call sites, whose
+#     argument IS the struct, so the pass-through arm is unreachable and the static type of the
+#     call is the box the object overload builds (read back by build/csharp-local-types.js)
 #
 # The From* helpers are derived by parsing the struct constructors in
 # cs/ccxt/base/Exchange.Types.cs and cs/ccxt/base/PredictionTypes.cs, so the
@@ -57,14 +60,12 @@ NEST_CK = re.compile(ASSIGN + r'(?P<v>\w+)\.ContainsKey\("(?P<k>[^"]+)"\) \? new
 NEST_SV = re.compile(ASSIGN + r'Exchange\.SafeValue\(\w+, "(?P<k>[^"]+)"\) != null \? new (?P<t>\w+)\(Exchange\.SafeValue\(\w+, "(?P=k)"\)\) : null;$')
 NEST_AS = re.compile(ASSIGN + r'\((?P<v>\w+) as IDictionary<string, object>\)\.ContainsKey\("(?P<k>[^"]+)"\) \? new (?P<t>\w+)\(\((?P=v) as IDictionary<string, object>\)\["(?P=k)"\]\) : null;$')
 LIST_ST = re.compile(ASSIGN + r'(?P<v>\w+)\.ContainsKey\("(?P<k>[^"]+)"\)(?: && (?P=v)\["(?P=k)"\] != null)? \? \(\(IEnumerable<object>\)(?P=v)\["(?P=k)"\]\)\.Select\(x => new (?P<t>\w+)\(x\)\)(?:\.ToList\(\))? : null;$')
+LIST_SV = re.compile(ASSIGN + r'Exchange\.SafeValue\(\w+, "(?P<k>[^"]+)"\) != null \? \(\(IEnumerable<object>\)Exchange\.SafeValue\(\w+, "(?P=k)"\)\)\.Select\(x => new (?P<t>\w+)\(x\)\)\.ToList\(\) : null;$')
 LIST_STR = re.compile(ASSIGN + r'(?P<v>\w+)\.ContainsKey\("(?P<k>[^"]+)"\)(?: && (?P=v)\["(?P=k)"\] != null)? \? \(\(IEnumerable<object>\)(?P=v)\["(?P=k)"\]\)\.Select\(x => \(string\)x\)\.ToList\(\) : null;$')
 ALIAS = re.compile(r'^var \w+ = \(I?Dictionary<string, object>\)\w+;$')
 # safeOrder()/safeTrade() attach a `fees` list next to `fee`; Helper.GetFees returns null
 # when the source has no `fees` key, so it inverts exactly like a struct list.
 FEES = re.compile(ASSIGN + r'Helper\.GetFees\(\w+\);$')
-# `extra = Helper.GetExtra(src, <Struct>Keys);` holds every source key with no struct
-# field, so writing the bag back restores venue-only keys the struct cannot name.
-EXTRA = re.compile(ASSIGN + r'Helper\.GetExtra\(\w+, \w+\);$')
 DECL = re.compile(r'^\s*public (?P<type>[\w\.<>,\? ]+?) (?P<name>@?\w+);\s*$')
 
 structs = {}   # name -> {'fields': [...], 'decls': {name: type}, 'error': str|None}
@@ -214,9 +215,6 @@ def parse_struct(name, body, ctor_param):
         m = INFO.match(line)
         if m:
             fields.append(('info', m.group('f'), 'info', None)); continue
-        m = EXTRA.match(line)
-        if m:
-            fields.append(('extra', m.group('f'), None, None)); continue
         m = FEES.match(line)
         if m:
             fields.append(('structlist', m.group('f'), 'fees', 'Fee')); continue
@@ -226,7 +224,7 @@ def parse_struct(name, body, ctor_param):
         m = LIST_STR.match(line)
         if m:
             fields.append(('strlist', m.group('f'), m.group('k'), None)); continue
-        m = LIST_ST.match(line)
+        m = LIST_ST.match(line) or LIST_SV.match(line)
         if m:
             fields.append(('structlist', m.group('f'), m.group('k'), m.group('t'))); continue
         return None, 'unsupported constructor line: %s' % line
@@ -314,6 +312,39 @@ def nullable(decl):
         return True
     return not re.match(r'^(bool|double|float|int|long|Int64|Int32|decimal)$', decl)
 
+def typed_from_box(info):
+    """The box `From<t>(object)` builds on its MATCHING path — the return type the typed
+    overload `From<t>(<t> value)` carries. A family whose matching path returns a box this
+    generator cannot name (a `wholeinfo` family whose struct field is not a plain dictionary)
+    keeps its object-only funnel, so no overload is emitted for it."""
+    whole = [f for f in info['fields'] if f[0] == 'wholeinfo']
+    if whole:
+        decl = info['decls'].get(whole[0][1], '').strip()
+        return decl if decl == 'Dictionary<string, object>' else None
+    return 'Dictionary<string, object>'
+
+def emit_typed_from(out, t, box):
+    """The typed value overload. `From<t>(<t> value)` cannot reach the object overload's
+    pass-through arm — <t> is a struct here, so `value is <t>` is always true — and its only
+    other arm builds exactly `box`, so the delegate's cast is an identity. The caller that
+    reads the funnel's static type is build/csharp-local-types.js#typedCoreFunnelType."""
+    if box is None:
+        return
+    out.append('    public static %s From%s(%s value)' % (box, t, t))
+    out.append('    {')
+    out.append('        return (%s)From%s((object)value);' % (box, t))
+    out.append('    }')
+    out.append('')
+
+def emit_typed_from_list(out, t):
+    """The typed list overload: null passes through as null (the object overload's null arm),
+    a non-null List of the family always takes the rebox arm, which builds a List<object>."""
+    out.append('    public static List<object> From%sList(List<%s> values)' % (t, t))
+    out.append('    {')
+    out.append('        return (List<object>)From%sList((object)values);' % t)
+    out.append('    }')
+    out.append('')
+
 # ---------------------------------------------- mandatory keys from types.ts
 # A key declared without `?` in ts/src/base/types.ts (Precision.amount, MinMax.min, ...)
 # is present in every other port even when its value is undefined: safeMarketStructure /
@@ -360,6 +391,11 @@ out.append('// The From* helpers are the reverse direction: they hand a typed st
 out.append('// untyped object pipeline (pagination, arrayConcat, filterBySinceLimit, sortBy) as the')
 out.append('// plain unified dictionary the struct was built from. They pass non-matching values')
 out.append('// through unchanged so they are safe to apply blindly.')
+out.append('// Every family also carries typed overloads (From<t>(<t>) / From<t>List(List<t>)): the')
+out.append('// funnel call sites hand them the struct itself, so the matching arm is the only reachable')
+out.append('// one (a struct is never null) and the overload returns the plain box above; a List<t>')
+out.append('// argument takes the rebox arm, null passes through. build/csharp-local-types.js reads')
+out.append('// these signatures back to declare the funnel locals, so both sides cannot drift.')
 out.append('// This file is generated by build/generateTypedCoreHelpers.py — do not hand-edit.')
 out.append('public partial class BaseExchange')
 out.append('{')
@@ -409,6 +445,7 @@ for t in emit_from:
         out.append('    }')
         out.append('')
         helpers.append('From%s' % t)
+        emit_typed_from(out, t, typed_from_box(info))
         out.append('    public static object From%sList(object values)' % t)
         out.append('    {')
         out.append('        if (!(values is List<%s>))' % t)
@@ -425,6 +462,7 @@ for t in emit_from:
         out.append('    }')
         out.append('')
         helpers.append('From%sList' % t)
+        emit_typed_from_list(out, t)
         continue
     out.append('        var result = new Dictionary<string, object>();')
     for kind, fname, key, tname in info['fields']:
@@ -481,12 +519,6 @@ for t in emit_from:
                     '    %sTarget[entry.Key] = entry.Value;' % var,
                     '}',
                     'result["%s"] = %sTarget;' % (key, var)]
-        elif kind == 'extra':
-            # written last: restores source keys that map to no struct field
-            body = ['foreach (var pair in %s)' % access,
-                    '{',
-                    '    result[pair.Key] = pair.Value;',
-                    '}']
         else:
             raise Exception('unhandled kind ' + kind)
         if guard:
@@ -508,6 +540,7 @@ for t in emit_from:
     out.append('    }')
     out.append('')
     helpers.append('From%s' % t)
+    emit_typed_from(out, t, typed_from_box(info))
     out.append('    public static object From%sList(object values)' % t)
     out.append('    {')
     out.append('        if (!(values is List<%s>))' % t)
@@ -524,6 +557,7 @@ for t in emit_from:
     out.append('    }')
     out.append('')
     helpers.append('From%sList' % t)
+    emit_typed_from_list(out, t)
 
 # One runtime dispatcher for the reflective pipeline: callDynamically /
 # fetchPaginatedCall* / promiseAll erase the static type, so AwaitAsObject cannot know

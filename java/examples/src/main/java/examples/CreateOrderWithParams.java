@@ -19,7 +19,7 @@ public class CreateOrderWithParams {
             var params = new HashMap<String, Object>();
             params.put("clientOrderId", "myMarketOrder");
             params.put("postOnly", true); // add your custom params here
-            var order = exchange.createOrder("ETH/USDT", "market", "buy", 500.0, null, params);
+            var order = exchange.createOrder("ETH/USDT", "market", "buy", 500.0, null, params).join();
             System.out.println("here:::" + order.id);
         } catch (InsufficientFunds e) {
         }

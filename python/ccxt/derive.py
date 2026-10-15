@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.derive import ImplicitAPI
-from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, FundingHistory, Int, Market, Num, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, FundingRate, Trade, Transaction, FundingRateHistory
+from ccxt.base.types import Account, Balances, BorrowInterest, Currencies, Currency, CurrencyInterface, FundingHistory, Greeks, Int, Market, Num, Option, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, FundingRate, OpenInterest, Trade, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -14,6 +14,8 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.decimal_to_precision import TRUNCATE
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -25,7 +27,7 @@ class derive(Exchange, ImplicitAPI):
             'id': 'derive',
             'name': 'Derive',
             'countries': [],
-            'version': 'v1',
+            'version': 'v3',
             'rateLimit': 50,
             'certified': False,
             'pro': True,
@@ -52,16 +54,24 @@ class derive(Exchange, ImplicitAPI):
                 'createMarketSellOrderWithCost': False,
                 'createOrder': True,
                 'createOrders': False,
-                'createReduceOnlyOrder': False,
-                'createStopOrder': False,
-                'createTriggerOrder': False,
+                'createOrderWithTakeProfitAndStopLoss': False,
+                'createPostOnlyOrder': True,
+                'createReduceOnlyOrder': True,
+                'createStopLimitOrder': True,
+                'createStopLossOrder': True,
+                'createStopMarketOrder': False,
+                'createStopOrder': True,
+                'createTakeProfitOrder': True,
+                'createTrailingAmountOrder': False,
+                'createTrailingPercentOrder': False,
+                'createTriggerOrder': True,
                 'editOrder': True,
-                'fetchAccounts': False,
+                'fetchAccounts': True,
                 'fetchBalance': True,
-                'fetchBorrowInterest': False,
+                'fetchBorrowInterest': True,
                 'fetchBorrowRateHistories': False,
-                'fetchBorrowRateHistory': False,
-                'fetchCanceledAndClosedOrders': False,
+                'fetchBorrowRateHistory': True,
+                'fetchCanceledAndClosedOrders': True,
                 'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
                 'fetchCrossBorrowRate': False,
@@ -70,16 +80,17 @@ class derive(Exchange, ImplicitAPI):
                 'fetchDepositAddress': False,
                 'fetchDepositAddresses': False,
                 'fetchDeposits': True,
-                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFee': False,
                 'fetchDepositWithdrawFees': False,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
-                'fetchIndexOHLCV': False,
+                'fetchGreeks': True,
+                'fetchIndexOHLCV': True,
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
-                'fetchLedger': True,
+                'fetchLedger': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
                 'fetchLiquidations': False,
@@ -88,21 +99,24 @@ class derive(Exchange, ImplicitAPI):
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyLiquidations': False,
+                'fetchMySettlementHistory': True,
                 'fetchMyTrades': True,
-                'fetchOHLCV': False,
-                'fetchOpenInterest': False,
+                'fetchOHLCV': True,
+                'fetchOpenInterest': True,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenInterests': False,
                 'fetchOpenOrders': True,
-                'fetchOrder': False,
+                'fetchOption': True,
+                'fetchOrder': True,
                 'fetchOrderBook': False,
-                'fetchOrders': True,
+                'fetchOrders': False,
                 'fetchOrderTrades': True,
                 'fetchPosition': False,
                 'fetchPositionMode': False,
                 'fetchPositions': True,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
+                'fetchSettlementHistory': True,
                 'fetchTicker': True,
                 'fetchTickers': False,
                 'fetchTime': True,
@@ -110,7 +124,7 @@ class derive(Exchange, ImplicitAPI):
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
                 'fetchTransfer': False,
-                'fetchTransfers': False,
+                'fetchTransfers': True,
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
@@ -120,38 +134,112 @@ class derive(Exchange, ImplicitAPI):
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
-                'transfer': False,
-                'withdraw': False,
+                'transfer': True,
+                'withdraw': True,
             },
             'timeframes': {
-                '1m': '1m',
-                '3m': '3m',
-                '5m': '5m',
-                '15m': '15m',
-                '30m': '30m',
-                '1h': '1h',
-                '2h': '2h',
-                '4h': '4h',
-                '8h': '8h',
-                '12h': '12h',
-                '1d': '1d',
-                '3d': '3d',
-                '1w': '1w',
-                '1M': '1M',
+                '1m': '60',
+                '5m': '300',
+                '15m': '900',
+                '30m': '1800',
+                '1h': '3600',
+                '4h': '14400',
+                '8h': '28800',
+                '1d': '86400',
+                '1w': '604800',
+            },
+            'features': {
+                'default': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,
+                        'triggerPriceType': {
+                            'last': False,
+                            'mark': True,
+                            'index': False,
+                        },
+                        'triggerDirection': False,
+                        'stopLossPrice': True,
+                        'takeProfitPrice': True,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': False,
+                        'marketBuyRequiresPrice': True,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': None,
+                        'untilDays': None,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'trigger': True,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': None,
+                        'daysBackCanceled': None,
+                        'untilDays': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 5000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
             },
             'urls': {
                 'logo': 'https://github.com/user-attachments/assets/9e640700-c870-41f9-8907-fba58e120fed',
                 'api': {
-                    'public': 'https://api.lyra.finance/public',
-                    'private': 'https://api.lyra.finance/private',
+                    'public': 'https://api.derive.xyz/v3/public',
+                    'private': 'https://api.derive.xyz/v3/private',
                 },
                 'test': {
-                    'public': 'https://api-demo.lyra.finance/public',
-                    'private': 'https://api-demo.lyra.finance/private',
+                    'public': 'https://testnet.api.derive.xyz/v3/public',
+                    'private': 'https://testnet.api.derive.xyz/v3/private',
                 },
                 'www': 'https://www.derive.xyz/',
-                'doc': 'https://docs.derive.xyz/docs/',
-                'fees': 'https://docs.derive.xyz/reference/fees-1/',
+                'doc': 'https://docs.derive.xyz/',
+                'fees': 'https://docs.derive.xyz/integrators/trading/trading-fees',
                 'referral': 'https://www.derive.xyz/invite/3VB0B',
             },
             'api': {
@@ -160,98 +248,67 @@ class derive(Exchange, ImplicitAPI):
                         'get_all_currencies': {'cost': 1},
                     },
                     'post': {
-                        'build_register_session_key_tx': {'cost': 1},
-                        'register_session_key': {'cost': 1},
-                        'deregister_session_key': {'cost': 1},
+                        'decode_action': {'cost': 1},
                         'get_wallets_from_session_key': {'cost': 1},
-                        'login': {'cost': 1},
-                        'statistics': {'cost': 1},
-                        'all_statistics': {'cost': 1},
-                        'user_statistics': {'cost': 1},
-                        'all_user_statistics': {'cost': 1},
                         'get_all_currencies': {'cost': 1},
                         'get_currency': {'cost': 1},
-                        'get_asset': {'cost': 1},
-                        'get_assets': {'cost': 1},
+                        'get_risk_universes': {'cost': 1},
                         'get_instrument': {'cost': 1},
                         'get_all_instruments': {'cost': 1},
-                        'get_instruments': {'cost': 1},
+                        'get_all_live_instruments': {'cost': 1},
                         'get_ticker': {'cost': 1},
                         'get_tickers': {'cost': 1},
                         'get_latest_signed_feeds': {'cost': 1},
                         'get_option_settlement_prices': {'cost': 1},
-                        'get_spot_feed_history': {'cost': 1},
-                        'get_spot_feed_history_candles': {'cost': 1},
                         'get_index_chart_data': {'cost': 1},
                         'get_tradingview_chart_data': {'cost': 1},
                         'get_funding_rate_history': {'cost': 1},
                         'get_trade_history': {'cost': 1},
-                        'get_option_settlement_history': {'cost': 1},
                         'get_liquidation_history': {'cost': 1},
                         'get_interest_rate_history': {'cost': 1},
-                        'get_perp_impact_twap': {'cost': 1},
                         'get_transaction': {'cost': 1},
+                        'get_onchain_action_history': {'cost': 1},
+                        'get_pending_deposits': {'cost': 1},
+                        'register_deposit_address': {'cost': 1},
                         'get_margin': {'cost': 1},
                         'margin_watch': {'cost': 1},
                         'order_quote': {'cost': 1},
-                        'validate_invite_code': {'cost': 1},
-                        'get_points': {'cost': 1},
-                        'get_all_points': {'cost': 1},
-                        'get_points_leaderboard': {'cost': 1},
-                        'get_descendant_tree': {'cost': 1},
-                        'get_tree_roots': {'cost': 1},
-                        'get_swell_percent_points': {'cost': 1},
-                        'get_stdrv_snapshots': {'cost': 1},
-                        'get_vault_assets': {'cost': 1},
-                        'get_etherfi_effective_balances': {'cost': 1},
-                        'get_kelp_effective_balances': {'cost': 1},
-                        'get_bridge_balances': {'cost': 1},
-                        'get_ethena_participants': {'cost': 1},
-                        'get_vault_share': {'cost': 1},
-                        'get_vault_statistics': {'cost': 1},
-                        'get_vault_balances': {'cost': 1},
-                        'get_vault_pools': {'cost': 1},
-                        'get_vault_rates': {'cost': 1},
-                        'estimate_integrator_points': {'cost': 1},
-                        'create_subaccount_debug': {'cost': 1},
-                        'create_account_with_secret': {'cost': 1},
-                        'deposit_debug': {'cost': 1},
+                        'get_live_auctions': {'cost': 1},
+                        'start_auction': {'cost': 1},
+                        'get_vault': {'cost': 1},
+                        'get_vaults': {'cost': 1},
+                        'get_vault_action_history': {'cost': 1},
+                        'get_vault_performance_history': {'cost': 1},
+                        'set_socialization_feed_data': {'cost': 1},
                         'withdraw_debug': {'cost': 1},
                         'send_quote_debug': {'cost': 1},
                         'execute_quote_debug': {'cost': 1},
-                        'get_invite_code': {'cost': 1},
-                        'register_invite': {'cost': 1},
                         'get_all_referral_codes': {'cost': 1},
                         'get_referral_performance': {'cost': 1},
                         'get_time': {'cost': 1},
                         'get_live_incidents': {'cost': 1},
                         'get_maker_programs': {'cost': 1},
                         'get_maker_program_scores': {'cost': 1},
-                        'get_detailed_maker_snapshot_history': {'cost': 1},
-                        'getRateLimits': {'cost': 1},
                     },
                 },
                 'private': {
                     'post': {
                         'get_account': {'cost': 1},
-                        'create_subaccount': {'cost': 1},
                         'get_subaccount': {'cost': 1},
                         'get_subaccounts': {'cost': 1},
+                        'delete_subaccount': {'cost': 1},
                         'get_all_portfolios': {'cost': 1},
                         'change_subaccount_label': {'cost': 1},
-                        'get_notificationsv': {'cost': 1},
-                        'get_notifications': {'cost': 1},
-                        'update_notifications': {'cost': 1},
-                        'deposit': {'cost': 1},
                         'withdraw': {'cost': 1},
-                        'transfer_erc20': {'cost': 1},
-                        'transfer_position': {'cost': 1},
+                        'transfer_spot': {'cost': 1},
+                        'transfer_spot_external': {'cost': 1},
                         'transfer_positions': {'cost': 1},
+                        'reject_deposit_request': {'cost': 1},
+                        'update_whitelisted_recipients': {'cost': 1},
                         'order': {'cost': 1},
                         'replace': {'cost': 1},
                         'order_debug': {'cost': 1},
                         'get_order': {'cost': 1},
-                        'get_orders': {'cost': 1},
                         'get_open_orders': {'cost': 1},
                         'get_trigger_orders': {'cost': 1},
                         'get_algo_orders': {'cost': 1},
@@ -287,27 +344,32 @@ class derive(Exchange, ImplicitAPI):
                         'get_positions': {'cost': 1},
                         'get_option_settlement_history': {'cost': 1},
                         'get_subaccount_value_history': {'cost': 1},
-                        'expired_and_cancelled_history': {'cost': 1},
                         'get_funding_history': {'cost': 1},
                         'get_interest_history': {'cost': 1},
                         'get_erc20_transfer_history': {'cost': 1},
                         'get_liquidation_history': {'cost': 1},
                         'liquidate': {'cost': 1},
-                        'get_liquidator_history': {'cost': 1},
                         'session_keys': {'cost': 1},
+                        'set_session_key': {'cost': 1},
                         'edit_session_key': {'cost': 1},
-                        'change_session_key_label': {'cost': 1},
-                        'register_scoped_session_key': {'cost': 1},
                         'get_mmp_config': {'cost': 1},
                         'set_mmp_config': {'cost': 1},
                         'reset_mmp': {'cost': 1},
-                        'set_cancel_on_disconnect': {'cost': 1},
-                        'get_invite_code': {'cost': 1},
-                        'register_invite': {'cost': 1},
-                        'get_contact_info': {'cost': 1},
-                        'create_contact_info': {'cost': 1},
-                        'update_contact_info': {'cost': 1},
-                        'delete_contact_info': {'cost': 1},
+                        'create_vault': {'cost': 1},
+                        'update_vault_info': {'cost': 1},
+                        'mint_vault_shares': {'cost': 1},
+                        'burn_vault_shares': {'cost': 1},
+                        'force_burn': {'cost': 1},
+                        'request_vault_deposit': {'cost': 1},
+                        'request_vault_withdraw': {'cost': 1},
+                        'cancel_all_vault_requests': {'cost': 1},
+                        'get_vault_shares': {'cost': 1},
+                        'get_curated_vaults': {'cost': 1},
+                        'get_shareholder_vaults': {'cost': 1},
+                        'get_live_mint_requests': {'cost': 1},
+                        'get_live_burn_requests': {'cost': 1},
+                        'get_live_vault_requests': {'cost': 1},
+                        'get_vault_request_history': {'cost': 1},
                     },
                 },
             },
@@ -372,6 +434,7 @@ class derive(Exchange, ImplicitAPI):
                     '11026': BadRequest,  # Transfer reject
                     '11027': InvalidOrder,  # Subaccount undergoing liquidation
                     '11028': InvalidOrder,  # Replaced order filled amount does not match expected state.
+                    '11029': InvalidOrder,  # {"code":11029,"message":"Trade or transfer rejected: open interest cap would be exceeded","data":"open-interest cap exceeded for SpotBorrow on 0x... in universe 1: pre 0, post 2000000000, cap 0"}
                     '11050': InvalidOrder,  # Trigger order was cancelled between the time worker sent order and engine processed order
                     '11051': InvalidOrder,  # {"code":"11051","message":"Trigger price must be higher than the current price for stop orders and vice versa for take orders","data":"Trigger price 9000.0 must be < or > current price 102671.2 depending on trigger type and direction."}
                     '11052': InvalidOrder,  # Trigger order limit exceeded (separate limit from regular orders)
@@ -410,8 +473,8 @@ class derive(Exchange, ImplicitAPI):
                     '14017': BadRequest,  # The provided signed raw transaction contains contract address that does not match the expected contract address
                     '14018': BadRequest,  # The provided signed raw transaction contains function params that do not match any expected function params
                     '14019': BadRequest,  # The provided signed raw transaction contains function param values that do not match the expected values
-                    '14020': BadRequest,  # The X-LyraWallet header does not match the requested subaccount_id or wallet
-                    '14021': BadRequest,  # The X-LyraWallet header not provided
+                    '14020': BadRequest,  # The X-DeriveWallet header does not match the requested subaccount_id or wallet
+                    '14021': BadRequest,  # The X-DeriveWallet header not provided
                     '14022': AuthenticationError,  # Subscription to a private channel failed
                     '14023': InvalidOrder,  # {"code":"14023","message":"Signer in on-chain related request is not wallet owner or registered session key","data":"Session key does not belong to wallet"}
                     '14024': BadRequest,  # Chain ID must match the current roll up chain id
@@ -451,8 +514,12 @@ class derive(Exchange, ImplicitAPI):
             'commonCurrencies': {
             },
             'options': {
-                'deriveWalletAddress': '',  # a derive wallet address "0x"-prefixed hexstring
+                'deriveWalletAddress': '',  # the owner wallet "0x"-prefixed hexstring; defaults to the walletAddress credential (v3 has no separate derive wallet), override only when signing with a session key for another owner wallet
                 'id': '0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749',
+                'timeDifference': 0,  # the difference between system clock and exchange clock
+                'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
+                'maxMarketPages': 25,
+                'maxMarketsPerPage': 1000,
             },
         })
 
@@ -464,77 +531,124 @@ class derive(Exchange, ImplicitAPI):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
-        https://docs.derive.xyz/reference/post_public-get-time
+        https://docs.derive.xyz/api-reference/system/publicget_time
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
         response = self.publicPostGetTime(params)
         #
-        # {
-        #     "result": 1735846536758,
-        #     "id": "f1c03d21-f886-4c5a-9a9d-33dd06f180f0"
-        # }
+        #     {
+        #         "id": "8be9f582-7653-48b1-980a-6da11c130d58",
+        #         "result": 1790877292671
+        #     }
         #
         return self.safe_integer(response, 'result')
+
+    def fetch_accounts(self, params: dict = {}) -> list[Account]:
+        """
+        fetch all the subaccounts associated with the wallet
+
+        https://docs.derive.xyz/api-reference/subaccounts/privateget_subaccounts
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `account structures <https://docs.ccxt.com/?id=account-structure>`
+        """
+        deriveWalletAddress, paramsDeriveWalletAddress = self.handle_derive_wallet_address('fetchAccounts', params)
+        request = {
+            'wallet': deriveWalletAddress,
+        }
+        response = self.privatePostGetSubaccounts(self.extend(request, paramsDeriveWalletAddress))
+        #
+        #     {
+        #         "id": "1c314a3a-f7f5-47bd-998a-cea5dda11c30",
+        #         "result": {
+        #             "wallet": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        #             "subaccount_ids": [
+        #                 86814,
+        #                 86815,
+        #                 86820
+        #             ]
+        #         }
+        #     }
+        #
+        result = self.safe_dict(response, 'result', {})
+        subaccountIds = self.safe_list(result, 'subaccount_ids', [])
+        accounts = []
+        for i in range(0, len(subaccountIds)):
+            subaccountId = self.safe_string(subaccountIds, i)
+            accounts.append({
+                'id': subaccountId,
+                'type': None,
+                'code': None,
+                'info': result,
+            })
+        return accounts
 
     def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
         fetches all available currencies on an exchange
 
-        https://docs.derive.xyz/reference/post_public-get-all-currencies
+        https://docs.derive.xyz/api-reference/market-data/publicget_all_currencies
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
         tokenResponse = self.publicGetGetAllCurrencies(params)
         #
-        #    {
-        #        "result": [
-        #            {
-        #                "currency": "SEI",
-        #                "instrument_types": [
-        #                    "perp"
-        #                ],
-        #                "protocol_asset_addresses": {
-        #                    "perp": "0x7225889B75fd34C68eA3098dAE04D50553C09840",
-        #                    "option": null,
-        #                    "spot": null,
-        #                    "underlying_erc20": null
-        #                },
-        #                "managers": [
-        #                    {
-        #                        "address": "0x28c9ddF9A3B29c2E6a561c1BC520954e5A33de5D",
-        #                        "margin_type": "SM",
-        #                        "currency": null
-        #                    }
-        #                ],
-        #                "srm_im_discount": "0",
-        #                "srm_mm_discount": "0",
-        #                "pm2_collateral_discounts": [],
-        #                "borrow_apy": "0",
-        #                "supply_apy": "0",
-        #                "total_borrow": "0",
-        #                "total_supply": "0",
-        #                "asset_cap_and_supply_per_manager": {
-        #                    "perp": {
-        #                        "SM": [
-        #                            {
-        #                                "current_open_interest": "0",
-        #                                "interest_cap": "2000000",
-        #                                "manager_currency": null
-        #                            }
-        #                        ]
-        #                    },
-        #                    "option": {},
-        #                    "erc20": {}
-        #                },
-        #                "market_type": "SRM_PERP_ONLY",
-        #                "spot_price": "0.2193542905042081",
-        #                "spot_price_24h": "0.238381655533635830"
-        #            },
-        #     "id": "7e07fe1d-0ab4-4d2b-9e22-b65ce9e232dc"
-        # }
+        #     {
+        #         "id": "b343bc1c-8417-485f-9022-e18787909856",
+        #         "result": [
+        #             {
+        #                 "currency": "BTC",
+        #                 "market_type": "ALL",
+        #                 "spot_price": "84829.66932265963",
+        #                 "spot_price_24h": "83566.69063592498",
+        #                 "managers": [
+        #                     {
+        #                         "risk_universe_id": 1,
+        #                         "risk_universe_name": "PRIME",
+        #                         "sm": 1,
+        #                         "pm": 5
+        #                     }
+        #                 ],
+        #                 "option": {
+        #                     "name": "BTC-OPTION",
+        #                     "address": "0xd0711b9eBE84b778483709CDe62BacFDBAE13623",
+        #                     "universes": [
+        #                         {
+        #                             "risk_universe_id": 1,
+        #                             "risk_universe_name": "PRIME",
+        #                             "oi": {
+        #                                 "current_open_interest": "6495.655320644765",
+        #                                 "interest_cap": "300000"
+        #                             }
+        #                         }
+        #                     ]
+        #                 },
+        #                 "perp": {
+        #                     "name": "BTC-PERP",
+        #                     "address": "0xDBa83C0C654DB1cd914FA2710bA743e925B53086",
+        #                     "universes": [
+        #                         {
+        #                             "risk_universe_id": 1,
+        #                             "risk_universe_name": "PRIME",
+        #                             "oi": {
+        #                                 "current_open_interest": "291.309220426457",
+        #                                 "interest_cap": "36000"
+        #                             },
+        #                             "srm_perp_margin_requirements": {
+        #                                 "im_perp_req": "0.066",
+        #                                 "mm_perp_req": "0.05",
+        #                                 "max_leverage": "15.15"
+        #                             }
+        #                         }
+        #                     ]
+        #                 },
+        #                 "spot": []
+        #             }
+        #         ]
+        #     }
         #
         currencies = self.safe_list(tokenResponse, 'result', [])
         return self.parse_currencies(currencies)
@@ -567,61 +681,67 @@ class derive(Exchange, ImplicitAPI):
 
     def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
-        retrieves data on all markets for bybit
+        retrieves data on all markets for derive
 
-        https://docs.derive.xyz/reference/post_public-get-all-instruments
+        https://docs.derive.xyz/api-reference/market-data/publicget_all_instruments
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
+        if self.safe_bool(self.options, 'adjustForTimeDifference', False):
+            self.load_time_difference()
         spotMarketsPromise = self.fetch_spot_markets(params)
         swapMarketsPromise = self.fetch_swap_markets(params)
         optionMarketsPromise = self.fetch_option_markets(params)
         spotMarkets, swapMarkets, optionMarkets = [spotMarketsPromise, swapMarketsPromise, optionMarketsPromise]
         #
-        # {
-        #     "result": {
-        #         "instruments": [
-        #             {
-        #                 "instrument_type": "perp",
-        #                 "instrument_name": "BTC-PERP",
-        #                 "scheduled_activation": 1701840228,
-        #                 "scheduled_deactivation": 9223372036854776000,
-        #                 "is_active": true,
-        #                 "tick_size": "0.1",
-        #                 "minimum_amount": "0.01",
-        #                 "maximum_amount": "10000",
-        #                 "amount_step": "0.001",
-        #                 "mark_price_fee_rate_cap": "0",
-        #                 "maker_fee_rate": "0.00005",
-        #                 "taker_fee_rate": "0.0003",
-        #                 "base_fee": "0.1",
-        #                 "base_currency": "BTC",
-        #                 "quote_currency": "USD",
-        #                 "option_details": null,
-        #                 "perp_details": {
-        #                     "index": "BTC-USD",
-        #                     "max_rate_per_hour": "0.004",
-        #                     "min_rate_per_hour": "-0.004",
-        #                     "static_interest_rate": "0.0000125",
-        #                     "aggregate_funding": "10538.574363381759146829",
-        #                     "funding_rate": "0.0000125"
-        #                 },
-        #                 "erc20_details": null,
-        #                 "base_asset_address": "0xDBa83C0C654DB1cd914FA2710bA743e925B53086",
-        #                 "base_asset_sub_id": "0",
-        #                 "pro_rata_fraction": "0",
-        #                 "fifo_min_allocation": "0",
-        #                 "pro_rata_amount_step": "0.1"
+        #     {
+        #         "id": "dd959aa7-d878-45b8-926d-3a247376de90",
+        #         "result": {
+        #             "instruments": [
+        #                 {
+        #                     "instrument_type": "perp",
+        #                     "instrument_name": "ZEC-PERP",
+        #                     "scheduled_activation": 1780572941,
+        #                     "scheduled_deactivation": 9223372036854775807,
+        #                     "is_active": true,
+        #                     "tick_size": "0.01",
+        #                     "minimum_amount": "1",
+        #                     "maximum_amount": "100000",
+        #                     "amount_step": "0.01",
+        #                     "mark_price_fee_rate_cap": "0",
+        #                     "maker_fee_rate": "0.0001",
+        #                     "taker_fee_rate": "0.0003",
+        #                     "base_fee": "0.01",
+        #                     "base_currency": "ZEC",
+        #                     "quote_currency": "USDC",
+        #                     "option_details": null,
+        #                     "perp_details": {
+        #                         "index": "ZEC-USD",
+        #                         "max_rate_per_hour": "0.000456621005",
+        #                         "min_rate_per_hour": "-0.000456621005",
+        #                         "aggregate_funding": "26.08805211207",
+        #                         "funding_rate": "0",
+        #                         "srm_perp_margin_requirements": {
+        #                             "im_perp_req": "0.15",
+        #                             "mm_perp_req": "0.1",
+        #                             "max_leverage": "6.67"
+        #                         }
+        #                     },
+        #                     "erc20_details": null,
+        #                     "base_asset_address": "0x7bF0D72275246A434151693c0EBBD38937dFE23b",
+        #                     "base_asset_sub_id": "0",
+        #                     "pro_rata_fraction": "0",
+        #                     "fifo_min_allocation": "0",
+        #                     "pro_rata_amount_step": "1"
+        #                 }
+        #             ],
+        #             "pagination": {
+        #                 "num_pages": 15,
+        #                 "count": 15
         #             }
-        #         ],
-        #         "pagination": {
-        #             "num_pages": 1,
-        #             "count": 1
         #         }
-        #     },
-        #     "id": "a06bc0b2-8e78-4536-a21f-f785f225b5a5"
-        # }
+        #     }
         #
         result = self.array_concat(spotMarkets, swapMarkets)
         result = self.array_concat(result, optionMarkets)
@@ -632,30 +752,57 @@ class derive(Exchange, ImplicitAPI):
             'expired': False,
             'instrument_type': 'erc20',
         }
-        response = self.publicPostGetAllInstruments(self.extend(request, params))
-        result = self.safe_dict(response, 'result', {})
-        data = self.safe_list(result, 'instruments', [])
-        return self.parse_markets(data)
+        instruments = self.get_markets_paginated(request, params)
+        return self.parse_markets(instruments)
 
     def fetch_swap_markets(self, params: dict = {}) -> list[Market]:
         request = {
             'expired': False,
             'instrument_type': 'perp',
         }
-        response = self.publicPostGetAllInstruments(self.extend(request, params))
-        result = self.safe_dict(response, 'result', {})
-        data = self.safe_list(result, 'instruments', [])
-        return self.parse_markets(data)
+        instruments = self.get_markets_paginated(request, params)
+        return self.parse_markets(instruments)
 
     def fetch_option_markets(self, params: dict = {}) -> list[Market]:
         request = {
             'expired': False,
             'instrument_type': 'option',
         }
-        response = self.publicPostGetAllInstruments(self.extend(request, params))
-        result = self.safe_dict(response, 'result', {})
-        data = self.safe_list(result, 'instruments', [])
-        return self.parse_markets(data)
+        instruments = self.get_markets_paginated(request, params)
+        return self.parse_markets(instruments)
+
+    def get_markets_paginated(self, request: dict, params: dict = {}) -> list[dict]:
+        """
+ @ignore
+        fetches every page of public/get_all_instruments for the given filter and parses the instruments; v3 paginates the endpoint, options alone exceed 5000 entries
+        :param dict request: the base request with the instrument_type filter
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: an array of raw instrument entries
+        """
+        allInstruments = []
+        maxPages = 25
+        paramsOmitted = {}
+        maxPages, paramsOmitted = self.handle_option_and_params(params, 'getMarketsPaginated', 'maxMarketPages', maxPages)
+        pageSize = 1000
+        pageSize, paramsOmitted = self.handle_option_and_params(paramsOmitted, 'getMarketsPaginated', 'maxMarketsPerPage', pageSize)
+        page = 1
+        for i in range(0, maxPages):
+            requestExtension = {
+                'page': page,
+                'page_size': pageSize,
+            }
+            requestExtended = self.extend(self.extend(request, requestExtension), paramsOmitted)  # nested because the csharp base defines extend with two arguments only
+            response = self.publicPostGetAllInstruments(requestExtended)
+            result = self.safe_dict(response, 'result', {})
+            data = self.safe_list(result, 'instruments', [])
+            allInstruments = self.array_concat(allInstruments, data)
+            pagination = self.safe_dict(result, 'pagination', {})
+            totalCount = self.safe_integer(pagination, 'count', 0)  # not named count: that collides with the php builtin the length mapping expands to
+            collected = len(allInstruments)
+            if collected >= totalCount:
+                break
+            page += 1
+        return allInstruments
 
     def parse_market(self, market: dict) -> Market:
         type = self.safe_string(market, 'instrument_type')
@@ -670,6 +817,8 @@ class derive(Exchange, ImplicitAPI):
         quoteId = self.safe_string(market, 'quote_currency')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         marketId = self.safe_string(market, 'instrument_name')
         symbol = base + '/' + quote
         settleId = None
@@ -698,7 +847,7 @@ class derive(Exchange, ImplicitAPI):
             marketType = 'option'
             optionDetails = self.safe_dict(market, 'option_details')
             expiry = self.safe_timestamp(optionDetails, 'expiry')
-            strike = self.safe_integer(optionDetails, 'strike')
+            strike = self.safe_number(optionDetails, 'strike')  # strikes can be fractional, e.g. XRP-20261225-0_5-P is a 0.5 strike
             optionLetter = self.safe_string(optionDetails, 'option_type')
             symbol = base + '/' + quote + ':' + settle + '-' + self.yymmdd(expiry) + '-' + self.number_to_string(strike) + '-' + optionLetter
             if optionLetter == 'P':
@@ -765,7 +914,7 @@ class derive(Exchange, ImplicitAPI):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
-        https://docs.derive.xyz/reference/post_public-get-ticker
+        https://docs.derive.xyz/api-reference/market-data/publicget_ticker
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -779,151 +928,430 @@ class derive(Exchange, ImplicitAPI):
         }
         response = self.publicPostGetTicker(self.extend(request, params))
         #
-        # spot
-        #
-        # {
-        #     "result": {
-        #         "instrument_type": "perp",
-        #         "instrument_name": "BTC-PERP",
-        #         "scheduled_activation": 1701840228,
-        #         "scheduled_deactivation": 9223372036854776000,
-        #         "is_active": true,
-        #         "tick_size": "0.1",
-        #         "minimum_amount": "0.01",
-        #         "maximum_amount": "10000",
-        #         "amount_step": "0.001",
-        #         "mark_price_fee_rate_cap": "0",
-        #         "maker_fee_rate": "0.00005",
-        #         "taker_fee_rate": "0.0003",
-        #         "base_fee": "0.1",
-        #         "base_currency": "BTC",
-        #         "quote_currency": "USD",
-        #         "option_details": null,
-        #         "perp_details": {
-        #             "index": "BTC-USD",
-        #             "max_rate_per_hour": "0.004",
-        #             "min_rate_per_hour": "-0.004",
-        #             "static_interest_rate": "0.0000125",
-        #             "aggregate_funding": "10512.580833189805742522",
-        #             "funding_rate": "-0.000022223906766867"
-        #         },
-        #         "erc20_details": null,
-        #         "base_asset_address": "0xDBa83C0C654DB1cd914FA2710bA743e925B53086",
-        #         "base_asset_sub_id": "0",
-        #         "pro_rata_fraction": "0",
-        #         "fifo_min_allocation": "0",
-        #         "pro_rata_amount_step": "0.1",
-        #         "best_ask_amount": "0.012",
-        #         "best_ask_price": "99567.9",
-        #         "best_bid_amount": "0.129",
-        #         "best_bid_price": "99554.5",
-        #         "five_percent_bid_depth": "11.208",
-        #         "five_percent_ask_depth": "11.42",
-        #         "option_pricing": null,
-        #         "index_price": "99577.2",
-        #         "mark_price": "99543.642926357933902181684970855712890625",
-        #         "stats": {
-        #             "contract_volume": "464.712",
-        #             "num_trades": "10681",
-        #             "open_interest": "72.804739389481989861",
-        #             "high": "99519.1",
-        #             "low": "97254.1",
-        #             "percent_change": "0.0128",
-        #             "usd_change": "1258.1"
-        #         },
-        #         "timestamp": 1736140984000,
-        #         "min_price": "97591.2",
-        #         "max_price": "101535.1"
-        #     },
-        #     "id": "bbd7c271-c2be-48f7-b93a-26cf6d4cb79f"
-        # }
+        #     {
+        #         "id": "45bb6856-54b7-48da-a9c1-1c3ba964888b",
+        #         "result": {
+        #             "t": 1790867526668,
+        #             "A": "0",
+        #             "a": "0",
+        #             "B": "0",
+        #             "b": "0",
+        #             "f": "0.000012500",
+        #             "option_pricing": null,
+        #             "I": "83946.3",
+        #             "M": "83938.8",
+        #             "stats": {
+        #                 "c": "16.41",
+        #                 "v": "1377350.271",
+        #                 "pr": "1377095.872",
+        #                 "n": 98,
+        #                 "oi": "0",
+        #                 "h": "84282",
+        #                 "l": "83661.8",
+        #                 "p": "0"
+        #             },
+        #             "minp": "82293.1",
+        #             "maxp": "85617.6"
+        #         }
+        #     }
         #
         data = self.safe_dict(response, 'result', {})
         return self.parse_ticker(data, market)
 
-    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
+    def fetch_open_interest(self, symbol: str, params: dict = {}) -> OpenInterest:
+        """
+        retrieves the open interest of a contract market
+
+        https://docs.derive.xyz/api-reference/market-data/publicget_ticker
+
+        :param str symbol: unified symbol of the market to fetch the open interest for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `open interest structure <https://docs.ccxt.com/?id=open-interest-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        if market['contract'] is not True:
+            raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
+        request = {
+            'instrument_name': market['id'],
+        }
+        response = self.publicPostGetTicker(self.extend(request, params))
         #
-        # {
-        #     "instrument_type": "perp",
-        #     "instrument_name": "BTC-PERP",
-        #     "scheduled_activation": 1701840228,
-        #     "scheduled_deactivation": 9223372036854776000,
-        #     "is_active": true,
-        #     "tick_size": "0.1",
-        #     "minimum_amount": "0.01",
-        #     "maximum_amount": "10000",
-        #     "amount_step": "0.001",
-        #     "mark_price_fee_rate_cap": "0",
-        #     "maker_fee_rate": "0.00005",
-        #     "taker_fee_rate": "0.0003",
-        #     "base_fee": "0.1",
-        #     "base_currency": "BTC",
-        #     "quote_currency": "USD",
-        #     "option_details": null,
-        #     "perp_details": {
-        #         "index": "BTC-USD",
-        #         "max_rate_per_hour": "0.004",
-        #         "min_rate_per_hour": "-0.004",
-        #         "static_interest_rate": "0.0000125",
-        #         "aggregate_funding": "10512.580833189805742522",
-        #         "funding_rate": "-0.000022223906766867"
-        #     },
-        #     "erc20_details": null,
-        #     "base_asset_address": "0xDBa83C0C654DB1cd914FA2710bA743e925B53086",
-        #     "base_asset_sub_id": "0",
-        #     "pro_rata_fraction": "0",
-        #     "fifo_min_allocation": "0",
-        #     "pro_rata_amount_step": "0.1",
-        #     "best_ask_amount": "0.012",
-        #     "best_ask_price": "99567.9",
-        #     "best_bid_amount": "0.129",
-        #     "best_bid_price": "99554.5",
-        #     "five_percent_bid_depth": "11.208",
-        #     "five_percent_ask_depth": "11.42",
-        #     "option_pricing": null,
-        #     "index_price": "99577.2",
-        #     "mark_price": "99543.642926357933902181684970855712890625",
-        #     "stats": {
-        #         "contract_volume": "464.712",
-        #         "num_trades": "10681",
-        #         "open_interest": "72.804739389481989861",
-        #         "high": "99519.1",
-        #         "low": "97254.1",
-        #         "percent_change": "0.0128",
-        #         "usd_change": "1258.1"
-        #     },
-        #     "timestamp": 1736140984000,
-        #     "min_price": "97591.2",
-        #     "max_price": "101535.1"
-        # }
+        #     {
+        #         "id": "a24f964a-4c80-4389-950e-1f68b9bfb40f",
+        #         "result": {
+        #             "t": 1791026876172,
+        #             "A": "5",
+        #             "a": "84638.2",
+        #             "B": "5",
+        #             "b": "84634.2",
+        #             "f": "0.000012500",
+        #             "option_pricing": null,
+        #             "I": "84622",
+        #             "M": "84636.2",
+        #             "stats": {
+        #                 "c": "1.797",
+        #                 "v": "154163.312",
+        #                 "pr": "154178.972",
+        #                 "n": 93,
+        #                 "oi": "291.023",
+        #                 "h": "87151.3",
+        #                 "l": "84034.2",
+        #                 "p": "-0.021"
+        #             },
+        #             "minp": "82976.7",
+        #             "maxp": "86328.9"
+        #         }
+        #     }
         #
-        marketId = self.safe_string(ticker, 'instrument_name')
-        timestamp = self.safe_integer_omit_zero(ticker, 'timestamp')
-        symbol = self.safe_symbol(marketId, market)
-        stats = self.safe_dict(ticker, 'stats')
-        change = self.safe_string(stats, 'percent_change')
-        return self.safe_ticker({
-            'symbol': symbol,
+        result = self.safe_dict(response, 'result', {})
+        return self.parse_open_interest(result, market)
+
+    def parse_open_interest(self, interest: object, market: Market = None) -> OpenInterest:
+        timestamp = self.safe_integer(interest, 't')
+        stats = self.safe_dict(interest, 'stats', {})
+        amount = self.safe_string(stats, 'oi')
+        markPrice = self.safe_string(interest, 'M')
+        value = None
+        # for options the mark is the premium, a notional derived from it would be misleading, so only the contract amount is reported there
+        if (market is not None) and (market['option'] is not True):
+            value = Precise.string_mul(amount, markPrice)
+        return self.safe_open_interest({
+            'symbol': self.safe_symbol(None, market),
+            'openInterestAmount': self.parse_number(amount),
+            'openInterestValue': self.parse_number(value),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_string(stats, 'high'),
-            'low': self.safe_string(stats, 'low'),
-            'bid': self.safe_string(ticker, 'best_bid_price'),
-            'bidVolume': self.safe_string(ticker, 'best_bid_amount'),
-            'ask': self.safe_string(ticker, 'best_ask_price'),
-            'askVolume': self.safe_string(ticker, 'best_ask_amount'),
+            'info': interest,
+        }, market)
+
+    def fetch_greeks(self, symbol: str, params: dict = {}) -> Greeks:
+        """
+        fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+
+        https://docs.derive.xyz/api-reference/market-data/publicget_ticker
+
+        :param str symbol: unified symbol of the market to fetch greeks for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `greeks structure <https://docs.ccxt.com/?id=greeks-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        if market['option'] is not True:
+            raise BadRequest(self.id + ' fetchGreeks() supports option markets only')
+        request = {
+            'instrument_name': market['id'],
+        }
+        response = self.publicPostGetTicker(self.extend(request, params))
+        #
+        #     {
+        #         "id": "b9c8e59e-aa05-4517-8412-0a119f561cfb",
+        #         "result": {
+        #             "t": 1791031771524,
+        #             "A": "0",
+        #             "a": "0",
+        #             "B": "0",
+        #             "b": "0",
+        #             "f": null,
+        #             "option_pricing": {
+        #                 "d": "-0.43348",
+        #                 "t": "-18.65575",
+        #                 "g": "0.00001213",
+        #                 "v": "346.49060",
+        #                 "i": "0.38273",
+        #                 "r": "12976.52088",
+        #                 "f": "89232",
+        #                 "m": "13312",
+        #                 "df": "0.950",
+        #                 "bi": "0",
+        #                 "ai": "0"
+        #             },
+        #             "I": "84812",
+        #             "M": "13312",
+        #             "stats": {
+        #                 "c": "0",
+        #                 "v": "0",
+        #                 "pr": "0",
+        #                 "n": 0,
+        #                 "oi": "0",
+        #                 "h": "0",
+        #                 "l": "0",
+        #                 "p": "0"
+        #             },
+        #             "minp": "10610",
+        #             "maxp": "16397"
+        #         }
+        #     }
+        #
+        result = self.safe_dict(response, 'result', {})
+        return self.parse_greeks(result, market)
+
+    def parse_greeks(self, greeks: dict, market: Market = None) -> Greeks:
+        timestamp = self.safe_integer(greeks, 't')
+        pricing = self.safe_dict(greeks, 'option_pricing', {})
+        return {
+            'symbol': self.safe_symbol(None, market),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'delta': self.safe_number(pricing, 'd'),
+            'gamma': self.safe_number(pricing, 'g'),
+            'theta': self.safe_number(pricing, 't'),
+            'vega': self.safe_number(pricing, 'v'),
+            'rho': self.safe_number(pricing, 'r'),
+            'bidSize': self.safe_number(greeks, 'B'),
+            'askSize': self.safe_number(greeks, 'A'),
+            'bidImpliedVolatility': self.safe_number(pricing, 'bi'),
+            'askImpliedVolatility': self.safe_number(pricing, 'ai'),
+            'markImpliedVolatility': self.safe_number(pricing, 'i'),
+            'bidPrice': self.safe_number(greeks, 'b'),
+            'askPrice': self.safe_number(greeks, 'a'),
+            'markPrice': self.safe_number(pricing, 'm'),
+            'lastPrice': None,
+            'underlyingPrice': self.safe_number(greeks, 'I'),
+            'info': greeks,
+        }
+
+    def fetch_option(self, symbol: str, params: dict = {}) -> Option:
+        """
+        fetches option data that is commonly found in an option chain
+
+        https://docs.derive.xyz/api-reference/market-data/publicget_ticker
+
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `option structure <https://docs.ccxt.com/?id=option-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        if market['option'] is not True:
+            raise BadRequest(self.id + ' fetchOption() supports option markets only')
+        request = {
+            'instrument_name': market['id'],
+        }
+        response = self.publicPostGetTicker(self.extend(request, params))
+        # the response sample is listed in fetchGreeks, both methods read the same endpoint
+        result = self.safe_dict(response, 'result', {})
+        return self.parse_option(result, None, market)
+
+    def parse_option(self, chain: dict, currency: Currency = None, market: Market = None) -> Option:
+        timestamp = self.safe_integer(chain, 't')
+        pricing = self.safe_dict(chain, 'option_pricing', {})
+        stats = self.safe_dict(chain, 'stats', {})
+        change = self.safe_string(stats, 'p')
+        percentage = None
+        if change is not None:
+            percentage = Precise.string_mul(change, '100')
+        return {
+            'info': chain,
+            'currency': self.safe_string(market, 'base'),
+            'symbol': self.safe_symbol(None, market),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'impliedVolatility': self.safe_number(pricing, 'i'),
+            'openInterest': self.safe_number(stats, 'oi'),
+            'bidPrice': self.safe_number(chain, 'b'),
+            'askPrice': self.safe_number(chain, 'a'),
+            'midPrice': None,
+            'markPrice': self.safe_number(chain, 'M'),
+            'lastPrice': None,
+            'underlyingPrice': self.safe_number(chain, 'I'),
+            'change': None,
+            'percentage': self.parse_number(percentage),
+            'baseVolume': self.safe_number(stats, 'c'),
+            'quoteVolume': self.safe_number(stats, 'v'),
+        }
+
+    def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[dict]:
+        """
+        fetches historical settlement records, the venue publishes one underlying settlement price per currency and expiry rather than per option instrument, so the records carry no symbol
+
+        https://docs.derive.xyz/api-reference/market-data/publicget_option_settlement_prices
+
+        :param str symbol: unified market symbol of any market of the underlying currency to fetch the settlement history for
+        :param int [since]: timestamp in ms of the earliest settlement to fetch
+        :param int [limit]: the maximum number of settlements to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `settlement history objects <https://docs.ccxt.com/?id=settlement-history-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchSettlementHistory() requires a symbol argument to resolve the underlying currency')
+        market = self.market(symbol)
+        request = {
+            'currency': market['baseId'],
+        }
+        response = self.publicPostGetOptionSettlementPrices(self.extend(request, params))
+        #
+        #     {
+        #         "id": "d1847bad-5917-424b-bd9a-37262a03fd47",
+        #         "result": {
+        #             "expiries": [
+        #                 {
+        #                     "expiry_date": "20260707",
+        #                     "price": "63107.787847",
+        #                     "utc_expiry_sec": 1783411200
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        result = self.safe_dict(response, 'result', {})
+        expiries = self.safe_list(result, 'expiries', [])
+        settlements = self.parse_settlements(expiries, None)
+        sorted = self.sort_by(settlements, 'timestamp')
+        return self.filter_by_since_limit(sorted, since, limit)
+
+    def fetch_my_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[dict]:
+        """
+        fetches historical settlement records of the user
+
+        https://docs.derive.xyz/api-reference/history/privateget_option_settlement_history
+
+        :param str [symbol]: unified market symbol of the settlement history to fetch
+        :param int [since]: timestamp in ms of the earliest settlement to fetch
+        :param int [limit]: the maximum number of settlements to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.subaccount_id]: *required* the subaccount id
+        :returns dict[]: a list of `settlement history objects <https://docs.ccxt.com/?id=settlement-history-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        subaccountId, paramsDeriveSubaccountId = self.handle_derive_subaccount_id('fetchMySettlementHistory', params)
+        request = {
+            'subaccount_id': subaccountId,
+        }
+        response = self.privatePostGetOptionSettlementHistory(self.extend(request, paramsDeriveSubaccountId))
+        #
+        #     {
+        #         "id": "f92af59c-33d6-4bed-b237-378250f5727b",
+        #         "result": {
+        #             "settlements": [
+        #                 {
+        #                     "amount": "0.1",
+        #                     "expiry": 1791100800,
+        #                     "instrument_name": "BTC-20261004-88000-C",
+        #                     "option_settlement_pnl": "-2.8625",
+        #                     "option_settlement_pnl_excl_fees": "-2.1",
+        #                     "settlement_price": "84975.94721521944",
+        #                     "settlement_value": "0",
+        #                     "subaccount_id": 86815
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        result = self.safe_dict(response, 'result', {})
+        settlements = self.safe_list(result, 'settlements', [])
+        parsed = self.parse_settlements(settlements, market)
+        sorted = self.sort_by(parsed, 'timestamp')
+        symbolResolved = market['symbol'] if (market is not None) else None
+        return self.filter_by_symbol_since_limit(sorted, symbolResolved, since, limit)
+
+    def parse_settlement(self, settlement: dict, market: Market = None) -> dict:
+        #
+        # fetchSettlementHistory
+        #
+        #     {
+        #         "expiry_date": "20260707",
+        #         "price": "63107.787847",
+        #         "utc_expiry_sec": 1783411200
+        #     }
+        #
+        # fetchMySettlementHistory
+        #
+        #     {
+        #         "amount": "0.1",
+        #         "expiry": 1791100800,
+        #         "instrument_name": "BTC-20261004-88000-C",
+        #         "option_settlement_pnl": "-2.8625",
+        #         "option_settlement_pnl_excl_fees": "-2.1",
+        #         "settlement_price": "84975.94721521944",
+        #         "settlement_value": "0",
+        #         "subaccount_id": 86815
+        #     }
+        #
+        marketId = self.safe_string(settlement, 'instrument_name')
+        timestamp = self.safe_timestamp_2(settlement, 'utc_expiry_sec', 'expiry')
+        symbolResolved = None
+        if marketId is not None:
+            symbolResolved = self.safe_symbol(marketId, market)
+        return {
+            'info': settlement,
+            'symbol': symbolResolved,
+            'price': self.safe_number_2(settlement, 'price', 'settlement_price'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
+
+    def parse_settlements(self, settlements: list[object], market: Market = None) -> list:
+        result = []
+        for i in range(0, len(settlements)):
+            result.append(self.parse_settlement(settlements[i], market))
+        return result
+
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
+        #
+        #     v3 slim format; the payload does not carry the instrument name, so the symbol comes from the market argument
+        #
+        #     {
+        #         "t": 1790867526668,
+        #         "A": "0",
+        #         "a": "0",
+        #         "B": "0",
+        #         "b": "0",
+        #         "f": "0.000012500",
+        #         "option_pricing": null,
+        #         "I": "83946.3",
+        #         "M": "83938.8",
+        #         "stats": {
+        #             "c": "16.41",           // contract_volume_24h
+        #             "v": "1377350.271",     // notional_volume_24h
+        #             "pr": "1377095.872",    // premium_volume_24h
+        #             "n": 98,                // trade_count_24h
+        #             "oi": "0",              // open_interest
+        #             "h": "84282",           // high_24h
+        #             "l": "83661.8",         // low_24h
+        #             "p": "0"                // percent_change_24h
+        #         },
+        #         "minp": "82293.1",
+        #         "maxp": "85617.6"
+        #     }
+        #
+        timestamp = self.safe_integer_omit_zero(ticker, 't')
+        stats = self.safe_dict(ticker, 'stats')
+        change = self.safe_string(stats, 'p')
+        percentage = None
+        if change is not None:
+            percentage = Precise.string_mul(change, '100')
+        return self.safe_ticker({
+            'symbol': self.safe_symbol(None, market),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': self.safe_string(stats, 'h'),
+            'low': self.safe_string(stats, 'l'),
+            'bid': self.safe_string(ticker, 'b'),
+            'bidVolume': self.safe_string(ticker, 'B'),
+            'ask': self.safe_string(ticker, 'a'),
+            'askVolume': self.safe_string(ticker, 'A'),
             'vwap': None,
             'open': None,
             'close': None,
             'last': None,
             'previousClose': None,
-            'change': change,
-            'percentage': Precise.string_mul(change, '100'),
+            'change': None,
+            'percentage': percentage,
             'average': None,
-            'baseVolume': None,
-            'quoteVolume': None,
-            'indexPrice': self.safe_string(ticker, 'index_price'),
-            'markPrice': self.safe_string(ticker, 'mark_price'),
+            'baseVolume': self.safe_string(stats, 'c'),
+            'quoteVolume': self.safe_string(stats, 'v'),
+            'indexPrice': self.safe_string(ticker, 'I'),
+            'markPrice': self.safe_string(ticker, 'M'),
             'info': ticker,
         }, market)
 
@@ -931,68 +1359,146 @@ class derive(Exchange, ImplicitAPI):
         """
         get the list of most recent trades for a particular symbol
 
-        https://docs.derive.xyz/reference/post_public-get-trade-history
+        https://docs.derive.xyz/api-reference/market-data/publicget_trade_history
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
-        :param int [limit]: the maximum amount of trades to fetch
+        :param int [limit]: the maximum amount of trades to fetch; limits above ~500 cannot be filled in a single request because the venue caps pages at 1000 raw rows(two per match), use params.paginate instead
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch trades for
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         if self.markets is None:
             self.load_markets()
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchTrades', 'paginate', False)
+        if paginate:
+            return self.fetch_paginated_call_incremental('fetchTrades', symbol, since, limit, paramsPaginate, 'page', 1000)
         request = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
             request['instrument_name'] = market['id']
-        if limit is not None:
-            if limit > 1000:
-                limit = 1000
-            request['page_size'] = limit  # default 100, max 1000
+        limitResolved = limit
+        if limit is not None and limit > 1000:
+            limitResolved = 1000
+        if limitResolved is not None:
+            # the venue lists every match twice (a maker row and a taker row) and parseTrades drops the maker duplicates, so twice the limit is requested to return close to the asked amount
+            pageSize = limitResolved * 2
+            if pageSize > 1000:
+                pageSize = 1000  # default 100, max 1000
+            request['page_size'] = pageSize
         if since is not None:
             request['from_timestamp'] = since
-        until = self.safe_integer(params, 'until')
-        params = self.omit(params, ['until'])
+        until = self.safe_integer(paramsPaginate, 'until')
+        paramsOmitted = self.omit(paramsPaginate, ['until'])
         if until is not None:
             request['to_timestamp'] = until
-        response = self.publicPostGetTradeHistory(self.extend(request, params))
+        response = self.publicPostGetTradeHistory(self.extend(request, paramsOmitted))
         #
-        # {
-        #     "result": {
-        #         "trades": [
-        #             {
-        #                 "trade_id": "9dbc88b0-f0c4-4439-9cc1-4e6409d4eafb",
-        #                 "instrument_name": "BTC-PERP",
-        #                 "timestamp": 1736153910930,
-        #                 "trade_price": "98995.3",
-        #                 "trade_amount": "0.033",
-        #                 "mark_price": "98990.875914388161618263",
-        #                 "index_price": "99038.050611100001501184",
-        #                 "direction": "sell",
-        #                 "quote_id": null,
-        #                 "wallet": "0x88B6BB87fbFac92a34F8155aaA35c87B5b166fA9",
-        #                 "subaccount_id": 8250,
-        #                 "tx_status": "settled",
-        #                 "tx_hash": "0x020bd735b312f867f17f8cc254946d87cfe9f2c8ff3605035d8129082eb73723",
-        #                 "trade_fee": "0.980476701049890015",
-        #                 "liquidity_role": "taker",
-        #                 "realized_pnl": "-2.92952402688793509",
-        #                 "realized_pnl_excl_fees": "-1.949047325838045075"
+        #     {
+        #         "id": "ac7b1242-a8e5-4ee3-a975-c1b0cb413932",
+        #         "result": {
+        #             "trades": [
+        #                 {
+        #                     "trade_id": "28bea459-a2ff-45cc-a7e9-3d25448c859a",
+        #                     "instrument_name": "BTC-PERP",
+        #                     "timestamp": 1790792657383,
+        #                     "trade_price": "83863",
+        #                     "trade_amount": "0.0357",
+        #                     "mark_price": "83851.150918173763",
+        #                     "index_price": "83867.1716490259",
+        #                     "direction": "buy",
+        #                     "quote_id": null,
+        #                     "rfq_id": null,
+        #                     "wallet": "0xa28557a5Dbe5E22249b292fD032C5225952A6709",
+        #                     "subaccount_id": 56390,
+        #                     "batch_status": null,
+        #                     "tx_hash": "",
+        #                     "trade_fee": "0.44910870418",
+        #                     "expected_rebate": "0",
+        #                     "liquidity_role": "taker",
+        #                     "realized_pnl": "5.486968004488",
+        #                     "realized_pnl_excl_fees": "6.328028163017",
+        #                     "extra_fee": "0"
+        #                 },
+        #                 {
+        #                     "trade_id": "28bea459-a2ff-45cc-a7e9-3d25448c859a",
+        #                     "instrument_name": "BTC-PERP",
+        #                     "timestamp": 1790792657383,
+        #                     "trade_price": "83863",
+        #                     "trade_amount": "0.0357",
+        #                     "mark_price": "83851.150918173763",
+        #                     "index_price": "83867.1716490259",
+        #                     "direction": "sell",
+        #                     "quote_id": null,
+        #                     "rfq_id": null,
+        #                     "wallet": "0x1DBc86f1b1Be7a45a3161A06bDD15F7470bF9d2c",
+        #                     "subaccount_id": 62065,
+        #                     "batch_status": null,
+        #                     "tx_hash": "",
+        #                     "trade_fee": "0",
+        #                     "expected_rebate": "0.299405802787",
+        #                     "liquidity_role": "maker",
+        #                     "realized_pnl": "0",
+        #                     "realized_pnl_excl_fees": "0",
+        #                     "extra_fee": "0"
+        #                 },
+        #                 {
+        #                     "trade_id": "10a84fb1-11a5-4521-b49d-a55c9b241207",
+        #                     "instrument_name": "BTC-PERP",
+        #                     "timestamp": 1790792405993,
+        #                     "trade_price": "83932.1",
+        #                     "trade_amount": "0.0357",
+        #                     "mark_price": "83934.717310599589",
+        #                     "index_price": "83948.87303382531",
+        #                     "direction": "buy",
+        #                     "quote_id": null,
+        #                     "rfq_id": null,
+        #                     "wallet": "0xa28557a5Dbe5E22249b292fD032C5225952A6709",
+        #                     "subaccount_id": 56390,
+        #                     "batch_status": null,
+        #                     "tx_hash": "",
+        #                     "trade_fee": "0.449546215096",
+        #                     "expected_rebate": "0",
+        #                     "liquidity_role": "taker",
+        #                     "realized_pnl": "3.019660493572",
+        #                     "realized_pnl_excl_fees": "3.861158163017",
+        #                     "extra_fee": "0"
+        #                 },
+        #                 {
+        #                     "trade_id": "10a84fb1-11a5-4521-b49d-a55c9b241207",
+        #                     "instrument_name": "BTC-PERP",
+        #                     "timestamp": 1790792405993,
+        #                     "trade_price": "83932.1",
+        #                     "trade_amount": "0.0357",
+        #                     "mark_price": "83934.717310599589",
+        #                     "index_price": "83948.87303382531",
+        #                     "direction": "sell",
+        #                     "quote_id": null,
+        #                     "rfq_id": null,
+        #                     "wallet": "0x1DBc86f1b1Be7a45a3161A06bDD15F7470bF9d2c",
+        #                     "subaccount_id": 62065,
+        #                     "batch_status": null,
+        #                     "tx_hash": "",
+        #                     "trade_fee": "0",
+        #                     "expected_rebate": "0.29969747673",
+        #                     "liquidity_role": "maker",
+        #                     "realized_pnl": "0",
+        #                     "realized_pnl_excl_fees": "0",
+        #                     "extra_fee": "0"
+        #                 }
+        #             ],
+        #             "pagination": {
+        #                 "num_pages": 531087,
+        #                 "count": 2124347
         #             }
-        #         ],
-        #         "pagination": {
-        #             "num_pages": 598196,
-        #             "count": 598196
         #         }
-        #     },
-        #     "id": "b8539544-6975-4497-8163-5e51a38e4aa7"
-        # }
+        #     }
         #
         result = self.safe_dict(response, 'result', {})
         data = self.safe_list(result, 'trades', [])
-        return self.parse_trades(data, market, since, limit)
+        return self.parse_trades(data, market, since, limitResolved)
 
     def parse_trades(self, trades: list, market: Market = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         tradesArray = self.to_array(trades)
@@ -1011,36 +1517,164 @@ class derive(Exchange, ImplicitAPI):
         symbol = self.safe_string(market, 'symbol')
         return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+        https://docs.derive.xyz/api-reference/market-data/publicget_tradingview_chart_data      # trade candles
+        https://docs.derive.xyz/api-reference/market-data/publicget_index_chart_data           # params.price = 'index'
+
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int [since]: timestamp in ms of the earliest candle to fetch; a single request covers at most 5000 candles from since, use params.paginate for wider ranges
+        :param int [limit]: the maximum amount of candles to fetch, also sizes the request window when since is not provided
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest candle to fetch
+        :param str [params.price]: "index" to fetch candles of the index price instead of trades, their volume is None
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
+        if self.markets is None:
+            self.load_markets()
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
+        if paginate:
+            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 5000)
+        # todo: check active spot markets after launch of v3
+        market = self.market(symbol)
+        period = self.safe_string(self.timeframes, timeframe, timeframe)
+        priceType, paramsPrice = self.handle_option_and_params(params, 'fetchOHLCV', 'price')
+        until = self.safe_integer(paramsPrice, 'until')
+        paramsOmitted = self.omit(paramsPrice, ['until'])
+        duration = self.parse_timeframe(timeframe)
+        end = None
+        if until is not None:
+            end = self.parse_to_int(until / 1000)
+        else:
+            end = self.seconds()
+        limitResolved = limit
+        if limitResolved is None:
+            limitResolved = 5000 if (since is not None) else 1000
+        if limitResolved > 5000:
+            limitResolved = 5000  # the venue keeps only the latest 5000 buckets of the requested window
+        start = None
+        if since is not None:
+            start = self.parse_to_int(since / 1000)
+            # the window is anchored at since: otherwise the venue clamp would silently drop the head of a wider range and deterministic pagination would collect the same tail on every page
+            calculatedEnd = limitResolved * duration
+            maxEnd = self.sum(start, calculatedEnd)
+            if maxEnd < end:
+                end = maxEnd
+        else:
+            start = end - limitResolved * duration
+        request = {
+            'period': period,
+            'start_timestamp': start,
+            'end_timestamp': end,
+        }
+        response = None
+        if priceType == 'index':
+            request['currency'] = market['baseId']
+            response = self.publicPostGetIndexChartData(self.extend(request, paramsOmitted))
+            #
+            #     {
+            #         "id": "310e67cd-b53c-4bb7-9ec5-886515e8fa4f",
+            #         "result": [
+            #             {
+            #                 "price": "84578.92705944818",
+            #                 "open_price": "84599.10866056278",
+            #                 "high_price": "84653.70797324124",
+            #                 "low_price": "84563.95002564388",
+            #                 "close_price": "84578.92705944818",
+            #                 "timestamp": 1791018000,
+            #                 "timestamp_bucket": 1791018000
+            #             }
+            #         ]
+            #     }
+            #
+        else:
+            request['instrument_name'] = market['id']
+            response = self.publicPostGetTradingviewChartData(self.extend(request, paramsOmitted))
+            #
+            #     {
+            #         "id": "da5c0d45-4ab1-4c78-9def-20d40deae699",
+            #         "result": [
+            #             {
+            #                 "open_price": "83628.5",
+            #                 "high_price": "83628.5",
+            #                 "low_price": "83628.5",
+            #                 "close_price": "83628.5",
+            #                 "volume_usd": "920.02165302276944",
+            #                 "volume_contracts": "0.011",
+            #                 "timestamp": 1790725320,
+            #                 "timestamp_bucket": 1790725320
+            #             }
+            #         ]
+            #     }
+            #
+        result = self.safe_list(response, 'result', [])
+        return self.parse_ohlcvs(result, market, timeframe, since, limit)
+
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
+        return [
+            self.safe_timestamp(ohlcv, 'timestamp'),
+            self.safe_number(ohlcv, 'open_price'),
+            self.safe_number(ohlcv, 'high_price'),
+            self.safe_number(ohlcv, 'low_price'),
+            self.safe_number(ohlcv, 'close_price'),
+            self.safe_number(ohlcv, 'volume_contracts'),  # index candles carry no volume
+        ]
+
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
-        # fetchTrades & fetchMyTrades
-        #
-        # {
-        #     "subaccount_id": 130837,
-        #     "instrument_name": "BTC-PERP",
-        #     "direction": "sell",
-        #     "quote_id": null,
-        #     "trade_id": "f8a30740-488c-4c2d-905d-e17057bafde1",
-        #     "timestamp": 1738065303708,
-        #     "mark_price": "102740.137375457314192317",
-        #     "index_price": "102741.553409299981533184",
-        #     "trade_price": "102700.6",
-        #     "trade_amount": "0.01",
-        #     "liquidity_role": "taker",
-        #     "realized_pnl": "0",
-        #     "realized_pnl_excl_fees": "0",
-        #     "tx_status": "settled",
-        #     "trade_fee": "1.127415534092999815",
-        #     "tx_hash": "0xc55df1f07330faf86579bd8a6385391fbe9e73089301149d8550e9d29c9ead74",
-        #     "label": "test1234",                                      // only fetchMyTrades
-        #     "order_id": "30c48194-8d48-43ac-ad00-0d5ba29eddc9",       // only fetchMyTrades
-        #     "is_transfer": false,                                     // only fetchMyTrades
-        #     "transaction_id": "e18b9426-3fa5-41bb-99d3-8b54fb4d11bb", // only fetchMyTrades
-        #     "rfq_id": null,                                           // only fetchTrades
-        #     "wallet": "0x353Bf69715DdbF7A2b0C6Deba8EAC1F1D160c123",   // only fetchTrades
-        #     "expected_rebate": "0",                                   // only fetchTrades
-        #     "extra_fee": "0",                                         // only fetchTrades
-        # }
+        #     [
+        #         {
+        #             "trade_id": "28bea459-a2ff-45cc-a7e9-3d25448c859a",
+        #             "instrument_name": "BTC-PERP",
+        #             "timestamp": 1790792657383,
+        #             "trade_price": "83863",
+        #             "trade_amount": "0.0357",
+        #             "mark_price": "83851.150918173763",
+        #             "index_price": "83867.1716490259",
+        #             "direction": "buy",
+        #             "quote_id": null,
+        #             "rfq_id": null,
+        #             "wallet": "0xa28557a5Dbe5E22249b292fD032C5225952A6709",
+        #             "subaccount_id": 56390,
+        #             "batch_status": null,
+        #             "tx_hash": "",
+        #             "trade_fee": "0.44910870418",
+        #             "expected_rebate": "0",
+        #             "liquidity_role": "taker",
+        #             "realized_pnl": "5.486968004488",
+        #             "realized_pnl_excl_fees": "6.328028163017",
+        #             "extra_fee": "0"
+        #         },
+        #         {
+        #             "subaccount_id": 86815,
+        #             "order_id": "f1ff080c-f2d1-4e0a-9dad-9ba462c6615d",
+        #             "instrument_name": "BTC-PERP",
+        #             "direction": "sell",
+        #             "label": "",
+        #             "quote_id": null,
+        #             "trade_id": "b9608468-9ebe-478c-aedf-38fa2f754f19",
+        #             "rfq_id": null,
+        #             "timestamp": 1790874586675,
+        #             "mark_price": "84367.247384690156",
+        #             "index_price": "84358.49561857211",
+        #             "trade_price": "84365.4",
+        #             "trade_amount": "0.01",
+        #             "liquidity_role": "taker",
+        #             "realized_pnl": "-0.993258849822",
+        #             "realized_pnl_excl_fees": "-0.467",
+        #             "is_transfer": false,
+        #             "batch_status": "Settled",
+        #             "trade_fee": "0.263075486855",
+        #             "expected_rebate": "0",
+        #             "tx_hash": "0x7a31fda53195c28f2e60bab189bb9e7bf0abffc55a4eceb13d5e307f70d6e892",
+        #             "op_uuid": "01a0f871-8e34-7152-aea8-0b6d06ce484e",
+        #             "extra_fee": "0"
+        #         }
+        #     ]
         #
         marketId = self.safe_string(trade, 'instrument_name')
         symbol = self.safe_symbol(marketId, market)
@@ -1069,7 +1703,7 @@ class derive(Exchange, ImplicitAPI):
         """
         fetches historical funding rate prices
 
-        https://docs.derive.xyz/reference/post_public-get-funding-rate-history
+        https://docs.derive.xyz/api-reference/market-data/publicget_funding_rate_history
 
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
@@ -1086,22 +1720,39 @@ class derive(Exchange, ImplicitAPI):
         if since is not None:
             request['start_timestamp'] = since
         until = self.safe_integer(params, 'until')
-        params = self.omit(params, ['until'])
+        paramsOmitted = self.omit(params, ['until'])
         if until is not None:
-            request['to_timestamp'] = until
-        response = self.publicPostGetFundingRateHistory(self.extend(request, params))
+            request['end_timestamp'] = until  # the venue silently ignores the to_timestamp spelling other endpoints use
+        response = self.publicPostGetFundingRateHistory(self.extend(request, paramsOmitted))
         #
-        # {
-        #     "result": {
-        #         "funding_rate_history": [
-        #             {
-        #                 "timestamp": 1736215200000,
-        #                 "funding_rate": "-0.000020014"
-        #             }
-        #         ]
-        #     },
-        #     "id": "3200ab8d-0080-42f0-8517-c13e3d9201d8"
-        # }
+        #     {
+        #         "id": "6dcdcdd2-1523-4d48-9b45-e1f3e61b3711",
+        #         "result": {
+        #             "instrument_name": null,
+        #             "funding_rate_history": [
+        #                 {
+        #                     "timestamp": 1783461600000,
+        #                     "risk_universe_id": 1,
+        #                     "currency": "BTC",
+        #                     "open": "0.000047348",
+        #                     "high": "0.000047348",
+        #                     "low": "0.000047348",
+        #                     "close": "0.000047348",
+        #                     "funding_rate": "0.000047348"
+        #                 },
+        #                 {
+        #                     "timestamp": 1783465200000,
+        #                     "risk_universe_id": 1,
+        #                     "currency": "BTC",
+        #                     "open": "0.000012500",
+        #                     "high": "0.000049960",
+        #                     "low": "0.000012500",
+        #                     "close": "0.000049960",
+        #                     "funding_rate": "0.000049960"
+        #                 }
+        #             ]
+        #         }
+        #     }
         #
         result = self.safe_dict(response, 'result', {})
         data = self.safe_list(result, 'funding_rate_history', [])
@@ -1117,13 +1768,13 @@ class derive(Exchange, ImplicitAPI):
                 'datetime': self.iso8601(timestamp),
             })
         sorted = self.sort_by(rates, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
+        return self.filter_by_symbol_since_limit(sorted, self.safe_string(market, 'symbol'), since, limit)
 
-    def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+    def fetch_funding_rate(self, symbol: str, params: dict = {}) -> FundingRate:
         """
         fetch the current funding rate
 
-        https://docs.derive.xyz/reference/post_public-get-funding-rate-history
+        https://docs.derive.xyz/api-reference/market-data/publicget_funding_rate_history
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1131,18 +1782,40 @@ class derive(Exchange, ImplicitAPI):
         """
         response = self.fetch_funding_rate_history(symbol, None, 1, params)
         #
-        # [
-        #     {
-        #         "info": {
-        #             "timestamp": 1736157600000,
-        #             "funding_rate": "-0.000008872"
+        #     [
+        #         {
+        #             "info": {
+        #                 "timestamp": 1790870400000,
+        #                 "risk_universe_id": 1,
+        #                 "currency": "BTC",
+        #                 "open": "0.000012500",
+        #                 "high": "0.000012500",
+        #                 "low": "0.000012500",
+        #                 "close": "0.000012500",
+        #                 "funding_rate": "0.000012500"
+        #             },
+        #             "symbol": "BTC/USDC:USDC",
+        #             "fundingRate": 1.25e-05,
+        #             "timestamp": 1790870400000,
+        #             "datetime": "2026-10-01T16:00:00.000Z"
         #         },
-        #         "symbol": "BTC/USD:USDC",
-        #         "fundingRate": -0.000008872,
-        #         "timestamp": 1736157600000,
-        #         "datetime": "2025-01-06T10:00:00.000Z"
-        #     }
-        # ]
+        #         {
+        #             "info": {
+        #                 "timestamp": 1790874000000,
+        #                 "risk_universe_id": 1,
+        #                 "currency": "BTC",
+        #                 "open": "0.000012500",
+        #                 "high": "0.000012500",
+        #                 "low": "0.000012500",
+        #                 "close": "0.000012500",
+        #                 "funding_rate": "0.000012500"
+        #             },
+        #             "symbol": "BTC/USDC:USDC",
+        #             "fundingRate": 1.25e-05,
+        #             "timestamp": 1790874000000,
+        #             "datetime": "2026-10-01T17:00:00.000Z"
+        #         }
+        #     ]
         #
         data = self.safe_dict(response, 0)
         return self.parse_funding_rate(data)
@@ -1176,7 +1849,10 @@ class derive(Exchange, ImplicitAPI):
             'bytes32', 'uint256', 'uint256', 'address', 'bytes32', 'uint256', 'address', 'address',
         ], order), 'keccak', 'binary')
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
-        DOMAIN_SEPARATOR = '9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105' if (sandboxMode is True) else 'd96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b'
+        # EIP712Domain (name "Matching", version "1.0", verifyingContract 0xeB8d770ec18DB98Db922E9D83260A585b9F0DeAD) precomputed for chainId 1 (mainnet) and 11155111 (sepolia testnet)
+        DOMAIN_SEPARATOR = 'da616dfabb88681b08e1592820a41d55ddc62d68de110e327ae99d734506fe19'
+        if sandboxMode is True:
+            DOMAIN_SEPARATOR = '24d674cd5f2b9d564691c51e9d88f649b99246a2244dd74ce27b96578d773e85'
         binaryDomainSeparator = self.base16_to_binary(DOMAIN_SEPARATOR)
         prefix = self.base16_to_binary('1901')
         return self.hash(self.binary_concat(prefix, binaryDomainSeparator, accountHash), 'keccak', 'hex')
@@ -1184,6 +1860,21 @@ class derive(Exchange, ImplicitAPI):
     def sign_order(self, order: object, privateKey: str) -> str:
         hashOrder = self.hash_order_message(order)
         return self.sign_hash(hashOrder[-64:], privateKey[-64:])
+
+    def nonce_string(self) -> str:
+        """
+ @ignore
+        returns a unique nanosecond-scale action nonce as a decimal string; v3 requires UTC timestamps in nanoseconds(~19 digits), which overflow double precision, so the millisecond timestamp from incrementingNonce is concatenated with a random 6-digit suffix(the venue accepts string nonces)
+        :returns str: a nanosecond-scale nonce as a decimal string
+        """
+        # incrementingNonce guarantees unique milliseconds within one instance; the result matches the official derive-ts client nonce format (error 11017 = duplicate nonce)
+        # the mutating calls stay hoisted out of other call arguments, nesting them breaks the rust borrow checker (E0502)
+        rawNonce = self.incrementing_nonce()
+        randomPart = self.rand_number(6)  # guards against collisions of different instances with the same wallet
+        milliseconds = self.number_to_string(rawNonce)
+        suffix = self.number_to_string(randomPart)
+        padded = suffix.rjust(6, '0')
+        return milliseconds + padded
 
     def hash_message(self, message: object):
         binaryMessage = self.encode(message)
@@ -1207,11 +1898,11 @@ class derive(Exchange, ImplicitAPI):
     def parse_units(self, num: str, dec: str = '1000000000000000000') -> Str:
         return Precise.string_mul(num, dec)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}):
         """
         create a trade order
 
-        https://docs.derive.xyz/reference/post_private-order
+        https://docs.derive.xyz/api-reference/orderbook/privateorder
 
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -1220,11 +1911,12 @@ class derive(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subaccount_id]: *required* the subaccount id
-        :param float [params.triggerPrice]: The price a trigger order is triggered at
-        :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered(perpetual swap markets only)
-        :param float [params.takeProfit.triggerPrice]: take profit trigger price
-        :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered(perpetual swap markets only)
-        :param float [params.stopLoss.triggerPrice]: stop loss trigger price
+        :param float [params.triggerPrice]: the price a standalone trigger(stop) order is triggered at
+        :param float [params.stopLossPrice]: the price a standalone stop loss order is triggered at
+        :param float [params.takeProfitPrice]: the price a standalone take profit order is triggered at
+        :param str [params.trigger_price_type]: the price type the trigger watches, only 'mark' is supported by the venue(default)
+        :param bool [params.postOnly]: True makes the order post only
+        :param bool [params.reduceOnly]: True reduces the position only, not available with post only
         :param float [params.max_fee]: *required* the maximum fee you are willing to pay for the order
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -1233,24 +1925,23 @@ class derive(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if price is None:
             raise ArgumentsRequired(self.id + ' createOrder() requires a price argument')
-        subaccountId = None
-        subaccountId, params = self.handle_derive_subaccount_id('createOrder', params)
-        test = self.safe_bool(params, 'test', False)
-        reduceOnly = self.safe_bool_2(params, 'reduceOnly', 'reduce_only')
-        timeInForce = self.safe_string_lower_2(params, 'timeInForce', 'time_in_force')
-        postOnly = self.safe_bool(params, 'postOnly')
+        subaccountId, paramsDeriveSubaccountId = self.handle_derive_subaccount_id('createOrder', params)
+        test = self.safe_bool(paramsDeriveSubaccountId, 'test', False)
+        reduceOnly = self.safe_bool_2(paramsDeriveSubaccountId, 'reduceOnly', 'reduce_only')
+        timeInForce = self.safe_string_lower_2(paramsDeriveSubaccountId, 'timeInForce', 'time_in_force')
+        postOnly = self.safe_bool(paramsDeriveSubaccountId, 'postOnly')
         orderType = type.lower()
         orderSide = side.lower()
         orderSideIsBuy = (orderSide == 'buy')  # extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
-        nonce = self.incrementing_nonce()
+        nonce = self.nonce_string()
         # Order signature expiry must be between 2592000 and 7776000 sec from now
-        signatureExpiry = self.safe_integer(params, 'signature_expiry_sec', self.seconds() + 7776000)
+        signatureExpiry = self.safe_integer(paramsDeriveSubaccountId, 'signature_expiry_sec', self.seconds() + 7776000)
         ACTION_TYPEHASH = self.base16_to_binary('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17')
-        sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
-        TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be' if (sandboxMode is True) else '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b'
+        TRADE_MODULE_ADDRESS = '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b'  # shared across mainnet and testnet in v3
         priceString = self.number_to_string(price)
         maxFee = None
-        maxFee, params = self.handle_option_and_params(params, 'createOrder', 'max_fee')
+        paramsMaxFee = {}
+        maxFee, paramsMaxFee = self.handle_option_and_params(paramsDeriveSubaccountId, 'createOrder', 'max_fee')
         if maxFee is None:
             raise ArgumentsRequired(self.id + ' createOrder() requires a max_fee argument in params')
         maxFeeString = self.number_to_string(maxFee)
@@ -1259,19 +1950,18 @@ class derive(Exchange, ImplicitAPI):
             'address', 'uint', 'int', 'int', 'uint', 'uint', 'bool',
         ], [
             market['info']['base_asset_address'],
-            self.parse_to_numeric(market['info']['base_asset_sub_id']),
+            self.convert_to_big_int(market['info']['base_asset_sub_id']),  # options carry a huge encoded sub_id that overflows double precision, so it must stay integral
             self.convert_to_big_int((self.parse_units(priceString))),
             self.convert_to_big_int((self.parse_units((self.amount_to_precision(symbol, amountString))))),
             self.convert_to_big_int((self.parse_units(maxFeeString))),
             subaccountId,
             orderSideIsBuy,
         ]), 'keccak', 'binary')
-        deriveWalletAddress = None
-        deriveWalletAddress, params = self.handle_derive_wallet_address('createOrder', params)
+        deriveWalletAddress, paramsDeriveWalletAddress = self.handle_derive_wallet_address('createOrder', paramsMaxFee)
         signature = self.sign_order([
             ACTION_TYPEHASH,
             subaccountId,
-            nonce,
+            self.convert_to_big_int(nonce),
             TRADE_MODULE_ADDRESS,
             tradeModuleDataHash,
             signatureExpiry,
@@ -1299,95 +1989,76 @@ class derive(Exchange, ImplicitAPI):
             request['time_in_force'] = 'post_only'
         elif timeInForce is not None:
             request['time_in_force'] = timeInForce
-        stopLoss = self.safe_value(params, 'stopLoss')
-        takeProfit = self.safe_value(params, 'takeProfit')
-        triggerPriceType = self.safe_string(params, 'trigger_price_type', 'mark')
-        if stopLoss is not None:
-            stopLossPrice = self.safe_string(stopLoss, 'triggerPrice', stopLoss)
-            request['trigger_price'] = stopLossPrice
+        # the venue supports exactly two standalone conditional kinds: 'stoploss' triggers on adverse crossing (the classic stop semantics, so both triggerPrice and stopLossPrice map onto it) and 'takeprofit' triggers on the favorable one; attached stop loss / take profit are not supported
+        triggerPrice = self.safe_string_n(paramsDeriveWalletAddress, ['triggerPrice', 'stopPrice', 'trigger_price'])
+        stopLossPrice = self.safe_string(paramsDeriveWalletAddress, 'stopLossPrice')
+        takeProfitPrice = self.safe_string(paramsDeriveWalletAddress, 'takeProfitPrice')
+        if (takeProfitPrice is not None) and ((triggerPrice is not None) or (stopLossPrice is not None)):
+            raise InvalidOrder(self.id + ' createOrder() accepts only one of triggerPrice, stopLossPrice or takeProfitPrice')
+        triggerPriceType = self.safe_string(paramsDeriveWalletAddress, 'trigger_price_type', 'mark')
+        stopPrice = triggerPrice if (triggerPrice is not None) else stopLossPrice
+        if stopPrice is not None:
+            request['trigger_price'] = stopPrice
             request['trigger_type'] = 'stoploss'
             request['trigger_price_type'] = triggerPriceType
-        elif takeProfit is not None:
-            takeProfitPrice = self.safe_string(takeProfit, 'triggerPrice', takeProfit)
+        elif takeProfitPrice is not None:
             request['trigger_price'] = takeProfitPrice
             request['trigger_type'] = 'takeprofit'
             request['trigger_price_type'] = triggerPriceType
-        clientOrderId = self.safe_string(params, 'clientOrderId')
+        clientOrderId = self.safe_string(paramsDeriveWalletAddress, 'clientOrderId')
         if clientOrderId is not None:
             request['label'] = clientOrderId
         request['signature'] = signature
-        params = self.omit(params, ['reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'test', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trigger_price', 'stopLoss', 'takeProfit', 'trigger_price_type'])
+        paramsOmitted = self.omit(paramsDeriveWalletAddress, ['reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'test', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trigger_price', 'stopLossPrice', 'takeProfitPrice', 'trigger_price_type'])
         response: dict
         if test is True:
-            response = self.privatePostOrderDebug(self.extend(request, params))
+            response = self.privatePostOrderDebug(self.extend(request, paramsOmitted))
         else:
-            response = self.privatePostOrder(self.extend(request, params))
+            response = self.privatePostOrder(self.extend(request, paramsOmitted))
         #
-        # {
-        #     "result": {
-        #         "raw_data": {
-        #             "subaccount_id": 130837,
-        #             "nonce": 1736923517552,
-        #             "module": "0x87F2863866D85E3192a35A73b388BD625D83f2be",
-        #             "expiry": 86400,
-        #             "owner": "0x108b9aF9279a525b8A8AeAbE7AC2bA925Bc50075",
-        #             "signer": "0x108b9aF9279a525b8A8AeAbE7AC2bA925Bc50075",
-        #             "signature": "0xaa4f42b2f3da33c668fa703ea872d4c3a6b55aca66025b5119e3bebb6679fe2e2794638db51dcace21fc39a498047835994f07eb59f311bb956ce057e66793d1c",
-        #             "data": {
-        #                 "asset": "0xAFB6Bb95cd70D5367e2C39e9dbEb422B9815339D",
-        #                 "sub_id": 0,
-        #                 "limit_price": "10000",
-        #                 "desired_amount": "0.001",
-        #                 "worst_fee": "0",
-        #                 "recipient_id": 130837,
-        #                 "is_bid": true,
-        #                 "trade_id": ""
-        #             }
-        #         },
-        #         "encoded_data": "0x000000000000000000000000afb6bb95cd70d5367e2c39e9dbeb422b9815339d000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000021e19e0c9bab240000000000000000000000000000000000000000000000000000000038d7ea4c680000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001ff150000000000000000000000000000000000000000000000000000000000000001",
-        #         "encoded_data_hashed": "0xe88fb416bc54dba2d288988f1a82fee40fd792ed555b3471b5f6b4b810d279b4",
-        #         "action_hash": "0x273a0befb3751fa991edc7ed73582456c3b50ae964d458c8f472e932fb6a0069",
-        #         "typed_data_hash": "0x123e2d2f3d5b2473b4e260f51c6459d6bf904e5db8f042a3ea63be8d55329ce9"
-        #     },
-        #     "id": "f851c8c4-dddf-4b77-93cf-aeddd0966f29"
-        # }
-        # {
-        #     "result": {
-        #         "order": {
-        #             "subaccount_id": 130837,
-        #             "order_id": "96349ebb-7d46-43ae-81c7-7ab390444293",
-        #             "instrument_name": "BTC-PERP",
-        #             "direction": "buy",
-        #             "label": "",
-        #             "quote_id": null,
-        #             "creation_timestamp": 1737467576257,
-        #             "last_update_timestamp": 1737467576257,
-        #             "limit_price": "10000",
-        #             "amount": "0.01",
-        #             "filled_amount": "0",
-        #             "average_price": "0",
-        #             "order_fee": "0",
-        #             "order_type": "limit",
-        #             "time_in_force": "gtc",
-        #             "order_status": "open",
-        #             "max_fee": "210",
-        #             "signature_expiry_sec": 1737468175989,
-        #             "nonce": 1737467575989,
-        #             "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
-        #             "signature": "0xd1ca49df1fa06bd805bb59b132ff6c0de29bf973a3e01705abe0a01cc956e4945ed9eb99ab68f3df4c037908113cac5a5bfc3a954a0b7103cdab285962fa6a51c",
-        #             "cancel_reason": "",
-        #             "mmp": false,
-        #             "is_transfer": false,
-        #             "replaced_order_id": null,
-        #             "trigger_type": null,
-        #             "trigger_price_type": null,
-        #             "trigger_price": null,
-        #             "trigger_reject_message": null
-        #         },
-        #         "trades": []
-        #     },
-        #     "id": "397087fa-0125-42af-bfc3-f66166f9fb55"
-        # }
+        #     {
+        #         "id": "dd0fe5ec-043c-41ab-95e1-fc2421c6fc10",
+        #         "result": {
+        #             "order": {
+        #                 "subaccount_id": 86815,
+        #                 "order_id": "f690dfc9-5b9c-4f62-a2b0-3f6ba502f2f6",
+        #                 "instrument_name": "BTC-PERP",
+        #                 "direction": "buy",
+        #                 "label": "",
+        #                 "quote_id": null,
+        #                 "amount": "0.01",
+        #                 "average_price": "0",
+        #                 "cancel_reason": "",
+        #                 "creation_timestamp": 1790871618199,
+        #                 "filled_amount": "0",
+        #                 "is_transfer": false,
+        #                 "last_update_timestamp": 1790871618199,
+        #                 "limit_price": "83000",
+        #                 "signed_limit_price": null,
+        #                 "max_fee": "100",
+        #                 "mmp": false,
+        #                 "nonce": "1790871617137835612",
+        #                 "order_fee": "0",
+        #                 "order_status": "open",
+        #                 "order_type": "limit",
+        #                 "replaced_order_id": null,
+        #                 "signature": "0x55412a2a39e2dd70b0c39ea03859ac499b5c500756b46197900a413f7bfd294e0adb8c2c5eec467b4c83ef75f7068b528e21044cdd27faa47a6db475461641c21b",
+        #                 "signature_expiry_sec": 1798647617,
+        #                 "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        #                 "time_in_force": "gtc",
+        #                 "trigger_type": null,
+        #                 "trigger_price": null,
+        #                 "trigger_price_type": null,
+        #                 "trigger_reject_message": null,
+        #                 "extra_fee": "0",
+        #                 "algo_type": null,
+        #                 "algo_duration_sec": null,
+        #                 "algo_num_slices": null,
+        #                 "algo_slices_completed": null
+        #             },
+        #             "trades": []
+        #         }
+        #     }
         #
         result = self.safe_dict(response, 'result')
         rawOrder = self.safe_dict(result, 'raw_data')
@@ -1397,11 +2068,11 @@ class derive(Exchange, ImplicitAPI):
         order['type'] = type
         return order
 
-    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}):
         """
         edit a trade order
 
-        https://docs.derive.xyz/reference/post_private-replace
+        https://docs.derive.xyz/api-reference/orderbook/privatereplace
 
         :param str id: order id
         :param str symbol: unified symbol of the market to create an order in
@@ -1416,40 +2087,36 @@ class derive(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        subaccountId = None
-        subaccountId, params = self.handle_derive_subaccount_id('editOrder', params)
-        reduceOnly = self.safe_bool_2(params, 'reduceOnly', 'reduce_only')
-        timeInForce = self.safe_string_lower_2(params, 'timeInForce', 'time_in_force')
-        postOnly = self.safe_bool(params, 'postOnly')
+        subaccountId, paramsDeriveSubaccountId = self.handle_derive_subaccount_id('editOrder', params)
+        reduceOnly = self.safe_bool_2(paramsDeriveSubaccountId, 'reduceOnly', 'reduce_only')
+        timeInForce = self.safe_string_lower_2(paramsDeriveSubaccountId, 'timeInForce', 'time_in_force')
+        postOnly = self.safe_bool(paramsDeriveSubaccountId, 'postOnly')
         orderType = type.lower()
         orderSide = side.lower()
         orderSideIsBuy = (orderSide == 'buy')  # extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
-        nonce = self.incrementing_nonce()
-        signatureExpiry = self.safe_number(params, 'signature_expiry_sec', self.seconds() + 7776000)
-        # TODO: subaccount id / trade module address
+        nonce = self.nonce_string()
+        signatureExpiry = self.safe_number(paramsDeriveSubaccountId, 'signature_expiry_sec', self.seconds() + 7776000)
         ACTION_TYPEHASH = self.base16_to_binary('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17')
-        sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
-        TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be' if (sandboxMode is True) else '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b'
+        TRADE_MODULE_ADDRESS = '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b'  # shared across mainnet and testnet in v3
         priceString = self.number_to_string(price)
-        maxFeeString = self.safe_string(params, 'max_fee', '0')
+        maxFeeString = self.safe_string(paramsDeriveSubaccountId, 'max_fee', '0')
         amountString = self.number_to_string(amount)
         tradeModuleDataHash = self.hash(self.eth_abi_encode([
             'address', 'uint', 'int', 'int', 'uint', 'uint', 'bool',
         ], [
             market['info']['base_asset_address'],
-            self.parse_to_numeric(market['info']['base_asset_sub_id']),
+            self.convert_to_big_int(market['info']['base_asset_sub_id']),  # options carry a huge encoded sub_id that overflows double precision, so it must stay integral
             self.convert_to_big_int((self.parse_units(priceString))),
             self.convert_to_big_int((self.parse_units((self.amount_to_precision(symbol, amountString))))),
             self.convert_to_big_int((self.parse_units(maxFeeString))),
             subaccountId,
             orderSideIsBuy,
         ]), 'keccak', 'binary')
-        deriveWalletAddress = None
-        deriveWalletAddress, params = self.handle_derive_wallet_address('editOrder', params)
+        deriveWalletAddress, paramsDeriveWalletAddress = self.handle_derive_wallet_address('editOrder', paramsDeriveSubaccountId)
         signature = self.sign_order([
             ACTION_TYPEHASH,
             subaccountId,
-            nonce,
+            self.convert_to_big_int(nonce),
             TRADE_MODULE_ADDRESS,
             tradeModuleDataHash,
             signatureExpiry,
@@ -1477,85 +2144,94 @@ class derive(Exchange, ImplicitAPI):
             request['time_in_force'] = 'post_only'
         elif timeInForce is not None:
             request['time_in_force'] = timeInForce
-        clientOrderId = self.safe_string(params, 'clientOrderId')
+        clientOrderId = self.safe_string(paramsDeriveWalletAddress, 'clientOrderId')
         if clientOrderId is not None:
             request['label'] = clientOrderId
         request['signature'] = signature
-        params = self.omit(params, ['reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'clientOrderId'])
-        response = self.privatePostReplace(self.extend(request, params))
+        paramsOmitted = self.omit(paramsDeriveWalletAddress, ['reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'clientOrderId'])
+        response = self.privatePostReplace(self.extend(request, paramsOmitted))
         #
-        #   {
-        #     "result":
-        #       {
-        #         "cancelled_order":
-        #           {
-        #             "subaccount_id": 130837,
-        #             "order_id": "c2337704-f1af-437d-91c8-dddb9d6bac59",
-        #             "instrument_name": "BTC-PERP",
-        #             "direction": "buy",
-        #             "label": "test1234",
-        #             "quote_id": null,
-        #             "creation_timestamp": 1737539743959,
-        #             "last_update_timestamp": 1737539764234,
-        #             "limit_price": "10000",
-        #             "amount": "0.01",
-        #             "filled_amount": "0",
-        #             "average_price": "0",
-        #             "order_fee": "0",
-        #             "order_type": "limit",
-        #             "time_in_force": "post_only",
-        #             "order_status": "cancelled",
-        #             "max_fee": "211",
-        #             "signature_expiry_sec": 1737540343631,
-        #             "nonce": 1737539743631,
-        #             "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
-        #             "signature": "0xdb669e18f407a3efa816b79c0dd3bac1c651d4dbf3caad4db67678ce9b81c76378d787a08143a30707eb0827ce4626640767c9f174358df1b90611bd6d1391711b",
-        #             "cancel_reason": "user_request",
-        #             "mmp": false,
-        #             "is_transfer": false,
-        #             "replaced_order_id": null,
-        #             "trigger_type": null,
-        #             "trigger_price_type": null,
-        #             "trigger_price": null,
-        #             "trigger_reject_message": null,
-        #           },
-        #         "order":
-        #           {
-        #             "subaccount_id": 130837,
-        #             "order_id": "97af0902-813f-4892-a54b-797e5689db05",
-        #             "instrument_name": "BTC-PERP",
-        #             "direction": "buy",
-        #             "label": "test1234",
-        #             "quote_id": null,
-        #             "creation_timestamp": 1737539764154,
-        #             "last_update_timestamp": 1737539764154,
-        #             "limit_price": "10000",
-        #             "amount": "0.01",
-        #             "filled_amount": "0",
-        #             "average_price": "0",
-        #             "order_fee": "0",
-        #             "order_type": "limit",
-        #             "time_in_force": "post_only",
-        #             "order_status": "open",
-        #             "max_fee": "211",
-        #             "signature_expiry_sec": 1737540363890,
-        #             "nonce": 1737539763890,
-        #             "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
-        #             "signature": "0xef2c459ab4797cbbd7d97b47678ff172542af009bac912bf53e7879cf92eb1aa6b1a6cf40bf0928684f5394942fb424cc2db71eac0eaf7226a72480034332f291c",
-        #             "cancel_reason": "",
-        #             "mmp": false,
-        #             "is_transfer": false,
-        #             "replaced_order_id": "c2337704-f1af-437d-91c8-dddb9d6bac59",
-        #             "trigger_type": null,
-        #             "trigger_price_type": null,
-        #             "trigger_price": null,
-        #             "trigger_reject_message": null,
-        #           },
-        #         "trades": [],
-        #         "create_order_error": null,
-        #       },
-        #     "id": "fb19e991-15f6-4c80-a20c-917e762a1a38",
-        #   }
+        #     {
+        #         "id": "bdeaa36f-5eae-4193-a1d2-81fb7f0dfd9d",
+        #         "result": {
+        #             "cancelled_order": {
+        #                 "subaccount_id": 86815,
+        #                 "order_id": "f690dfc9-5b9c-4f62-a2b0-3f6ba502f2f6",
+        #                 "instrument_name": "BTC-PERP",
+        #                 "direction": "buy",
+        #                 "label": "",
+        #                 "quote_id": null,
+        #                 "amount": "0.01",
+        #                 "average_price": "0",
+        #                 "cancel_reason": "user_request",
+        #                 "creation_timestamp": 1790871618199,
+        #                 "filled_amount": "0",
+        #                 "is_transfer": false,
+        #                 "last_update_timestamp": 1790871630849,
+        #                 "limit_price": "83000",
+        #                 "signed_limit_price": null,
+        #                 "max_fee": "100",
+        #                 "mmp": false,
+        #                 "nonce": "1790871617137835612",
+        #                 "order_fee": "0",
+        #                 "order_status": "cancelled",
+        #                 "order_type": "limit",
+        #                 "replaced_order_id": null,
+        #                 "signature": "0x55412a2a39e2dd70b0c39ea03859ac499b5c500756b46197900a413f7bfd294e0adb8c2c5eec467b4c83ef75f7068b528e21044cdd27faa47a6db475461641c21b",
+        #                 "signature_expiry_sec": 1798647617,
+        #                 "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        #                 "time_in_force": "gtc",
+        #                 "trigger_type": null,
+        #                 "trigger_price": null,
+        #                 "trigger_price_type": null,
+        #                 "trigger_reject_message": null,
+        #                 "extra_fee": "0",
+        #                 "algo_type": null,
+        #                 "algo_duration_sec": null,
+        #                 "algo_num_slices": null,
+        #                 "algo_slices_completed": null
+        #             },
+        #             "order": {
+        #                 "subaccount_id": 86815,
+        #                 "order_id": "af3f3ec2-eab8-4929-bd50-8ce1657f9e93",
+        #                 "instrument_name": "BTC-PERP",
+        #                 "direction": "buy",
+        #                 "label": "",
+        #                 "quote_id": null,
+        #                 "amount": "0.01",
+        #                 "average_price": "0",
+        #                 "cancel_reason": "",
+        #                 "creation_timestamp": 1790871630849,
+        #                 "filled_amount": "0",
+        #                 "is_transfer": false,
+        #                 "last_update_timestamp": 1790871630849,
+        #                 "limit_price": "83500",
+        #                 "signed_limit_price": null,
+        #                 "max_fee": "100",
+        #                 "mmp": false,
+        #                 "nonce": "1790871630331176421",
+        #                 "order_fee": "0",
+        #                 "order_status": "open",
+        #                 "order_type": "limit",
+        #                 "replaced_order_id": "f690dfc9-5b9c-4f62-a2b0-3f6ba502f2f6",
+        #                 "signature": "0x0c8ae3bebd23b1e303b49dd60eb34a5c96ccd450ea9f37536f30d7fa07322980569e4e691e90673a9a8db27b253cf00026ea813034ad2f5e22e2db727cb42faa1c",
+        #                 "signature_expiry_sec": 1798647630,
+        #                 "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        #                 "time_in_force": "gtc",
+        #                 "trigger_type": null,
+        #                 "trigger_price": null,
+        #                 "trigger_price_type": null,
+        #                 "trigger_reject_message": null,
+        #                 "extra_fee": "0",
+        #                 "algo_type": null,
+        #                 "algo_duration_sec": null,
+        #                 "algo_num_slices": null,
+        #                 "algo_slices_completed": null
+        #             },
+        #             "trades": [],
+        #             "create_order_error": null
+        #         }
+        #     }
         #
         result = self.safe_dict(response, 'result')
         rawOrder = self.safe_dict(result, 'order', {})
@@ -1565,7 +2241,7 @@ class derive(Exchange, ImplicitAPI):
     def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
 
-        https://docs.derive.xyz/reference/post_private-cancel
+        https://docs.derive.xyz/api-reference/orderbook/privatecancel
 
         cancels an open order
         :param str id: order id
@@ -1581,69 +2257,67 @@ class derive(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
-        subaccountId = None
-        subaccountId, params = self.handle_derive_subaccount_id('cancelOrder', params)
-        params = self.omit(params, ['trigger', 'stop'])
+        subaccountId, paramsDeriveSubaccountId = self.handle_derive_subaccount_id('cancelOrder', params)
+        paramsOmitted = self.omit(paramsDeriveSubaccountId, ['trigger', 'stop'])
         request = {
             'instrument_name': market['id'],
             'subaccount_id': subaccountId,
         }
-        clientOrderIdUnified = self.safe_string(params, 'clientOrderId')
-        clientOrderIdExchangeSpecific = self.safe_string(params, 'label', clientOrderIdUnified)
+        clientOrderIdUnified = self.safe_string(paramsOmitted, 'clientOrderId')
+        clientOrderIdExchangeSpecific = self.safe_string(paramsOmitted, 'label', clientOrderIdUnified)
         isByClientOrder = clientOrderIdExchangeSpecific is not None
         response: dict
         if isByClientOrder:
             request['label'] = clientOrderIdExchangeSpecific
-            params = self.omit(params, ['clientOrderId', 'label'])
-            response = self.privatePostCancelByLabel(self.extend(request, params))
+            paramsLabel = self.omit(paramsOmitted, ['clientOrderId', 'label'])
+            response = self.privatePostCancelByLabel(self.extend(request, paramsLabel))
         else:
             request['order_id'] = id
             if isTrigger is True:
-                response = self.privatePostCancelTriggerOrder(self.extend(request, params))
+                response = self.privatePostCancelTriggerOrder(self.extend(request, paramsOmitted))
             else:
-                response = self.privatePostCancel(self.extend(request, params))
+                response = self.privatePostCancel(self.extend(request, paramsOmitted))
         #
-        # {
-        #     "result": {
-        #         "subaccount_id": 130837,
-        #         "order_id": "de4f30b6-0dcb-4df6-9222-c1a27f1ad80d",
-        #         "instrument_name": "BTC-PERP",
-        #         "direction": "buy",
-        #         "label": "test1234",
-        #         "quote_id": null,
-        #         "creation_timestamp": 1737540100989,
-        #         "last_update_timestamp": 1737540574696,
-        #         "limit_price": "10000",
-        #         "amount": "0.01",
-        #         "filled_amount": "0",
-        #         "average_price": "0",
-        #         "order_fee": "0",
-        #         "order_type": "limit",
-        #         "time_in_force": "post_only",
-        #         "order_status": "cancelled",
-        #         "max_fee": "211",
-        #         "signature_expiry_sec": 1737540700726,
-        #         "nonce": 1737540100726,
-        #         "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
-        #         "signature": "0x9cd1a6e32a0699929e4e090c08c548366b1353701ec56e02d5cdf37fc89bd19b7b29e00e57e8383bb6336d73019027a7e2a4364f40859e7a949115024c7f199a1b",
-        #         "cancel_reason": "user_request",
-        #         "mmp": false,
-        #         "is_transfer": false,
-        #         "replaced_order_id": "4ccc89ba-3c3d-4047-8900-0aa5fb4ef706",
-        #         "trigger_type": null,
-        #         "trigger_price_type": null,
-        #         "trigger_price": null,
-        #         "trigger_reject_message": null
-        #     },
-        #     "id": "cef61e2a-cb13-4779-8e6b-535361981fad"
-        # }
-        #
-        # {
-        #     "result": {
-        #         "cancelled_orders": 1
-        #     },
-        #     "id": "674e075e-1e8a-4a47-99ff-75efbdd2370f"
-        # }
+        #     {
+        #         "id": "1765272a-2d4d-4761-8e05-64061d64dc9c",
+        #         "result": {
+        #             "subaccount_id": 86815,
+        #             "order_id": "af3f3ec2-eab8-4929-bd50-8ce1657f9e93",
+        #             "instrument_name": "BTC-PERP",
+        #             "direction": "buy",
+        #             "label": "",
+        #             "quote_id": null,
+        #             "amount": "0.01",
+        #             "average_price": "0",
+        #             "cancel_reason": "user_request",
+        #             "creation_timestamp": 1790871630849,
+        #             "filled_amount": "0",
+        #             "is_transfer": false,
+        #             "last_update_timestamp": 1790871644913,
+        #             "limit_price": "83500",
+        #             "signed_limit_price": null,
+        #             "max_fee": "100",
+        #             "mmp": false,
+        #             "nonce": "1790871630331176421",
+        #             "order_fee": "0",
+        #             "order_status": "cancelled",
+        #             "order_type": "limit",
+        #             "replaced_order_id": "f690dfc9-5b9c-4f62-a2b0-3f6ba502f2f6",
+        #             "signature": "0x0c8ae3bebd23b1e303b49dd60eb34a5c96ccd450ea9f37536f30d7fa07322980569e4e691e90673a9a8db27b253cf00026ea813034ad2f5e22e2db727cb42faa1c",
+        #             "signature_expiry_sec": 1798647630,
+        #             "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        #             "time_in_force": "gtc",
+        #             "trigger_type": null,
+        #             "trigger_price": null,
+        #             "trigger_price_type": null,
+        #             "trigger_reject_message": null,
+        #             "extra_fee": "0",
+        #             "algo_type": null,
+        #             "algo_duration_sec": null,
+        #             "algo_num_slices": null,
+        #             "algo_slices_completed": null
+        #         }
+        #     }
         #
         extendParams = {'symbol': symbol}
         order = self.safe_dict(response, 'result', {})
@@ -1654,8 +2328,8 @@ class derive(Exchange, ImplicitAPI):
     def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
 
-        https://docs.derive.xyz/reference/post_private-cancel-by-instrument
-        https://docs.derive.xyz/reference/post_private-cancel-all
+        https://docs.derive.xyz/api-reference/orderbook/privatecancel_by_instrument
+        https://docs.derive.xyz/api-reference/orderbook/privatecancel_all
 
         cancel all open orders in a market
         :param str [symbol]: unified market symbol
@@ -1668,149 +2342,240 @@ class derive(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        subaccountId = None
-        subaccountId, params = self.handle_derive_subaccount_id('cancelAllOrders', params)
+        subaccountId, paramsDeriveSubaccountId = self.handle_derive_subaccount_id('cancelAllOrders', params)
         request = {
             'subaccount_id': subaccountId,
         }
         response: dict
         if market is not None:
             request['instrument_name'] = market['id']
-            response = self.privatePostCancelByInstrument(self.extend(request, params))
+            response = self.privatePostCancelByInstrument(self.extend(request, paramsDeriveSubaccountId))
         else:
-            response = self.privatePostCancelAll(self.extend(request, params))
+            response = self.privatePostCancelAll(self.extend(request, paramsDeriveSubaccountId))
         #
-        # {
-        #     "result": {
-        #         "cancelled_orders": 0
-        #     },
-        #     "id": "9d633799-2098-4559-b547-605bb6f4d8f5"
-        # }
-        #
-        # {
-        #     "id": "45548646-c74f-4ca2-9de4-551e6de49afa",
-        #     "result": "ok"
-        # }
+        #     {
+        #         "id": "dda90de6-30d5-4bb1-8c3b-cdaa23e9e718",
+        #         "result": "ok"
+        #     }
         #
         return [self.safe_order({'info': response})]
 
-    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
+    def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
-        fetches information on multiple orders made by the user
+        fetches information on multiple canceled and closed orders made by the user; only orders in a terminal state(filled, cancelled, expired) are returned, use fetchOpenOrders for orders resting on the order book
 
-        https://docs.derive.xyz/reference/post_private-get-orders
+        https://docs.derive.xyz/api-reference/history/privateget_order_history
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch orders for
         :param boolean [params.paginate]: set to True if you want to fetch orders with pagination
-        :param boolean [params.trigger]: whether the order is a trigger/algo order
         :param str [params.subaccount_id]: *required* the subaccount id
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchCanceledAndClosedOrders', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_incremental('fetchOrders', symbol, since, limit, params, 'page', 500)
-        isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
-        params = self.omit(params, ['trigger', 'stop'])
-        subaccountId = None
-        subaccountId, params = self.handle_derive_subaccount_id('fetchOrders', params)
+            # paginate without a symbol: the venue cannot filter the order history by instrument, so an inner call filtering by symbol could return an empty page and stop the pagination loop prematurely
+            allOrders = self.fetch_paginated_call_incremental('fetchCanceledAndClosedOrders', None, since, None, paramsPaginate, 'page', 500)
+            return self.filter_by_symbol_since_limit(allOrders, symbol, since, limit)
+        until = self.safe_integer(paramsPaginate, 'until')
+        paramsOmitted = self.omit(paramsPaginate, ['until'])
+        subaccountId, paramsDeriveSubaccountId = self.handle_derive_subaccount_id('fetchCanceledAndClosedOrders', paramsOmitted)
         request = {
             'subaccount_id': subaccountId,
         }
         market = None
         if symbol is not None:
             market = self.market(symbol)
-            request['instrument_name'] = market['id']
         if limit is not None:
             request['page_size'] = limit
         else:
             request['page_size'] = 500
-        if isTrigger is True:
-            request['status'] = 'untriggered'
-        response = self.privatePostGetOrders(self.extend(request, params))
+        if since is not None:
+            request['from_timestamp'] = since
+        if until is not None:
+            request['to_timestamp'] = until
+        response = self.privatePostGetOrderHistory(self.extend(request, paramsDeriveSubaccountId))
         #
-        # {
-        #     "result": {
-        #         "subaccount_id": 130837,
-        #         "orders": [
-        #             {
-        #                 "subaccount_id": 130837,
-        #                 "order_id": "63a80cb8-387b-472b-a838-71cd9513c365",
-        #                 "instrument_name": "BTC-PERP",
-        #                 "direction": "buy",
-        #                 "label": "test1234",
-        #                 "quote_id": null,
-        #                 "creation_timestamp": 1737551053207,
-        #                 "last_update_timestamp": 1737551053207,
-        #                 "limit_price": "10000",
-        #                 "amount": "0.01",
-        #                 "filled_amount": "0",
-        #                 "average_price": "0",
-        #                 "order_fee": "0",
-        #                 "order_type": "limit",
-        #                 "time_in_force": "post_only",
-        #                 "order_status": "open",
-        #                 "max_fee": "211",
-        #                 "signature_expiry_sec": 1737551652765,
-        #                 "nonce": 1737551052765,
-        #                 "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
-        #                 "signature": "0x35535ccb1bcad509ecc435c79e966174db6403fc9aeee1e237d08a941014c57b59279dfe4be39e081f9921a53eaad59cb2a151d9f52f2d05fc47e6280254952e1c",
-        #                 "cancel_reason": "",
-        #                 "mmp": false,
-        #                 "is_transfer": false,
-        #                 "replaced_order_id": null,
-        #                 "trigger_type": null,
-        #                 "trigger_price_type": null,
-        #                 "trigger_price": null,
-        #                 "trigger_reject_message": null
+        #     {
+        #         "id": "c55b1f4e-7263-4045-ac9f-158da9a97c5c",
+        #         "result": {
+        #             "subaccount_id": 86815,
+        #             "orders": [
+        #                 {
+        #                     "subaccount_id": 86815,
+        #                     "order_id": "af3f3ec2-eab8-4929-bd50-8ce1657f9e93",
+        #                     "instrument_name": "BTC-PERP",
+        #                     "direction": "buy",
+        #                     "label": "",
+        #                     "quote_id": null,
+        #                     "amount": "0.01",
+        #                     "average_price": "0",
+        #                     "cancel_reason": "user_request",
+        #                     "creation_timestamp": 1790871630849,
+        #                     "filled_amount": "0",
+        #                     "is_transfer": false,
+        #                     "last_update_timestamp": 1790871644913,
+        #                     "limit_price": "83500",
+        #                     "signed_limit_price": null,
+        #                     "max_fee": "100",
+        #                     "mmp": false,
+        #                     "nonce": "1790871630331176421",
+        #                     "order_fee": "0",
+        #                     "order_status": "cancelled",
+        #                     "order_type": "limit",
+        #                     "replaced_order_id": null,
+        #                     "signature": "",
+        #                     "signature_expiry_sec": 1798647630,
+        #                     "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        #                     "time_in_force": "gtc",
+        #                     "trigger_type": null,
+        #                     "trigger_price": null,
+        #                     "trigger_price_type": null,
+        #                     "trigger_reject_message": null,
+        #                     "extra_fee": "0",
+        #                     "algo_type": null,
+        #                     "algo_duration_sec": null,
+        #                     "algo_num_slices": null,
+        #                     "algo_slices_completed": null
+        #                 }
+        #             ],
+        #             "pagination": {
+        #                 "num_pages": 2,
+        #                 "count": 6
         #             }
-        #         ],
-        #         "pagination": {
-        #             "num_pages": 1,
-        #             "count": 1
         #         }
-        #     },
-        #     "id": "e5a88d4f-7ac7-40cd-aec9-e0e8152b8b92"
-        # }
+        #     }
         #
         data = self.safe_dict(response, 'result')
-        page = self.safe_integer(params, 'page')
+        page = self.safe_integer(paramsDeriveSubaccountId, 'page')
         if page is not None:
             pagination = self.safe_dict(data, 'pagination')
             currentPage = self.safe_integer(pagination, 'num_pages', 0)
             if page > currentPage:
                 return []
         orders = self.safe_list(data, 'orders', [])
-        return self.parse_orders(orders, market, since, limit)
+        parsedOrders = self.parse_orders(orders, market)
+        return self.filter_by_symbol_since_limit(parsedOrders, symbol, since, limit)
+
+    def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
+        """
+        fetches information on an order made by the user, a standalone trigger order is not visible here until it triggers, list those through fetchOpenOrders with params.trigger instead
+
+        https://docs.derive.xyz/api-reference/orderbook/privateget_order
+
+        :param str id: the order id
+        :param str [symbol]: not used by derive.fetchOrder
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.subaccount_id]: *required* the subaccount id
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        subaccountId, paramsDeriveSubaccountId = self.handle_derive_subaccount_id('fetchOrder', params)
+        request = {
+            'order_id': id,
+            'subaccount_id': subaccountId,
+        }
+        response = self.privatePostGetOrder(self.extend(request, paramsDeriveSubaccountId))
+        result = self.safe_dict(response, 'result', {})
+        return self.parse_order(result, market)
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
-        fetches information on multiple orders made by the user
+        fetches information on all currently open orders of the user resting on the order book
 
-        https://docs.derive.xyz/reference/post_private-get-orders
+        https://docs.derive.xyz/api-reference/orderbook/privateget_open_orders
+        https://docs.derive.xyz/api-reference/orderbook/privateget_trigger_orders
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.paginate]: set to True if you want to fetch orders with pagination
+        :param boolean [params.trigger]: when True fetches the pending trigger orders that have not fired yet instead of the orders resting on the order book
+        :param str [params.subaccount_id]: *required* the subaccount id
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
             self.load_markets()
-        extendedParams = self.extend(params, {'status': 'open'})
-        return self.fetch_orders(symbol, since, limit, extendedParams)
+        isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
+        paramsOmitted = self.omit(params, ['trigger', 'stop'])
+        subaccountId, paramsDeriveSubaccountId = self.handle_derive_subaccount_id('fetchOpenOrders', paramsOmitted)
+        request = {
+            'subaccount_id': subaccountId,
+        }
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        response: dict
+        if isTrigger is True:
+            response = self.privatePostGetTriggerOrders(self.extend(request, paramsDeriveSubaccountId))
+        else:
+            response = self.privatePostGetOpenOrders(self.extend(request, paramsDeriveSubaccountId))
+        #
+        #     {
+        #         "id": "aca80354-f6fe-4862-bbbd-7982f774914e",
+        #         "result": {
+        #             "subaccount_id": 86815,
+        #             "orders": [
+        #                 {
+        #                     "subaccount_id": 86815,
+        #                     "order_id": "f690dfc9-5b9c-4f62-a2b0-3f6ba502f2f6",
+        #                     "instrument_name": "BTC-PERP",
+        #                     "direction": "buy",
+        #                     "label": "",
+        #                     "quote_id": null,
+        #                     "amount": "0.01",
+        #                     "average_price": "0",
+        #                     "cancel_reason": "",
+        #                     "creation_timestamp": 1790871618199,
+        #                     "filled_amount": "0",
+        #                     "is_transfer": false,
+        #                     "last_update_timestamp": 1790871618199,
+        #                     "limit_price": "83000",
+        #                     "signed_limit_price": null,
+        #                     "max_fee": "100",
+        #                     "mmp": false,
+        #                     "nonce": "1790871617137835612",
+        #                     "order_fee": "0",
+        #                     "order_status": "open",
+        #                     "order_type": "limit",
+        #                     "replaced_order_id": null,
+        #                     "signature": "0x55412a2a39e2dd70b0c39ea03859ac499b5c500756b46197900a413f7bfd294e0adb8c2c5eec467b4c83ef75f7068b528e21044cdd27faa47a6db475461641c21b",
+        #                     "signature_expiry_sec": 1798647617,
+        #                     "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        #                     "time_in_force": "gtc",
+        #                     "trigger_type": null,
+        #                     "trigger_price": null,
+        #                     "trigger_price_type": null,
+        #                     "trigger_reject_message": null,
+        #                     "extra_fee": "0",
+        #                     "algo_type": null,
+        #                     "algo_duration_sec": null,
+        #                     "algo_num_slices": null,
+        #                     "algo_slices_completed": null
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'result')
+        orders = self.safe_list(data, 'orders', [])
+        parsedOrders = self.parse_orders(orders, market)
+        return self.filter_by_symbol_since_limit(parsedOrders, symbol, since, limit)
 
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
-        fetches information on multiple orders made by the user
+        fetches information on multiple closed(fully filled) orders made by the user
 
-        https://docs.derive.xyz/reference/post_private-get-orders
+        https://docs.derive.xyz/api-reference/history/privateget_order_history
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -1821,14 +2586,14 @@ class derive(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        extendedParams = self.extend(params, {'status': 'filled'})
-        return self.fetch_orders(symbol, since, limit, extendedParams)
+        orders = self.fetch_canceled_and_closed_orders(symbol, since, limit, params)
+        return self.filter_by(orders, 'status', 'closed')
 
     def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple canceled orders made by the user
 
-        https://docs.derive.xyz/reference/post_private-get-orders
+        https://docs.derive.xyz/api-reference/history/privateget_order_history
 
         :param str symbol: unified market symbol of the market the orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -1839,8 +2604,8 @@ class derive(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        extendedParams = self.extend(params, {'status': 'cancelled'})
-        return self.fetch_orders(symbol, since, limit, extendedParams)
+        orders = self.fetch_canceled_and_closed_orders(symbol, since, limit, params)
+        return self.filter_by(orders, 'status', 'canceled')
 
     def parse_time_in_force(self, timeInForce: Str):
         timeInForces = {
@@ -1865,68 +2630,55 @@ class derive(Exchange, ImplicitAPI):
 
     def parse_order(self, rawOrder: dict, market: Market = None) -> Order:
         #
-        # {
-        #     "subaccount_id": 130837,
-        #     "nonce": 1736923517552,
-        #     "module": "0x87F2863866D85E3192a35A73b388BD625D83f2be",
-        #     "expiry": 86400,
-        #     "owner": "0x108b9aF9279a525b8A8AeAbE7AC2bA925Bc50075",
-        #     "signer": "0x108b9aF9279a525b8A8AeAbE7AC2bA925Bc50075",
-        #     "signature": "0xaa4f42b2f3da33c668fa703ea872d4c3a6b55aca66025b5119e3bebb6679fe2e2794638db51dcace21fc39a498047835994f07eb59f311bb956ce057e66793d1c",
-        #     "data": {
-        #         "asset": "0xAFB6Bb95cd70D5367e2C39e9dbEb422B9815339D",
-        #         "sub_id": 0,
-        #         "limit_price": "10000",
-        #         "desired_amount": "0.001",
-        #         "worst_fee": "0",
-        #         "recipient_id": 130837,
-        #         "is_bid": true,
-        #         "trade_id": ""
+        #     {
+        #         "subaccount_id": 86815,
+        #         "order_id": "af3f3ec2-eab8-4929-bd50-8ce1657f9e93",
+        #         "instrument_name": "BTC-PERP",
+        #         "direction": "buy",
+        #         "label": "",
+        #         "quote_id": null,
+        #         "amount": "0.01",
+        #         "average_price": "0",
+        #         "cancel_reason": "user_request",
+        #         "creation_timestamp": 1790871630849,
+        #         "filled_amount": "0",
+        #         "is_transfer": false,
+        #         "last_update_timestamp": 1790871644913,
+        #         "limit_price": "83500",
+        #         "signed_limit_price": null,
+        #         "max_fee": "100",
+        #         "mmp": false,
+        #         "nonce": "1790871630331176421",
+        #         "order_fee": "0",
+        #         "order_status": "cancelled",
+        #         "order_type": "limit",
+        #         "replaced_order_id": "f690dfc9-5b9c-4f62-a2b0-3f6ba502f2f6",
+        #         "signature": "0x0c8ae3bebd23b1e303b49dd60eb34a5c96ccd450ea9f37536f30d7fa07322980569e4e691e90673a9a8db27b253cf00026ea813034ad2f5e22e2db727cb42faa1c",
+        #         "signature_expiry_sec": 1798647630,
+        #         "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        #         "time_in_force": "gtc",
+        #         "trigger_type": null,
+        #         "trigger_price": null,
+        #         "trigger_price_type": null,
+        #         "trigger_reject_message": null,
+        #         "extra_fee": "0",
+        #         "algo_type": null,
+        #         "algo_duration_sec": null,
+        #         "algo_num_slices": null,
+        #         "algo_slices_completed": null
         #     }
-        # }
-        # {
-        #     "subaccount_id": 130837,
-        #     "order_id": "96349ebb-7d46-43ae-81c7-7ab390444293",
-        #     "instrument_name": "BTC-PERP",
-        #     "direction": "buy",
-        #     "label": "",
-        #     "quote_id": null,
-        #     "creation_timestamp": 1737467576257,
-        #     "last_update_timestamp": 1737467576257,
-        #     "limit_price": "10000",
-        #     "amount": "0.01",
-        #     "filled_amount": "0",
-        #     "average_price": "0",
-        #     "order_fee": "0",
-        #     "order_type": "limit",
-        #     "time_in_force": "gtc",
-        #     "order_status": "open",
-        #     "max_fee": "210",
-        #     "signature_expiry_sec": 1737468175989,
-        #     "nonce": 1737467575989,
-        #     "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
-        #     "signature": "0xd1ca49df1fa06bd805bb59b132ff6c0de29bf973a3e01705abe0a01cc956e4945ed9eb99ab68f3df4c037908113cac5a5bfc3a954a0b7103cdab285962fa6a51c",
-        #     "cancel_reason": "",
-        #     "mmp": false,
-        #     "is_transfer": false,
-        #     "replaced_order_id": null,
-        #     "trigger_type": null,
-        #     "trigger_price_type": null,
-        #     "trigger_price": null,
-        #     "trigger_reject_message": null
-        # }
+        #
         order = self.safe_dict(rawOrder, 'data')
         if order is None:
             order = rawOrder
-        timestamp = self.safe_integer_2(rawOrder, 'creation_timestamp', 'nonce')
+        timestamp = self.safe_integer(rawOrder, 'creation_timestamp')  # the nonce is no longer a usable fallback: v3 nonces are nanosecond-scale values with a random suffix
         orderId = self.safe_string(order, 'order_id')
         marketId = self.safe_string(order, 'instrument_name')
-        if marketId is not None:
-            market = self.safe_market(marketId, market)
-        symbol = self.safe_string(market, 'symbol')
+        marketResolved = self.safe_market(marketId, market) if (marketId is not None) else market
+        symbol = self.safe_string(marketResolved, 'symbol')
         price = self.safe_string(order, 'limit_price')
         average = self.safe_string(order, 'average_price')
-        amount = self.safe_string(order, 'desired_amount')
+        amount = self.safe_string_2(order, 'amount', 'desired_amount')  # plain orders carry amount, the raw_data debug shape nests desired_amount
         filled = self.safe_string(order, 'filled_amount')
         fee = self.safe_string(order, 'order_fee')
         orderType = self.safe_string_lower(order, 'order_type')
@@ -1979,13 +2731,13 @@ class derive(Exchange, ImplicitAPI):
                 'currency': 'USDC',
             },
             'info': order,
-        }, market)
+        }, marketResolved)
 
     def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all the trades made from a single order
 
-        https://docs.derive.xyz/reference/post_private-get-trade-history
+        https://docs.derive.xyz/api-reference/history/privateget_trade_history
 
         :param str id: order id
         :param str symbol: unified market symbol
@@ -1997,8 +2749,7 @@ class derive(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        subaccountId = None
-        subaccountId, params = self.handle_derive_subaccount_id('fetchOrderTrades', params)
+        subaccountId, paramsDeriveSubaccountId = self.handle_derive_subaccount_id('fetchOrderTrades', params)
         request = {
             'order_id': id,
             'subaccount_id': subaccountId,
@@ -2011,52 +2762,55 @@ class derive(Exchange, ImplicitAPI):
             request['page_size'] = limit
         if since is not None:
             request['from_timestamp'] = since
-        response = self.privatePostGetTradeHistory(self.extend(request, params))
+        response = self.privatePostGetTradeHistory(self.extend(request, paramsDeriveSubaccountId))
         #
-        # {
-        #     "result": {
-        #         "subaccount_id": 130837,
-        #         "trades": [
-        #             {
-        #                 "subaccount_id": 130837,
-        #                 "order_id": "30c48194-8d48-43ac-ad00-0d5ba29eddc9",
-        #                 "instrument_name": "BTC-PERP",
-        #                 "direction": "sell",
-        #                 "label": "test1234",
-        #                 "quote_id": null,
-        #                 "trade_id": "f8a30740-488c-4c2d-905d-e17057bafde1",
-        #                 "timestamp": 1738065303708,
-        #                 "mark_price": "102740.137375457314192317",
-        #                 "index_price": "102741.553409299981533184",
-        #                 "trade_price": "102700.6",
-        #                 "trade_amount": "0.01",
-        #                 "liquidity_role": "taker",
-        #                 "realized_pnl": "0",
-        #                 "realized_pnl_excl_fees": "0",
-        #                 "is_transfer": false,
-        #                 "tx_status": "settled",
-        #                 "trade_fee": "1.127415534092999815",
-        #                 "tx_hash": "0xc55df1f07330faf86579bd8a6385391fbe9e73089301149d8550e9d29c9ead74",
-        #                 "transaction_id": "e18b9426-3fa5-41bb-99d3-8b54fb4d51bb"
+        #     {
+        #         "id": "41517b29-67b3-4ed8-845d-ef4bde9b79aa",
+        #         "result": {
+        #             "subaccount_id": 86815,
+        #             "trades": [
+        #                 {
+        #                     "subaccount_id": 86815,
+        #                     "order_id": "ca94f349-8521-40a1-852e-d32b8994cb11",
+        #                     "instrument_name": "BTC-PERP",
+        #                     "direction": "buy",
+        #                     "label": "",
+        #                     "quote_id": null,
+        #                     "trade_id": "7fdf1fb0-0fba-443d-9f34-d6a1f76870aa",
+        #                     "rfq_id": null,
+        #                     "timestamp": 1790874532387,
+        #                     "mark_price": "84403.830304818628",
+        #                     "index_price": "84394.4543226228",
+        #                     "trade_price": "84412.1",
+        #                     "trade_amount": "0.01",
+        #                     "liquidity_role": "taker",
+        #                     "realized_pnl": "0",
+        #                     "realized_pnl_excl_fees": "0",
+        #                     "is_transfer": false,
+        #                     "batch_status": "Settled",
+        #                     "trade_fee": "0.263183362967",
+        #                     "expected_rebate": "0",
+        #                     "tx_hash": "0x7a31fda53195c28f2e60bab189bb9e7bf0abffc55a4eceb13d5e307f70d6e892",
+        #                     "op_uuid": "01a0f870-ba23-7600-a3dd-320305d5bb2f",
+        #                     "extra_fee": "0"
+        #                 }
+        #             ],
+        #             "pagination": {
+        #                 "num_pages": 1,
+        #                 "count": 1
         #             }
-        #         ],
-        #         "pagination": {
-        #             "num_pages": 1,
-        #             "count": 1
         #         }
-        #     },
-        #     "id": "a16f798c-a121-44e2-b77e-c38a063f8a99"
-        # }
+        #     }
         #
         result = self.safe_dict(response, 'result', {})
         trades = self.safe_list(result, 'trades', [])
-        return self.parse_trades(trades, market, since, limit, params)
+        return self.parse_trades(trades, market, since, limit, paramsDeriveSubaccountId)
 
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
 
-        https://docs.derive.xyz/reference/post_private-get-trade-history
+        https://docs.derive.xyz/api-reference/history/privateget_trade_history
 
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -2068,12 +2822,10 @@ class derive(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_incremental('fetchMyTrades', symbol, since, limit, params, 'page', 500)
-        subaccountId = None
-        subaccountId, params = self.handle_derive_subaccount_id('fetchMyTrades', params)
+            return self.fetch_paginated_call_incremental('fetchMyTrades', symbol, since, limit, paramsPaginate, 'page', 500)
+        subaccountId, paramsDeriveSubaccountId = self.handle_derive_subaccount_id('fetchMyTrades', paramsPaginate)
         request = {
             'subaccount_id': subaccountId,
         }
@@ -2085,58 +2837,86 @@ class derive(Exchange, ImplicitAPI):
             request['page_size'] = limit
         if since is not None:
             request['from_timestamp'] = since
-        response = self.privatePostGetTradeHistory(self.extend(request, params))
+        response = self.privatePostGetTradeHistory(self.extend(request, paramsDeriveSubaccountId))
         #
-        # {
-        #     "result": {
-        #         "subaccount_id": 130837,
-        #         "trades": [
-        #             {
-        #                 "subaccount_id": 130837,
-        #                 "order_id": "30c48194-8d48-43ac-ad00-0d5ba29eddc9",
-        #                 "instrument_name": "BTC-PERP",
-        #                 "direction": "sell",
-        #                 "label": "test1234",
-        #                 "quote_id": null,
-        #                 "trade_id": "f8a30740-488c-4c2d-905d-e17057bafde1",
-        #                 "timestamp": 1738065303708,
-        #                 "mark_price": "102740.137375457314192317",
-        #                 "index_price": "102741.553409299981533184",
-        #                 "trade_price": "102700.6",
-        #                 "trade_amount": "0.01",
-        #                 "liquidity_role": "taker",
-        #                 "realized_pnl": "0",
-        #                 "realized_pnl_excl_fees": "0",
-        #                 "is_transfer": false,
-        #                 "tx_status": "settled",
-        #                 "trade_fee": "1.127415534092999815",
-        #                 "tx_hash": "0xc55df1f07330faf86579bd8a6385391fbe9e73089301149d8550e9d29c9ead74",
-        #                 "transaction_id": "e18b9426-3fa5-41bb-99d3-8b54fb4d51bb"
+        #     {
+        #         "id": "c375c303-2356-4ba0-acea-32411e33b3f6",
+        #         "result": {
+        #             "subaccount_id": 86815,
+        #             "trades": [
+        #                 {
+        #                     "subaccount_id": 86815,
+        #                     "order_id": "f1ff080c-f2d1-4e0a-9dad-9ba462c6615d",
+        #                     "instrument_name": "BTC-PERP",
+        #                     "direction": "sell",
+        #                     "label": "",
+        #                     "quote_id": null,
+        #                     "trade_id": "b9608468-9ebe-478c-aedf-38fa2f754f19",
+        #                     "rfq_id": null,
+        #                     "timestamp": 1790874586675,
+        #                     "mark_price": "84367.247384690156",
+        #                     "index_price": "84358.49561857211",
+        #                     "trade_price": "84365.4",
+        #                     "trade_amount": "0.01",
+        #                     "liquidity_role": "taker",
+        #                     "realized_pnl": "-0.993258849822",
+        #                     "realized_pnl_excl_fees": "-0.467",
+        #                     "is_transfer": false,
+        #                     "batch_status": "Settled",
+        #                     "trade_fee": "0.263075486855",
+        #                     "expected_rebate": "0",
+        #                     "tx_hash": "0x7a31fda53195c28f2e60bab189bb9e7bf0abffc55a4eceb13d5e307f70d6e892",
+        #                     "op_uuid": "01a0f871-8e34-7152-aea8-0b6d06ce484e",
+        #                     "extra_fee": "0"
+        #                 },
+        #                 {
+        #                     "subaccount_id": 86815,
+        #                     "order_id": "ca94f349-8521-40a1-852e-d32b8994cb11",
+        #                     "instrument_name": "BTC-PERP",
+        #                     "direction": "buy",
+        #                     "label": "",
+        #                     "quote_id": null,
+        #                     "trade_id": "7fdf1fb0-0fba-443d-9f34-d6a1f76870aa",
+        #                     "rfq_id": null,
+        #                     "timestamp": 1790874532387,
+        #                     "mark_price": "84403.830304818628",
+        #                     "index_price": "84394.4543226228",
+        #                     "trade_price": "84412.1",
+        #                     "trade_amount": "0.01",
+        #                     "liquidity_role": "taker",
+        #                     "realized_pnl": "0",
+        #                     "realized_pnl_excl_fees": "0",
+        #                     "is_transfer": false,
+        #                     "batch_status": "Settled",
+        #                     "trade_fee": "0.263183362967",
+        #                     "expected_rebate": "0",
+        #                     "tx_hash": "0x7a31fda53195c28f2e60bab189bb9e7bf0abffc55a4eceb13d5e307f70d6e892",
+        #                     "op_uuid": "01a0f870-ba23-7600-a3dd-320305d5bb2f",
+        #                     "extra_fee": "0"
+        #                 }
+        #             ],
+        #             "pagination": {
+        #                 "num_pages": 2,
+        #                 "count": 4
         #             }
-        #         ],
-        #         "pagination": {
-        #             "num_pages": 1,
-        #             "count": 1
         #         }
-        #     },
-        #     "id": "a16f798c-a121-44e2-b77e-c38a063f8a99"
-        # }
+        #     }
         #
         result = self.safe_dict(response, 'result', {})
-        page = self.safe_integer(params, 'page')
+        page = self.safe_integer(paramsDeriveSubaccountId, 'page')
         if page is not None:
             pagination = self.safe_dict(result, 'pagination')
             currentPage = self.safe_integer(pagination, 'num_pages', 0)
             if page > currentPage:
                 return []
         trades = self.safe_list(result, 'trades', [])
-        return self.parse_trades(trades, market, since, limit, params)
+        return self.parse_trades(trades, market, since, limit, paramsDeriveSubaccountId)
 
     def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
         fetch all open positions
 
-        https://docs.derive.xyz/reference/post_private-get-positions
+        https://docs.derive.xyz/api-reference/subaccounts/privateget_positions
 
         :param str[] [symbols]: not used by fetchPositions()
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2145,50 +2925,50 @@ class derive(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        subaccountId = None
-        subaccountId, params = self.handle_derive_subaccount_id('fetchPositions', params)
+        subaccountId, paramsDeriveSubaccountId = self.handle_derive_subaccount_id('fetchPositions', params)
         request = {
             'subaccount_id': subaccountId,
         }
-        params = self.omit(params, ['subaccount_id'])
-        response = self.privatePostGetPositions(self.extend(request, params))
+        paramsOmitted = self.omit(paramsDeriveSubaccountId, ['subaccount_id'])
+        response = self.privatePostGetPositions(self.extend(request, paramsOmitted))
         #
-        # {
-        #     "result": {
-        #         "subaccount_id": 130837,
-        #         "positions": [
-        #             {
-        #                 "instrument_type": "perp",
-        #                 "instrument_name": "BTC-PERP",
-        #                 "amount": "-0.02",
-        #                 "average_price": "102632.9105389869500088",
-        #                 "realized_pnl": "0",
-        #                 "unrealized_pnl": "-2.6455959784245548835819950103759765625",
-        #                 "total_fees": "2.255789220260999824",
-        #                 "average_price_excl_fees": "102745.7",
-        #                 "realized_pnl_excl_fees": "0",
-        #                 "unrealized_pnl_excl_fees": "-0.3898067581635550595819950103759765625",
-        #                 "net_settlements": "-4.032902047219498639",
-        #                 "cumulative_funding": "-0.004677736347850093",
-        #                 "pending_funding": "0",
-        #                 "mark_price": "102765.190337908177752979099750518798828125",
-        #                 "index_price": "102767.657193800017641472",
-        #                 "delta": "1",
-        #                 "gamma": "0",
-        #                 "vega": "0",
-        #                 "theta": "0",
-        #                 "mark_value": "1.38730606879471451975405216217041015625",
-        #                 "maintenance_margin": "-101.37788426911356509663164615631103515625",
-        #                 "initial_margin": "-132.2074413704858670826070010662078857421875",
-        #                 "open_orders_margin": "264.116085900726830004714429378509521484375",
-        #                 "leverage": "8.6954476205089299495699106539379941746377322586618",
-        #                 "liquidation_price": "109125.705451984322280623018741607666015625",
-        #                 "creation_timestamp": 1738065303840
-        #             }
-        #         ]
-        #     },
-        #     "id": "167350f1-d9fc-41d4-9797-1c78f83fda8e"
-        # }
+        #     {
+        #         "id": "64af0eeb-5b8f-4aa9-bc6b-c5029f47ac27",
+        #         "result": {
+        #             "subaccount_id": 86815,
+        #             "positions": [
+        #                 {
+        #                     "instrument_type": "perp",
+        #                     "instrument_name": "BTC-PERP",
+        #                     "amount": "0.01",
+        #                     "average_price": "84869.2487131065",
+        #                     "average_price_excl_fees": "84842.8",
+        #                     "mark_price": "84838.524516604186",
+        #                     "index_price": "84829.52978196857",
+        #                     "mark_value": "-0.002270077649",
+        #                     "amount_step": "0.0001",
+        #                     "creation_timestamp": 0,
+        #                     "cumulative_funding": "-0.000008835819",
+        #                     "pending_funding": "-0.000008835819",
+        #                     "net_settlements": "-0.304980723193",
+        #                     "initial_margin": "-55.989759825391",
+        #                     "maintenance_margin": "-42.417035008133",
+        #                     "open_orders_margin": "0",
+        #                     "realized_pnl": "0",
+        #                     "realized_pnl_excl_fees": "0",
+        #                     "total_fees": "0.264487131065",
+        #                     "unrealized_pnl": "-0.307241965023",
+        #                     "unrealized_pnl_excl_fees": "-0.042754833958",
+        #                     "delta": "1",
+        #                     "gamma": "0",
+        #                     "vega": "0",
+        #                     "theta": "0",
+        #                     "leverage": "0.141718718485",
+        #                     "liquidation_price": null
+        #                 }
+        #             ]
+        #         }
+        #     }
         #
         result = self.safe_dict(response, 'result', {})
         positions = self.safe_list(result, 'positions', [])
@@ -2226,14 +3006,14 @@ class derive(Exchange, ImplicitAPI):
         # }
         #
         contract = self.safe_string(position, 'instrument_name')
-        market = self.safe_market(contract, market)
+        marketResolved = self.safe_market(contract, market)
         size = self.safe_string(position, 'amount')
         side = None
         if Precise.string_gt(size, '0'):
             side = 'long'
         else:
             side = 'short'
-        contractSize = self.safe_string(market, 'contractSize')
+        contractSize = self.safe_string(marketResolved, 'contractSize')
         markPrice = self.safe_string(position, 'mark_price')
         timestamp = self.safe_integer(position, 'creation_timestamp')
         unrealisedPnl = self.safe_string(position, 'unrealized_pnl')
@@ -2242,7 +3022,7 @@ class derive(Exchange, ImplicitAPI):
         return self.safe_position({
             'info': position,
             'id': None,
-            'symbol': self.safe_string(market, 'symbol'),
+            'symbol': self.safe_string(marketResolved, 'symbol'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastUpdateTimestamp': None,
@@ -2273,23 +3053,22 @@ class derive(Exchange, ImplicitAPI):
         """
         fetch the history of funding payments paid and received on self account
 
-        https://docs.derive.xyz/reference/post_private-get-funding-history
+        https://docs.derive.xyz/api-reference/history/privateget_funding_history
 
         :param str [symbol]: unified market symbol
         :param int [since]: the earliest time in ms to fetch funding history for
         :param int [limit]: the maximum number of funding history structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch funding history for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a `funding history structure <https://docs.ccxt.com/?id=funding-history-structure>`
         """
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'paginate')
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingHistory', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_incremental('fetchFundingHistory', symbol, since, limit, params, 'page', 500)
-        subaccountId = None
-        subaccountId, params = self.handle_derive_subaccount_id('fetchFundingHistory', params)
+            return self.fetch_paginated_call_incremental('fetchFundingHistory', symbol, since, limit, paramsPaginate, 'page', 500)
+        subaccountId, paramsDeriveSubaccountId = self.handle_derive_subaccount_id('fetchFundingHistory', paramsPaginate)
         request = {
             'subaccount_id': subaccountId,
         }
@@ -2301,40 +3080,46 @@ class derive(Exchange, ImplicitAPI):
             request['start_timestamp'] = since
         if limit is not None:
             request['page_size'] = limit
-        response = self.privatePostGetFundingHistory(self.extend(request, params))
+        until = self.safe_integer(paramsDeriveSubaccountId, 'until')
+        paramsOmitted = self.omit(paramsDeriveSubaccountId, ['until'])
+        if until is not None:
+            request['end_timestamp'] = until
+        response = self.privatePostGetFundingHistory(self.extend(request, paramsOmitted))
         #
-        # {
-        #     "result": {
-        #         "events": [
-        #             {
-        #                 "instrument_name": "BTC-PERP",
-        #                 "timestamp": 1738066618272,
-        #                 "funding": "-0.004677736347850093",
-        #                 "pnl": "-0.944081615774632967"
-        #             },
-        #             {
-        #                 "instrument_name": "BTC-PERP",
-        #                 "timestamp": 1738066617964,
-        #                 "funding": "0",
-        #                 "pnl": "-0.437556413479249408"
-        #             },
-        #             {
-        #                 "instrument_name": "BTC-PERP",
-        #                 "timestamp": 1738065307565,
-        #                 "funding": "0",
-        #                 "pnl": "-0.39547479770461644"
+        #     {
+        #         "id": "05a90234-63dd-4769-b66b-3256fe4c3336",
+        #         "result": {
+        #             "events": [
+        #                 {
+        #                     "funding": "0",
+        #                     "instrument_name": "BTC-PERP",
+        #                     "pnl": "-0.020391277096",
+        #                     "subaccount_id": 86815,
+        #                     "timestamp": 1790874586000,
+        #                     "batch_uuid": "01a0f86e-2486-7732-bcb5-15e64d863650",
+        #                     "batch_status": "Settled",
+        #                     "tx_hash": "0x7a31fda53195c28f2e60bab189bb9e7bf0abffc55a4eceb13d5e307f70d6e892"
+        #                 },
+        #                 {
+        #                     "funding": "-0.000131801001",
+        #                     "instrument_name": "BTC-PERP",
+        #                     "pnl": "-0.124504613742",
+        #                     "subaccount_id": 86815,
+        #                     "timestamp": 1790874586000,
+        #                     "batch_uuid": "01a0f86e-2486-7732-bcb5-15e64d863650",
+        #                     "batch_status": "Settled",
+        #                     "tx_hash": "0x7a31fda53195c28f2e60bab189bb9e7bf0abffc55a4eceb13d5e307f70d6e892"
+        #                 }
+        #             ],
+        #             "pagination": {
+        #                 "num_pages": 4,
+        #                 "count": 7
         #             }
-        #         ],
-        #         "pagination": {
-        #             "num_pages": 1,
-        #             "count": 3
         #         }
-        #     },
-        #     "id": "524b817f-2108-467f-8795-511066f4acec"
-        # }
+        #     }
         #
         result = self.safe_dict(response, 'result', {})
-        page = self.safe_integer(params, 'page')
+        page = self.safe_integer(paramsDeriveSubaccountId, 'page')
         if page is not None:
             pagination = self.safe_dict(result, 'pagination')
             currentPage = self.safe_integer(pagination, 'num_pages', 0)
@@ -2343,7 +3128,7 @@ class derive(Exchange, ImplicitAPI):
         events = self.safe_list(result, 'events', [])
         return self.parse_incomes(events, market, since, limit)
 
-    def parse_income(self, income: object, market: Market = None) -> dict:
+    def parse_income(self, income: dict, market: Market = None) -> dict:
         #
         # {
         #     "instrument_name": "BTC-PERP",
@@ -2354,7 +3139,6 @@ class derive(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(income, 'instrument_name')
         symbol = self.safe_symbol(marketId, market)
-        rate = self.safe_string(income, 'funding')
         code = self.safe_currency_code('USDC')
         timestamp = self.safe_integer(income, 'timestamp')
         return {
@@ -2364,74 +3148,284 @@ class derive(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'id': None,
-            'amount': None,
-            'rate': rate,
+            'amount': self.safe_number(income, 'funding'),
         }
 
-    def fetch_balance(self, params={}) -> Balances:
+    def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
-        https://docs.derive.xyz/reference/post_private-get-all-portfolios
+        https://docs.derive.xyz/api-reference/subaccounts/privateget_all_portfolios     # whole wallet
+        https://docs.derive.xyz/api-reference/subaccounts/privateget_subaccount        # params.subaccount_id
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.subaccount_id]: scope the balance to a single subaccount instead of the whole wallet
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         if self.markets is None:
             self.load_markets()
-        deriveWalletAddress = None
-        deriveWalletAddress, params = self.handle_derive_wallet_address('fetchBalance', params)
+        subaccountId = self.safe_integer(params, 'subaccount_id')
+        if subaccountId is not None:
+            subaccountRequest = {
+                'subaccount_id': subaccountId,
+            }
+            subaccountParams = self.omit(params, 'subaccount_id')
+            subaccountResponse = self.privatePostGetSubaccount(self.extend(subaccountRequest, subaccountParams))
+            # the result is a single portfolio object shaped exactly like one element of the get_all_portfolios sample below
+            subaccountResult = self.safe_dict(subaccountResponse, 'result', {})
+            return self.parse_balance([subaccountResult])
+        deriveWalletAddress, paramsDeriveWalletAddress = self.handle_derive_wallet_address('fetchBalance', params)
         request = {
             'wallet': deriveWalletAddress,
         }
-        response = self.privatePostGetAllPortfolios(self.extend(request, params))
+        response = self.privatePostGetAllPortfolios(self.extend(request, paramsDeriveWalletAddress))
         #
-        # {
-        #     "result": [{
-        #             "subaccount_id": 130837,
-        #             "label": "",
-        #             "currency": "all",
-        #             "margin_type": "SM",
-        #             "is_under_liquidation": false,
-        #             "positions_value": "0",
-        #             "collaterals_value": "318.0760325000001103035174310207366943359375",
-        #             "subaccount_value": "318.0760325000001103035174310207366943359375",
-        #             "positions_maintenance_margin": "0",
-        #             "positions_initial_margin": "0",
-        #             "collaterals_maintenance_margin": "238.557024375000082727638073265552520751953125",
-        #             "collaterals_initial_margin": "190.845619500000083235136116854846477508544921875",
-        #             "maintenance_margin": "238.557024375000082727638073265552520751953125",
-        #             "initial_margin": "190.845619500000083235136116854846477508544921875",
-        #             "open_orders_margin": "0",
-        #             "projected_margin_change": "0",
-        #             "open_orders": [],
-        #             "positions": [],
-        #             "collaterals": [
-        #                 {
-        #                     "asset_type": "erc20",
-        #                     "asset_name": "ETH",
-        #                     "currency": "ETH",
-        #                     "amount": "0.1",
-        #                     "mark_price": "3180.760325000000438272",
-        #                     "mark_value": "318.0760325000001103035174310207366943359375",
-        #                     "cumulative_interest": "0",
-        #                     "pending_interest": "0",
-        #                     "initial_margin": "190.845619500000083235136116854846477508544921875",
-        #                     "maintenance_margin": "238.557024375000082727638073265552520751953125",
-        #                     "realized_pnl": "0",
-        #                     "average_price": "3184.891931",
-        #                     "unrealized_pnl": "-0.413161",
-        #                     "total_fees": "0",
-        #                     "average_price_excl_fees": "3184.891931",
-        #                     "realized_pnl_excl_fees": "0",
-        #                     "unrealized_pnl_excl_fees": "-0.413161",
-        #                     "open_orders_margin": "0",
-        #                     "creation_timestamp": 1736860533493
-        #                 }
-        #             ]
-        #     }],
-        #     "id": "27b9a64e-3379-4ce6-a126-9fb941c4a970"
-        # }
+        #     {
+        #         "id": "eb40a04b-167e-4a3f-b142-63f76e0e2a31",
+        #         "result": [
+        #             {
+        #                 "subaccount_id": 86815,
+        #                 "failed_to_fetch": false,
+        #                 "manager_id": 1,
+        #                 "risk_universe_id": 1,
+        #                 "label": "",
+        #                 "currency": [
+        #                     "AUSD",
+        #                     "BTC",
+        #                     "CBBTC",
+        #                     "DRV",
+        #                     "ETH",
+        #                     "FXUSDC",
+        #                     "HEMIBTC",
+        #                     "LBTC",
+        #                     "SC_USDC_2",
+        #                     "SC_USDT_2",
+        #                     "SFP",
+        #                     "SUSDE",
+        #                     "USDC",
+        #                     "USDE",
+        #                     "USDT",
+        #                     "WBTC",
+        #                     "WEETH",
+        #                     "WSTETH"
+        #                 ],
+        #                 "margin_type": "SM",
+        #                 "is_under_liquidation": false,
+        #                 "positions_value": "1466.712032105876",
+        #                 "collaterals_value": "4527.545377437385",
+        #                 "subaccount_value": "5994.257409543261",
+        #                 "mm_credits": "0",
+        #                 "positions_maintenance_margin": "-42.257371387251",
+        #                 "positions_initial_margin": "-55.755494300332",
+        #                 "collaterals_maintenance_margin": "4527.545388020506",
+        #                 "collaterals_initial_margin": "4527.545388020506",
+        #                 "maintenance_margin": "4485.288016633255",
+        #                 "initial_margin": "4471.789893720174",
+        #                 "open_orders_margin": "-1305.403225577642",
+        #                 "projected_margin_change": "0",
+        #                 "open_orders": [
+        #                     {
+        #                         "subaccount_id": 86815,
+        #                         "order_id": "dbc70689-dcc4-43d3-9d95-492a6c165bde",
+        #                         "instrument_name": "LBTC-USDC",
+        #                         "direction": "buy",
+        #                         "label": "",
+        #                         "quote_id": null,
+        #                         "amount": "0.002",
+        #                         "average_price": "0",
+        #                         "cancel_reason": "",
+        #                         "creation_timestamp": 1790874519896,
+        #                         "filled_amount": "0",
+        #                         "is_transfer": false,
+        #                         "last_update_timestamp": 1790874519896,
+        #                         "limit_price": "82000",
+        #                         "signed_limit_price": null,
+        #                         "max_fee": "300",
+        #                         "mmp": false,
+        #                         "nonce": "1790874518872109498",
+        #                         "order_fee": "0",
+        #                         "order_status": "open",
+        #                         "order_type": "limit",
+        #                         "replaced_order_id": null,
+        #                         "signature": "0x089fcff0654a15babcc7e7c256ab500dcee78beb3eb1963c102d7d53e233d2521ee0754fd1fa17c403a4aa9028c00f7ab5cd3d260a3136d84b617ad97e72d2c71c",
+        #                         "signature_expiry_sec": 1798650518,
+        #                         "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        #                         "time_in_force": "gtc",
+        #                         "trigger_type": null,
+        #                         "trigger_price": null,
+        #                         "trigger_price_type": null,
+        #                         "trigger_reject_message": null,
+        #                         "extra_fee": "0",
+        #                         "algo_type": null,
+        #                         "algo_duration_sec": null,
+        #                         "algo_num_slices": null,
+        #                         "algo_slices_completed": null
+        #                     },
+        #                     {
+        #                         "subaccount_id": 86815,
+        #                         "order_id": "c33e2299-e60e-4d71-8910-15cd5ea43fef",
+        #                         "instrument_name": "BTC-20270924-85000-C",
+        #                         "direction": "buy",
+        #                         "label": "",
+        #                         "quote_id": null,
+        #                         "amount": "0.1",
+        #                         "average_price": "0",
+        #                         "cancel_reason": "",
+        #                         "creation_timestamp": 1790874524730,
+        #                         "filled_amount": "0",
+        #                         "is_transfer": false,
+        #                         "last_update_timestamp": 1790874524730,
+        #                         "limit_price": "12000",
+        #                         "signed_limit_price": null,
+        #                         "max_fee": "300",
+        #                         "mmp": false,
+        #                         "nonce": "1790874524124508650",
+        #                         "order_fee": "0",
+        #                         "order_status": "open",
+        #                         "order_type": "limit",
+        #                         "replaced_order_id": null,
+        #                         "signature": "0x74bb9bc53c590985a916acf0e39d14f264e06105ca008c1e94935cb643741978084e05b7b4d3afa894d763d5c7abe038c58fed6c8b0a899dbeb5d0a2f3b50c8e1c",
+        #                         "signature_expiry_sec": 1798650524,
+        #                         "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        #                         "time_in_force": "gtc",
+        #                         "trigger_type": null,
+        #                         "trigger_price": null,
+        #                         "trigger_price_type": null,
+        #                         "trigger_reject_message": null,
+        #                         "extra_fee": "0",
+        #                         "algo_type": null,
+        #                         "algo_duration_sec": null,
+        #                         "algo_num_slices": null,
+        #                         "algo_slices_completed": null
+        #                     },
+        #                     {
+        #                         "subaccount_id": 86815,
+        #                         "order_id": "1625ce89-9cf3-4ec0-8a6c-e208b49e5830",
+        #                         "instrument_name": "BTC-PERP",
+        #                         "direction": "buy",
+        #                         "label": "",
+        #                         "quote_id": null,
+        #                         "amount": "0.01",
+        #                         "average_price": "0",
+        #                         "cancel_reason": "",
+        #                         "creation_timestamp": 1790874522225,
+        #                         "filled_amount": "0",
+        #                         "is_transfer": false,
+        #                         "last_update_timestamp": 1790874522225,
+        #                         "limit_price": "83000",
+        #                         "signed_limit_price": null,
+        #                         "max_fee": "100",
+        #                         "mmp": false,
+        #                         "nonce": "1790874521734002365",
+        #                         "order_fee": "0",
+        #                         "order_status": "open",
+        #                         "order_type": "limit",
+        #                         "replaced_order_id": null,
+        #                         "signature": "0x5005d1696341bc1a5bc1ddd9f1312343439cdef792767f0ecc823e43af809480060b1deea0f51e4827899c3766b672d4eb0d4038394d153f8b0a2cd68d3bfe5a1c",
+        #                         "signature_expiry_sec": 1798650521,
+        #                         "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        #                         "time_in_force": "gtc",
+        #                         "trigger_type": null,
+        #                         "trigger_price": null,
+        #                         "trigger_price_type": null,
+        #                         "trigger_reject_message": null,
+        #                         "extra_fee": "0",
+        #                         "algo_type": null,
+        #                         "algo_duration_sec": null,
+        #                         "algo_num_slices": null,
+        #                         "algo_slices_completed": null
+        #                     }
+        #                 ],
+        #                 "positions": [
+        #                     {
+        #                         "instrument_type": "perp",
+        #                         "instrument_name": "BTC-PERP",
+        #                         "amount": "0.01",
+        #                         "average_price": "84438.4183362967",
+        #                         "average_price_excl_fees": "84412.1",
+        #                         "mark_price": "84372.319949036835",
+        #                         "index_price": "84363.26788266873",
+        #                         "mark_value": "-0.075737406633",
+        #                         "amount_step": "0.0001",
+        #                         "creation_timestamp": 0,
+        #                         "cumulative_funding": "-0.000067374305",
+        #                         "pending_funding": "-0.000041006163",
+        #                         "net_settlements": "-0.585287472129",
+        #                         "initial_margin": "-55.755494300332",
+        #                         "maintenance_margin": "-42.257371387251",
+        #                         "open_orders_margin": "-55.755494300331",
+        #                         "realized_pnl": "0",
+        #                         "realized_pnl_excl_fees": "0",
+        #                         "total_fees": "0.263183362967",
+        #                         "unrealized_pnl": "-0.660983872598",
+        #                         "unrealized_pnl_excl_fees": "-0.397800509631",
+        #                         "delta": "1",
+        #                         "gamma": "0",
+        #                         "vega": "0",
+        #                         "theta": "0",
+        #                         "leverage": "0.186356454478",
+        #                         "liquidation_price": null
+        #                     },
+        #                     {
+        #                         "instrument_type": "option",
+        #                         "instrument_name": "BTC-20270924-85000-C",
+        #                         "amount": "0.1",
+        #                         "average_price": "14711.3113013995",
+        #                         "average_price_excl_fees": "14681",
+        #                         "mark_price": "14667.877695125091",
+        #                         "index_price": "84363.26788266873",
+        #                         "mark_value": "1466.787769512509",
+        #                         "amount_step": "0.00001",
+        #                         "creation_timestamp": 0,
+        #                         "cumulative_funding": "0",
+        #                         "pending_funding": "0",
+        #                         "net_settlements": "0",
+        #                         "initial_margin": "0",
+        #                         "maintenance_margin": "0",
+        #                         "open_orders_margin": "0",
+        #                         "realized_pnl": "0",
+        #                         "realized_pnl_excl_fees": "0",
+        #                         "total_fees": "3.03113013995",
+        #                         "unrealized_pnl": "-4.34336062744",
+        #                         "unrealized_pnl_excl_fees": "-1.31223048749",
+        #                         "delta": "0.620796293303",
+        #                         "gamma": "0.00001229971",
+        #                         "vega": "334.523390908959",
+        #                         "theta": "-18.178343402455",
+        #                         "leverage": null,
+        #                         "liquidation_price": null
+        #                     }
+        #                 ],
+        #                 "collaterals": [
+        #                     {
+        #                         "asset_type": "erc20",
+        #                         "asset_name": "USDC",
+        #                         "amount": "4527.545377437385",
+        #                         "average_price": "1",
+        #                         "average_price_excl_fees": "1",
+        #                         "mark_price": "1",
+        #                         "mark_value": "4527.545377437385",
+        #                         "amount_step": "0",
+        #                         "currency": "USDC",
+        #                         "creation_timestamp": 0,
+        #                         "cumulative_interest": "0.008352036862",
+        #                         "pending_interest": "0.000010583121",
+        #                         "initial_margin": "4527.545388020506",
+        #                         "maintenance_margin": "4527.545388020506",
+        #                         "open_orders_margin": "0",
+        #                         "realized_pnl": "0",
+        #                         "realized_pnl_excl_fees": "0",
+        #                         "total_fees": "0",
+        #                         "unrealized_pnl": "0",
+        #                         "unrealized_pnl_excl_fees": "0",
+        #                         "delta_currency": "USDC",
+        #                         "delta": "1"
+        #                     }
+        #                 ],
+        #                 "vault_deposit_holds": []
+        #             }
+        #         ]
+        #     }
         #
         result = self.safe_list(response, 'result')
         return self.parse_balance(result)
@@ -2440,11 +3434,16 @@ class derive(Exchange, ImplicitAPI):
         result = {
             'info': response,
         }
+        # margin requirements come as negative subaccount-level contributions in usd terms (initial_margin = collaterals_initial_margin + positions_initial_margin, verified on live data), so they are attributed to the usdc settlement currency and clamped by the usdc cash below; other collaterals stay total-only because the shared margin pool cannot be split per currency
+        usedUsd = '0'
         for i in range(0, len(response)):
-            subaccount = response[i]
+            subaccount = self.safe_dict(response, i)
+            positionsMargin = self.safe_string(subaccount, 'positions_initial_margin', '0')
+            ordersMargin = self.safe_string(subaccount, 'open_orders_margin', '0')
+            usedUsd = Precise.string_sub(usedUsd, Precise.string_add(positionsMargin, ordersMargin))
             collaterals = self.safe_list(subaccount, 'collaterals', [])
             for j in range(0, len(collaterals)):
-                balance = collaterals[j]
+                balance = self.safe_dict(collaterals, j)
                 code = self.safe_currency_code(self.safe_string(balance, 'currency'))
                 account = self.safe_dict(result, code)
                 if account is None:
@@ -2455,13 +3454,420 @@ class derive(Exchange, ImplicitAPI):
                     account['total'] = Precise.string_add(account['total'], amount)
                 if code is not None:
                     result[code] = account
+        usdcAccount = self.safe_dict(result, 'USDC')
+        if usdcAccount is not None:
+            totalUsdc = self.safe_string(usdcAccount, 'total')
+            used = usedUsd
+            if Precise.string_gt(used, totalUsdc):
+                used = totalUsdc
+            usdcAccount['used'] = used
+            usdcAccount['free'] = Precise.string_sub(totalUsdc, used)
+            result['USDC'] = usdcAccount
         return self.safe_balance(result)
+
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}) -> TransferEntry:
+        """
+        transfer a spot asset between subaccounts belonging to the same wallet
+
+        https://docs.derive.xyz/api-reference/transfers-&-withdrawals/privatetransfer_spot
+
+        :param str code: unified currency code
+        :param float amount: amount to transfer
+        :param str fromAccount: the subaccount id to transfer from
+        :param str toAccount: the subaccount id to transfer to
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param float [params.max_fee_usd]: the maximum accepted fee in usd, default 0: transfers between existing subaccounts are free
+        :param int [params.new_subaccount_manager]: a manager id creates a fresh subaccount under the sender wallet as the destination instead of toAccount, the creation charges a fee so max_fee_usd must cover it
+        :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        currency = self.currency(code)
+        # the exchange reconstructs the signed payload from asset_name using the protocol spot-asset address, so signing any other address can never verify
+        spotAssets = self.safe_list(currency['info'], 'spot', [])
+        spotAsset = self.safe_dict(spotAssets, 0, {})
+        assetAddress = self.safe_string(spotAsset, 'address')
+        if assetAddress is None:
+            raise BadRequest(self.id + ' transfer() ' + code + ' has no deposit-enabled spot asset')
+        fromId = self.parse_to_int(fromAccount)
+        # the destination is optional on the subaccount-creation path, an undefined must not reach the int conversion
+        toId = 0 if (toAccount is None) else self.parse_to_int(toAccount)
+        amountString = self.number_to_string(amount)
+        maxFeeUsd = self.safe_string(params, 'max_fee_usd', '0')
+        newSubaccountManager = self.safe_integer(params, 'new_subaccount_manager', 0)
+        if (toId == 0) and (newSubaccountManager == 0):
+            raise ArgumentsRequired(self.id + ' transfer() requires an existing toAccount or params.new_subaccount_manager to create one')
+        if (newSubaccountManager != 0) and (maxFeeUsd == '0'):
+            raise ArgumentsRequired(self.id + ' transfer() creating a subaccount charges a fee, set params.max_fee_usd to cover it')
+        paramsOmitted = self.omit(params, ['max_fee_usd', 'new_subaccount_manager'])
+        nonce = self.nonce_string()
+        signatureExpiry = self.safe_integer(paramsOmitted, 'signature_expiry_sec', self.seconds() + 7776000)
+        ACTION_TYPEHASH = self.base16_to_binary('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17')
+        TRANSFER_MODULE_ADDRESS = '0x01259207A40925b794C8ac320456F7F6c8FE2636'  # shared across mainnet and testnet in v3
+        transferModuleDataHash = self.hash(self.eth_abi_encode([
+            'uint', 'uint', 'address', 'uint', 'uint', 'uint',
+        ], [
+            toId,
+            newSubaccountManager,  # a non-zero manager id creates a new subaccount instead of crediting an existing one
+            assetAddress,
+            0,  # erc20 spot assets always carry sub id 0
+            self.convert_to_big_int((self.parse_units(amountString))),
+            self.convert_to_big_int((self.parse_units(maxFeeUsd))),
+        ]), 'keccak', 'binary')
+        deriveWalletAddress, paramsDeriveWalletAddress = self.handle_derive_wallet_address('transfer', paramsOmitted)
+        signature = self.sign_order([
+            ACTION_TYPEHASH,
+            fromId,
+            self.convert_to_big_int(nonce),
+            TRANSFER_MODULE_ADDRESS,
+            transferModuleDataHash,
+            signatureExpiry,
+            deriveWalletAddress,
+            self.walletAddress,
+        ], self.privateKey)
+        request = {
+            'subaccount_id': fromId,
+            'to_subaccount_id': toId,
+            'new_subaccount_manager': newSubaccountManager,
+            'asset_name': currency['id'],
+            'sub_id': 0,
+            'amount': amountString,
+            'max_fee_usd': maxFeeUsd,
+            'nonce': nonce,
+            'signer': self.walletAddress,
+            'signature': signature,
+            'signature_expiry_sec': signatureExpiry,
+        }
+        response = self.privatePostTransferSpot(self.extend(request, paramsDeriveWalletAddress))
+        #
+        #     {
+        #         "id": "cc745aff-d485-464d-bc2f-cd99f821ea52",
+        #         "result": {
+        #             "operation_id": 4724036,
+        #             "op_uuid": "01a101be-1291-7e22-b3b4-9cc6ebc71904"
+        #         }
+        #     }
+        #
+        result = self.safe_dict(response, 'result', {})
+        transferEntry = self.parse_transfer(result, currency)
+        transferOptions = self.safe_dict(self.options, 'transfer', {})
+        fillResponseFromRequest = self.safe_bool(transferOptions, 'fillResponseFromRequest', True)
+        if fillResponseFromRequest:
+            # normalized through the int ids: the raw arguments arrive as strings in some languages and as numbers in others
+            transferEntry['fromAccount'] = self.number_to_string(fromId)
+            transferEntry['toAccount'] = self.number_to_string(toId) if (toId != 0) else None
+            transferEntry['amount'] = self.parse_number(amountString)
+        return transferEntry
+
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
+        timestamp = self.safe_integer(transfer, 'timestamp')
+        currencyId = self.safe_string(transfer, 'asset')
+        return {
+            'info': transfer,
+            'id': self.safe_string_2(transfer, 'transaction_id', 'operation_id'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'currency': self.safe_currency_code(currencyId, currency),
+            'amount': self.safe_number(transfer, 'amount'),
+            'fromAccount': self.safe_string(transfer, 'from_subaccount_id'),
+            'toAccount': self.safe_string(transfer, 'to_subaccount_id'),
+            'status': self.parse_transaction_status(self.safe_string_2(transfer, 'batch_status', 'status')),
+        }
+
+    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[TransferEntry]:
+        """
+        fetch the spot transfer history of a subaccount
+
+        https://docs.derive.xyz/api-reference/history/privateget_erc20_transfer_history
+
+        :param str [code]: unified currency code
+        :param int [since]: timestamp in ms of the earliest transfer to fetch
+        :param int [limit]: the maximum number of transfers to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest transfer to fetch
+        :param str [params.subaccount_id]: *required* the subaccount id
+        :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        subaccountId, paramsDeriveSubaccountId = self.handle_derive_subaccount_id('fetchTransfers', params)
+        request = {
+            'subaccount_id': subaccountId,
+        }
+        if since is not None:
+            request['start_timestamp'] = since
+        until = self.safe_integer(paramsDeriveSubaccountId, 'until')
+        paramsOmitted = self.omit(paramsDeriveSubaccountId, ['until'])
+        if until is not None:
+            request['end_timestamp'] = until
+        response = self.privatePostGetErc20TransferHistory(self.extend(request, paramsOmitted))
+        #
+        #     {
+        #         "id": "6475ec25-b0ac-4f38-a5d6-6fc8f7cc5611",
+        #         "result": {
+        #             "transfers": [
+        #                 {
+        #                     "operation_id": "01a101be-28a1-7a81-967e-56e51d48752b",
+        #                     "is_outgoing": false,
+        #                     "from_subaccount_id": 86820,
+        #                     "to_subaccount_id": 86815,
+        #                     "from_wallet": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        #                     "to_wallet": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        #                     "asset": "USDC",
+        #                     "amount": "10",
+        #                     "fee": "0",
+        #                     "timestamp": 1791030601000,
+        #                     "batch_uuid": "01a101b9-c803-71b3-be01-626934f9995b",
+        #                     "batch_status": "Settled",
+        #                     "tx_hash": "0x2609daf9ae76a4289326b6ce8a1b06df6edc77bab5b01689eb535dd3a1067296"
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        result = self.safe_dict(response, 'result', {})
+        transfers = self.safe_list(result, 'transfers', [])
+        parsed = []
+        for i in range(0, len(transfers)):
+            parsed.append(self.parse_transfer(self.safe_dict(transfers, i, {})))
+        sorted = self.sort_by(parsed, 'timestamp')
+        return self.filter_by_currency_since_limit(sorted, code, since, limit)
+
+    def fetch_borrow_rate_history(self, code: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[dict]:
+        """
+        retrieves a history of a currencies borrow interest rate at specific time slots
+
+        https://docs.derive.xyz/api-reference/market-data/publicget_interest_rate_history
+
+        :param str code: unified currency code
+        :param int [since]: timestamp in ms of the earliest rate to fetch
+        :param int [limit]: the maximum number of rates to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest rate to fetch
+        :param int [params.risk_universe_id]: the risk universe to read the rates from, default 1: without the filter the venue interleaves every universe with duplicate timestamps
+        :param int [params.period]: the bucket size in seconds, default hourly
+        :returns dict[]: an array of `borrow rate structures <https://docs.ccxt.com/?id=borrow-rate-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        currency = self.currency(code)
+        riskUniverseId, paramsUniverse = self.handle_option_and_params(params, 'fetchBorrowRateHistory', 'risk_universe_id', 1)
+        request = {
+            'currency': currency['id'],
+            'risk_universe_id': riskUniverseId,
+        }
+        if since is not None:
+            request['start_timestamp'] = since
+        until = self.safe_integer(paramsUniverse, 'until')
+        paramsOmitted = self.omit(paramsUniverse, ['until'])
+        if until is not None:
+            request['end_timestamp'] = until
+        response = self.publicPostGetInterestRateHistory(self.extend(request, paramsOmitted))
+        #
+        #     {
+        #         "id": "d9f3db6f-9ebd-4d29-ae83-006f22ce07af",
+        #         "result": {
+        #             "interest_rate_history": [
+        #                 {
+        #                     "timestamp": 1789538400000,
+        #                     "risk_universe_id": 2,
+        #                     "borrow_apy": {
+        #                         "open": "0.03921995664",
+        #                         "high": "0.03921995664",
+        #                         "low": "0.03919465776",
+        #                         "close": "0.03919467528"
+        #                     },
+        #                     "supply_apy": {
+        #                         "open": "0.024354974666",
+        #                         "high": "0.024354974666",
+        #                         "low": "0.024323514208",
+        #                         "close": "0.024323528028"
+        #                     },
+        #                     "total_supply": "15439518.077675880999",
+        #                     "total_borrow": "10085783.283513750809"
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        result = self.safe_dict(response, 'result', {})
+        rows = self.safe_list(result, 'interest_rate_history', [])
+        rates = []
+        for i in range(0, len(rows)):
+            # the base history helper parses without a currency, while the rows carry none, so the rate entries are built here with the requested currency attached
+            rates.append(self.parse_borrow_rate(self.safe_dict(rows, i, {}), currency))
+        sorted = self.sort_by(rates, 'timestamp')
+        return self.filter_by_currency_since_limit(sorted, code, since, limit)
+
+    def parse_borrow_rate(self, info: object, currency: Currency = None) -> dict:
+        timestamp = self.safe_integer(info, 'timestamp')
+        borrowApy = self.safe_dict(info, 'borrow_apy', {})
+        return {
+            'currency': self.safe_currency_code(None, currency),
+            'rate': self.safe_number(borrowApy, 'close'),
+            'period': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': info,
+        }
+
+    def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[BorrowInterest]:
+        """
+        fetches the interest accrued on the cash balance of a subaccount, the venue charges or pays it on the settlement currency only
+
+        https://docs.derive.xyz/api-reference/history/privateget_interest_history
+
+        :param str [code]: unified currency code
+        :param str [symbol]: not used by derive.fetchBorrowInterest
+        :param int [since]: timestamp in ms of the earliest interest event to fetch
+        :param int [limit]: the maximum number of interest events to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest interest event to fetch
+        :param str [params.subaccount_id]: *required* the subaccount id
+        :returns dict[]: a list of `borrow interest structures <https://docs.ccxt.com/?id=borrow-interest-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        subaccountId, paramsDeriveSubaccountId = self.handle_derive_subaccount_id('fetchBorrowInterest', params)
+        request = {
+            'subaccount_id': subaccountId,
+        }
+        if since is not None:
+            request['start_timestamp'] = since
+        until = self.safe_integer(paramsDeriveSubaccountId, 'until')
+        paramsOmitted = self.omit(paramsDeriveSubaccountId, ['until'])
+        if until is not None:
+            request['end_timestamp'] = until
+        response = self.privatePostGetInterestHistory(self.extend(request, paramsOmitted))
+        #
+        #     {
+        #         "id": "7e0a9cb5-44c4-4c27-91cb-c0b7bd23a4f0",
+        #         "result": {
+        #             "events": [
+        #                 {
+        #                     "subaccount_id": 86815,
+        #                     "timestamp": 1791033968000,
+        #                     "interest": "0.003382117138"
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        result = self.safe_dict(response, 'result', {})
+        events = self.safe_list(result, 'events', [])
+        interests = self.parse_borrow_interests(events, None)
+        sorted = self.sort_by(interests, 'timestamp')
+        return self.filter_by_currency_since_limit(sorted, code, since, limit)
+
+    def parse_borrow_interest(self, info: dict, market: Market = None) -> BorrowInterest:
+        timestamp = self.safe_integer(info, 'timestamp')
+        return {
+            'info': info,
+            'symbol': None,
+            'currency': 'USDC',  # interest accrues on the settlement currency cash balance only
+            'interest': self.safe_number(info, 'interest'),
+            'interestRate': None,
+            'amountBorrowed': None,
+            'marginMode': 'cross',
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
+
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
+        """
+        make a withdrawal to an L1 address, the payout defaults to the owner wallet and a session key may only pay out to the owner wallet or a whitelisted recipient
+
+        https://docs.derive.xyz/api-reference/transfers-&-withdrawals/privatewithdraw
+
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the L1 address to withdraw to
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param float [params.max_fee_usd]: the maximum accepted fee in usd, default 1, or 10 with force_batch
+        :param bool [params.force_batch]: pay the higher fee to have the withdrawal batch proven immediately
+        :param str [params.subaccount_id]: *required* the subaccount id
+        :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        self.check_address(address)
+        currency = self.currency(code)
+        # the exchange reconstructs the signed payload from asset_name using the protocol spot-asset address, so signing any other address can never verify
+        spotAssets = self.safe_list(currency['info'], 'spot', [])
+        spotAsset = self.safe_dict(spotAssets, 0, {})
+        assetAddress = self.safe_string(spotAsset, 'address')
+        if assetAddress is None:
+            raise BadRequest(self.id + ' withdraw() ' + code + ' has no deposit-enabled spot asset')
+        erc20 = self.safe_dict(spotAsset, 'erc20', {})
+        decimals = self.safe_integer(erc20, 'decimals')
+        if decimals is None:
+            raise BadRequest(self.id + ' withdraw() ' + code + ' carries no erc20 decimals metadata')
+        subaccountId, paramsDeriveSubaccountId = self.handle_derive_subaccount_id('withdraw', params)
+        forceBatch = self.safe_bool_2(paramsDeriveSubaccountId, 'force_batch', 'forceBatch', False)
+        defaultMaxFee = '10' if (forceBatch) else '1'
+        maxFeeUsd = self.safe_string_2(paramsDeriveSubaccountId, 'max_fee_usd', 'maxFeeUsd', defaultMaxFee)
+        paramsOmitted = self.omit(paramsDeriveSubaccountId, ['max_fee_usd', 'maxFeeUsd', 'force_batch', 'forceBatch'])
+        # excess decimals are truncated away: a fractional scaled amount cannot be encoded, and the signature must commit to the exact wire amount
+        amountString = self.decimal_to_precision(self.number_to_string(amount), TRUNCATE, decimals, DECIMAL_PLACES)
+        # the withdrawal amount is the protocol's only non-e18 action value, it is signed at the native decimals of the underlying erc20
+        one = '1'
+        scale = one.ljust(decimals + 1, '0')
+        amountScaled = Precise.string_mul(amountString, scale)
+        nonce = self.nonce_string()
+        signatureExpiry = self.safe_integer(paramsOmitted, 'signature_expiry_sec', self.seconds() + 7776000)
+        ACTION_TYPEHASH = self.base16_to_binary('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17')
+        WITHDRAWAL_MODULE_ADDRESS = '0x9d0E8f5b25384C7310CB8C6aE32C8fbeb645d083'  # shared across mainnet and testnet in v3
+        withdrawalModuleDataHash = self.hash(self.eth_abi_encode([
+            'address', 'uint', 'address', 'uint', 'bool',
+        ], [
+            assetAddress,
+            self.convert_to_big_int((self.parse_units(maxFeeUsd))),
+            address,
+            self.convert_to_big_int(amountScaled),
+            forceBatch,
+        ]), 'keccak', 'binary')
+        deriveWalletAddress, paramsDeriveWalletAddress = self.handle_derive_wallet_address('withdraw', paramsOmitted)
+        signature = self.sign_order([
+            ACTION_TYPEHASH,
+            subaccountId,
+            self.convert_to_big_int(nonce),
+            WITHDRAWAL_MODULE_ADDRESS,
+            withdrawalModuleDataHash,
+            signatureExpiry,
+            deriveWalletAddress,
+            self.walletAddress,
+        ], self.privateKey)
+        request = {
+            'subaccount_id': subaccountId,
+            'asset_name': currency['id'],
+            'amount_in_underlying': amountString,
+            'max_fee_usd': maxFeeUsd,
+            'force_batch': forceBatch,
+            'recipient': address,
+            'nonce': nonce,
+            'signer': self.walletAddress,
+            'signature': signature,
+            'signature_expiry_sec': signatureExpiry,
+        }
+        # never executed from tests: the signed payload was validated against public/withdraw_debug, which returns the server-side action hashes without executing; the result carries operation_id and op_uuid per the venue schema
+        response = self.privatePostWithdraw(self.extend(request, paramsDeriveWalletAddress))
+        result = self.safe_dict(response, 'result', {})
+        transaction = self.parse_transaction(result, currency)
+        transaction['type'] = 'withdrawal'
+        withdrawOptions = self.safe_dict(self.options, 'withdraw', {})
+        fillResponseFromRequest = self.safe_bool(withdrawOptions, 'fillResponseFromRequest', True)
+        if fillResponseFromRequest:
+            # the response carries only the operation ids, the known request values fill the rest
+            transaction['currency'] = currency['code']
+            transaction['amount'] = self.parse_number(amountString)
+            transaction['addressTo'] = address
+        return transaction
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
-        https://docs.derive.xyz/reference/post_private-get-deposit-history
+        https://docs.derive.xyz/api-reference/history/privateget_deposit_history
 
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
@@ -2472,42 +3878,52 @@ class derive(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        subaccountId = None
-        subaccountId, params = self.handle_derive_subaccount_id('fetchDeposits', params)
+        subaccountId, paramsDeriveSubaccountId = self.handle_derive_subaccount_id('fetchDeposits', params)
         request = {
             'subaccount_id': subaccountId,
         }
         if since is not None:
             request['start_timestamp'] = since
-        response = self.privatePostGetDepositHistory(self.extend(request, params))
+        response = self.privatePostGetDepositHistory(self.extend(request, paramsDeriveSubaccountId))
         #
-        # {
-        #     "result": {
-        #         "events": [
-        #             {
-        #                 "timestamp": 1736860533599,
-        #                 "transaction_id": "f2069395-ec00-49f5-925a-87202a5d240f",
-        #                 "asset": "ETH",
-        #                 "amount": "0.1",
-        #                 "tx_status": "settled",
-        #                 "tx_hash": "0xeda21a315c59302a19c42049b4cef05a10b685302b6cc3edbaf49102d91166d4",
-        #                 "error_log": {}
-        #             }
-        #         ]
-        #     },
-        #     "id": "ceebc730-22ab-40cd-9941-33ceb2a74389"
-        # }
+        #     {
+        #         "id": "4ba60e41-fa05-490c-b849-9ead5aef63c8",
+        #         "result": {
+        #             "deposits": [
+        #                 {
+        #                     "operation_id": "01a0f7f4-008c-7322-81c6-7c80e1b98a79",
+        #                     "new_subaccount": true,
+        #                     "subaccount_id": 86815,
+        #                     "wallet": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        #                     "asset": "USDC",
+        #                     "amount": "10000",
+        #                     "fee": "0",
+        #                     "timestamp": 1790866358000,
+        #                     "batch_uuid": "01a0f7f1-b8f3-7261-b09f-54c6df91273e",
+        #                     "batch_status": "Batching",
+        #                     "tx_hash": null,
+        #                     "action_id": 418,
+        #                     "is_fallback": false,
+        #                     "fallback_error_code": null,
+        #                     "fallback_error_message": null,
+        #                     "fallback_error_data": null,
+        #                     "l1_tx_hash": "0x77a6f738abb0642f32a35f1a53050968728182bd29ab0b19f8234f5df7bac309",
+        #                     "l1_sender": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee"
+        #                 }
+        #             ]
+        #         }
+        #     }
         #
         currency = self.safe_currency(code)
         result = self.safe_dict(response, 'result', {})
-        events = self.safe_list(result, 'events', [])
-        return self.parse_transactions(events, currency, since, limit, params)
+        deposits = self.safe_list(result, 'deposits', [])
+        return self.parse_transactions(deposits, currency, since, limit, paramsDeriveSubaccountId)
 
     def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
-        https://docs.derive.xyz/reference/post_private-get-withdrawal-history
+        https://docs.derive.xyz/api-reference/history/privateget_withdrawal_history
 
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
@@ -2518,105 +3934,147 @@ class derive(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        subaccountId = None
-        subaccountId, params = self.handle_derive_subaccount_id('fetchWithdrawals', params)
+        subaccountId, paramsDeriveSubaccountId = self.handle_derive_subaccount_id('fetchWithdrawals', params)
         request = {
             'subaccount_id': subaccountId,
         }
         if since is not None:
             request['start_timestamp'] = since
-        response = self.privatePostGetWithdrawalHistory(self.extend(request, params))
+        response = self.privatePostGetWithdrawalHistory(self.extend(request, paramsDeriveSubaccountId))
         #
-        # {
-        #     "result": {
-        #         "events": [
-        #             {
-        #                 "timestamp": 1736860533599,
-        #                 "transaction_id": "f2069395-ec00-49f5-925a-87202a5d240f",
-        #                 "asset": "ETH",
-        #                 "amount": "0.1",
-        #                 "tx_status": "settled",
-        #                 "tx_hash": "0xeda21a315c59302a19c42049b4cef05a10b685302b6cc3edbaf49102d91166d4",
-        #                 "error_log": {}
-        #             }
-        #         ]
-        #     },
-        #     "id": "ceebc730-22ab-40cd-9941-33ceb2a74389"
-        # }
+        #     {
+        #         "id": "f3d46c05-5c8f-4e4a-9d2f-5a86d26124b3",
+        #         "result": {
+        #             "withdrawals": [
+        #                 {
+        #                     "operation_id": "01a0f7f9-b539-7a42-b48e-6081fa401b3f",
+        #                     "subaccount_id": 86820,
+        #                     "wallet": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        #                     "recipient": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        #                     "asset": "USDC",
+        #                     "erc20_address": "0x73Efab09362052D26FB93A730Be4F8a5EdC833af",
+        #                     "amount": "100",
+        #                     "fee": "1.000073283608",
+        #                     "timestamp": 1790866732000,
+        #                     "batch_uuid": "01a0f7f7-1010-7c33-8bcf-7fef764d7fc5",
+        #                     "batch_status": "Batching",
+        #                     "tx_hash": null
+        #                 }
+        #             ]
+        #         }
+        #     }
         #
         currency = self.safe_currency(code)
         result = self.safe_dict(response, 'result', {})
-        events = self.safe_list(result, 'events', [])
-        return self.parse_transactions(events, currency, since, limit, params)
+        withdrawals = self.safe_list(result, 'withdrawals', [])
+        return self.parse_transactions(withdrawals, currency, since, limit, paramsDeriveSubaccountId)
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
-        # {
-        #     "timestamp": 1736860533599,
-        #     "transaction_id": "f2069395-ec00-49f5-925a-87202a5d240f",
-        #     "asset": "ETH",
-        #     "amount": "0.1",
-        #     "tx_status": "settled",
-        #     "tx_hash": "0xeda21a315c59302a19c42049b4cef05a10b685302b6cc3edbaf49102d91166d4",
-        #     "error_log": {}
-        # }
+        #     {
+        #         "operation_id": "01a0f7f4-008c-7322-81c6-7c80e1b98a79",
+        #         "new_subaccount": true,
+        #         "subaccount_id": 86815,
+        #         "wallet": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        #         "asset": "USDC",
+        #         "amount": "10000",
+        #         "fee": "0",
+        #         "timestamp": 1790866358000,
+        #         "batch_uuid": "01a0f7f1-b8f3-7261-b09f-54c6df91273e",
+        #         "batch_status": "Batching",
+        #         "tx_hash": null,
+        #         "action_id": 418,
+        #         "is_fallback": false,
+        #         "fallback_error_code": null,
+        #         "fallback_error_message": null,
+        #         "fallback_error_data": null,
+        #         "l1_tx_hash": "0x77a6f738abb0642f32a35f1a53050968728182bd29ab0b19f8234f5df7bac309",
+        #         "l1_sender": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee"
+        #     }
         #
         code = self.safe_string(transaction, 'asset')
         timestamp = self.safe_integer(transaction, 'timestamp')
-        txId = self.safe_string(transaction, 'tx_hash')
+        # tx_hash is the settling ethereum L1 transaction and stays null until the batch settles; deposits carry the sender's own L1 transaction in l1_tx_hash
+        txId = self.safe_string_2(transaction, 'tx_hash', 'l1_tx_hash')
         if txId == '0x0':
             txId = None
+        feeCost = self.safe_number(transaction, 'fee')
+        fee = None
+        if feeCost is not None:
+            fee = {
+                'cost': feeCost,
+                'currency': code,
+            }
+        # withdrawal rows carry the recipient address, deposit rows carry l1_sender/wallet instead
+        addressTo = self.safe_string(transaction, 'recipient')
         return {
             'info': transaction,
-            'id': None,
+            'id': self.safe_string_2(transaction, 'operation_id', 'transaction_id'),
             'txid': txId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'address': None,
             'addressFrom': None,
-            'addressTo': None,
+            'addressTo': addressTo,
             'tag': None,
             'tagFrom': None,
             'tagTo': None,
-            'type': None,
+            'type': 'withdrawal' if (addressTo is not None) else 'deposit',
             'amount': self.safe_number(transaction, 'amount'),
             'currency': code,
-            'status': self.parse_transaction_status(self.safe_string(transaction, 'tx_status')),
+            'status': self.parse_transaction_status(self.safe_string_2(transaction, 'batch_status', 'tx_status')),
             'updated': None,
             'comment': None,
             'internal': None,
-            'fee': None,
+            'fee': fee,
             'network': None,
         }
 
     def parse_transaction_status(self, status: Str):
         statuses = {
-            'settled': 'ok',
-            'reverted': 'failed',
+            'Batching': 'pending',
+            'Executing': 'pending',
+            'Da': 'pending',
+            'Proving': 'pending',
+            'Settling': 'pending',
+            'Settled': 'ok',
+            'BatchingError': 'failed',
+            'ExecutingError': 'failed',
+            'DaError': 'failed',
+            'ProvingError': 'failed',
+            'SettlingError': 'failed',
+            'SettledError': 'failed',
+            'settled': 'ok',  # v2 legacy
+            'reverted': 'failed',  # v2 legacy
         }
         return self.safe_string(statuses, status, status)
 
     def handle_derive_subaccount_id(self, methodName: str, params: dict) -> list:
-        derivesubAccountId = None
-        derivesubAccountId, params = self.handle_option_and_params(params, methodName, 'subaccount_id')
+        derivesubAccountId, paramsSubaccountId = self.handle_option_and_params(params, methodName, 'subaccount_id')
         if (derivesubAccountId is not None) and (derivesubAccountId != ''):
-            self.options['subaccount_id'] = derivesubAccountId  # saving in options
-            return [derivesubAccountId, params]
-        optionsWallet = self.safe_string(self.options, 'subaccount_id')
+            # the venue rejects a string subaccount_id ("expected i64"), so coerce early
+            subaccountIdInt = self.parse_to_int(derivesubAccountId)
+            if not ('subaccount_id' in self.options):
+                # remember the first explicitly used subaccount as the instance default, but never overwrite a configured default: a one-off param must not silently re-route later calls
+                self.options['subaccount_id'] = subaccountIdInt
+            return [subaccountIdInt, paramsSubaccountId]
+        optionsWallet = self.safe_integer(self.options, 'subaccount_id')
         if optionsWallet is not None:
-            return [optionsWallet, params]
+            return [optionsWallet, paramsSubaccountId]
         raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a subaccount_id parameter inside \'params\' or exchange.options[\'subaccount_id\']=ID.')
 
-    def handle_derive_wallet_address(self, methodName: str, params: dict):
-        deriveWalletAddress = None
-        deriveWalletAddress, params = self.handle_option_and_params(params, methodName, 'deriveWalletAddress')
+    def handle_derive_wallet_address(self, methodName: str, params: dict) -> list:
+        deriveWalletAddress, paramsDeriveWalletAddress = self.handle_option_string_and_params(params, methodName, 'deriveWalletAddress')
         if (deriveWalletAddress is not None) and (deriveWalletAddress != ''):
-            self.options['deriveWalletAddress'] = deriveWalletAddress  # saving in options
-            return [deriveWalletAddress, params]
+            self.options['deriveWalletAddress'] = deriveWalletAddress
+            return [deriveWalletAddress, paramsDeriveWalletAddress]
         optionsWallet = self.safe_string(self.options, 'deriveWalletAddress')
-        if optionsWallet is not None:
-            return [optionsWallet, params]
-        raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a deriveWalletAddress parameter inside \'params\' or exchange.options[\'deriveWalletAddress\'] = ADDRESS, the address can find in HOME => Developers tab.')
+        if (optionsWallet is not None) and (optionsWallet != ''):
+            return [optionsWallet, paramsDeriveWalletAddress]
+        # v3 abolished the separate derive wallet: the owner wallet is the user's own EOA, so the walletAddress credential is the default; set deriveWalletAddress explicitly only when signing with a session key registered to another owner wallet
+        if (self.walletAddress is not None) and (self.walletAddress != ''):
+            return [self.walletAddress, paramsDeriveWalletAddress]
+        raise ArgumentsRequired(self.id + ' ' + methodName + '() requires the walletAddress credential, a deriveWalletAddress parameter inside \'params\', or exchange.options[\'deriveWalletAddress\'] = ADDRESS.')
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
@@ -2631,21 +4089,28 @@ class derive(Exchange, ImplicitAPI):
         return None
 
     def nonce(self) -> float:
-        # the order nonce is a millisecond timestamp and must be unique per wallet (error 11017), while staying a valid date (error 11018)
-        # incrementingNonce () reads this and bumps past the previous value when two orders share a millisecond
-        return self.milliseconds()
+        # signs the auth timestamp and feeds incrementingNonce (), which nonceString () extends to the nanosecond-scale action nonce; must be unique per wallet (error 11017) while staying a valid date (error 11018)
+        return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)
 
-    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        url = self.urls['api'][api] + '/' + path
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
+        apiUrl = self.safe_string(self.urls['api'], apiName)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + '/' + path
         if method == 'POST':
-            headers = {
+            postHeaders = {
                 'Content-Type': 'application/json',
             }
-            if api == 'private':
-                now = str(self.milliseconds())
+            if apiName == 'private':
+                now = self.number_to_string(self.nonce())
                 signature = self.sign_message(now, self.privateKey)
-                headers['X-LyraWallet'] = self.safe_string(self.options, 'deriveWalletAddress')
-                headers['X-LyraTimestamp'] = now
-                headers['X-LyraSignature'] = signature
-            body = self.json(params)
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+                deriveWalletAddress = self.safe_string(self.options, 'deriveWalletAddress')
+                if (deriveWalletAddress is None) or (deriveWalletAddress == ''):
+                    deriveWalletAddress = self.walletAddress  # v3: the owner wallet is the user's own EOA
+                postHeaders['X-DeriveWallet'] = deriveWalletAddress
+                postHeaders['X-DeriveTimestamp'] = now
+                postHeaders['X-DeriveSignature'] = signature
+            postBody = self.json(params)
+            return {'url': url, 'method': method, 'body': postBody, 'headers': postHeaders}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}

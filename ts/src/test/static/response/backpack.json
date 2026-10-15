@@ -724,9 +724,9 @@
                                     "withdrawalFee": "0.6"
                                 }
                             },
-                            "BSC": {
+                            "BEP20": {
                                 "id": "Bsc",
-                                "network": "BSC",
+                                "network": "BEP20",
                                 "limits": {
                                     "withdraw": {
                                         "min": 1.2,
@@ -1027,7 +1027,7 @@
                 "description": "cancel order",
                 "method": "cancelOrder",
                 "input": [
-                    8284661092,
+                    "8284661092",
                     "ETH/USDC"
                 ],
                 "httpResponse": {

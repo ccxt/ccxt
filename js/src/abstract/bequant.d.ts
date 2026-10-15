@@ -1,6 +1,6 @@
 import { Dict, List } from '../base/types.js';
 import _hitbtc from '../hitbtc.js';
-interface hitbtc {
+declare abstract class hitbtc extends _hitbtc {
     publicGetPublicCurrency(params?: {}): Promise<Dict>;
     publicGetPublicCurrencyCurrency(params?: {}): Promise<Dict>;
     publicGetPublicSymbol(params?: {}): Promise<Dict>;
@@ -122,7 +122,5 @@ interface hitbtc {
     privatePutFuturesAccountIsolatedSymbol(params?: {}): Promise<Dict>;
     privatePutFuturesMarginSettingsAmr(params?: {}): Promise<Dict>;
     privatePutWalletCryptoWithdrawId(params?: {}): Promise<Dict>;
-}
-declare abstract class hitbtc extends _hitbtc {
 }
 export default hitbtc;

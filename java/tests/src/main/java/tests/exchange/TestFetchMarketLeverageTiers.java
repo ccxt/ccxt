@@ -4,6 +4,7 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -19,7 +20,7 @@ public class TestFetchMarketLeverageTiers extends BaseTest {
         return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchMarketLeverageTiers";
-        Object tiers = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchMarketLeverageTiers", new Object[]{symbol})).join();
+        Object tiers = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchMarketLeverageTiers", new Object[]{symbol, new HashMap<String, Object>() {{}}})).join();
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, tiers, symbol);
         for (var j = 0; j < ((List<?>)tiers).size(); j++)
         {

@@ -38,23 +38,19 @@ func mockBodyForUrl(responsesByUrl any, url any) any {
 	return nil
 }
 
-func (this *BaseExchange) FetchAsync(url any, method any, headers any, body any) chan any {
-	ch := make(chan any)
+func (this *BaseExchange) FetchAsync(url any, method any, headers any, body any) chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any])
 	go func() {
 		defer close(ch)
-		defer func() {
-			if r := recover(); r != nil {
-				ch <- "panic:" + ToString(r)
-			}
-		}()
+		defer ReturnPanicError(ch)
 
 		if this.FetchResponseByUrl != nil {
-			ch <- mockBodyForUrl(this.FetchResponseByUrl, url)
+			ch <- AsyncResult[any]{Value: mockBodyForUrl(this.FetchResponseByUrl, url)}
 			return
 		}
 
 		if this.FetchResponse != nil {
-			ch <- this.FetchResponse
+			ch <- AsyncResult[any]{Value: this.FetchResponse}
 			return
 		}
 		this.UpdateProxySettings() // for now this needs to be here
@@ -276,7 +272,7 @@ func (this *BaseExchange) FetchAsync(url any, method any, headers any, body any)
 			panic(fmt.Sprintf("request failed: %v", err))
 		}
 
-		ch <- result
+		ch <- AsyncResult[any]{Value: result}
 	}()
 	return ch
 }

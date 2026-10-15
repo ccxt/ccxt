@@ -165,7 +165,12 @@ func (this *WSClient) handleMessages() {
 		// raced Send's writes had it ever run, gorilla's default ping handler
 		// already answers with a concurrency safe WriteControl pong
 		switch messageType {
-		case websocket.TextMessage, websocket.BinaryMessage:
+		case websocket.TextMessage:
+			// the frame type travels with the payload, a text frame as a string and
+			// a binary frame as []byte, so OnMessage never has to guess it from the
+			// bytes, which a binary payload (protobuf, SBE) can pass for utf-8 text
+			this.OnMessage(string(data))
+		case websocket.BinaryMessage:
 			this.OnMessage(data)
 		}
 	}
@@ -268,11 +273,7 @@ func (this *WSClient) OnPingInterval() {
 				}
 				if message != nil {
 					go func() {
-						future := this.SendAsync(message)
-						if err := <-future; err != nil {
-							if b, ok := err.(bool); ok && b {
-								return // not an error?
-							}
+						if err := (<-this.SendAsync(message)).Err; err != nil {
 							this.OnError(err)
 						}
 					}()
@@ -330,7 +331,7 @@ func (this *WSClient) Resolve(data any, subHash any) any {
 	return this.Client.Resolve(data, subHash)
 }
 
-func (this *WSClient) Future(messageHash any) <-chan any {
+func (this *WSClient) Future(messageHash any) <-chan AsyncResult[any] {
 	return this.Client.Future(messageHash)
 }
 
@@ -338,7 +339,7 @@ func (this *WSClient) Reject(err any, messageHash ...any) {
 	this.Client.Reject(err, messageHash...)
 }
 
-func (this *WSClient) SendAsync(message any) <-chan any {
+func (this *WSClient) SendAsync(message any) <-chan AsyncResult[any] {
 	return this.Client.SendAsync(message)
 }
 

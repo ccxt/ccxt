@@ -19,6 +19,8 @@ class hyperliquid extends hyperliquid$1["default"] {
                 'createOrdersWs': true,
                 'editOrderWs': true,
                 'watchBalance': true,
+                'watchMyLiquidations': true,
+                'watchMyLiquidationsForSymbols': true,
                 'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchOrderBook': true,
@@ -51,7 +53,9 @@ class hyperliquid extends hyperliquid$1["default"] {
                     },
                 },
             },
-            'options': {},
+            'options': {
+                'unsubscribeTimeout': 10000, // ms a watch waits for a pending unsubscribe ack
+            },
             'streaming': {
                 'ping': this.ping,
                 'keepAlive': 20000,
@@ -228,8 +232,8 @@ class hyperliquid extends hyperliquid$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
-        const messageHash = 'orderbook:' + symbol;
+        const symbolValue = market['symbol'];
+        const messageHash = 'orderbook:' + symbolValue;
         const url = this.urls['api']['ws']['public'];
         const request = {
             'method': 'subscribe',
@@ -239,6 +243,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             },
         };
         const message = this.extend(request, params);
+        await this.waitForPendingUnsubscribe(url, messageHash);
         const orderbook = await this.watch(url, messageHash, message, messageHash);
         return orderbook.limit();
     }
@@ -256,8 +261,8 @@ class hyperliquid extends hyperliquid$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
-        const subMessageHash = 'orderbook:' + symbol;
+        const symbolValue = market['symbol'];
+        const subMessageHash = 'orderbook:' + symbolValue;
         const messageHash = 'unsubscribe:' + subMessageHash;
         const url = this.urls['api']['ws']['public'];
         const id = this.incrementingNonce().toString();
@@ -333,12 +338,12 @@ class hyperliquid extends hyperliquid$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = market['symbol'];
         // the single-symbol path subscribes to the per-coin context channel, which hyperliquid
         // pushes at block cadence with full ticker fields (mark, oracle, funding, volume),
         // instead of the aggregate allMids broadcast that only carries mids and arrives at the
         // server's own batch cadence, see https://github.com/ccxt/ccxt/issues/27475
-        const messageHash = 'ticker:' + symbol;
+        const messageHash = 'ticker:' + symbolValue;
         const url = this.urls['api']['ws']['public'];
         const request = {
             'method': 'subscribe',
@@ -350,6 +355,7 @@ class hyperliquid extends hyperliquid$1["default"] {
                 'coin': (market['swap'] === true) ? market['baseName'] : market['id'],
             },
         };
+        await this.waitForPendingUnsubscribe(url, messageHash);
         return await this.watch(url, messageHash, this.extend(request, params), messageHash);
     }
     /**
@@ -366,8 +372,8 @@ class hyperliquid extends hyperliquid$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
-        const subMessageHash = 'ticker:' + symbol;
+        const symbolValue = market['symbol'];
+        const subMessageHash = 'ticker:' + symbolValue;
         const messageHash = 'unsubscribe:' + subMessageHash;
         const url = this.urls['api']['ws']['public'];
         const request = {
@@ -393,7 +399,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols, undefined, true);
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, true);
         let messageHash = 'tickers';
         const url = this.urls['api']['ws']['public'];
         const request = {
@@ -403,7 +409,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             },
         };
         let defaultDex = this.safeString(params, 'dex');
-        const firstSymbol = this.safeString(symbols, 0);
+        const firstSymbol = this.safeString(symbolsNormalized, 0);
         if (firstSymbol !== undefined) {
             const market = this.market(firstSymbol);
             const dexName = this.safeString(this.safeDict(market, 'info', {}), 'dex');
@@ -411,15 +417,17 @@ class hyperliquid extends hyperliquid$1["default"] {
                 defaultDex = dexName;
             }
         }
+        const paramsOmitted = (defaultDex !== undefined) ? this.omit(params, 'dex') : params;
         if (defaultDex !== undefined) {
-            params = this.omit(params, 'dex');
             messageHash = 'tickers:' + defaultDex;
             request['subscription']['type'] = 'allMids';
             request['subscription']['dex'] = defaultDex;
         }
-        const tickers = await this.watch(url, messageHash, this.extend(request, params), messageHash);
+        // unWatchTickers always registers the bare 'unsubscribe:tickers' hash, dex-scoped or not
+        await this.waitForPendingUnsubscribe(url, 'tickers');
+        const tickers = await this.watch(url, messageHash, this.extend(request, paramsOmitted), messageHash);
         if (this.newUpdates) {
-            return this.filterByArrayTickers(tickers, 'symbol', symbols);
+            return this.filterByArrayTickers(tickers, 'symbol', symbolsNormalized);
         }
         return this.tickers;
     }
@@ -436,7 +444,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols, undefined, true);
+        this.marketSymbols(symbols, undefined, true);
         const subMessageHash = 'tickers';
         const messageHash = 'unsubscribe:' + subMessageHash;
         const url = this.urls['api']['ws']['public'];
@@ -464,14 +472,14 @@ class hyperliquid extends hyperliquid$1["default"] {
         let userAddress = undefined;
         const userAddressResult = this.handlePublicAddress('watchMyTrades', params);
         userAddress = this.safeString(userAddressResult, 0);
-        params = this.safeDict(userAddressResult, 1, params);
+        const paramsValue = this.safeDict(userAddressResult, 1, params);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
         let messageHash = 'myTrades';
-        if (symbol !== undefined) {
-            symbol = this.symbol(symbol);
-            messageHash += ':' + symbol;
+        const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : symbol;
+        if (symbolResolved !== undefined) {
+            messageHash += ':' + symbolResolved;
         }
         const url = this.urls['api']['ws']['public'];
         const request = {
@@ -481,16 +489,82 @@ class hyperliquid extends hyperliquid$1["default"] {
                 'user': userAddress,
             },
         };
-        const message = this.extend(request, params);
+        const message = this.extend(request, paramsValue);
         if (userAddress === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' watchMyTrades() requires a user address');
         }
         const subscribeHash = 'subscribe:userFills::' + userAddress.toLowerCase();
+        // unWatchMyTrades registers 'unsubscribe:myTrades', not the per-user dedup hash
+        await this.waitForPendingUnsubscribe(url, 'myTrades');
         const trades = await this.watch(url, messageHash, message, subscribeHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+            limitResolved = trades.getLimit(symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true);
+    }
+    /**
+     * @method
+     * @name hyperliquid#watchMyLiquidations
+     * @description watch the private liquidations of a trading pair
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+     * @param {string} symbol unified CCXT market symbol
+     * @param {int} [since] the earliest time in ms to fetch liquidations for
+     * @param {int} [limit] the maximum number of liquidation structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
+     */
+    watchMyLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
+        return this.watchMyLiquidationsForSymbols([symbol], since, limit, params);
+    }
+    /**
+     * @method
+     * @name hyperliquid#watchMyLiquidationsForSymbols
+     * @description watch the private liquidations of a list of trading pairs
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+     * @param {string[]} symbols list of unified market symbols
+     * @param {int} [since] the earliest time in ms to fetch liquidations for
+     * @param {int} [limit] the maximum number of liquidation structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
+     */
+    async watchMyLiquidationsForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
+        const [userAddress, paramsValue] = this.handlePublicAddress('watchMyLiquidationsForSymbols', params);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, true, true);
+        const messageHashes = [];
+        if (this.isEmpty(symbolsNormalized)) {
+            messageHashes.push('myLiquidations');
+        }
+        else {
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                messageHashes.push('myLiquidations::' + symbolsNormalized[i]);
+            }
+        }
+        const url = this.urls['api']['ws']['public'];
+        const request = {
+            'method': 'subscribe',
+            'subscription': {
+                'type': 'userFills',
+                'user': userAddress,
+            },
+        };
+        const message = this.extend(request, paramsValue);
+        if (userAddress === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' watchMyLiquidationsForSymbols() requires a user address');
+        }
+        // shares the userFills subscription with watchMyTrades
+        const subscribeHash = 'subscribe:userFills::' + userAddress.toLowerCase();
+        await this.waitForPendingUnsubscribe(url, 'myTrades');
+        const newLiquidations = await this.watchMultiple(url, messageHashes, message, [subscribeHash]);
+        if (this.newUpdates) {
+            return newLiquidations;
+        }
+        return this.filterBySymbolsSinceLimit(this.myLiquidations, symbolsNormalized, since, limit, true);
     }
     /**
      * @method
@@ -512,7 +586,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         let userAddress = undefined;
         const userAddressResult = this.handlePublicAddress('unWatchMyTrades', params);
         userAddress = this.safeString(userAddressResult, 0);
-        params = this.safeDict(userAddressResult, 1, params);
+        const paramsValue = this.safeDict(userAddressResult, 1, params);
         const messageHash = 'unsubscribe:myTrades';
         const url = this.urls['api']['ws']['public'];
         const request = {
@@ -522,7 +596,7 @@ class hyperliquid extends hyperliquid$1["default"] {
                 'user': userAddress,
             },
         };
-        const message = this.extend(request, params);
+        const message = this.extend(request, paramsValue);
         return await this.watch(url, messageHash, message, messageHash);
     }
     handleWsTickers(client, message) {
@@ -631,6 +705,8 @@ class hyperliquid extends hyperliquid$1["default"] {
         //         }
         //     }
         //
+        // an empty snapshot still seeds the liquidations cache
+        this.handleMyLiquidations(client, message);
         const entry = this.safeDict(message, 'data', {});
         if (this.myTrades === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
@@ -659,6 +735,53 @@ class hyperliquid extends hyperliquid$1["default"] {
         const messageHash = 'myTrades';
         client.resolve(trades, messageHash);
     }
+    handleMyLiquidations(client, message) {
+        //
+        // userFills message, see handleMyTrades, liquidation fills carry
+        //
+        //     "liquidation": {
+        //         "liquidatedUser": "0x5c902b2eb0e1d9eb9a232014824ae6247df0a480",
+        //         "markPx": "4.69112",
+        //         "method": "market"
+        //     }
+        //
+        const entry = this.safeDict(message, 'data', {});
+        // every subscription starts with a snapshot, a resubscribe replays it
+        const isSnapshot = this.safeBool(entry, 'isSnapshot', false);
+        if (isSnapshot || (this.myLiquidations === undefined)) {
+            const limit = this.safeInteger(this.options, 'myLiquidationsLimit', 1000);
+            this.myLiquidations = new Cache.ArrayCache(limit);
+        }
+        const user = this.safeStringLower(entry, 'user');
+        const fills = this.safeList(entry, 'fills', []);
+        const newLiquidations = [];
+        for (let i = 0; i < fills.length; i++) {
+            const fill = fills[i];
+            const liquidation = this.safeDict(fill, 'liquidation', {});
+            // liquidator fills carry the liquidated counterparty here
+            if (this.safeStringLower(liquidation, 'liquidatedUser') === user) {
+                newLiquidations.push(this.parseLiquidation(fill));
+            }
+        }
+        const newLiquidationsLength = newLiquidations.length;
+        if (newLiquidationsLength === 0) {
+            return;
+        }
+        const cache = this.myLiquidations;
+        const symbols = {};
+        for (let i = 0; i < newLiquidationsLength; i++) {
+            const liquidation = newLiquidations[i];
+            cache.append(liquidation);
+            symbols[liquidation['symbol']] = true;
+        }
+        const keys = Object.keys(symbols);
+        for (let i = 0; i < keys.length; i++) {
+            const symbol = keys[i];
+            const symbolLiquidations = this.filterBySymbol(newLiquidations, symbol);
+            client.resolve(symbolLiquidations, 'myLiquidations::' + symbol);
+        }
+        client.resolve(newLiquidations, 'myLiquidations');
+    }
     /**
      * @method
      * @name hyperliquid#watchTrades
@@ -675,8 +798,8 @@ class hyperliquid extends hyperliquid$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
-        const messageHash = 'trade:' + symbol;
+        const symbolValue = market['symbol'];
+        const messageHash = 'trade:' + symbolValue;
         const url = this.urls['api']['ws']['public'];
         const request = {
             'method': 'subscribe',
@@ -686,11 +809,13 @@ class hyperliquid extends hyperliquid$1["default"] {
             },
         };
         const message = this.extend(request, params);
+        await this.waitForPendingUnsubscribe(url, messageHash);
         const trades = await this.watch(url, messageHash, message, messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+            limitResolved = trades.getLimit(symbolValue, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
     }
     /**
      * @method
@@ -706,8 +831,8 @@ class hyperliquid extends hyperliquid$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
-        const subMessageHash = 'trade:' + symbol;
+        const symbolValue = market['symbol'];
+        const subMessageHash = 'trade:' + symbolValue;
         const messageHash = 'unsubscribe:' + subMessageHash;
         const url = this.urls['api']['ws']['public'];
         const request = {
@@ -800,8 +925,8 @@ class hyperliquid extends hyperliquid$1["default"] {
         const amount = this.safeString(trade, 'sz');
         const coin = this.safeString(trade, 'coin');
         const marketId = this.coinToMarketId(coin);
-        market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId);
+        const symbol = marketResolved['symbol'];
         const id = this.safeString(trade, 'tid');
         let side = this.safeString(trade, 'side');
         if (side !== undefined) {
@@ -822,7 +947,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             'amount': amount,
             'cost': undefined,
             'fee': { 'cost': fee, 'currency': 'USDC' },
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -841,7 +966,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = market['symbol'];
         const url = this.urls['api']['ws']['public'];
         const request = {
             'method': 'subscribe',
@@ -851,13 +976,15 @@ class hyperliquid extends hyperliquid$1["default"] {
                 'interval': timeframe,
             },
         };
-        const messageHash = 'candles:' + timeframe + ':' + symbol;
+        const messageHash = 'candles:' + timeframe + ':' + symbolValue;
         const message = this.extend(request, params);
+        await this.waitForPendingUnsubscribe(url, messageHash);
         const ohlcv = await this.watch(url, messageHash, message, messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = ohlcv.getLimit(symbol, limit);
+            limitResolved = ohlcv.getLimit(symbolValue, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
     }
     /**
      * @method
@@ -874,7 +1001,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = market['symbol'];
         const url = this.urls['api']['ws']['public'];
         const request = {
             'method': 'unsubscribe',
@@ -884,7 +1011,7 @@ class hyperliquid extends hyperliquid$1["default"] {
                 'interval': timeframe,
             },
         };
-        const subMessageHash = 'candles:' + timeframe + ':' + symbol;
+        const subMessageHash = 'candles:' + timeframe + ':' + symbolValue;
         const messagehash = 'unsubscribe:' + subMessageHash;
         const message = this.extend(request, params);
         return await this.watch(url, messagehash, message, messagehash);
@@ -958,16 +1085,18 @@ class hyperliquid extends hyperliquid$1["default"] {
         let userAddress = undefined;
         const userAddressResult = this.handlePublicAddress('watchBalance', params);
         userAddress = this.safeString(userAddressResult, 0);
-        params = this.safeDict(userAddressResult, 1, params);
-        let type = undefined;
-        [type, params] = this.handleMarketTypeAndParams('watchBalance', undefined, params);
+        const paramsValue = this.safeDict(userAddressResult, 1, params);
+        const [type, paramsMarketType] = this.handleMarketTypeAndParams('watchBalance', undefined, paramsValue);
         let isUnifiedEnabled = undefined;
-        const unifiedResult = await this.isUnifiedEnabled('watchBalance', userAddress, false, params);
+        const unifiedResult = await this.isUnifiedEnabled('watchBalance', userAddress, false, paramsMarketType);
         isUnifiedEnabled = this.safeBool(unifiedResult, 0);
-        params = this.safeDict(unifiedResult, 1, params);
-        const dex = this.safeString(params, 'dex');
+        const paramsValue2 = this.safeDict(unifiedResult, 1, paramsMarketType);
+        const dex = this.safeString(paramsValue2, 'dex');
         const isSpot = ((type === 'spot') || (isUnifiedEnabled === true)) && (dex === undefined);
-        const topic = (isSpot === true) ? 'spotState' : 'clearinghouseState';
+        let topic = 'clearinghouseState';
+        if (isSpot === true) {
+            topic = 'spotState';
+        }
         const messageHash = topic + '::balance';
         const url = this.urls['api']['ws']['public'];
         const subscription = {
@@ -988,7 +1117,11 @@ class hyperliquid extends hyperliquid$1["default"] {
             'method': 'subscribe',
             'subscription': subscription,
         };
-        const message = this.extend(request, params);
+        const message = this.extend(request, paramsValue2);
+        // the swap topic 'clearinghouseState' is one server subscription shared
+        // with watchPositions, so a pending unWatchPositions delays this watch
+        // too - its ack tears the shared stream down and sweeps both futures
+        await this.waitForPendingUnsubscribe(url, topic);
         return await this.watch(url, messageHash, message, topic);
     }
     /**
@@ -1007,16 +1140,18 @@ class hyperliquid extends hyperliquid$1["default"] {
         let userAddress = undefined;
         const userAddressResult = this.handlePublicAddress('unWatchBalance', params);
         userAddress = this.safeString(userAddressResult, 0);
-        params = this.safeDict(userAddressResult, 1, params);
-        let type = undefined;
-        [type, params] = this.handleMarketTypeAndParams('unWatchBalance', undefined, params);
+        const paramsValue = this.safeDict(userAddressResult, 1, params);
+        const [type, paramsMarketType] = this.handleMarketTypeAndParams('unWatchBalance', undefined, paramsValue);
         let isUnifiedEnabled = undefined;
-        const unifiedResult = await this.isUnifiedEnabled('unWatchBalance', userAddress, false, params);
+        const unifiedResult = await this.isUnifiedEnabled('unWatchBalance', userAddress, false, paramsMarketType);
         isUnifiedEnabled = this.safeBool(unifiedResult, 0);
-        params = this.safeDict(unifiedResult, 1, params);
-        const dex = this.safeString(params, 'dex');
+        const paramsValue2 = this.safeDict(unifiedResult, 1, paramsMarketType);
+        const dex = this.safeString(paramsValue2, 'dex');
         const isSpot = ((type === 'spot') || (isUnifiedEnabled === true)) && (dex === undefined);
-        const topic = (isSpot === true) ? 'spotState' : 'clearinghouseState';
+        let topic = 'clearinghouseState';
+        if (isSpot === true) {
+            topic = 'spotState';
+        }
         const messageHash = 'unsubscribe' + ':' + topic;
         const request = {
             'method': 'unsubscribe',
@@ -1025,7 +1160,7 @@ class hyperliquid extends hyperliquid$1["default"] {
                 'user': userAddress,
             },
         };
-        const message = this.extend(request, params);
+        const message = this.extend(request, paramsValue2);
         return await this.watch(url, messageHash, message, messageHash);
     }
     handleBalance(client, message) {
@@ -1085,12 +1220,11 @@ class hyperliquid extends hyperliquid$1["default"] {
             this.balance = {};
         }
         const topic = this.safeString(message, 'channel');
-        const messageHash = topic + '::balance';
         let info = undefined;
         let rawBalances = [];
         let account = undefined;
         let timestamp = undefined;
-        const data = this.safeValue(message, 'data', []);
+        const data = this.safeDict(message, 'data', {});
         if (topic === 'spotState') {
             const spotState = this.safeDict(data, 'spotState');
             rawBalances = this.safeList(spotState, 'balances', []);
@@ -1115,7 +1249,10 @@ class hyperliquid extends hyperliquid$1["default"] {
         this.balance[account]['timestamp'] = timestamp;
         this.balance[account]['datetime'] = this.iso8601(timestamp);
         this.balance[account] = this.safeBalance(this.balance[account]);
-        client.resolve(this.balance[account], messageHash);
+        if (topic !== undefined) {
+            const messageHash = topic + '::balance';
+            client.resolve(this.balance[account], messageHash);
+        }
     }
     parseWsBalance(balance, accountType = undefined) {
         //
@@ -1195,19 +1332,23 @@ class hyperliquid extends hyperliquid$1["default"] {
         let userAddress = undefined;
         const userAddressResult = this.handlePublicAddress('watchPositions', params);
         userAddress = this.safeString(userAddressResult, 0);
-        params = this.safeDict(userAddressResult, 1, params);
+        const paramsValue = this.safeDict(userAddressResult, 1, params);
         const topic = 'clearinghouseState';
         let messageHash = topic + '::positions';
-        if ((symbols !== undefined) && !this.isEmpty(symbols)) {
-            symbols = this.marketSymbols(symbols);
-            messageHash += '::' + symbols.join(',');
+        const hasSymbols = (symbols !== undefined) && !this.isEmpty(symbols);
+        let symbolsNormalized = symbols;
+        if (hasSymbols) {
+            symbolsNormalized = this.marketSymbols(symbols);
+        }
+        if (hasSymbols && (symbolsNormalized !== undefined)) {
+            messageHash += '::' + symbolsNormalized.join(',');
         }
         const url = this.urls['api']['ws']['public'];
         const subscription = {
             'type': topic,
             'user': userAddress,
         };
-        const dexName = this.getDexFromSymbols('watchPositions', symbols);
+        const dexName = this.getDexFromSymbols('watchPositions', symbolsNormalized);
         if (dexName !== undefined) {
             subscription['dex'] = dexName;
         }
@@ -1215,15 +1356,19 @@ class hyperliquid extends hyperliquid$1["default"] {
             'method': 'subscribe',
             'subscription': subscription,
         };
-        const message = this.extend(request, params);
+        const message = this.extend(request, paramsValue);
+        // the topic 'clearinghouseState' is one server subscription shared with
+        // the swap watchBalance, so a pending unWatchBalance delays this watch
+        // too - its ack tears the shared stream down and sweeps both futures
+        await this.waitForPendingUnsubscribe(url, topic);
         const client = this.client(url);
-        this.setPositionsCache(client, symbols);
+        this.setPositionsCache(client, symbolsNormalized);
         const cache = this.positions;
         const newPositions = await this.watch(url, messageHash, message, topic);
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit(cache, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit(cache, symbolsNormalized, since, limit, true);
     }
     setPositionsCache(client, symbols = undefined) {
         if (this.positions !== undefined) {
@@ -1284,7 +1429,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         let userAddress = undefined;
         const userAddressResult = this.handlePublicAddress('unWatchPositions', params);
         userAddress = this.safeString(userAddressResult, 0);
-        params = this.safeDict(userAddressResult, 1, params);
+        const paramsValue = this.safeDict(userAddressResult, 1, params);
         const request = {
             'method': 'unsubscribe',
             'subscription': {
@@ -1292,7 +1437,7 @@ class hyperliquid extends hyperliquid$1["default"] {
                 'user': userAddress,
             },
         };
-        const message = this.extend(request, params);
+        const message = this.extend(request, paramsValue);
         return await this.watch(url, messageHash, message, messageHash);
     }
     /**
@@ -1314,14 +1459,14 @@ class hyperliquid extends hyperliquid$1["default"] {
         let userAddress = undefined;
         const userAddressResult = this.handlePublicAddress('watchOrders', params);
         userAddress = this.safeString(userAddressResult, 0);
-        params = this.safeDict(userAddressResult, 1, params);
+        const paramsValue = this.safeDict(userAddressResult, 1, params);
         let market = undefined;
         let messageHash = 'order';
         if (symbol !== undefined) {
             market = this.market(symbol);
-            symbol = market['symbol'];
-            messageHash = messageHash + ':' + symbol;
+            messageHash = messageHash + ':' + market['symbol'];
         }
+        const symbolResolved = (market !== undefined) ? this.safeString(market, 'symbol') : symbol;
         const url = this.urls['api']['ws']['public'];
         const request = {
             'method': 'subscribe',
@@ -1330,7 +1475,7 @@ class hyperliquid extends hyperliquid$1["default"] {
                 'user': userAddress,
             },
         };
-        const message = this.extend(request, params);
+        const message = this.extend(request, paramsValue);
         // dedup by (channel, user), not by messageHash: the server subscription is per-user,
         // so a second user must send its own subscribe (https://github.com/ccxt/ccxt/issues/28369),
         // and a second symbol-scoped call for the same user must NOT resend - hyperliquid answers
@@ -1341,11 +1486,14 @@ class hyperliquid extends hyperliquid$1["default"] {
             throw new errors.ArgumentsRequired(this.id + ' watchOrders() requires a user address');
         }
         const subscribeHash = 'subscribe:orderUpdates::' + userAddress.toLowerCase();
+        // unWatchOrders registers 'unsubscribe:order', not the per-user dedup hash
+        await this.waitForPendingUnsubscribe(url, 'order');
         const orders = await this.watch(url, messageHash, message, subscribeHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit(symbol, limit);
+            limitResolved = orders.getLimit(symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
     }
     /**
      * @method
@@ -1369,7 +1517,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         let userAddress = undefined;
         const userAddressResult = this.handlePublicAddress('unWatchOrders', params);
         userAddress = this.safeString(userAddressResult, 0);
-        params = this.safeDict(userAddressResult, 1, params);
+        const paramsValue = this.safeDict(userAddressResult, 1, params);
         const request = {
             'method': 'unsubscribe',
             'subscription': {
@@ -1377,7 +1525,7 @@ class hyperliquid extends hyperliquid$1["default"] {
                 'user': userAddress,
             },
         };
-        const message = this.extend(request, params);
+        const message = this.extend(request, paramsValue);
         return await this.watch(url, messageHash, message, messageHash);
     }
     handleOrder(client, message) {
@@ -1499,6 +1647,42 @@ class hyperliquid extends hyperliquid$1["default"] {
         }
         return false;
     }
+    /**
+     * @method
+     * @name hyperliquid#waitForPendingUnsubscribe
+     * @ignore
+     * @description waits for the acknowledgement of a still-pending unsubscribe request for the same subscription before subscribing again — a watch armed inside that window would never send a subscribe (deduplicated against the stale entry) and its future would be rejected by the pending ack, see https://github.com/ccxt/ccxt/issues/30419
+     * @param {string} url the websocket endpoint the subscription lives on
+     * @param {string} subHash the subscription hash the watch call is about to register
+     * @returns {any} resolves once no unsubscribe request is pending for the subscription, or after options.unsubscribeTimeout ms
+     */
+    async waitForPendingUnsubscribe(url, subHash) {
+        if (url in this.clients) {
+            const client = this.client(url);
+            const unsubHash = 'unsubscribe:' + subHash;
+            if (unsubHash in client.subscriptions) {
+                // share the unWatch caller's future; a lost ack is timed out so the watch cannot hang
+                const timeout = this.safeInteger(this.options, 'unsubscribeTimeout', 10000);
+                this.delay(timeout, this.expirePendingUnsubscribe, client, subHash, unsubHash);
+                try {
+                    await client.future(unsubHash);
+                }
+                catch (e) {
+                    if (!(e instanceof errors.RequestTimeout)) {
+                        throw e;
+                    }
+                }
+            }
+        }
+        return undefined;
+    }
+    async expirePendingUnsubscribe(client, subHash, unsubHash) {
+        if (unsubHash in client.subscriptions) {
+            const error = new errors.RequestTimeout(this.id + ' unsubscribe ' + subHash + ' was not acknowledged');
+            client.reject(error, unsubHash);
+            this.cleanUnsubscription(client, subHash, unsubHash);
+        }
+    }
     handleOrderBookUnsubscription(client, subscription) {
         //
         //        "subscription":{
@@ -1589,6 +1773,9 @@ class hyperliquid extends hyperliquid$1["default"] {
         const subHash = 'myTrades';
         const unSubHash = 'unsubscribe:' + subHash;
         this.cleanUnsubscription(client, subHash, unSubHash, true);
+        // userFills also feeds watchMyLiquidations
+        this.cleanUnsubscription(client, 'myLiquidations', unSubHash, true);
+        this.myLiquidations = undefined;
         // the prefix sweep above can't see the per-user dedup key (prefix-disjoint by design);
         // clear it for the user echoed in the ack so a later watch re-subscribes
         const user = this.safeStringLower(subscription, 'user');
@@ -1669,7 +1856,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             else if (type === 'userFills') {
                 this.handleMyTradesUnsubscription(client, subscription);
             }
-            else if (type === 'clearinghoustState') {
+            else if (type === 'clearinghouseState') {
                 this.handlePositionsUnsubscription(client, subscription);
             }
             else if (type === 'spotState') {

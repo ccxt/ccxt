@@ -74,6 +74,16 @@ function helperTestInitSandbox() {
     helperTestSandboxState(exchange4, true);
     exchange4.setSandboxMode(false);
     helperTestSandboxState(exchange4, false);
+    //
+    // CASE C: passed 'sandbox' within userConfig
+    //
+    opts['options']['sandbox'] = false;
+    // @ts-expect-error
+    opts['sandbox'] = true;
+    const exchange5 = new ccxt.Exchange(opts);
+    helperTestSandboxState(exchange5, true);
+    exchange5.setSandboxMode(false);
+    helperTestSandboxState(exchange5, false);
 }
 function helperTestInitMarket() {
     // ############# markets ############# //
@@ -102,13 +112,6 @@ function helperTestProperties() {
     // options
     //
     assert(exchange.options !== undefined);
-    // const defaultNetworkCodeReplacements = [
-    //     { 'baseCoin': 'ETH', 'primary': 'ETH', 'secondary': 'ERC20' },
-    //     { 'baseCoin': 'CRO', 'primary': 'CRONOS', 'secondary': 'CRC20' },
-    //     { 'baseCoin': 'TRX', 'primary': 'TRX', 'secondary': 'TRC20' },
-    //     { 'baseCoin': 'BTC', 'primary': 'BTC', 'secondary': 'BRC20' },
-    // ];
-    // testSharedMethods.assertDeepEqual (exchange, {}, 'options', exchange.options['defaultNetworkCodeReplacements'], defaultNetworkCodeReplacements);
     //
     // credentials
     //

@@ -45,7 +45,6 @@ public class  Coinbase: coinbase { public Coinbase(object args = null) : base(ar
 public class  Coinbaseexchange: coinbaseexchange { public Coinbaseexchange(object args = null) : base(args) { } }
 public class  Coinbaseinternational: coinbaseinternational { public Coinbaseinternational(object args = null) : base(args) { } }
 public class  Coincheck: coincheck { public Coincheck(object args = null) : base(args) { } }
-public class  Coinex: coinex { public Coinex(object args = null) : base(args) { } }
 public class  Coinmate: coinmate { public Coinmate(object args = null) : base(args) { } }
 public class  Coinone: coinone { public Coinone(object args = null) : base(args) { } }
 public class  Coinsph: coinsph { public Coinsph(object args = null) : base(args) { } }

@@ -682,7 +682,7 @@
                     "trades": [
                         {
                             "id": "TWA6QJ-ZO4EM-6QIHQJ",
-                            "orderId": "OGMZCL-KC6MC-ZRBGM6",
+                            "order": "OGMZCL-KC6MC-ZRBGM6",
                             "symbol": "LTC/USDT",
                             "info": {},
                             "fees": [],

@@ -12,45 +12,45 @@ public partial class revolutx : Exchange
     public revolutx (object args = null): base(args) {}
 
     /// <summary>Calls the publicGet20PublicOrderBookSymbol endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> publicGet20PublicOrderBookSymbol (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGet20PublicOrderBookSymbol (object parameters = null)
     {
-        return await this.callAsync<object> ("publicGet20PublicOrderBookSymbol",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGet20PublicOrderBookSymbol",parameters);
     }
 
     /// <summary>Calls the publicGet10PublicTickers endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> publicGet10PublicTickers (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGet10PublicTickers (object parameters = null)
     {
-        return await this.callAsync<object> ("publicGet10PublicTickers",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGet10PublicTickers",parameters);
     }
 
     /// <summary>Calls the publicGet10PublicCandlesSymbol endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> publicGet10PublicCandlesSymbol (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGet10PublicCandlesSymbol (object parameters = null)
     {
-        return await this.callAsync<object> ("publicGet10PublicCandlesSymbol",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGet10PublicCandlesSymbol",parameters);
     }
 
     /// <summary>Calls the publicGet10PublicTradesAll endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> publicGet10PublicTradesAll (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGet10PublicTradesAll (object parameters = null)
     {
-        return await this.callAsync<object> ("publicGet10PublicTradesAll",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGet10PublicTradesAll",parameters);
     }
 
     /// <summary>Calls the publicGet10PublicConfigurationCurrencies endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> publicGet10PublicConfigurationCurrencies (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGet10PublicConfigurationCurrencies (object parameters = null)
     {
-        return await this.callAsync<object> ("publicGet10PublicConfigurationCurrencies",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGet10PublicConfigurationCurrencies",parameters);
     }
 
     /// <summary>Calls the publicGet10PublicConfigurationPairs endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> publicGet10PublicConfigurationPairs (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGet10PublicConfigurationPairs (object parameters = null)
     {
-        return await this.callAsync<object> ("publicGet10PublicConfigurationPairs",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGet10PublicConfigurationPairs",parameters);
     }
 
     /// <summary>Calls the privateGet10Balances endpoint.</summary>
@@ -61,24 +61,24 @@ public partial class revolutx : Exchange
     }
 
     /// <summary>Calls the privateGet10OrdersActive endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> privateGet10OrdersActive (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGet10OrdersActive (object parameters = null)
     {
-        return await this.callAsync<object> ("privateGet10OrdersActive",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGet10OrdersActive",parameters);
     }
 
     /// <summary>Calls the privateGet10OrdersHistorical endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> privateGet10OrdersHistorical (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGet10OrdersHistorical (object parameters = null)
     {
-        return await this.callAsync<object> ("privateGet10OrdersHistorical",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGet10OrdersHistorical",parameters);
     }
 
     /// <summary>Calls the privateGet10OrdersVenueOrderId endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> privateGet10OrdersVenueOrderId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGet10OrdersVenueOrderId (object parameters = null)
     {
-        return await this.callAsync<object> ("privateGet10OrdersVenueOrderId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGet10OrdersVenueOrderId",parameters);
     }
 
     /// <summary>Calls the privateGet10OrdersFillsVenueOrderId endpoint.</summary>
@@ -89,10 +89,10 @@ public partial class revolutx : Exchange
     }
 
     /// <summary>Calls the privateGet10TradesPrivateSymbol endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> privateGet10TradesPrivateSymbol (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGet10TradesPrivateSymbol (object parameters = null)
     {
-        return await this.callAsync<object> ("privateGet10TradesPrivateSymbol",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGet10TradesPrivateSymbol",parameters);
     }
 
     /// <summary>Calls the privateGet10Transactions endpoint.</summary>
@@ -103,17 +103,17 @@ public partial class revolutx : Exchange
     }
 
     /// <summary>Calls the privatePost10Orders endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> privatePost10Orders (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePost10Orders (object parameters = null)
     {
-        return await this.callAsync<object> ("privatePost10Orders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePost10Orders",parameters);
     }
 
     /// <summary>Calls the privatePut10OrdersVenueOrderId endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> privatePut10OrdersVenueOrderId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePut10OrdersVenueOrderId (object parameters = null)
     {
-        return await this.callAsync<object> ("privatePut10OrdersVenueOrderId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePut10OrdersVenueOrderId",parameters);
     }
 
     /// <summary>Calls the privateDelete10Orders endpoint.</summary>
@@ -124,10 +124,10 @@ public partial class revolutx : Exchange
     }
 
     /// <summary>Calls the privateDelete10OrdersVenueOrderId endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> privateDelete10OrdersVenueOrderId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateDelete10OrdersVenueOrderId (object parameters = null)
     {
-        return await this.callAsync<object> ("privateDelete10OrdersVenueOrderId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateDelete10OrdersVenueOrderId",parameters);
     }
 
 }

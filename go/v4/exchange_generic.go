@@ -58,7 +58,8 @@ func (this *BaseExchange) SortBy(array any, value1 any, desc2 ...any) []any {
 		desc = desc2[0].(bool)
 	}
 	// ts parity: sortBy must not mutate the caller's slice (array.slice().sort(...))
-	input := array.([]any)
+	// a typed-nil container reads like untyped nil (same panic / nil path)
+	input := derefScalar(array).([]any)
 	list := make([]any, len(input))
 	copy(list, input)
 
@@ -111,7 +112,8 @@ func (this *BaseExchange) SortBy2(array any, key1 any, key2 any, desc2 ...any) [
 		desc = desc2[0].(bool)
 	}
 	// ts parity: sortBy2 must not mutate the caller's slice (array.slice().sort(...))
-	input := array.([]any)
+	// a typed-nil container reads like untyped nil (same panic / nil path)
+	input := derefScalar(array).([]any)
 	list := make([]any, len(input))
 	copy(list, input)
 
@@ -180,7 +182,7 @@ func (this *BaseExchange) FilterBy(aa any, key any, value any) []any {
 		return nil
 	}
 
-	var outList []any
+	outList := []any{}
 	for _, elem := range targetA {
 		if m, ok := elem.(map[string]any); ok {
 			if derefScalar(m[key.(string)]) == value {
@@ -255,12 +257,12 @@ func ExtendMap(aa any, bb ...any) map[string]any {
 func (this *BaseExchange) DeepExtend2(objs ...any) map[string]any {
 	outDict := make(map[string]any)
 	for _, obj := range objs {
-		if obj == nil {
+		if derefScalar(obj) == nil {
 			obj = make(map[string]any)
 		}
 		if reflect.TypeOf(obj).Kind() == reflect.Map {
 			for key, value := range obj.(map[string]any) {
-				if value != nil && reflect.TypeOf(value).Kind() == reflect.Map {
+				if derefScalar(value) != nil && reflect.TypeOf(value).Kind() == reflect.Map {
 					if _, exists := outDict[key]; exists {
 						outDict[key] = this.DeepExtend2(outDict[key], value)
 					} else {
@@ -296,7 +298,7 @@ func (this *BaseExchange) DeepExtend(objs ...any) map[string]any {
 	}
 
 	for _, x := range objs {
-		if x == nil {
+		if derefScalar(x) == nil {
 			continue
 		}
 
@@ -321,7 +323,7 @@ func (this *BaseExchange) DeepExtend(objs ...any) map[string]any {
 
 		for k, v2 := range dictX {
 			v1 := outObj.(map[string]any)[k]
-			if v1 != nil && v2 != nil &&
+			if derefScalar(v1) != nil && derefScalar(v2) != nil &&
 				(reflect.TypeOf(v1).Kind() == reflect.Map || reflect.TypeOf(v1) == reflect.TypeOf(&sync.Map{})) &&
 				(reflect.TypeOf(v2).Kind() == reflect.Map || reflect.TypeOf(v2) == reflect.TypeOf(&sync.Map{})) {
 
@@ -527,7 +529,8 @@ func (this *BaseExchange) IndexBySafe(a any, key any) *sync.Map {
 func (this *BaseExchange) GroupBy(trades any, key2 any) map[string]any {
 	key := derefScalar(key2).(string)
 	outDict := make(map[string]any)
-	list := trades.([]any)
+	// a typed-nil container reads like untyped nil (same panic / nil path)
+	list := derefScalar(trades).([]any)
 	for _, elem := range list {
 		elemDict := elem.(map[string]any)
 		if val, ok := elemDict[key]; ok {

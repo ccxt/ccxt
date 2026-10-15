@@ -225,8 +225,8 @@ export function resolveScalar (ir: TypesIR, tsType: string): string {
         if (members.length === 1) {
             current = members[0];
         } else if (members.length > 1) {
-            // a union of string literals collapses to string
-            const allStringLiterals = members.every ((m) => m.startsWith ("'") || m === 'string');
+            // a union of string literals (optionally open via `string & {}`) collapses to string
+            const allStringLiterals = members.every ((m) => m.startsWith ("'") || m === 'string' || m === '(string & {})');
             return allStringLiterals ? 'string' : current;
         } else {
             current = alias.aliasOf === undefined ? current : alias.aliasOf;

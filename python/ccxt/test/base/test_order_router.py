@@ -114,8 +114,13 @@ TESTS = []
 def test(name):
     def register(function):
         TESTS.append((name, function))
+        # run only through test_order_router, never collected by pytest on its own
+        function.__test__ = False
         return function
     return register
+
+
+test.__test__ = False
 
 
 # ---------------------------------------------------------------------------
