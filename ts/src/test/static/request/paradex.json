@@ -409,7 +409,7 @@
                 "disabledGO": true,
                 "disabledJava": true,
                 "disabledRS": true,
-                "description": "spot limit buy order goes to the spot market, not the perp of the same base",
+                "description": "spot limit buy order is sent with the spot market id",
                 "method": "createOrder",
                 "url": "https://api.prod.paradex.trade/v1/orders",
                 "input": [
