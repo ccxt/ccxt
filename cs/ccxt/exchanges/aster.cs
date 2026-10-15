@@ -4776,6 +4776,10 @@ public partial class aster : Exchange
         // TODO: check how ARBI signature would work
         IDictionary<string, object> networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
         string? network = this.safeStringUpper(paramsWithdrawTag, "network");
+        if ((network != null))
+        {
+            network = this.safeString(this.networkAliases, network, network); // accepts aliases like ETH for ERC20
+        }
         network = this.safeString(networks, network, network);
         if (((chainId == null)) && ((network != null)))
         {

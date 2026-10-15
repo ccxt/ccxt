@@ -506,7 +506,6 @@ public partial class poloniex : Exchange
                     { "BEP20", "BSC" },
                     { "ERC20", "ETH" },
                     { "TRC20", "TRX" },
-                    { "TRX", "TRX" },
                 } },
                 { "networksById", new Dictionary<string, object>() {
                     { "TRX", "TRC20" },
@@ -3356,7 +3355,7 @@ public partial class poloniex : Exchange
             exchangeNetworkId = GetValue(networkEntry, "id");
         } else
         {
-            exchangeNetworkId = networkCode;
+            exchangeNetworkId = this.networkCodeToId(networkCode, code);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", exchangeNetworkId },

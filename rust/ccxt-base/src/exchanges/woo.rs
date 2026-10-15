@@ -1170,7 +1170,6 @@ impl WooCore {
         m.insert("createMarketBuyOrderRequiresPrice".to_string(), Value::Bool(true));
         m.insert("networks".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("TRX".to_string(), Value::Str("TRX".into()));
         m.insert("TRC20".to_string(), Value::Str("TRX".into()));
         m.insert("ERC20".to_string(), Value::Str("ETH".into()));
         m.insert("BEP20".to_string(), Value::Str("BSC".into()));
@@ -4698,6 +4697,7 @@ impl WooCore {
 })]);
         let __ws_arg_29 = self.safe_string_k(data.clone(), "withdrawId", &[]);
         let __ws_arg_30 = self.safe_integer_k(response, "timestamp", &[]);
+        let __ws_arg_31 = self.safe_string(self.networkAliases.clone(), network.clone(), &[network.clone()]);
         let mut transactionData: Value = self.extend(data, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), __ws_arg_29);
@@ -4706,7 +4706,7 @@ impl WooCore {
                 m.insert("amount".to_string(), amount);
                 m.insert("addressTo".to_string(), address);
                 m.insert("tag".to_string(), tagWithdrawTag);
-                m.insert("network".to_string(), network);
+                m.insert("network".to_string(), __ws_arg_31);
                 m.insert("type".to_string(), Value::Str("withdrawal".into()));
                 m.insert("status".to_string(), Value::Str("pending".into()));
             m
@@ -4744,8 +4744,8 @@ impl WooCore {
                 m.insert("amount".to_string(), self.currency_to_precision(code, amount.clone(), &[]));
             m
         });
-        let __ws_arg_31 = self.extend(request, &[params]);
-        let mut response: Value = self.v1_private_post_interest_repay(&[__ws_arg_31]).await;
+        let __ws_arg_32 = self.extend(request, &[params]);
+        let mut response: Value = self.v1_private_post_interest_repay(&[__ws_arg_32]).await;
         //
         //     {
         //         "success": true,
@@ -4990,8 +4990,8 @@ impl WooCore {
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("size".into(), crate::runtime::Math::min(&limit, &Value::Int(500))); }
         }
-        let __ws_arg_32 = self.extend(request, &[paramsOmitted]);
-        let mut response: Value = self.v3_private_get_futures_funding_fee_history(&[__ws_arg_32]).await;
+        let __ws_arg_33 = self.extend(request, &[paramsOmitted]);
+        let mut response: Value = self.v3_private_get_futures_funding_fee_history(&[__ws_arg_33]).await;
         //
         //     {
         //         "success": true,
@@ -5129,8 +5129,8 @@ impl WooCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_33 = self.extend(request, &[params]);
-        let mut response: Value = self.v3_public_get_funding_rate(&[__ws_arg_33]).await;
+        let __ws_arg_34 = self.extend(request, &[params]);
+        let mut response: Value = self.v3_public_get_funding_rate(&[__ws_arg_34]).await;
         //
         //     {
         //         "success": true,
@@ -5261,8 +5261,8 @@ impl WooCore {
         let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("endTime".into()), request, paramsPaginate, &[]);
         let mut requestUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let __ws_arg_34 = self.extend(requestUntil, &[paramsUntil]);
-        let mut response: Value = self.v3_public_get_funding_rate_history(&[__ws_arg_34]).await;
+        let __ws_arg_35 = self.extend(requestUntil, &[paramsUntil]);
+        let mut response: Value = self.v3_public_get_funding_rate_history(&[__ws_arg_35]).await;
         //
         //     {
         //         "success": true,
@@ -5342,8 +5342,8 @@ impl WooCore {
                 m.insert("positionMode".to_string(), hedgeMode);
             m
         });
-        let __ws_arg_35 = self.extend(request, &[params]);
-        let mut response: Value = self.v3_private_put_futures_position_mode(&[__ws_arg_35]).await;
+        let __ws_arg_36 = self.extend(request, &[params]);
+        let mut response: Value = self.v3_private_put_futures_position_mode(&[__ws_arg_36]).await;
         return response;
 
     Value::Null
@@ -5383,8 +5383,8 @@ impl WooCore {
             let mut marginMode: Value = marginModeparamsMarginModeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
             let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("marginMode".into(), self.encode_margin_mode(marginMode).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)); }
-            let __ws_arg_36 = self.extend(request, &[paramsMarginMode]);
-            response = self.v3_private_get_futures_leverage(&[__ws_arg_36]).await;
+            let __ws_arg_37 = self.extend(request, &[paramsMarginMode]);
+            response = self.v3_private_get_futures_leverage(&[__ws_arg_37]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverage() is not supported for ".into())).into()), market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null)).into()), Value::Str(" markets".into()))));
         }
@@ -5474,16 +5474,16 @@ impl WooCore {
             market = self.market(symbol.clone());
         }
         if (symbol == Value::Null) || matches!((self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) {
-            let __ws_arg_37 = self.extend(request.clone(), &[params.clone()]);
-            return self.v3_private_post_spot_margin_leverage(&[__ws_arg_37]).await;
+            let __ws_arg_38 = self.extend(request.clone(), &[params.clone()]);
+            return self.v3_private_post_spot_margin_leverage(&[__ws_arg_38]).await;
         }  else if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), self.safe_string_k(market.clone(), "id", &[])); }
             let mut marginModeparamsMarginModeVariable = self.handle_margin_mode_and_params(Value::Str("setLeverage".into()), &[params, Value::Str("cross".into())]);
             let mut marginMode: Value = marginModeparamsMarginModeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
             let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("marginMode".into(), self.encode_margin_mode(marginMode).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)); }
-            let __ws_arg_38 = self.extend(request, &[paramsMarginMode]);
-            return self.v3_private_put_futures_leverage(&[__ws_arg_38]).await;
+            let __ws_arg_39 = self.extend(request, &[paramsMarginMode]);
+            return self.v3_private_put_futures_leverage(&[__ws_arg_39]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverage() is not supported for ".into())).into()), self.safe_string_k(market, "type", &[])).into()), Value::Str(" markets".into()))));
         }
@@ -5550,8 +5550,8 @@ impl WooCore {
                 m.insert("action".to_string(), type_var);
             m
         });
-        let __ws_arg_39 = self.extend(request, &[params]);
-        return self.v1_private_post_client_isolated_margin(&[__ws_arg_39]).await;
+        let __ws_arg_40 = self.extend(request, &[params]);
+        return self.v1_private_post_client_isolated_margin(&[__ws_arg_40]).await;
 
     Value::Null
 }
@@ -5579,8 +5579,8 @@ impl WooCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_40 = self.extend(request, &[params]);
-        let mut response: Value = self.v3_private_get_futures_positions(&[__ws_arg_40]).await;
+        let __ws_arg_41 = self.extend(request, &[params]);
+        let mut response: Value = self.v3_private_get_futures_positions(&[__ws_arg_41]).await;
         //
         //     {
         //         "success": true,
@@ -5656,8 +5656,8 @@ impl WooCore {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
             }
         }
-        let __ws_arg_41 = self.extend(request, &[params]);
-        let mut response: Value = self.v3_private_get_futures_positions(&[__ws_arg_41]).await;
+        let __ws_arg_42 = self.extend(request, &[params]);
+        let mut response: Value = self.v3_private_get_futures_positions(&[__ws_arg_42]).await;
         //
         //     {
         //         "success": true,
@@ -5837,8 +5837,8 @@ impl WooCore {
                 m.insert("sellQuantity".to_string(), self.number_to_string(amount));
             m
         });
-        let __ws_arg_42 = self.extend(request, &[params]);
-        let mut response: Value = self.v3_private_get_convert_rfq(&[__ws_arg_42]).await;
+        let __ws_arg_43 = self.extend(request, &[params]);
+        let mut response: Value = self.v3_private_get_convert_rfq(&[__ws_arg_43]).await;
         //
         //     {
         //         "success": true,
@@ -5894,8 +5894,8 @@ impl WooCore {
                 m.insert("quoteId".to_string(), id);
             m
         });
-        let __ws_arg_43 = self.extend(request, &[params]);
-        let mut response: Value = self.v3_private_post_convert_rft(&[__ws_arg_43]).await;
+        let __ws_arg_44 = self.extend(request, &[params]);
+        let mut response: Value = self.v3_private_post_convert_rft(&[__ws_arg_44]).await;
         //
         //     {
         //         "success": true,
@@ -5939,8 +5939,8 @@ impl WooCore {
                 m.insert("quoteId".to_string(), id);
             m
         });
-        let __ws_arg_44 = self.extend(request, &[params]);
-        let mut response: Value = self.v3_private_get_convert_trade(&[__ws_arg_44]).await;
+        let __ws_arg_45 = self.extend(request, &[params]);
+        let mut response: Value = self.v3_private_get_convert_trade(&[__ws_arg_45]).await;
         //
         //     {
         //         "success": true,
@@ -6010,8 +6010,8 @@ impl WooCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut requestUntil, &Value::Str("size".into()), limit.clone());
         }
-        let __ws_arg_45 = self.extend(requestUntil, &[paramsUntil]);
-        let mut response: Value = self.v3_private_get_convert_trades(&[__ws_arg_45]).await;
+        let __ws_arg_46 = self.extend(requestUntil, &[paramsUntil]);
+        let mut response: Value = self.v3_private_get_convert_trades(&[__ws_arg_46]).await;
         //
         //     {
         //         "success": true,
@@ -6222,8 +6222,8 @@ impl WooCore {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
             }
         }
-        let __ws_arg_46 = self.extend(request, &[params]);
-        let mut response: Value = self.v3_private_get_futures_positions(&[__ws_arg_46]).await;
+        let __ws_arg_47 = self.extend(request, &[params]);
+        let mut response: Value = self.v3_private_get_futures_positions(&[__ws_arg_47]).await;
         //
         //     {
         //         "success": true,
@@ -6318,7 +6318,7 @@ impl WooCore {
             let mut __for_first_1127: bool = true;
             while { if !__for_first_1127 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1127 = false; i.as_f64().unwrap_or(f64::NAN) < ((networkKeys.len() as i64) as f64) } {
             let mut network: Value = networkKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            if (network.as_str() == Some("ETH")) {
+            if (network.as_str() == Some("ERC20")) {
                 return network.as_str().map(str::to_owned);
             }
         }

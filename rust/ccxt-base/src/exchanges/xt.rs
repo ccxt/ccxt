@@ -1647,10 +1647,8 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("ERC20".to_string(), Value::Str("Ethereum".into()));
         m.insert("TRC20".to_string(), Value::Str("Tron".into()));
-        m.insert("TRX".to_string(), Value::Str("Tron".into()));
         m.insert("BEP20".to_string(), Value::Str("BNB Smart Chain".into()));
         m.insert("BEP2".to_string(), Value::Str("BNB-BEP2".into()));
-        m.insert("ETH".to_string(), Value::Str("Ethereum".into()));
         m.insert("AVAX".to_string(), Value::Str("AVAX C-Chain".into()));
         m.insert("GAL".to_string(), Value::Str("GAL(FT)".into()));
         m.insert("ALEO".to_string(), Value::Str("ALEO(IOU)".into()));

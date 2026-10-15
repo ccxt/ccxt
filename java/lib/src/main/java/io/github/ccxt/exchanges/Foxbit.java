@@ -278,7 +278,7 @@ public class Foxbit extends FoxbitApi
                     put( "cardano", "ADA" );
                     put( "cosmos", "ATOM" );
                     put( "dogecoin", "DOGE" );
-                    put( "erc20", "ETH" );
+                    put( "erc20", "ERC20" );
                     put( "hedera", "HBAR" );
                     put( "litecoin", "LTC" );
                     put( "near", "NEAR" );
@@ -302,7 +302,7 @@ public class Foxbit extends FoxbitApi
                     put( "ADA", "cardano" );
                     put( "ATOM", "cosmos" );
                     put( "DOGE", "dogecoin" );
-                    put( "ETH", "erc20" );
+                    put( "ERC20", "erc20" );
                     put( "HBAR", "hedera" );
                     put( "LTC", "litecoin" );
                     put( "NEAR", "near" );
@@ -2288,7 +2288,7 @@ public class Foxbit extends FoxbitApi
             h2kMap0.put("txid", this.safeString(cryptoDetails, "transaction_id"));
             h2kMap0.put("timestamp", timestamp);
             h2kMap0.put("datetime", datetime);
-            h2kMap0.put("network", this.safeString(transaction, "network_code"));
+            h2kMap0.put("network", this.networkIdToCode(this.safeString(transaction, "network_code"), currencyCode));
             h2kMap0.put("address", address);
             h2kMap0.put("addressTo", address);
             h2kMap0.put("addressFrom", null);

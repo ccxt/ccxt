@@ -351,7 +351,6 @@ class woo extends Exchange {
                 'sandboxMode' => false,
                 'createMarketBuyOrderRequiresPrice' => true,
                 'networks' => array(
-                    'TRX' => 'TRX', // WOO X renamed the network id from TRON to TRX
                     'TRC20' => 'TRX',
                     'ERC20' => 'ETH',
                     'BEP20' => 'BSC',
@@ -3584,7 +3583,7 @@ class woo extends Exchange {
             'amount' => $amount,
             'addressTo' => $address,
             'tag' => $tagWithdrawTag,
-            'network' => $network,
+            'network' => $this->safe_string($this->networkAliases, $network, $network),
             'type' => 'withdrawal',
             'status' => 'pending',
         ));
@@ -5019,7 +5018,7 @@ class woo extends Exchange {
         $networkKeys = is_array($networks) ? array_keys($networks) : array();
         for ($i = 0; $i < count($networkKeys); $i++) {
             $network = $networkKeys[$i];
-            if ($network === 'ETH') {
+            if ($network === 'ERC20') {
                 return $network;
             }
         }

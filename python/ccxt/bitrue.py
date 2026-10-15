@@ -2746,7 +2746,7 @@ class bitrue(Exchange, ImplicitAPI):
             currencyId = self.safe_string(parts, 0)
             networkId = self.safe_string(parts, 1)
             if networkId is not None:
-                network = networkId.upper()
+                network = self.network_id_to_code(networkId.upper())
         code = self.safe_currency_code(currencyId, currency)
         feeCost = self.safe_number(transaction, 'fee')
         fee = None

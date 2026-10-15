@@ -336,7 +336,7 @@ func (this *Tokocrypto) Describe() any {
 			"reverseNetworks": map[string]any{
 				"tronscan.org":                   "TRC20",
 				"etherscan.io":                   "ERC20",
-				"bscscan.com":                    "BSC",
+				"bscscan.com":                    "BEP20",
 				"explorer.binance.org":           "BEP2",
 				"bithomp.com":                    "XRP",
 				"bloks.io":                       "EOS",
@@ -2876,7 +2876,7 @@ func (this *Tokocrypto) fetchDepositAddressBody(ch chan AsyncResult[any], code s
 	ch <- AsyncResult[any]{Value: map[string]any{
 		"info":     response,
 		"currency": code,
-		"network":  this.SafeString(data, "network"),
+		"network":  this.NetworkIdToCode(this.SafeString(data, "network"), code),
 		"address":  address,
 		"tag":      tag,
 	}}
@@ -3190,7 +3190,7 @@ func (this *Tokocrypto) ParseTransaction(transaction any, optionalArgs ...any) m
 		"txid":        txid,
 		"type":        typeVar,
 		"currency":    code,
-		"network":     this.SafeString(transaction, "network"),
+		"network":     this.NetworkIdToCode(this.SafeString(transaction, "network"), code),
 		"amount":      this.SafeNumber(transaction, "amount"),
 		"status":      this.ParseTransactionStatusByType(this.SafeString(transaction, "status"), typeVar),
 		"timestamp":   timestamp,

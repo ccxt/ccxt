@@ -693,12 +693,11 @@ impl GrvtCore {
         m.insert("ARBITRUM".to_string(), Value::Str("42161".into()));
         m.insert("AVAXC".to_string(), Value::Str("43114".into()));
         m.insert("BASE".to_string(), Value::Str("8453".into()));
-        m.insert("BSC".to_string(), Value::Str("56".into()));
-        m.insert("ETH".to_string(), Value::Str("1".into()));
+        m.insert("BEP20".to_string(), Value::Str("56".into()));
         m.insert("ERC20".to_string(), Value::Str("1".into()));
         m.insert("OP".to_string(), Value::Str("10".into()));
         m.insert("SOL".to_string(), Value::Str("900".into()));
-        m.insert("TRX".to_string(), Value::Str("728126428".into()));
+        m.insert("TRC20".to_string(), Value::Str("728126428".into()));
         m.insert("ZKSYNCERA".to_string(), Value::Str("324".into()));
         m.insert("KAIA".to_string(), Value::Str("8217".into()));
     m

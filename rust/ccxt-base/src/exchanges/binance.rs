@@ -5199,11 +5199,8 @@ impl BinanceCore {
         m.insert("BTCSEGWIT".to_string(), Value::Str("SEGWITBTC".into()));
         m.insert("BTCLIGHTNING".to_string(), Value::Str("LIGHTNING".into()));
         m.insert("ERC20".to_string(), Value::Str("ETH".into()));
-        m.insert("ETH".to_string(), Value::Str("ETH".into()));
         m.insert("TRC20".to_string(), Value::Str("TRX".into()));
-        m.insert("TRX".to_string(), Value::Str("TRX".into()));
         m.insert("BEP2".to_string(), Value::Str("BNB".into()));
-        m.insert("BSC".to_string(), Value::Str("BSC".into()));
         m.insert("BEP20".to_string(), Value::Str("BSC".into()));
         m.insert("CHZ2".to_string(), Value::Str("CHZ2".into()));
         m.insert("XRP".to_string(), Value::Str("XRP".into()));
@@ -14644,7 +14641,7 @@ impl BinanceCore {
                 while { if !__for_first_273 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_273 = false; j.as_f64().unwrap_or(f64::NAN) < ((networkList.len() as i64) as f64) } {
                 let mut networkEntry: Value = self.safe_dict(networkList.clone(), j.clone(), &[]);
                 let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "network", &[]);
-                let mut networkCode: Value = self.safe_currency_code(networkId, &[]);
+                let mut networkCode: Value = self.network_id_to_code(&[networkId, code.clone()]);
                 let mut fee: Value = self.safe_number_k(networkEntry, "withdrawFee", &[]);
                 if (code != Value::Null) && (networkCode != Value::Null) {
                     add_element_to_object(get_value_mut(&mut withdrawFees, &code), &networkCode, fee);

@@ -276,7 +276,7 @@ function scalarFor (tsType: string, fieldName: string): Scalar | undefined {
         }
         return { 'javaType': 'Double', 'accessor': 'safeFloat' };
     }
-    if (t === 'Str' || t === 'string' || t === 'OrderSide' || t === 'OrderType' || t === 'MarketType' || t === 'SubType' || t === 'DefaultType' || t === 'DefaultSubType') {
+    if (t === 'Str' || t === 'string' || t === 'OrderSide' || t === 'OrderType' || t === 'MarketType' || t === 'SubType' || t === 'DefaultType' || t === 'DefaultSubType' || t === 'NetworkCode') {
         return { 'javaType': 'String', 'accessor': 'safeString' };
     }
     if (t === 'Bool' || t === 'boolean') {

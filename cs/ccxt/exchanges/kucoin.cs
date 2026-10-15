@@ -1708,9 +1708,7 @@ public partial class kucoin : Exchange
                     { "BTC", "btc" },
                     { "BRC20", "btc" },
                     { "BTCNATIVESEGWIT", "bech32" },
-                    { "ETH", "eth" },
                     { "ERC20", "eth" },
-                    { "TRX", "trx" },
                     { "TRC20", "trx" },
                     { "HECO", "heco" },
                     { "HRC20", "heco" },
@@ -4271,7 +4269,7 @@ public partial class kucoin : Exchange
             // contains spaces
             this.checkAddress(address);
         }
-        return ccxt.BaseExchange.ToDepositAddress(new Dictionary<string, object>() {             { "info", response },             { "currency", currencyId },             { "network", this.safeString(data, "chain") },             { "address", address },             { "tag", this.safeString(data, "memo") },         });
+        return ccxt.BaseExchange.ToDepositAddress(new Dictionary<string, object>() {             { "info", response },             { "currency", currencyId },             { "network", this.networkIdToCode(this.safeString(data, "chain"), code) },             { "address", address },             { "tag", this.safeString(data, "memo") },         });
     }
 
     public override Dictionary<string, object> parseDepositAddress(object depositAddress, Dictionary<string, object> currency = null)

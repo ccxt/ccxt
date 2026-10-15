@@ -3197,7 +3197,7 @@ class whitebit extends Exchange {
             'txid' => $this->safe_string($transaction, 'transactionId'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => $this->safe_string($transaction, 'network'),
+            'network' => $this->network_id_to_code($this->safe_string($transaction, 'network'), $this->safe_currency_code($currencyId, $currencyResolved)),
             'addressFrom' => ($method === '1') ? $address : null,
             'address' => $address,
             'addressTo' => ($method === '2') ? $address : null,

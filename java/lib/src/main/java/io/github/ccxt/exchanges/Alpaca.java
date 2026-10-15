@@ -2413,7 +2413,7 @@ public class Alpaca extends AlpacaApi
         String txid = null;
         Long timestamp = null;
         String datetime = null;
-        String network = null;
+        Object network = null;
         String address = null;
         String addressTo = null;
         String addressFrom = null;
@@ -2454,7 +2454,6 @@ public class Alpaca extends AlpacaApi
             txid = this.safeString(transaction, "tx_hash");
             datetime = this.safeString(transaction, "created_at");
             timestamp = this.parse8601(datetime);
-            network = this.safeString(transaction, "chain");
             address = this.safeString(transaction, "to_address");
             addressTo = this.safeString(transaction, "to_address");
             addressFrom = this.safeString(transaction, "from_address");
@@ -2462,6 +2461,7 @@ public class Alpaca extends AlpacaApi
             amount = this.safeNumber(transaction, "amount", (Object) null);
             String currencyId = this.safeString(transaction, "asset");
             code = this.safeCurrencyCode(currencyId, currency);
+            network = this.networkIdToCode(this.safeString(transaction, "chain"), code);
             status = this.parseTransactionStatus(this.safeString(transaction, "status"));
             String fees = this.safeString(transaction, "fees");
             String networkFee = this.safeString(transaction, "network_fee");

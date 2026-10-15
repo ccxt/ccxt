@@ -352,6 +352,17 @@ public partial class testMainClass : BaseTest
                 assert(Precise.stringEq(value, compareTo), add(add(add(add(add(stringValue(key), " key (with a value of "), stringValue(value)), ") was expected to be equal to "), stringValue(compareTo)), logText));
             }
         }
+        public void assertUnifiedNetworkCode(BaseExchange exchange, object skippedProperties, object method, object entry, object networkCode)
+        {
+            // returned network codes must be the unified code, never one of its aliases (e.g. ERC20, not ETH)
+            if ((inOp(skippedProperties, "network")) || ((networkCode == null)))
+            {
+                return;
+            }
+            object logText = logTemplate(exchange, method, entry);
+            string? unifiedCode = exchange.safeString(exchange.networkAliases, networkCode, networkCode);
+            assert(isEqual(unifiedCode, networkCode), (((("network code " + (networkCode)) + " is an alias, expected the unified code ") + unifiedCode) + (logText)));
+        }
         public void assertNonEqual(BaseExchange exchange, object skippedProperties, object method, object entry, object key, object compareTo, object allowNull = null)
         {
             allowNull ??= true;

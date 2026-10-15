@@ -1139,9 +1139,7 @@ class kucoin extends Exchange {
                     'BTC' => 'btc',
                     'BRC20' => 'btc',
                     'BTCNATIVESEGWIT' => 'bech32',
-                    'ETH' => 'eth',
                     'ERC20' => 'eth',
-                    'TRX' => 'trx',
                     'TRC20' => 'trx',
                     'HECO' => 'heco',
                     'HRC20' => 'heco',
@@ -3800,7 +3798,7 @@ class kucoin extends Exchange {
         return array(
             'info' => $response,
             'currency' => $currencyId,
-            'network' => $this->safe_string($data, 'chain'),
+            'network' => $this->network_id_to_code($this->safe_string($data, 'chain'), $code),
             'address' => $address,
             'tag' => $this->safe_string($data, 'memo'),
         );

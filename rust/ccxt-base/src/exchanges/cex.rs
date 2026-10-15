@@ -581,7 +581,7 @@ impl CexCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("BTC".to_string(), Value::Str("bitcoin".into()));
         m.insert("ERC20".to_string(), Value::Str("ERC20".into()));
-        m.insert("BSC20".to_string(), Value::Str("binancesmartchain".into()));
+        m.insert("BEP20".to_string(), Value::Str("binancesmartchain".into()));
         m.insert("DOGE".to_string(), Value::Str("dogecoin".into()));
         m.insert("ALGO".to_string(), Value::Str("algorand".into()));
         m.insert("XLM".to_string(), Value::Str("stellar".into()));
@@ -593,7 +593,7 @@ impl CexCore {
         m.insert("THETA".to_string(), Value::Str("theta".into()));
         m.insert("XTZ".to_string(), Value::Str("tezos".into()));
         m.insert("TIA".to_string(), Value::Str("celestia".into()));
-        m.insert("CRONOS".to_string(), Value::Str("cronos".into()));
+        m.insert("CRC20".to_string(), Value::Str("cronos".into()));
         m.insert("MATIC".to_string(), Value::Str("polygon".into()));
         m.insert("TON".to_string(), Value::Str("ton".into()));
         m.insert("TRC20".to_string(), Value::Str("tron".into()));

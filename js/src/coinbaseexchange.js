@@ -401,10 +401,10 @@ export default class coinbaseexchange extends Exchange {
                 'networks': {
                     'BTC': 'bitcoin',
                     // LIGHTNING unsupported
-                    'ETH': 'ethereum',
-                    // TRON unsupported
+                    'ERC20': 'ethereum',
+                    // TRC20 unsupported
                     'SOL': 'solana',
-                    // BSC unsupported
+                    // BEP20 unsupported
                     'ARBITRUM': 'arbitrum',
                     'AVAXC': 'avacchain',
                     'MATIC': 'polygon',
@@ -412,7 +412,7 @@ export default class coinbaseexchange extends Exchange {
                     'SUI': 'sui',
                     'OP': 'optimism',
                     'NEAR': 'near',
-                    // CRONOS unsupported
+                    // CRC20 unsupported
                     // GNO unsupported
                     'APT': 'aptos',
                     // SCROLL unsupported

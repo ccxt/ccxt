@@ -270,7 +270,7 @@ func (this *Indodax) Describe() any {
 			"adjustForTimeDifference": false,
 			"networks": map[string]any{
 				"XLM":   "Stellar Token",
-				"BSC":   "bep20",
+				"BEP20": "bep20",
 				"TRC20": "trc20",
 				"MATIC": "polygon",
 			},

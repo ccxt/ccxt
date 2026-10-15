@@ -279,7 +279,7 @@ impl KrakenfuturesCore {
     m
 }));
         m.insert("www".to_string(), Value::Str("https://futures.kraken.com/".into()));
-        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://docs.kraken.com/api/docs/futures-api/trading/market-data/".into())]));
+        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://docs.kraken.com/exchange/guides/futures/rest".into())]));
         m.insert("fees".to_string(), Value::Str("https://support.kraken.com/hc/en-us/articles/360022835771-Transaction-fees-and-rebates-for-Kraken-Futures".into()));
         m.insert("referral".to_string(), Value::Null);
     m
@@ -1338,8 +1338,8 @@ impl KrakenfuturesCore {
  * @method
  * @name krakenfutures#fetchTradingFees
  * @description fetch the trading fees for multiple markets, resolving the account's 30-day usd volume tier when API credentials are set
- * @see https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules
- * @see https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules-volumes
+ * @see https://docs.kraken.com/api-reference/fee-schedules/get-fee-schedules
+ * @see https://docs.kraken.com/api-reference/fee-schedules/get-fee-schedule-volumes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
@@ -1476,7 +1476,7 @@ impl KrakenfuturesCore {
 /*
  * @method
  * @name krakenfutures#fetchOHLCV
- * @see https://docs.kraken.com/api/docs/futures-api/charts/candles
+ * @see https://docs.kraken.com/api-reference/candles/market-candles
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
@@ -1568,8 +1568,8 @@ impl KrakenfuturesCore {
 /*
  * @method
  * @name krakenfutures#fetchTrades
- * @see https://docs.kraken.com/api/docs/futures-api/trading/get-history
- * @see https://docs.kraken.com/api/docs/futures-api/history/get-public-execution-events
+ * @see https://docs.kraken.com/api-reference/market-data/get-trade-history
+ * @see https://docs.kraken.com/api-reference/market-history/get-public-execution-events
  * @description Fetch a history of filled trades that this account has made
  * @param {string} symbol Unified CCXT market symbol
  * @param {int} [since] Timestamp in ms of earliest trade. Not used by krakenfutures except in combination with params.until
@@ -2419,7 +2419,7 @@ impl KrakenfuturesCore {
  * @method
  * @name krakenfutures#cancelAllOrdersAfter
  * @description dead man's switch, cancel all orders after the given timeout
- * @see https://docs.kraken.com/api/docs/futures-api/trading/cancel-all-orders-after
+ * @see https://docs.kraken.com/api-reference/order-management/dead-mans-switch
  * @param {number} timeout time in milliseconds, 0 represents cancel the timer
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the api result
@@ -3707,7 +3707,7 @@ impl KrakenfuturesCore {
 /*
  * @method
  * @name krakenfutures#fetchBalance
- * @see https://docs.kraken.com/api/docs/futures-api/trading/get-accounts
+ * @see https://docs.kraken.com/api-reference/account-information/get-wallets
  * @description Fetch the balance for a sub-account, all sub-account balances are inside 'info' in the response
  * @param {object} [params] Exchange specific parameters
  * @param {string} [params.type] The sub-account type to query the balance of, possible values include 'flex', 'cash'/'main'/'funding', or a market symbol * defaults to 'flex' *

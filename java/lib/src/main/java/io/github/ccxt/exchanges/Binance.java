@@ -3071,11 +3071,8 @@ public class Binance extends BinanceApi
                     put( "BTCSEGWIT", "SEGWITBTC" );
                     put( "BTCLIGHTNING", "LIGHTNING" );
                     put( "ERC20", "ETH" );
-                    put( "ETH", "ETH" );
                     put( "TRC20", "TRX" );
-                    put( "TRX", "TRX" );
                     put( "BEP2", "BNB" );
-                    put( "BSC", "BSC" );
                     put( "BEP20", "BSC" );
                     put( "CHZ2", "CHZ2" );
                     put( "XRP", "XRP" );
@@ -13006,7 +13003,7 @@ public class Binance extends BinanceApi
                 {
                     Map<String, Object> networkEntry = (Map<String, Object>) this.safeDict(networkList, j, (Object) null);
                     String networkId = this.safeString(networkEntry, "network");
-                    String networkCode = this.safeCurrencyCode(networkId, (Map<String, Object>) null);
+                    String networkCode = this.networkIdToCode(networkId, code);
                     Double fee = this.safeNumber(networkEntry, "withdrawFee", (Object) null);
                     if ((!java.util.Objects.equals(code, null)) && (!java.util.Objects.equals(networkCode, null)))
                     {

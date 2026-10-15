@@ -2024,11 +2024,8 @@ public partial class bybit : Exchange
                 { "networks", new Dictionary<string, object>() {
                     { "BTC", "BTC" },
                     { "BRC20", "BTC" },
-                    { "ETH", "ETH" },
                     { "ERC20", "ETH" },
-                    { "TRX", "TRX" },
                     { "TRC20", "TRX" },
-                    { "BSC", "BSC" },
                     { "BEP20", "BSC" },
                     { "SOL", "SOL" },
                     { "ACA", "ACA" },
@@ -2089,6 +2086,7 @@ public partial class bybit : Exchange
                     { "MOVE", "MOVE" },
                 } },
                 { "networksById", new Dictionary<string, object>() {
+                    { "BTC", "BTC" },
                     { "ETH", "ERC20" },
                     { "TRX", "TRC20" },
                     { "BSC", "BEP20" },
@@ -7377,7 +7375,7 @@ public partial class bybit : Exchange
         string? networkCode = networkCodeparamsOmitedVariable.Item1;
         IDictionary<string, object> paramsOmited = ((IDictionary<string, object>)networkCodeparamsOmitedVariable.Item2);
         Dictionary<string, object> indexedAddresses = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(code, paramsOmited));
-        object selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks((currency.ContainsKey("code") ? currency["code"] : null), networkCode, indexedAddresses);
+        object selectedNetworkCode = this.selectNetworkKeyFromNetworks((currency.ContainsKey("code") ? currency["code"] : null), networkCode, indexedAddresses, true);
         return ccxt.BaseExchange.ToDepositAddress(this.safeValue(indexedAddresses, selectedNetworkCode));
     }
 

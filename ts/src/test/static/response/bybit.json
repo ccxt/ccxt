@@ -1201,7 +1201,7 @@
                   }
                 }
               },
-              "ETH": {
+              "ERC20": {
                 "info": {
                   "chainType": "Ethereum",
                   "confirmation": "6",
@@ -1217,7 +1217,7 @@
                   "safeConfirmNumber": "64"
                 },
                 "id": "ETH",
-                "network": "ETH",
+                "network": "ERC20",
                 "active": null,
                 "deposit": true,
                 "withdraw": true,

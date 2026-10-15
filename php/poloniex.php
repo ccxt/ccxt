@@ -312,7 +312,6 @@ class poloniex extends Exchange {
                     'ERC20' => 'ETH',
                     // v2 withdraw accepts only the blockchain id: 'TRX' passes validation, 'TRON' is rejected with 830111 (live-verified)
                     'TRC20' => 'TRX',
-                    'TRX' => 'TRX',
                 ),
                 'networksById' => array(
                     'TRX' => 'TRC20',
@@ -2947,7 +2946,7 @@ class poloniex extends Exchange {
         if ($networkEntry !== null) {
             $exchangeNetworkId = $networkEntry['id'];
         } else {
-            $exchangeNetworkId = $networkCode;
+            $exchangeNetworkId = $this->network_code_to_id($networkCode, $code);
         }
         $request = array(
             'currency' => $exchangeNetworkId,

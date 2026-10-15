@@ -3331,15 +3331,11 @@ impl OkxCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("BTC".to_string(), Value::Str("Bitcoin".into()));
         m.insert("BTCLIGHTNING".to_string(), Value::Str("Lightning".into()));
-        m.insert("BSC".to_string(), Value::Str("BSC".into()));
         m.insert("BEP20".to_string(), Value::Str("BSC".into()));
         m.insert("BRC20".to_string(), Value::Str("BRC20".into()));
-        m.insert("ETH".to_string(), Value::Str("ERC20".into()));
         m.insert("ERC20".to_string(), Value::Str("ERC20".into()));
-        m.insert("TRX".to_string(), Value::Str("TRC20".into()));
         m.insert("TRC20".to_string(), Value::Str("TRC20".into()));
         m.insert("CRC20".to_string(), Value::Str("Crypto".into()));
-        m.insert("CRONOS".to_string(), Value::Str("Crypto".into()));
         m.insert("ACA".to_string(), Value::Str("Acala".into()));
         m.insert("ALGO".to_string(), Value::Str("Algorand".into()));
         m.insert("APT".to_string(), Value::Str("Aptos".into()));
@@ -8393,7 +8389,9 @@ impl OkxCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            network = self.safe_string(networks, to_upper(&network), &[network.clone()]); // handle ETH>ERC20 alias
+            let mut networkUpper: Value = to_upper(&network);
+            let mut networkKey: Value = self.safe_string(self.networkAliases.clone(), networkUpper.clone(), &[networkUpper.clone()]);
+            network = self.safe_string(networks, networkKey, &[network.clone()]); // resolve aliases to the unified key
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("chain".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("-".into())).into()), network).into())); }
         }
         let mut omitKeys: Value = Value::from(vec![Value::Str("fee".into())]);
@@ -10784,8 +10782,8 @@ impl OkxCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut type_var: Value = (if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { Value::Str("MARGIN".into()) } else { self.convert_to_instrument_type(market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null)) });
-        let mut uly: Value = self.safe_string(market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("uly".into()), &[]);
-        if (uly == Value::Null) || (uly.as_str() == Some("")) {
+        let mut instFamily: Value = self.safe_string(market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("instFamily".into()), &[]);
+        if (instFamily == Value::Null) || (instFamily.as_str() == Some("")) {
             if (type_var.as_str() != Some("MARGIN")) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMarketLeverageTiers() cannot fetch leverage tiers for ".into())).into()), symbol)));
             }
@@ -10799,7 +10797,7 @@ impl OkxCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("instType".to_string(), type_var.clone());
                 m.insert("tdMode".to_string(), marginMode);
-                m.insert("uly".to_string(), uly);
+                m.insert("instFamily".to_string(), instFamily);
             m
         });
         if (type_var.as_str() == Some("MARGIN")) {

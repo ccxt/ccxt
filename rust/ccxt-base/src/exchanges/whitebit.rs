@@ -4494,7 +4494,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         m.insert("txid".to_string(), self.safe_string_k(transaction.clone(), "transactionId", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("network".to_string(), self.safe_string_k(transaction.clone(), "network", &[]));
+        m.insert("network".to_string(), self.network_id_to_code(&[self.safe_string_k(transaction.clone(), "network", &[]), self.safe_currency_code(currencyId.clone(), &[currencyResolved.clone()])]));
         m.insert("addressFrom".to_string(), (if (method.as_deref() == Some("1")) { address.clone() } else { Value::Null }));
         m.insert("address".to_string(), address.clone());
         m.insert("addressTo".to_string(), (if (method.as_deref() == Some("2")) { address } else { Value::Null }));

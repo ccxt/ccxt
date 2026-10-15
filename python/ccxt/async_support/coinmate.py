@@ -711,7 +711,7 @@ class coinmate(Exchange, ImplicitAPI):
             'txid': self.safe_string(transaction, 'txid'),
             'type': self.safe_string_lower(transaction, 'transferType'),
             'currency': code,
-            'network': self.safe_string(transaction, 'walletType'),
+            'network': self.network_id_to_code(self.safe_string(transaction, 'walletType'), code),
             'amount': self.safe_number(transaction, 'amount'),
             'status': self.parse_transaction_status(self.safe_string(transaction, 'transferStatus')),
             'timestamp': timestamp,

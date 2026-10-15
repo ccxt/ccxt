@@ -1142,9 +1142,7 @@ impl WeexCore {
         m.insert("networks".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("BEP20".to_string(), Value::Str("BEP20(BSC)".into()));
-        m.insert("BSC".to_string(), Value::Str("BEP20(BSC)".into()));
         m.insert("ERC20".to_string(), Value::Str("ERC20".into()));
-        m.insert("ETH".to_string(), Value::Str("ERC20".into()));
         m.insert("POLYGON".to_string(), Value::Str("POLYGON(MATIC)".into()));
         m.insert("MATIC".to_string(), Value::Str("POLYGON(MATIC)".into()));
         m.insert("ARBITRUM".to_string(), Value::Str("ARBITRUM(ARB)".into()));

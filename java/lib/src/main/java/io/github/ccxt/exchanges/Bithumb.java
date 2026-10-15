@@ -3113,7 +3113,7 @@ public class Bithumb extends BithumbApi
                     }
                     request.put("address", address);
                     request.put("currency", currency.get("id"));
-                    request.put("net_type", network);
+                    request.put("net_type", this.networkCodeToId(network, code));
                     request.put("amount", this.numberToString(amount));
                     if (!java.util.Objects.equals(destinationRequest, null))
                     {
@@ -3132,7 +3132,7 @@ public class Bithumb extends BithumbApi
                 request.put("units", amount);
                 if (!java.util.Objects.equals(network, null))
                 {
-                    request.put("net_type", network);
+                    request.put("net_type", this.networkCodeToId(network, code));
                 }
                 if (!java.util.Objects.equals(destinationRequest, null))
                 {
@@ -3202,7 +3202,7 @@ public class Bithumb extends BithumbApi
             h2kMap0.put("txid", this.safeString(transaction, "txid"));
             h2kMap0.put("timestamp", timestamp);
             h2kMap0.put("datetime", datetime);
-            h2kMap0.put("network", this.safeString(transaction, "net_type"));
+            h2kMap0.put("network", this.networkIdToCode(this.safeString(transaction, "net_type"), Helpers.toStringArg(currencyResolved.get("code"))));
             h2kMap0.put("addressFrom", null);
             h2kMap0.put("address", null);
             h2kMap0.put("addressTo", null);
@@ -3610,7 +3610,7 @@ public class Bithumb extends BithumbApi
             {
                 throw new ArgumentsRequired((((this.id + " ") + code) + " createDepositAddress() requires a network parameter")) ;
             }
-            request.put("net_type", network);
+            request.put("net_type", this.networkCodeToId(network, code));
             Map<String, Object> response = (this.privatePostV1DepositsGenerateCoinAddress(this.extend(request, paramsOmitted))).join();
             //
             //     {
@@ -3662,7 +3662,7 @@ public class Bithumb extends BithumbApi
             {
                 throw new ArgumentsRequired((((this.id + " ") + code) + " fetchDepositAddress() requires a network parameter")) ;
             }
-            request.put("net_type", network);
+            request.put("net_type", this.networkCodeToId(network, code));
             Map<String, Object> response = (this.privateGetV1DepositsCoinAddress(this.extend(request, paramsOmitted))).join();
             //
             //     {
@@ -3743,7 +3743,7 @@ public class Bithumb extends BithumbApi
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
             h2kMap1.put("info", response);
             h2kMap1.put("currency", code);
-            h2kMap1.put("network", this.safeString(response, "net_type"));
+            h2kMap1.put("network", this.networkIdToCode(this.safeString(response, "net_type"), code));
             h2kMap1.put("address", address);
             h2kMap1.put("tag", this.safeString(response, "secondary_address"));
             return h2kMap1;

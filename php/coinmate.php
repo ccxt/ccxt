@@ -723,7 +723,7 @@ class coinmate extends Exchange {
             'txid' => $this->safe_string($transaction, 'txid'),
             'type' => $this->safe_string_lower($transaction, 'transferType'),
             'currency' => $code,
-            'network' => $this->safe_string($transaction, 'walletType'),
+            'network' => $this->network_id_to_code($this->safe_string($transaction, 'walletType'), $code),
             'amount' => $this->safe_number($transaction, 'amount'),
             'status' => $this->parse_transaction_status($this->safe_string($transaction, 'transferStatus')),
             'timestamp' => $timestamp,

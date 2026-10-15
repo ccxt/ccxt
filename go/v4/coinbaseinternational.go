@@ -375,7 +375,7 @@ func (this *Coinbaseinternational) Describe() any {
 				"method": "v1PrivatePostTransfersWithdraw",
 			},
 			"networksById": map[string]any{
-				"ethereum":  "ETH",
+				"ethereum":  "ERC20",
 				"arbitrum":  "ARBITRUM",
 				"avacchain": "AVAX",
 				"optimism":  "OPTIMISM",

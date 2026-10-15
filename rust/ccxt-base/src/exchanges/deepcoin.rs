@@ -829,7 +829,7 @@ impl DeepcoinCore {
         m.insert("ERC20".to_string(), Value::Str("ERC20".into()));
         m.insert("TRC20".to_string(), Value::Str("TRC20".into()));
         m.insert("ARBITRUM".to_string(), Value::Str("ARBITRUM".into()));
-        m.insert("BSC".to_string(), Value::Str("BSC(BEP20)".into()));
+        m.insert("BEP20".to_string(), Value::Str("BSC(BEP20)".into()));
         m.insert("SOL".to_string(), Value::Str("SOL".into()));
         m.insert("BTC".to_string(), Value::Str("Bitcoin".into()));
         m.insert("ADA".to_string(), Value::Str("Cardano".into()));
@@ -1994,6 +1994,9 @@ impl DeepcoinCore {
         if (network == Value::Null) || (network.as_str() == Some("")) {
             network = defaultNetwork;
         }
+        if (network != Value::Null) {
+            network = self.safe_string(self.networkAliases.clone(), network.clone(), &[network.clone()]);
+        }
         let mut paramsOmitted: Value = (if (network != Value::Null) { self.omit(params.clone(), Value::Str("network".into()), &[]) } else { params });
         let mut addressess: Value = self.fetch_deposit_addresses(&[Value::from(vec![code]), paramsOmitted]).await;
         let mut length: f64 = ((addressess.len() as i64) as f64);
@@ -2007,8 +2010,8 @@ impl DeepcoinCore {
                 let mut __for_first_594: bool = true;
                 while { if !__for_first_594 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_594 = false; i.as_f64().unwrap_or(f64::NAN) < length } {
                 let mut entry: Value = addressess.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-                if (entry.as_map().and_then(|__m| __m.get("network")).cloned().unwrap_or(Value::Null).as_str() == network.as_str()) {
-                    address = entry;
+                if is_equal(&entry.as_map().and_then(|__m| __m.get("network")).cloned().unwrap_or(Value::Null), &network) {
+                    address = entry.clone();
                 }
             }
             }

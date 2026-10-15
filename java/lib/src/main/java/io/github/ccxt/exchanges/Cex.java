@@ -345,7 +345,7 @@ public class Cex extends CexApi
                 put( "networks", new HashMap<String, Object>() {{
                     put( "BTC", "bitcoin" );
                     put( "ERC20", "ERC20" );
-                    put( "BSC20", "binancesmartchain" );
+                    put( "BEP20", "binancesmartchain" );
                     put( "DOGE", "dogecoin" );
                     put( "ALGO", "algorand" );
                     put( "XLM", "stellar" );
@@ -357,7 +357,7 @@ public class Cex extends CexApi
                     put( "THETA", "theta" );
                     put( "XTZ", "tezos" );
                     put( "TIA", "celestia" );
-                    put( "CRONOS", "cronos" );
+                    put( "CRC20", "cronos" );
                     put( "MATIC", "polygon" );
                     put( "TON", "ton" );
                     put( "TRC20", "tron" );

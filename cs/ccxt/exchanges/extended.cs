@@ -2347,7 +2347,7 @@ public partial class extended : Exchange
             };
         }
         string? transactionType = this.parseTransactionType(this.safeString(transaction, "type"));
-        string? network = this.safeString(transaction, "chain");
+        string? network = this.networkIdToCode(this.safeString(transaction, "chain"));
         return new Dictionary<string, object>() {
             { "info", transaction },
             { "id", this.safeString(transaction, "id") },

@@ -288,9 +288,7 @@ class hollaex(Exchange, ImplicitAPI):
                 'api-expires': self.parse_to_int(self.timeout / 1000),
                 'networks': {
                     'BTC': 'btc',
-                    'ETH': 'eth',
                     'ERC20': 'eth',
-                    'TRX': 'trx',
                     'TRC20': 'trx',
                     'XRP': 'xrp',
                     'XLM': 'xlm',
@@ -1490,11 +1488,11 @@ class hollaex(Exchange, ImplicitAPI):
         self.check_address(address)
         currencyId = self.safe_string(depositAddress, 'currency')
         currencyResolved = self.safe_currency(currencyId, currency)
-        network = self.safe_string(depositAddress, 'network')
+        networkId = self.safe_string(depositAddress, 'network')
         return {
             'info': depositAddress,
             'currency': currencyResolved['code'],
-            'network': network,
+            'network': self.network_id_to_code(networkId, currencyResolved['code']),
             'address': address,
             'tag': tag,
         }
@@ -1564,7 +1562,7 @@ class hollaex(Exchange, ImplicitAPI):
         if network is None:
             addresses = wallet
         else:
-            addresses = self.filter_by(wallet, 'network', network)
+            addresses = self.filter_by(wallet, 'network', self.network_code_to_id(network))
         return self.parse_deposit_addresses(addresses, codes, False)
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:

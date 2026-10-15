@@ -3524,7 +3524,7 @@ impl BithumbCore {
                 }
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("address".into(), address.clone()); }
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("currency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("net_type".into(), network.clone()); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("net_type".into(), self.network_code_to_id(network.clone(), &[code.clone()])); }
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("amount".into(), self.number_to_string(amount.clone())); }
                 if (destinationRequest != Value::Null) {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("secondary_address".into(), destinationRequest.clone()); }
@@ -3540,7 +3540,7 @@ impl BithumbCore {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("currency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("units".into(), amount); }
             if (network != Value::Null) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("net_type".into(), network); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("net_type".into(), self.network_code_to_id(network, &[code])); }
             }
             if (destinationRequest != Value::Null) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("destination".into(), destinationRequest); }
@@ -3604,7 +3604,7 @@ impl BithumbCore {
         m.insert("txid".to_string(), self.safe_string_k(transaction.clone(), "txid", &[]));
         m.insert("timestamp".to_string(), timestamp);
         m.insert("datetime".to_string(), datetime);
-        m.insert("network".to_string(), self.safe_string_k(transaction.clone(), "net_type", &[]));
+        m.insert("network".to_string(), self.network_id_to_code(&[self.safe_string_k(transaction.clone(), "net_type", &[]), currencyResolved.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)]));
         m.insert("addressFrom".to_string(), Value::Null);
         m.insert("address".to_string(), Value::Null);
         m.insert("addressTo".to_string(), Value::Null);
@@ -3947,7 +3947,7 @@ impl BithumbCore {
         if (network == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), code).into()), Value::Str(" createDepositAddress() requires a network parameter".into()))));
         }
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("net_type".into(), network); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("net_type".into(), self.network_code_to_id(network, &[code])); }
         let __ws_arg_44 = self.extend(request, &[paramsOmitted]);
         let mut response: Value = self.private_post_v1_deposits_generate_coin_address(&[__ws_arg_44]).await;
         return self.parse_deposit_address(response, &[currency]);
@@ -3991,7 +3991,7 @@ impl BithumbCore {
         if (network == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), code).into()), Value::Str(" fetchDepositAddress() requires a network parameter".into()))));
         }
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("net_type".into(), network); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("net_type".into(), self.network_code_to_id(network, &[code])); }
         let __ws_arg_45 = self.extend(request, &[paramsOmitted]);
         let mut response: Value = self.private_get_v1_deposits_coin_address(&[__ws_arg_45]).await;
         return self.parse_deposit_address(response, &[currency]);
@@ -4055,8 +4055,8 @@ impl BithumbCore {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
-        m.insert("currency".to_string(), code);
-        m.insert("network".to_string(), self.safe_string_k(response.clone(), "net_type", &[]));
+        m.insert("currency".to_string(), code.clone());
+        m.insert("network".to_string(), self.network_id_to_code(&[self.safe_string_k(response.clone(), "net_type", &[]), code]));
         m.insert("address".to_string(), address);
         m.insert("tag".to_string(), self.safe_string_k(response, "secondary_address", &[]));
     m

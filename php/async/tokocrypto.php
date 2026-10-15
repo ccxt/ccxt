@@ -273,7 +273,7 @@ class tokocrypto extends Exchange {
                 'reverseNetworks' => array(
                     'tronscan.org' => 'TRC20',
                     'etherscan.io' => 'ERC20',
-                    'bscscan.com' => 'BSC',
+                    'bscscan.com' => 'BEP20',
                     'explorer.binance.org' => 'BEP2',
                     'bithomp.com' => 'XRP',
                     'bloks.io' => 'EOS',
@@ -2425,7 +2425,7 @@ class tokocrypto extends Exchange {
         return array(
             'info' => $response,
             'currency' => $code,
-            'network' => $this->safe_string($data, 'network'),
+            'network' => $this->network_id_to_code($this->safe_string($data, 'network'), $code),
             'address' => $address,
             'tag' => $tag,
         );
@@ -2681,7 +2681,7 @@ class tokocrypto extends Exchange {
             'txid' => $txid,
             'type' => $type,
             'currency' => $code,
-            'network' => $this->safe_string($transaction, 'network'),
+            'network' => $this->network_id_to_code($this->safe_string($transaction, 'network'), $code),
             'amount' => $this->safe_number($transaction, 'amount'),
             'status' => $this->parse_transaction_status_by_type($this->safe_string($transaction, 'status'), $type),
             'timestamp' => $timestamp,

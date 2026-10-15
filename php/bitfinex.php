@@ -929,7 +929,7 @@ class bitfinex extends Exchange {
                 $networks[$network] = array(
                     'info' => $networkId,
                     'id' => strtolower($networkId),
-                    'network' => $networkId,
+                    'network' => $network,
                     'active' => null,
                     'deposit' => $this->safe_integer($dwStatuses, 1) === 1,
                     'withdraw' => $this->safe_integer($dwStatuses, 2) === 1,
@@ -2454,7 +2454,8 @@ class bitfinex extends Exchange {
         }
         $currency = $this->currency($code);
         // if not provided explicitly we will try to match using the currency name
-        $network = $this->safe_string($params, 'network', $code);
+        $networkParam = $this->safe_string($params, 'network', $code);
+        $network = $this->safe_string($this->networkAliases, $networkParam, $networkParam);
         $currencyNetworks = $this->safe_dict($currency, 'networks', array());
         $currencyNetwork = $this->safe_dict($currencyNetworks, $network);
         $networkId = $this->safe_string($currencyNetwork, 'id');
@@ -2859,7 +2860,8 @@ class bitfinex extends Exchange {
         }
         $currency = $this->currency($code);
         // if not provided explicitly we will try to match using the currency name
-        $network = $this->safe_string($paramsWithdrawTag, 'network', $code);
+        $networkParam = $this->safe_string($paramsWithdrawTag, 'network', $code);
+        $network = $this->safe_string($this->networkAliases, $networkParam, $networkParam);
         $paramsOmitted = $this->omit($paramsWithdrawTag, 'network');
         $currencyNetworks = $this->safe_dict($currency, 'networks', array());
         $currencyNetwork = $this->safe_dict($currencyNetworks, $network);

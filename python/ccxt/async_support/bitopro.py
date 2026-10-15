@@ -238,11 +238,8 @@ class bitopro(Exchange, ImplicitAPI):
             'options': {
                 'networks': {
                     'ERC20': 'ERC20',
-                    'ETH': 'ERC20',
-                    'TRX': 'TRX',
                     'TRC20': 'TRX',
                     'BEP20': 'BSC',
-                    'BSC': 'BSC',
                 },
                 'fetchCurrencies': {
                     'fiatCurrencies': ['TWD'],  # the only fiat currency for exchange
@@ -1731,7 +1728,7 @@ class bitopro(Exchange, ImplicitAPI):
         if hasNetwork:
             networks = self.safe_dict(self.options, 'networks', {})
             requestedNetwork = self.safe_string_upper(paramsWithdrawTag, 'network')
-            networkId = None if (requestedNetwork is None) else self.safe_string(networks, requestedNetwork)
+            networkId = None if (requestedNetwork is None) else self.safe_string(networks, self.safe_string(self.networkAliases, requestedNetwork, requestedNetwork))
             if networkId is None:
                 raise ExchangeError(self.id + ' invalid network ' + requestedNetwork)
             request['protocol'] = networkId

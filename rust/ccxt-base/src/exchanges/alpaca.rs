@@ -2805,7 +2805,6 @@ impl AlpacaCore {
             txid = self.safe_string_k(transaction.clone(), "tx_hash", &[]);
             datetime = self.safe_string_k(transaction.clone(), "created_at", &[]);
             timestamp = self.parse8601(datetime.clone());
-            network = self.safe_string_k(transaction.clone(), "chain", &[]);
             address = self.safe_string_k(transaction.clone(), "to_address", &[]);
             addressTo = self.safe_string_k(transaction.clone(), "to_address", &[]);
             addressFrom = self.safe_string_k(transaction.clone(), "from_address", &[]);
@@ -2813,6 +2812,7 @@ impl AlpacaCore {
             amount = self.safe_number_k(transaction.clone(), "amount", &[]);
             let mut currencyId: Value = self.safe_string_k(transaction.clone(), "asset", &[]);
             code = self.safe_currency_code(currencyId, &[currency]);
+            network = self.network_id_to_code(&[self.safe_string_k(transaction.clone(), "chain", &[]), code.clone()]);
             status = self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[]));
             let mut fees: Value = self.safe_string_k(transaction.clone(), "fees", &[]);
             let mut networkFee: Value = self.safe_string_k(transaction.clone(), "network_fee", &[]);

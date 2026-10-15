@@ -599,7 +599,7 @@ public class Backpack extends BackpackApi
                     put( "BERA", "Berachain" );
                     put( "BTC", "Bitcoin" );
                     put( "BCH", "BitcoinCash" );
-                    put( "BSC", "Bsc" );
+                    put( "BEP20", "Bsc" );
                     put( "ADA", "Cardano" );
                     put( "DOGE", "Dogecoin" );
                     put( "ECLIPSE", "Eclipse" );
@@ -624,7 +624,7 @@ public class Backpack extends BackpackApi
                     put( "berachain", "BERA" );
                     put( "bitcoin", "BTC" );
                     put( "bitcoincash", "BCH" );
-                    put( "bsc", "BSC" );
+                    put( "bsc", "BEP20" );
                     put( "cardano", "ADA" );
                     put( "dogecoin", "DOGE" );
                     put( "eclipse", "ECLIPSE" );

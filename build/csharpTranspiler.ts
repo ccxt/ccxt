@@ -3046,7 +3046,6 @@ class NewTranspiler {
             // never rewritten, so a typed override would be CS0508.
             'fetchCurrenciesWs',
             'loadMarketsHelper',
-            'createNetworksByIdObject',
             'setMarketsFromExchange',
             'setLastRequest',
             'setLastRestRequestTimestamp',

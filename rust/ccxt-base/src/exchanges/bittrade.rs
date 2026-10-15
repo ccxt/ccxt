@@ -1026,8 +1026,8 @@ impl BittradeCore {
         m.insert("defaultNetwork".to_string(), Value::Str("ERC20".into()));
         m.insert("networks".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ETH".to_string(), Value::Str("erc20".into()));
-        m.insert("TRX".to_string(), Value::Str("trc20".into()));
+        m.insert("ERC20".to_string(), Value::Str("erc20".into()));
+        m.insert("TRC20".to_string(), Value::Str("trc20".into()));
         m.insert("HRC20".to_string(), Value::Str("hrc20".into()));
         m.insert("HECO".to_string(), Value::Str("hrc20".into()));
         m.insert("HT".to_string(), Value::Str("hrc20".into()));
@@ -2986,7 +2986,7 @@ impl BittradeCore {
         m.insert("txid".to_string(), self.safe_string_k(transaction.clone(), "tx-hash", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("network".to_string(), self.safe_string_upper_k(transaction.clone(), "chain", &[]));
+        m.insert("network".to_string(), self.network_id_to_code(&[self.safe_string_upper_k(transaction.clone(), "chain", &[]), code.clone()]));
         m.insert("address".to_string(), self.safe_string_k(transaction.clone(), "address", &[]));
         m.insert("addressTo".to_string(), Value::Null);
         m.insert("addressFrom".to_string(), Value::Null);
@@ -3076,7 +3076,10 @@ impl BittradeCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut network: Value = self.safe_string_upper_k(paramsWithdrawTag.clone(), "network", &[]); // this line allows the user to specify either ERC20 or ETH
+        let mut network: Value = self.safe_string_upper_k(paramsWithdrawTag.clone(), "network", &[]);
+        if (network != Value::Null) {
+            network = self.safe_string(self.networkAliases.clone(), network.clone(), &[network.clone()]); // accepts aliases like ETH for ERC20
+        }
         network = self.safe_string_lower(networks, network.clone(), &[network.clone()]); // handle ETH>ERC20 alias
         if (network != Value::Null) {
             // possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt

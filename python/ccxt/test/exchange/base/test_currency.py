@@ -60,6 +60,8 @@ def test_currency(exchange, skipped_properties, method, entry):
     networks = exchange.safe_dict(entry, 'networks', {})
     network_keys = list(networks.keys())
     network_keys_length = len(network_keys)
+    for i in range(0, network_keys_length):
+        test_shared_methods.assert_unified_network_code(exchange, skipped_properties, method, entry, network_keys[i])
     if network_keys_length == 0 and ('skipCurrenciesWithoutNetworks' in skipped_properties):
         return
     try:

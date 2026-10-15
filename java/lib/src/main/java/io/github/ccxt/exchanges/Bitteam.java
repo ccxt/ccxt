@@ -302,10 +302,10 @@ public class Bitteam extends BitteamApi
                     put( "ethereum", "ERC20" );
                     put( "Tron", "TRC20" );
                     put( "tron", "TRC20" );
-                    put( "Binance", "BSC" );
-                    put( "binance", "BSC" );
-                    put( "Binance Smart Chain", "BSC" );
-                    put( "bscscan", "BSC" );
+                    put( "Binance", "BEP20" );
+                    put( "binance", "BEP20" );
+                    put( "Binance Smart Chain", "BEP20" );
+                    put( "bscscan", "BEP20" );
                     put( "Bitcoin", "BTC" );
                     put( "bitcoin", "BTC" );
                     put( "Litecoin", "LTC" );

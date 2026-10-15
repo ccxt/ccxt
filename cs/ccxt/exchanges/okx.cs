@@ -2054,15 +2054,11 @@ public partial class okx : Exchange
                 { "networks", new Dictionary<string, object>() {
                     { "BTC", "Bitcoin" },
                     { "BTCLIGHTNING", "Lightning" },
-                    { "BSC", "BSC" },
                     { "BEP20", "BSC" },
                     { "BRC20", "BRC20" },
-                    { "ETH", "ERC20" },
                     { "ERC20", "ERC20" },
-                    { "TRX", "TRC20" },
                     { "TRC20", "TRC20" },
                     { "CRC20", "Crypto" },
-                    { "CRONOS", "Crypto" },
                     { "ACA", "Acala" },
                     { "ALGO", "Algorand" },
                     { "APT", "Aptos" },
@@ -6915,7 +6911,9 @@ public partial class okx : Exchange
         if ((network != null))
         {
             IDictionary<string, object> networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
-            network = this.safeString(networks, network.ToUpper(), network); // handle ETH>ERC20 alias
+            string networkUpper = network.ToUpper();
+            string? networkKey = this.safeString(this.networkAliases, networkUpper, networkUpper);
+            network = this.safeString(networks, networkKey, network); // resolve aliases to the unified key
             request["chain"] = add(add((currency.ContainsKey("id") ? currency["id"] : null), "-"), network);
         }
         List<object> omitKeys = new List<object>() {"fee"};
@@ -9141,8 +9139,8 @@ public partial class okx : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         string? type = ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) ? "MARGIN" : this.convertToInstrumentType((market.ContainsKey("type") ? market["type"] : null));
-        string? uly = this.safeString((market.ContainsKey("info") ? market["info"] : null), "uly");
-        if (((uly == null)) || (uly == ""))
+        string? instFamily = this.safeString((market.ContainsKey("info") ? market["info"] : null), "instFamily");
+        if (((instFamily == null)) || (instFamily == ""))
         {
             if (type != "MARGIN")
             {
@@ -9157,7 +9155,7 @@ public partial class okx : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instType", type },
             { "tdMode", marginMode },
-            { "uly", uly },
+            { "instFamily", instFamily },
         };
         if (type == "MARGIN")
         {

@@ -257,7 +257,7 @@ public partial class indodax : Exchange
                 { "adjustForTimeDifference", false },
                 { "networks", new Dictionary<string, object>() {
                     { "XLM", "Stellar Token" },
-                    { "BSC", "bep20" },
+                    { "BEP20", "bep20" },
                     { "TRC20", "trc20" },
                     { "MATIC", "polygon" },
                 } },

@@ -1252,7 +1252,7 @@ impl CoinmateCore {
         m.insert("txid".to_string(), self.safe_string_k(transaction.clone(), "txid", &[]));
         m.insert("type".to_string(), self.safe_string_lower_k(transaction.clone(), "transferType", &[]));
         m.insert("currency".to_string(), code.clone());
-        m.insert("network".to_string(), self.safe_string_k(transaction.clone(), "walletType", &[]));
+        m.insert("network".to_string(), self.network_id_to_code(&[self.safe_string_k(transaction.clone(), "walletType", &[]), code.clone()]));
         m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "amount", &[]));
         m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(transaction.clone(), "transferStatus", &[])));
         m.insert("timestamp".to_string(), timestamp.clone());

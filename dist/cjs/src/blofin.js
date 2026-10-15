@@ -1973,7 +1973,8 @@ class blofin extends blofin$1["default"] {
     }
     networkCodeToChainId(networkCode, currency = undefined) {
         const aliases = this.safeDict(this.options, 'networkCodeAliases', {});
-        const unifiedCode = this.safeString(aliases, networkCode, networkCode);
+        const aliasedCode = this.safeString(aliases, networkCode, networkCode);
+        const unifiedCode = this.safeString(this.networkAliases, aliasedCode, aliasedCode);
         // prefer the exact chain id from the currencies registry when it is
         // loaded, since some ids are currency-specific (USDT on Optimism)
         if (currency !== undefined) {

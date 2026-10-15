@@ -3325,12 +3325,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut network: Value = self.safe_string_upper_k(params.clone(), "network", &[]);
+        let mut networkParam: Value = self.safe_string_upper_k(params.clone(), "network", &[]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("network".into())]), &[]);
         let mut depositAddressesRaw: Value = self.fetch_deposit_addresses_by_network(code, &[paramsOmitted]).await;
         let mut depositAddresses: Value = depositAddressesRaw;
-        if (in_op(&depositAddresses, &network)) {
-            return depositAddresses.as_map().and_then(|__m| network.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+        if (networkParam != Value::Null) {
+            let mut network: Value = self.safe_string(self.networkAliases.clone(), networkParam.clone(), &[networkParam.clone()]);
+            if (in_op(&depositAddresses, &network)) {
+                return depositAddresses.as_map().and_then(|__m| network.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            }
         }
         let mut keys: Value = object_keys(&depositAddresses);
         return get_value(&depositAddresses, &keys.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));

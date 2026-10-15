@@ -1986,7 +1986,7 @@ class extended(Exchange, ImplicitAPI):
                 'cost': self.parse_number(Precise.string_abs(feeCost)),
             }
         transactionType = self.parse_transaction_type(self.safe_string(transaction, 'type'))
-        network = self.safe_string(transaction, 'chain')
+        network = self.network_id_to_code(self.safe_string(transaction, 'chain'))
         return {
             'info': transaction,
             'id': self.safe_string(transaction, 'id'),

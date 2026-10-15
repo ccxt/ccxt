@@ -622,8 +622,8 @@ class phemex extends Exchange {
                     'BEP20' => 'BNB',
                 ),
                 'defaultNetworks' => array(
-                    'USDT' => 'ETH',
-                    'MKR' => 'ETH',
+                    'USDT' => 'ERC20',
+                    'MKR' => 'ERC20',
                 ),
                 'defaultSubType' => 'linear',
                 'accountsByType' => array(
@@ -3666,7 +3666,9 @@ class phemex extends Exchange {
         $networks = $this->safe_dict($this->options, 'networks', array());
         $network = $this->safe_string_upper_2($params, 'network', 'chainName', $defaultNetwork);
         $paramsOmitted = $this->omit($params, 'network');
-        $network = $this->safe_string($networks, $network, $network);
+        if ($network !== null) {
+            $network = $this->safe_string($networks, $this->safe_string($this->networkAliases, $network, $network), $network);
+        }
         if ($network === null) {
             throw new ArgumentsRequired($this->id . ' fetchDepositAddress() requires a network parameter');
         } else {

@@ -392,10 +392,7 @@ public class Kraken extends KrakenApi
                 put( "marketsByAltname", new HashMap<String, Object>() {{}} );
                 put( "delistedMarketsById", new HashMap<String, Object>() {{}} );
                 put( "inactiveCurrencies", new ArrayList<Object>(Arrays.asList("CAD", "USD", "JPY", "GBP")) );
-                put( "networks", new HashMap<String, Object>() {{
-                    put( "ETH", "ERC20" );
-                    put( "TRX", "TRC20" );
-                }} );
+                put( "networks", new HashMap<String, Object>() {{}} );
                 put( "depositMethods", new HashMap<String, Object>() {{
                     put( "1INCH", (("1inch" + " ") + "(1INCH)") );
                     put( "AAVE", "Aave" );
@@ -3905,8 +3902,10 @@ public class Kraken extends KrakenApi
             }
             Map<String, Object> currency = this.currency((String) (code));
             String network = this.safeStringUpper(parameters, "network");
-            Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
-            network = this.safeString(networks, network, network); // support ETH > ERC20 aliases
+            if (!java.util.Objects.equals(network, null))
+            {
+                network = this.safeString(this.networkAliases, network, network);
+            }
             Map<String, Object> paramsOmitted = this.omit(parameters, "network");
             String codeResolved = code;
             if ((java.util.Objects.equals(code, "USDT")) && (java.util.Objects.equals(network, "TRC20")))

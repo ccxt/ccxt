@@ -352,7 +352,7 @@ public class Bigone extends BigoneApi
                     put( "DOGE", "Dogecoin" );
                     put( "XEC", "ECash" );
                     put( "EOS", "EOS" );
-                    put( "ETH", "Ethereum" );
+                    put( "ERC20", "Ethereum" );
                     put( "ETC", "EthereumClassic" );
                     put( "ETHW", "EthereumPow" );
                     put( "FTM", "Fantom" );
@@ -2351,7 +2351,7 @@ public class Bigone extends BigoneApi
                 throw new ExchangeError((this.id + " fetchDepositAddress() returned empty address response")) ;
             }
             Map<String,Object> chainsIndexedById = this.indexBy(data, "chain");
-            Object selectedNetworkId = this.selectNetworkIdFromRawNetworks(code, networkCode, chainsIndexedById);
+            Object selectedNetworkId = this.selectNetworkKeyFromNetworks(code, networkCode, chainsIndexedById, false);
             Map<String, Object> addressObject = (Map<String, Object>) this.safeDict(chainsIndexedById, selectedNetworkId, new HashMap<String, Object>() {{}});
             String address = this.safeString(addressObject, "value");
             String tag = this.safeString(addressObject, "memo");

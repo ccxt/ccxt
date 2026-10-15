@@ -346,7 +346,6 @@ class woo extends woo$1["default"] {
                 'sandboxMode': false,
                 'createMarketBuyOrderRequiresPrice': true,
                 'networks': {
-                    'TRX': 'TRX', // WOO X renamed the network id from TRON to TRX
                     'TRC20': 'TRX',
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
@@ -3403,7 +3402,7 @@ class woo extends woo$1["default"] {
             'amount': amount,
             'addressTo': address,
             'tag': tagWithdrawTag,
-            'network': network,
+            'network': this.safeString(this.networkAliases, network, network),
             'type': 'withdrawal',
             'status': 'pending',
         });
@@ -4742,7 +4741,7 @@ class woo extends woo$1["default"] {
         const networkKeys = Object.keys(networks);
         for (let i = 0; i < networkKeys.length; i++) {
             const network = networkKeys[i];
-            if (network === 'ETH') {
+            if (network === 'ERC20') {
                 return network;
             }
         }

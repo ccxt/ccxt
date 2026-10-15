@@ -683,7 +683,7 @@ class bingx extends Exchange {
                 'recvWindow' => 5 * 1000, // 5 sec
                 'broker' => 'CCXT',
                 'defaultNetworks' => array(
-                    'ETH' => 'ETH',
+                    'ETH' => 'ERC20',
                     'USDT' => 'ERC20',
                     'USDC' => 'ERC20',
                     'BTC' => 'BTC',
@@ -5714,7 +5714,7 @@ class bingx extends Exchange {
         // the 0x prefix on the evm networks, see https://github.com/ccxt/ccxt/issues/24331
         if ($address !== null) {
             $isPrefixed = str_starts_with($address, '0x') || str_starts_with($address, '0X');
-            $evmNetworks = array( 'BEP20', 'BSC', 'ERC20', 'ETH', 'HECO', 'MATIC', 'POLYGON', 'ARBITRUM', 'ARB', 'OPTIMISM', 'AVAXC', 'BASE', 'FTM', 'LINEA', 'ZKSYNC', 'OPBNB' );
+            $evmNetworks = array( 'BEP20', 'ERC20', 'HECO', 'MATIC', 'POLYGON', 'ARBITRUM', 'OPTIMISM', 'AVAXC', 'BASE', 'FTM', 'LINEA', 'ZKSYNC', 'OPBNB' );
             if (!$isPrefixed && $this->in_array($networkCode, $evmNetworks)) {
                 $address = '0x' . $address;
             }

@@ -281,9 +281,7 @@ class hollaex extends hollaex$1["default"] {
                 'api-expires': this.parseToInt(this.timeout / 1000),
                 'networks': {
                     'BTC': 'btc',
-                    'ETH': 'eth',
                     'ERC20': 'eth',
-                    'TRX': 'trx',
                     'TRC20': 'trx',
                     'XRP': 'xrp',
                     'XLM': 'xlm',
@@ -1524,11 +1522,11 @@ class hollaex extends hollaex$1["default"] {
         this.checkAddress(address);
         const currencyId = this.safeString(depositAddress, 'currency');
         const currencyResolved = this.safeCurrency(currencyId, currency);
-        const network = this.safeString(depositAddress, 'network');
+        const networkId = this.safeString(depositAddress, 'network');
         return {
             'info': depositAddress,
             'currency': currencyResolved['code'],
-            'network': network,
+            'network': this.networkIdToCode(networkId, currencyResolved['code']),
             'address': address,
             'tag': tag,
         };
@@ -1600,7 +1598,7 @@ class hollaex extends hollaex$1["default"] {
             addresses = wallet;
         }
         else {
-            addresses = this.filterBy(wallet, 'network', network);
+            addresses = this.filterBy(wallet, 'network', this.networkCodeToId(network));
         }
         return this.parseDepositAddresses(addresses, codes, false);
     }

@@ -403,7 +403,7 @@ class hashkey(Exchange, ImplicitAPI):
                     'TRC20': 'TRC20',
                     'Tron': 'TRC20',
                     'TON': 'TON',
-                    'BSC(BEP20)': 'BSC',
+                    'BSC(BEP20)': 'BEP20',
                     'Klaytn': 'KLAYTN',
                 },
                 'defaultNetwork': 'ERC20',
@@ -1209,7 +1209,7 @@ class hashkey(Exchange, ImplicitAPI):
         for j in range(0, len(networks)):
             network = networks[j]
             networkId = self.safe_string(network, 'chainType')
-            networkCode = self.network_code_to_id(networkId, code)
+            networkCode = self.network_id_to_code(networkId, code)
             if networkCode is not None:
                 parsedNetworks[networkCode] = {
                     'id': networkId,
@@ -1873,7 +1873,7 @@ class hashkey(Exchange, ImplicitAPI):
 
         :param str code: unified currency code(default is 'USDT')
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.network]: network for fetch deposit address(default is 'ETH')
+        :param str [params.network]: network for fetch deposit address(default is 'ERC20')
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
         if self.markets is None:
@@ -1883,7 +1883,7 @@ class hashkey(Exchange, ImplicitAPI):
             'coin': currency['id'],
         }
         networkCodeInParams, paramsNetworkCode = self.handle_network_code_and_params(params)
-        networkCode = self.default_network_code(code) if (networkCodeInParams is None) else networkCodeInParams
+        networkCode = self.safe_string(self.safe_dict(self.options, 'defaultNetworks', {}), code, self.safe_string(self.options, 'defaultNetwork')) if (networkCodeInParams is None) else networkCodeInParams
         request['chainType'] = self.network_code_to_id(networkCode, code)
         response = self.privateGetApiV1AccountDepositAddress(self.extend(request, paramsNetworkCode))
         #

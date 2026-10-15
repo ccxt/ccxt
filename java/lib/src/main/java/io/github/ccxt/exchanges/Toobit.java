@@ -667,7 +667,6 @@ public class Toobit extends ToobitApi
                 put( "networks", new HashMap<String, Object>() {{
                     put( "BTC", "BTC" );
                     put( "ERC20", "ETH" );
-                    put( "ETH", "ETH" );
                     put( "BEP20", "BSC" );
                     put( "TRC20", "TRX" );
                     put( "SOL", "SOL" );

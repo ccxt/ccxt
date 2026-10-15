@@ -3945,7 +3945,7 @@ public class Whitebit extends WhitebitApi
             h2kMap2.put("txid", this.safeString(transaction, "transactionId"));
             h2kMap2.put("timestamp", timestamp);
             h2kMap2.put("datetime", this.iso8601(timestamp));
-            h2kMap2.put("network", this.safeString(transaction, "network"));
+            h2kMap2.put("network", this.networkIdToCode(this.safeString(transaction, "network"), this.safeCurrencyCode(currencyId, currencyResolved)));
             h2kMap2.put("addressFrom", (((java.util.Objects.equals(method, "1")))) ? address : null);
             h2kMap2.put("address", address);
             h2kMap2.put("addressTo", (((java.util.Objects.equals(method, "2")))) ? address : null);

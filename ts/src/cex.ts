@@ -264,7 +264,7 @@ export default class cex extends Exchange {
                 'networks': {
                     'BTC': 'bitcoin',
                     'ERC20': 'ERC20',
-                    'BSC20': 'binancesmartchain',
+                    'BEP20': 'binancesmartchain',
                     'DOGE': 'dogecoin',
                     'ALGO': 'algorand',
                     'XLM': 'stellar',
@@ -276,7 +276,7 @@ export default class cex extends Exchange {
                     'THETA': 'theta',
                     'XTZ': 'tezos',
                     'TIA': 'celestia',
-                    'CRONOS': 'cronos', // CRC20
+                    'CRC20': 'cronos',
                     'MATIC': 'polygon',
                     'TON': 'ton',
                     'TRC20': 'tron',

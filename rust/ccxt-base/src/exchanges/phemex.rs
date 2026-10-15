@@ -1385,8 +1385,8 @@ impl PhemexCore {
 }));
         m.insert("defaultNetworks".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("USDT".to_string(), Value::Str("ETH".into()));
-        m.insert("MKR".to_string(), Value::Str("ETH".into()));
+        m.insert("USDT".to_string(), Value::Str("ERC20".into()));
+        m.insert("MKR".to_string(), Value::Str("ERC20".into()));
     m
 }));
         m.insert("defaultSubType".to_string(), Value::Str("linear".into()));
@@ -4776,7 +4776,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 })]);
         let mut network: Value = self.safe_string_upper2(params.clone(), Value::Str("network".into()), Value::Str("chainName".into()), &[defaultNetwork]);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("network".into()), &[]);
-        network = self.safe_string(networks, network.clone(), &[network.clone()]);
+        if (network != Value::Null) {
+            network = self.safe_string(networks, self.safe_string(self.networkAliases.clone(), network.clone(), &[network.clone()]), &[network.clone()]);
+        }
         if (network == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() requires a network parameter".into()))));
         }  else {

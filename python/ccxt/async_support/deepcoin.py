@@ -333,7 +333,7 @@ class deepcoin(Exchange, ImplicitAPI):
                     'ERC20': 'ERC20',
                     'TRC20': 'TRC20',
                     'ARBITRUM': 'ARBITRUM',
-                    'BSC': 'BSC(BEP20)',
+                    'BEP20': 'BSC(BEP20)',
                     'SOL': 'SOL',
                     'BTC': 'Bitcoin',
                     'ADA': 'Cardano',
@@ -1172,6 +1172,8 @@ class deepcoin(Exchange, ImplicitAPI):
         defaultNetwork = self.safe_string(defaultNetworks, code)
         if (network is None) or (network == ''):
             network = defaultNetwork
+        if network is not None:
+            network = self.safe_string(self.networkAliases, network, network)
         paramsOmitted = self.omit(params, 'network') if (network is not None) else params
         addressess = await self.fetch_deposit_addresses([code], paramsOmitted)
         length = len(addressess)

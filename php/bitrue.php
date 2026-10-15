@@ -2867,7 +2867,7 @@ class bitrue extends Exchange {
             $currencyId = $this->safe_string($parts, 0);
             $networkId = $this->safe_string($parts, 1);
             if ($networkId !== null) {
-                $network = strtoupper($networkId);
+                $network = $this->network_id_to_code(strtoupper($networkId));
             }
         }
         $code = $this->safe_currency_code($currencyId, $currency);
