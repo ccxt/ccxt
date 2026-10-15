@@ -705,13 +705,10 @@ impl LbankCore {
         m.insert("networks".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("ERC20".to_string(), Value::Str("erc20".into()));
-        m.insert("ETH".to_string(), Value::Str("erc20".into()));
         m.insert("TRC20".to_string(), Value::Str("trc20".into()));
-        m.insert("TRX".to_string(), Value::Str("trc20".into()));
         m.insert("OMNI".to_string(), Value::Str("omni".into()));
         m.insert("ASA".to_string(), Value::Str("asa".into()));
         m.insert("BEP20".to_string(), Value::Str("bep20(bsc)".into()));
-        m.insert("BSC".to_string(), Value::Str("bep20(bsc)".into()));
         m.insert("HT".to_string(), Value::Str("heco".into()));
         m.insert("BNB".to_string(), Value::Str("bep2".into()));
         m.insert("BTC".to_string(), Value::Str("btc".into()));
@@ -3090,9 +3087,9 @@ impl LbankCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut network: Value = self.safe_string_upper_k(params, "network", &[defaultNetwork]); // this line allows the user to specify either ERC20 or ETH
-        network = self.safe_string(networks, network.clone(), &[network.clone()]); // handle ERC20>ETH alias
-        return network.as_str().map(str::to_owned);
+        let mut networkParam: Value = self.safe_string_upper_k(params, "network", &[defaultNetwork]); // accepts unified codes and aliases
+        let mut networkCode: Value = (if (networkParam != Value::Null) { self.safe_string(self.networkAliases.clone(), networkParam.clone(), &[networkParam.clone()]) } else { Value::Null });
+        return self.safe_string(networks, networkCode.clone(), &[networkCode.clone()]).as_str().map(str::to_owned);
 }
 
 /*
@@ -3198,6 +3195,9 @@ impl LbankCore {
         });
         let mut networks: Value = self.safe_dict_k(self.options.clone(), "networks", &[]);
         let mut network: Value = self.safe_string_upper_k(params.clone(), "network", &[]);
+        if (network != Value::Null) {
+            network = self.safe_string(self.networkAliases.clone(), network.clone(), &[network.clone()]);
+        }
         network = self.safe_string(networks, network.clone(), &[network.clone()]);
         let mut paramsOmitted: Value = (if (network != Value::Null) { self.omit(params.clone(), Value::Str("network".into()), &[]) } else { params });
         if (network != Value::Null) {
@@ -3274,6 +3274,9 @@ impl LbankCore {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("memo".into(), tagWithdrawTag); }
         }
         let mut network: Value = self.safe_string_upper2(paramsOmitted.clone(), Value::Str("network".into()), Value::Str("networkName".into()), &[]);
+        if (network != Value::Null) {
+            network = self.safe_string(self.networkAliases.clone(), network.clone(), &[network.clone()]);
+        }
         let mut paramsOmitted2: Value = self.omit(paramsOmitted, Value::from(vec![Value::Str("network".into()), Value::Str("networkName".into())]), &[]);
         let mut networks: Value = self.safe_dict_k(self.options.clone(), "networks", &[]);
         let mut networkId: Value = self.safe_string(networks, network.clone(), &[network.clone()]);

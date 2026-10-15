@@ -414,16 +414,13 @@ class digifinex extends Exchange {
                     'AVALANCEC' => 'AVAX-CCHAIN',
                     'AVALANCEX' => 'AVAX-XCHAIN',
                     'BEP20' => 'BEP20',
-                    'BSC' => 'BEP20',
                     'CARDANO' => 'Cardano',
                     'CELO' => 'Celo',
                     'CHILIZ' => 'Chiliz',
                     'COSMOS' => 'COSMOS',
                     'CRC20' => 'Crypto.com',
-                    'CRONOS' => 'Crypto.com',
                     'DOGECOIN' => 'DogeChain',
                     'ERC20' => 'ERC20',
-                    'ETH' => 'ERC20',
                     'ETHW' => 'ETHW',
                     'IOTA' => 'MIOTA',
                     'KLAYTN' => 'KLAY',
@@ -440,7 +437,6 @@ class digifinex extends Exchange {
                     'TERRA' => 'Terra',
                     'TON' => 'Ton',
                     'TRC20' => 'TRC20',
-                    'TRX' => 'TRC20',
                     'VECHAIN' => 'Vechain', // VET
                 ),
                 'networksById' => array(
@@ -451,7 +447,7 @@ class digifinex extends Exchange {
                     'ERC20' => 'ERC20',
                     'ETH' => 'ERC20',
                     'Polygon' => 'POLYGON',
-                    'Crypto.com' => 'CRONOS',
+                    'Crypto.com' => 'CRC20',
                 ),
             ),
             'commonCurrencies' => array(
@@ -3177,7 +3173,7 @@ class digifinex extends Exchange {
         if ($feeCost !== null) {
             $fee = array( 'currency' => $code, 'cost' => $feeCost );
         }
-        $network = $this->safe_string($transaction, 'chain');
+        $network = $this->network_id_to_code($this->safe_string($transaction, 'chain'), $code);
         return array(
             'info' => $transaction,
             'id' => $id,

@@ -3138,7 +3138,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             // some currencies have multiple networks
             if (network == Value::Null) {
                 // use default network if not specified and multiple are available
-                network = self.default_network_code(code.clone());
+                network = self.safe_string(self.safe_dict_k(self.options.clone(), "defaultNetworks", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]), code.clone(), &[self.safe_string_k(self.options.clone(), "defaultNetwork", &[])]);
             }
             if (network != Value::Null) {
                 {

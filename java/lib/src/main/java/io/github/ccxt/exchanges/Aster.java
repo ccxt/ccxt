@@ -4993,6 +4993,10 @@ public class Aster extends AsterApi
             // TODO: check how ARBI signature would work
             Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
             String network = this.safeStringUpper(paramsWithdrawTag, "network");
+            if (!java.util.Objects.equals(network, null))
+            {
+                network = this.safeString(this.networkAliases, network, network); // accepts aliases like ETH for ERC20
+            }
             network = this.safeString(networks, network, network);
             if ((java.util.Objects.equals(chainId, null)) && (!java.util.Objects.equals(network, null)))
             {

@@ -2876,8 +2876,8 @@ impl CoinsphCore {
                 m
             });
         }
-        let mut network: Value = self.safe_string_k(transaction.clone(), "network", &[]);
-        let mut internal: Value = Value::Bool(network.as_str() == Some("Internal"));
+        let mut networkId: Value = self.safe_string_k(transaction.clone(), "network", &[]);
+        let mut internal: Value = Value::Bool(networkId.as_str() == Some("Internal"));
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction);
@@ -2885,7 +2885,7 @@ impl CoinsphCore {
         m.insert("txid".to_string(), txid);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("network".to_string(), network);
+        m.insert("network".to_string(), self.network_id_to_code(&[networkId, code.clone()]));
         m.insert("address".to_string(), address.clone());
         m.insert("addressTo".to_string(), address);
         m.insert("addressFrom".to_string(), Value::Null);

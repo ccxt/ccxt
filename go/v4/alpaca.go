@@ -2775,7 +2775,7 @@ func (this *Alpaca) ParseTransaction(transaction any, optionalArgs ...any) map[s
 	var addressFrom *string = nil
 	var typeVar *string = nil
 	var amount any = nil
-	var code *string = nil
+	var code any = nil
 	var status *string = nil
 	var comment *string = nil
 	var internal any = nil
@@ -2797,11 +2797,19 @@ func (this *Alpaca) ParseTransaction(transaction any, optionalArgs ...any) map[s
 		// currency filter, see the review on https://github.com/ccxt/ccxt/pull/29580
 		var activityCurrencyId *string = this.SafeString2(transaction, "symbol", "asset")
 		if activityCurrencyId != nil {
-			code = this.SafeCurrencyCode(activityCurrencyId)
+			if derefPtr := this.SafeCurrencyCode(activityCurrencyId); derefPtr != nil {
+				code = *derefPtr
+			} else {
+				code = nil
+			}
 		} else if (activityType != nil && *activityType == "CSD") || (activityType != nil && *activityType == "CSW") {
-			code = SafeStringPtr("USD")
+			code = "USD"
 		} else {
-			code = this.SafeCurrencyCode(nil, currency)
+			if derefPtr := this.SafeCurrencyCode(nil, currency); derefPtr != nil {
+				code = *derefPtr
+			} else {
+				code = nil
+			}
 		}
 		status = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
 		comment = activityType
@@ -2810,14 +2818,18 @@ func (this *Alpaca) ParseTransaction(transaction any, optionalArgs ...any) map[s
 		txid = this.SafeString(transaction, "tx_hash")
 		datetime = this.SafeString(transaction, "created_at")
 		timestamp = this.Parse8601(datetime)
-		network = this.SafeString(transaction, "chain")
 		address = this.SafeString(transaction, "to_address")
 		addressTo = this.SafeString(transaction, "to_address")
 		addressFrom = this.SafeString(transaction, "from_address")
 		typeVar = this.ParseTransactionType(this.SafeString(transaction, "direction"))
 		amount = DerefScalar(this.SafeNumber(transaction, "amount"))
 		var currencyId *string = this.SafeString(transaction, "asset")
-		code = this.SafeCurrencyCode(currencyId, currency)
+		if derefPtr := this.SafeCurrencyCode(currencyId, currency); derefPtr != nil {
+			code = *derefPtr
+		} else {
+			code = nil
+		}
+		network = this.NetworkIdToCode(this.SafeString(transaction, "chain"), code)
 		status = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
 		var fees *string = this.SafeString(transaction, "fees")
 		var networkFee *string = this.SafeString(transaction, "network_fee")

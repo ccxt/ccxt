@@ -2112,15 +2112,11 @@ public class Okx extends OkxApi
                 put( "networks", new HashMap<String, Object>() {{
                     put( "BTC", "Bitcoin" );
                     put( "BTCLIGHTNING", "Lightning" );
-                    put( "BSC", "BSC" );
                     put( "BEP20", "BSC" );
                     put( "BRC20", "BRC20" );
-                    put( "ETH", "ERC20" );
                     put( "ERC20", "ERC20" );
-                    put( "TRX", "TRC20" );
                     put( "TRC20", "TRC20" );
                     put( "CRC20", "Crypto" );
-                    put( "CRONOS", "Crypto" );
                     put( "ACA", "Acala" );
                     put( "ALGO", "Algorand" );
                     put( "APT", "Aptos" );
@@ -7100,7 +7096,9 @@ public class Okx extends OkxApi
             if (!java.util.Objects.equals(network, null))
             {
                 Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
-                network = this.safeString(networks, network.toUpperCase(), network); // handle ETH>ERC20 alias
+                String networkUpper = network.toUpperCase();
+                String networkKey = this.safeString(this.networkAliases, networkUpper, networkUpper);
+                network = this.safeString(networks, networkKey, network); // resolve aliases to the unified key
                 request.put("chain", ((currency.get("id") + "-") + network));
             }
             List<Object> omitKeys = new ArrayList<Object>(Arrays.asList("fee"));

@@ -489,11 +489,8 @@ impl BitoproCore {
         m.insert("networks".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("ERC20".to_string(), Value::Str("ERC20".into()));
-        m.insert("ETH".to_string(), Value::Str("ERC20".into()));
-        m.insert("TRX".to_string(), Value::Str("TRX".into()));
         m.insert("TRC20".to_string(), Value::Str("TRX".into()));
         m.insert("BEP20".to_string(), Value::Str("BSC".into()));
-        m.insert("BSC".to_string(), Value::Str("BSC".into()));
     m
 }));
         m.insert("fetchCurrencies".to_string(), Value::Map({
@@ -2197,7 +2194,7 @@ impl BitoproCore {
     m
 })]);
             let mut requestedNetwork: Value = self.safe_string_upper_k(paramsWithdrawTag, "network", &[]);
-            let mut networkId: Value = (if (requestedNetwork == Value::Null) { Value::Null } else { self.safe_string(networks, requestedNetwork.clone(), &[]) });
+            let mut networkId: Value = (if (requestedNetwork == Value::Null) { Value::Null } else { self.safe_string(networks, self.safe_string(self.networkAliases.clone(), requestedNetwork.clone(), &[requestedNetwork.clone()]), &[]) });
             if (networkId == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" invalid network ".into())).into()), requestedNetwork)));
             }

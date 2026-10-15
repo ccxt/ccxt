@@ -3887,9 +3887,9 @@
                                     "wdTickSz": "8"
                                 }
                             },
-                            "ETH": {
+                            "ERC20": {
                                 "id": "ETH-ERC20",
-                                "network": "ETH",
+                                "network": "ERC20",
                                 "active": null,
                                 "deposit": true,
                                 "withdraw": true,
@@ -9264,7 +9264,7 @@
                   "currency": "ETH",
                   "address": "AAAABBBCCCDDDDA",
                   "tag": null,
-                  "network": "ETH",
+                  "network": "ERC20",
                   "info": {
                     "chain": "ETH-ERC20",
                     "ctAddr": "",

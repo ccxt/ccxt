@@ -817,13 +817,10 @@ class gate extends Exchange {
                 'networks' => array(
                     'BTC' => 'BTC',
                     'BRC20' => 'BTCBRC', // for eg: ORDI, RATS, ...
-                    'ETH' => 'ETH',
                     'ERC20' => 'ETH',
-                    'TRX' => 'TRX',
                     'TRC20' => 'TRX',
                     'HECO' => 'HT',
                     'HRC20' => 'HT',
-                    'BSC' => 'BSC',
                     'BEP20' => 'BSC',
                     'SOL' => 'SOL',
                     'MATIC' => 'MATIC',
@@ -835,7 +832,7 @@ class gate extends Exchange {
                     'ARBITRUM_NOVA' => 'ARBNOVA',
                     'BASE' => 'BASEEVM',
                     'SUI' => 'SUI',
-                    'CRONOS' => 'CRO',
+                    'CRC20' => 'CRO',
                     'CRO' => 'CRO',
                     'APT' => 'APT',
                     'SCROLL' => 'SCROLLETH',
@@ -2526,7 +2523,7 @@ class gate extends Exchange {
         list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($params);
         $chainsIndexedByIdRaw = Async\await($this->fetch_deposit_addresses_by_network($code, $paramsNetworkCode));
         $chainsIndexedById = $chainsIndexedByIdRaw;
-        $selectedNetworkIdOrCode = $this->select_network_code_from_unified_networks($code, $networkCode, $chainsIndexedById);
+        $selectedNetworkIdOrCode = $this->select_network_key_from_networks($code, $networkCode, $chainsIndexedById, true);
         return $chainsIndexedById[$selectedNetworkIdOrCode];
     }
 

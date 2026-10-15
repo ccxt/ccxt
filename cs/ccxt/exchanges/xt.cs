@@ -952,10 +952,8 @@ public partial class xt : Exchange
                 { "networks", new Dictionary<string, object>() {
                     { "ERC20", "Ethereum" },
                     { "TRC20", "Tron" },
-                    { "TRX", "Tron" },
                     { "BEP20", "BNB Smart Chain" },
                     { "BEP2", "BNB-BEP2" },
-                    { "ETH", "Ethereum" },
                     { "AVAX", "AVAX C-Chain" },
                     { "GAL", "GAL(FT)" },
                     { "ALEO", "ALEO(IOU)" },

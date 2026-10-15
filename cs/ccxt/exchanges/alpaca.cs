@@ -2321,7 +2321,6 @@ public partial class alpaca : Exchange
             txid = this.safeString(transaction, "tx_hash");
             datetime = this.safeString(transaction, "created_at");
             timestamp = this.parse8601(datetime);
-            network = this.safeString(transaction, "chain");
             address = this.safeString(transaction, "to_address");
             addressTo = this.safeString(transaction, "to_address");
             addressFrom = this.safeString(transaction, "from_address");
@@ -2329,6 +2328,7 @@ public partial class alpaca : Exchange
             amount = this.safeNumber(transaction, "amount");
             string? currencyId = this.safeString(transaction, "asset");
             code = this.safeCurrencyCode(currencyId, currency);
+            network = this.networkIdToCode(this.safeString(transaction, "chain"), code);
             status = this.parseTransactionStatus(this.safeString(transaction, "status"));
             string? fees = this.safeString(transaction, "fees");
             string? networkFee = this.safeString(transaction, "network_fee");

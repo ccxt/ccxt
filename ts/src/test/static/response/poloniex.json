@@ -393,7 +393,7 @@
                 "input": [
                     "ETH",
                     {
-                        "network": "ETH"
+                        "network": "ERC20"
                     }
                 ],
                 "httpResponse": {
@@ -404,7 +404,7 @@
                         "ETH": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
                     },
                     "currency": "ETH",
-                    "network": "ETH",
+                    "network": "ERC20",
                     "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22",
                     "tag": null
                 }
@@ -459,7 +459,7 @@
                 "input": [
                     "USDT",
                     {
-                        "network": "ETH"
+                        "network": "ERC20"
                     }
                 ],
                 "httpResponse": {
@@ -505,7 +505,7 @@
                 "input": [
                     "ETH",
                     {
-                        "network": "ETH"
+                        "network": "ERC20"
                     }
                 ],
                 "httpResponse": {
@@ -516,7 +516,7 @@
                         "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
                     },
                     "currency": "ETH",
-                    "network": "ETH",
+                    "network": "ERC20",
                     "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22",
                     "tag": null
                 }
@@ -549,7 +549,7 @@
                 "input": [
                     "USDT",
                     {
-                        "network": "ETH"
+                        "network": "ERC20"
                     }
                 ],
                 "httpResponse": {

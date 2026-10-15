@@ -930,7 +930,7 @@ class bitfinex(Exchange, ImplicitAPI):
                 networks[network] = {
                     'info': networkId,
                     'id': networkId.lower(),
-                    'network': networkId,
+                    'network': network,
                     'active': None,
                     'deposit': self.safe_integer(dwStatuses, 1) == 1,
                     'withdraw': self.safe_integer(dwStatuses, 2) == 1,
@@ -2337,7 +2337,8 @@ class bitfinex(Exchange, ImplicitAPI):
             await self.load_markets()
         currency = self.currency(code)
         # if not provided explicitly we will try to match using the currency name
-        network = self.safe_string(params, 'network', code)
+        networkParam = self.safe_string(params, 'network', code)
+        network = self.safe_string(self.networkAliases, networkParam, networkParam)
         currencyNetworks = self.safe_dict(currency, 'networks', {})
         currencyNetwork = self.safe_dict(currencyNetworks, network)
         networkId = self.safe_string(currencyNetwork, 'id')
@@ -2722,7 +2723,8 @@ class bitfinex(Exchange, ImplicitAPI):
             await self.load_markets()
         currency = self.currency(code)
         # if not provided explicitly we will try to match using the currency name
-        network = self.safe_string(paramsWithdrawTag, 'network', code)
+        networkParam = self.safe_string(paramsWithdrawTag, 'network', code)
+        network = self.safe_string(self.networkAliases, networkParam, networkParam)
         paramsOmitted = self.omit(paramsWithdrawTag, 'network')
         currencyNetworks = self.safe_dict(currency, 'networks', {})
         currencyNetwork = self.safe_dict(currencyNetworks, network)

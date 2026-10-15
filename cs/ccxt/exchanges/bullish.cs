@@ -2750,7 +2750,7 @@ public partial class bullish : Exchange
             if ((network == null))
             {
                 // use default network if not specified and multiple are available
-                network = this.defaultNetworkCode(code);
+                network = this.safeString(this.safeDict(this.options, "defaultNetworks", new Dictionary<string, object>() {}), code, this.safeString(this.options, "defaultNetwork"));
             }
             if ((network != null))
             {

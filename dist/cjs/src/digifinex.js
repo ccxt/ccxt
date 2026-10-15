@@ -419,16 +419,13 @@ class digifinex extends digifinex$1["default"] {
                     'AVALANCEC': 'AVAX-CCHAIN',
                     'AVALANCEX': 'AVAX-XCHAIN',
                     'BEP20': 'BEP20',
-                    'BSC': 'BEP20',
                     'CARDANO': 'Cardano',
                     'CELO': 'Celo',
                     'CHILIZ': 'Chiliz',
                     'COSMOS': 'COSMOS',
                     'CRC20': 'Crypto.com',
-                    'CRONOS': 'Crypto.com',
                     'DOGECOIN': 'DogeChain',
                     'ERC20': 'ERC20',
-                    'ETH': 'ERC20',
                     'ETHW': 'ETHW',
                     'IOTA': 'MIOTA',
                     'KLAYTN': 'KLAY',
@@ -445,7 +442,6 @@ class digifinex extends digifinex$1["default"] {
                     'TERRA': 'Terra',
                     'TON': 'Ton',
                     'TRC20': 'TRC20',
-                    'TRX': 'TRC20',
                     'VECHAIN': 'Vechain', // VET
                 },
                 'networksById': {
@@ -456,7 +452,7 @@ class digifinex extends digifinex$1["default"] {
                     'ERC20': 'ERC20',
                     'ETH': 'ERC20',
                     'Polygon': 'POLYGON',
-                    'Crypto.com': 'CRONOS',
+                    'Crypto.com': 'CRC20',
                 },
             },
             'commonCurrencies': {
@@ -3218,7 +3214,7 @@ class digifinex extends digifinex$1["default"] {
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
-        const network = this.safeString(transaction, 'chain');
+        const network = this.networkIdToCode(this.safeString(transaction, 'chain'), code);
         return {
             'info': transaction,
             'id': id,

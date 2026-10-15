@@ -3062,7 +3062,7 @@ impl HtxCore {
         m.insert("LTC".to_string(), Value::Str("LTC".into()));
         m.insert("XRP".to_string(), Value::Str("XRP".into()));
         m.insert("XLM".to_string(), Value::Str("XLM".into()));
-        m.insert("CRONOS".to_string(), Value::Str("CRO".into()));
+        m.insert("CRC20".to_string(), Value::Str("CRO".into()));
         m.insert("CRO".to_string(), Value::Str("CRO".into()));
         m.insert("GLMR".to_string(), Value::Str("GLMR".into()));
         m.insert("POLYGON".to_string(), Value::Str("MATIC".into()));
@@ -9243,7 +9243,7 @@ impl HtxCore {
         let mut networkCode: Value = networkCodeparamsOmitedVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsOmited: Value = networkCodeparamsOmitedVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut indexedAddresses: Value = self.fetch_deposit_addresses_by_network(code, &[paramsOmited]).await;
-        let mut selectedNetworkCode: Value = self.select_network_code_from_unified_networks(currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null), networkCode, indexedAddresses.clone());
+        let mut selectedNetworkCode: Value = self.select_network_key_from_networks(currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null), networkCode, indexedAddresses.clone(), &[Value::Bool(true)]);
         return self.safe_value(indexedAddresses, selectedNetworkCode, &[]);
 
     Value::Null

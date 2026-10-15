@@ -1080,7 +1080,7 @@ func (this *Bingx) Describe() any {
 			"recvWindow": 5 * 1000,
 			"broker":     "CCXT",
 			"defaultNetworks": map[string]any{
-				"ETH":  "ETH",
+				"ETH":  "ERC20",
 				"USDT": "ERC20",
 				"USDC": "ERC20",
 				"BTC":  "BTC",
@@ -6636,7 +6636,7 @@ func (this *Bingx) ParseDepositAddress(depositAddress any, optionalArgs ...any) 
 	// the 0x prefix on the evm networks, see https://github.com/ccxt/ccxt/issues/24331
 	if address != nil {
 		var isPrefixed bool = StartsWith(address, "0x") || StartsWith(address, "0X")
-		var evmNetworks []any = []any{"BEP20", "BSC", "ERC20", "ETH", "HECO", "MATIC", "POLYGON", "ARBITRUM", "ARB", "OPTIMISM", "AVAXC", "BASE", "FTM", "LINEA", "ZKSYNC", "OPBNB"}
+		var evmNetworks []any = []any{"BEP20", "ERC20", "HECO", "MATIC", "POLYGON", "ARBITRUM", "OPTIMISM", "AVAXC", "BASE", "FTM", "LINEA", "ZKSYNC", "OPBNB"}
 		if !isPrefixed && this.InArray(networkCode, evmNetworks) {
 			address = Add("0x", address)
 		}

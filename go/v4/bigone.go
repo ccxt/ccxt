@@ -331,7 +331,7 @@ func (this *Bigone) Describe() any {
 				"DOGE":     "Dogecoin",
 				"XEC":      "ECash",
 				"EOS":      "EOS",
-				"ETH":      "Ethereum",
+				"ERC20":    "Ethereum",
 				"ETC":      "EthereumClassic",
 				"ETHW":     "EthereumPow",
 				"FTM":      "Fantom",
@@ -2589,7 +2589,7 @@ func (this *Bigone) fetchDepositAddressBody(ch chan AsyncResult[any], code strin
 		panic(ExchangeError(this.Id + " fetchDepositAddress() returned empty address response"))
 	}
 	var chainsIndexedById map[string]any = this.IndexBy(data, "chain")
-	var selectedNetworkId any = this.SelectNetworkIdFromRawNetworks(code, networkCode, chainsIndexedById)
+	var selectedNetworkId any = this.SelectNetworkKeyFromNetworks(code, networkCode, chainsIndexedById, false)
 	var addressObject map[string]any = SafeMapTyped(chainsIndexedById, selectedNetworkId)
 	var address *string = this.SafeString(addressObject, "value")
 	var tag *string = this.SafeString(addressObject, "memo")

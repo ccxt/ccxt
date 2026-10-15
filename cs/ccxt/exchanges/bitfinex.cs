@@ -1167,7 +1167,7 @@ public partial class bitfinex : Exchange
                 networks[(string)network] = new Dictionary<string, object>() {
                     { "info", networkId },
                     { "id", networkId.ToLower() },
-                    { "network", networkId },
+                    { "network", network },
                     { "active", null },
                     { "deposit", (this.safeInteger(dwStatuses, 1) == 1) },
                     { "withdraw", (this.safeInteger(dwStatuses, 2) == 1) },
@@ -2881,7 +2881,8 @@ public partial class bitfinex : Exchange
         }
         Dictionary<string, object> currency = this.currency(code);
         // if not provided explicitly we will try to match using the currency name
-        string? network = this.safeString(parameters, "network", code);
+        string? networkParam = this.safeString(parameters, "network", code);
+        string? network = this.safeString(this.networkAliases, networkParam, networkParam);
         IDictionary<string, object> currencyNetworks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
         IDictionary<string, object> currencyNetwork = this.safeDict(currencyNetworks, network);
         string? networkId = this.safeString(currencyNetwork, "id");
@@ -3312,7 +3313,8 @@ public partial class bitfinex : Exchange
         }
         Dictionary<string, object> currency = this.currency(code);
         // if not provided explicitly we will try to match using the currency name
-        string? network = this.safeString(paramsWithdrawTag, "network", code);
+        string? networkParam = this.safeString(paramsWithdrawTag, "network", code);
+        string? network = this.safeString(this.networkAliases, networkParam, networkParam);
         Dictionary<string, object> paramsOmitted = this.omit(paramsWithdrawTag, "network");
         IDictionary<string, object> currencyNetworks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
         IDictionary<string, object> currencyNetwork = this.safeDict(currencyNetworks, network);

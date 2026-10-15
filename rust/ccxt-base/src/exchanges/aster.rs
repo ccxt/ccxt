@@ -5301,6 +5301,9 @@ impl AsterCore {
     m
 })]);
         let mut network: Value = self.safe_string_upper_k(paramsWithdrawTag.clone(), "network", &[]);
+        if (network != Value::Null) {
+            network = self.safe_string(self.networkAliases.clone(), network.clone(), &[network.clone()]); // accepts aliases like ETH for ERC20
+        }
         network = self.safe_string(networks, network.clone(), &[network.clone()]);
         if (chainId == Value::Null) && (network != Value::Null) {
             let mut chainIds: Value = self.safe_dict_k(self.options.clone(), "networksToChainId", &[Value::Map({

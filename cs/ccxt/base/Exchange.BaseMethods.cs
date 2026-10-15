@@ -1558,9 +1558,10 @@ public partial class BaseExchange
 
     public virtual void afterConstruct(object userConfig = null)
     {
-        // networks
+        // networksById: inverse of options.networks, explicit options.networksById entries win
         userConfig ??= new Dictionary<string, object>();
-        this.createNetworksByIdObject();
+        Dictionary<string, object> networkIdsToCodesGenerated = this.invertFlatStringDictionary(this.safeValue(this.options, "networks", new Dictionary<string, object>() {}));
+        this.options["networksById"] = this.extend(networkIdsToCodesGenerated, this.safeValue(this.options, "networksById", new Dictionary<string, object>() {}));
         this.featuresGenerator();
         // init predefined markets if any
         if ((this.markets != null))
@@ -1842,43 +1843,9 @@ public partial class BaseExchange
         return ((string?)((object)(add(add(symbol, " : "), "orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options[\"watchOrderBook\"][\"checksum\"] = false"))));
     }
 
-    public virtual void createNetworksByIdObject()
-    {
-        // automatically generate network-id-to-code mappings
-        Dictionary<string, object> networkIdsToCodesGenerated = this.invertFlatStringDictionary(this.safeValue(this.options, "networks", new Dictionary<string, object>() {})); // invert defined networks dictionary
-        this.options["networksById"] = this.extend(networkIdsToCodesGenerated, this.safeValue(this.options, "networksById", new Dictionary<string, object>() {})); // support manually overriden "networksById" dictionary too
-    }
-
     public virtual Dictionary<string, object> getDefaultOptions()
     {
         return new Dictionary<string, object>() {
-            { "defaultNetworkCodeReplacements", new Dictionary<string, object>() {
-                { "ETH", new Dictionary<string, object>() {
-                    { "primary", "ETH" },
-                    { "secondary", "ERC20" },
-                    { "default", "secondary" },
-                } },
-                { "CRO", new Dictionary<string, object>() {
-                    { "primary", "CRONOS" },
-                    { "secondary", "CRC20" },
-                    { "default", "secondary" },
-                } },
-                { "TRX", new Dictionary<string, object>() {
-                    { "primary", "TRX" },
-                    { "secondary", "TRC20" },
-                    { "default", "secondary" },
-                } },
-                { "BTC", new Dictionary<string, object>() {
-                    { "primary", "BTC" },
-                    { "secondary", "BRC20" },
-                    { "default", "primary" },
-                } },
-            } },
-            { "backwardSupportedNetworkCodes", new Dictionary<string, object>() {
-                { "ARB", "ARBITRUM" },
-                { "ARBONE", "ARBITRUM" },
-                { "ARBNOVA", "ARBITRUM_NOVA" },
-            } },
             { "withdrawTagRequiredCurrencies", new List<object>() {"XRP", "XLM", "EOS", "ATOM", "HBAR", "TON", "KAVA", "STX", "XEM", "IOST", "OSMO", "WAXP"} },
         };
     }
@@ -3713,71 +3680,13 @@ public partial class BaseExchange
         };
     }
 
-    public virtual object prioritizedNetworkAliases(object networkCode = null, object currencyCode = null, bool? allowDefault = null)
-    {
-        /**
-        * @method
-        * @name Exchange#prioritizedNetworkAliases
-        * @description returns the chain pair [preferred, alternative] for the given networkCode & currency, e.g:
-        *   ---------------------------------
-        *   | input          | output       |
-        *   --------------------------------|
-        *   | ETH & USDC     | ERC20, ETH   |
-        *   | ERC20 & USDC   | ERC20, ETH   |
-        *   | ETH & ETH      | ETH, ERC20   |
-        *   | ERC20 & ETH    | ETH, ERC20   |
-        *   | ERC20          | ERC20, ETH   |
-        *   | ETH            | ERC20, ETH   |
-        *   ---------------------------------
-        * @param {string} networkCode unified network-code
-        * @param {string} currencyCode unified currency-code
-        * @param {boolean} allowDefault when currencyCode is undefined, order by replacement's "default" instead of by user input
-        * @returns {string[]} [preferredChain, alternativeChain]
-        */
-        allowDefault ??= false;
-        if ((networkCode == null))
-        {
-            return null;
-        }
-        IDictionary<string, object> replacements = this.safeDict(this.options, "defaultNetworkCodeReplacements", new Dictionary<string, object>() {});
-        List<object> keys = new List<object>(replacements.Keys);
-        for (int i = 0; i < keys.Count; i++)
-        {
-            string? baseCoin = ((string)keys[i]);
-            object entry = (baseCoin != null && replacements.ContainsKey(baseCoin) ? replacements[baseCoin] : null);
-            object primary = getValue(entry, "primary");
-            object secondary = getValue(entry, "secondary");
-            if (!isEqual(networkCode, primary) && !isEqual(networkCode, secondary))
-            {
-                continue;
-            }
-            // pick which form goes first in the returned pair
-            bool preferPrimary = false;
-            if (isEqual(currencyCode, baseCoin))
-            {
-                preferPrimary = true; // mainnet currency uses primary chain
-            } else if ((currencyCode != null))
-            {
-                preferPrimary = false; // any other (token) currency uses secondary chain
-            } else if (allowDefault == true)
-            {
-                preferPrimary = (isEqual(getValue(entry, "default"), "primary"));
-            } else
-            {
-                preferPrimary = (isEqual(networkCode, primary)); // keep user input first
-            }
-            return preferPrimary ? new List<object>() {primary, secondary} : new List<object>() {secondary, primary};
-        }
-        return new List<object>() {networkCode, networkCode};
-    }
-
     public virtual string? networkCodeToId(object networkCode, object currencyCode = null)
     {
         /**
          * @ignore
          * @method
          * @name exchange#networkCodeToId
-         * @description tries to convert the provided networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
+         * @description tries to convert the provided networkCode (a unified network code or one of its aliases) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
          * @param {string} networkCode unified network code
          * @param {string} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {string|undefined} exchange-specific network id
@@ -3786,15 +3695,23 @@ public partial class BaseExchange
         {
             return ((string?)((object)(null)));
         }
+        string? unifiedCode = this.safeString(this.networkAliases, networkCode, networkCode);
         IDictionary<string, object> networkIdsByCodes = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
-        // try the preferred form first, fall back to its alternative (e.g. when only 'ETH' or only 'ERC20' is defined)
-        object chainPair = this.prioritizedNetworkAliases(networkCode, currencyCode, false);
-        object preferredChain = ((chainPair == null)) ? networkCode : getValue(chainPair, 0);
-        object alternativeChain = ((chainPair == null)) ? networkCode : getValue(chainPair, 1);
-        string? networkId = this.safeString2(networkIdsByCodes, preferredChain, alternativeChain);
+        string? networkId = this.safeString(networkIdsByCodes, unifiedCode);
         if ((networkId != null))
         {
             return ((string?)((object)(networkId)));
+        }
+        // options.networks may still be keyed by an alias of the unified code
+        object aliases = this.networkAliases;
+        List<object> aliasKeys = new List<object>(((IDictionary<string,object>)aliases).Keys);
+        for (int i = 0; i < aliasKeys.Count; i++)
+        {
+            string? alias = ((string)aliasKeys[i]);
+            if ((isEqual(getValue(aliases, alias), unifiedCode)) && (((alias != null) && (networkIdsByCodes?.ContainsKey(alias) == true))))
+            {
+                return ((string?)((object)((alias != null && networkIdsByCodes.ContainsKey(alias) ? networkIdsByCodes[alias] : null))));
+            }
         }
         // fall back to scanning loaded currencies
         List<object> currenciesToCheck = new List<object>() {};
@@ -3808,16 +3725,10 @@ public partial class BaseExchange
         for (int i = 0; i < (currenciesToCheck?.Count ?? 0); i++)
         {
             IDictionary<string, object> networks = this.safeDict(currenciesToCheck[i], "networks", new Dictionary<string, object>() {});
-            if ((networks != null && networkCode is string inOpKey0 && networks.ContainsKey(inOpKey0)))
+            if (((unifiedCode != null) && (networks != null && networks.ContainsKey(unifiedCode))))
             {
-                return ((string?)((object)(this.safeString(getValue(networks, networkCode), "id"))));
+                return ((string?)((object)(this.safeString((unifiedCode != null && networks.ContainsKey(unifiedCode) ? networks[unifiedCode] : null), "id"))));
             }
-        }
-        // before returning the original input, try to match if it's backward-maintained networkCode
-        IDictionary<string, object> oldCodes = this.safeDict(this.options, "backwardSupportedNetworkCodes", new Dictionary<string, object>() {});
-        if ((oldCodes != null && networkCode is string inOpKey1 && oldCodes.ContainsKey(inOpKey1)))
-        {
-            return ((string?)((object)(this.networkCodeToId(getValue(oldCodes, networkCode), currencyCode))));
         }
         return ((string?)((object)(networkCode)));
     }
@@ -3838,25 +3749,9 @@ public partial class BaseExchange
             return null;
         }
         IDictionary<string, object> networkCodesByIds = this.safeDict(this.options, "networksById", new Dictionary<string, object>() {});
-        string? networkCode = this.safeString(networkCodesByIds, networkId, networkId);
-        object chainPair = this.prioritizedNetworkAliases(networkCode, currencyCode, true);
-        if ((chainPair == null))
-        {
-            return networkCode;
-        }
-        object preferredChain = getValue(chainPair, 0);
-        object alternativeChain = getValue(chainPair, 1);
-        // when the exchange explicitly defines both forms in options.networks (e.g. BTC + BRC20),
-        // it disambiguates them — trust the direct id→code inversion instead of guessing
-        if ((currencyCode == null))
-        {
-            IDictionary<string, object> networkIdsByCodes = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
-            if (((networkIdsByCodes != null && preferredChain is string inOpKey2 && networkIdsByCodes.ContainsKey(inOpKey2))) && ((networkIdsByCodes != null && alternativeChain is string inOpKey3 && networkIdsByCodes.ContainsKey(inOpKey3))))
-            {
-                return networkCode;
-            }
-        }
-        return ((string?)((object)(preferredChain)));
+        string? mappedCode = this.safeString(networkCodesByIds, networkId);
+        object networkCode = ((mappedCode == null)) ? networkId : mappedCode;
+        return this.safeString(this.networkAliases, networkCode, networkCode);
     }
 
     public virtual (string?, object) handleNetworkCodeAndParams(object parameters)
@@ -3865,36 +3760,6 @@ public partial class BaseExchange
         object paramsOmitted = ((networkCodeInParams != null)) ? this.omit(parameters, new List<object>() {"networkCode", "network"}) : parameters;
         // if it was not defined by user, we should not set it from 'defaultNetworks', because handleNetworkCodeAndParams is for only request-side and thus we do not fill it with anything. We can only use 'defaultNetworks' after parsing response-side
         return (networkCodeInParams, paramsOmitted);
-    }
-
-    public virtual object defaultNetworkCode(object currencyCode)
-    {
-        object defaultNetworkCode = null;
-        IDictionary<string, object> defaultNetworks = this.safeDict(this.options, "defaultNetworks", new Dictionary<string, object>() {});
-        if ((defaultNetworks != null && currencyCode is string inOpKey4 && defaultNetworks.ContainsKey(inOpKey4)))
-        {
-            // if currency had set its network in "defaultNetworks", use it
-            defaultNetworkCode = getValue(defaultNetworks, currencyCode);
-        } else
-        {
-            // otherwise, try to use the global-scope 'defaultNetwork' value (even if that network is not supported by currency, it doesn't make any problem, this will be just used "at first" if currency supports this network at all)
-            string? defaultNetwork = this.safeString(this.options, "defaultNetwork");
-            if ((defaultNetwork != null))
-            {
-                defaultNetworkCode = defaultNetwork;
-            }
-        }
-        return defaultNetworkCode;
-    }
-
-    public virtual object selectNetworkCodeFromUnifiedNetworks(object currencyCode, object networkCode, object indexedNetworkEntries)
-    {
-        return this.selectNetworkKeyFromNetworks(currencyCode, networkCode, indexedNetworkEntries, true);
-    }
-
-    public virtual object selectNetworkIdFromRawNetworks(string? currencyCode, object networkCode, object indexedNetworkEntries)
-    {
-        return this.selectNetworkKeyFromNetworks(currencyCode, networkCode, indexedNetworkEntries, false);
     }
 
     public virtual object selectNetworkKeyFromNetworks(object currencyCode, object networkCode, object indexedNetworkEntries, bool? isIndexedByUnifiedNetworkCode = null)
@@ -3933,8 +3798,8 @@ public partial class BaseExchange
             } else
             {
                 // if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
-                object defaultNetworkCode = this.defaultNetworkCode(currencyCode);
-                object defaultNetworkId = isIndexedByUnifiedNetworkCode == true ? defaultNetworkCode : this.networkCodeToId(defaultNetworkCode, currencyCode);
+                string? defaultNetworkCode = this.safeString(this.safeDict(this.options, "defaultNetworks", new Dictionary<string, object>() {}), currencyCode, this.safeString(this.options, "defaultNetwork"));
+                string? defaultNetworkId = isIndexedByUnifiedNetworkCode == true ? defaultNetworkCode : this.networkCodeToId(defaultNetworkCode, currencyCode);
                 if ((defaultNetworkId == null))
                 {
                     throw new ExchangeError ((this.id + " selectNetworkKeyFromNetworks() missing defaultNetworkId")) ;
@@ -4344,30 +4209,6 @@ public partial class BaseExchange
         return new List<object>() {value, paramsOmitted};
     }
 
-    /**
-     * @param {object} params - extra parameters
-     * @param {object} request - existing dictionary of request
-     * @param {string} exchangeSpecificKey - the key for chain id to be set in request
-     * @param {object} currencyCode - (optional) existing dictionary of request
-     * @param {boolean} isRequired - (optional) whether that param is required to be present
-     * @returns {object[]} - returns [request, params] where request is the modified request object and params is the modified params object
-     */
-    public virtual List<object> handleRequestNetwork(object parameters, object request, object exchangeSpecificKey, object currencyCode = null, object isRequired = null)
-    {
-        isRequired ??= false;
-        (string?, object) networkCodeparamsNetworkCodeVariable = this.handleNetworkCodeAndParams(parameters);
-        string? networkCode = networkCodeparamsNetworkCodeVariable.Item1;
-        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable.Item2);
-        if ((networkCode != null))
-        {
-            ((IDictionary<string,object>)request)[(string)exchangeSpecificKey] = this.networkCodeToId(networkCode, currencyCode);
-        } else if (isTrue(isRequired))
-        {
-            throw new ArgumentsRequired ((this.id + " - \"network\" param is required for this request")) ;
-        }
-        return new List<object>() {request, paramsNetworkCode};
-    }
-
     public virtual List<object> resolvePath(object path, object parameters)
     {
         return new List<object> {this.implodeParams(path, parameters), this.omit(parameters, this.extractParams(path))};
@@ -4725,7 +4566,7 @@ public partial class BaseExchange
         {
             return ccxt.BaseExchange.ToDict(currency);
         }
-        if (((currencyId != null)) && ((this.currencies_by_id != null)) && ((this.currencies_by_id != null && currencyId is string inOpKey5 && this.currencies_by_id.ContainsKey(inOpKey5))) && (!isEqual(getValue(this.currencies_by_id, currencyId), null)))
+        if (((currencyId != null)) && ((this.currencies_by_id != null)) && ((this.currencies_by_id != null && currencyId is string inOpKey0 && this.currencies_by_id.ContainsKey(inOpKey0))) && (!isEqual(getValue(this.currencies_by_id, currencyId), null)))
         {
             return ccxt.BaseExchange.ToDict(getValue(this.currencies_by_id, currencyId));
         }
@@ -4745,7 +4586,7 @@ public partial class BaseExchange
     {
         if ((marketId != null))
         {
-            if (((this.markets_by_id != null)) && ((this.markets_by_id != null && marketId is string inOpKey6 && this.markets_by_id.ContainsKey(inOpKey6))))
+            if (((this.markets_by_id != null)) && ((this.markets_by_id != null && marketId is string inOpKey1 && this.markets_by_id.ContainsKey(inOpKey1))))
             {
                 object markets = getValue(this.markets_by_id, marketId);
                 int numMarkets = getArrayLength(markets);
@@ -5718,10 +5559,10 @@ public partial class BaseExchange
             throw new ExchangeError ((this.id + " markets not loaded")) ;
         }
         IDictionary<string, object> marketsById = this.markets_by_id;
-        if ((markets != null && symbol is string inOpKey7 && markets.ContainsKey(inOpKey7)))
+        if ((markets != null && symbol is string inOpKey2 && markets.ContainsKey(inOpKey2)))
         {
             return ccxt.BaseExchange.ToDict(getValue(markets, symbol));
-        } else if (((marketsById != null)) && ((marketsById != null && symbol is string inOpKey8 && marketsById.ContainsKey(inOpKey8))))
+        } else if (((marketsById != null)) && ((marketsById != null && symbol is string inOpKey3 && marketsById.ContainsKey(inOpKey3))))
         {
             object marketsList = getValue(marketsById, symbol);
             string? defaultType = this.safeString2(this.options, "defaultType", "defaultSubType", "spot");
@@ -6652,7 +6493,7 @@ public partial class BaseExchange
         }
         IDictionary<string, object> markets = ((IDictionary<string, object>)this.markets);
         IDictionary<string, object> marketsById = this.markets_by_id;
-        if ((((markets != null)) && ((markets != null && account is string inOpKey9 && markets.ContainsKey(inOpKey9)))) || (((marketsById != null)) && ((marketsById != null && account is string inOpKey10 && marketsById.ContainsKey(inOpKey10)))))
+        if ((((markets != null)) && ((markets != null && account is string inOpKey4 && markets.ContainsKey(inOpKey4)))) || (((marketsById != null)) && ((marketsById != null && account is string inOpKey5 && marketsById.ContainsKey(inOpKey5)))))
         {
             Dictionary<string, object> market = this.market(account);
             return ((string?)((object)((market.ContainsKey("id") ? market["id"] : null))));
@@ -7410,7 +7251,7 @@ public partial class BaseExchange
                     id = add(id, amount);
                 }
             }
-            if ((id != null) && !((id is string inOpKey11 && uniqueResult.ContainsKey(inOpKey11))))
+            if ((id != null) && !((id is string inOpKey6 && uniqueResult.ContainsKey(inOpKey6))))
             {
                 uniqueResult[(string)id] = entry;
             }
@@ -7835,13 +7676,13 @@ public partial class BaseExchange
     public virtual void cleanUnsubscription(WebSocketClient client, object subHash, object unsubHash, bool? subHashIsPrefix = null)
     {
         subHashIsPrefix ??= false;
-        if (((unsubHash != null)) && ((client.subscriptions != null && unsubHash is string inOpKey12 && client.subscriptions.ContainsKey(inOpKey12))))
+        if (((unsubHash != null)) && ((client.subscriptions != null && unsubHash is string inOpKey7 && client.subscriptions.ContainsKey(inOpKey7))))
         {
             ((IDictionary<string,object>)client.subscriptions).Remove((string)unsubHash);
         }
         if (subHashIsPrefix != true)
         {
-            if (((subHash != null)) && ((client.subscriptions != null && subHash is string inOpKey13 && client.subscriptions.ContainsKey(inOpKey13))))
+            if (((subHash != null)) && ((client.subscriptions != null && subHash is string inOpKey8 && client.subscriptions.ContainsKey(inOpKey8))))
             {
                 ((IDictionary<string,object>)client.subscriptions).Remove((string)subHash);
             }
@@ -7911,25 +7752,25 @@ public partial class BaseExchange
                 object symbol = symbols[i];
                 if (topic == "trades")
                 {
-                    if ((this.trades != null && symbol is string inOpKey15 && this.trades.ContainsKey(inOpKey15)))
+                    if ((this.trades != null && symbol is string inOpKey10 && this.trades.ContainsKey(inOpKey10)))
                     {
                         this.trades.Remove((string)symbol);
                     }
                 } else if (topic == "orderbook")
                 {
-                    if ((this.orderbooks != null && symbol is string inOpKey16 && this.orderbooks.ContainsKey(inOpKey16)))
+                    if ((this.orderbooks != null && symbol is string inOpKey11 && this.orderbooks.ContainsKey(inOpKey11)))
                     {
                         ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
                     }
                 } else if (topic == "ticker")
                 {
-                    if ((this.tickers != null && symbol is string inOpKey17 && this.tickers.ContainsKey(inOpKey17)))
+                    if ((this.tickers != null && symbol is string inOpKey12 && this.tickers.ContainsKey(inOpKey12)))
                     {
                         this.tickers.Remove((string)symbol);
                     }
                 } else if (topic == "bidsasks")
                 {
-                    if ((this.bidsasks != null && symbol is string inOpKey18 && this.bidsasks.ContainsKey(inOpKey18)))
+                    if ((this.bidsasks != null && symbol is string inOpKey13 && this.bidsasks.ContainsKey(inOpKey13)))
                     {
                         this.bidsasks.Remove((string)symbol);
                     }

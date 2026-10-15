@@ -375,7 +375,7 @@ class hashkey extends Exchange {
                     'TRC20' => 'TRC20',
                     'Tron' => 'TRC20',
                     'TON' => 'TON',
-                    'BSC(BEP20)' => 'BSC',
+                    'BSC(BEP20)' => 'BEP20',
                     'Klaytn' => 'KLAYTN',
                 ),
                 'defaultNetwork' => 'ERC20',
@@ -1196,7 +1196,7 @@ class hashkey extends Exchange {
         for ($j = 0; $j < count($networks); $j++) {
             $network = $networks[$j];
             $networkId = $this->safe_string($network, 'chainType');
-            $networkCode = $this->network_code_to_id($networkId, $code);
+            $networkCode = $this->network_id_to_code($networkId, $code);
             if ($networkCode !== null) {
                 $parsedNetworks[$networkCode] = array(
                     'id' => $networkId,
@@ -1912,7 +1912,7 @@ class hashkey extends Exchange {
          *
          * @param {string} $code unified $currency $code (default is 'USDT')
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->network] network for fetch deposit address (default is 'ETH')
+         * @param {string} [$params->network] network for fetch deposit address (default is 'ERC20')
          * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
         if ($this->markets === null) {
@@ -1923,7 +1923,7 @@ class hashkey extends Exchange {
             'coin' => $currency['id'],
         );
         list($networkCodeInParams, $paramsNetworkCode) = $this->handle_network_code_and_params($params);
-        $networkCode = ($networkCodeInParams === null) ? $this->default_network_code($code) : $networkCodeInParams;
+        $networkCode = ($networkCodeInParams === null) ? $this->safe_string($this->safe_dict($this->options, 'defaultNetworks', array()), $code, $this->safe_string($this->options, 'defaultNetwork')) : $networkCodeInParams;
         $request['chainType'] = $this->network_code_to_id($networkCode, $code);
         $response = $this->privateGetApiV1AccountDepositAddress($this->extend($request, $paramsNetworkCode));
         //

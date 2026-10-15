@@ -357,10 +357,7 @@ public partial class kraken : Exchange
                 { "marketsByAltname", new Dictionary<string, object>() {} },
                 { "delistedMarketsById", new Dictionary<string, object>() {} },
                 { "inactiveCurrencies", new List<object>() {"CAD", "USD", "JPY", "GBP"} },
-                { "networks", new Dictionary<string, object>() {
-                    { "ETH", "ERC20" },
-                    { "TRX", "TRC20" },
-                } },
+                { "networks", new Dictionary<string, object>() {} },
                 { "depositMethods", new Dictionary<string, object>() {
                     { "1INCH", (("1inch" + " ") + "(1INCH)") },
                     { "AAVE", "Aave" },
@@ -3727,8 +3724,10 @@ public partial class kraken : Exchange
         }
         Dictionary<string, object> currency = this.currency(code);
         string? network = this.safeStringUpper(parameters, "network");
-        IDictionary<string, object> networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
-        network = this.safeString(networks, network, network); // support ETH > ERC20 aliases
+        if ((network != null))
+        {
+            network = this.safeString(this.networkAliases, network, network);
+        }
         object paramsOmitted = this.omit(parameters, "network");
         object codeResolved = code;
         if (((code == "USDT")) && (network == "TRC20"))

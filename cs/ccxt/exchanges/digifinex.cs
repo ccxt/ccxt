@@ -584,16 +584,13 @@ public partial class digifinex : Exchange
                     { "AVALANCEC", "AVAX-CCHAIN" },
                     { "AVALANCEX", "AVAX-XCHAIN" },
                     { "BEP20", "BEP20" },
-                    { "BSC", "BEP20" },
                     { "CARDANO", "Cardano" },
                     { "CELO", "Celo" },
                     { "CHILIZ", "Chiliz" },
                     { "COSMOS", "COSMOS" },
                     { "CRC20", "Crypto.com" },
-                    { "CRONOS", "Crypto.com" },
                     { "DOGECOIN", "DogeChain" },
                     { "ERC20", "ERC20" },
-                    { "ETH", "ERC20" },
                     { "ETHW", "ETHW" },
                     { "IOTA", "MIOTA" },
                     { "KLAYTN", "KLAY" },
@@ -610,7 +607,6 @@ public partial class digifinex : Exchange
                     { "TERRA", "Terra" },
                     { "TON", "Ton" },
                     { "TRC20", "TRC20" },
-                    { "TRX", "TRC20" },
                     { "VECHAIN", "Vechain" },
                 } },
                 { "networksById", new Dictionary<string, object>() {
@@ -621,7 +617,7 @@ public partial class digifinex : Exchange
                     { "ERC20", "ERC20" },
                     { "ETH", "ERC20" },
                     { "Polygon", "POLYGON" },
-                    { "Crypto.com", "CRONOS" },
+                    { "Crypto.com", "CRC20" },
                 } },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
@@ -3689,7 +3685,7 @@ public partial class digifinex : Exchange
                 { "cost", feeCost },
             };
         }
-        string? network = this.safeString(transaction, "chain");
+        string? network = this.networkIdToCode(this.safeString(transaction, "chain"), code);
         return new Dictionary<string, object>() {
             { "info", transaction },
             { "id", id },

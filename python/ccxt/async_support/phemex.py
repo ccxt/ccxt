@@ -629,8 +629,8 @@ class phemex(Exchange, ImplicitAPI):
                     'BEP20': 'BNB',
                 },
                 'defaultNetworks': {
-                    'USDT': 'ETH',
-                    'MKR': 'ETH',
+                    'USDT': 'ERC20',
+                    'MKR': 'ERC20',
                 },
                 'defaultSubType': 'linear',
                 'accountsByType': {
@@ -3405,7 +3405,8 @@ class phemex(Exchange, ImplicitAPI):
         networks = self.safe_dict(self.options, 'networks', {})
         network = self.safe_string_upper_2(params, 'network', 'chainName', defaultNetwork)
         paramsOmitted = self.omit(params, 'network')
-        network = self.safe_string(networks, network, network)
+        if network is not None:
+            network = self.safe_string(networks, self.safe_string(self.networkAliases, network, network), network)
         if network is None:
             raise ArgumentsRequired(self.id + ' fetchDepositAddress() requires a network parameter')
         else:

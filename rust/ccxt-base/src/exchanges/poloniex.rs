@@ -959,7 +959,6 @@ impl PoloniexCore {
         m.insert("BEP20".to_string(), Value::Str("BSC".into()));
         m.insert("ERC20".to_string(), Value::Str("ETH".into()));
         m.insert("TRC20".to_string(), Value::Str("TRX".into()));
-        m.insert("TRX".to_string(), Value::Str("TRX".into()));
     m
 }));
         m.insert("networksById".to_string(), Value::Map({
@@ -3903,12 +3902,12 @@ impl PoloniexCore {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress requires a network parameter for ".into())).into()), code).into()), Value::Str(".".into()))));
         }
         let mut exchangeNetworkId: Value = Value::Null;
-        networkCode = self.network_id_to_code(&[networkCode.clone(), code]);
+        networkCode = self.network_id_to_code(&[networkCode.clone(), code.clone()]);
         let mut networkEntry: Value = (if (networkCode == Value::Null) { Value::Null } else { self.safe_dict(currency.as_map().and_then(|__m| __m.get("networks")).cloned().unwrap_or(Value::Null), networkCode.clone(), &[]) });
         if (networkEntry != Value::Null) {
             exchangeNetworkId = networkEntry.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
         }  else {
-            exchangeNetworkId = networkCode;
+            exchangeNetworkId = self.network_code_to_id(networkCode, &[code]);
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

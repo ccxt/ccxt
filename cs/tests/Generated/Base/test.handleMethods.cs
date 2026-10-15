@@ -73,28 +73,6 @@ public partial class BaseTest
             // fake Assertion to avoid unused vars
             Assert((params1 != null) || (params2 != null) || (params3 != null) || (params4 != null) || (params5 != null) || (params6 != null));
         }
-        public void helperTestHandleNetworkRequest()
-        {
-            var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
-                { "id", "sampleexchange" },
-                { "options", new Dictionary<string, object>() {
-                    { "networks", new Dictionary<string, object>() {
-                        { "XYZ", "Xyz" },
-                    } },
-                } },
-            });
-            exchange.currencies = exchange.createSafeDictionary(); // todo: initialize in C# base files
-            string currencyCode = "ETH"; // todo: in future with complex cases
-            // no-case
-            var request1params1Variable = exchange.handleRequestNetwork(new Dictionary<string, object>() {
-            { "network", "XYZ" },
-        }, new Dictionary<string, object>() {}, "chain_id", currencyCode, false);
-            var request1 = ((IList<object>) request1params1Variable)[0];
-            var params1 = ((IList<object>) request1params1Variable)[1];
-            Assert(!(inOp(params1, "network")));
-            Assert(inOp(request1, "chain_id"));
-            Assert(isEqual(getValue(request1, "chain_id"), "Xyz"));
-        }
         public void helperTestHandleTypedOptions()
         {
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
@@ -131,7 +109,6 @@ public partial class BaseTest
         public void testHandleMethods()
         {
             helperTestHandleMarketTypeAndParams();
-            helperTestHandleNetworkRequest();
             helperTestHandleTypedOptions();
         }
 }

@@ -1429,11 +1429,8 @@ class binance extends Exchange {
                     'BTCSEGWIT' => 'SEGWITBTC',
                     'BTCLIGHTNING' => 'LIGHTNING',
                     'ERC20' => 'ETH',
-                    'ETH' => 'ETH',
                     'TRC20' => 'TRX',
-                    'TRX' => 'TRX',
                     'BEP2' => 'BNB',
-                    'BSC' => 'BSC',
                     'BEP20' => 'BSC',
                     'CHZ2' => 'CHZ2', // Chiliz chain new
                     'XRP' => 'XRP',
@@ -10550,7 +10547,7 @@ class binance extends Exchange {
             for ($j = 0; $j < count($networkList); $j++) {
                 $networkEntry = $this->safe_dict($networkList, $j);
                 $networkId = $this->safe_string($networkEntry, 'network');
-                $networkCode = $this->safe_currency_code($networkId);
+                $networkCode = $this->network_id_to_code($networkId, $code);
                 $fee = $this->safe_number($networkEntry, 'withdrawFee');
                 if (($code !== null) && ($networkCode !== null)) {
                     $withdrawFees[$code][$networkCode] = $fee;

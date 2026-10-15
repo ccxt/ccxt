@@ -595,16 +595,13 @@ func (this *Digifinex) Describe() any {
 				"AVALANCEC":    "AVAX-CCHAIN",
 				"AVALANCEX":    "AVAX-XCHAIN",
 				"BEP20":        "BEP20",
-				"BSC":          "BEP20",
 				"CARDANO":      "Cardano",
 				"CELO":         "Celo",
 				"CHILIZ":       "Chiliz",
 				"COSMOS":       "COSMOS",
 				"CRC20":        "Crypto.com",
-				"CRONOS":       "Crypto.com",
 				"DOGECOIN":     "DogeChain",
 				"ERC20":        "ERC20",
-				"ETH":          "ERC20",
 				"ETHW":         "ETHW",
 				"IOTA":         "MIOTA",
 				"KLAYTN":       "KLAY",
@@ -621,7 +618,6 @@ func (this *Digifinex) Describe() any {
 				"TERRA":        "Terra",
 				"TON":          "Ton",
 				"TRC20":        "TRC20",
-				"TRX":          "TRC20",
 				"VECHAIN":      "Vechain",
 			},
 			"networksById": map[string]any{
@@ -632,7 +628,7 @@ func (this *Digifinex) Describe() any {
 				"ERC20":      "ERC20",
 				"ETH":        "ERC20",
 				"Polygon":    "POLYGON",
-				"Crypto.com": "CRONOS",
+				"Crypto.com": "CRC20",
 			},
 		},
 		"commonCurrencies": map[string]any{
@@ -786,12 +782,12 @@ func (this *Digifinex) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs .
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		listRecv780 := r.Value
-		var retRes58419 []any = listRecv780
-		if retRes58419 == nil {
+		listRecv776 := r.Value
+		var retRes58019 []any = listRecv776
+		if retRes58019 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes58419}
+			ch <- AsyncResult[any]{Value: retRes58019}
 		}
 		return nil
 	}
@@ -800,12 +796,12 @@ func (this *Digifinex) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs .
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv789 := r1.Value
-	var retRes58615 []any = listRecv789
-	if retRes58615 == nil {
+	listRecv785 := r1.Value
+	var retRes58215 []any = listRecv785
+	if retRes58215 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes58615}
+		ch <- AsyncResult[any]{Value: retRes58215}
 	}
 	return nil
 }
@@ -2615,11 +2611,11 @@ func (this *Digifinex) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any]
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes198415 map[string]any = r1.Value
-	if retRes198415 == nil {
+	var retRes198015 map[string]any = r1.Value
+	if retRes198015 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes198415}
+		ch <- AsyncResult[any]{Value: retRes198015}
 	}
 	return nil
 }
@@ -2833,12 +2829,12 @@ func (this *Digifinex) cancelOrdersBody(ch chan AsyncResult[any], ids any, optio
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		listRecv2669, _ := r1.Value, r1.Value != nil
-		var retRes213119 []any = listRecv2669
-		if retRes213119 == nil {
+		listRecv2665, _ := r1.Value, r1.Value != nil
+		var retRes212719 []any = listRecv2665
+		if retRes212719 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes213119}
+			ch <- AsyncResult[any]{Value: retRes212719}
 		}
 		return nil
 	}
@@ -4147,11 +4143,11 @@ func (this *Digifinex) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes311715 []any = r.Value
-	if retRes311715 == nil {
+	var retRes311315 []any = r.Value
+	if retRes311315 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes311715}
+		ch <- AsyncResult[any]{Value: retRes311315}
 	}
 	return nil
 }
@@ -4188,11 +4184,11 @@ func (this *Digifinex) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes313215 []any = r.Value
-	if retRes313215 == nil {
+	var retRes312815 []any = r.Value
+	if retRes312815 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes313215}
+		ch <- AsyncResult[any]{Value: retRes312815}
 	}
 	return nil
 }
@@ -4252,7 +4248,7 @@ func (this *Digifinex) ParseTransaction(transaction any, optionalArgs ...any) ma
 			"cost":     feeCost,
 		}
 	}
-	var network *string = this.SafeString(transaction, "chain")
+	var network *string = this.NetworkIdToCode(this.SafeString(transaction, "chain"), code)
 	return map[string]any{
 		"info":        transaction,
 		"id":          id,
@@ -4846,11 +4842,11 @@ func (this *Digifinex) fetchFundingIntervalBody(ch chan AsyncResult[map[string]a
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes361115 map[string]any = r.Value
-	if retRes361115 == nil {
+	var retRes360715 map[string]any = r.Value
+	if retRes360715 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes361115}
+		ch <- AsyncResult[map[string]any]{Value: retRes360715}
 	}
 	return nil
 }
@@ -6017,11 +6013,11 @@ func (this *Digifinex) addMarginBody(ch chan AsyncResult[map[string]any], symbol
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes450715 map[string]any = MapTyped(r.Value)
-	if retRes450715 == nil {
+	var retRes450315 map[string]any = MapTyped(r.Value)
+	if retRes450315 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes450715}
+		ch <- AsyncResult[map[string]any]{Value: retRes450315}
 	}
 	return nil
 }
@@ -6054,11 +6050,11 @@ func (this *Digifinex) reduceMarginBody(ch chan EndpointResult[map[string]any], 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes452415 map[string]any = MapTyped(r.Value)
-	if retRes452415 == nil {
+	var retRes452015 map[string]any = MapTyped(r.Value)
+	if retRes452015 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes452415, Raw: retRes452415}
+		ch <- EndpointResult[map[string]any]{Value: retRes452015, Raw: retRes452015}
 	}
 	return nil
 }

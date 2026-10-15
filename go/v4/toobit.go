@@ -638,7 +638,6 @@ func (this *Toobit) Describe() any {
 			"networks": map[string]any{
 				"BTC":      "BTC",
 				"ERC20":    "ETH",
-				"ETH":      "ETH",
 				"BEP20":    "BSC",
 				"TRC20":    "TRX",
 				"SOL":      "SOL",
@@ -1441,11 +1440,11 @@ func (this *Toobit) fetchTradesBody(ch chan AsyncResult[any], symbol any, option
 		request["limit"] = limit
 	}
 
-	listEp1419 := <-this.CommonGetQuoteV1Trades(this.Extend(request, params))
-	if listEp1419.Err != nil {
-		panic(listEp1419.Err)
+	listEp1418 := <-this.CommonGetQuoteV1Trades(this.Extend(request, params))
+	if listEp1418.Err != nil {
+		panic(listEp1418.Err)
 	}
-	var response []any = listEp1419.Value
+	var response []any = listEp1418.Value
 
 	//
 	//    [
@@ -1710,18 +1709,18 @@ func (this *Toobit) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...a
 	var response []any = nil
 	if typeVar != nil && *typeVar == "spot" {
 
-		listEp1669 := <-this.CommonGetQuoteV1Ticker24hr(this.Extend(request, paramsMarketType))
-		if listEp1669.Err != nil {
-			panic(listEp1669.Err)
+		listEp1668 := <-this.CommonGetQuoteV1Ticker24hr(this.Extend(request, paramsMarketType))
+		if listEp1668.Err != nil {
+			panic(listEp1668.Err)
 		}
-		response = listEp1669.Value
+		response = listEp1668.Value
 	} else {
 
-		listEp1672 := <-this.CommonGetQuoteV1ContractTicker24hr(this.Extend(request, paramsMarketType))
-		if listEp1672.Err != nil {
-			panic(listEp1672.Err)
+		listEp1671 := <-this.CommonGetQuoteV1ContractTicker24hr(this.Extend(request, paramsMarketType))
+		if listEp1671.Err != nil {
+			panic(listEp1671.Err)
 		}
-		response = listEp1672.Value
+		response = listEp1671.Value
 	}
 	//
 	//    [
@@ -1831,11 +1830,11 @@ func (this *Toobit) fetchLastPricesBody(ch chan AsyncResult[any], optionalArgs .
 		}
 	}
 
-	listEp1779 := <-this.CommonGetQuoteV1TickerPrice(this.Extend(request, params))
-	if listEp1779.Err != nil {
-		panic(listEp1779.Err)
+	listEp1778 := <-this.CommonGetQuoteV1TickerPrice(this.Extend(request, params))
+	if listEp1778.Err != nil {
+		panic(listEp1778.Err)
 	}
-	var response []any = listEp1779.Value
+	var response []any = listEp1778.Value
 
 	//
 	//    [
@@ -1907,11 +1906,11 @@ func (this *Toobit) fetchBidsAsksBody(ch chan AsyncResult[any], optionalArgs ...
 		}
 	}
 
-	listEp1848 := <-this.CommonGetQuoteV1TickerBookTicker(this.Extend(request, params))
-	if listEp1848.Err != nil {
-		panic(listEp1848.Err)
+	listEp1847 := <-this.CommonGetQuoteV1TickerBookTicker(this.Extend(request, params))
+	if listEp1847.Err != nil {
+		panic(listEp1847.Err)
 	}
-	var response []any = listEp1848.Value
+	var response []any = listEp1847.Value
 
 	//
 	//    [
@@ -2002,11 +2001,11 @@ func (this *Toobit) fetchFundingRatesBody(ch chan AsyncResult[any], optionalArgs
 		}
 	}
 
-	listEp1936 := <-this.CommonGetApiV1FuturesFundingRate(this.Extend(request, params))
-	if listEp1936.Err != nil {
-		panic(listEp1936.Err)
+	listEp1935 := <-this.CommonGetApiV1FuturesFundingRate(this.Extend(request, params))
+	if listEp1935.Err != nil {
+		panic(listEp1935.Err)
 	}
-	var response []any = listEp1936.Value
+	var response []any = listEp1935.Value
 
 	//
 	//    [
@@ -2091,11 +2090,11 @@ func (this *Toobit) fetchFundingRateHistoryBody(ch chan AsyncResult[any], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes164519 []any = ListTyped(r1.Value)
-		if retRes164519 == nil {
+		var retRes164419 []any = ListTyped(r1.Value)
+		if retRes164419 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes164519}
+			ch <- AsyncResult[any]{Value: retRes164419}
 		}
 		return nil
 	}
@@ -2110,11 +2109,11 @@ func (this *Toobit) fetchFundingRateHistoryBody(ch chan AsyncResult[any], option
 		request["limit"] = limit
 	}
 
-	listEp2033 := <-this.CommonGetApiV1FuturesHistoryFundingRate(this.Extend(request, paramsPaginate))
-	if listEp2033.Err != nil {
-		panic(listEp2033.Err)
+	listEp2032 := <-this.CommonGetApiV1FuturesHistoryFundingRate(this.Extend(request, paramsPaginate))
+	if listEp2032.Err != nil {
+		panic(listEp2032.Err)
 	}
-	var response []any = listEp2033.Value
+	var response []any = listEp2032.Value
 
 	//
 	//    [
@@ -3261,18 +3260,18 @@ func (this *Toobit) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...an
 	var response []any = nil
 	if marketType != nil && *marketType == "spot" {
 
-		listEp3089 := <-this.PrivateGetApiV1AccountBalanceFlow(this.Extend(requestUntil, paramsMarketType))
-		if listEp3089.Err != nil {
-			panic(listEp3089.Err)
+		listEp3088 := <-this.PrivateGetApiV1AccountBalanceFlow(this.Extend(requestUntil, paramsMarketType))
+		if listEp3088.Err != nil {
+			panic(listEp3088.Err)
 		}
-		response = listEp3089.Value
+		response = listEp3088.Value
 	} else {
 
-		listEp3092 := <-this.PrivateGetApiV1FuturesBalanceFlow(this.Extend(requestUntil, paramsMarketType))
-		if listEp3092.Err != nil {
-			panic(listEp3092.Err)
+		listEp3091 := <-this.PrivateGetApiV1FuturesBalanceFlow(this.Extend(requestUntil, paramsMarketType))
+		if listEp3091.Err != nil {
+			panic(listEp3091.Err)
 		}
-		response = listEp3092.Value
+		response = listEp3091.Value
 	}
 
 	//
@@ -3450,11 +3449,11 @@ func (this *Toobit) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ...
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes275815 []any = r.Value
-	if retRes275815 == nil {
+	var retRes275715 []any = r.Value
+	if retRes275715 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes275815}
+		ch <- AsyncResult[any]{Value: retRes275715}
 	}
 	return nil
 }
@@ -3491,11 +3490,11 @@ func (this *Toobit) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes277315 []any = r.Value
-	if retRes277315 == nil {
+	var retRes277215 []any = r.Value
+	if retRes277215 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes277315}
+		ch <- AsyncResult[any]{Value: retRes277215}
 	}
 	return nil
 }
@@ -3976,11 +3975,11 @@ func (this *Toobit) fetchLeverageBody(ch chan AsyncResult[map[string]any], symbo
 		"symbol": market["id"],
 	}
 
-	listEp3740 := <-this.PrivateGetApiV1FuturesAccountLeverage(this.Extend(request, params))
-	if listEp3740.Err != nil {
-		panic(listEp3740.Err)
+	listEp3739 := <-this.PrivateGetApiV1FuturesAccountLeverage(this.Extend(request, params))
+	if listEp3739.Err != nil {
+		panic(listEp3739.Err)
 	}
-	var response []any = listEp3740.Value
+	var response []any = listEp3739.Value
 	//
 	// [
 	//     {

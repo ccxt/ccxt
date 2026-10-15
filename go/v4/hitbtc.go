@@ -699,13 +699,12 @@ func (this *Hitbtc) Describe() any {
 		"options": map[string]any{
 			"defaultNetwork": "ERC20",
 			"defaultNetworks": map[string]any{
-				"ETH":  "ETH",
+				"ETH":  "ERC20",
 				"USDT": "TRC20",
 			},
 			"networks": map[string]any{
 				"BTC":      "btc",
 				"OMNI":     "BTC",
-				"ETH":      "eth",
 				"ERC20":    "ETH",
 				"ETC":      "ETC",
 				"BEP20":    "BSC",
@@ -1097,13 +1096,19 @@ func (this *Hitbtc) ParseCurrency(currency any) map[string]any {
 		if derefPtr := this.NetworkIdToCode(networkId, code); derefPtr != nil {
 			networkCode = *derefPtr
 		}
-		networkCode = func() any {
-			if networkCode != nil {
+		var networkCodeUpper any = func() any {
+			if !IsEqual(networkCode, nil) {
 				return ToUpper(networkCode)
+			}
+			return nil
+		}()
+		networkCode = func() any {
+			if networkCodeUpper != nil {
+				return this.SafeString(this.NetworkAliases, networkCodeUpper, networkCodeUpper)
 			}
 			return code
 		}() // as hitbtc is white label, ensure we safeguard from possible bugs
-		if networkCode != nil {
+		if !IsEqual(networkCode, nil) {
 			AddElementToObject(networks, networkCode, map[string]any{
 				"info":      rawNetwork,
 				"id":        networkId,
@@ -1173,7 +1178,13 @@ func (this *Hitbtc) createDepositAddressBody(ch chan AsyncResult[any], code stri
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 	}
-	var network *string = this.SafeStringUpper(params, "network")
+	var networkInput *string = this.SafeStringUpper(params, "network")
+	var network *string = func() *string {
+		if networkInput != nil {
+			return this.SafeString(this.NetworkAliases, networkInput, networkInput)
+		}
+		return nil
+	}()
 	if (network != nil) && (code == "USDT") {
 		var networks map[string]any = SafeMapTyped(this.Options, "networks")
 		var parsedNetwork *string = this.SafeString(networks, network)
@@ -1236,7 +1247,13 @@ func (this *Hitbtc) fetchDepositAddressBody(ch chan AsyncResult[any], code strin
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 	}
-	var network *string = this.SafeStringUpper(params, "network")
+	var networkInput *string = this.SafeStringUpper(params, "network")
+	var network *string = func() *string {
+		if networkInput != nil {
+			return this.SafeString(this.NetworkAliases, networkInput, networkInput)
+		}
+		return nil
+	}()
 	if (network != nil) && (code == "USDT") {
 		var networks map[string]any = SafeMapTyped(this.Options, "networks")
 		var parsedNetwork *string = this.SafeString(networks, network)
@@ -1586,11 +1603,11 @@ func (this *Hitbtc) fetchTradesBody(ch chan AsyncResult[any], symbol any, option
 		market = this.Market(symbol)
 		request["symbol"] = market["id"]
 
-		listEp1527 := <-this.PublicGetPublicTradesSymbol(this.Extend(request, params))
-		if listEp1527.Err != nil {
-			panic(listEp1527.Err)
+		listEp1544 := <-this.PublicGetPublicTradesSymbol(this.Extend(request, params))
+		if listEp1544.Err != nil {
+			panic(listEp1544.Err)
 		}
-		var responseInner []any = listEp1527.Value
+		var responseInner []any = listEp1544.Value
 
 		ch <- AsyncResult[any]{Value: this.ParseTrades(responseInner, market)}
 		return nil
@@ -1852,11 +1869,11 @@ func (this *Hitbtc) fetchTransactionsHelperBody(ch chan AsyncResult[any], types 
 		request["limit"] = limit
 	}
 
-	listEp1767 := <-this.PrivateGetWalletTransactions(this.Extend(request, params))
-	if listEp1767.Err != nil {
-		panic(listEp1767.Err)
+	listEp1784 := <-this.PrivateGetWalletTransactions(this.Extend(request, params))
+	if listEp1784.Err != nil {
+		panic(listEp1784.Err)
 	}
-	var response []any = listEp1767.Value
+	var response []any = listEp1784.Value
 
 	//
 	//     [
@@ -2327,18 +2344,18 @@ func (this *Hitbtc) fetchTradingFeesBody(ch chan AsyncResult[any], optionalArgs 
 	var response []any = nil
 	if marketType != nil && *marketType == "spot" {
 
-		listEp2198 := <-this.PrivateGetSpotFee(query)
-		if listEp2198.Err != nil {
-			panic(listEp2198.Err)
+		listEp2215 := <-this.PrivateGetSpotFee(query)
+		if listEp2215.Err != nil {
+			panic(listEp2215.Err)
 		}
-		response = listEp2198.Value
+		response = listEp2215.Value
 	} else if marketType != nil && *marketType == "swap" {
 
-		listEp2201 := <-this.PrivateGetFuturesFee(query)
-		if listEp2201.Err != nil {
-			panic(listEp2201.Err)
+		listEp2218 := <-this.PrivateGetFuturesFee(query)
+		if listEp2218.Err != nil {
+			panic(listEp2218.Err)
 		}
-		response = listEp2201.Value
+		response = listEp2218.Value
 	} else {
 		panic(NotSupported(this.Id + " fetchTradingFees() not support this market type"))
 	}
@@ -2411,11 +2428,11 @@ func (this *Hitbtc) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opti
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes188119 []any = ListTyped(r1.Value)
-		if retRes188119 == nil {
+		var retRes188419 []any = ListTyped(r1.Value)
+		if retRes188419 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes188119}
+			ch <- AsyncResult[any]{Value: retRes188419}
 		}
 		return nil
 	}
@@ -2580,33 +2597,33 @@ func (this *Hitbtc) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs
 	var response []any = nil
 	if marginMode != nil {
 
-		listEp2421 := <-this.PrivateGetMarginHistoryOrder(this.Extend(request, paramsOmitted))
-		if listEp2421.Err != nil {
-			panic(listEp2421.Err)
+		listEp2438 := <-this.PrivateGetMarginHistoryOrder(this.Extend(request, paramsOmitted))
+		if listEp2438.Err != nil {
+			panic(listEp2438.Err)
 		}
-		response = listEp2421.Value
+		response = listEp2438.Value
 	} else {
 		if marketType != nil && *marketType == "spot" {
 
-			listEp2425 := <-this.PrivateGetSpotHistoryOrder(this.Extend(request, paramsOmitted))
-			if listEp2425.Err != nil {
-				panic(listEp2425.Err)
+			listEp2442 := <-this.PrivateGetSpotHistoryOrder(this.Extend(request, paramsOmitted))
+			if listEp2442.Err != nil {
+				panic(listEp2442.Err)
 			}
-			response = listEp2425.Value
+			response = listEp2442.Value
 		} else if marketType != nil && *marketType == "swap" {
 
-			listEp2428 := <-this.PrivateGetFuturesHistoryOrder(this.Extend(request, paramsOmitted))
-			if listEp2428.Err != nil {
-				panic(listEp2428.Err)
+			listEp2445 := <-this.PrivateGetFuturesHistoryOrder(this.Extend(request, paramsOmitted))
+			if listEp2445.Err != nil {
+				panic(listEp2445.Err)
 			}
-			response = listEp2428.Value
+			response = listEp2445.Value
 		} else if marketType != nil && *marketType == "margin" {
 
-			listEp2431 := <-this.PrivateGetMarginHistoryOrder(this.Extend(request, paramsOmitted))
-			if listEp2431.Err != nil {
-				panic(listEp2431.Err)
+			listEp2448 := <-this.PrivateGetMarginHistoryOrder(this.Extend(request, paramsOmitted))
+			if listEp2448.Err != nil {
+				panic(listEp2448.Err)
 			}
-			response = listEp2431.Value
+			response = listEp2448.Value
 		} else {
 			panic(NotSupported(this.Id + " fetchClosedOrders() not support this market type"))
 		}
@@ -2663,33 +2680,33 @@ func (this *Hitbtc) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, 
 	var response []any = nil
 	if marginMode != nil {
 
-		listEp2485 := <-this.PrivateGetMarginHistoryOrder(this.Extend(request, paramsOmitted))
-		if listEp2485.Err != nil {
-			panic(listEp2485.Err)
+		listEp2502 := <-this.PrivateGetMarginHistoryOrder(this.Extend(request, paramsOmitted))
+		if listEp2502.Err != nil {
+			panic(listEp2502.Err)
 		}
-		response = listEp2485.Value
+		response = listEp2502.Value
 	} else {
 		if marketType != nil && *marketType == "spot" {
 
-			listEp2489 := <-this.PrivateGetSpotHistoryOrder(this.Extend(request, paramsOmitted))
-			if listEp2489.Err != nil {
-				panic(listEp2489.Err)
+			listEp2506 := <-this.PrivateGetSpotHistoryOrder(this.Extend(request, paramsOmitted))
+			if listEp2506.Err != nil {
+				panic(listEp2506.Err)
 			}
-			response = listEp2489.Value
+			response = listEp2506.Value
 		} else if marketType != nil && *marketType == "swap" {
 
-			listEp2492 := <-this.PrivateGetFuturesHistoryOrder(this.Extend(request, paramsOmitted))
-			if listEp2492.Err != nil {
-				panic(listEp2492.Err)
+			listEp2509 := <-this.PrivateGetFuturesHistoryOrder(this.Extend(request, paramsOmitted))
+			if listEp2509.Err != nil {
+				panic(listEp2509.Err)
 			}
-			response = listEp2492.Value
+			response = listEp2509.Value
 		} else if marketType != nil && *marketType == "margin" {
 
-			listEp2495 := <-this.PrivateGetMarginHistoryOrder(this.Extend(request, paramsOmitted))
-			if listEp2495.Err != nil {
-				panic(listEp2495.Err)
+			listEp2512 := <-this.PrivateGetMarginHistoryOrder(this.Extend(request, paramsOmitted))
+			if listEp2512.Err != nil {
+				panic(listEp2512.Err)
 			}
-			response = listEp2495.Value
+			response = listEp2512.Value
 		} else {
 			panic(NotSupported(this.Id + " fetchOrder() not support this market type"))
 		}
@@ -2895,33 +2912,33 @@ func (this *Hitbtc) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs .
 	var response []any = nil
 	if marginMode != nil {
 
-		listEp2683 := <-this.PrivateGetMarginOrder(this.Extend(request, paramsOmitted))
-		if listEp2683.Err != nil {
-			panic(listEp2683.Err)
+		listEp2700 := <-this.PrivateGetMarginOrder(this.Extend(request, paramsOmitted))
+		if listEp2700.Err != nil {
+			panic(listEp2700.Err)
 		}
-		response = listEp2683.Value
+		response = listEp2700.Value
 	} else {
 		if marketType != nil && *marketType == "spot" {
 
-			listEp2687 := <-this.PrivateGetSpotOrder(this.Extend(request, paramsOmitted))
-			if listEp2687.Err != nil {
-				panic(listEp2687.Err)
+			listEp2704 := <-this.PrivateGetSpotOrder(this.Extend(request, paramsOmitted))
+			if listEp2704.Err != nil {
+				panic(listEp2704.Err)
 			}
-			response = listEp2687.Value
+			response = listEp2704.Value
 		} else if marketType != nil && *marketType == "swap" {
 
-			listEp2690 := <-this.PrivateGetFuturesOrder(this.Extend(request, paramsOmitted))
-			if listEp2690.Err != nil {
-				panic(listEp2690.Err)
+			listEp2707 := <-this.PrivateGetFuturesOrder(this.Extend(request, paramsOmitted))
+			if listEp2707.Err != nil {
+				panic(listEp2707.Err)
 			}
-			response = listEp2690.Value
+			response = listEp2707.Value
 		} else if marketType != nil && *marketType == "margin" {
 
-			listEp2693 := <-this.PrivateGetMarginOrder(this.Extend(request, paramsOmitted))
-			if listEp2693.Err != nil {
-				panic(listEp2693.Err)
+			listEp2710 := <-this.PrivateGetMarginOrder(this.Extend(request, paramsOmitted))
+			if listEp2710.Err != nil {
+				panic(listEp2710.Err)
 			}
-			response = listEp2693.Value
+			response = listEp2710.Value
 		} else {
 			panic(NotSupported(this.Id + " fetchOpenOrders() not support this market type"))
 		}
@@ -3076,33 +3093,33 @@ func (this *Hitbtc) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs .
 	var response []any = nil
 	if marginMode != nil {
 
-		listEp2826 := <-this.PrivateDeleteMarginOrder(this.Extend(request, paramsOmitted))
-		if listEp2826.Err != nil {
-			panic(listEp2826.Err)
+		listEp2843 := <-this.PrivateDeleteMarginOrder(this.Extend(request, paramsOmitted))
+		if listEp2843.Err != nil {
+			panic(listEp2843.Err)
 		}
-		response = listEp2826.Value
+		response = listEp2843.Value
 	} else {
 		if marketType != nil && *marketType == "spot" {
 
-			listEp2830 := <-this.PrivateDeleteSpotOrder(this.Extend(request, paramsOmitted))
-			if listEp2830.Err != nil {
-				panic(listEp2830.Err)
+			listEp2847 := <-this.PrivateDeleteSpotOrder(this.Extend(request, paramsOmitted))
+			if listEp2847.Err != nil {
+				panic(listEp2847.Err)
 			}
-			response = listEp2830.Value
+			response = listEp2847.Value
 		} else if marketType != nil && *marketType == "swap" {
 
-			listEp2833 := <-this.PrivateDeleteFuturesOrder(this.Extend(request, paramsOmitted))
-			if listEp2833.Err != nil {
-				panic(listEp2833.Err)
+			listEp2850 := <-this.PrivateDeleteFuturesOrder(this.Extend(request, paramsOmitted))
+			if listEp2850.Err != nil {
+				panic(listEp2850.Err)
 			}
-			response = listEp2833.Value
+			response = listEp2850.Value
 		} else if marketType != nil && *marketType == "margin" {
 
-			listEp2836 := <-this.PrivateDeleteMarginOrder(this.Extend(request, paramsOmitted))
-			if listEp2836.Err != nil {
-				panic(listEp2836.Err)
+			listEp2853 := <-this.PrivateDeleteMarginOrder(this.Extend(request, paramsOmitted))
+			if listEp2853.Err != nil {
+				panic(listEp2853.Err)
 			}
-			response = listEp2836.Value
+			response = listEp2853.Value
 		} else {
 			panic(NotSupported(this.Id + " cancelAllOrders() not support this market type"))
 		}
@@ -3721,10 +3738,12 @@ func (this *Hitbtc) convertCurrencyNetworkBody(ch chan EndpointResult[map[string
 		panic(ExchangeError(this.Id + " convertCurrencyNetwork() only supports USDT currently"))
 	}
 	var networks map[string]any = SafeMapTyped(this.Options, "networks")
-	var fromNetworkValue string = ToUpper(fromNetwork)
-	var toNetworkValue string = ToUpper(toNetwork)
-	var fromNetworkValue2 *string = this.SafeString(networks, fromNetworkValue) // handle ETH>ERC20 alias
-	var toNetworkValue2 *string = this.SafeString(networks, toNetworkValue)     // handle ETH>ERC20 alias
+	var fromNetworkUpper string = ToUpper(fromNetwork)
+	var toNetworkUpper string = ToUpper(toNetwork)
+	var fromNetworkValue *string = this.SafeString(this.NetworkAliases, fromNetworkUpper, fromNetworkUpper)
+	var toNetworkValue *string = this.SafeString(this.NetworkAliases, toNetworkUpper, toNetworkUpper)
+	var fromNetworkValue2 *string = this.SafeString(networks, fromNetworkValue) // unified code to exchange id
+	var toNetworkValue2 *string = this.SafeString(networks, toNetworkValue)     // unified code to exchange id
 	if fromNetworkValue2 == toNetworkValue2 || (fromNetworkValue2 != nil && toNetworkValue2 != nil && *fromNetworkValue2 == *toNetworkValue2) {
 		panic(BadRequest(this.Id + " convertCurrencyNetwork() fromNetwork cannot be the same as toNetwork"))
 	}
@@ -3801,7 +3820,13 @@ func (this *Hitbtc) withdrawBody(ch chan EndpointResult[map[string]any], code st
 		request["payment_id"] = tagWithdrawTag
 	}
 	var networks map[string]any = SafeMapTyped(this.Options, "networks")
-	var network *string = this.SafeStringUpper(paramsWithdrawTag, "network")
+	var networkInput *string = this.SafeStringUpper(paramsWithdrawTag, "network")
+	var network *string = func() *string {
+		if networkInput != nil {
+			return this.SafeString(this.NetworkAliases, networkInput, networkInput)
+		}
+		return nil
+	}()
 	if (network != nil) && (code == "USDT") {
 		var parsedNetwork *string = this.SafeString(networks, network)
 		if parsedNetwork != nil {
@@ -3969,11 +3994,11 @@ func (this *Hitbtc) fetchFundingRateHistoryBody(ch chan AsyncResult[any], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes294919 []any = ListTyped(r1.Value)
-		if retRes294919 == nil {
+		var retRes295519 []any = ListTyped(r1.Value)
+		if retRes295519 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes294919}
+			ch <- AsyncResult[any]{Value: retRes295519}
 		}
 		return nil
 	}
@@ -4096,26 +4121,26 @@ func (this *Hitbtc) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs ..
 	var response []any = nil
 	if marginMode != nil {
 
-		listEp3723 := <-this.PrivateGetMarginAccount(this.Extend(request, paramsOmitted))
-		if listEp3723.Err != nil {
-			panic(listEp3723.Err)
+		listEp3748 := <-this.PrivateGetMarginAccount(this.Extend(request, paramsOmitted))
+		if listEp3748.Err != nil {
+			panic(listEp3748.Err)
 		}
-		response = listEp3723.Value
+		response = listEp3748.Value
 	} else {
 		if marketType != nil && *marketType == "swap" {
 
-			listEp3727 := <-this.PrivateGetFuturesAccount(this.Extend(request, paramsOmitted))
-			if listEp3727.Err != nil {
-				panic(listEp3727.Err)
+			listEp3752 := <-this.PrivateGetFuturesAccount(this.Extend(request, paramsOmitted))
+			if listEp3752.Err != nil {
+				panic(listEp3752.Err)
 			}
-			response = listEp3727.Value
+			response = listEp3752.Value
 		} else if marketType != nil && *marketType == "margin" {
 
-			listEp3730 := <-this.PrivateGetMarginAccount(this.Extend(request, paramsOmitted))
-			if listEp3730.Err != nil {
-				panic(listEp3730.Err)
+			listEp3755 := <-this.PrivateGetMarginAccount(this.Extend(request, paramsOmitted))
+			if listEp3755.Err != nil {
+				panic(listEp3755.Err)
 			}
-			response = listEp3730.Value
+			response = listEp3755.Value
 		} else {
 			panic(NotSupported(this.Id + " fetchPositions() not support this market type"))
 		}
@@ -4770,11 +4795,11 @@ func (this *Hitbtc) reduceMarginBody(ch chan EndpointResult[map[string]any], sym
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes355115 map[string]any = MapTyped(r.Value)
-	if retRes355115 == nil {
+	var retRes355715 map[string]any = MapTyped(r.Value)
+	if retRes355715 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes355115, Raw: retRes355115}
+		ch <- EndpointResult[map[string]any]{Value: retRes355715, Raw: retRes355715}
 	}
 	return nil
 }
@@ -4807,11 +4832,11 @@ func (this *Hitbtc) addMarginBody(ch chan AsyncResult[map[string]any], symbol st
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes356815 map[string]any = MapTyped(r.Value)
-	if retRes356815 == nil {
+	var retRes357415 map[string]any = MapTyped(r.Value)
+	if retRes357415 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes356815}
+		ch <- AsyncResult[map[string]any]{Value: retRes357415}
 	}
 	return nil
 }
@@ -5090,9 +5115,15 @@ func (this *Hitbtc) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 		if derefPtr := this.NetworkIdToCode(networkId, code); derefPtr != nil {
 			networkCode = *derefPtr
 		}
-		networkCode = func() any {
-			if networkCode != nil {
+		var networkCodeUpper any = func() any {
+			if !IsEqual(networkCode, nil) {
 				return ToUpper(networkCode)
+			}
+			return nil
+		}()
+		networkCode = func() any {
+			if networkCodeUpper != nil {
+				return this.SafeString(this.NetworkAliases, networkCodeUpper, networkCodeUpper)
 			}
 			return nil
 		}()
@@ -5110,7 +5141,7 @@ func (this *Hitbtc) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 		if isDefault != nil && *isDefault == true {
 			AddElementToObject(result, "withdraw", withdrawResult)
 		}
-		if networkCode != nil {
+		if !IsEqual(networkCode, nil) {
 			AddElementToObject(GetValue(result, "networks"), networkCode, map[string]any{
 				"withdraw": withdrawResult,
 				"deposit": map[string]any{

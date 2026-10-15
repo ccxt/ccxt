@@ -347,7 +347,6 @@ export default class woo extends Exchange {
                 'sandboxMode': false,
                 'createMarketBuyOrderRequiresPrice': true,
                 'networks': {
-                    'TRX': 'TRX', // WOO X renamed the network id from TRON to TRX
                     'TRC20': 'TRX',
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
@@ -3404,7 +3403,7 @@ export default class woo extends Exchange {
             'amount': amount,
             'addressTo': address,
             'tag': tagWithdrawTag,
-            'network': network,
+            'network': this.safeString(this.networkAliases, network, network),
             'type': 'withdrawal',
             'status': 'pending',
         });
@@ -4743,7 +4742,7 @@ export default class woo extends Exchange {
         const networkKeys = Object.keys(networks);
         for (let i = 0; i < networkKeys.length; i++) {
             const network = networkKeys[i];
-            if (network === 'ETH') {
+            if (network === 'ERC20') {
                 return network;
             }
         }

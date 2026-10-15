@@ -3194,7 +3194,7 @@ export default class whitebit extends Exchange {
             'txid': this.safeString(transaction, 'transactionId'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'network': this.safeString(transaction, 'network'),
+            'network': this.networkIdToCode(this.safeString(transaction, 'network'), this.safeCurrencyCode(currencyId, currencyResolved)),
             'addressFrom': (method === '1') ? address : undefined,
             'address': address,
             'addressTo': (method === '2') ? address : undefined,

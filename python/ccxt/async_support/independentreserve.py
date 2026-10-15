@@ -304,7 +304,7 @@ class independentreserve(Exchange, ImplicitAPI):
                 },
                 'networks': {
                     'BTC': 'Bitcoin',
-                    'ETH': 'Ethereum',
+                    'ERC20': 'Ethereum',
                     'BCH': 'BitcoinCash',
                     'LTC': 'Litecoin',
                     'XRP': 'XrpLedger',
@@ -316,7 +316,7 @@ class independentreserve(Exchange, ImplicitAPI):
                     'DOT': 'Polkadot',
                     'ADA': 'Cardano',
                     'SOL': 'Solana',
-                    'TRX': 'Tron',
+                    'TRC20': 'Tron',
                 },
             },
         })

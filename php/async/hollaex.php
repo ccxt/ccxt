@@ -283,9 +283,7 @@ class hollaex extends Exchange {
                 'api-expires' => $this->parse_to_int($this->timeout / 1000),
                 'networks' => array(
                     'BTC' => 'btc',
-                    'ETH' => 'eth',
                     'ERC20' => 'eth',
-                    'TRX' => 'trx',
                     'TRC20' => 'trx',
                     'XRP' => 'xrp',
                     'XLM' => 'xlm',
@@ -1630,11 +1628,11 @@ class hollaex extends Exchange {
         $this->check_address($address);
         $currencyId = $this->safe_string($depositAddress, 'currency');
         $currencyResolved = $this->safe_currency($currencyId, $currency);
-        $network = $this->safe_string($depositAddress, 'network');
+        $networkId = $this->safe_string($depositAddress, 'network');
         return array(
             'info' => $depositAddress,
             'currency' => $currencyResolved['code'],
-            'network' => $network,
+            'network' => $this->network_id_to_code($networkId, $currencyResolved['code']),
             'address' => $address,
             'tag' => $tag,
         );
@@ -1710,7 +1708,7 @@ class hollaex extends Exchange {
         if ($network === null) {
             $addresses = $wallet;
         } else {
-            $addresses = $this->filter_by($wallet, 'network', $network);
+            $addresses = $this->filter_by($wallet, 'network', $this->network_code_to_id($network));
         }
         return $this->parse_deposit_addresses($addresses, $codes, false);
     }

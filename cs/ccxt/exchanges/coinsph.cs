@@ -2443,15 +2443,15 @@ public partial class coinsph : Exchange
                 { "cost", feeCost },
             };
         }
-        string? network = this.safeString(transaction, "network");
-        bool intern = network == "Internal";
+        string? networkId = this.safeString(transaction, "network");
+        bool intern = networkId == "Internal";
         return new Dictionary<string, object>() {
             { "info", transaction },
             { "id", id },
             { "txid", txid },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "network", network },
+            { "network", this.networkIdToCode(networkId, code) },
             { "address", address },
             { "addressTo", address },
             { "addressFrom", null },

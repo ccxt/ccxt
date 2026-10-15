@@ -123,7 +123,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 },
                 'www': 'https://futures.kraken.com/',
                 'doc': [
-                    'https://docs.kraken.com/api/docs/futures-api/trading/market-data/',
+                    'https://docs.kraken.com/exchange/guides/futures/rest',
                 ],
                 'fees': 'https://support.kraken.com/hc/en-us/articles/360022835771-Transaction-fees-and-rebates-for-Kraken-Futures',
                 'referral': None,
@@ -794,8 +794,8 @@ class krakenfutures(Exchange, ImplicitAPI):
         """
         fetch the trading fees for multiple markets, resolving the account's 30-day usd volume tier when API credentials are set
 
-        https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules
-        https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules-volumes
+        https://docs.kraken.com/api-reference/fee-schedules/get-fee-schedules
+        https://docs.kraken.com/api-reference/fee-schedules/get-fee-schedule-volumes
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
@@ -886,7 +886,7 @@ class krakenfutures(Exchange, ImplicitAPI):
     async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
 
-        https://docs.kraken.com/api/docs/futures-api/charts/candles
+        https://docs.kraken.com/api-reference/candles/market-candles
 
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -971,8 +971,8 @@ class krakenfutures(Exchange, ImplicitAPI):
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
 
-        https://docs.kraken.com/api/docs/futures-api/trading/get-history
-        https://docs.kraken.com/api/docs/futures-api/history/get-public-execution-events
+        https://docs.kraken.com/api-reference/market-data/get-trade-history
+        https://docs.kraken.com/api-reference/market-history/get-public-execution-events
 
         Fetch a history of filled trades that self account has made
         :param str symbol: Unified CCXT market symbol
@@ -1612,7 +1612,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         """
         dead man's switch, cancel all orders after the given timeout
 
-        https://docs.kraken.com/api/docs/futures-api/trading/cancel-all-orders-after
+        https://docs.kraken.com/api-reference/order-management/dead-mans-switch
 
         :param number timeout: time in milliseconds, 0 represents cancel the timer
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2649,7 +2649,7 @@ class krakenfutures(Exchange, ImplicitAPI):
     async def fetch_balance(self, params: dict = {}) -> Balances:
         """
 
-        https://docs.kraken.com/api/docs/futures-api/trading/get-accounts
+        https://docs.kraken.com/api-reference/account-information/get-wallets
 
         Fetch the balance for a sub-account, all sub-account balances are inside 'info' in the response
         :param dict [params]: Exchange specific parameters

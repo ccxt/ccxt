@@ -2156,15 +2156,15 @@ class coinsph extends Exchange {
         if ($feeCost !== null) {
             $fee = array( 'currency' => $code, 'cost' => $feeCost );
         }
-        $network = $this->safe_string($transaction, 'network');
-        $internal = $network === 'Internal';
+        $networkId = $this->safe_string($transaction, 'network');
+        $internal = $networkId === 'Internal';
         return array(
             'info' => $transaction,
             'id' => $id,
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => $network,
+            'network' => $this->network_id_to_code($networkId, $code),
             'address' => $address,
             'addressTo' => $address,
             'addressFrom' => null,

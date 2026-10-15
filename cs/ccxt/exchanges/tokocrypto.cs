@@ -326,7 +326,7 @@ public partial class tokocrypto : Exchange
                 { "reverseNetworks", new Dictionary<string, object>() {
                     { "tronscan.org", "TRC20" },
                     { "etherscan.io", "ERC20" },
-                    { "bscscan.com", "BSC" },
+                    { "bscscan.com", "BEP20" },
                     { "explorer.binance.org", "BEP2" },
                     { "bithomp.com", "XRP" },
                     { "bloks.io", "EOS" },
@@ -2550,7 +2550,7 @@ public partial class tokocrypto : Exchange
             tag = null;
         }
         this.checkAddress(address);
-        return ccxt.BaseExchange.ToDepositAddress(new Dictionary<string, object>() {             { "info", response },             { "currency", code },             { "network", this.safeString(data, "network") },             { "address", address },             { "tag", tag },         });
+        return ccxt.BaseExchange.ToDepositAddress(new Dictionary<string, object>() {             { "info", response },             { "currency", code },             { "network", this.networkIdToCode(this.safeString(data, "network"), code) },             { "address", address },             { "tag", tag },         });
     }
 
     /**
@@ -2819,7 +2819,7 @@ public partial class tokocrypto : Exchange
             { "txid", txid },
             { "type", type },
             { "currency", code },
-            { "network", this.safeString(transaction, "network") },
+            { "network", this.networkIdToCode(this.safeString(transaction, "network"), code) },
             { "amount", this.safeNumber(transaction, "amount") },
             { "status", this.parseTransactionStatusByType(this.safeString(transaction, "status"), type) },
             { "timestamp", timestamp },

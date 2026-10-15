@@ -305,7 +305,7 @@ class independentreserve extends Exchange {
                 ),
                 'networks' => array(
                     'BTC' => 'Bitcoin',
-                    'ETH' => 'Ethereum',
+                    'ERC20' => 'Ethereum',
                     'BCH' => 'BitcoinCash',
                     'LTC' => 'Litecoin',
                     'XRP' => 'XrpLedger',
@@ -317,7 +317,7 @@ class independentreserve extends Exchange {
                     'DOT' => 'Polkadot',
                     'ADA' => 'Cardano',
                     'SOL' => 'Solana',
-                    'TRX' => 'Tron',
+                    'TRC20' => 'Tron',
                 ),
             ),
         ));

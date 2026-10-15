@@ -593,8 +593,8 @@ func (this *Bittrade) Describe() any {
 		"options": map[string]any{
 			"defaultNetwork": "ERC20",
 			"networks": map[string]any{
-				"ETH":   "erc20",
-				"TRX":   "trc20",
+				"ERC20": "erc20",
+				"TRC20": "trc20",
 				"HRC20": "hrc20",
 				"HECO":  "hrc20",
 				"HT":    "hrc20",
@@ -2953,7 +2953,7 @@ func (this *Bittrade) ParseTransaction(transaction any, optionalArgs ...any) map
 		"txid":        this.SafeString(transaction, "tx-hash"),
 		"timestamp":   timestamp,
 		"datetime":    this.Iso8601(timestamp),
-		"network":     this.SafeStringUpper(transaction, "chain"),
+		"network":     this.NetworkIdToCode(this.SafeStringUpper(transaction, "chain"), code),
 		"address":     this.SafeString(transaction, "address"),
 		"addressTo":   nil,
 		"addressFrom": nil,
@@ -3037,8 +3037,11 @@ func (this *Bittrade) withdrawBody(ch chan EndpointResult[map[string]any], code 
 		request["addr-tag"] = tagWithdrawTag // only for XRP?
 	}
 	var networks map[string]any = SafeMapTyped(this.Options, "networks")
-	var network *string = this.SafeStringUpper(paramsWithdrawTag, "network") // this line allows the user to specify either ERC20 or ETH
-	network = this.SafeStringLower(networks, network, network)               // handle ETH>ERC20 alias
+	var network *string = this.SafeStringUpper(paramsWithdrawTag, "network")
+	if network != nil {
+		network = this.SafeString(this.NetworkAliases, network, network) // accepts aliases like ETH for ERC20
+	}
+	network = this.SafeStringLower(networks, network, network) // handle ETH>ERC20 alias
 	if network != nil {
 		// possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
 		if network != nil && *network == "erc20" {

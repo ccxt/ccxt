@@ -1804,7 +1804,7 @@ impl BitfinexCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), networkId.clone());
         m.insert("id".to_string(), to_lower(&networkId));
-        m.insert("network".to_string(), networkId);
+        m.insert("network".to_string(), network.clone());
         m.insert("active".to_string(), Value::Null);
         m.insert("deposit".to_string(), Value::Bool(self.safe_integer(dwStatuses.clone(), Value::Int(1), &[]).as_f64() == Some(1.0)));
         m.insert("withdraw".to_string(), Value::Bool(self.safe_integer(dwStatuses, Value::Int(2), &[]).as_f64() == Some(1.0)));
@@ -3663,7 +3663,8 @@ impl BitfinexCore {
         }
         let mut currency: Value = self.currency(code.clone());
         // if not provided explicitly we will try to match using the currency name
-        let mut network: Value = self.safe_string_k(params.clone(), "network", &[code.clone()]);
+        let mut networkParam: Value = self.safe_string_k(params.clone(), "network", &[code.clone()]);
+        let mut network: Value = self.safe_string(self.networkAliases.clone(), networkParam.clone(), &[networkParam.clone()]);
         let mut currencyNetworks: Value = self.safe_dict_k(currency, "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4100,7 +4101,8 @@ impl BitfinexCore {
         }
         let mut currency: Value = self.currency(code.clone());
         // if not provided explicitly we will try to match using the currency name
-        let mut network: Value = self.safe_string_k(paramsWithdrawTag.clone(), "network", &[code.clone()]);
+        let mut networkParam: Value = self.safe_string_k(paramsWithdrawTag.clone(), "network", &[code.clone()]);
+        let mut network: Value = self.safe_string(self.networkAliases.clone(), networkParam.clone(), &[networkParam.clone()]);
         let mut paramsOmitted: Value = self.omit(paramsWithdrawTag, Value::Str("network".into()), &[]);
         let mut currencyNetworks: Value = self.safe_dict_k(currency.clone(), "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();

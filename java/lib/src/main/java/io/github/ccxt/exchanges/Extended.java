@@ -2504,7 +2504,7 @@ public class Extended extends ExtendedApi
             );
         }
         String transactionType = this.parseTransactionType(this.safeString(transaction, "type"));
-        String network = this.safeString(transaction, "chain");
+        String network = this.networkIdToCode(this.safeString(transaction, "chain"), (String) null);
         {
             HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
             h2kMap4.put("info", transaction);

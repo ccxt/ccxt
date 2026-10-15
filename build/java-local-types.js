@@ -14684,7 +14684,6 @@ const JAVA_BOOLEAN_PARAMS = {
     'filterOutByArray': [ 3 ],
     'filterTransfersByType': [ 2 ],
     'getSymbolsForMarketType': [ 2, 3 ],
-    'handleRequestNetwork': [ 4 ],
     'handleTriggerDirectionAndParams': [ 2 ],
     'handleTriggerPricesAndParams': [ 2 ],
     'handleUTAAndParams': [ 2 ],

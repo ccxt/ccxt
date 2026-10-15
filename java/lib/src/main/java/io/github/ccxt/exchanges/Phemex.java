@@ -878,8 +878,8 @@ public class Phemex extends PhemexApi
                     put( "BEP20", "BNB" );
                 }} );
                 put( "defaultNetworks", new HashMap<String, Object>() {{
-                    put( "USDT", "ETH" );
-                    put( "MKR", "ETH" );
+                    put( "USDT", "ERC20" );
+                    put( "MKR", "ERC20" );
                 }} );
                 put( "defaultSubType", "linear" );
                 put( "accountsByType", new HashMap<String, Object>() {{
@@ -4200,7 +4200,10 @@ public class Phemex extends PhemexApi
             Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
             String network = this.safeStringUpper2(parameters, "network", "chainName", defaultNetwork);
             Map<String, Object> paramsOmitted = this.omit(parameters, "network");
-            network = this.safeString(networks, network, network);
+            if (!java.util.Objects.equals(network, null))
+            {
+                network = this.safeString(networks, this.safeString(this.networkAliases, network, network), network);
+            }
             if (java.util.Objects.equals(network, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchDepositAddress() requires a network parameter")) ;
