@@ -363970,7 +363970,7 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
             tiers.push({
                 'tier': this.sum(i, 1),
                 'symbol': this.safeString(market, 'symbol'),
-                'currency': this.safeString(market, 'base'),
+                'currency': this.safeString(market, 'settle'),
                 'minNotional': minNotional,
                 'maxNotional': maxNotional,
                 'maintenanceMarginRate': this.safeNumber(item, 'maintenance_rate'),
@@ -529577,7 +529577,7 @@ class bingx extends _bingx_js__rspack_import_0/* ["default"] */.A {
         }
         const uuid = this.uuid();
         let baseUrl = undefined;
-        let request = {};
+        let request = undefined;
         if (type === 'swap') {
             if (subType === 'inverse') {
                 throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' watchMyTrades is not supported for inverse swap markets yet');
