@@ -255,7 +255,7 @@ class bigone(Exchange, ImplicitAPI):
                     'DOGE': 'Dogecoin',
                     'XEC': 'ECash',
                     'EOS': 'EOS',
-                    'ETH': 'Ethereum',
+                    'ERC20': 'Ethereum',
                     'ETC': 'EthereumClassic',
                     'ETHW': 'EthereumPow',
                     'FTM': 'Fantom',
@@ -1957,7 +1957,7 @@ class bigone(Exchange, ImplicitAPI):
         if dataLength < 1:
             raise ExchangeError(self.id + ' fetchDepositAddress() returned empty address response')
         chainsIndexedById = self.index_by(data, 'chain')
-        selectedNetworkId = self.select_network_id_from_raw_networks(code, networkCode, chainsIndexedById)
+        selectedNetworkId = self.select_network_key_from_networks(code, networkCode, chainsIndexedById, False)
         addressObject = self.safe_dict(chainsIndexedById, selectedNetworkId, {})
         address = self.safe_string(addressObject, 'value')
         tag = self.safe_string(addressObject, 'memo')

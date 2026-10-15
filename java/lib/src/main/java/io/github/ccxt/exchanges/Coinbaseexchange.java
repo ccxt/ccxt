@@ -622,7 +622,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             put( "options", new HashMap<String, Object>() {{
                 put( "networks", new HashMap<String, Object>() {{
                     put( "BTC", "bitcoin" );
-                    put( "ETH", "ethereum" );
+                    put( "ERC20", "ethereum" );
                     put( "SOL", "solana" );
                     put( "ARBITRUM", "arbitrum" );
                     put( "AVAXC", "avacchain" );

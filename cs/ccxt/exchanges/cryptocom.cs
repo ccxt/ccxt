@@ -2630,13 +2630,17 @@ public partial class cryptocom : Exchange
     public async override Task<ccxt.DepositAddress> FetchDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string? network = this.safeStringUpper(parameters, "network");
+        string? networkParam = this.safeStringUpper(parameters, "network");
         object paramsOmitted = this.omit(parameters, new List<object>() {"network"});
         Dictionary<string, object> depositAddressesRaw = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(code, paramsOmitted));
         Dictionary<string, object> depositAddresses = depositAddressesRaw;
-        if (((network != null) && depositAddresses.ContainsKey(network)))
+        if ((networkParam != null))
         {
-            return ccxt.BaseExchange.ToDepositAddress((depositAddresses != null && network != null && depositAddresses.ContainsKey(network) ? depositAddresses[network] : null));
+            string? network = this.safeString(this.networkAliases, networkParam, networkParam);
+            if (((network != null) && depositAddresses.ContainsKey(network)))
+            {
+                return ccxt.BaseExchange.ToDepositAddress((depositAddresses != null && network != null && depositAddresses.ContainsKey(network) ? depositAddresses[network] : null));
+            }
         }
         List<object> keys = new List<object>(depositAddresses.Keys);
         return ccxt.BaseExchange.ToDepositAddress(getValue(depositAddresses, (keys != null && 0 < keys.Count ? keys[0] : null)));

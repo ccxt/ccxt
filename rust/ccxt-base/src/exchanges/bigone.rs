@@ -608,7 +608,7 @@ impl BigoneCore {
         m.insert("DOGE".to_string(), Value::Str("Dogecoin".into()));
         m.insert("XEC".to_string(), Value::Str("ECash".into()));
         m.insert("EOS".to_string(), Value::Str("EOS".into()));
-        m.insert("ETH".to_string(), Value::Str("Ethereum".into()));
+        m.insert("ERC20".to_string(), Value::Str("Ethereum".into()));
         m.insert("ETC".to_string(), Value::Str("EthereumClassic".into()));
         m.insert("ETHW".to_string(), Value::Str("EthereumPow".into()));
         m.insert("FTM".to_string(), Value::Str("Fantom".into()));
@@ -2744,7 +2744,7 @@ impl BigoneCore {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() returned empty address response".into()))));
         }
         let mut chainsIndexedById: Value = self.index_by(data, Value::Str("chain".into()));
-        let mut selectedNetworkId: Value = self.select_network_id_from_raw_networks(code.clone(), networkCode, chainsIndexedById.clone());
+        let mut selectedNetworkId: Value = self.select_network_key_from_networks(code.clone(), networkCode, chainsIndexedById.clone(), &[Value::Bool(false)]);
         let mut addressObject: Value = self.safe_dict(chainsIndexedById, selectedNetworkId.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

@@ -287,7 +287,7 @@ public class Indodax extends IndodaxApi
                 put( "adjustForTimeDifference", false );
                 put( "networks", new HashMap<String, Object>() {{
                     put( "XLM", "Stellar Token" );
-                    put( "BSC", "bep20" );
+                    put( "BEP20", "bep20" );
                     put( "TRC20", "trc20" );
                     put( "MATIC", "polygon" );
                 }} );

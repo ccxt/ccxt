@@ -2042,12 +2042,14 @@ class cryptocom(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        network = self.safe_string_upper(params, 'network')
+        networkParam = self.safe_string_upper(params, 'network')
         paramsOmitted = self.omit(params, ['network'])
         depositAddressesRaw = self.fetch_deposit_addresses_by_network(code, paramsOmitted)
         depositAddresses = depositAddressesRaw
-        if network in depositAddresses:
-            return depositAddresses[network]
+        if networkParam is not None:
+            network = self.safe_string(self.networkAliases, networkParam, networkParam)
+            if network in depositAddresses:
+                return depositAddresses[network]
         keys = list(depositAddresses.keys())
         return depositAddresses[keys[0]]
 

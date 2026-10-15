@@ -1813,7 +1813,7 @@ public class Htx extends HtxApi
                     put( "LTC", "LTC" );
                     put( "XRP", "XRP" );
                     put( "XLM", "XLM" );
-                    put( "CRONOS", "CRO" );
+                    put( "CRC20", "CRO" );
                     put( "CRO", "CRO" );
                     put( "GLMR", "GLMR" );
                     put( "POLYGON", "MATIC" );
@@ -8026,7 +8026,7 @@ public class Htx extends HtxApi
             String networkCode = (String) ((List<Object>) networkCodeparamsOmitedVariable).get(0);
             Map<String, Object> paramsOmited = (Map<String, Object>) ((List<Object>) networkCodeparamsOmitedVariable).get(1);
             Object indexedAddresses = (this.fetchDepositAddressesByNetwork(code, paramsOmited)).join();
-            Object selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks(currency.get("code"), networkCode, indexedAddresses);
+            Object selectedNetworkCode = this.selectNetworkKeyFromNetworks(currency.get("code"), networkCode, indexedAddresses, true);
             return this.safeValue(indexedAddresses, selectedNetworkCode);
         }).thenApply(DepositAddress::new);
 

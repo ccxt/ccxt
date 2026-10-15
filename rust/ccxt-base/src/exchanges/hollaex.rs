@@ -600,9 +600,7 @@ impl HollaexCore {
         m.insert("networks".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("BTC".to_string(), Value::Str("btc".into()));
-        m.insert("ETH".to_string(), Value::Str("eth".into()));
         m.insert("ERC20".to_string(), Value::Str("eth".into()));
-        m.insert("TRX".to_string(), Value::Str("trx".into()));
         m.insert("TRC20".to_string(), Value::Str("trx".into()));
         m.insert("XRP".to_string(), Value::Str("xrp".into()));
         m.insert("XLM".to_string(), Value::Str("xlm".into()));
@@ -2037,12 +2035,12 @@ impl HollaexCore {
         self.check_address(&[address.clone()]);
         let mut currencyId: Value = self.safe_string_k(depositAddress.clone(), "currency", &[]);
         let mut currencyResolved: Value = self.safe_currency(currencyId, &[currency]);
-        let mut network: Value = self.safe_string_k(depositAddress.clone(), "network", &[]);
+        let mut networkId: Value = self.safe_string_k(depositAddress.clone(), "network", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositAddress);
         m.insert("currency".to_string(), currencyResolved.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null));
-        m.insert("network".to_string(), network);
+        m.insert("network".to_string(), self.network_id_to_code(&[networkId, currencyResolved.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)]));
         m.insert("address".to_string(), address);
         m.insert("tag".to_string(), tag);
     m
@@ -2122,7 +2120,7 @@ impl HollaexCore {
         if (network == Value::Null) {
             addresses = wallet.clone();
         }  else {
-            addresses = self.filter_by(wallet, Value::Str("network".into()), network, &[]);
+            addresses = self.filter_by(wallet, Value::Str("network".into()), self.network_code_to_id(network, &[]), &[]);
         }
         return self.parse_deposit_addresses(addresses, &[codes, Value::Bool(false)]);
 

@@ -5683,6 +5683,9 @@ func (this *Aster) withdrawBody(ch chan EndpointResult[map[string]any], code str
 	// TODO: check how ARBI signature would work
 	var networks map[string]any = SafeMapTyped(this.Options, "networks")
 	var network *string = this.SafeStringUpper(paramsWithdrawTag, "network")
+	if network != nil {
+		network = this.SafeString(this.NetworkAliases, network, network) // accepts aliases like ETH for ERC20
+	}
 	network = this.SafeString(networks, network, network)
 	if (chainId == nil) && (network != nil) {
 		var chainIds map[string]any = SafeMapTyped(this.Options, "networksToChainId")

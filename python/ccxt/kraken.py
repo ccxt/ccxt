@@ -288,10 +288,7 @@ class kraken(Exchange, ImplicitAPI):
                 'delistedMarketsById': {},
                 # cannot withdraw/deposit these
                 'inactiveCurrencies': ['CAD', 'USD', 'JPY', 'GBP'],
-                'networks': {
-                    'ETH': 'ERC20',
-                    'TRX': 'TRC20',
-                },
+                'networks': {},
                 'depositMethods': {
                     '1INCH': '1inch' + ' ' + '(1INCH)',
                     'AAVE': 'Aave',
@@ -3140,8 +3137,8 @@ class kraken(Exchange, ImplicitAPI):
             self.load_markets()
         currency = self.currency(code)
         network = self.safe_string_upper(params, 'network')
-        networks = self.safe_dict(self.options, 'networks', {})
-        network = self.safe_string(networks, network, network)  # support ETH > ERC20 aliases
+        if network is not None:
+            network = self.safe_string(self.networkAliases, network, network)
         paramsOmitted = self.omit(params, 'network')
         codeResolved = code
         if (code == 'USDT') and (network == 'TRC20'):

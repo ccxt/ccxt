@@ -279,7 +279,7 @@ class coinbaseinternational extends Exchange {
                     'method' => 'v1PrivatePostTransfersWithdraw', // use v1PrivatePostTransfersWithdrawCounterparty for counterparty withdrawals
                 ),
                 'networksById' => array(
-                    'ethereum' => 'ETH',
+                    'ethereum' => 'ERC20',
                     'arbitrum' => 'ARBITRUM',
                     'avacchain' => 'AVAX',
                     'optimism' => 'OPTIMISM',

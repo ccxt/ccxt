@@ -320,7 +320,7 @@ class deepcoin extends Exchange {
                     'ERC20' => 'ERC20',
                     'TRC20' => 'TRC20',
                     'ARBITRUM' => 'ARBITRUM',
-                    'BSC' => 'BSC(BEP20)',
+                    'BEP20' => 'BSC(BEP20)',
                     'SOL' => 'SOL',
                     'BTC' => 'Bitcoin',
                     'ADA' => 'Cardano',
@@ -1225,6 +1225,9 @@ class deepcoin extends Exchange {
         $defaultNetwork = $this->safe_string($defaultNetworks, $code);
         if (($network === null) || ($network === '')) {
             $network = $defaultNetwork;
+        }
+        if ($network !== null) {
+            $network = $this->safe_string($this->networkAliases, $network, $network);
         }
         $paramsOmitted = ($network !== null) ? $this->omit($params, 'network') : $params;
         $addressess = $this->fetch_deposit_addresses(array( $code ), $paramsOmitted);

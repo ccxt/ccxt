@@ -4472,7 +4472,7 @@ func (this *Whitebit) ParseTransaction(transaction any, optionalArgs ...any) map
 		"txid":      this.SafeString(transaction, "transactionId"),
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
-		"network":   this.SafeString(transaction, "network"),
+		"network":   this.NetworkIdToCode(this.SafeString(transaction, "network"), this.SafeCurrencyCode(currencyId, currencyResolved)),
 		"addressFrom": func() any {
 			if method != nil && *method == "1" {
 				return address

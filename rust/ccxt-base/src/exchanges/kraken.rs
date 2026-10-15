@@ -708,8 +708,6 @@ impl KrakenCore {
         m.insert("inactiveCurrencies".to_string(), Value::from(vec![Value::Str("CAD".into()), Value::Str("USD".into()), Value::Str("JPY".into()), Value::Str("GBP".into())]));
         m.insert("networks".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ETH".to_string(), Value::Str("ERC20".into()));
-        m.insert("TRX".to_string(), Value::Str("TRC20".into()));
     m
 }));
         m.insert("depositMethods".to_string(), Value::Map({
@@ -4393,11 +4391,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut currency: Value = self.currency(code.clone());
         let mut network: Value = self.safe_string_upper_k(params.clone(), "network", &[]);
-        let mut networks: Value = self.safe_dict_k(self.options.clone(), "networks", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        network = self.safe_string(networks, network.clone(), &[network.clone()]); // support ETH > ERC20 aliases
+        if (network != Value::Null) {
+            network = self.safe_string(self.networkAliases.clone(), network.clone(), &[network.clone()]);
+        }
         let mut paramsOmitted: Value = self.omit(params, Value::Str("network".into()), &[]);
         let mut codeResolved: Value = code.clone();
         if (code.as_str() == Some("USDT")) && (network.as_str() == Some("TRC20")) {

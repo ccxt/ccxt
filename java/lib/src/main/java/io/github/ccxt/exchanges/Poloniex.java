@@ -544,7 +544,6 @@ public class Poloniex extends PoloniexApi
                     put( "BEP20", "BSC" );
                     put( "ERC20", "ETH" );
                     put( "TRC20", "TRX" );
-                    put( "TRX", "TRX" );
                 }} );
                 put( "networksById", new HashMap<String, Object>() {{
                     put( "TRX", "TRC20" );
@@ -3511,7 +3510,7 @@ public class Poloniex extends PoloniexApi
             exchangeNetworkId = networkEntry.get("id");
         } else
         {
-            exchangeNetworkId = networkCode;
+            exchangeNetworkId = this.networkCodeToId((String) (networkCode), code);
         }
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("currency", exchangeNetworkId);

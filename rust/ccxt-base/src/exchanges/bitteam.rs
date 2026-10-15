@@ -489,10 +489,10 @@ impl BitteamCore {
         m.insert("ethereum".to_string(), Value::Str("ERC20".into()));
         m.insert("Tron".to_string(), Value::Str("TRC20".into()));
         m.insert("tron".to_string(), Value::Str("TRC20".into()));
-        m.insert("Binance".to_string(), Value::Str("BSC".into()));
-        m.insert("binance".to_string(), Value::Str("BSC".into()));
-        m.insert("Binance Smart Chain".to_string(), Value::Str("BSC".into()));
-        m.insert("bscscan".to_string(), Value::Str("BSC".into()));
+        m.insert("Binance".to_string(), Value::Str("BEP20".into()));
+        m.insert("binance".to_string(), Value::Str("BEP20".into()));
+        m.insert("Binance Smart Chain".to_string(), Value::Str("BEP20".into()));
+        m.insert("bscscan".to_string(), Value::Str("BEP20".into()));
         m.insert("Bitcoin".to_string(), Value::Str("BTC".into()));
         m.insert("bitcoin".to_string(), Value::Str("BTC".into()));
         m.insert("Litecoin".to_string(), Value::Str("LTC".into()));

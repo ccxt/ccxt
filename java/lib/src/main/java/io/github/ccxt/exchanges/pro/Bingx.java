@@ -1301,7 +1301,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             }
             String uuid = this.uuid();
             String baseUrl = null;
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
+            Map<String, Object> request = null;
             if (java.util.Objects.equals(type, "swap"))
             {
                 if (java.util.Objects.equals(subType, "inverse"))

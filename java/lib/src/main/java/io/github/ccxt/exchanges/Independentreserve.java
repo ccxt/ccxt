@@ -414,7 +414,7 @@ public class Independentreserve extends IndependentreserveApi
                 }} );
                 put( "networks", new HashMap<String, Object>() {{
                     put( "BTC", "Bitcoin" );
-                    put( "ETH", "Ethereum" );
+                    put( "ERC20", "Ethereum" );
                     put( "BCH", "BitcoinCash" );
                     put( "LTC", "Litecoin" );
                     put( "XRP", "XrpLedger" );
@@ -426,7 +426,7 @@ public class Independentreserve extends IndependentreserveApi
                     put( "DOT", "Polkadot" );
                     put( "ADA", "Cardano" );
                     put( "SOL", "Solana" );
-                    put( "TRX", "Tron" );
+                    put( "TRC20", "Tron" );
                 }} );
             }} );
         }});

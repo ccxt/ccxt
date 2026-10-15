@@ -367,10 +367,7 @@ func (this *Kraken) Describe() any {
 			"marketsByAltname":        map[string]any{},
 			"delistedMarketsById":     map[string]any{},
 			"inactiveCurrencies":      []any{"CAD", "USD", "JPY", "GBP"},
-			"networks": map[string]any{
-				"ETH": "ERC20",
-				"TRX": "TRC20",
-			},
+			"networks":                map[string]any{},
 			"depositMethods": map[string]any{
 				"1INCH":      "1inch" + " " + "(1INCH)",
 				"AAVE":       "Aave",
@@ -1513,11 +1510,11 @@ func (this *Kraken) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opti
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes122319 []any = ListTyped(r1.Value)
-		if retRes122319 == nil {
+		var retRes122019 []any = ListTyped(r1.Value)
+		if retRes122019 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes122319}
+			ch <- AsyncResult[any]{Value: retRes122019}
 		}
 		return nil
 	}
@@ -2168,11 +2165,11 @@ func (this *Kraken) createMarketOrderWithCostBody(ch chan AsyncResult[map[string
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes169515 map[string]any = r1.Value
-	if retRes169515 == nil {
+	var retRes169215 map[string]any = r1.Value
+	if retRes169215 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes169515}
+		ch <- AsyncResult[map[string]any]{Value: retRes169215}
 	}
 	return nil
 }
@@ -2209,11 +2206,11 @@ func (this *Kraken) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any], s
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes171215 map[string]any = r1.Value
-	if retRes171215 == nil {
+	var retRes170915 map[string]any = r1.Value
+	if retRes170915 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes171215}
+		ch <- AsyncResult[any]{Value: retRes170915}
 	}
 	return nil
 }
@@ -4243,11 +4240,11 @@ func (this *Kraken) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes320619 []any = ListTyped(r1.Value)
-		if retRes320619 == nil {
+		var retRes320319 []any = ListTyped(r1.Value)
+		if retRes320319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes320619}
+			ch <- AsyncResult[any]{Value: retRes320319}
 		}
 		return nil
 	}
@@ -4365,11 +4362,11 @@ func (this *Kraken) createDepositAddressBody(ch chan AsyncResult[any], code stri
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes329715 map[string]any = MapTyped(r.Value)
-	if retRes329715 == nil {
+	var retRes329415 map[string]any = MapTyped(r.Value)
+	if retRes329415 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes329715}
+		ch <- AsyncResult[any]{Value: retRes329415}
 	}
 	return nil
 }
@@ -4466,8 +4463,9 @@ func (this *Kraken) fetchDepositAddressBody(ch chan AsyncResult[any], code strin
 	}
 	var currency map[string]any = this.Currency(code)
 	var network *string = this.SafeStringUpper(params, "network")
-	var networks map[string]any = SafeMapTyped(this.Options, "networks")
-	network = this.SafeString(networks, network, network) // support ETH > ERC20 aliases
+	if network != nil {
+		network = this.SafeString(this.NetworkAliases, network, network)
+	}
 	var paramsOmitted map[string]any = this.OmitDict(params, "network")
 	var codeResolved string = code
 	if (code == "USDT") && (network != nil && *network == "TRC20") {
@@ -4809,11 +4807,11 @@ func (this *Kraken) transferOutBody(ch chan AsyncResult[any], code any, amount a
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes361915 map[string]any = r.Value
-	if retRes361915 == nil {
+	var retRes361715 map[string]any = r.Value
+	if retRes361715 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes361915}
+		ch <- AsyncResult[any]{Value: retRes361715}
 	}
 	return nil
 }

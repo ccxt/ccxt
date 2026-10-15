@@ -227,11 +227,8 @@ class bitopro extends Exchange {
             'options' => array(
                 'networks' => array(
                     'ERC20' => 'ERC20',
-                    'ETH' => 'ERC20',
-                    'TRX' => 'TRX',
                     'TRC20' => 'TRX',
                     'BEP20' => 'BSC',
-                    'BSC' => 'BSC',
                 ),
                 'fetchCurrencies' => array(
                     'fiatCurrencies' => array( 'TWD' ), // the only fiat currency for exchange
@@ -1821,7 +1818,7 @@ class bitopro extends Exchange {
         if ($hasNetwork) {
             $networks = $this->safe_dict($this->options, 'networks', array());
             $requestedNetwork = $this->safe_string_upper($paramsWithdrawTag, 'network');
-            $networkId = ($requestedNetwork === null) ? null : $this->safe_string($networks, $requestedNetwork);
+            $networkId = ($requestedNetwork === null) ? null : $this->safe_string($networks, $this->safe_string($this->networkAliases, $requestedNetwork, $requestedNetwork));
             if ($networkId === null) {
                 throw new ExchangeError($this->id . ' invalid network ' . $requestedNetwork);
             }

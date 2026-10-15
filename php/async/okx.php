@@ -1178,15 +1178,11 @@ class okx extends Exchange {
                 'networks' => array(
                     'BTC' => 'Bitcoin',
                     'BTCLIGHTNING' => 'Lightning',
-                    'BSC' => 'BSC',
                     'BEP20' => 'BSC',
                     'BRC20' => 'BRC20',
-                    'ETH' => 'ERC20',
                     'ERC20' => 'ERC20',
-                    'TRX' => 'TRC20',
                     'TRC20' => 'TRC20',
                     'CRC20' => 'Crypto',
-                    'CRONOS' => 'Crypto',
                     'ACA' => 'Acala',
                     'ALGO' => 'Algorand',
                     'APT' => 'Aptos',
@@ -5776,7 +5772,9 @@ class okx extends Exchange {
         $network = $this->safe_string($paramsWithdrawTag, 'network'); // this line allows the user to specify either ERC20 or ETH
         if ($network !== null) {
             $networks = $this->safe_dict($this->options, 'networks', array());
-            $network = $this->safe_string($networks, strtoupper($network), $network); // handle ETH>ERC20 alias
+            $networkUpper = strtoupper($network);
+            $networkKey = $this->safe_string($this->networkAliases, $networkUpper, $networkUpper);
+            $network = $this->safe_string($networks, $networkKey, $network); // resolve aliases to the unified key
             $request['chain'] = $currency['id'] . '-' . $network;
         }
         $omitKeys = array( 'fee' );

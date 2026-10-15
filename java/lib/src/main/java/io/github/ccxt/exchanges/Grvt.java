@@ -365,12 +365,11 @@ public class Grvt extends GrvtApi
                     put( "ARBITRUM", "42161" );
                     put( "AVAXC", "43114" );
                     put( "BASE", "8453" );
-                    put( "BSC", "56" );
-                    put( "ETH", "1" );
+                    put( "BEP20", "56" );
                     put( "ERC20", "1" );
                     put( "OP", "10" );
                     put( "SOL", "900" );
-                    put( "TRX", "728126428" );
+                    put( "TRC20", "728126428" );
                     put( "ZKSYNCERA", "324" );
                     put( "KAIA", "8217" );
                 }} );

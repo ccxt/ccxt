@@ -381,7 +381,7 @@ export default class hashkey extends Exchange {
                     'TRC20': 'TRC20',
                     'Tron': 'TRC20',
                     'TON': 'TON',
-                    'BSC(BEP20)': 'BSC',
+                    'BSC(BEP20)': 'BEP20',
                     'Klaytn': 'KLAYTN',
                 },
                 'defaultNetwork': 'ERC20',
@@ -1202,7 +1202,7 @@ export default class hashkey extends Exchange {
         for (let j = 0; j < networks.length; j++) {
             const network = networks[j];
             const networkId = this.safeString (network, 'chainType');
-            const networkCode = this.networkCodeToId (networkId, code);
+            const networkCode = this.networkIdToCode (networkId, code);
             if (networkCode !== undefined) {
                 parsedNetworks[networkCode] = {
                     'id': networkId,
@@ -1917,7 +1917,7 @@ export default class hashkey extends Exchange {
      * @see https://hashkeyglobal-apidoc.readme.io/reference/get-deposit-address
      * @param {string} code unified currency code (default is 'USDT')
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.network] network for fetch deposit address (default is 'ETH')
+     * @param {string} [params.network] network for fetch deposit address (default is 'ERC20')
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     override async fetchDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
@@ -1929,7 +1929,7 @@ export default class hashkey extends Exchange {
             'coin': currency['id'],
         };
         const [ networkCodeInParams, paramsNetworkCode ] = this.handleNetworkCodeAndParams (params);
-        const networkCode: Str = (networkCodeInParams === undefined) ? this.defaultNetworkCode (code) : networkCodeInParams;
+        const networkCode: Str = (networkCodeInParams === undefined) ? this.safeString (this.safeDict (this.options, 'defaultNetworks', {}), code, this.safeString (this.options, 'defaultNetwork')) : networkCodeInParams;
         request['chainType'] = this.networkCodeToId (networkCode, code);
         const response = await this.privateGetApiV1AccountDepositAddress (this.extend (request, paramsNetworkCode));
         //

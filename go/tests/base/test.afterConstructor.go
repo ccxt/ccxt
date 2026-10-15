@@ -134,13 +134,6 @@ func HelperTestProperties() {
 	// options
 	//
 	Assert(!ccxt.IsEqual(exchange.Options, nil))
-	// const defaultNetworkCodeReplacements = [
-	//     { 'baseCoin': 'ETH', 'primary': 'ETH', 'secondary': 'ERC20' },
-	//     { 'baseCoin': 'CRO', 'primary': 'CRONOS', 'secondary': 'CRC20' },
-	//     { 'baseCoin': 'TRX', 'primary': 'TRX', 'secondary': 'TRC20' },
-	//     { 'baseCoin': 'BTC', 'primary': 'BTC', 'secondary': 'BRC20' },
-	// ];
-	// assertDeepEqual (exchange, {}, 'options', exchange.options['defaultNetworkCodeReplacements'], defaultNetworkCodeReplacements);
 	//
 	// credentials
 	//

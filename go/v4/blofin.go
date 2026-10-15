@@ -2740,7 +2740,8 @@ func (this *Blofin) NetworkCodeToChainId(networkCode any, optionalArgs ...any) a
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var aliases map[string]any = SafeMapTyped(this.Options, "networkCodeAliases")
-	var unifiedCode *string = this.SafeString(aliases, networkCode, networkCode)
+	var aliasedCode *string = this.SafeString(aliases, networkCode, networkCode)
+	var unifiedCode *string = this.SafeString(this.NetworkAliases, aliasedCode, aliasedCode)
 	// prefer the exact chain id from the currencies registry when it is
 	// loaded, since some ids are currency-specific (USDT on Optimism)
 	if currency != nil {
@@ -3404,11 +3405,11 @@ func (this *Blofin) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...an
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes247419 []any = ListTyped(r1.Value)
-		if retRes247419 == nil {
+		var retRes247519 []any = ListTyped(r1.Value)
+		if retRes247519 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes247419}
+			ch <- AsyncResult[any]{Value: retRes247519}
 		}
 		return nil
 	}
@@ -4438,11 +4439,11 @@ func (this *Blofin) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes324719 []any = ListTyped(r1.Value)
-		if retRes324719 == nil {
+		var retRes324819 []any = ListTyped(r1.Value)
+		if retRes324819 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes324719}
+			ch <- AsyncResult[any]{Value: retRes324819}
 		}
 		return nil
 	}

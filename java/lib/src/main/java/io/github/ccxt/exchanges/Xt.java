@@ -995,10 +995,8 @@ public class Xt extends XtApi
                 put( "networks", new HashMap<String, Object>() {{
                     put( "ERC20", "Ethereum" );
                     put( "TRC20", "Tron" );
-                    put( "TRX", "Tron" );
                     put( "BEP20", "BNB Smart Chain" );
                     put( "BEP2", "BNB-BEP2" );
-                    put( "ETH", "Ethereum" );
                     put( "AVAX", "AVAX C-Chain" );
                     put( "GAL", "GAL(FT)" );
                     put( "ALEO", "ALEO(IOU)" );

@@ -321,7 +321,7 @@ public partial class bigone : Exchange
                     { "DOGE", "Dogecoin" },
                     { "XEC", "ECash" },
                     { "EOS", "EOS" },
-                    { "ETH", "Ethereum" },
+                    { "ERC20", "Ethereum" },
                     { "ETC", "EthereumClassic" },
                     { "ETHW", "EthereumPow" },
                     { "FTM", "Fantom" },
@@ -2252,7 +2252,7 @@ public partial class bigone : Exchange
             throw new ExchangeError ((this.id + " fetchDepositAddress() returned empty address response")) ;
         }
         Dictionary<string, object> chainsIndexedById = this.indexBy(data, "chain");
-        object selectedNetworkId = this.selectNetworkIdFromRawNetworks(code, networkCode, chainsIndexedById);
+        object selectedNetworkId = this.selectNetworkKeyFromNetworks(code, networkCode, chainsIndexedById, false);
         IDictionary<string, object> addressObject = this.safeDict(chainsIndexedById, selectedNetworkId, new Dictionary<string, object>() {});
         string? address = this.safeString(addressObject, "value");
         string? tag = this.safeString(addressObject, "memo");

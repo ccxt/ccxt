@@ -2117,7 +2117,6 @@ class alpaca extends Exchange {
             $txid = $this->safe_string($transaction, 'tx_hash');
             $datetime = $this->safe_string($transaction, 'created_at');
             $timestamp = $this->parse8601($datetime);
-            $network = $this->safe_string($transaction, 'chain');
             $address = $this->safe_string($transaction, 'to_address');
             $addressTo = $this->safe_string($transaction, 'to_address');
             $addressFrom = $this->safe_string($transaction, 'from_address');
@@ -2125,6 +2124,7 @@ class alpaca extends Exchange {
             $amount = $this->safe_number($transaction, 'amount');
             $currencyId = $this->safe_string($transaction, 'asset');
             $code = $this->safe_currency_code($currencyId, $currency);
+            $network = $this->network_id_to_code($this->safe_string($transaction, 'chain'), $code);
             $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
             $fees = $this->safe_string($transaction, 'fees');
             $networkFee = $this->safe_string($transaction, 'network_fee');

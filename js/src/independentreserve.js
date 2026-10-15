@@ -304,7 +304,7 @@ export default class independentreserve extends Exchange {
                 },
                 'networks': {
                     'BTC': 'Bitcoin',
-                    'ETH': 'Ethereum',
+                    'ERC20': 'Ethereum',
                     'BCH': 'BitcoinCash',
                     'LTC': 'Litecoin',
                     'XRP': 'XrpLedger',
@@ -316,7 +316,7 @@ export default class independentreserve extends Exchange {
                     'DOT': 'Polkadot',
                     'ADA': 'Cardano',
                     'SOL': 'Solana',
-                    'TRX': 'Tron',
+                    'TRC20': 'Tron',
                 },
             },
         });

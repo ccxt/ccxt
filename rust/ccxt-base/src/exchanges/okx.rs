@@ -3331,15 +3331,11 @@ impl OkxCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("BTC".to_string(), Value::Str("Bitcoin".into()));
         m.insert("BTCLIGHTNING".to_string(), Value::Str("Lightning".into()));
-        m.insert("BSC".to_string(), Value::Str("BSC".into()));
         m.insert("BEP20".to_string(), Value::Str("BSC".into()));
         m.insert("BRC20".to_string(), Value::Str("BRC20".into()));
-        m.insert("ETH".to_string(), Value::Str("ERC20".into()));
         m.insert("ERC20".to_string(), Value::Str("ERC20".into()));
-        m.insert("TRX".to_string(), Value::Str("TRC20".into()));
         m.insert("TRC20".to_string(), Value::Str("TRC20".into()));
         m.insert("CRC20".to_string(), Value::Str("Crypto".into()));
-        m.insert("CRONOS".to_string(), Value::Str("Crypto".into()));
         m.insert("ACA".to_string(), Value::Str("Acala".into()));
         m.insert("ALGO".to_string(), Value::Str("Algorand".into()));
         m.insert("APT".to_string(), Value::Str("Aptos".into()));
@@ -8393,7 +8389,9 @@ impl OkxCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            network = self.safe_string(networks, to_upper(&network), &[network.clone()]); // handle ETH>ERC20 alias
+            let mut networkUpper: Value = to_upper(&network);
+            let mut networkKey: Value = self.safe_string(self.networkAliases.clone(), networkUpper.clone(), &[networkUpper.clone()]);
+            network = self.safe_string(networks, networkKey, &[network.clone()]); // resolve aliases to the unified key
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("chain".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("-".into())).into()), network).into())); }
         }
         let mut omitKeys: Value = Value::from(vec![Value::Str("fee".into())]);

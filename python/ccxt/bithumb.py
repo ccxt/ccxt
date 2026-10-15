@@ -2550,7 +2550,7 @@ class bithumb(Exchange, ImplicitAPI):
                     raise ArgumentsRequired(self.id + ' ' + code + ' withdraw() requires a network parameter')
                 request['address'] = address
                 request['currency'] = currency['id']
-                request['net_type'] = network
+                request['net_type'] = self.network_code_to_id(network, code)
                 request['amount'] = self.number_to_string(amount)
                 if destinationRequest is not None:
                     request['secondary_address'] = destinationRequest
@@ -2578,7 +2578,7 @@ class bithumb(Exchange, ImplicitAPI):
             request['currency'] = currency['id']
             request['units'] = amount
             if network is not None:
-                request['net_type'] = network
+                request['net_type'] = self.network_code_to_id(network, code)
             if destinationRequest is not None:
                 request['destination'] = destinationRequest
             if receiverType is not None:
@@ -2634,7 +2634,7 @@ class bithumb(Exchange, ImplicitAPI):
             'txid': self.safe_string(transaction, 'txid'),
             'timestamp': timestamp,
             'datetime': datetime,
-            'network': self.safe_string(transaction, 'net_type'),
+            'network': self.network_id_to_code(self.safe_string(transaction, 'net_type'), currencyResolved['code']),
             'addressFrom': None,
             'address': None,
             'addressTo': None,
@@ -2937,7 +2937,7 @@ class bithumb(Exchange, ImplicitAPI):
         paramsOmitted = self.omit(paramsGeneration, 'network')
         if network is None:
             raise ArgumentsRequired(self.id + ' ' + code + ' createDepositAddress() requires a network parameter')
-        request['net_type'] = network
+        request['net_type'] = self.network_code_to_id(network, code)
         response = self.privatePostV1DepositsGenerateCoinAddress(self.extend(request, paramsOmitted))
         #
         #     {
@@ -2974,7 +2974,7 @@ class bithumb(Exchange, ImplicitAPI):
         paramsOmitted = self.omit(paramsGeneration, 'network')
         if network is None:
             raise ArgumentsRequired(self.id + ' ' + code + ' fetchDepositAddress() requires a network parameter')
-        request['net_type'] = network
+        request['net_type'] = self.network_code_to_id(network, code)
         response = self.privateGetV1DepositsCoinAddress(self.extend(request, paramsOmitted))
         #
         #     {
@@ -3035,7 +3035,7 @@ class bithumb(Exchange, ImplicitAPI):
         return {
             'info': response,
             'currency': code,
-            'network': self.safe_string(response, 'net_type'),
+            'network': self.network_id_to_code(self.safe_string(response, 'net_type'), code),
             'address': address,
             'tag': self.safe_string(response, 'secondary_address'),
         }

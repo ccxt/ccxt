@@ -1879,7 +1879,8 @@ class blofin(Exchange, ImplicitAPI):
 
     def network_code_to_chain_id(self, networkCode: str, currency: Currency = None) -> Str:
         aliases = self.safe_dict(self.options, 'networkCodeAliases', {})
-        unifiedCode = self.safe_string(aliases, networkCode, networkCode)
+        aliasedCode = self.safe_string(aliases, networkCode, networkCode)
+        unifiedCode = self.safe_string(self.networkAliases, aliasedCode, aliasedCode)
         # prefer the exact chain id from the currencies registry when it is
         # loaded, since some ids are currency-specific (USDT on Optimism)
         if currency is not None:

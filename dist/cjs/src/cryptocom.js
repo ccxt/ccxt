@@ -2178,12 +2178,15 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress(code, params = {}) {
-        const network = this.safeStringUpper(params, 'network');
+        const networkParam = this.safeStringUpper(params, 'network');
         const paramsOmitted = this.omit(params, ['network']);
         const depositAddressesRaw = await this.fetchDepositAddressesByNetwork(code, paramsOmitted);
         const depositAddresses = depositAddressesRaw;
-        if (network in depositAddresses) {
-            return depositAddresses[network];
+        if (networkParam !== undefined) {
+            const network = this.safeString(this.networkAliases, networkParam, networkParam);
+            if (network in depositAddresses) {
+                return depositAddresses[network];
+            }
         }
         const keys = Object.keys(depositAddresses);
         return depositAddresses[keys[0]];

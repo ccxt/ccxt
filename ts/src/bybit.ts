@@ -1221,11 +1221,8 @@ export default class bybit extends Exchange {
                 'networks': {
                     'BTC': 'BTC',
                     'BRC20': 'BTC',
-                    'ETH': 'ETH',
                     'ERC20': 'ETH',
-                    'TRX': 'TRX',
                     'TRC20': 'TRX',
-                    'BSC': 'BSC',
                     'BEP20': 'BSC',
                     'SOL': 'SOL',
                     'ACA': 'ACA',
@@ -1292,6 +1289,7 @@ export default class bybit extends Exchange {
                     // 'LUNA1': 'LUNA' (Terra)
                 },
                 'networksById': {
+                    'BTC': 'BTC', // BTC and BRC20 share the id 'BTC', the native chain wins
                     'ETH': 'ERC20',
                     'TRX': 'TRC20',
                     'BSC': 'BEP20',
@@ -6071,7 +6069,7 @@ export default class bybit extends Exchange {
         const currency = this.currency (code);
         const [ networkCode, paramsOmited ] = this.handleNetworkCodeAndParams (params);
         const indexedAddresses = await this.fetchDepositAddressesByNetwork (code, paramsOmited);
-        const selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks (currency['code'], networkCode, indexedAddresses);
+        const selectedNetworkCode = this.selectNetworkKeyFromNetworks (currency['code'], networkCode, indexedAddresses, true);
         return this.safeValue (indexedAddresses, selectedNetworkCode);
     }
 

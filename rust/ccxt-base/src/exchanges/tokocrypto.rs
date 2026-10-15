@@ -565,7 +565,7 @@ impl TokocryptoCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("tronscan.org".to_string(), Value::Str("TRC20".into()));
         m.insert("etherscan.io".to_string(), Value::Str("ERC20".into()));
-        m.insert("bscscan.com".to_string(), Value::Str("BSC".into()));
+        m.insert("bscscan.com".to_string(), Value::Str("BEP20".into()));
         m.insert("explorer.binance.org".to_string(), Value::Str("BEP2".into()));
         m.insert("bithomp.com".to_string(), Value::Str("XRP".into()));
         m.insert("bloks.io".to_string(), Value::Str("EOS".into()));
@@ -2911,8 +2911,8 @@ impl TokocryptoCore {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);
-        m.insert("currency".to_string(), code);
-        m.insert("network".to_string(), self.safe_string_k(data, "network", &[]));
+        m.insert("currency".to_string(), code.clone());
+        m.insert("network".to_string(), self.network_id_to_code(&[self.safe_string_k(data, "network", &[]), code]));
         m.insert("address".to_string(), address);
         m.insert("tag".to_string(), tag);
     m
@@ -3211,8 +3211,8 @@ impl TokocryptoCore {
         m.insert("id".to_string(), id);
         m.insert("txid".to_string(), txid);
         m.insert("type".to_string(), type_var.clone());
-        m.insert("currency".to_string(), code);
-        m.insert("network".to_string(), self.safe_string_k(transaction.clone(), "network", &[]));
+        m.insert("currency".to_string(), code.clone());
+        m.insert("network".to_string(), self.network_id_to_code(&[self.safe_string_k(transaction.clone(), "network", &[]), code]));
         m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "amount", &[]));
         m.insert("status".to_string(), self.parse_transaction_status_by_type(self.safe_string_k(transaction.clone(), "status", &[]), &[type_var]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), timestamp.clone());

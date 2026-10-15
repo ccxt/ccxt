@@ -142,7 +142,7 @@ function tsReturnTypeToJava(methodName: string, tsReturnType: string): { javaTyp
 const ALLOWED_PREFIXES = ['fetch', 'create', 'edit', 'cancel', 'close', 'setP', 'setM', 'setL', 'transfer', 'withdraw', 'watch', 'unWatch', 'addMargin', 'reduceMargin', 'borrow', 'repay', 'loadAccounts'];
 const BLACKLIST = new Set([
     'fetch', 'fetchCurrenciesWs', 'fetchMarketsWs', 'setSandBoxMode', 'loadOrderBook',
-    'loadMarketsHelper', 'createNetworksByIdObject', 'setMarketsFromExchange',
+    'loadMarketsHelper', 'setMarketsFromExchange',
     'setLastRequest', 'setLastRestRequestTimestamp',
     'setProperty', 'setProxyAgents', 'watch', 'watchMultiple', 'watchMultipleSubscription',
     'watchPrivate', 'watchPublic', 'setPositionsCache', 'setPositionCache',

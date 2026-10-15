@@ -310,7 +310,7 @@ public partial class cex : Exchange
                 { "networks", new Dictionary<string, object>() {
                     { "BTC", "bitcoin" },
                     { "ERC20", "ERC20" },
-                    { "BSC20", "binancesmartchain" },
+                    { "BEP20", "binancesmartchain" },
                     { "DOGE", "dogecoin" },
                     { "ALGO", "algorand" },
                     { "XLM", "stellar" },
@@ -322,7 +322,7 @@ public partial class cex : Exchange
                     { "THETA", "theta" },
                     { "XTZ", "tezos" },
                     { "TIA", "celestia" },
-                    { "CRONOS", "cronos" },
+                    { "CRC20", "cronos" },
                     { "MATIC", "polygon" },
                     { "TON", "ton" },
                     { "TRC20", "tron" },

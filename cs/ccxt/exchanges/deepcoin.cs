@@ -455,7 +455,7 @@ public partial class deepcoin : Exchange
                     { "ERC20", "ERC20" },
                     { "TRC20", "TRC20" },
                     { "ARBITRUM", "ARBITRUM" },
-                    { "BSC", "BSC(BEP20)" },
+                    { "BEP20", "BSC(BEP20)" },
                     { "SOL", "SOL" },
                     { "BTC", "Bitcoin" },
                     { "ADA", "Cardano" },
@@ -1458,6 +1458,10 @@ public partial class deepcoin : Exchange
         if (((network == null)) || (network == ""))
         {
             network = defaultNetwork;
+        }
+        if ((network != null))
+        {
+            network = this.safeString(this.networkAliases, network, network);
         }
         object paramsOmitted = ((network != null)) ? this.omit(parameters, "network") : parameters;
         List<object> addressess = ccxt.BaseExchange.FromDepositAddressList(await this.FetchDepositAddresses(new List<object>() {code}, paramsOmitted));

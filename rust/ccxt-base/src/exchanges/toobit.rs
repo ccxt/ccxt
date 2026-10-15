@@ -1054,7 +1054,6 @@ impl ToobitCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("BTC".to_string(), Value::Str("BTC".into()));
         m.insert("ERC20".to_string(), Value::Str("ETH".into()));
-        m.insert("ETH".to_string(), Value::Str("ETH".into()));
         m.insert("BEP20".to_string(), Value::Str("BSC".into()));
         m.insert("TRC20".to_string(), Value::Str("TRX".into()));
         m.insert("SOL".to_string(), Value::Str("SOL".into()));

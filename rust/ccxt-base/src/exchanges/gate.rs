@@ -2851,13 +2851,10 @@ impl GateCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("BTC".to_string(), Value::Str("BTC".into()));
         m.insert("BRC20".to_string(), Value::Str("BTCBRC".into()));
-        m.insert("ETH".to_string(), Value::Str("ETH".into()));
         m.insert("ERC20".to_string(), Value::Str("ETH".into()));
-        m.insert("TRX".to_string(), Value::Str("TRX".into()));
         m.insert("TRC20".to_string(), Value::Str("TRX".into()));
         m.insert("HECO".to_string(), Value::Str("HT".into()));
         m.insert("HRC20".to_string(), Value::Str("HT".into()));
-        m.insert("BSC".to_string(), Value::Str("BSC".into()));
         m.insert("BEP20".to_string(), Value::Str("BSC".into()));
         m.insert("SOL".to_string(), Value::Str("SOL".into()));
         m.insert("MATIC".to_string(), Value::Str("MATIC".into()));
@@ -2869,7 +2866,7 @@ impl GateCore {
         m.insert("ARBITRUM_NOVA".to_string(), Value::Str("ARBNOVA".into()));
         m.insert("BASE".to_string(), Value::Str("BASEEVM".into()));
         m.insert("SUI".to_string(), Value::Str("SUI".into()));
-        m.insert("CRONOS".to_string(), Value::Str("CRO".into()));
+        m.insert("CRC20".to_string(), Value::Str("CRO".into()));
         m.insert("CRO".to_string(), Value::Str("CRO".into()));
         m.insert("APT".to_string(), Value::Str("APT".into()));
         m.insert("SCROLL".to_string(), Value::Str("SCROLLETH".into()));
@@ -4659,7 +4656,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut paramsNetworkCode: Value = networkCodeparamsNetworkCodeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut chainsIndexedByIdRaw: Value = self.fetch_deposit_addresses_by_network(code.clone(), &[paramsNetworkCode]).await;
         let mut chainsIndexedById: Value = chainsIndexedByIdRaw;
-        let mut selectedNetworkIdOrCode: Value = self.select_network_code_from_unified_networks(code, networkCode, chainsIndexedById.clone());
+        let mut selectedNetworkIdOrCode: Value = self.select_network_key_from_networks(code, networkCode, chainsIndexedById.clone(), &[Value::Bool(true)]);
         return chainsIndexedById.as_map().and_then(|__m| selectedNetworkIdOrCode.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
 
     Value::Null
@@ -9231,7 +9228,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut m = indexmap::IndexMap::new();
                     m.insert("tier".to_string(), self.sum(&[i.clone(), Value::Int(1)]));
                     m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
-                    m.insert("currency".to_string(), self.safe_string_k(market.clone(), "base", &[]));
+                    m.insert("currency".to_string(), self.safe_string_k(market.clone(), "settle", &[]));
                     m.insert("minNotional".to_string(), minNotional.clone());
                     m.insert("maxNotional".to_string(), maxNotional.clone());
                     m.insert("maintenanceMarginRate".to_string(), self.safe_number_k(item.clone(), "maintenance_rate", &[]));

@@ -627,7 +627,6 @@ public partial class toobit : Exchange
                 { "networks", new Dictionary<string, object>() {
                     { "BTC", "BTC" },
                     { "ERC20", "ETH" },
-                    { "ETH", "ETH" },
                     { "BEP20", "BSC" },
                     { "TRC20", "TRX" },
                     { "SOL", "SOL" },

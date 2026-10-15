@@ -1032,9 +1032,9 @@ public class Mexc extends MexcApi
                     }} );
                 }} );
                 put( "defaultType", "spot" );
-                put( "defaultNetwork", "ETH" );
+                put( "defaultNetwork", "ERC20" );
                 put( "defaultNetworks", new HashMap<String, Object>() {{
-                    put( "ETH", "ETH" );
+                    put( "ETH", "ERC20" );
                     put( "USDT", "ERC20" );
                     put( "USDC", "ERC20" );
                     put( "BTC", "BTC" );
@@ -1066,9 +1066,9 @@ public class Mexc extends MexcApi
                     put( "RSK", "RBTC" );
                 }} );
                 put( "networksById", new HashMap<String, Object>() {{
-                    put( "BNB Smart Chain(BEP20-RACAV1)", "BSC" );
-                    put( "BNB Smart Chain(BEP20-RACAV2)", "BSC" );
-                    put( "BNB Smart Chain(BEP20)", "BSC" );
+                    put( "BNB Smart Chain(BEP20-RACAV1)", "BEP20" );
+                    put( "BNB Smart Chain(BEP20-RACAV2)", "BEP20" );
+                    put( "BNB Smart Chain(BEP20)", "BEP20" );
                     put( "Ethereum(ERC20)", "ERC20" );
                 }} );
                 put( "recvWindow", (5L * 1000L) );

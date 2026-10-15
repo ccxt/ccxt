@@ -486,7 +486,7 @@ func (this *Hashkey) Describe() any {
 				"TRC20":        "TRC20",
 				"Tron":         "TRC20",
 				"TON":          "TON",
-				"BSC(BEP20)":   "BSC",
+				"BSC(BEP20)":   "BEP20",
 				"Klaytn":       "KLAYTN",
 			},
 			"defaultNetwork": "ERC20",
@@ -1383,9 +1383,9 @@ func (this *Hashkey) ParseCurrency(rawCurrency any) map[string]any {
 			return nil
 		}()
 		var networkId *string = this.SafeString(network, "chainType")
-		var networkCode any = this.NetworkCodeToId(networkId, code)
+		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
-			AddElementToObject(parsedNetworks, networkCode, map[string]any{
+			parsedNetworks[*networkCode] = map[string]any{
 				"id":      networkId,
 				"network": networkCode,
 				"limits": map[string]any{
@@ -1404,7 +1404,7 @@ func (this *Hashkey) ParseCurrency(rawCurrency any) map[string]any {
 				"fee":       this.SafeNumber(network, "withdrawFee"),
 				"precision": nil,
 				"info":      network,
-			})
+			}
 		}
 	}
 	var rawType *string = this.SafeString(rawCurrency, "tokenType")
@@ -2272,7 +2272,7 @@ func (this *Hashkey) ParseSwapBalance(balance map[string]any) any {
  * @see https://hashkeyglobal-apidoc.readme.io/reference/get-deposit-address
  * @param {string} code unified currency code (default is 'USDT')
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.network] network for fetch deposit address (default is 'ETH')
+ * @param {string} [params.network] network for fetch deposit address (default is 'ERC20')
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Hashkey) FetchDepositAddressAsync(code string, optionalArgs ...any) <-chan AsyncResult[any] {
@@ -2301,7 +2301,7 @@ func (this *Hashkey) fetchDepositAddressBody(ch chan AsyncResult[any], code stri
 	var paramsNetworkCode map[string]any = MapTyped(networkCodeInParamsparamsNetworkCodeVariable[1])
 	var networkCode any = func() any {
 		if IsEqual(networkCodeInParams, nil) {
-			return this.DefaultNetworkCode(code)
+			return this.SafeString(this.SafeDict(this.Options, "defaultNetworks", map[string]any{}), code, this.SafeString(this.Options, "defaultNetwork"))
 		}
 		return networkCodeInParams
 	}()
@@ -5893,7 +5893,7 @@ func (this *Hashkey) FetchBalance(params ...any) (Balances, error) {
  * @see https://hashkeyglobal-apidoc.readme.io/reference/get-deposit-address
  * @param {string} code unified currency code (default is 'USDT')
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.network] network for fetch deposit address (default is 'ETH')
+ * @param {string} [params.network] network for fetch deposit address (default is 'ERC20')
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Hashkey) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {

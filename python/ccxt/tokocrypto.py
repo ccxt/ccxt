@@ -287,7 +287,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                 'reverseNetworks': {
                     'tronscan.org': 'TRC20',
                     'etherscan.io': 'ERC20',
-                    'bscscan.com': 'BSC',
+                    'bscscan.com': 'BEP20',
                     'explorer.binance.org': 'BEP2',
                     'bithomp.com': 'XRP',
                     'bloks.io': 'EOS',
@@ -2268,7 +2268,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         return {
             'info': response,
             'currency': code,
-            'network': self.safe_string(data, 'network'),
+            'network': self.network_id_to_code(self.safe_string(data, 'network'), code),
             'address': address,
             'tag': tag,
         }
@@ -2495,7 +2495,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             'txid': txid,
             'type': type,
             'currency': code,
-            'network': self.safe_string(transaction, 'network'),
+            'network': self.network_id_to_code(self.safe_string(transaction, 'network'), code),
             'amount': self.safe_number(transaction, 'amount'),
             'status': self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'), type),
             'timestamp': timestamp,

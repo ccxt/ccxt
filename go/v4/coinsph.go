@@ -2876,15 +2876,15 @@ func (this *Coinsph) ParseTransaction(transaction any, optionalArgs ...any) map[
 			"cost":     feeCost,
 		}
 	}
-	var network *string = this.SafeString(transaction, "network")
-	var internal bool = (network != nil && *network == "Internal")
+	var networkId *string = this.SafeString(transaction, "network")
+	var internal bool = (networkId != nil && *networkId == "Internal")
 	return map[string]any{
 		"info":        transaction,
 		"id":          id,
 		"txid":        txid,
 		"timestamp":   timestamp,
 		"datetime":    this.Iso8601(timestamp),
-		"network":     network,
+		"network":     this.NetworkIdToCode(networkId, code),
 		"address":     address,
 		"addressTo":   address,
 		"addressFrom": nil,

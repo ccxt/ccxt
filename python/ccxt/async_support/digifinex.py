@@ -438,16 +438,13 @@ class digifinex(Exchange, ImplicitAPI):
                     'AVALANCEC': 'AVAX-CCHAIN',
                     'AVALANCEX': 'AVAX-XCHAIN',
                     'BEP20': 'BEP20',
-                    'BSC': 'BEP20',
                     'CARDANO': 'Cardano',
                     'CELO': 'Celo',
                     'CHILIZ': 'Chiliz',
                     'COSMOS': 'COSMOS',
                     'CRC20': 'Crypto.com',
-                    'CRONOS': 'Crypto.com',
                     'DOGECOIN': 'DogeChain',
                     'ERC20': 'ERC20',
-                    'ETH': 'ERC20',
                     'ETHW': 'ETHW',
                     'IOTA': 'MIOTA',
                     'KLAYTN': 'KLAY',
@@ -464,7 +461,6 @@ class digifinex(Exchange, ImplicitAPI):
                     'TERRA': 'Terra',
                     'TON': 'Ton',
                     'TRC20': 'TRC20',
-                    'TRX': 'TRC20',
                     'VECHAIN': 'Vechain',  # VET
                 },
                 'networksById': {
@@ -475,7 +471,7 @@ class digifinex(Exchange, ImplicitAPI):
                     'ERC20': 'ERC20',
                     'ETH': 'ERC20',
                     'Polygon': 'POLYGON',
-                    'Crypto.com': 'CRONOS',
+                    'Crypto.com': 'CRC20',
                 },
             },
             'commonCurrencies': {
@@ -2992,7 +2988,7 @@ class digifinex(Exchange, ImplicitAPI):
         fee = None
         if feeCost is not None:
             fee = {'currency': code, 'cost': feeCost}
-        network = self.safe_string(transaction, 'chain')
+        network = self.network_id_to_code(self.safe_string(transaction, 'chain'), code)
         return {
             'info': transaction,
             'id': id,

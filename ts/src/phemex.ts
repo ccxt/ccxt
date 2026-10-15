@@ -616,8 +616,8 @@ export default class phemex extends Exchange {
                     'BEP20': 'BNB',
                 },
                 'defaultNetworks': {
-                    'USDT': 'ETH',
-                    'MKR': 'ETH',
+                    'USDT': 'ERC20',
+                    'MKR': 'ERC20',
                 },
                 'defaultSubType': 'linear',
                 'accountsByType': {
@@ -3611,7 +3611,9 @@ export default class phemex extends Exchange {
         const networks = this.safeDict (this.options, 'networks', {});
         let network = this.safeStringUpper2 (params, 'network', 'chainName', defaultNetwork);
         const paramsOmitted: Dict = this.omit (params, 'network');
-        network = this.safeString (networks, network, network);
+        if (network !== undefined) {
+            network = this.safeString (networks, this.safeString (this.networkAliases, network, network), network);
+        }
         if (network === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires a network parameter');
         } else {

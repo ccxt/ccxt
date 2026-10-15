@@ -2957,7 +2957,7 @@ func (this *Extended) ParseTransaction(transaction any, optionalArgs ...any) map
 		}
 	}
 	var transactionType *string = this.ParseTransactionType(this.SafeString(transaction, "type"))
-	var network *string = this.SafeString(transaction, "chain")
+	var network *string = this.NetworkIdToCode(this.SafeString(transaction, "chain"))
 	return map[string]any{
 		"info":        transaction,
 		"id":          this.SafeString(transaction, "id"),

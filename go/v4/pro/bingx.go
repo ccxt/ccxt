@@ -1456,7 +1456,7 @@ func (this *Bingx) watchMyTradesBody(ch chan ccxt.AsyncResult[[]any], optionalAr
 	}
 	var uuid string = this.Uuid()
 	var baseUrl *string = nil
-	var request map[string]any = map[string]any{}
+	var request any = nil
 	if typeVar != nil && *typeVar == "swap" {
 		if subType != nil && *subType == "inverse" {
 			panic(ccxt.NotSupported(this.Id + " watchMyTrades is not supported for inverse swap markets yet"))

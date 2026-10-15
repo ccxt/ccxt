@@ -401,7 +401,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                     put( "method", "v1PrivatePostTransfersWithdraw" );
                 }} );
                 put( "networksById", new HashMap<String, Object>() {{
-                    put( "ethereum", "ETH" );
+                    put( "ethereum", "ERC20" );
                     put( "arbitrum", "ARBITRUM" );
                     put( "avacchain", "AVAX" );
                     put( "optimism", "OPTIMISM" );

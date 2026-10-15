@@ -919,7 +919,7 @@ public class Coinmate extends CoinmateApi
             put( "txid", Coinmate.this.safeString(transaction, "txid") );
             put( "type", Coinmate.this.safeStringLower(transaction, "transferType") );
             put( "currency", code );
-            put( "network", Coinmate.this.safeString(transaction, "walletType") );
+            put( "network", Coinmate.this.networkIdToCode(Coinmate.this.safeString(transaction, "walletType"), code) );
             put( "amount", Coinmate.this.safeNumber(transaction, "amount", (Object) null) );
             put( "status", Coinmate.this.parseTransactionStatus(Coinmate.this.safeString(transaction, "transferStatus")) );
             put( "timestamp", timestamp );
