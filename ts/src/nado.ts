@@ -245,6 +245,14 @@ export default class nado extends Exchange {
                 },
                 'spot': {
                     'extends': 'default',
+                    'createOrder': {
+                        // the trigger service documents spot product ids, but a spot
+                        // trigger order has not been confirmed against the venue yet
+                        'triggerPrice': false,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                    },
                 },
                 'swap': {
                     'linear': {
