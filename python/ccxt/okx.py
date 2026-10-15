@@ -7314,8 +7314,8 @@ class okx(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         type = 'MARGIN' if (market['spot'] is True) else self.convert_to_instrument_type(market['type'])
-        uly = self.safe_string(market['info'], 'uly')
-        if (uly is None) or (uly == ''):
+        instFamily = self.safe_string(market['info'], 'instFamily')
+        if (instFamily is None) or (instFamily == ''):
             if type != 'MARGIN':
                 raise BadRequest(self.id + ' fetchMarketLeverageTiers() cannot fetch leverage tiers for ' + symbol)
         # cross as default marginMode
@@ -7324,7 +7324,7 @@ class okx(Exchange, ImplicitAPI):
         request = {
             'instType': type,
             'tdMode': marginMode,
-            'uly': uly,
+            'instFamily': instFamily,
         }
         if type == 'MARGIN':
             request['instId'] = market['id']
