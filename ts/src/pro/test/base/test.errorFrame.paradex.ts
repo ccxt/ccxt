@@ -8,8 +8,8 @@ import { AuthenticationError, BadRequest, ExchangeError, NotSupported, Permissio
 // paradex request carries a json-rpc id, so an error reply rejects only the watchers of that
 // request and a failed subscribe or auth is forgotten (a retry sends it again), an error code
 // maps to its own error class, and only the reply to the auth request resolves the auth.
-// Exchange-specific, so it is a standalone `test.<name>.<exchangeid>.ts` file and is not wired
-// into tests.init.ts, like test.refusedSubscription.hitbtc.ts.
+// Exchange-specific, so it is a standalone `test.<name>.<exchangeid>.ts` file, run from tests.init.ts
+// like test.pendingUnsubscribe.hyperliquid.ts.
 // Run: npx tsx ts/src/pro/test/base/test.errorFrame.paradex.ts
 
 const BTC_PERP = {
@@ -47,18 +47,7 @@ function sleep (ms: number) {
     return new Promise ((resolve) => setTimeout (resolve, ms));
 }
 
-function createHarness () {
-    const exchange: any = new paradex ({
-        'enableRateLimit': false,
-        'options': {
-            // a cached rest token, so authenticate () sends the ws auth without any http call
-            'authToken': 'test-token',
-            'expires': 99999999999,
-        },
-    });
-    exchange.setMarkets ([ BTC_PERP, ETH_PERP ]);
-    exchange.clients = {};
-    const url = exchange.getWsUrl ();
+function installClient (exchange: any, url: string) {
     // a transport-less client: connect resolves at once and send records the frame
     const noop = () => {};
     const client: any = new Client (url, noop, noop, noop, noop, {});
@@ -75,6 +64,21 @@ function createHarness () {
         return message;
     };
     exchange.clients[url] = client;
+    return client;
+}
+
+function createHarness () {
+    const exchange: any = new paradex ({
+        'enableRateLimit': false,
+        'options': {
+            // a cached rest token, so authenticate () sends the ws auth without any http call
+            'authToken': 'test-token',
+            'expires': 99999999999,
+        },
+    });
+    exchange.setMarkets ([ BTC_PERP, ETH_PERP ]);
+    exchange.clients = {};
+    const client = installClient (exchange, exchange.getWsUrl ());
     return { 'exchange': exchange, 'client': client };
 }
 
@@ -154,7 +158,6 @@ async function testRefusedSubscribeRejectsOnlyItsWatchers () {
     assert (trades['error'] instanceof RateLimitExceeded, 'error code 42900 must reject with RateLimitExceeded, got ' + String (trades['error']));
     assert (orders['settled'] !== true, 'a refused subscribe must not reject the other watchers');
     assert (!('trades.BTC-USD-PERP' in client.subscriptions), 'the refused subscribe must be dropped');
-    assert (!(tradesRequest['id'].toString () in client.subscriptions), 'the request entry must be removed once answered');
     // a retry sends the subscribe again
     const retry = track (exchange.watchTrades ('BTC/USD:USDC'));
     const retryRequest = await waitForSent (client, 4, 'watchTrades retry');
@@ -234,6 +237,57 @@ async function testSubscribeAckIsNotTheAuthReply () {
     assert ((trades['settled'] === true) && (orders['settled'] === true), 'cleanup must settle every pending watch');
 }
 
+async function testFirstWatchCountsAsADial () {
+    // building the request must not create the client: watch counts a missing client as a new
+    // dial and applies the reconnect backoff to it
+    const exchange: any = new paradex ({ 'enableRateLimit': false });
+    exchange.setMarkets ([ BTC_PERP, ETH_PERP ]);
+    exchange.clients = {};
+    const url = exchange.getWsUrl ();
+    const createClient = exchange.client.bind (exchange);
+    exchange.client = (clientUrl: string) => {
+        if (!(clientUrl in exchange.clients)) {
+            installClient (exchange, clientUrl);
+        }
+        return createClient (clientUrl);
+    };
+    let dials = 0;
+    exchange.calculateWsBackoffDelay = () => {
+        dials = dials + 1;
+        return 0;
+    };
+    const trades = track (exchange.watchTrades ('BTC/USD:USDC'));
+    const client = exchange.clients[url];
+    await waitForSent (client, 1, 'watchTrades subscribe');
+    assert.strictEqual (dials, 1, 'the first watch on a new connection must go through the reconnect backoff');
+    client.reject (new Error ('cleanup'));
+    await sleep (1);
+    assert (trades['settled'] === true, 'cleanup must settle the pending watch');
+}
+
+async function testRefusedWatchMultipleKeepsLiveHashes () {
+    // watchTickers ([ BTC ]) is live, watchTickers ([ BTC, ETH ]) subscribes again for ETH and is
+    // refused: only ETH is dropped, the BTC subscription and its watcher are untouched
+    const harness = createHarness ();
+    const exchange = harness['exchange'];
+    const client = harness['client'];
+    const btcHash = 'markets_summary.BTC/USD:USDC';
+    const ethHash = 'markets_summary.ETH/USD:USDC';
+    const btc = track (exchange.watchTickers ([ 'BTC/USD:USDC' ]));
+    const first = await waitForSent (client, 1, 'first watchTickers subscribe');
+    deliver (exchange, client, subscribeAck (first['id'], 'markets_summary'));
+    const both = track (exchange.watchTickers ([ 'BTC/USD:USDC', 'ETH/USD:USDC' ]));
+    const second = await waitForSent (client, 2, 'second watchTickers subscribe');
+    deliver (exchange, client, errorFrame (42900, 'max subscriptions per connection reached', second['id']));
+    await sleep (1);
+    assert (btcHash in client.subscriptions, 'a refused request must not drop the subscriptions it did not add');
+    assert (!(ethHash in client.subscriptions), 'the subscription the refused request added must be dropped');
+    assert (btc['settled'] !== true, 'a refused request must not reject the watchers of a live subscription');
+    client.reject (new Error ('cleanup'));
+    await sleep (1);
+    assert ((btc['settled'] === true) && (both['settled'] === true), 'cleanup must settle every pending watch');
+}
+
 async function testErrorCodeMapping () {
     const cases = [
         [ -32600, 'invalid subscribe request', BadRequest ],
@@ -266,6 +320,8 @@ async function testParadexErrorFrame () {
     await testRefusedAuth ();
     await testSubscribeAckIsNotTheAuthReply ();
     await testErrorCodeMapping ();
+    await testFirstWatchCountsAsADial ();
+    await testRefusedWatchMultipleKeepsLiveHashes ();
 }
 
 export default testParadexErrorFrame;
