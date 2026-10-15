@@ -369,11 +369,7 @@ class BaseExchange(SyncExchange):
                     if exc is not None:
                         self.markets_loading = None
             self.markets_loading.add_done_callback(_clear_loading)
-        try:
-            result = await asyncio.shield(self.markets_loading)
-        except asyncio.CancelledError as e:
-            raise e
-        return result
+        return await asyncio.shield(self.markets_loading)
 
     async def fetch_markets(self, params={}):
         # markets are returned as a list

@@ -45,6 +45,7 @@ class Future(asyncio.Future):
                     f.remove_done_callback(cb)
                 except Exception:
                     pass
+            for f in futures:
                 if cancel_losers and not f.done():
                     f.cancel()
                 if f.done():

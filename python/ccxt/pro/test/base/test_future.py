@@ -9,6 +9,7 @@ sys.path.append(root)
 
 from ccxt import ExchangeClosedByUser
 from ccxt.async_support.base.ws.future import Future
+from ccxt.async_support.base.ws.client import Client
 
 # Helper functions
 async def resolve_later(future, result, delay):
@@ -211,6 +212,37 @@ async def test_race_broadcast_reject_no_unretrieved():
         loop.set_exception_handler(previous_handler)
 
 
+async def test_race_precompleted_cancels_quiet_waiters():
+    print("test_race_precompleted_cancels_quiet_waiters")
+    for outcome in ('resolve', 'reject', 'cancel'):
+        client = Client('wss://localhost', None, None, None, None)
+        if outcome == 'reject':
+            client.reject(ExchangeClosedByUser('replayed rejection'), 'active')
+        for i in range(100):
+            winner = client.future('active')
+            quiet = client.future('quiet')
+            shared_quiet = client.futures['quiet']
+            if outcome == 'resolve':
+                winner.resolve('result')
+            elif outcome == 'cancel':
+                winner.cancel()
+            raced = Future.race([winner, quiet])
+            assert quiet.cancelled(), 'precompleted race left a quiet waiter pending'
+            assert not shared_quiet.done(), 'private waiter cancellation affected shared subscription'
+            try:
+                result = await raced
+                assert outcome == 'resolve' and result == 'result'
+            except ExchangeClosedByUser:
+                assert outcome == 'reject'
+            except asyncio.CancelledError:
+                assert outcome == 'cancel'
+            await asyncio.sleep(0)
+            assert not shared_quiet._waiters, 'quiet subscription accumulated race waiters'
+        remaining = client.future('quiet')
+        client.resolve('still subscribed', 'quiet')
+        assert await remaining == 'still subscribed'
+
+
 async def test_ws_future():
     await test_resolve_before()
     await test_reject()
@@ -225,4 +257,5 @@ async def test_ws_future():
     await test_race_with_precompleted_future()
     await test_closed_by_user()
     await test_race_broadcast_reject_no_unretrieved()
+    await test_race_precompleted_cancels_quiet_waiters()
 
