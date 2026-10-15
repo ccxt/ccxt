@@ -6,6 +6,43 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchMarketLeverageTiers": [
+            {
+                "description": "linear swap leverage tiers request mark price first",
+                "method": "fetchMarketLeverageTiers",
+                "url": "https://www.okx.com/api/v5/public/mark-price?instId=BTC-USDT-SWAP",
+                "input": ["BTC/USDT:USDT"],
+                "output": null
+            },
+            {
+                "description": "linear USD future leverage tiers request the exact instrument mark first",
+                "method": "fetchMarketLeverageTiers",
+                "url": "https://www.okx.com/api/v5/public/mark-price?instId=BTC-USD_UM_XPERP-310404",
+                "input": ["BTC/USD:USD-310404"],
+                "output": null
+            },
+            {
+                "description": "inverse swap leverage tiers request instrument family without mark price",
+                "method": "fetchMarketLeverageTiers",
+                "url": "https://www.okx.com/api/v5/public/position-tiers?instType=SWAP&tdMode=cross&instFamily=BTC-USD",
+                "input": ["BTC/USD:BTC"],
+                "output": null
+            },
+            {
+                "description": "option leverage tiers request instrument family without mark price",
+                "method": "fetchMarketLeverageTiers",
+                "url": "https://www.okx.com/api/v5/public/position-tiers?instType=OPTION&tdMode=cross&instFamily=BTC-USD",
+                "input": ["BTC/USD:BTC-241227-60000-P"],
+                "output": null
+            },
+            {
+                "description": "margin leverage tiers request instrument id without mark price",
+                "method": "fetchMarketLeverageTiers",
+                "url": "https://www.okx.com/api/v5/public/position-tiers?instType=MARGIN&tdMode=cross&instId=BTC-USDT",
+                "input": ["BTC/USDT"],
+                "output": null
+            }
+        ],
         "fetchBalance": [
             {
                 "description": "funding balance",
