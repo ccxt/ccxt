@@ -10409,8 +10409,8 @@ func (this *Okx) fetchMarketLeverageTiersBody(ch chan AsyncResult[any], symbol s
 		}
 		return this.ConvertToInstrumentType(market["type"])
 	}()
-	var uly *string = this.SafeString(market["info"], "uly")
-	if (uly == nil) || (uly != nil && *uly == "") {
+	var instFamily *string = this.SafeString(market["info"], "instFamily")
+	if (instFamily == nil) || (instFamily != nil && *instFamily == "") {
 		if !IsEqual(typeVar, "MARGIN") {
 			panic(BadRequest(this.Id + " fetchMarketLeverageTiers() cannot fetch leverage tiers for " + symbol))
 		}
@@ -10419,9 +10419,9 @@ func (this *Okx) fetchMarketLeverageTiersBody(ch chan AsyncResult[any], symbol s
 	var defaultMarginMode *string = this.SafeString(params, "tdMode", "cross")
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("fetchMarketLeverageTiers", params, defaultMarginMode)
 	var request map[string]any = map[string]any{
-		"instType": typeVar,
-		"tdMode":   marginMode,
-		"uly":      uly,
+		"instType":   typeVar,
+		"tdMode":     marginMode,
+		"instFamily": instFamily,
 	}
 	if IsEqual(typeVar, "MARGIN") {
 		request["instId"] = market["id"]
