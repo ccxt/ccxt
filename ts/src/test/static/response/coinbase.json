@@ -488,6 +488,7 @@
                 "liquidation_percentage": "4848.5055",
                 "portfolio_summary": {
                   "portfolio_uuid": "018ebd63-1f6d-7c8e-ada9-0761c5a2235f",
+                  "margin": null,
                   "collateral": "19.3489",
                   "position_notional": "11.296",
                   "open_position_notional": "11.296",
@@ -535,6 +536,7 @@
             ],
             "portfolio_summary": {
               "portfolio_uuid": "018ebd63-1f6d-7c8e-ada9-0761c5a2235f",
+              "margin": null,
               "collateral": "",
               "position_notional": "",
               "open_position_notional": "",
@@ -614,6 +616,7 @@
                 "liquidation_percentage": "4848.5055",
                 "portfolio_summary": {
                   "portfolio_uuid": "018ebd63-1f6d-7c8e-ada9-0761c5a2235f",
+                  "margin": null,
                   "collateral": "19.3489",
                   "position_notional": "11.296",
                   "open_position_notional": "11.296",
@@ -678,6 +681,7 @@
               "lastUpdateTimestamp": null,
               "maintenanceMargin": null,
               "maintenanceMarginPercentage": null,
+              "margin": null,
               "collateral": 19.3489,
               "initialMargin": 11.296,
               "initialMarginPercentage": 1,

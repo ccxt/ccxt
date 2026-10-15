@@ -6081,6 +6081,9 @@ export class BaseExchange {
                 position['margin'] = this.parseNumber (derivedMargin);
             }
         }
+        if (marginString === undefined) {
+            position['margin'] = undefined; // keep the unified key present across all exchanges
+        }
         if ((collateralString === undefined) && (marginString !== undefined) && (unrealizedPnlString !== undefined)) {
             collateralString = Precise.stringAdd (marginString, unrealizedPnlString);
             position['collateral'] = this.parseNumber (collateralString);

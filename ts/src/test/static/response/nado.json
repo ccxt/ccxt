@@ -218,6 +218,7 @@
             "markPrice": 25000,
             "notional": 2500,
             "leverage": null,
+            "margin": null,
             "collateral": null,
             "initialMargin": null,
             "initialMarginPercentage": null,

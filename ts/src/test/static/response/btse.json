@@ -317,6 +317,7 @@
                         "takeProfitPrice": 2500,
                         "stopLossPrice": 1000,
                         "notional": 3.93867999,
+                        "margin": null,
                         "collateral": null,
                         "unrealizedPnl": 0.00112,
                         "realizedPnl": null,
