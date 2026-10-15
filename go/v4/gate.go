@@ -9230,11 +9230,16 @@ func (this *Gate) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs ...a
 /**
  * @method
  * @name gate#fetchLeverageTiers
- * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
- * @see https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts
- * @see https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts-2
+ * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes, automatically paginating through all contracts
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-risk-limit-tiers
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-risk-limit-tiers-2
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.type] 'swap' or 'future'
+ * @param {string} [params.settle] settlement currency, default 'usdt' for swaps and 'btc' for futures
+ * @param {int} [params.limit] number of contracts per request, between 1 and 100, default 100
+ * @param {int} [params.offset] starting contract offset, default 0
+ * @param {string} [params.contract] exchange-specific contract id to fetch tiers for a single contract
  * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
  */
 func (this *Gate) FetchLeverageTiersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
@@ -9263,118 +9268,53 @@ func (this *Gate) fetchLeverageTiersBody(ch chan AsyncResult[any], optionalArgs 
 	if (typeVar == nil || *typeVar != "future") && (typeVar == nil || *typeVar != "swap") {
 		panic(BadRequest(this.Id + " fetchLeverageTiers only supports swap and future"))
 	}
-	var response []any = nil
-	if typeVar != nil && *typeVar == "swap" {
+	var limit any = mathMax(1, mathMin(this.SafeInteger(requestParams, "limit", 100), 100))
+	var offset any = DerefScalar(this.SafeInteger(requestParams, "offset", 0))
+	var contract *string = this.SafeString(requestParams, "contract", "")
+	var paramsOmitted map[string]any = this.OmitDict(requestParams, []any{"limit", "offset"})
+	AddElementToObject(request, "limit", limit)
+	var tiers map[string]any = map[string]any{}
+	for true {
+		AddElementToObject(request, "offset", offset)
+		var response []any = nil
+		if typeVar != nil && *typeVar == "swap" {
 
-		listEp8646 := <-this.PublicFuturesGetSettleContracts(this.Extend(request, requestParams))
-		if listEp8646.Err != nil {
-			panic(listEp8646.Err)
-		}
-		response = listEp8646.Value
-	} else if typeVar != nil && *typeVar == "future" {
+			listEp8659 := <-this.PublicFuturesGetSettleRiskLimitTiers(this.Extend(request, paramsOmitted))
+			if listEp8659.Err != nil {
+				panic(listEp8659.Err)
+			}
+			response = listEp8659.Value
+		} else {
 
-		listEp8649 := <-this.PublicDeliveryGetSettleContracts(this.Extend(request, requestParams))
-		if listEp8649.Err != nil {
-			panic(listEp8649.Err)
+			listEp8662 := <-this.PublicDeliveryGetSettleRiskLimitTiers(this.Extend(request, paramsOmitted))
+			if listEp8662.Err != nil {
+				panic(listEp8662.Err)
+			}
+			response = listEp8662.Value
 		}
-		response = listEp8649.Value
-	} else {
-		panic(NotSupported(this.Id + " fetchLeverageTiers() not support this market type"))
+		// Each page contains all tiers for up to limit contracts, not limit rows.
+		var grouped map[string]any = map[string]any{}
+		if contract == nil || *contract != "" {
+			AddElementToObject(grouped, contract, response)
+		} else {
+			grouped = this.GroupBy(response, "contract")
+		}
+		tiers = this.Extend(tiers, grouped)
+		var contracts []string = nil
+		if grouped != nil {
+			contracts = make([]string, 0, len(grouped))
+			for objectKey := range grouped {
+				contracts = append(contracts, objectKey)
+			}
+		}
+		var numContracts int = len(contracts)
+		if (contract == nil || *contract != "") || (IsLessThan(numContracts, limit)) {
+			break
+		}
+		offset = this.Sum(offset, limit)
 	}
 
-	//
-	// Perpetual swap
-	//
-	//    [
-	//        {
-	//            "name": "BTC_USDT",
-	//            "type": "direct",
-	//            "quanto_multiplier": "0.0001",
-	//            "ref_discount_rate": "0",
-	//            "order_price_deviate": "0.5",
-	//            "maintenance_rate": "0.005",
-	//            "mark_type": "index",
-	//            "last_price": "38026",
-	//            "mark_price": "37985.6",
-	//            "index_price": "37954.92",
-	//            "funding_rate_indicative": "0.000219",
-	//            "mark_price_round": "0.01",
-	//            "funding_offset": 0,
-	//            "in_delisting": false,
-	//            "risk_limit_base": "1000000",
-	//            "interest_rate": "0.0003",
-	//            "order_price_round": "0.1",
-	//            "order_size_min": 1,
-	//            "ref_rebate_rate": "0.2",
-	//            "funding_interval": 28800,
-	//            "risk_limit_step": "1000000",
-	//            "leverage_min": "1",
-	//            "leverage_max": "100",
-	//            "risk_limit_max": "8000000",
-	//            "maker_fee_rate": "-0.00025",
-	//            "taker_fee_rate": "0.00075",
-	//            "funding_rate": "0.002053",
-	//            "order_size_max": 1000000,
-	//            "funding_next_apply": 1610035200,
-	//            "short_users": 977,
-	//            "config_change_time": 1609899548,
-	//            "trade_size": 28530850594,
-	//            "position_size": 5223816,
-	//            "long_users": 455,
-	//            "funding_impact_value": "60000",
-	//            "orders_limit": 50,
-	//            "trade_id": 10851092,
-	//            "orderbook_id": 2129638396
-	//        }
-	//    ]
-	//
-	// Delivery Futures
-	//
-	//    [
-	//        {
-	//            "name": "BTC_USDT_20200814",
-	//            "underlying": "BTC_USDT",
-	//            "cycle": "WEEKLY",
-	//            "type": "direct",
-	//            "quanto_multiplier": "0.0001",
-	//            "mark_type": "index",
-	//            "last_price": "9017",
-	//            "mark_price": "9019",
-	//            "index_price": "9005.3",
-	//            "basis_rate": "0.185095",
-	//            "basis_value": "13.7",
-	//            "basis_impact_value": "100000",
-	//            "settle_price": "0",
-	//            "settle_price_interval": 60,
-	//            "settle_price_duration": 1800,
-	//            "settle_fee_rate": "0.0015",
-	//            "expire_time": 1593763200,
-	//            "order_price_round": "0.1",
-	//            "mark_price_round": "0.1",
-	//            "leverage_min": "1",
-	//            "leverage_max": "100",
-	//            "maintenance_rate": "1000000",
-	//            "risk_limit_base": "140.726652109199",
-	//            "risk_limit_step": "1000000",
-	//            "risk_limit_max": "8000000",
-	//            "maker_fee_rate": "-0.00025",
-	//            "taker_fee_rate": "0.00075",
-	//            "ref_discount_rate": "0",
-	//            "ref_rebate_rate": "0.2",
-	//            "order_price_deviate": "0.5",
-	//            "order_size_min": 1,
-	//            "order_size_max": 1000000,
-	//            "orders_limit": 50,
-	//            "orderbook_id": 63,
-	//            "trade_id": 26,
-	//            "trade_size": 435,
-	//            "position_size": 130,
-	//            "config_change_time": 1593158867,
-	//            "in_delisting": false
-	//        }
-	//    ]
-	//
-	ch <- AsyncResult[any]{Value: this.ParseLeverageTiers(response, symbols, "name")}
+	ch <- AsyncResult[any]{Value: this.ParseLeverageTiers(tiers, symbols)}
 	return nil
 }
 
@@ -9427,18 +9367,18 @@ func (this *Gate) fetchMarketLeverageTiersBody(ch chan AsyncResult[any], symbol 
 		//     ]
 		//
 
-		listEp8796 := <-this.PublicFuturesGetSettleRiskLimitTiers(this.Extend(request, requestParams))
-		if listEp8796.Err != nil {
-			panic(listEp8796.Err)
+		listEp8736 := <-this.PublicFuturesGetSettleRiskLimitTiers(this.Extend(request, requestParams))
+		if listEp8736.Err != nil {
+			panic(listEp8736.Err)
 		}
-		response = listEp8796.Value
+		response = listEp8736.Value
 	} else {
 
-		listEp8799 := <-this.PublicDeliveryGetSettleRiskLimitTiers(this.Extend(request, requestParams))
-		if listEp8799.Err != nil {
-			panic(listEp8799.Err)
+		listEp8739 := <-this.PublicDeliveryGetSettleRiskLimitTiers(this.Extend(request, requestParams))
+		if listEp8739.Err != nil {
+			panic(listEp8739.Err)
 		}
-		response = listEp8799.Value
+		response = listEp8739.Value
 	}
 
 	ch <- AsyncResult[any]{Value: this.ParseMarketLeverageTiers(response, market)}
@@ -10188,11 +10128,11 @@ func (this *Gate) reduceMarginBody(ch chan EndpointResult[map[string]any], symbo
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes734715 map[string]any = MapTyped(r.Value)
-	if retRes734715 == nil {
+	var retRes728115 map[string]any = MapTyped(r.Value)
+	if retRes728115 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes734715, Raw: retRes734715}
+		ch <- EndpointResult[map[string]any]{Value: retRes728115, Raw: retRes728115}
 	}
 	return nil
 }
@@ -10223,11 +10163,11 @@ func (this *Gate) addMarginBody(ch chan AsyncResult[map[string]any], symbol stri
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes736215 map[string]any = MapTyped(r.Value)
-	if retRes736215 == nil {
+	var retRes729615 map[string]any = MapTyped(r.Value)
+	if retRes729615 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes736215}
+		ch <- AsyncResult[map[string]any]{Value: retRes729615}
 	}
 	return nil
 }
@@ -10275,11 +10215,11 @@ func (this *Gate) fetchOpenInterestHistoryBody(ch chan AsyncResult[any], symbol 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes738419 []any = ListTyped(r1.Value)
-		if retRes738419 == nil {
+		var retRes731819 []any = ListTyped(r1.Value)
+		if retRes731819 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes738419}
+			ch <- AsyncResult[any]{Value: retRes731819}
 		}
 		return nil
 	}
@@ -10299,11 +10239,11 @@ func (this *Gate) fetchOpenInterestHistoryBody(ch chan AsyncResult[any], symbol 
 		request["from"] = this.ParseToInt(float64(*since) / 1000)
 	}
 
-	listEp9585 := <-this.PublicFuturesGetSettleContractStats(this.Extend(request, paramsPaginate))
-	if listEp9585.Err != nil {
-		panic(listEp9585.Err)
+	listEp9525 := <-this.PublicFuturesGetSettleContractStats(this.Extend(request, paramsPaginate))
+	if listEp9525.Err != nil {
+		panic(listEp9525.Err)
 	}
-	var response []any = listEp9585.Value
+	var response []any = listEp9525.Value
 
 	//
 	//    [
@@ -10415,11 +10355,11 @@ func (this *Gate) fetchSettlementHistoryBody(ch chan AsyncResult[[]any], optiona
 		request["limit"] = limit
 	}
 
-	listEp9694 := <-this.PublicOptionsGetSettlements(this.Extend(request, paramsMarketType))
-	if listEp9694.Err != nil {
-		panic(listEp9694.Err)
+	listEp9634 := <-this.PublicOptionsGetSettlements(this.Extend(request, paramsMarketType))
+	if listEp9634.Err != nil {
+		panic(listEp9634.Err)
 	}
-	var response []any = listEp9694.Value
+	var response []any = listEp9634.Value
 	//
 	//     [
 	//         {
@@ -10702,11 +10642,11 @@ func (this *Gate) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...any)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes770719 []any = ListTyped(r1.Value)
-		if retRes770719 == nil {
+		var retRes764119 []any = ListTyped(r1.Value)
+		if retRes764119 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes770719}
+			ch <- AsyncResult[any]{Value: retRes764119}
 		}
 		return nil
 	}
@@ -11042,11 +10982,11 @@ func (this *Gate) fetchUnderlyingAssetsBody(ch chan AsyncResult[any], optionalAr
 		panic(NotSupported(this.Id + " fetchUnderlyingAssets() supports option markets only"))
 	}
 
-	listEp10276 := <-this.PublicOptionsGetUnderlyings(paramsMarketType)
-	if listEp10276.Err != nil {
-		panic(listEp10276.Err)
+	listEp10216 := <-this.PublicOptionsGetUnderlyings(paramsMarketType)
+	if listEp10216.Err != nil {
+		panic(listEp10216.Err)
 	}
-	var response []any = listEp10276.Value
+	var response []any = listEp10216.Value
 	//
 	//    [
 	//        {
@@ -11118,11 +11058,11 @@ func (this *Gate) fetchLiquidationsBody(ch chan AsyncResult[any], symbol string,
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("to", request, params)
 
-	listEp10345 := <-this.PublicFuturesGetSettleLiqOrders(this.Extend(requestUntil, paramsUntil))
-	if listEp10345.Err != nil {
-		panic(listEp10345.Err)
+	listEp10285 := <-this.PublicFuturesGetSettleLiqOrders(this.Extend(requestUntil, paramsUntil))
+	if listEp10285.Err != nil {
+		panic(listEp10285.Err)
 	}
-	var response []any = listEp10345.Value
+	var response []any = listEp10285.Value
 
 	//
 	//     [
@@ -11372,11 +11312,11 @@ func (this *Gate) fetchGreeksBody(ch chan AsyncResult[map[string]any], symbol st
 		"underlying": GetValue(market["info"], "underlying"),
 	}
 
-	listEp10580 := <-this.PublicOptionsGetTickers(this.Extend(request, params))
-	if listEp10580.Err != nil {
-		panic(listEp10580.Err)
+	listEp10520 := <-this.PublicOptionsGetTickers(this.Extend(request, params))
+	if listEp10520.Err != nil {
+		panic(listEp10520.Err)
 	}
-	var response []any = listEp10580.Value
+	var response []any = listEp10520.Value
 	//
 	//     [
 	//         {
@@ -11502,11 +11442,11 @@ func (this *Gate) closePositionBody(ch chan AsyncResult[any], symbol string, opt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes832415 map[string]any = r.Value
-	if retRes832415 == nil {
+	var retRes825815 map[string]any = r.Value
+	if retRes825815 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes832415}
+		ch <- AsyncResult[any]{Value: retRes825815}
 	}
 	return nil
 }
@@ -11617,18 +11557,18 @@ func (this *Gate) fetchLeveragesBody(ch chan AsyncResult[any], optionalArgs ...a
 	if isUnified != nil && *isUnified == true {
 		marketIdRequest = "currency_pair"
 
-		listEp10802 := <-this.PublicMarginGetUniCurrencyPairs(paramsOmitted)
-		if listEp10802.Err != nil {
-			panic(listEp10802.Err)
+		listEp10742 := <-this.PublicMarginGetUniCurrencyPairs(paramsOmitted)
+		if listEp10742.Err != nil {
+			panic(listEp10742.Err)
 		}
-		response = listEp10802.Value
+		response = listEp10742.Value
 	} else {
 
-		listEp10805 := <-this.PublicMarginGetCurrencyPairs(paramsOmitted)
-		if listEp10805.Err != nil {
-			panic(listEp10805.Err)
+		listEp10745 := <-this.PublicMarginGetCurrencyPairs(paramsOmitted)
+		if listEp10745.Err != nil {
+			panic(listEp10745.Err)
 		}
-		response = listEp10805.Value // deprecated
+		response = listEp10745.Value // deprecated
 	}
 
 	ch <- AsyncResult[any]{Value: this.ParseLeverages(this.ToArray(response), symbolsNormalized, marketIdRequest, "spot")}
@@ -11762,11 +11702,11 @@ func (this *Gate) fetchOptionChainBody(ch chan AsyncResult[any], code string, op
 		"underlying": Add(currency["code"], "_USDT"),
 	}
 
-	listEp10929 := <-this.PublicOptionsGetContracts(this.Extend(request, params))
-	if listEp10929.Err != nil {
-		panic(listEp10929.Err)
+	listEp10869 := <-this.PublicOptionsGetContracts(this.Extend(request, params))
+	if listEp10869.Err != nil {
+		panic(listEp10869.Err)
 	}
-	var response []any = listEp10929.Value
+	var response []any = listEp10869.Value
 
 	//
 	//     [
@@ -13203,11 +13143,16 @@ func (this *Gate) FetchPositions(options ...FetchPositionsOptions) ([]Position, 
 /**
  * @method
  * @name gate#fetchLeverageTiers
- * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
- * @see https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts
- * @see https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts-2
+ * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes, automatically paginating through all contracts
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-risk-limit-tiers
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-risk-limit-tiers-2
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.type] 'swap' or 'future'
+ * @param {string} [params.settle] settlement currency, default 'usdt' for swaps and 'btc' for futures
+ * @param {int} [params.limit] number of contracts per request, between 1 and 100, default 100
+ * @param {int} [params.offset] starting contract offset, default 0
+ * @param {string} [params.contract] exchange-specific contract id to fetch tiers for a single contract
  * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
  */
 func (this *Gate) FetchLeverageTiers(options ...FetchLeverageTiersOptions) (LeverageTiers, error) {
