@@ -1557,13 +1557,13 @@
                             "hedged": null,
                             "maintenanceMargin": null,
                             "maintenanceMarginPercentage": null,
-                            "initialMargin": null,
-                            "initialMarginPercentage": null,
+                            "initialMargin": 33.32404,
+                            "initialMarginPercentage": 0.2,
                             "leverage": 5,
                             "liquidationPrice": 61000.2,
                             "marginRatio": null,
                             "marginMode": null,
-                            "percentage": null
+                            "percentage": -3.75
                         }
                     ],
                     [
@@ -1605,13 +1605,13 @@
                             "hedged": null,
                             "maintenanceMargin": null,
                             "maintenanceMarginPercentage": null,
-                            "initialMargin": null,
-                            "initialMarginPercentage": null,
+                            "initialMargin": 105.18,
+                            "initialMarginPercentage": 0.2,
                             "leverage": 5,
                             "liquidationPrice": 61000.2,
                             "marginRatio": null,
                             "marginMode": null,
-                            "percentage": null
+                            "percentage": -1.18
                         }
                     ],
                     [
@@ -1653,13 +1653,13 @@
                             "hedged": null,
                             "maintenanceMargin": null,
                             "maintenanceMarginPercentage": null,
-                            "initialMargin": null,
-                            "initialMarginPercentage": null,
+                            "initialMargin": 33.32404,
+                            "initialMarginPercentage": 0.2,
                             "leverage": 5,
                             "liquidationPrice": 61000.2,
                             "marginRatio": null,
                             "marginMode": null,
-                            "percentage": null
+                            "percentage": -3.75
                         },
                         {
                             "info": {
@@ -1699,13 +1699,13 @@
                             "hedged": null,
                             "maintenanceMargin": null,
                             "maintenanceMarginPercentage": null,
-                            "initialMargin": null,
-                            "initialMarginPercentage": null,
+                            "initialMargin": 49.986,
+                            "initialMarginPercentage": 0.2,
                             "leverage": 5,
                             "liquidationPrice": 61000.2,
                             "marginRatio": null,
                             "marginMode": null,
-                            "percentage": null
+                            "percentage": -2.5
                         }
                     ],
                     [
@@ -1904,13 +1904,13 @@
                         "hedged": null,
                         "maintenanceMargin": null,
                         "maintenanceMarginPercentage": null,
-                        "initialMargin": null,
-                        "initialMarginPercentage": null,
+                        "initialMargin": 129.7058,
+                        "initialMarginPercentage": 0.2,
                         "leverage": 5,
                         "liquidationPrice": null,
                         "marginRatio": null,
                         "marginMode": null,
-                        "percentage": null
+                        "percentage": -1.84
                     }
                 ]
             }

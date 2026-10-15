@@ -8101,6 +8101,45 @@ It is recommended to use the `maintenanceMargin` and `initialMargin` instead of 
 
 An inverse contract will allow you to go long or short on BTC/USD by putting up BTC as collateral. Our API for inverse contracts is the same as for linear contracts. The amounts in an inverse contracts are quoted as if they were traded USD/BTC, however the price is still quoted terms of BTC/USD.  The formula for the profit and loss of a inverse contract is `(1/markPrice - 1/price) * contracts`. The profit and loss and collateral will now be quoted in BTC, and the number of contracts are quoted in USD.
 
+##### Position Semantics
+
+How the fields of a position relate to each other. Let `Q = contracts * contractSize`.
+
+Position-local relationships hold for both `cross` and `isolated` positions. When an exchange leaves one of these fields out, `safePosition` derives it from the others:
+
+- `notional = Q * markPrice` (linear) or `Q / markPrice` (inverse). The notional is in the settlement currency.
+- `unrealizedPnl = ±(markPrice - entryPrice) * Q` (linear) or `±(1 / entryPrice - 1 / markPrice) * Q` (inverse). Use `+` for long and `-` for short.
+- `initialMargin = notional * initialMarginPercentage`. `initialMarginPercentage ≈ 1 / leverage`.
+- `maintenanceMargin = notional * maintenanceMarginPercentage`
+- `marginRatio = maintenanceMargin / collateral`
+- `percentage = unrealizedPnl / initialMargin * 100`
+
+`collateral` is the margin currently backing the position, including unrealized PnL. The margin backing the position at entry is `entryMargin = collateral - unrealizedPnl`.
+
+A position is liquidated when its remaining collateral falls to `maintenanceMargin`. For **isolated** positions this gives:
+
+```
+linear:  entryMargin - abs(entryPrice - liquidationPrice) * Q = maintenanceMargin
+inverse: entryMargin - abs(1 / entryPrice - 1 / liquidationPrice) * Q = maintenanceMargin
+```
+
+- Equivalently, `abs(liquidationPrice - bustPrice) * Q = maintenanceMargin`. The bust price is where the remaining collateral reaches zero.
+- When five of these values are known, `safePosition` derives the missing sixth one on isolated positions. It only does this when the result is positive.
+
+Common pitfalls:
+
+- `abs(entryPrice - liquidationPrice) * Q` is **not** the maintenance margin. It is the loss the position takes before liquidation, which equals `entryMargin - maintenanceMargin`.
+- The isolated equation does not apply to **cross** positions. Their `liquidationPrice` depends on the equity of the whole account and on other positions, while `collateral` and `initialMargin` often describe only this one position. On cross positions `liquidationPrice` can be far away, `0`, negative, or clamped to the smallest tick (for example `0.0001`).
+- Inverse contracts use `1 / price`, and their margins and PnL are in the base currency.
+- `contracts` is a number of contracts, not a base amount. Multiply by `contractSize` before doing any arithmetic with prices.
+
+Exchange peculiarities:
+
+- **Price used for maintenance margin.** Some exchanges calculate `maintenanceMargin` at `entryPrice` (for example bingx, kucoin, mexc, xt, phemex). Others use `markPrice` (okx, binance, htx, hyperliquid). The liquidation trigger itself is evaluated at `liquidationPrice`, so the reported `maintenanceMargin` can differ from the value at liquidation by roughly `markPrice / liquidationPrice`.
+- **Closing taker fees.** Some exchanges add a closing taker fee to `liquidationPrice`, to `maintenanceMargin`, or to both: gate (0.075%), bitget (0.06%), okx (0.05%), and bybit (`feeToClose` in `positionIM` and `positionMM`). Expect a gap of a few percent between the reported values and the equation above.
+- **Tiered deductions.** binance and aster subtract a tiered maintenance amount (`cum`) from the maintenance margin.
+- **Fixed maintenance rate.** hyperliquid and pacifica use `maintenanceMarginPercentage = 1 / (2 * maxLeverage)`.
+
 #### Closing Positions
 
 *contract only*
@@ -8180,19 +8219,21 @@ Returns
 
 #### Liquidation Price
 
-It is the price at which the `initialMargin + unrealized = collateral = maintenanceMargin`. The price has gone in the opposite direction of your position to the point where the is only maintenanceMargin collateral left and if it goes any further the position will have negative collateral.
+It is the price at which `entryMargin + unrealizedPnl = collateral = maintenanceMargin`, i.e. only maintenanceMargin collateral is left. This holds for isolated positions; see [Position Semantics](#position-semantics) for cross positions and exchange caveats.
 
 ```javascript
+// Q = contracts * contractSize, entryMargin = collateral - unrealizedPnl
 // if long
-(liquidationPrice - price) * contracts = maintenanceMargin
+entryMargin - (entryPrice - liquidationPrice) * Q = maintenanceMargin
 
 // if short
-(price - liquidationPrice) * contracts = maintenanceMargin
+entryMargin - (liquidationPrice - entryPrice) * Q = maintenanceMargin
+
 // if inverse long
-(1/liquidationPrice - 1/price) * contracts = maintenanceMargin
+entryMargin - (1/liquidationPrice - 1/entryPrice) * Q = maintenanceMargin
 
 // if inverse short
-(1/price - 1/liquidationPrice) * contracts = maintenanceMargin
+entryMargin - (1/entryPrice - 1/liquidationPrice) * Q = maintenanceMargin
 ```
 
 ### Funding History
