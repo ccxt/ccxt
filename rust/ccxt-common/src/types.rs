@@ -487,6 +487,7 @@ pub struct Position {
     pub liquidation_price: Option<f64>,
     pub unrealized_pnl:   Option<f64>,
     pub realized_pnl:     Option<f64>,
+    pub margin:           Option<f64>,
     pub collateral:       Option<f64>,
     pub leverage:         Option<f64>,
     /// Unified `marginMode` ("cross" | "isolated").
@@ -524,6 +525,7 @@ impl Position {
         p.liquidation_price = safe_number(&v, "liquidationPrice", None);
         p.unrealized_pnl = safe_number(&v, "unrealizedPnl", None);
         p.realized_pnl   = safe_number(&v, "realizedPnl",   None);
+        p.margin         = safe_number(&v, "margin",       None);
         p.collateral     = safe_number(&v, "collateral",   None);
         p.leverage       = safe_number(&v, "leverage",     None);
         p.margin_mode    = safe_string(&v, "marginMode",   None);

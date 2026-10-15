@@ -17,6 +17,7 @@ public final class Position extends TypedMap {
     public Double leverage;
     public Double unrealizedPnl;
     public Double realizedPnl;
+    public Double margin;
     public Double collateral;
     public Double entryPrice;
     public Double markPrice;
@@ -52,6 +53,7 @@ public final class Position extends TypedMap {
         this.leverage = TypeHelper.safeFloat(data, "leverage");
         this.unrealizedPnl = TypeHelper.safeFloat(data, "unrealizedPnl");
         this.realizedPnl = TypeHelper.safeFloat(data, "realizedPnl");
+        this.margin = TypeHelper.safeFloat(data, "margin");
         this.collateral = TypeHelper.safeFloat(data, "collateral");
         this.entryPrice = TypeHelper.safeFloat(data, "entryPrice");
         this.markPrice = TypeHelper.safeFloat(data, "markPrice");

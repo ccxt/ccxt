@@ -3726,6 +3726,7 @@
                         "unrealizedPnl": 2316.8342356,
                         "leverage": 10,
                         "liquidationPrice": 5930.78,
+                        "margin": 13200.70726908,
                         "collateral": 15517.54150468,
                         "notional": 133590.1342356,
                         "markPrice": 6679.50671178,

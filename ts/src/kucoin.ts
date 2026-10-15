@@ -10896,6 +10896,7 @@ export default class kucoin extends Exchange {
             marginMode = (crossMode === true) ? 'cross' : 'isolated';
         }
         let collateralString = this.safeString (position, 'maintMargin');
+        let marginString: Str = undefined;
         if ((collateralString === undefined) && (marginMode === 'isolated')) {
             let posMargin = this.safeString (position, 'posMargin');
             if (posMargin === undefined) {
@@ -10909,6 +10910,7 @@ export default class kucoin extends Exchange {
                 }
             }
             if (posMargin !== undefined) {
+                marginString = posMargin;
                 collateralString = (unrealisedPnl !== undefined) ? Precise.stringAdd (posMargin, unrealisedPnl) : posMargin;
             }
         }
@@ -10942,6 +10944,7 @@ export default class kucoin extends Exchange {
             'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
             'markPrice': this.safeNumber (position, 'markPrice'),
             'lastPrice': this.safeNumber (position, 'closePrice'),
+            'margin': this.parseNumber (marginString),
             'collateral': this.parseNumber (collateralString),
             'marginMode': marginMode,
             'side': side,

@@ -3840,6 +3840,7 @@ export default class weex extends Exchange {
             'leverage': this.safeNumber (position, 'leverage'),
             'unrealizedPnl': this.parseNumber (unrealizePnl),
             'realizedPnl': undefined,
+            'margin': ((marginMode === 'isolated') ? this.parseNumber (isolatedMargin) : undefined),
             'collateral': this.parseNumber (collateralString),
             'entryPrice': this.parseNumber (entryPrice),
             'markPrice': undefined,

@@ -6447,6 +6447,7 @@ export default class okx extends Exchange {
         const leverageString = this.safeString (position, 'lever');
         let initialMarginPercentage: Str | Num = undefined;
         let collateralString: Str = undefined;
+        let marginString: Str = undefined;
         if (marginMode === 'cross') {
             initialMarginString = this.safeString (position, 'imr');
             collateralString = (unrealizedPnlString !== undefined) ? Precise.stringAdd (initialMarginString, unrealizedPnlString) : initialMarginString;
@@ -6455,6 +6456,7 @@ export default class okx extends Exchange {
             const isolatedMarginString = this.omitZero (this.safeString (position, 'margin'));
             if (isolatedMarginString !== undefined) {
                 initialMarginString = isolatedMarginString;
+                marginString = isolatedMarginString;
                 collateralString = (unrealizedPnlString !== undefined) ? Precise.stringAdd (isolatedMarginString, unrealizedPnlString) : isolatedMarginString;
             }
         }
@@ -6521,6 +6523,7 @@ export default class okx extends Exchange {
             'lastUpdateTimestamp': this.safeInteger (position, 'uTime'),
             'maintenanceMargin': maintenanceMargin,
             'maintenanceMarginPercentage': maintenanceMarginPercentage,
+            'margin': this.parseNumber (marginString),
             'collateral': this.parseNumber (collateralString),
             'initialMargin': this.parseNumber (initialMarginString),
             'initialMarginPercentage': this.parseNumber (initialMarginPercentage),

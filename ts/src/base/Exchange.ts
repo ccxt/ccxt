@@ -6069,15 +6069,25 @@ export class BaseExchange {
         let liquidationPriceString = this.safeString (position, 'liquidationPrice');
         let contractsString = this.safeString (position, 'contracts');
         let contractSizeString = this.safeString (position, 'contractSize');
+        // margin is the amount held in the position (excludes unrealized pnl), collateral = margin + unrealizedPnl
+        let marginString = this.safeString (position, 'margin');
+        if ((marginString === undefined) && (marginMode === 'isolated') && (collateralString !== undefined)) {
+            let derivedMargin: Str = collateralString;
+            if ((unrealizedPnlString !== undefined) && !Precise.stringEq (collateralString, initialMarginString)) {
+                derivedMargin = Precise.stringSub (collateralString, unrealizedPnlString);
+            }
+            if (Precise.stringGt (derivedMargin, '0')) {
+                marginString = derivedMargin;
+                position['margin'] = this.parseNumber (derivedMargin);
+            }
+        }
+        if ((collateralString === undefined) && (marginString !== undefined) && (unrealizedPnlString !== undefined)) {
+            collateralString = Precise.stringAdd (marginString, unrealizedPnlString);
+            position['collateral'] = this.parseNumber (collateralString);
+        }
         if (marginMode === 'isolated') {
-            let entryMarginString: Str = undefined;
-            if (collateralString !== undefined) {
-                if ((unrealizedPnlString !== undefined) && !Precise.stringEq (collateralString, initialMarginString)) {
-                    entryMarginString = Precise.stringSub (collateralString, unrealizedPnlString);
-                } else {
-                    entryMarginString = collateralString;
-                }
-            } else if (initialMarginString !== undefined) {
+            let entryMarginString = marginString;
+            if ((entryMarginString === undefined) && (collateralString === undefined)) {
                 entryMarginString = initialMarginString;
             }
             const hasEntryMargin = (entryMarginString !== undefined) && Precise.stringGt (entryMarginString, '0');
@@ -6122,6 +6132,8 @@ export class BaseExchange {
                 if (Precise.stringGt (derivedEntryMargin, '0')) {
                     initialMarginString = derivedEntryMargin;
                     position['initialMargin'] = this.parseNumber (derivedEntryMargin);
+                    marginString = derivedEntryMargin;
+                    position['margin'] = this.parseNumber (derivedEntryMargin);
                     const derivedCollateral = (unrealizedPnlString !== undefined) ? Precise.stringAdd (derivedEntryMargin, unrealizedPnlString) : derivedEntryMargin;
                     if (Precise.stringGt (derivedCollateral, '0')) {
                         collateralString = derivedCollateral;

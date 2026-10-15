@@ -4056,9 +4056,11 @@ export default class digifinex extends Exchange {
         const positionMargin = this.safeString (position, 'margin');
         const unrealizedPnl = this.safeString (position, 'unrealized_pnl');
         let collateralString: Str = undefined;
+        let marginString: Str = undefined;
         if (marginMode === 'isolated') {
             const isolatedMargin = this.safeString2 (position, 'posi_balance', 'margin');
             if (isolatedMargin !== undefined) {
+                marginString = isolatedMargin;
                 collateralString = (unrealizedPnl !== undefined) ? Precise.stringAdd (isolatedMargin, unrealizedPnl) : isolatedMargin;
             }
         }
@@ -4085,6 +4087,7 @@ export default class digifinex extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'maintenanceMargin': this.parseNumber (maintenanceMarginString),
             'maintenanceMarginPercentage': this.safeNumber (position, 'maint_margin_ratio'),
+            'margin': this.parseNumber (marginString),
             'collateral': this.parseNumber (collateralString),
             'initialMargin': this.parseNumber (positionMargin),
             'initialMarginPercentage': undefined,

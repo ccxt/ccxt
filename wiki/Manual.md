@@ -8080,7 +8080,8 @@ Returns
    'markPrice': 20050,          // float, a price that is used for funding calculations
    'notional': 100000,          // float, the value of the position in the settlement currency
    'leverage': 100,             // float, the leverage of the position, related to how many contracts you can buy with a given amount of collateral
-   'collateral': 5300,          // float, the maximum amount of collateral that can be lost, affected by pnl
+   'margin': 5000,              // float, the margin held in the position (what was put in, plus/minus margin added or removed), not affected by pnl
+   'collateral': 5300,          // float, DEPRECATED, always margin + unrealizedPnl, will be removed in a future version
    'initialMargin': 5000,       // float, the amount of collateral that is locked up in this position
    'maintenanceMargin': 1000,   // float, the mininum amount of collateral needed to avoid being liquidated
    'initialMarginPercentage': 0.05,      // float, the initialMargin as a percentage of the notional
@@ -8114,18 +8115,20 @@ Position-local relationships hold for both `cross` and `isolated` positions. Whe
 - `unrealizedPnl = ±(markPrice - entryPrice) * baseCurrencySize` (linear) or `±(1 / entryPrice - 1 / markPrice) * quoteCurrencySize` (inverse). Use `+` for long and `-` for short.
 - `initialMargin = notional * initialMarginPercentage`. `initialMarginPercentage ≈ 1 / leverage`.
 - `maintenanceMargin = notional * maintenanceMarginPercentage`
-- `marginRatio = maintenanceMargin / collateral`
+- `marginRatio = maintenanceMargin / (margin + unrealizedPnl)`
 - `percentage = unrealizedPnl / initialMargin * 100`
 
-`collateral` is the margin backing the position right now. It already includes the position's unrealized profit or loss.
+`margin` is the money held in the position: what you opened it with, plus or minus any margin added or removed since. It does not move with the price. For example, if you opened with 100 USDT of margin, `margin` stays 100 whether the position is up 20 USDT or down 20 USDT.
 
-`entryMargin` is the margin the position was opened with. To get it, take the current collateral and remove the profit or loss made since opening: `entryMargin = collateral - unrealizedPnl`. For example, if you opened with 100 USDT of margin and the position is now up 20 USDT, `collateral` is 120 and `entryMargin` is 100. If it is down 20 USDT instead, `collateral` is 80 and `entryMargin` is still 100. Some exchanges report `collateral` without unrealized PnL; in that case `entryMargin` is simply `collateral` (or `initialMargin`).
+`collateral` is **deprecated** and will be removed in a future version. It is always `margin + unrealizedPnl` (120 or 80 in the example above), so use `margin` and `unrealizedPnl` instead. When an exchange reports only one of them, `safePosition` fills in the other.
+
+`margin` differs from `initialMargin`: `initialMargin` is the margin the leverage requires (`notional / leverage`, often recalculated at the mark price), while `margin` is what is actually in the position. They differ when margin is added or removed, or when the exchange reprices `initialMargin`.
 
 A position is liquidated when its remaining collateral falls to `maintenanceMargin`. For **isolated** positions this gives:
 
 ```
-linear:  entryMargin - abs(entryPrice - liquidationPrice) * baseCurrencySize = maintenanceMargin
-inverse: entryMargin - abs(1 / entryPrice - 1 / liquidationPrice) * quoteCurrencySize = maintenanceMargin
+linear:  margin - abs(entryPrice - liquidationPrice) * baseCurrencySize = maintenanceMargin
+inverse: margin - abs(1 / entryPrice - 1 / liquidationPrice) * quoteCurrencySize = maintenanceMargin
 ```
 
 - Equivalently, `abs(liquidationPrice - bustPrice) * baseCurrencySize = maintenanceMargin` (linear). The bust price is where the remaining collateral reaches zero.
@@ -8133,7 +8136,7 @@ inverse: entryMargin - abs(1 / entryPrice - 1 / liquidationPrice) * quoteCurrenc
 
 Common pitfalls:
 
-- `abs(entryPrice - liquidationPrice) * baseCurrencySize` is **not** the maintenance margin. It is the loss the position takes before liquidation, which equals `entryMargin - maintenanceMargin`.
+- `abs(entryPrice - liquidationPrice) * baseCurrencySize` is **not** the maintenance margin. It is the loss the position takes before liquidation, which equals `margin - maintenanceMargin`.
 - The isolated equation does not apply to **cross** positions. Their `liquidationPrice` depends on the equity of the whole account and on other positions, while `collateral` and `initialMargin` often describe only this one position. On cross positions `liquidationPrice` can be far away, `0`, negative, or clamped to the smallest tick (for example `0.0001`).
 - Inverse contracts use `1 / price`, and their margins and PnL are in the base currency.
 - `contracts` is a number of contracts, not a base amount. Multiply by `contractSize` before doing any arithmetic with prices.
@@ -8224,23 +8227,23 @@ Returns
 
 #### Liquidation Price
 
-It is the price at which `entryMargin + unrealizedPnl = collateral = maintenanceMargin`, i.e. only maintenanceMargin collateral is left. This holds for isolated positions; see [Position Semantics](#position-semantics) for cross positions and exchange caveats.
+It is the price at which `margin + unrealizedPnl = maintenanceMargin`, i.e. only maintenanceMargin collateral is left. This holds for isolated positions; see [Position Semantics](#position-semantics) for cross positions and exchange caveats.
 
 ```javascript
 // baseCurrencySize = contracts * contractSize (linear)
 // quoteCurrencySize = contracts * contractSize (inverse)
-// entryMargin = collateral - unrealizedPnl (the margin the position was opened with)
+// margin = the margin held in the position, excluding unrealizedPnl
 // if long
-entryMargin - (entryPrice - liquidationPrice) * baseCurrencySize = maintenanceMargin
+margin - (entryPrice - liquidationPrice) * baseCurrencySize = maintenanceMargin
 
 // if short
-entryMargin - (liquidationPrice - entryPrice) * baseCurrencySize = maintenanceMargin
+margin - (liquidationPrice - entryPrice) * baseCurrencySize = maintenanceMargin
 
 // if inverse long
-entryMargin - (1/liquidationPrice - 1/entryPrice) * quoteCurrencySize = maintenanceMargin
+margin - (1/liquidationPrice - 1/entryPrice) * quoteCurrencySize = maintenanceMargin
 
 // if inverse short
-entryMargin - (1/entryPrice - 1/liquidationPrice) * quoteCurrencySize = maintenanceMargin
+margin - (1/entryPrice - 1/liquidationPrice) * quoteCurrencySize = maintenanceMargin
 ```
 
 ### Funding History

@@ -2983,6 +2983,7 @@ export default class blofin extends Exchange {
         const leverageString = this.safeString (position, 'leverage');
         let initialMarginPercentage: Str | Num = undefined;
         let collateralString: Str = undefined;
+        let marginString: Str = undefined;
         if (marginMode === 'cross') {
             initialMarginString = this.safeString (position, 'initialMargin');
             collateralString = (unrealizedPnlString !== undefined) ? Precise.stringAdd (initialMarginString, unrealizedPnlString) : initialMarginString;
@@ -2991,6 +2992,7 @@ export default class blofin extends Exchange {
             const isolatedMarginString = this.omitZero (this.safeString2 (position, 'margin', 'initialMargin'));
             if (isolatedMarginString !== undefined) {
                 initialMarginString = isolatedMarginString;
+                marginString = isolatedMarginString;
                 collateralString = (unrealizedPnlString !== undefined) ? Precise.stringAdd (isolatedMarginString, unrealizedPnlString) : isolatedMarginString;
             }
         }
@@ -3045,6 +3047,7 @@ export default class blofin extends Exchange {
             'lastUpdateTimestamp': undefined,
             'maintenanceMargin': maintenanceMargin,
             'maintenanceMarginPercentage': maintenanceMarginPercentage,
+            'margin': this.parseNumber (marginString),
             'collateral': this.parseNumber (collateralString),
             'initialMargin': this.parseNumber (initialMarginString),
             'initialMarginPercentage': this.parseNumber (initialMarginPercentage),

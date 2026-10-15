@@ -488,6 +488,7 @@
             "lastPrice": null,
             "notional": 10.664,
             "leverage": 10,
+            "margin": 0.5,
             "collateral": 0.5,
             "initialMargin": 0.5,
             "maintenanceMargin": null,

@@ -5475,8 +5475,10 @@ export default class mexc extends Exchange {
         const openType = this.safeString2 (position, 'openType', 'margin_mode');
         const marginType = (openType === '1') ? 'isolated' : 'cross';
         let collateralString: Str = undefined;
+        let marginString: Str = undefined;
         if ((marginType === 'isolated') && (initialMargin !== undefined)) {
             collateralString = (holdFee !== undefined) ? Precise.stringAdd (initialMargin, holdFee) : initialMargin;
+            marginString = collateralString;
             if (unrealizedPnl !== undefined) {
                 collateralString = Precise.stringAdd (collateralString, unrealizedPnl);
             }
@@ -5491,6 +5493,7 @@ export default class mexc extends Exchange {
             'contracts': this.parseNumber (contracts),
             'contractSize': this.safeNumber (marketResolved, 'contractSize'),
             'entryPrice': entryPrice,
+            'margin': this.parseNumber (marginString),
             'collateral': this.parseNumber (collateralString),
             'side': side,
             'unrealizedPnl': this.parseNumber (unrealizedPnl),
