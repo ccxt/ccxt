@@ -6153,18 +6153,18 @@ export class BaseExchange {
             contractSize = this.safeNumber (market, 'contractSize');
             position['contractSize'] = contractSize;
         }
+        const isInverse = (market !== undefined) && this.safeBool (market, 'inverse', false);
+        const side = this.safeString (position, 'side');
         const marginMode = this.safeString (position, 'marginMode');
-        const unrealizedPnlString = this.safeString (position, 'unrealizedPnl');
+        let unrealizedPnlString = this.safeString (position, 'unrealizedPnl');
         let initialMarginString = this.safeString (position, 'initialMargin');
+        let maintenanceMarginString = this.safeString (position, 'maintenanceMargin');
+        let collateralString = this.safeString (position, 'collateral');
+        let entryPriceString = this.safeString (position, 'entryPrice');
+        let liquidationPriceString = this.safeString (position, 'liquidationPrice');
+        let contractsString = this.safeString (position, 'contracts');
+        let contractSizeString = this.safeString (position, 'contractSize');
         if (marginMode === 'isolated') {
-            const side = this.safeString (position, 'side');
-            const isInverse = (market !== undefined) && this.safeBool (market, 'inverse', false);
-            const entryPriceString = this.safeString (position, 'entryPrice');
-            const liquidationPriceString = this.safeString (position, 'liquidationPrice');
-            const contractsString = this.safeString (position, 'contracts');
-            const contractSizeString = this.safeString (position, 'contractSize');
-            const maintenanceMarginString = this.safeString (position, 'maintenanceMargin');
-            const collateralString = this.safeString (position, 'collateral');
             let entryMarginString: Str = undefined;
             if (collateralString !== undefined) {
                 if ((unrealizedPnlString !== undefined) && !Precise.stringEq (collateralString, initialMarginString)) {
@@ -6208,6 +6208,7 @@ export class BaseExchange {
                 const lossFromEntry = Precise.stringMul (priceDiff, Precise.stringMul (contractsString, contractSizeString));
                 const derivedMm = Precise.stringSub (entryMarginString, lossFromEntry);
                 if (Precise.stringGt (derivedMm, '0')) {
+                    maintenanceMarginString = derivedMm;
                     position['maintenanceMargin'] = this.parseNumber (derivedMm);
                 }
             } else if ((collateralString === undefined) && (initialMarginString === undefined) && hasMm && hasPriceDiff && hasContracts && hasContractSize) {
@@ -6218,6 +6219,7 @@ export class BaseExchange {
                     position['initialMargin'] = this.parseNumber (derivedEntryMargin);
                     const derivedCollateral = (unrealizedPnlString !== undefined) ? Precise.stringAdd (derivedEntryMargin, unrealizedPnlString) : derivedEntryMargin;
                     if (Precise.stringGt (derivedCollateral, '0')) {
+                        collateralString = derivedCollateral;
                         position['collateral'] = this.parseNumber (derivedCollateral);
                     }
                 }
@@ -6237,6 +6239,7 @@ export class BaseExchange {
                         derivedLp = (side === 'long') ? Precise.stringSub (entryPriceString, bufferPerUnit) : Precise.stringAdd (entryPriceString, bufferPerUnit);
                     }
                     if ((derivedLp !== undefined) && Precise.stringGt (derivedLp, '0')) {
+                        liquidationPriceString = derivedLp;
                         position['liquidationPrice'] = this.parseNumber (derivedLp);
                     }
                 }
@@ -6256,6 +6259,7 @@ export class BaseExchange {
                         derivedEp = (side === 'long') ? Precise.stringAdd (liquidationPriceString, bufferPerUnit) : Precise.stringSub (liquidationPriceString, bufferPerUnit);
                     }
                     if ((derivedEp !== undefined) && Precise.stringGt (derivedEp, '0')) {
+                        entryPriceString = derivedEp;
                         position['entryPrice'] = this.parseNumber (derivedEp);
                     }
                 }
@@ -6265,6 +6269,7 @@ export class BaseExchange {
                 if (Precise.stringGt (marginBuffer, '0') && Precise.stringGt (denom, '0')) {
                     const derivedContracts = Precise.stringDiv (marginBuffer, denom);
                     if (Precise.stringGt (derivedContracts, '0')) {
+                        contractsString = derivedContracts;
                         position['contracts'] = this.parseNumber (derivedContracts);
                     }
                 }
@@ -6274,7 +6279,139 @@ export class BaseExchange {
                 if (Precise.stringGt (marginBuffer, '0') && Precise.stringGt (denom, '0')) {
                     const derivedContractSize = Precise.stringDiv (marginBuffer, denom);
                     if (Precise.stringGt (derivedContractSize, '0')) {
+                        contractSizeString = derivedContractSize;
                         position['contractSize'] = this.parseNumber (derivedContractSize);
+                    }
+                }
+            }
+        }
+        //
+        // POSITION-LOCAL DERIVATIONS (CROSS & ISOLATED)
+        //
+        const isZeroPosition = (contractsString !== undefined) && Precise.stringEq (contractsString, '0');
+        if (!isZeroPosition) {
+            let notionalString = this.safeString (position, 'notional');
+            let markPriceString = this.safeString (position, 'markPrice');
+            const lastPriceString = this.safeString (position, 'lastPrice');
+            const hasContracts = (contractsString !== undefined) && Precise.stringGt (contractsString, '0');
+            const hasContractSize = (contractSizeString !== undefined) && Precise.stringGt (contractSizeString, '0');
+            const hasMarkPrice = (markPriceString !== undefined) && Precise.stringGt (markPriceString, '0');
+            const hasNotional = (notionalString !== undefined) && Precise.stringGt (notionalString, '0');
+            // 1. notional <-> markPrice / contracts / contractSize
+            if ((notionalString === undefined) && hasMarkPrice && hasContracts && hasContractSize) {
+                const totalSize = Precise.stringMul (contractsString, contractSizeString);
+                const derivedNotional = isInverse ? Precise.stringDiv (totalSize, markPriceString) : Precise.stringMul (totalSize, markPriceString);
+                if (Precise.stringGt (derivedNotional, '0')) {
+                    notionalString = derivedNotional;
+                    position['notional'] = this.parseNumber (derivedNotional);
+                }
+            } else if ((markPriceString === undefined) && (entryPriceString === undefined) && (lastPriceString === undefined) && hasNotional && hasContracts && hasContractSize) {
+                const totalSize = Precise.stringMul (contractsString, contractSizeString);
+                const derivedMark = isInverse ? Precise.stringDiv (totalSize, notionalString) : Precise.stringDiv (notionalString, totalSize);
+                if (Precise.stringGt (derivedMark, '0')) {
+                    markPriceString = derivedMark;
+                    position['markPrice'] = this.parseNumber (derivedMark);
+                }
+            } else if ((contractsString === undefined) && hasNotional && hasMarkPrice && hasContractSize) {
+                const derivedContracts = isInverse ? Precise.stringDiv (Precise.stringMul (notionalString, markPriceString), contractSizeString) : Precise.stringDiv (notionalString, Precise.stringMul (markPriceString, contractSizeString));
+                if (Precise.stringGt (derivedContracts, '0')) {
+                    contractsString = derivedContracts;
+                    position['contracts'] = this.parseNumber (derivedContracts);
+                }
+            } else if ((contractSizeString === undefined) && hasNotional && hasMarkPrice && hasContracts) {
+                const derivedContractSize = isInverse ? Precise.stringDiv (Precise.stringMul (notionalString, markPriceString), contractsString) : Precise.stringDiv (notionalString, Precise.stringMul (markPriceString, contractsString));
+                if (Precise.stringGt (derivedContractSize, '0')) {
+                    contractSizeString = derivedContractSize;
+                    position['contractSize'] = this.parseNumber (derivedContractSize);
+                }
+            }
+            // 2. unrealizedPnl from entryPrice, markPrice, contracts, contractSize, side
+            if ((unrealizedPnlString === undefined) && (entryPriceString !== undefined) && (markPriceString !== undefined) && (contractsString !== undefined) && (contractSizeString !== undefined)) {
+                if (Precise.stringGt (entryPriceString, '0') && Precise.stringGt (markPriceString, '0') && Precise.stringGt (contractsString, '0') && Precise.stringGt (contractSizeString, '0')) {
+                    const totalSize = Precise.stringMul (contractsString, contractSizeString);
+                    let pnlDiff: Str = undefined;
+                    if (isInverse) {
+                        const invEntry = Precise.stringDiv ('1', entryPriceString);
+                        const invMark = Precise.stringDiv ('1', markPriceString);
+                        if (side === 'long') {
+                            pnlDiff = Precise.stringSub (invEntry, invMark);
+                        } else if (side === 'short') {
+                            pnlDiff = Precise.stringSub (invMark, invEntry);
+                        }
+                    } else {
+                        if (side === 'long') {
+                            pnlDiff = Precise.stringSub (markPriceString, entryPriceString);
+                        } else if (side === 'short') {
+                            pnlDiff = Precise.stringSub (entryPriceString, markPriceString);
+                        }
+                    }
+                    if (pnlDiff !== undefined) {
+                        const candidateUpnl = Precise.stringMul (pnlDiff, totalSize);
+                        if (Precise.stringEq (candidateUpnl, '0') || Precise.stringGe (Precise.stringAbs (candidateUpnl), '0.000001')) {
+                            unrealizedPnlString = candidateUpnl;
+                            position['unrealizedPnl'] = this.parseNumber (unrealizedPnlString);
+                        }
+                    }
+                }
+            }
+            // 3. initialMargin <-> initialMarginPercentage <-> leverage / notional
+            const hasValidNotional = (notionalString !== undefined) && Precise.stringGt (notionalString, '0');
+            let initialMarginPercentageString = this.safeString (position, 'initialMarginPercentage');
+            const leverageString = this.safeString (position, 'leverage');
+            const hasLeverage = (leverageString !== undefined) && Precise.stringGt (leverageString, '0');
+            const hasInitialMargin = (initialMarginString !== undefined) && Precise.stringGt (initialMarginString, '0');
+            const hadInitialMargin = (initialMarginString !== undefined);
+            if ((initialMarginPercentageString === undefined) && (hasInitialMargin || !hadInitialMargin)) {
+                if (hasInitialMargin && hasValidNotional) {
+                    initialMarginPercentageString = Precise.stringDiv (initialMarginString, notionalString);
+                } else if (hasLeverage) {
+                    initialMarginPercentageString = Precise.stringDiv ('1', leverageString);
+                }
+                if ((initialMarginPercentageString !== undefined) && Precise.stringGt (initialMarginPercentageString, '0')) {
+                    position['initialMarginPercentage'] = this.parseNumber (initialMarginPercentageString);
+                }
+            }
+            const hasImp = (initialMarginPercentageString !== undefined) && Precise.stringGt (initialMarginPercentageString, '0');
+            if ((initialMarginString === undefined) && hasValidNotional) {
+                if (hasLeverage) {
+                    initialMarginString = Precise.stringDiv (notionalString, leverageString);
+                } else if (hasImp) {
+                    initialMarginString = Precise.stringMul (notionalString, initialMarginPercentageString);
+                }
+                if ((initialMarginString !== undefined) && Precise.stringGt (initialMarginString, '0')) {
+                    position['initialMargin'] = this.parseNumber (initialMarginString);
+                }
+            }
+            if ((leverageString === undefined) && !hadInitialMargin && hasImp) {
+                const derivedLeverage = Precise.stringDiv ('1', initialMarginPercentageString);
+                if (Precise.stringGt (derivedLeverage, '0') && Precise.stringLe (derivedLeverage, '200')) {
+                    position['leverage'] = this.parseNumber (derivedLeverage);
+                }
+            }
+            // 4. maintenanceMargin <-> maintenanceMarginPercentage / notional
+            let maintenanceMarginPercentageString = this.safeString (position, 'maintenanceMarginPercentage');
+            const hasValidMm = (maintenanceMarginString !== undefined) && Precise.stringGt (maintenanceMarginString, '0');
+            const hasValidMmp = (maintenanceMarginPercentageString !== undefined) && Precise.stringGt (maintenanceMarginPercentageString, '0');
+            if ((maintenanceMarginString === undefined) && hasValidNotional && hasValidMmp) {
+                const derivedMm = Precise.stringMul (notionalString, maintenanceMarginPercentageString);
+                if (Precise.stringGt (derivedMm, '0')) {
+                    maintenanceMarginString = derivedMm;
+                    position['maintenanceMargin'] = this.parseNumber (derivedMm);
+                }
+            } else if ((maintenanceMarginPercentageString === undefined) && hasValidNotional && hasValidMm) {
+                const derivedMmp = Precise.stringDiv (maintenanceMarginString, notionalString);
+                if (Precise.stringGt (derivedMmp, '0')) {
+                    maintenanceMarginPercentageString = derivedMmp;
+                    position['maintenanceMarginPercentage'] = this.parseNumber (derivedMmp);
+                }
+            }
+            // 5. marginRatio = maintenanceMargin / collateral
+            const marginRatio = this.safeValue (position, 'marginRatio');
+            if ((marginRatio === undefined) && (maintenanceMarginString !== undefined) && (collateralString !== undefined)) {
+                if (Precise.stringGt (maintenanceMarginString, '0') && Precise.stringGt (collateralString, '0')) {
+                    const derivedMarginRatio = Precise.stringDiv (maintenanceMarginString, collateralString, 4);
+                    if ((derivedMarginRatio !== undefined) && Precise.stringGt (derivedMarginRatio, '0')) {
+                        position['marginRatio'] = this.parseNumber (derivedMarginRatio);
                     }
                 }
             }

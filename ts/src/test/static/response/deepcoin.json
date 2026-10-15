@@ -1010,7 +1010,7 @@
                         "maintenanceMargin": null,
                         "maintenanceMarginPercentage": null,
                         "initialMargin": 0.049088,
-                        "initialMarginPercentage": null,
+                        "initialMarginPercentage": 0.013333333333333332,
                         "marginRatio": null,
                         "lastUpdateTimestamp": 1760709419000,
                         "lastPrice": null,

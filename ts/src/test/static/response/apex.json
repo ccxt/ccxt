@@ -7759,7 +7759,7 @@
                         "maintenanceMargin": null,
                         "maintenanceMarginPercentage": null,
                         "initialMargin": null,
-                        "initialMarginPercentage": null,
+                        "initialMarginPercentage": 0.1,
                         "leverage": 10,
                         "liquidationPrice": null,
                         "marginRatio": null,

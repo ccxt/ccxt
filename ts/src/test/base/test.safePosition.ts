@@ -130,6 +130,43 @@ function testSafePosition () {
     };
     const res8 = exchange.safePosition (pos8);
     assert (exchange.safeValue (res8, 'maintenanceMargin') === undefined);
+
+    // CASE 9 - cross margin linear position derives notional, unrealizedPnl, initialMarginPercentage, initialMargin, maintenanceMargin, marginRatio, percentage
+    const pos9 = {
+        'marginMode': 'cross',
+        'side': 'long',
+        'entryPrice': 1000,
+        'markPrice': 1050,
+        'contracts': 2,
+        'contractSize': 0.5,
+        'leverage': 10,
+        'maintenanceMarginPercentage': 0.01,
+        'collateral': 210,
+    };
+    const res9 = exchange.safePosition (pos9);
+    assert (preciseEqualPositionStr (exchange, res9, 'notional', '1050'));
+    assert (preciseEqualPositionStr (exchange, res9, 'unrealizedPnl', '50'));
+    assert (preciseEqualPositionStr (exchange, res9, 'initialMarginPercentage', '0.1'));
+    assert (preciseEqualPositionStr (exchange, res9, 'initialMargin', '105'));
+    assert (preciseEqualPositionStr (exchange, res9, 'maintenanceMargin', '10.5'));
+    assert (preciseEqualPositionStr (exchange, res9, 'marginRatio', '0.05'));
+    assert (preciseEqualPositionStr (exchange, res9, 'percentage', '47.61'));
+
+    // CASE 10 - cross margin position derives leverage, maintenanceMarginPercentage, and markPrice
+    const pos10 = {
+        'marginMode': 'cross',
+        'side': 'short',
+        'notional': 2000,
+        'contracts': 4,
+        'contractSize': 0.5,
+        'initialMarginPercentage': 0.05,
+        'maintenanceMargin': 20,
+    };
+    const res10 = exchange.safePosition (pos10);
+    assert (preciseEqualPositionStr (exchange, res10, 'markPrice', '1000'));
+    assert (preciseEqualPositionStr (exchange, res10, 'leverage', '20'));
+    assert (preciseEqualPositionStr (exchange, res10, 'initialMargin', '100'));
+    assert (preciseEqualPositionStr (exchange, res10, 'maintenanceMarginPercentage', '0.01'));
 }
 
 export default testSafePosition;

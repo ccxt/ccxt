@@ -1657,7 +1657,7 @@
                     "maintenanceMarginPercentage": null,
                     "collateral": null,
                     "initialMargin": 1.5187625,
-                    "initialMarginPercentage": null,
+                    "initialMarginPercentage": 0.25,
                     "leverage": 4,
                     "marginRatio": null,
                     "stopLossPrice": null,

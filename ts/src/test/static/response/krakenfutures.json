@@ -1562,7 +1562,7 @@
                         "timestamp": 1707258274849,
                         "datetime": "2024-02-06T22:24:34.849Z",
                         "initialMargin": null,
-                        "initialMarginPercentage": null,
+                        "initialMarginPercentage": 1,
                         "maintenanceMargin": null,
                         "maintenanceMarginPercentage": null,
                         "entryPrice": 68.54,

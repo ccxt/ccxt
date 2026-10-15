@@ -2971,6 +2971,8 @@ export default class blofin extends Exchange {
         let notionalString = this.safeString (position, 'notionalUsd');
         if (marketResolved['inverse'] === true) {
             notionalString = Precise.stringDiv (Precise.stringMul (contractsAbs, contractSizeString), markPriceString);
+        } else if (notionalString === undefined) {
+            notionalString = Precise.stringMul (Precise.stringMul (contractsAbs, contractSizeString), markPriceString);
         }
         const notional = this.parseNumber (notionalString);
         const marginMode = this.safeString (position, 'marginMode');

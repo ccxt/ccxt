@@ -328,14 +328,14 @@
                         "lastUpdateTimestamp": null,
                         "hedged": false,
                         "maintenanceMargin": 0.02197247,
-                        "maintenanceMarginPercentage": null,
-                        "initialMargin": null,
-                        "initialMarginPercentage": null,
+                        "maintenanceMarginPercentage": 0.005578638035023505,
+                        "initialMargin": 19.69339995,
+                        "initialMarginPercentage": 5,
                         "leverage": 0.2,
                         "liquidationPrice": 0,
                         "marginRatio": null,
                         "marginMode": "cross",
-                        "percentage": null
+                        "percentage": 0
                     }
                 ]
             },

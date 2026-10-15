@@ -223,7 +223,7 @@
             "initialMarginPercentage": null,
             "maintenanceMargin": null,
             "maintenanceMarginPercentage": null,
-            "unrealizedPnl": null,
+            "unrealizedPnl": 100,
             "liquidationPrice": null,
             "marginMode": null,
             "marginRatio": null,

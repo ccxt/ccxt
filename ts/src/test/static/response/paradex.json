@@ -2597,13 +2597,13 @@
                     "hedged": null,
                     "maintenanceMargin": null,
                     "maintenanceMarginPercentage": null,
-                    "initialMargin": null,
-                    "initialMarginPercentage": null,
+                    "initialMargin": 78.2,
+                    "initialMarginPercentage": 0.2,
                     "leverage": 5,
                     "liquidationPrice": 241.7,
                     "marginRatio": null,
                     "marginMode": null,
-                    "percentage": null
+                    "percentage": 1.41
                   }
                 ]
             }

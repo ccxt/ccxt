@@ -936,7 +936,7 @@
                         "maintenanceMargin": null,
                         "maintenanceMarginPercentage": null,
                         "initialMargin": 0.5262,
-                        "initialMarginPercentage": null,
+                        "initialMarginPercentage": 0.03941484461023348,
                         "leverage": 25,
                         "liquidationPrice": null,
                         "marginRatio": null,

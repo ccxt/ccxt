@@ -2069,6 +2069,9 @@ export default class lighter extends Exchange {
                 leverage = 100 / imf;
             }
         }
+        const contractsString = this.safeString (position, 'position');
+        const positionValueString = this.safeString (position, 'position_value');
+        const markPriceString = Precise.stringDiv (positionValueString, contractsString);
         return this.safePosition ({
             'info': position,
             'id': undefined,
@@ -2078,11 +2081,11 @@ export default class lighter extends Exchange {
             'isolated': (marginMode === 'isolated'),
             'hedged': undefined,
             'side': side,
-            'contracts': this.safeNumber (position, 'position'),
+            'contracts': this.parseNumber (contractsString),
             'contractSize': undefined,
             'entryPrice': this.safeNumber (position, 'avg_entry_price'),
-            'markPrice': undefined,
-            'notional': this.safeNumber (position, 'position_value'),
+            'markPrice': this.parseNumber (markPriceString),
+            'notional': this.parseNumber (positionValueString),
             'leverage': leverage,
             'collateral': this.safeNumber (position, 'allocated_margin'),
             'initialMargin': undefined,

@@ -56,7 +56,7 @@
                         "id": null,
                         "symbol": "SOL/USDT:USDT",
                         "entryPrice": null,
-                        "markPrice": null,
+                        "markPrice": 169.29507,
                         "notional": "33.859014",
                         "collateral": null,
                         "unrealizedPnl": "0.050481",
