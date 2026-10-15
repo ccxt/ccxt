@@ -7024,7 +7024,7 @@ class gate extends Exchange {
             $tiers[] = array(
                 'tier' => $this->sum($i, 1),
                 'symbol' => $this->safe_string($market, 'symbol'),
-                'currency' => $this->safe_string($market, 'base'),
+                'currency' => $this->safe_string($market, 'settle'),
                 'minNotional' => $minNotional,
                 'maxNotional' => $maxNotional,
                 'maintenanceMarginRate' => $this->safe_number($item, 'maintenance_rate'),
