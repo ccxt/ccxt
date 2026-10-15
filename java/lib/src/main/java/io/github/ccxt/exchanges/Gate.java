@@ -8493,7 +8493,7 @@ public class Gate extends GateApi
             ((List<Object>)tiers).add(Helpers.newMap(
                 "tier", this.sum(i, 1),
                 "symbol", this.safeString(market, "symbol"),
-                "currency", this.safeString(market, "base"),
+                "currency", this.safeString(market, "settle"),
                 "minNotional", minNotional,
                 "maxNotional", maxNotional,
                 "maintenanceMarginRate", this.safeNumber(item, "maintenance_rate", (Object) null),
