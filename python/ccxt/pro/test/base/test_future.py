@@ -8,6 +8,7 @@ root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.d
 sys.path.append(root)
 
 from ccxt import ExchangeClosedByUser
+from ccxt.async_support import Exchange
 from ccxt.async_support.base.ws.future import Future
 from ccxt.async_support.base.ws.client import Client
 
@@ -243,6 +244,135 @@ async def test_race_precompleted_cancels_quiet_waiters():
         assert await remaining == 'still subscribed'
 
 
+async def test_client_future_caller_cancellation_and_replay():
+    print("test_client_future_caller_cancellation_and_replay")
+    client = Client('wss://localhost', None, None, None, None)
+    loop = asyncio.get_running_loop()
+    complaints = []
+    previous_handler = loop.get_exception_handler()
+    loop.set_exception_handler(lambda l, context: complaints.append(context))
+
+    async def receive():
+        return await client.future('ticker')
+
+    first = asyncio.create_task(receive())
+    second = asyncio.create_task(receive())
+    try:
+        await asyncio.sleep(0)
+        first.cancel()
+        try:
+            await first
+            assert False, 'cancelled receiver returned a result'
+        except asyncio.CancelledError:
+            pass
+        assert not client.futures['ticker'].done(), 'caller cancelled the shared future'
+        client.resolve('tick', 'ticker')
+        assert await asyncio.wait_for(second, 1) == 'tick'
+        error = ExchangeClosedByUser('parked rejection')
+        client.reject(error, 'rejected')
+        try:
+            await client.future('rejected')
+            assert False, 'parked rejection did not reach the caller'
+        except ExchangeClosedByUser as caught:
+            assert caught is error
+        await asyncio.sleep(0)
+        assert not complaints, 'rejection replay logged a callback error'
+        for i in range(100):
+            raced = Future.race([client.future('active'), client.future('quiet')])
+            client.resolve(i, 'active')
+            assert await asyncio.wait_for(raced, 1) == i
+            await asyncio.sleep(0)
+            assert not client.futures['quiet']._waiters, 'race left a quiet waiter behind'
+        raced = Future.race([client.future('active'), client.future('quiet')])
+        raced.cancel()
+        await asyncio.sleep(0)
+        await asyncio.sleep(0)
+        for message_hash in ('active', 'quiet'):
+            assert not client.futures[message_hash].done()
+            assert not client.futures[message_hash]._waiters
+    finally:
+        first.cancel()
+        second.cancel()
+        await asyncio.gather(first, second, return_exceptions=True)
+        loop.set_exception_handler(previous_handler)
+
+
+async def test_load_markets_caller_cancellation():
+    print("test_load_markets_caller_cancellation")
+    exchange = Exchange({'timeout_on_exit': 0})
+    started = asyncio.Event()
+    release = asyncio.Event()
+    calls = []
+    markets = {'BTC/USDT': {'symbol': 'BTC/USDT'}}
+
+    async def load_markets_helper(reload, params):
+        calls.append(reload)
+        started.set()
+        await release.wait()
+        exchange.markets = markets
+        return markets
+
+    exchange.load_markets_helper = load_markets_helper
+    first = asyncio.create_task(exchange.load_markets())
+    second = asyncio.create_task(exchange.load_markets())
+    try:
+        await asyncio.wait_for(started.wait(), 1)
+        loading = exchange.markets_loading
+        first.cancel()
+        try:
+            await first
+            assert False, 'cancelled caller returned markets'
+        except asyncio.CancelledError:
+            pass
+        assert not loading.cancelled(), 'caller cancelled the shared loader'
+        release.set()
+        assert await asyncio.wait_for(second, 1) is markets
+        assert await exchange.load_markets() is markets
+        assert calls == [False], 'cached load started another helper'
+        assert await exchange.load_markets(True) is markets
+        assert calls == [False, True]
+    finally:
+        release.set()
+        first.cancel()
+        second.cancel()
+        await asyncio.gather(first, second, return_exceptions=True)
+        await exchange.close()
+
+
+async def test_watch_caller_cancellation():
+    print("test_watch_caller_cancellation")
+    exchange = Exchange({'timeout_on_exit': 0})
+    url = 'wss://localhost'
+    client = exchange.client(url)
+    existing = client.future('ticker')
+
+    async def watch():
+        return await exchange.watch(url, 'ticker')
+
+    first = asyncio.create_task(watch())
+    second = asyncio.create_task(watch())
+    try:
+        await asyncio.sleep(0)
+        first.cancel()
+        try:
+            await first
+            assert False, 'cancelled watcher returned a result'
+        except asyncio.CancelledError:
+            pass
+        await asyncio.sleep(0)
+        assert not second.done(), 'one watcher cancelled another caller'
+        assert not client.futures['ticker'].done(), 'watch cancelled the shared subscription'
+        client.resolve({'last': 1}, 'ticker')
+        assert await asyncio.wait_for(second, 1) == {'last': 1}
+        assert await existing == {'last': 1}
+    finally:
+        first.cancel()
+        second.cancel()
+        existing.cancel()
+        await asyncio.gather(first, second, return_exceptions=True)
+        await exchange.close()
+
+
 async def test_ws_future():
     await test_resolve_before()
     await test_reject()
@@ -258,4 +388,7 @@ async def test_ws_future():
     await test_closed_by_user()
     await test_race_broadcast_reject_no_unretrieved()
     await test_race_precompleted_cancels_quiet_waiters()
+    await test_client_future_caller_cancellation_and_replay()
+    await test_load_markets_caller_cancellation()
+    await test_watch_caller_cancellation()
 

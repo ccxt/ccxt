@@ -511,7 +511,7 @@ class BaseExchange(SyncExchange):
         backoff_delay = self.ws_dial_delay(url)
         client = self.client(url)
         if subscribe_hash is None and message_hash in client.futures:
-            return client.futures[message_hash]
+            return client.future(message_hash)
         future = client.future(message_hash)
 
         subscribed = client.subscriptions.get(subscribe_hash)
