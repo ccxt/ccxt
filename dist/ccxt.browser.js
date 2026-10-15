@@ -464393,8 +464393,8 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         }
         const market = this.market(symbol);
         const type = market['spot'] === true ? 'MARGIN' : this.convertToInstrumentType(market['type']);
-        const uly = this.safeString(market['info'], 'uly');
-        if (uly === undefined || uly === '') {
+        const instFamily = this.safeString(market['info'], 'instFamily');
+        if (instFamily === undefined || instFamily === '') {
             if (type !== 'MARGIN') {
                 throw new _base_errors_js__rspack_import_1.BadRequest(this.id + ' fetchMarketLeverageTiers() cannot fetch leverage tiers for ' + symbol);
             }
@@ -464405,7 +464405,7 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         const request = {
             'instType': type,
             'tdMode': marginMode,
-            'uly': uly
+            'instFamily': instFamily
         };
         if (type === 'MARGIN') {
             request['instId'] = market['id'];
