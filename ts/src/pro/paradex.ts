@@ -3,8 +3,8 @@
 
 import paradexRest from '../paradex.js';
 import Precise from '../base/Precise.js';
-import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, Str, Trade, Order, Dict, OrderBook, Ticker, Strings, Tickers, Bool, Market, FundingRate, FundingRates } from '../base/types.js';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
+import type { Int, Str, Trade, Order, Dict, OrderBook, Ticker, Strings, Tickers, Bool, Market, FundingRate, FundingRates, Position, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ExchangeError } from '../base/errors.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
@@ -22,9 +22,11 @@ export default class paradex extends paradexRest {
                 'watchTickers': true,
                 'watchOrderBook': true,
                 'watchOrders': true,
+                'watchMyTrades': true,
+                'watchPositions': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
-                'watchBalance': false,
+                'watchBalance': true,
                 'watchOHLCV': false,
             },
             'urls': {
@@ -166,7 +168,7 @@ export default class paradex extends paradexRest {
      * @method
      * @name paradex#watchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://docs.paradex.trade/ws/web-socket-channels/trades/trades
+     * @see https://docs.paradex.trade/ws/web-socket-channels/trades-market-symbol/trades-market-symbol
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -242,7 +244,7 @@ export default class paradex extends paradexRest {
      * @method
      * @name paradex#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.paradex.trade/ws/web-socket-channels/order-book/order-book
+     * @see https://docs.paradex.trade/ws/web-socket-channels/order-book-market-symbol-feed-type-15-refresh-rate-price-tick/order-book-market-symbol-feed-type-15-refresh-rate-price-tick
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -334,7 +336,7 @@ export default class paradex extends paradexRest {
      * @method
      * @name paradex#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary/markets-summary
+     * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-symbol
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -361,7 +363,7 @@ export default class paradex extends paradexRest {
      * @method
      * @name paradex#watchTickers
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-     * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary/markets-summary
+     * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-symbol
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -402,7 +404,7 @@ export default class paradex extends paradexRest {
      * @method
      * @name paradex#watchOrders
      * @description watches information on multiple orders made by the user
-     * @see https://docs.paradex.trade/ws/web-socket-channels/orders/orders
+     * @see https://docs.paradex.trade/ws/web-socket-channels/orders-market-symbol/orders-market-symbol
      * @param {string} [symbol] unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -483,6 +485,269 @@ export default class paradex extends paradexRest {
         }
     }
 
+    /**
+     * @method
+     * @name paradex#watchMyTrades
+     * @description watches information on multiple trades made by the user
+     * @see https://docs.paradex.trade/ws/web-socket-channels/fills-market-symbol/fills-market-symbol
+     * @param {string} [symbol] unified market symbol of the market trades were made in
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        await this.authenticate ();
+        let messageHash = 'myTrades';
+        let channel = 'fills.';
+        const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : symbol;
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            channel += market['id'];
+            messageHash += ':' + symbolResolved;
+        } else {
+            channel += 'ALL';
+        }
+        const url = this.getWsUrl ();
+        const request: Dict = {
+            'jsonrpc': '2.0',
+            'method': 'subscribe',
+            'params': {
+                'channel': channel,
+            },
+        };
+        const trades: ArrayCache = await this.watch (url, messageHash, this.deepExtend (request, params), channel);
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (symbolResolved, limit);
+        }
+        return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
+    }
+
+    handleMyTrade (client: Client, message: Dict) {
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "fills.ALL",
+        //             "data": {
+        //                 "id": "1718947571560201703986670001",
+        //                 "side": "BUY",
+        //                 "liquidity": "TAKER",
+        //                 "market": "BTC-USD-PERP",
+        //                 "order_id": "1718947571540201703992340000",
+        //                 "price": "64852.9",
+        //                 "size": "0.01",
+        //                 "fee": "0.1945587",
+        //                 "fee_currency": "USDC",
+        //                 "created_at": 1718947571569,
+        //                 "remaining_size": "0",
+        //                 "client_id": "",
+        //                 "fill_type": "FILL"
+        //             }
+        //         }
+        //     }
+        //
+        const params = this.safeDict (message, 'params', {});
+        const data = this.safeDict (params, 'data', {});
+        const trade = this.parseTrade (data);
+        const symbol = this.safeString (trade, 'symbol');
+        if (this.myTrades === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            this.myTrades = new ArrayCacheBySymbolById (limit);
+        }
+        const trades = this.myTrades;
+        trades.append (trade);
+        const messageHash = 'myTrades';
+        client.resolve (trades, messageHash);
+        if (symbol !== undefined) {
+            client.resolve (trades, messageHash + ':' + symbol);
+        }
+    }
+
+    /**
+     * @method
+     * @name paradex#watchPositions
+     * @description watch all open positions
+     * @see https://docs.paradex.trade/ws/web-socket-channels/positions/positions
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum number of positions to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Position[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        await this.authenticate ();
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
+        // one channel carries every market
+        const channel = 'positions';
+        const url = this.getWsUrl ();
+        const request: Dict = {
+            'jsonrpc': '2.0',
+            'method': 'subscribe',
+            'params': {
+                'channel': channel,
+            },
+        };
+        const messageHashes: string[] = [];
+        let symbolsLength = 0;
+        if (symbolsNormalized !== undefined) {
+            symbolsLength = symbolsNormalized.length;
+        }
+        if (symbolsLength === 0) {
+            messageHashes.push (channel);
+        } else {
+            for (let i = 0; i < symbolsLength; i++) {
+                messageHashes.push (channel + ':' + (symbolsNormalized as string[])[i]);
+            }
+        }
+        const newPositions = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), [ channel ]);
+        if (this.newUpdates) {
+            return newPositions;
+        }
+        return this.filterBySymbolsSinceLimit (this.positions, symbolsNormalized, since, limit, true);
+    }
+
+    handlePositions (client: Client, message: Dict) {
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "positions",
+        //             "data": {
+        //                 "id": "0x49ddd7a564c978f6e4089ff8355b56a42b7e2d48ba282cb5aad60f04bea0ec3-BTC-USD-PERP",
+        //                 "market": "BTC-USD-PERP",
+        //                 "status": "OPEN",
+        //                 "side": "LONG",
+        //                 "size": "0.01",
+        //                 "average_entry_price": "64839.96053748",
+        //                 "unrealized_pnl": "-2.39677214",
+        //                 "leverage": "5",
+        //                 "cost_usd": "648.529",
+        //                 "created_at": 1718947571560,
+        //                 "last_updated_at": 1718950074249,
+        //                 "liquidation_price": ""
+        //             }
+        //         }
+        //     }
+        //
+        const params = this.safeDict (message, 'params', {});
+        const data = this.safeDict (params, 'data', {});
+        if (this.positions === undefined) {
+            this.positions = new ArrayCacheBySymbolBySide ();
+        }
+        const cache: ArrayCacheBySymbolBySide = this.positions;
+        const position = this.parsePosition (data);
+        const symbol = position['symbol'];
+        const newPositions = [];
+        // one position per market, so a fill through zero flips its side: the cache keys by
+        // symbol and side, and the opposite side it still holds is flattened here
+        const side = this.safeString (position, 'side');
+        const cached = this.filterBySymbolSinceLimit (cache, symbol, undefined, undefined, true);
+        for (let i = 0; i < cached.length; i++) {
+            const previous = cached[i];
+            const previousSide = this.safeString (previous, 'side');
+            const previousContracts = this.safeString (previous, 'contracts');
+            const isOpposite = (side !== undefined) && (previousSide !== undefined) && (previousSide !== side);
+            if (isOpposite && (previousContracts !== undefined) && !Precise.stringEq (previousContracts, '0')) {
+                const flattened = this.extend (previous, {
+                    'contracts': this.parseNumber ('0'),
+                    'lastUpdateTimestamp': this.safeInteger (position, 'lastUpdateTimestamp'),
+                });
+                cache.append (flattened as Position);
+                newPositions.push (flattened);
+            }
+        }
+        cache.append (position);
+        newPositions.push (position);
+        client.resolve (newPositions, 'positions');
+        client.resolve (newPositions, 'positions:' + symbol);
+    }
+
+    /**
+     * @method
+     * @name paradex#watchBalance
+     * @description watch the margin balance of the account in its settlement asset: total is the account
+     * value, free the free collateral and used the initial margin requirement
+     * @see https://docs.paradex.trade/ws/web-socket-channels/account/account
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    override async watchBalance (params: Dict = {}): Promise<Balances> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        await this.authenticate ();
+        const channel = 'account';
+        const url = this.getWsUrl ();
+        const request: Dict = {
+            'jsonrpc': '2.0',
+            'method': 'subscribe',
+            'params': {
+                'channel': channel,
+            },
+        };
+        return await this.watch (url, 'balance', this.deepExtend (request, params), channel);
+    }
+
+    handleBalance (client: Client, message: Dict) {
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "account",
+        //             "data": {
+        //                 "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b",
+        //                 "account_value": "1000.5",
+        //                 "free_collateral": "900.5",
+        //                 "initial_margin_requirement": "100",
+        //                 "maintenance_margin_requirement": "50",
+        //                 "margin_cushion": "950.5",
+        //                 "seq_no": 20,
+        //                 "settlement_asset": "USDC",
+        //                 "status": "ACTIVE",
+        //                 "total_collateral": "1000",
+        //                 "updated_at": 1718950074249
+        //             }
+        //         }
+        //     }
+        //
+        const params = this.safeDict (message, 'params', {});
+        const data = this.safeDict (params, 'data', {});
+        this.balance = this.parseWsBalance (data);
+        client.resolve (this.balance, 'balance');
+    }
+
+    parseWsBalance (data: Dict): Balances {
+        // the account channel carries margin, not token holdings: the account value (collateral with
+        // unrealized pnl) is the total, the free collateral what can still back a new position, and the
+        // initial margin the part the open positions hold, free + used = total as the venue computes them
+        const timestamp = this.safeInteger (data, 'updated_at');
+        const result: Dict = {
+            'info': data,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        const code = this.safeCurrencyCode (this.safeString (data, 'settlement_asset'));
+        const account = this.account ();
+        account['total'] = this.safeString (data, 'account_value');
+        account['free'] = this.safeString (data, 'free_collateral');
+        account['used'] = this.safeString (data, 'initial_margin_requirement');
+        if (code !== undefined) {
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     handleTicker (client: Client, message: Dict): Dict {
         //
         //     {
@@ -552,7 +817,7 @@ export default class paradex extends paradexRest {
      * @method
      * @name paradex#watchFundingRates
      * @description watch the funding rate for multiple markets
-     * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary/markets-summary
+     * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-symbol
      * @param {string[]} [symbols] a list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -714,6 +979,17 @@ export default class paradex extends paradexRest {
             if (data !== undefined) {
                 channel = 'orders.' + data['market'];
             }
+        } else if (templateId === 21) {
+            data = this.parseSbeFill (frameHex, blockLength, frameLength);
+            if (data !== undefined) {
+                channel = 'fills.' + data['market'];
+            }
+        } else if (templateId === 22) {
+            data = this.parseSbePosition (frameHex, blockLength, frameLength);
+            channel = 'positions';
+        } else if (templateId === 23) {
+            data = this.parseSbeAccount (frameHex, blockLength, frameLength);
+            channel = 'account';
         }
         if (data === undefined) {
             return undefined;
@@ -996,16 +1272,7 @@ export default class paradex extends paradexRest {
         const orderTypes: Dict = { '1': 'LIMIT', '2': 'MARKET', '3': 'STOP_LIMIT', '4': 'STOP_MARKET', '5': 'TAKE_PROFIT_LIMIT', '6': 'TAKE_PROFIT_MARKET', '7': 'STOP_LOSS_LIMIT', '8': 'STOP_LOSS_MARKET' };
         const timeInForces: Dict = { '1': 'GTC', '2': 'IOC', '3': 'POST_ONLY', '4': 'RPI' };
         const stpModes: Dict = { '0': 'NONE', '1': 'EXPIRE_MAKER', '2': 'EXPIRE_TAKER', '3': 'EXPIRE_BOTH' };
-        const flagNames = [ 'REDUCE_ONLY', 'STOP_CONDITION_BELOW_TRIGGER', 'STOP_CONDITION_ABOVE_TRIGGER', 'INTERACTIVE', 'TARGET_STRATEGY_VWAP', 'MMP' ];
-        const flags: string[] = [];
-        let flagBits = this.sbeReadUint (frameHex, 133, 1);
-        for (let i = 0; i < flagNames.length; i++) {
-            const bit = this.parseToInt (flagBits % 2);
-            if (bit === 1) {
-                flags.push (flagNames[i]);
-            }
-            flagBits = this.parseToInt ((flagBits - bit) / 2);
-        }
+        const flags = this.sbeReadFlags (frameHex, 133, [ 'REDUCE_ONLY', 'STOP_CONDITION_BELOW_TRIGGER', 'STOP_CONDITION_ABOVE_TRIGGER', 'INTERACTIVE', 'TARGET_STRATEGY_VWAP', 'MMP' ]);
         const order: Dict = {
             'account': this.sbeReadAddress (frameHex, 84),
             'avg_fill_price': this.sbeReadDecimal (frameHex, 60),
@@ -1034,6 +1301,154 @@ export default class paradex extends paradexRest {
             order['cancel_reason'] = strings[3];
         }
         return order;
+    }
+
+    sbeReadFlags (frameHex: string, offset: number, names: string[]): string[] {
+        // a uint8 bitset, names[bit] for each set bit, an empty name for a bit the schema leaves unused
+        const flags: string[] = [];
+        let bits = this.sbeReadUint (frameHex, offset, 1);
+        for (let i = 0; i < names.length; i++) {
+            const bit = this.parseToInt (bits % 2);
+            if ((bit === 1) && (names[i] !== '')) {
+                flags.push (names[i]);
+            }
+            bits = this.parseToInt ((bits - bit) / 2);
+        }
+        return flags;
+    }
+
+    parseSbeFill (frameHex: string, blockLength: number, frameLength: number): any {
+        //
+        // FillEvent (templateId 21), 116-byte block (107 before the 1:2 flags and orderbookSeqNo)
+        //
+        //     ts int64, seq int64 (nullable), fillType uint8, side uint8, liquidity uint8, price int64,
+        //     size int64, fee int64, realizedPnl int64 (nullable), createdAt int64, account [32]byte,
+        //     underlyingPrice int64, realizedFunding int64, flags uint8, orderbookSeqNo uint64, then the
+        //     fillId, orderId, clientOrderId, tradeId, market and feeCurrency (1:2) strings
+        //
+        if (blockLength < 107) {
+            return undefined;
+        }
+        const strings = this.sbeReadVarStrings (frameHex, this.sum (blockLength, 8), 6, frameLength);
+        const stringsLength = (strings === undefined) ? 0 : strings.length;
+        if (stringsLength < 5) {
+            return undefined;
+        }
+        const fillTypes: Dict = { '1': 'FILL', '2': 'LIQUIDATION', '3': 'UNWIND_TRANSFER', '4': 'SETTLE_MARKET', '5': 'RPI', '6': 'BLOCK_TRADE' };
+        const sides: Dict = { '1': 'BUY', '2': 'SELL' };
+        const liquidities: Dict = { '1': 'MAKER', '2': 'TAKER' };
+        const fill: Dict = {
+            'account': this.sbeReadAddress (frameHex, 67),
+            'client_id': strings[2],
+            'created_at': this.sbeReadTimestamp (frameHex, 59),
+            'fee': this.sbeReadDecimal (frameHex, 43),
+            'fee_currency': this.safeString (strings, 5),
+            'fill_type': this.sbeReadEnum (frameHex, 24, fillTypes),
+            'id': strings[0],
+            'liquidity': this.sbeReadEnum (frameHex, 26, liquidities),
+            'market': strings[4],
+            'order_id': strings[1],
+            'price': this.sbeReadDecimal (frameHex, 27),
+            'realized_funding': this.sbeReadDecimal (frameHex, 107),
+            'realized_pnl': this.sbeReadDecimal (frameHex, 51),
+            'side': this.sbeReadEnum (frameHex, 25, sides),
+            'size': this.sbeReadDecimal (frameHex, 35),
+            'underlying_price': this.sbeReadDecimal (frameHex, 99),
+        };
+        if (blockLength >= 116) {
+            // lowercase, as the JSON feed spells fill flags
+            fill['flags'] = this.sbeReadFlags (frameHex, 115, [ 'interactive', 'rpi', 'fastfill', '', '', '', '', 'unknown' ]);
+            fill['orderbook_seq_no'] = this.sbeReadInt64 (frameHex, 116);
+        }
+        return fill;
+    }
+
+    parseSbePosition (frameHex: string, blockLength: number, frameLength: number): any {
+        //
+        // PositionEvent (templateId 22), 154-byte block
+        //
+        //     ts int64, seq int64, side uint8, size int64 (absolute), avgEntryPrice int64,
+        //     unrealizedPnl int64, realizedPnl int64, markPrice int64 (always null), liquidationPrice
+        //     int64 (nullable), leverage int64, updatedAt int64, account [32]byte, avgEntryPriceUsd
+        //     int64, cost int64, costUsd int64, cachedFundingIndex int64, unrealizedFundingPnl int64,
+        //     status uint8, then the market and lastFillId strings
+        //
+        if (blockLength < 154) {
+            return undefined;
+        }
+        const strings = this.sbeReadVarStrings (frameHex, this.sum (blockLength, 8), 2, frameLength);
+        const stringsLength = (strings === undefined) ? 0 : strings.length;
+        if (stringsLength < 1) {
+            return undefined;
+        }
+        const sides: Dict = { '1': 'LONG', '2': 'SHORT' };
+        const statuses: Dict = { '1': 'OPEN', '2': 'CLOSED' };
+        const side = this.sbeReadEnum (frameHex, 24, sides);
+        const account = this.sbeReadAddress (frameHex, 89);
+        // the frame carries the size unsigned, the JSON channel signs it negative for a short
+        let size = this.sbeReadDecimal (frameHex, 25);
+        if ((side === 'SHORT') && (size !== '0')) {
+            size = Precise.stringNeg (size);
+        }
+        return {
+            'account': account,
+            'average_entry_price': this.sbeReadDecimal (frameHex, 33),
+            'average_entry_price_usd': this.sbeReadDecimal (frameHex, 121),
+            'cached_funding_index': this.sbeReadDecimal (frameHex, 145),
+            'cost': this.sbeReadDecimal (frameHex, 129),
+            'cost_usd': this.sbeReadDecimal (frameHex, 137),
+            // the JSON channel's id, one position per account and market
+            'id': account + '-' + strings[0],
+            'last_fill_id': this.safeString (strings, 1),
+            'last_updated_at': this.sbeReadTimestamp (frameHex, 81),
+            'leverage': this.sbeReadDecimal (frameHex, 73),
+            'liquidation_price': this.sbeReadDecimal (frameHex, 65),
+            'market': strings[0],
+            'realized_positional_pnl': this.sbeReadDecimal (frameHex, 49),
+            'seq_no': this.sbeReadInt64 (frameHex, 16),
+            'side': side,
+            'size': size,
+            'status': this.sbeReadEnum (frameHex, 161, statuses),
+            'unrealized_funding_pnl': this.sbeReadDecimal (frameHex, 153),
+            'unrealized_pnl': this.sbeReadDecimal (frameHex, 41),
+        };
+    }
+
+    parseSbeAccount (frameHex: string, blockLength: number, frameLength: number): any {
+        //
+        // AccountEvent (templateId 23), 121-byte block (113 before the 1:2 lastSeenNotification)
+        //
+        //     ts int64, seq int64, totalCollateral int64, freeCollateral int64, initialMarginReq int64,
+        //     maintenanceMarginReq int64, accountValue int64, unrealizedPnl int64 (nullable), updatedAt
+        //     int64, account [32]byte, marginCushion int64, status uint8, lastSeenNotification int64,
+        //     then the settlementAsset string
+        //
+        if (blockLength < 113) {
+            return undefined;
+        }
+        const strings = this.sbeReadVarStrings (frameHex, this.sum (blockLength, 8), 1, frameLength);
+        const stringsLength = (strings === undefined) ? 0 : strings.length;
+        if (stringsLength < 1) {
+            return undefined;
+        }
+        const statuses: Dict = { '1': 'ACTIVE', '2': 'LIQUIDATION' };
+        const account: Dict = {
+            'account': this.sbeReadAddress (frameHex, 80),
+            'account_value': this.sbeReadDecimal (frameHex, 56),
+            'free_collateral': this.sbeReadDecimal (frameHex, 32),
+            'initial_margin_requirement': this.sbeReadDecimal (frameHex, 40),
+            'maintenance_margin_requirement': this.sbeReadDecimal (frameHex, 48),
+            'margin_cushion': this.sbeReadDecimal (frameHex, 112),
+            'seq_no': this.sbeReadInt64 (frameHex, 16),
+            'settlement_asset': strings[0],
+            'status': this.sbeReadEnum (frameHex, 120, statuses),
+            'total_collateral': this.sbeReadDecimal (frameHex, 24),
+            'updated_at': this.sbeReadTimestamp (frameHex, 72),
+        };
+        if (blockLength >= 121) {
+            account['last_seen_notification'] = this.sbeReadTimestamp (frameHex, 121);
+        }
+        return account;
     }
 
     handleErrorMessage (client: Client, message: Dict): Bool {
@@ -1150,6 +1565,9 @@ export default class paradex extends paradexRest {
                 'markets_summary': this.handleTicker,
                 'orders': this.handleOrder,
                 'funding_data': this.handleFundingRate,
+                'fills': this.handleMyTrade,
+                'positions': this.handlePositions,
+                'account': this.handleBalance,
             };
             const method = this.safeValue (methods, name);
             if (method !== undefined) {

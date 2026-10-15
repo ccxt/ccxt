@@ -9500,7 +9500,7 @@ func (this *Gate) ParseMarketLeverageTiers(info any, optionalArgs ...any) any {
 		tiers = append(tiers, map[string]any{
 			"tier":                  this.Sum(i, 1),
 			"symbol":                this.SafeString(market, "symbol"),
-			"currency":              this.SafeString(market, "base"),
+			"currency":              this.SafeString(market, "settle"),
 			"minNotional":           minNotional,
 			"maxNotional":           maxNotional,
 			"maintenanceMarginRate": this.SafeNumber(item, "maintenance_rate"),

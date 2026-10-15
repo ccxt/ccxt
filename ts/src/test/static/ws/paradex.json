@@ -1111,6 +1111,1083 @@
                     ]
                 ]
             }
+        ],
+        "watchMyTrades": [
+            {
+                "description": "sbe fill frame",
+                "options": {
+                    "authToken": "ooooccxtooootoooootheoooomoonooooo",
+                    "expires": 99999999999
+                },
+                "input": [
+                    "BTC/USD:USDC"
+                ],
+                "url": "wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=3",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": {
+                            "node_id": "73cf456f7cb78d59"
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "result": {
+                            "channel": "fills.BTC-USD-PERP"
+                        },
+                        "usIn": 1791906064381973,
+                        "usDiff": 133,
+                        "usOut": 1791906064382106
+                    },
+                    {
+                        "binary": "74001500010002007b885ea5ba5d06004d000000000000000102018049d7fa93070000400d030000000000f085f8ffffffffff0000000000000080f3745ea5ba5d060004638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b807a497b93070000503bedffffffffff0370956aca010000001c313739313930363038303030303230313730393233333437303030311c313739313930363036393030303230313730393233333437303030310a6d792d6f726465722d311c313739313930363038303030303230313730393233333437303030390c4254432d5553442d504552500455534443"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "method": "auth",
+                        "params": {
+                            "bearer": "ooooccxtooootoooootheoooomoonooooo"
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscribe",
+                        "params": {
+                            "channel": "fills.BTC-USD-PERP"
+                        }
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b",
+                            "client_id": "my-order-1",
+                            "created_at": 1791906079995,
+                            "fee": "-0.0049",
+                            "fee_currency": "USDC",
+                            "fill_type": "FILL",
+                            "id": "1791906080000201709233470001",
+                            "liquidity": "MAKER",
+                            "market": "BTC-USD-PERP",
+                            "order_id": "1791906069000201709233470001",
+                            "price": "83321.5",
+                            "realized_funding": "-0.0123",
+                            "realized_pnl": null,
+                            "side": "SELL",
+                            "size": "0.002",
+                            "underlying_price": "83300.1",
+                            "flags": [
+                                "interactive",
+                                "rpi"
+                            ],
+                            "orderbook_seq_no": "7690950000"
+                        },
+                        "id": "1791906080000201709233470001",
+                        "order": "1791906069000201709233470001",
+                        "timestamp": 1791906079995,
+                        "datetime": "2026-10-13T15:41:19.995Z",
+                        "symbol": "BTC/USD:USDC",
+                        "type": null,
+                        "takerOrMaker": "maker",
+                        "side": "sell",
+                        "price": 83321.5,
+                        "amount": 0.002,
+                        "cost": 166.643,
+                        "fee": {
+                            "currency": "USDC",
+                            "cost": -0.0049
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDC",
+                                "cost": -0.0049
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "description": "sbe fill frames on fills.ALL: fastfill and unknown flags, a truncated frame skipped, a pre-1:2 layout",
+                "options": {
+                    "authToken": "ooooccxtooootoooootheoooomoonooooo",
+                    "expires": 99999999999
+                },
+                "input": [
+                    null
+                ],
+                "url": "wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=3",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": {
+                            "node_id": "73cf456f7cb78d59"
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "result": {
+                            "channel": "fills.ALL"
+                        },
+                        "usIn": 1791906064381973,
+                        "usDiff": 133,
+                        "usOut": 1791906064382106
+                    },
+                    {
+                        "binary": "74001500010002007b885ea5ba5d06004d000000000000000102018049d7fa93070000400d030000000000f085f8ffffffffff0000000000000080f3745ea5ba5d060004638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b807a497b93070000503bedffffffffff8c70956aca010000001c313739313930363038303030303230313730393233333437303030311c313739313930363036393030303230313730393233333437303030310a6d792d6f726465722d311c313739313930363038303030303230313730393233333437303030390c4254432d5553442d504552500455534443"
+                    },
+                    {
+                        "binary": "74001500010002007b885ea5ba5d06004d000000000000000102018049d7fa93070000400d030000000000f085f8ffffffffff0000000000000080f3745ea5ba5d060004638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b807a497b93070000503bedffffffffff0370956aca010000001c313739313930363038303030303230313730393233333437303030311c313739313930363036393030303230313730393233333437303030310a6d792d6f726465722d311c313739313930363038303030303230313730393233333437303030390c4254432d"
+                    },
+                    {
+                        "binary": "6b001500010002007b885ea5ba5d06004d00000000000000010102404e8f7f030000008093dc1400000000406f40010000000080d1f00800000000f3745ea5ba5d060004638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b807a497b93070000503bedffffffffff1c313739313930363038313030303230313730393233333437303030321c31373931393036303730303030323031373039323333343730303032001c313739313930363038313030303230313730393233333437303031300c534f4c2d5553442d50455250"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "method": "auth",
+                        "params": {
+                            "bearer": "ooooccxtooootoooootheoooomoonooooo"
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscribe",
+                        "params": {
+                            "channel": "fills.ALL"
+                        }
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b",
+                                "client_id": "my-order-1",
+                                "created_at": 1791906079995,
+                                "fee": "-0.0049",
+                                "fee_currency": "USDC",
+                                "fill_type": "FILL",
+                                "id": "1791906080000201709233470001",
+                                "liquidity": "MAKER",
+                                "market": "BTC-USD-PERP",
+                                "order_id": "1791906069000201709233470001",
+                                "price": "83321.5",
+                                "realized_funding": "-0.0123",
+                                "realized_pnl": null,
+                                "side": "SELL",
+                                "size": "0.002",
+                                "underlying_price": "83300.1",
+                                "flags": [
+                                    "fastfill",
+                                    "unknown"
+                                ],
+                                "orderbook_seq_no": "7690950000"
+                            },
+                            "id": "1791906080000201709233470001",
+                            "order": "1791906069000201709233470001",
+                            "timestamp": 1791906079995,
+                            "datetime": "2026-10-13T15:41:19.995Z",
+                            "symbol": "BTC/USD:USDC",
+                            "type": null,
+                            "takerOrMaker": "maker",
+                            "side": "sell",
+                            "price": 83321.5,
+                            "amount": 0.002,
+                            "cost": 166.643,
+                            "fee": {
+                                "currency": "USDC",
+                                "cost": -0.0049
+                            },
+                            "fees": [
+                                {
+                                    "currency": "USDC",
+                                    "cost": -0.0049
+                                }
+                            ]
+                        }
+                    ],
+                    [
+                        {
+                            "info": {
+                                "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b",
+                                "client_id": "",
+                                "created_at": 1791906079995,
+                                "fee": "0.21",
+                                "fee_currency": null,
+                                "fill_type": "FILL",
+                                "id": "1791906081000201709233470002",
+                                "liquidity": "TAKER",
+                                "market": "SOL-USD-PERP",
+                                "order_id": "1791906070000201709233470002",
+                                "price": "150.25",
+                                "realized_funding": "-0.0123",
+                                "realized_pnl": "1.5",
+                                "side": "BUY",
+                                "size": "3.5",
+                                "underlying_price": "83300.1"
+                            },
+                            "id": "1791906081000201709233470002",
+                            "order": "1791906070000201709233470002",
+                            "timestamp": 1791906079995,
+                            "datetime": "2026-10-13T15:41:19.995Z",
+                            "symbol": "SOL/USD:USDC",
+                            "type": null,
+                            "takerOrMaker": "taker",
+                            "side": "buy",
+                            "price": 150.25,
+                            "amount": 3.5,
+                            "cost": 525.875,
+                            "fee": {
+                                "currency": null,
+                                "cost": 0.21
+                            },
+                            "fees": [
+                                {
+                                    "currency": null,
+                                    "cost": 0.21
+                                }
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "description": "json fill",
+                "options": {
+                    "authToken": "ooooccxtooootoooootheoooomoonooooo",
+                    "expires": 99999999999,
+                    "sbe": false
+                },
+                "input": [
+                    "BTC/USD:USDC"
+                ],
+                "url": "wss://ws.api.prod.paradex.trade/v1",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": {
+                            "node_id": "73cf456f7cb78d59"
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "result": {
+                            "channel": "fills.BTC-USD-PERP"
+                        },
+                        "usIn": 1791906064381973,
+                        "usDiff": 133,
+                        "usOut": 1791906064382106
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "fills.BTC-USD-PERP",
+                            "data": {
+                                "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b",
+                                "client_id": "x1234",
+                                "created_at": 1718947571569,
+                                "fee": "0.1945587",
+                                "fee_currency": "USDC",
+                                "fill_type": "FILL",
+                                "flags": [],
+                                "id": "1718947571560201703986670001",
+                                "liquidity": "TAKER",
+                                "market": "BTC-USD-PERP",
+                                "order_id": "1718947571540201703992340000",
+                                "price": "64852.9",
+                                "realized_funding": "0",
+                                "realized_pnl": "0",
+                                "remaining_size": "0",
+                                "side": "BUY",
+                                "size": "0.01",
+                                "underlying_price": "64834.0"
+                            }
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "method": "auth",
+                        "params": {
+                            "bearer": "ooooccxtooootoooootheoooomoonooooo"
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscribe",
+                        "params": {
+                            "channel": "fills.BTC-USD-PERP"
+                        }
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b",
+                            "client_id": "x1234",
+                            "created_at": 1718947571569,
+                            "fee": "0.1945587",
+                            "fee_currency": "USDC",
+                            "fill_type": "FILL",
+                            "flags": [],
+                            "id": "1718947571560201703986670001",
+                            "liquidity": "TAKER",
+                            "market": "BTC-USD-PERP",
+                            "order_id": "1718947571540201703992340000",
+                            "price": "64852.9",
+                            "realized_funding": "0",
+                            "realized_pnl": "0",
+                            "remaining_size": "0",
+                            "side": "BUY",
+                            "size": "0.01",
+                            "underlying_price": "64834.0"
+                        },
+                        "id": "1718947571560201703986670001",
+                        "order": "1718947571540201703992340000",
+                        "timestamp": 1718947571569,
+                        "datetime": "2024-06-21T05:26:11.569Z",
+                        "symbol": "BTC/USD:USDC",
+                        "type": null,
+                        "takerOrMaker": "taker",
+                        "side": "buy",
+                        "price": 64852.9,
+                        "amount": 0.01,
+                        "cost": 648.529,
+                        "fee": {
+                            "currency": "USDC",
+                            "cost": 0.1945587
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDC",
+                                "cost": 0.1945587
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "watchPositions": [
+            {
+                "description": "sbe position frames: long, short (re-signed), a flip to short that flattens the long, then closed",
+                "options": {
+                    "authToken": "ooooccxtooootoooootheoooomoonooooo",
+                    "expires": 99999999999
+                },
+                "input": [
+                    null
+                ],
+                "url": "wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=3",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": {
+                            "node_id": "73cf456f7cb78d59"
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "result": {
+                            "channel": "positions"
+                        },
+                        "usIn": 1791906064381973,
+                        "usDiff": 133,
+                        "usOut": 1791906064382106
+                    },
+                    {
+                        "binary": "9a001600010002004820f7a5ba5d0600580000000000000001400d03000000000080d4ab7d93070000c0a68cf8ffffffffc0687804000000000000000000000080007586458c0500000065cd1d00000000601cf7a5ba5d060004638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b8044e4b693070000a0f304e103000000a03f22e1030000008be3da1b3b020000f004cfffffffffff010c4254432d5553442d504552501c31373931393036303830303030323031373039323333343730303031"
+                    },
+                    {
+                        "binary": "9a00160001000200886206a6ba5d06005800000000000000028093dc140000000080d4ab7d93070000c0a68cf8ffffffffc0687804000000000000000000000080007586458c0500000065cd1d00000000a05e06a6ba5d060004638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b8044e4b693070000206e8ac1f3ffffff804864c1f3ffffff8be3da1b3b020000f004cfffffffffff010c534f4c2d5553442d504552501c31373931393036303831303030323031373039323333343730303032"
+                    },
+                    {
+                        "binary": "9a0016000100020008e724a6ba5d0600580000000000000002e09304000000000080d4ab7d93070000c0a68cf8ffffffffc0687804000000000000000000000080007586458c0500000065cd1d0000000020e324a6ba5d060004638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b8044e4b69307000080dc7a2efaffffffc0154d2efaffffff8be3da1b3b020000f004cfffffffffff010c4254432d5553442d504552501c31373931393036303933303030323031373039323333343730303034"
+                    },
+                    {
+                        "binary": "9a00160001000200d56c43a6ba5d0600580000000000000002000000000000000080d4ab7d93070000c0a68cf8ffffffffc068780400000000000000000000008000000000000000800065cd1d00000000ed6843a6ba5d060004638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b8044e4b693070000000000000000000000000000000000008be3da1b3b020000f004cfffffffffff020c4254432d5553442d504552501c31373931393036303935303030323031373039323333343730303033"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "method": "auth",
+                        "params": {
+                            "bearer": "ooooccxtooootoooootheoooomoonooooo"
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscribe",
+                        "params": {
+                            "channel": "positions"
+                        }
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b",
+                                "average_entry_price": "83300.5",
+                                "average_entry_price_usd": "83310.1",
+                                "cached_funding_index": "24528.93655947",
+                                "cost": "166.601",
+                                "cost_usd": "166.6202",
+                                "id": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b-BTC-USD-PERP",
+                                "last_fill_id": "1791906080000201709233470001",
+                                "last_updated_at": 1791906089999,
+                                "leverage": "5",
+                                "liquidation_price": "61000.2",
+                                "market": "BTC-USD-PERP",
+                                "realized_positional_pnl": "0.75",
+                                "seq_no": "88",
+                                "side": "LONG",
+                                "size": "0.002",
+                                "status": "OPEN",
+                                "unrealized_funding_pnl": "-0.0321",
+                                "unrealized_pnl": "-1.25"
+                            },
+                            "id": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b-BTC-USD-PERP",
+                            "symbol": "BTC/USD:USDC",
+                            "entryPrice": 83300.5,
+                            "markPrice": null,
+                            "notional": 166.6202,
+                            "collateral": null,
+                            "unrealizedPnl": -1.25,
+                            "side": "long",
+                            "contracts": 0.002,
+                            "contractSize": 1,
+                            "timestamp": null,
+                            "datetime": null,
+                            "lastUpdateTimestamp": 1791906089999,
+                            "hedged": null,
+                            "maintenanceMargin": null,
+                            "maintenanceMarginPercentage": null,
+                            "initialMargin": null,
+                            "initialMarginPercentage": null,
+                            "leverage": 5,
+                            "liquidationPrice": 61000.2,
+                            "marginRatio": null,
+                            "marginMode": null,
+                            "percentage": null
+                        }
+                    ],
+                    [
+                        {
+                            "info": {
+                                "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b",
+                                "average_entry_price": "83300.5",
+                                "average_entry_price_usd": "83310.1",
+                                "cached_funding_index": "24528.93655947",
+                                "cost": "-525.875",
+                                "cost_usd": "-525.9",
+                                "id": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b-SOL-USD-PERP",
+                                "last_fill_id": "1791906081000201709233470002",
+                                "last_updated_at": 1791906090999,
+                                "leverage": "5",
+                                "liquidation_price": "61000.2",
+                                "market": "SOL-USD-PERP",
+                                "realized_positional_pnl": "0.75",
+                                "seq_no": "88",
+                                "side": "SHORT",
+                                "size": "-3.5",
+                                "status": "OPEN",
+                                "unrealized_funding_pnl": "-0.0321",
+                                "unrealized_pnl": "-1.25"
+                            },
+                            "id": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b-SOL-USD-PERP",
+                            "symbol": "SOL/USD:USDC",
+                            "entryPrice": 83300.5,
+                            "markPrice": null,
+                            "notional": 525.9,
+                            "collateral": null,
+                            "unrealizedPnl": -1.25,
+                            "side": "short",
+                            "contracts": 3.5,
+                            "contractSize": 1,
+                            "timestamp": null,
+                            "datetime": null,
+                            "lastUpdateTimestamp": 1791906090999,
+                            "hedged": null,
+                            "maintenanceMargin": null,
+                            "maintenanceMarginPercentage": null,
+                            "initialMargin": null,
+                            "initialMarginPercentage": null,
+                            "leverage": 5,
+                            "liquidationPrice": 61000.2,
+                            "marginRatio": null,
+                            "marginMode": null,
+                            "percentage": null
+                        }
+                    ],
+                    [
+                        {
+                            "info": {
+                                "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b",
+                                "average_entry_price": "83300.5",
+                                "average_entry_price_usd": "83310.1",
+                                "cached_funding_index": "24528.93655947",
+                                "cost": "166.601",
+                                "cost_usd": "166.6202",
+                                "id": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b-BTC-USD-PERP",
+                                "last_fill_id": "1791906080000201709233470001",
+                                "last_updated_at": 1791906089999,
+                                "leverage": "5",
+                                "liquidation_price": "61000.2",
+                                "market": "BTC-USD-PERP",
+                                "realized_positional_pnl": "0.75",
+                                "seq_no": "88",
+                                "side": "LONG",
+                                "size": "0.002",
+                                "status": "OPEN",
+                                "unrealized_funding_pnl": "-0.0321",
+                                "unrealized_pnl": "-1.25"
+                            },
+                            "id": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b-BTC-USD-PERP",
+                            "symbol": "BTC/USD:USDC",
+                            "entryPrice": 83300.5,
+                            "markPrice": null,
+                            "notional": 166.6202,
+                            "collateral": null,
+                            "unrealizedPnl": -1.25,
+                            "side": "long",
+                            "contracts": 0,
+                            "contractSize": 1,
+                            "timestamp": null,
+                            "datetime": null,
+                            "lastUpdateTimestamp": 1791906092999,
+                            "hedged": null,
+                            "maintenanceMargin": null,
+                            "maintenanceMarginPercentage": null,
+                            "initialMargin": null,
+                            "initialMarginPercentage": null,
+                            "leverage": 5,
+                            "liquidationPrice": 61000.2,
+                            "marginRatio": null,
+                            "marginMode": null,
+                            "percentage": null
+                        },
+                        {
+                            "info": {
+                                "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b",
+                                "average_entry_price": "83300.5",
+                                "average_entry_price_usd": "83310.1",
+                                "cached_funding_index": "24528.93655947",
+                                "cost": "-249.9",
+                                "cost_usd": "-249.93",
+                                "id": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b-BTC-USD-PERP",
+                                "last_fill_id": "1791906093000201709233470004",
+                                "last_updated_at": 1791906092999,
+                                "leverage": "5",
+                                "liquidation_price": "61000.2",
+                                "market": "BTC-USD-PERP",
+                                "realized_positional_pnl": "0.75",
+                                "seq_no": "88",
+                                "side": "SHORT",
+                                "size": "-0.003",
+                                "status": "OPEN",
+                                "unrealized_funding_pnl": "-0.0321",
+                                "unrealized_pnl": "-1.25"
+                            },
+                            "id": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b-BTC-USD-PERP",
+                            "symbol": "BTC/USD:USDC",
+                            "entryPrice": 83300.5,
+                            "markPrice": null,
+                            "notional": 249.93,
+                            "collateral": null,
+                            "unrealizedPnl": -1.25,
+                            "side": "short",
+                            "contracts": 0.003,
+                            "contractSize": 1,
+                            "timestamp": null,
+                            "datetime": null,
+                            "lastUpdateTimestamp": 1791906092999,
+                            "hedged": null,
+                            "maintenanceMargin": null,
+                            "maintenanceMarginPercentage": null,
+                            "initialMargin": null,
+                            "initialMarginPercentage": null,
+                            "leverage": 5,
+                            "liquidationPrice": 61000.2,
+                            "marginRatio": null,
+                            "marginMode": null,
+                            "percentage": null
+                        }
+                    ],
+                    [
+                        {
+                            "info": {
+                                "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b",
+                                "average_entry_price": "83300.5",
+                                "average_entry_price_usd": "83310.1",
+                                "cached_funding_index": "24528.93655947",
+                                "cost": "0",
+                                "cost_usd": "0",
+                                "id": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b-BTC-USD-PERP",
+                                "last_fill_id": "1791906095000201709233470003",
+                                "last_updated_at": 1791906094999,
+                                "leverage": "5",
+                                "liquidation_price": null,
+                                "market": "BTC-USD-PERP",
+                                "realized_positional_pnl": "0.75",
+                                "seq_no": "88",
+                                "side": "SHORT",
+                                "size": "0",
+                                "status": "CLOSED",
+                                "unrealized_funding_pnl": "-0.0321",
+                                "unrealized_pnl": "-1.25"
+                            },
+                            "id": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b-BTC-USD-PERP",
+                            "symbol": "BTC/USD:USDC",
+                            "entryPrice": 83300.5,
+                            "markPrice": null,
+                            "notional": 0,
+                            "collateral": null,
+                            "unrealizedPnl": -1.25,
+                            "side": "short",
+                            "contracts": 0,
+                            "contractSize": 1,
+                            "timestamp": null,
+                            "datetime": null,
+                            "lastUpdateTimestamp": 1791906094999,
+                            "hedged": null,
+                            "maintenanceMargin": null,
+                            "maintenanceMarginPercentage": null,
+                            "initialMargin": null,
+                            "initialMarginPercentage": null,
+                            "leverage": 5,
+                            "liquidationPrice": null,
+                            "marginRatio": null,
+                            "marginMode": null,
+                            "percentage": null
+                        }
+                    ]
+                ]
+            },
+            {
+                "description": "json position, filtered to one symbol",
+                "options": {
+                    "authToken": "ooooccxtooootoooootheoooomoonooooo",
+                    "expires": 99999999999,
+                    "sbe": false
+                },
+                "input": [
+                    [
+                        "BTC/USD:USDC"
+                    ]
+                ],
+                "url": "wss://ws.api.prod.paradex.trade/v1",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": {
+                            "node_id": "73cf456f7cb78d59"
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "result": {
+                            "channel": "positions"
+                        },
+                        "usIn": 1791906064381973,
+                        "usDiff": 133,
+                        "usOut": 1791906064382106
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "positions",
+                            "data": {
+                                "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b",
+                                "average_entry_price": "64839.96053748",
+                                "average_entry_price_usd": "64852.9",
+                                "cached_funding_index": "35202.1002351",
+                                "cost": "648.39960537",
+                                "cost_usd": "648.529",
+                                "created_at": 1718947571560,
+                                "id": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b-SOL-USD-PERP",
+                                "last_fill_id": "1718947571560201703986670001",
+                                "last_updated_at": 1718950074249,
+                                "leverage": "5",
+                                "liquidation_price": "",
+                                "market": "SOL-USD-PERP",
+                                "realized_positional_pnl": "0",
+                                "seq_no": 1718950074249,
+                                "side": "LONG",
+                                "size": "0.01",
+                                "status": "OPEN",
+                                "unrealized_funding_pnl": "-0.11214013",
+                                "unrealized_pnl": "-2.39677214"
+                            }
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "positions",
+                            "data": {
+                                "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b",
+                                "average_entry_price": "64839.96053748",
+                                "average_entry_price_usd": "64852.9",
+                                "cached_funding_index": "35202.1002351",
+                                "cost": "648.39960537",
+                                "cost_usd": "648.529",
+                                "created_at": 1718947571560,
+                                "id": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b-BTC-USD-PERP",
+                                "last_fill_id": "1718947571560201703986670001",
+                                "last_updated_at": 1718950074249,
+                                "leverage": "5",
+                                "liquidation_price": "",
+                                "market": "BTC-USD-PERP",
+                                "realized_positional_pnl": "0",
+                                "seq_no": 1718950074249,
+                                "side": "LONG",
+                                "size": "0.01",
+                                "status": "OPEN",
+                                "unrealized_funding_pnl": "-0.11214013",
+                                "unrealized_pnl": "-2.39677214"
+                            }
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "method": "auth",
+                        "params": {
+                            "bearer": "ooooccxtooootoooootheoooomoonooooo"
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscribe",
+                        "params": {
+                            "channel": "positions"
+                        }
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b",
+                            "average_entry_price": "64839.96053748",
+                            "average_entry_price_usd": "64852.9",
+                            "cached_funding_index": "35202.1002351",
+                            "cost": "648.39960537",
+                            "cost_usd": "648.529",
+                            "created_at": 1718947571560,
+                            "id": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b-BTC-USD-PERP",
+                            "last_fill_id": "1718947571560201703986670001",
+                            "last_updated_at": 1718950074249,
+                            "leverage": "5",
+                            "liquidation_price": "",
+                            "market": "BTC-USD-PERP",
+                            "realized_positional_pnl": "0",
+                            "seq_no": 1718950074249,
+                            "side": "LONG",
+                            "size": "0.01",
+                            "status": "OPEN",
+                            "unrealized_funding_pnl": "-0.11214013",
+                            "unrealized_pnl": "-2.39677214"
+                        },
+                        "id": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b-BTC-USD-PERP",
+                        "symbol": "BTC/USD:USDC",
+                        "entryPrice": 64839.96053748,
+                        "markPrice": null,
+                        "notional": 648.529,
+                        "collateral": null,
+                        "unrealizedPnl": -2.39677214,
+                        "side": "long",
+                        "contracts": 0.01,
+                        "contractSize": 1,
+                        "timestamp": 1718947571560,
+                        "datetime": "2024-06-21T05:26:11.560Z",
+                        "lastUpdateTimestamp": 1718950074249,
+                        "hedged": null,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "initialMargin": null,
+                        "initialMarginPercentage": null,
+                        "leverage": 5,
+                        "liquidationPrice": null,
+                        "marginRatio": null,
+                        "marginMode": null,
+                        "percentage": null
+                    }
+                ]
+            }
+        ],
+        "watchBalance": [
+            {
+                "description": "sbe account frame",
+                "options": {
+                    "authToken": "ooooccxtooootoooootheoooomoonooooo",
+                    "expires": 99999999999
+                },
+                "input": [],
+                "url": "wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=3",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": {
+                            "node_id": "73cf456f7cb78d59"
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "result": {
+                            "channel": "account"
+                        },
+                        "usIn": 1791906064381973,
+                        "usDiff": 133,
+                        "usOut": 1791906064382106
+                    },
+                    {
+                        "binary": "790017000100020041b68fa6ba5d0600630000000000000000e876481700000080f465f71400000000e40b540200000000f2052a0100000080d8714b1700000080f0fa020000000000b58fa6ba5d060004638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b80e66b21160000000100d499a0ba5d06000455534443"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "method": "auth",
+                        "params": {
+                            "bearer": "ooooccxtooootoooootheoooomoonooooo"
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscribe",
+                        "params": {
+                            "channel": "account"
+                        }
+                    }
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b",
+                        "account_value": "1000.5",
+                        "free_collateral": "900.5",
+                        "initial_margin_requirement": "100",
+                        "maintenance_margin_requirement": "50",
+                        "margin_cushion": "950.5",
+                        "seq_no": "99",
+                        "settlement_asset": "USDC",
+                        "status": "ACTIVE",
+                        "total_collateral": "1000",
+                        "updated_at": 1791906100000,
+                        "last_seen_notification": 1791906000000
+                    },
+                    "timestamp": 1791906100000,
+                    "datetime": "2026-10-13T15:41:40.000Z",
+                    "USDC": {
+                        "free": 900.5,
+                        "used": 100,
+                        "total": 1000.5
+                    },
+                    "free": {
+                        "USDC": 900.5
+                    },
+                    "used": {
+                        "USDC": 100
+                    },
+                    "total": {
+                        "USDC": 1000.5
+                    }
+                }
+            },
+            {
+                "description": "sbe account frame, pre-1:2 layout (113-byte block)",
+                "options": {
+                    "authToken": "ooooccxtooootoooootheoooomoonooooo",
+                    "expires": 99999999999
+                },
+                "input": [],
+                "url": "wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=3",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": {
+                            "node_id": "73cf456f7cb78d59"
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "result": {
+                            "channel": "account"
+                        },
+                        "usIn": 1791906064381973,
+                        "usDiff": 133,
+                        "usOut": 1791906064382106
+                    },
+                    {
+                        "binary": "710017000100010041b68fa6ba5d0600630000000000000000e876481700000080f465f71400000000e40b540200000000f2052a0100000080d8714b1700000080f0fa020000000000b58fa6ba5d060004638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b80e66b2116000000010455534443"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "method": "auth",
+                        "params": {
+                            "bearer": "ooooccxtooootoooootheoooomoonooooo"
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscribe",
+                        "params": {
+                            "channel": "account"
+                        }
+                    }
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b",
+                        "account_value": "1000.5",
+                        "free_collateral": "900.5",
+                        "initial_margin_requirement": "100",
+                        "maintenance_margin_requirement": "50",
+                        "margin_cushion": "950.5",
+                        "seq_no": "99",
+                        "settlement_asset": "USDC",
+                        "status": "ACTIVE",
+                        "total_collateral": "1000",
+                        "updated_at": 1791906100000
+                    },
+                    "timestamp": 1791906100000,
+                    "datetime": "2026-10-13T15:41:40.000Z",
+                    "USDC": {
+                        "free": 900.5,
+                        "used": 100,
+                        "total": 1000.5
+                    },
+                    "free": {
+                        "USDC": 900.5
+                    },
+                    "used": {
+                        "USDC": 100
+                    },
+                    "total": {
+                        "USDC": 1000.5
+                    }
+                }
+            },
+            {
+                "description": "json account",
+                "options": {
+                    "authToken": "ooooccxtooootoooootheoooomoonooooo",
+                    "expires": 99999999999,
+                    "sbe": false
+                },
+                "input": [],
+                "url": "wss://ws.api.prod.paradex.trade/v1",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": {
+                            "node_id": "73cf456f7cb78d59"
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "result": {
+                            "channel": "account"
+                        },
+                        "usIn": 1791906064381973,
+                        "usDiff": 133,
+                        "usOut": 1791906064382106
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "account",
+                            "data": {
+                                "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b",
+                                "account_value": "1000.5",
+                                "free_collateral": "900.5",
+                                "initial_margin_requirement": "100",
+                                "maintenance_margin_requirement": "50",
+                                "margin_cushion": "950.5",
+                                "seq_no": 20,
+                                "settlement_asset": "USDC",
+                                "status": "ACTIVE",
+                                "total_collateral": "1000",
+                                "updated_at": 1718950074249
+                            }
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "method": "auth",
+                        "params": {
+                            "bearer": "ooooccxtooootoooootheoooomoonooooo"
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscribe",
+                        "params": {
+                            "channel": "account"
+                        }
+                    }
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b",
+                        "account_value": "1000.5",
+                        "free_collateral": "900.5",
+                        "initial_margin_requirement": "100",
+                        "maintenance_margin_requirement": "50",
+                        "margin_cushion": "950.5",
+                        "seq_no": 20,
+                        "settlement_asset": "USDC",
+                        "status": "ACTIVE",
+                        "total_collateral": "1000",
+                        "updated_at": 1718950074249
+                    },
+                    "timestamp": 1718950074249,
+                    "datetime": "2024-06-21T06:07:54.249Z",
+                    "USDC": {
+                        "free": 900.5,
+                        "used": 100,
+                        "total": 1000.5
+                    },
+                    "free": {
+                        "USDC": 900.5
+                    },
+                    "used": {
+                        "USDC": 100
+                    },
+                    "total": {
+                        "USDC": 1000.5
+                    }
+                }
+            }
         ]
     }
 }

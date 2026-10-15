@@ -4,8 +4,8 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import ccxt.async_support
-from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
-from ccxt.base.types import Bool, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade
+from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide
+from ccxt.base.types import Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.precise import Precise
 
@@ -22,9 +22,11 @@ class paradex(ccxt.async_support.paradex):
                 'watchTickers': True,
                 'watchOrderBook': True,
                 'watchOrders': True,
+                'watchMyTrades': True,
+                'watchPositions': True,
                 'watchTrades': True,
                 'watchTradesForSymbols': False,
-                'watchBalance': False,
+                'watchBalance': True,
                 'watchOHLCV': False,
             },
             'urls': {
@@ -107,7 +109,7 @@ class paradex(ccxt.async_support.paradex):
         """
         get the list of most recent trades for a particular symbol
 
-        https://docs.paradex.trade/ws/web-socket-channels/trades/trades
+        https://docs.paradex.trade/ws/web-socket-channels/trades-market-symbol/trades-market-symbol
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -178,7 +180,7 @@ class paradex(ccxt.async_support.paradex):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://docs.paradex.trade/ws/web-socket-channels/order-book/order-book
+        https://docs.paradex.trade/ws/web-socket-channels/order-book-market-symbol-feed-type-15-refresh-rate-price-tick/order-book-market-symbol-feed-type-15-refresh-rate-price-tick
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -266,7 +268,7 @@ class paradex(ccxt.async_support.paradex):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
-        https://docs.paradex.trade/ws/web-socket-channels/markets-summary/markets-summary
+        https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-symbol
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -293,7 +295,7 @@ class paradex(ccxt.async_support.paradex):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
-        https://docs.paradex.trade/ws/web-socket-channels/markets-summary/markets-summary
+        https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-symbol
 
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -331,7 +333,7 @@ class paradex(ccxt.async_support.paradex):
         """
         watches information on multiple orders made by the user
 
-        https://docs.paradex.trade/ws/web-socket-channels/orders/orders
+        https://docs.paradex.trade/ws/web-socket-channels/orders-market-symbol/orders-market-symbol
 
         :param str [symbol]: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -407,6 +409,247 @@ class paradex(ccxt.async_support.paradex):
             symbolMessageHash = messageHash + ':' + symbol
             client.resolve(self.orders, symbolMessageHash)
 
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
+        """
+        watches information on multiple trades made by the user
+
+        https://docs.paradex.trade/ws/web-socket-channels/fills-market-symbol/fills-market-symbol
+
+        :param str [symbol]: unified market symbol of the market trades were made in
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trade structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
+        """
+        if self.markets is None:
+            await self.load_markets()
+        await self.authenticate()
+        messageHash = 'myTrades'
+        channel = 'fills.'
+        symbolResolved = self.symbol(symbol) if (symbol is not None) else symbol
+        if symbol is not None:
+            market = self.market(symbol)
+            channel += market['id']
+            messageHash += ':' + symbolResolved
+        else:
+            channel += 'ALL'
+        url = self.get_ws_url()
+        request = {
+            'jsonrpc': '2.0',
+            'method': 'subscribe',
+            'params': {
+                'channel': channel,
+            },
+        }
+        trades = await self.watch(url, messageHash, self.deep_extend(request, params), channel)
+        limitResolved = limit
+        if self.newUpdates:
+            limitResolved = trades.getLimit(symbolResolved, limit)
+        return self.filter_by_symbol_since_limit(trades, symbolResolved, since, limitResolved, True)
+
+    def handle_my_trade(self, client: Client, message: dict):
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "method": "subscription",
+        #         "params": {
+        #             "channel": "fills.ALL",
+        #             "data": {
+        #                 "id": "1718947571560201703986670001",
+        #                 "side": "BUY",
+        #                 "liquidity": "TAKER",
+        #                 "market": "BTC-USD-PERP",
+        #                 "order_id": "1718947571540201703992340000",
+        #                 "price": "64852.9",
+        #                 "size": "0.01",
+        #                 "fee": "0.1945587",
+        #                 "fee_currency": "USDC",
+        #                 "created_at": 1718947571569,
+        #                 "remaining_size": "0",
+        #                 "client_id": "",
+        #                 "fill_type": "FILL"
+        #             }
+        #         }
+        #     }
+        #
+        params = self.safe_dict(message, 'params', {})
+        data = self.safe_dict(params, 'data', {})
+        trade = self.parse_trade(data)
+        symbol = self.safe_string(trade, 'symbol')
+        if self.myTrades is None:
+            limit = self.safe_integer(self.options, 'tradesLimit', 1000)
+            self.myTrades = ArrayCacheBySymbolById(limit)
+        trades = self.myTrades
+        trades.append(trade)
+        messageHash = 'myTrades'
+        client.resolve(trades, messageHash)
+        if symbol is not None:
+            client.resolve(trades, messageHash + ':' + symbol)
+
+    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Position]:
+        """
+        watch all open positions
+
+        https://docs.paradex.trade/ws/web-socket-channels/positions/positions
+
+        :param str[] [symbols]: list of unified market symbols
+        :param int [since]: the earliest time in ms to fetch positions for
+        :param int [limit]: the maximum number of positions to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
+        """
+        if self.markets is None:
+            await self.load_markets()
+        await self.authenticate()
+        symbolsNormalized = self.market_symbols(symbols)
+        # one channel carries every market
+        channel = 'positions'
+        url = self.get_ws_url()
+        request = {
+            'jsonrpc': '2.0',
+            'method': 'subscribe',
+            'params': {
+                'channel': channel,
+            },
+        }
+        messageHashes = []
+        symbolsLength = 0
+        if symbolsNormalized is not None:
+            symbolsLength = len(symbolsNormalized)
+        if symbolsLength == 0:
+            messageHashes.append(channel)
+        else:
+            for i in range(0, symbolsLength):
+                messageHashes.append(channel + ':' + (symbolsNormalized)[i])
+        newPositions = await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), [channel])
+        if self.newUpdates:
+            return newPositions
+        return self.filter_by_symbols_since_limit(self.positions, symbolsNormalized, since, limit, True)
+
+    def handle_positions(self, client: Client, message: dict):
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "method": "subscription",
+        #         "params": {
+        #             "channel": "positions",
+        #             "data": {
+        #                 "id": "0x49ddd7a564c978f6e4089ff8355b56a42b7e2d48ba282cb5aad60f04bea0ec3-BTC-USD-PERP",
+        #                 "market": "BTC-USD-PERP",
+        #                 "status": "OPEN",
+        #                 "side": "LONG",
+        #                 "size": "0.01",
+        #                 "average_entry_price": "64839.96053748",
+        #                 "unrealized_pnl": "-2.39677214",
+        #                 "leverage": "5",
+        #                 "cost_usd": "648.529",
+        #                 "created_at": 1718947571560,
+        #                 "last_updated_at": 1718950074249,
+        #                 "liquidation_price": ""
+        #             }
+        #         }
+        #     }
+        #
+        params = self.safe_dict(message, 'params', {})
+        data = self.safe_dict(params, 'data', {})
+        if self.positions is None:
+            self.positions = ArrayCacheBySymbolBySide()
+        cache = self.positions
+        position = self.parse_position(data)
+        symbol = position['symbol']
+        newPositions = []
+        # one position per market, so a fill through zero flips its side: the cache keys by
+        # symbol and side, and the opposite side it still holds is flattened here
+        side = self.safe_string(position, 'side')
+        cached = self.filter_by_symbol_since_limit(cache, symbol, None, None, True)
+        for i in range(0, len(cached)):
+            previous = cached[i]
+            previousSide = self.safe_string(previous, 'side')
+            previousContracts = self.safe_string(previous, 'contracts')
+            isOpposite = (side is not None) and (previousSide is not None) and (previousSide != side)
+            if isOpposite and (previousContracts is not None) and not Precise.string_eq(previousContracts, '0'):
+                flattened = self.extend(previous, {
+                    'contracts': self.parse_number('0'),
+                    'lastUpdateTimestamp': self.safe_integer(position, 'lastUpdateTimestamp'),
+                })
+                cache.append(flattened)
+                newPositions.append(flattened)
+        cache.append(position)
+        newPositions.append(position)
+        client.resolve(newPositions, 'positions')
+        client.resolve(newPositions, 'positions:' + symbol)
+
+    async def watch_balance(self, params: dict = {}) -> Balances:
+        """
+        watch the margin balance of the account in its settlement asset: total is the account
+ value, free the free collateral and used the initial margin requirement
+
+        https://docs.paradex.trade/ws/web-socket-channels/account/account
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
+        """
+        if self.markets is None:
+            await self.load_markets()
+        await self.authenticate()
+        channel = 'account'
+        url = self.get_ws_url()
+        request = {
+            'jsonrpc': '2.0',
+            'method': 'subscribe',
+            'params': {
+                'channel': channel,
+            },
+        }
+        return await self.watch(url, 'balance', self.deep_extend(request, params), channel)
+
+    def handle_balance(self, client: Client, message: dict):
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "method": "subscription",
+        #         "params": {
+        #             "channel": "account",
+        #             "data": {
+        #                 "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b",
+        #                 "account_value": "1000.5",
+        #                 "free_collateral": "900.5",
+        #                 "initial_margin_requirement": "100",
+        #                 "maintenance_margin_requirement": "50",
+        #                 "margin_cushion": "950.5",
+        #                 "seq_no": 20,
+        #                 "settlement_asset": "USDC",
+        #                 "status": "ACTIVE",
+        #                 "total_collateral": "1000",
+        #                 "updated_at": 1718950074249
+        #             }
+        #         }
+        #     }
+        #
+        params = self.safe_dict(message, 'params', {})
+        data = self.safe_dict(params, 'data', {})
+        self.balance = self.parse_ws_balance(data)
+        client.resolve(self.balance, 'balance')
+
+    def parse_ws_balance(self, data: dict) -> Balances:
+        # the account channel carries margin, not token holdings: the account value (collateral with
+        # unrealized pnl) is the total, the free collateral what can still back a new position, and the
+        # initial margin the part the open positions hold, free + used = total as the venue computes them
+        timestamp = self.safe_integer(data, 'updated_at')
+        result = {
+            'info': data,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
+        code = self.safe_currency_code(self.safe_string(data, 'settlement_asset'))
+        account = self.account()
+        account['total'] = self.safe_string(data, 'account_value')
+        account['free'] = self.safe_string(data, 'free_collateral')
+        account['used'] = self.safe_string(data, 'initial_margin_requirement')
+        if code is not None:
+            result[code] = account
+        return self.safe_balance(result)
+
     def handle_ticker(self, client: Client, message: dict) -> dict:
         #
         #     {
@@ -475,7 +718,7 @@ class paradex(ccxt.async_support.paradex):
         """
         watch the funding rate for multiple markets
 
-        https://docs.paradex.trade/ws/web-socket-channels/markets-summary/markets-summary
+        https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-symbol
 
         :param str[] [symbols]: a list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -624,6 +867,16 @@ class paradex(ccxt.async_support.paradex):
             data = self.parse_sbe_order(frameHex, blockLength, frameLength)
             if data is not None:
                 channel = 'orders.' + data['market']
+        elif templateId == 21:
+            data = self.parse_sbe_fill(frameHex, blockLength, frameLength)
+            if data is not None:
+                channel = 'fills.' + data['market']
+        elif templateId == 22:
+            data = self.parse_sbe_position(frameHex, blockLength, frameLength)
+            channel = 'positions'
+        elif templateId == 23:
+            data = self.parse_sbe_account(frameHex, blockLength, frameLength)
+            channel = 'account'
         if data is None:
             return None
         return {
@@ -865,14 +1118,7 @@ class paradex(ccxt.async_support.paradex):
         orderTypes = {'1': 'LIMIT', '2': 'MARKET', '3': 'STOP_LIMIT', '4': 'STOP_MARKET', '5': 'TAKE_PROFIT_LIMIT', '6': 'TAKE_PROFIT_MARKET', '7': 'STOP_LOSS_LIMIT', '8': 'STOP_LOSS_MARKET'}
         timeInForces = {'1': 'GTC', '2': 'IOC', '3': 'POST_ONLY', '4': 'RPI'}
         stpModes = {'0': 'NONE', '1': 'EXPIRE_MAKER', '2': 'EXPIRE_TAKER', '3': 'EXPIRE_BOTH'}
-        flagNames = ['REDUCE_ONLY', 'STOP_CONDITION_BELOW_TRIGGER', 'STOP_CONDITION_ABOVE_TRIGGER', 'INTERACTIVE', 'TARGET_STRATEGY_VWAP', 'MMP']
-        flags = []
-        flagBits = self.sbe_read_uint(frameHex, 133, 1)
-        for i in range(0, len(flagNames)):
-            bit = self.parse_to_int(flagBits % 2)
-            if bit == 1:
-                flags.append(flagNames[i])
-            flagBits = self.parse_to_int((flagBits - bit) / 2)
+        flags = self.sbe_read_flags(frameHex, 133, ['REDUCE_ONLY', 'STOP_CONDITION_BELOW_TRIGGER', 'STOP_CONDITION_ABOVE_TRIGGER', 'INTERACTIVE', 'TARGET_STRATEGY_VWAP', 'MMP'])
         order = {
             'account': self.sbe_read_address(frameHex, 84),
             'avg_fill_price': self.sbe_read_decimal(frameHex, 60),
@@ -900,6 +1146,139 @@ class paradex(ccxt.async_support.paradex):
         if strings[3] != '':
             order['cancel_reason'] = strings[3]
         return order
+
+    def sbe_read_flags(self, frameHex: str, offset: float, names: list[str]) -> list[str]:
+        # a uint8 bitset, names[bit] for each set bit, an empty name for a bit the schema leaves unused
+        flags = []
+        bits = self.sbe_read_uint(frameHex, offset, 1)
+        for i in range(0, len(names)):
+            bit = self.parse_to_int(bits % 2)
+            if (bit == 1) and (names[i] != ''):
+                flags.append(names[i])
+            bits = self.parse_to_int((bits - bit) / 2)
+        return flags
+
+    def parse_sbe_fill(self, frameHex: str, blockLength: float, frameLength: float) -> object:
+        #
+        # FillEvent (templateId 21), 116-byte block (107 before the 1:2 flags and orderbookSeqNo)
+        #
+        #     ts int64, seq int64 (nullable), fillType uint8, side uint8, liquidity uint8, price int64,
+        #     size int64, fee int64, realizedPnl int64 (nullable), createdAt int64, account [32]byte,
+        #     underlyingPrice int64, realizedFunding int64, flags uint8, orderbookSeqNo uint64, then the
+        #     fillId, orderId, clientOrderId, tradeId, market and feeCurrency (1:2) strings
+        #
+        if blockLength < 107:
+            return None
+        strings = self.sbe_read_var_strings(frameHex, self.sum(blockLength, 8), 6, frameLength)
+        stringsLength = 0 if (strings is None) else len(strings)
+        if stringsLength < 5:
+            return None
+        fillTypes = {'1': 'FILL', '2': 'LIQUIDATION', '3': 'UNWIND_TRANSFER', '4': 'SETTLE_MARKET', '5': 'RPI', '6': 'BLOCK_TRADE'}
+        sides = {'1': 'BUY', '2': 'SELL'}
+        liquidities = {'1': 'MAKER', '2': 'TAKER'}
+        fill = {
+            'account': self.sbe_read_address(frameHex, 67),
+            'client_id': strings[2],
+            'created_at': self.sbe_read_timestamp(frameHex, 59),
+            'fee': self.sbe_read_decimal(frameHex, 43),
+            'fee_currency': self.safe_string(strings, 5),
+            'fill_type': self.sbe_read_enum(frameHex, 24, fillTypes),
+            'id': strings[0],
+            'liquidity': self.sbe_read_enum(frameHex, 26, liquidities),
+            'market': strings[4],
+            'order_id': strings[1],
+            'price': self.sbe_read_decimal(frameHex, 27),
+            'realized_funding': self.sbe_read_decimal(frameHex, 107),
+            'realized_pnl': self.sbe_read_decimal(frameHex, 51),
+            'side': self.sbe_read_enum(frameHex, 25, sides),
+            'size': self.sbe_read_decimal(frameHex, 35),
+            'underlying_price': self.sbe_read_decimal(frameHex, 99),
+        }
+        if blockLength >= 116:
+            # lowercase, as the JSON feed spells fill flags
+            fill['flags'] = self.sbe_read_flags(frameHex, 115, ['interactive', 'rpi', 'fastfill', '', '', '', '', 'unknown'])
+            fill['orderbook_seq_no'] = self.sbe_read_int64(frameHex, 116)
+        return fill
+
+    def parse_sbe_position(self, frameHex: str, blockLength: float, frameLength: float) -> object:
+        #
+        # PositionEvent (templateId 22), 154-byte block
+        #
+        #     ts int64, seq int64, side uint8, size int64 (absolute), avgEntryPrice int64,
+        #     unrealizedPnl int64, realizedPnl int64, markPrice int64 (always null), liquidationPrice
+        #     int64 (nullable), leverage int64, updatedAt int64, account [32]byte, avgEntryPriceUsd
+        #     int64, cost int64, costUsd int64, cachedFundingIndex int64, unrealizedFundingPnl int64,
+        #     status uint8, then the market and lastFillId strings
+        #
+        if blockLength < 154:
+            return None
+        strings = self.sbe_read_var_strings(frameHex, self.sum(blockLength, 8), 2, frameLength)
+        stringsLength = 0 if (strings is None) else len(strings)
+        if stringsLength < 1:
+            return None
+        sides = {'1': 'LONG', '2': 'SHORT'}
+        statuses = {'1': 'OPEN', '2': 'CLOSED'}
+        side = self.sbe_read_enum(frameHex, 24, sides)
+        account = self.sbe_read_address(frameHex, 89)
+        # the frame carries the size unsigned, the JSON channel signs it negative for a short
+        size = self.sbe_read_decimal(frameHex, 25)
+        if (side == 'SHORT') and (size != '0'):
+            size = Precise.string_neg(size)
+        return {
+            'account': account,
+            'average_entry_price': self.sbe_read_decimal(frameHex, 33),
+            'average_entry_price_usd': self.sbe_read_decimal(frameHex, 121),
+            'cached_funding_index': self.sbe_read_decimal(frameHex, 145),
+            'cost': self.sbe_read_decimal(frameHex, 129),
+            'cost_usd': self.sbe_read_decimal(frameHex, 137),
+            # the JSON channel's id, one position per account and market
+            'id': account + '-' + strings[0],
+            'last_fill_id': self.safe_string(strings, 1),
+            'last_updated_at': self.sbe_read_timestamp(frameHex, 81),
+            'leverage': self.sbe_read_decimal(frameHex, 73),
+            'liquidation_price': self.sbe_read_decimal(frameHex, 65),
+            'market': strings[0],
+            'realized_positional_pnl': self.sbe_read_decimal(frameHex, 49),
+            'seq_no': self.sbe_read_int64(frameHex, 16),
+            'side': side,
+            'size': size,
+            'status': self.sbe_read_enum(frameHex, 161, statuses),
+            'unrealized_funding_pnl': self.sbe_read_decimal(frameHex, 153),
+            'unrealized_pnl': self.sbe_read_decimal(frameHex, 41),
+        }
+
+    def parse_sbe_account(self, frameHex: str, blockLength: float, frameLength: float) -> object:
+        #
+        # AccountEvent (templateId 23), 121-byte block (113 before the 1:2 lastSeenNotification)
+        #
+        #     ts int64, seq int64, totalCollateral int64, freeCollateral int64, initialMarginReq int64,
+        #     maintenanceMarginReq int64, accountValue int64, unrealizedPnl int64 (nullable), updatedAt
+        #     int64, account [32]byte, marginCushion int64, status uint8, lastSeenNotification int64,
+        #     then the settlementAsset string
+        #
+        if blockLength < 113:
+            return None
+        strings = self.sbe_read_var_strings(frameHex, self.sum(blockLength, 8), 1, frameLength)
+        stringsLength = 0 if (strings is None) else len(strings)
+        if stringsLength < 1:
+            return None
+        statuses = {'1': 'ACTIVE', '2': 'LIQUIDATION'}
+        account = {
+            'account': self.sbe_read_address(frameHex, 80),
+            'account_value': self.sbe_read_decimal(frameHex, 56),
+            'free_collateral': self.sbe_read_decimal(frameHex, 32),
+            'initial_margin_requirement': self.sbe_read_decimal(frameHex, 40),
+            'maintenance_margin_requirement': self.sbe_read_decimal(frameHex, 48),
+            'margin_cushion': self.sbe_read_decimal(frameHex, 112),
+            'seq_no': self.sbe_read_int64(frameHex, 16),
+            'settlement_asset': strings[0],
+            'status': self.sbe_read_enum(frameHex, 120, statuses),
+            'total_collateral': self.sbe_read_decimal(frameHex, 24),
+            'updated_at': self.sbe_read_timestamp(frameHex, 72),
+        }
+        if blockLength >= 121:
+            account['last_seen_notification'] = self.sbe_read_timestamp(frameHex, 121)
+        return account
 
     def handle_error_message(self, client: Client, message: dict) -> Bool:
         #
@@ -980,6 +1359,9 @@ class paradex(ccxt.async_support.paradex):
                 'markets_summary': self.handle_ticker,
                 'orders': self.handle_order,
                 'funding_data': self.handle_funding_rate,
+                'fills': self.handle_my_trade,
+                'positions': self.handle_positions,
+                'account': self.handle_balance,
             }
             method = self.safe_value(methods, name)
             if method is not None:
