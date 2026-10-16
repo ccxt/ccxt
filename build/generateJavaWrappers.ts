@@ -24,7 +24,7 @@ const BASE_PKG = './java/lib/src/main/java/io/github/ccxt/';
 
 // Known CCXT types that have Java equivalents in io.github.ccxt.types
 const KNOWN_TYPES = new Set([
-    'Ticker', 'Tickers', 'Trade', 'Order', 'OrderBook', 'OHLCV',
+    'Ticker', 'Tickers', 'Trade', 'Order', 'OrderBook', 'OrderBookL3', 'OHLCV',
     'MarketInterface', 'Currencies', 'CurrencyInterface', 'Account', 'Balance', 'BalanceAccount', 'Balances',
     'ADL',
     'Position', 'FundingRate', 'FundingRates', 'FundingRateHistory',
@@ -47,7 +47,7 @@ const KNOWN_TYPES = new Set([
 ]);
 
 // --- Type helpers ---
-function isStringType(t: string) { return t === 'Str' || t === 'string' || t === 'StringLiteral' || t === 'OrderSide' || t === 'OrderType' || t === 'MarketType'; }
+function isStringType(t: string) { return t === 'Str' || t === 'string' || t === 'StringLiteral' || t === 'OrderSide' || t === 'OrderType' || t === 'MarketType' || t === 'SubType' || t === 'DefaultType' || t === 'DefaultSubType'; }
 function isNumberType(t: string) { return t === 'Num' || t === 'number' || t === 'NumericLiteral'; }
 function isIntegerType(t: string) { return t !== undefined && t.toLowerCase() === 'int'; }
 function isBooleanType(t: string) { return t === 'boolean' || t === 'Bool'; }
@@ -55,7 +55,7 @@ function isBooleanType(t: string) { return t === 'boolean' || t === 'Bool'; }
 // shape as `params`, so they get the same Java type in every position. Every branch
 // is anchored at BOTH ends so an array of bags (`Dictionary<any>[]`, `{ ... }[]`)
 // falls through instead of being typed as a single Map.
-function isDictType(t: string) { return t === 'Dict' || t === 'Object' || (t?.startsWith('Dictionary<') && t?.endsWith('>')) || (t?.startsWith('{') && t?.endsWith('}')); }
+function isDictType(t: string) { return t === 'Dict' || t === 'ExchangeOptions' || t === 'Object' || (t?.startsWith('Dictionary<') && t?.endsWith('>')) || (t?.startsWith('{') && t?.endsWith('}')); }
 // Genuinely free-form annotations. NOT dict-shaped: `fetchPartialBalance (part: any)`
 // takes a string key, so narrowing `any` to Map would break real call sites.
 function isFreeFormType(t: string) { return t === 'any' || t === 'unknown'; }
@@ -142,7 +142,7 @@ function tsReturnTypeToJava(methodName: string, tsReturnType: string): { javaTyp
 const ALLOWED_PREFIXES = ['fetch', 'create', 'edit', 'cancel', 'close', 'setP', 'setM', 'setL', 'transfer', 'withdraw', 'watch', 'unWatch', 'addMargin', 'reduceMargin', 'borrow', 'repay', 'loadAccounts'];
 const BLACKLIST = new Set([
     'fetch', 'fetchCurrenciesWs', 'fetchMarketsWs', 'setSandBoxMode', 'loadOrderBook',
-    'loadMarketsHelper', 'createNetworksByIdObject', 'setMarketsFromExchange',
+    'loadMarketsHelper', 'setMarketsFromExchange',
     'setLastRequest', 'setLastRestRequestTimestamp',
     'setProperty', 'setProxyAgents', 'watch', 'watchMultiple', 'watchMultipleSubscription',
     'watchPrivate', 'watchPublic', 'setPositionsCache', 'setPositionCache',

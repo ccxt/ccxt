@@ -2663,8 +2663,8 @@ export default class bithumb extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag the secondary withdrawal destination address
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @param {string} [params.network] the blockchain network to withdraw on, for example BTC or DASH
      * @param {string} [params.destination] secondary address destination for specific currencies, can alternatively use the tag argument
@@ -2679,13 +2679,13 @@ export default class bithumb extends Exchange {
      * @param {string} [params.two_factor_type] *generation 2 KRW withdraw only* the two factor type, for example kakao
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const [ generation, paramsGeneration ] = this.handleOptionIntegerAndParams (params, 'withdraw', 'generation', 2);
-        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, paramsGeneration);
-        this.checkAddress (address);
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleParamString (paramsGeneration, 'tag');
+        this.checkAddress (address, code, tagWithdrawTag);
         const network = this.safeString2 (paramsWithdrawTag, 'network', 'net_type');
         const paramsNetwork = this.omit (paramsWithdrawTag, 'network');
         const currency = this.currency (code);
@@ -2700,7 +2700,7 @@ export default class bithumb extends Exchange {
         if (requiresDestination) {
             const destination = this.safeString2 (paramsNetwork, 'destination', 'secondary_address');
             if ((tagWithdrawTag === undefined) && (destination === undefined)) {
-                throw new ArgumentsRequired (this.id + ' ' + code + ' withdraw() requires a tag argument or an extra destination param');
+                throw new ArgumentsRequired (this.id + ' ' + code + ' withdraw() requires a tag or an extra destination param');
             } else if (tagWithdrawTag !== undefined) {
                 destinationRequest = tagWithdrawTag;
             } else {
@@ -2723,7 +2723,7 @@ export default class bithumb extends Exchange {
                 }
                 request['address'] = address;
                 request['currency'] = currency['id'];
-                request['net_type'] = network;
+                request['net_type'] = this.networkCodeToId (network, code);
                 request['amount'] = this.numberToString (amount);
                 if (destinationRequest !== undefined) {
                     request['secondary_address'] = destinationRequest;
@@ -2754,7 +2754,7 @@ export default class bithumb extends Exchange {
             request['currency'] = currency['id'];
             request['units'] = amount;
             if (network !== undefined) {
-                request['net_type'] = network;
+                request['net_type'] = this.networkCodeToId (network, code);
             }
             if (destinationRequest !== undefined) {
                 request['destination'] = destinationRequest;
@@ -2818,7 +2818,7 @@ export default class bithumb extends Exchange {
             'txid': this.safeString (transaction, 'txid'),
             'timestamp': timestamp,
             'datetime': datetime,
-            'network': this.safeString (transaction, 'net_type'),
+            'network': this.networkIdToCode (this.safeString (transaction, 'net_type'), currencyResolved['code']),
             'addressFrom': undefined,
             'address': undefined,
             'addressTo': undefined,
@@ -3152,7 +3152,7 @@ export default class bithumb extends Exchange {
         if (network === undefined) {
             throw new ArgumentsRequired (this.id + ' ' + code + ' createDepositAddress() requires a network parameter');
         }
-        request['net_type'] = network;
+        request['net_type'] = this.networkCodeToId (network, code);
         const response = await this.privatePostV1DepositsGenerateCoinAddress (this.extend (request, paramsOmitted));
         //
         //     {
@@ -3193,7 +3193,7 @@ export default class bithumb extends Exchange {
         if (network === undefined) {
             throw new ArgumentsRequired (this.id + ' ' + code + ' fetchDepositAddress() requires a network parameter');
         }
-        request['net_type'] = network;
+        request['net_type'] = this.networkCodeToId (network, code);
         const response = await this.privateGetV1DepositsCoinAddress (this.extend (request, paramsOmitted));
         //
         //     {
@@ -3259,7 +3259,7 @@ export default class bithumb extends Exchange {
         return {
             'info': response,
             'currency': code,
-            'network': this.safeString (response, 'net_type'),
+            'network': this.networkIdToCode (this.safeString (response, 'net_type'), code),
             'address': address,
             'tag': this.safeString (response, 'secondary_address'),
         } as DepositAddress;
@@ -3313,11 +3313,12 @@ export default class bithumb extends Exchange {
         return result;
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
         let requestHeaders: NullableDict = undefined;
         let requestBody: Str = undefined;
         const endpoint = '/' + this.implodeParams (path, params);
-        const apiUrl = this.safeString (this.urls['api'], api);
+        const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
@@ -3326,7 +3327,7 @@ export default class bithumb extends Exchange {
         const queryKeys = Object.keys (query);
         const queryKeysLength = queryKeys.length;
         const hasQuery = (queryKeysLength > 0);
-        if (api === 'public') {
+        if (apiName === 'public') {
             requestHeaders = {
                 'OPEN-API-PARTNER': 'CCXT',
             };
@@ -3385,8 +3386,8 @@ export default class bithumb extends Exchange {
                 };
             }
         }
-        const headersResult = (requestHeaders !== undefined) ? requestHeaders : headers;
-        const bodyResult = (requestBody !== undefined) ? requestBody : body;
+        const headersResult = requestHeaders;
+        const bodyResult = requestBody;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 

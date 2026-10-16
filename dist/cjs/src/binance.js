@@ -1380,7 +1380,7 @@ class binance extends binance$1["default"] {
                     'warnOnSTPForInverse': true,
                     'quoteOrderQty': true, // whether market orders support amounts in quote currency
                 },
-                'defaultType': 'spot', // 'spot', 'future', 'margin', 'delivery', 'option'
+                'defaultType': 'spot', // 'spot', 'margin', 'swap', 'future', 'option'
                 'defaultSubType': undefined, // 'linear', 'inverse'
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'fetchOpenOrders': {
@@ -1409,7 +1409,6 @@ class binance extends binance$1["default"] {
                     'spot': 'x-TKT5PX2F',
                     'margin': 'x-TKT5PX2F',
                     'future': 'x-cvBPrNm9',
-                    'delivery': 'x-xcKtGhcu',
                     'swap': 'x-cvBPrNm9',
                     'option': 'x-xcKtGhcu',
                     'inverse': 'x-xcKtGhcu',
@@ -1420,8 +1419,6 @@ class binance extends binance$1["default"] {
                     'funding': 'FUNDING',
                     'margin': 'MARGIN',
                     'cross': 'MARGIN',
-                    'future': 'UMFUTURE', // backwards compatibility
-                    'delivery': 'CMFUTURE', // backwards compatibility
                     'linear': 'UMFUTURE',
                     'swap': 'UMFUTURE',
                     'inverse': 'CMFUTURE',
@@ -1440,11 +1437,8 @@ class binance extends binance$1["default"] {
                     'BTCSEGWIT': 'SEGWITBTC',
                     'BTCLIGHTNING': 'LIGHTNING',
                     'ERC20': 'ETH',
-                    'ETH': 'ETH',
                     'TRC20': 'TRX',
-                    'TRX': 'TRX',
                     'BEP2': 'BNB',
-                    'BSC': 'BSC',
                     'BEP20': 'BSC',
                     'CHZ2': 'CHZ2', // Chiliz chain new
                     'XRP': 'XRP',
@@ -2821,12 +2815,7 @@ class binance extends binance$1["default"] {
         });
     }
     isInverse(type, subType = undefined) {
-        if (subType === undefined) {
-            return (type === 'delivery');
-        }
-        else {
-            return subType === 'inverse';
-        }
+        return subType === 'inverse';
     }
     isLinear(type, subType = undefined) {
         if (subType === undefined) {
@@ -2910,12 +2899,13 @@ class binance extends binance$1["default"] {
         if (this.markets === undefined) {
             throw new errors.ExchangeError(this.id + ' markets not loaded');
         }
-        // defaultType has legacy support on binance
+        // defaultType 'swap' resolves spot-style symbols to the perpetual of defaultSubType
         let defaultType = this.safeString(this.options, 'defaultType');
         const defaultSubType = this.safeString(this.options, 'defaultSubType');
-        const isLegacyLinear = defaultType === 'future';
-        const isLegacyInverse = defaultType === 'delivery';
-        const isLegacy = isLegacyLinear || isLegacyInverse;
+        const isLegacy = defaultType === 'swap';
+        const isDerivative = isLegacy || (defaultType === 'future');
+        const isLegacyInverse = isLegacy && (defaultSubType === 'inverse');
+        const isLegacyLinear = isLegacy && !isLegacyInverse;
         if (typeof symbol === 'string') {
             if ((this.markets !== undefined) && (symbol in this.markets)) {
                 const market = this.markets[symbol];
@@ -2935,11 +2925,8 @@ class binance extends binance$1["default"] {
             else if ((this.markets_by_id !== undefined) && (symbol in this.markets_by_id)) {
                 const markets = this.markets_by_id[symbol];
                 // begin diff
-                if (isLegacyLinear) {
-                    defaultType = 'linear';
-                }
-                else if (isLegacyInverse) {
-                    defaultType = 'inverse';
+                if (isDerivative) {
+                    defaultType = (defaultSubType === 'inverse') ? 'inverse' : 'linear';
                 }
                 else if (defaultType === undefined) {
                     defaultType = defaultSubType;
@@ -2954,7 +2941,7 @@ class binance extends binance$1["default"] {
                 return markets[0];
             }
             else if ((symbol.indexOf('/') > -1) && (symbol.indexOf(':') < 0)) {
-                if ((defaultType !== undefined) && (defaultType !== 'spot')) {
+                if (isLegacy) {
                     // support legacy symbols
                     const [base, quote] = symbol.split('/');
                     let settle = quote;
@@ -4153,7 +4140,7 @@ class binance extends binance$1["default"] {
      * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/account#option-margin-account-information // option
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Account-Balance                            // portfolio margin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot' or 'papi'
+     * @param {string} [params.type] 'spot', 'margin', 'swap', 'future', 'option', 'savings', 'funding' or 'papi', use params.subType 'inverse' for COIN-M
      * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
      * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the balance for a portfolio margin account
@@ -7208,11 +7195,12 @@ class binance extends binance$1["default"] {
      * @ignore
      * @name binance#generateClientOrderId
      * @description builds a fresh client order id
-     * @param {object} [market] the market of the order, takes precedence over the api argument
+     * @param {object} [market] the market of the order, takes precedence over the other arguments
      * @param {string} [api] the implicit api section the order is sent to (private, sapi, fapiPrivate, dapiPrivate, eapiPrivate, ...)
+     * @param {string} [path] the implicit api path the order is sent to, resolves the market type from the um/, cm/, margin/ and equity/ path prefixes whose api section is ambiguous, takes precedence over the api argument
      * @returns {string} the broker prefix followed by 22 random characters
      */
-    generateClientOrderId(market = undefined, api = undefined) {
+    generateClientOrderId(market = undefined, api = undefined, path = undefined) {
         let idMarketType = undefined;
         if (market !== undefined) {
             if (market['option'] === true) {
@@ -7228,7 +7216,21 @@ class binance extends binance$1["default"] {
                 idMarketType = 'spot';
             }
         }
-        else if (api !== undefined) {
+        if ((idMarketType === undefined) && (path !== undefined)) {
+            if (path.indexOf('um/') === 0) {
+                idMarketType = 'swap';
+            }
+            else if (path.indexOf('cm/') === 0) {
+                idMarketType = 'inverse';
+            }
+            else if (path.indexOf('margin/') === 0) {
+                idMarketType = 'margin';
+            }
+            else if (path.indexOf('equity/') === 0) {
+                idMarketType = 'spot';
+            }
+        }
+        if ((idMarketType === undefined) && (api !== undefined)) {
             const isSpotOrMargin = (api.indexOf('sapi') > -1 || api === 'private');
             if (isSpotOrMargin) {
                 idMarketType = 'spot';
@@ -7243,14 +7245,11 @@ class binance extends binance$1["default"] {
                 idMarketType = 'future';
             }
         }
-        else {
+        if (idMarketType === undefined) {
             const defaultType = this.safeString(this.options, 'defaultType', 'spot');
             const defaultSubType = this.safeString(this.options, 'defaultSubType');
             idMarketType = defaultType;
-            if (defaultType === 'delivery') {
-                idMarketType = 'inverse';
-            }
-            else if ((defaultSubType === 'inverse') && ((defaultType === 'swap') || (defaultType === 'future'))) {
+            if ((defaultSubType === 'inverse') && ((defaultType === 'swap') || (defaultType === 'future'))) {
                 idMarketType = 'inverse';
             }
         }
@@ -7264,6 +7263,88 @@ class binance extends binance$1["default"] {
         const broker = this.safeDict(this.options, 'broker', {});
         const brokerId = this.safeString(broker, idMarketType, defaultId);
         return brokerId + this.uuid22();
+    }
+    /**
+     * @method
+     * @name binance#handleClientOrderId
+     * @ignore
+     * @param {object} params request params
+     * @param {string} api the implicit api section the request is sent to
+     * @param {string} path the implicit api path the request is sent to
+     * @param {string} method HTTP method
+     * @returns {object} params with the injected client order id
+     */
+    handleClientOrderId(params, api, path, method) {
+        if (method !== 'POST') {
+            return params;
+        }
+        if ((path === 'order') || (path === 'sor/order') || (path === 'order/cancelReplace') || (path === 'um/order') || (path === 'cm/order') || (path === 'margin/order')) {
+            // the eapi order endpoint takes clientOrderId instead of newClientOrderId
+            const clientOrderIdKey = (api === 'eapiPrivate') ? 'clientOrderId' : 'newClientOrderId';
+            const clientOrderId = this.safeString2(params, 'clientOrderId', 'newClientOrderId');
+            if (clientOrderId === undefined) {
+                params[clientOrderIdKey] = this.generateClientOrderId(undefined, api, path);
+            }
+        }
+        else if ((path === 'algoOrder') || (path === 'um/algo/order')) {
+            // the fapi/dapi/papi algo order endpoints take clientAlgoId instead of newClientOrderId
+            const clientAlgoId = this.safeString(params, 'clientAlgoId');
+            if (clientAlgoId === undefined) {
+                params['clientAlgoId'] = this.generateClientOrderId(undefined, api, path);
+            }
+        }
+        else if ((path === 'cm/conditional/order') || (path === 'um/conditional/order')) {
+            // the papi conditional order endpoints take newClientStrategyId instead of newClientOrderId
+            const newClientStrategyId = this.safeString(params, 'newClientStrategyId');
+            if (newClientStrategyId === undefined) {
+                params['newClientStrategyId'] = this.generateClientOrderId(undefined, api, path);
+            }
+        }
+        else if (path === 'equity/order/place') {
+            // the equity order endpoint takes clientOrderId instead of newClientOrderId
+            const equityClientOrderId = this.safeString(params, 'clientOrderId');
+            if (equityClientOrderId === undefined) {
+                params['clientOrderId'] = this.generateClientOrderId(undefined, api, path);
+            }
+        }
+        else if ((path === 'order/oco') || (path === 'margin/order/oco') || (path === 'orderList/oco') || (path === 'orderList/oto') || (path === 'orderList/otoco') || (path === 'orderList/opo') || (path === 'orderList/opoco')) {
+            // the order list endpoints take a listClientOrderId and one client order id per leg
+            let clientOrderIdKeys = ['listClientOrderId', 'limitClientOrderId', 'stopClientOrderId'];
+            if (path === 'orderList/oco') {
+                clientOrderIdKeys = ['listClientOrderId', 'aboveClientOrderId', 'belowClientOrderId'];
+            }
+            else if ((path === 'orderList/oto') || (path === 'orderList/opo')) {
+                clientOrderIdKeys = ['listClientOrderId', 'workingClientOrderId', 'pendingClientOrderId'];
+            }
+            else if ((path === 'orderList/otoco') || (path === 'orderList/opoco')) {
+                clientOrderIdKeys = ['listClientOrderId', 'workingClientOrderId', 'pendingAboveClientOrderId', 'pendingBelowClientOrderId'];
+            }
+            for (let i = 0; i < clientOrderIdKeys.length; i++) {
+                const currentClientOrderIdKey = clientOrderIdKeys[i];
+                const currentClientOrderId = this.safeString(params, currentClientOrderIdKey);
+                if (currentClientOrderId === undefined) {
+                    params[currentClientOrderIdKey] = this.generateClientOrderId(undefined, api, path);
+                }
+            }
+        }
+        else if (path === 'batchOrders') {
+            // the batch legs take the same client order id fields as the single order endpoints
+            if ((api === 'fapiPrivate') || (api === 'dapiPrivate') || (api === 'eapiPrivate')) {
+                const batchClientOrderIdKey = (api === 'eapiPrivate') ? 'clientOrderId' : 'newClientOrderId';
+                const batchOrders = this.safeList(params, 'batchOrders', []);
+                const checkedBatchOrders = [];
+                for (let i = 0; i < batchOrders.length; i++) {
+                    const batchOrder = batchOrders[i];
+                    const batchClientOrderId = this.safeString(batchOrder, batchClientOrderIdKey);
+                    if (batchClientOrderId === undefined) {
+                        batchOrder[batchClientOrderIdKey] = this.generateClientOrderId(undefined, api, path);
+                    }
+                    checkedBatchOrders.push(batchOrder);
+                }
+                params['batchOrders'] = checkedBatchOrders;
+            }
+        }
+        return params;
     }
     /**
      * @method
@@ -7430,6 +7511,10 @@ class binance extends binance$1["default"] {
             clientOrderIdRequest = 'clientAlgoId';
         }
         else if (stock === true) {
+            clientOrderIdRequest = 'clientOrderId';
+        }
+        else if (market['option'] === true) {
+            // the option api takes clientOrderId instead of newClientOrderId
             clientOrderIdRequest = 'clientOrderId';
         }
         if (clientOrderId === undefined) {
@@ -10392,8 +10477,8 @@ class binance extends binance$1["default"] {
         if (internal !== true) {
             const defaultType = this.safeString2(this.options, 'fetchTransfers', 'defaultType', 'spot');
             const fromAccount = this.safeString(paramsOmitted, 'fromAccount', defaultType);
-            let defaultTo = 'future';
-            if (fromAccount === 'future') {
+            let defaultTo = 'swap';
+            if ((fromAccount === 'swap') || (fromAccount === 'linear')) {
                 defaultTo = 'spot';
             }
             const toAccount = this.safeString(paramsOmitted, 'toAccount', defaultTo);
@@ -10686,7 +10771,7 @@ class binance extends binance$1["default"] {
             for (let j = 0; j < networkList.length; j++) {
                 const networkEntry = this.safeDict(networkList, j);
                 const networkId = this.safeString(networkEntry, 'network');
-                const networkCode = this.safeCurrencyCode(networkId);
+                const networkCode = this.networkIdToCode(networkId, code);
                 const fee = this.safeNumber(networkEntry, 'withdrawFee');
                 if ((code !== undefined) && (networkCode !== undefined)) {
                     withdrawFees[code][networkCode] = fee;
@@ -10836,13 +10921,13 @@ class binance extends binance$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
-        this.checkAddress(address);
+    async withdraw(code, amount, address, params = {}) {
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
+        this.checkAddress(address, code, tagWithdrawTag);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -11268,7 +11353,7 @@ class binance extends binance$1["default"] {
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate);
         }
-        const defaultType = this.safeString2(this.options, 'fetchFundingRateHistory', 'defaultType', 'future');
+        const defaultType = this.safeString2(this.options, 'fetchFundingRateHistory', 'defaultType', 'swap');
         const type = this.safeString(paramsPaginate, 'type', defaultType);
         let market = undefined;
         if (symbol !== undefined) {
@@ -11341,7 +11426,7 @@ class binance extends binance$1["default"] {
             await this.loadMarkets();
         }
         const symbolsNormalized = this.marketSymbols(symbols);
-        const defaultType = this.safeString2(this.options, 'fetchFundingRates', 'defaultType', 'future');
+        const defaultType = this.safeString2(this.options, 'fetchFundingRates', 'defaultType', 'swap');
         const type = this.safeString(params, 'type', defaultType);
         const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchFundingRates', undefined, params, 'linear');
         const query = this.omit(paramsSubType, 'type');
@@ -11961,7 +12046,7 @@ class binance extends binance$1["default"] {
         // it contains useful stuff like the maintenance margin and initial margin for positions
         const leverageBrackets = this.safeDict(this.options, 'leverageBrackets');
         if ((leverageBrackets === undefined) || (reload)) {
-            const defaultType = this.safeString(this.options, 'defaultType', 'future');
+            const defaultType = this.safeString(this.options, 'defaultType', 'swap');
             const type = this.safeString(params, 'type', defaultType);
             const query = this.omit(params, 'type');
             let subType = undefined;
@@ -12372,7 +12457,7 @@ class binance extends binance$1["default"] {
             await this.loadMarkets();
         }
         await this.loadLeverageBrackets(false, params);
-        const defaultType = this.safeString(this.options, 'defaultType', 'future');
+        const defaultType = this.safeString(this.options, 'defaultType', 'swap');
         const type = this.safeString(params, 'type', defaultType);
         const paramsOmitted = this.omit(params, 'type');
         const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchAccountPositions', undefined, paramsOmitted, 'linear');
@@ -12502,7 +12587,7 @@ class binance extends binance$1["default"] {
         }
         await this.loadLeverageBrackets(false, params);
         const request = {};
-        let defaultType = 'future';
+        let defaultType = 'swap';
         defaultType = this.safeString(this.options, 'defaultType', defaultType);
         const type = this.safeString(params, 'type', defaultType);
         let subType = undefined;
@@ -12703,7 +12788,7 @@ class binance extends binance$1["default"] {
         if (limit !== undefined) {
             requestUntil['limit'] = limit;
         }
-        const defaultType = this.safeString2(this.options, 'fetchFundingHistory', 'defaultType', 'future');
+        const defaultType = this.safeString2(this.options, 'fetchFundingHistory', 'defaultType', 'swap');
         const type = this.safeString(paramsUntil, 'type', defaultType);
         const paramsOmitted = this.omit(paramsUntil, 'type');
         let response = undefined;
@@ -13458,12 +13543,13 @@ class binance extends binance$1["default"] {
         }
         return scheme + '//' + domain + '/';
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         const urls = this.urls;
-        if (!(api in urls['api'])) {
-            throw new errors.NotSupported(this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
+        if (!(apiName in urls['api'])) {
+            throw new errors.NotSupported(this.id + ' does not have a testnet/sandbox URL for ' + apiName + ' endpoints');
         }
-        const baseApiUrl = this.safeString(this.urls['api'], api);
+        const baseApiUrl = this.safeString(this.urls['api'], apiName);
         if (baseApiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
@@ -13497,57 +13583,31 @@ class binance extends binance$1["default"] {
                 throw new errors.AuthenticationError(this.id + ' userDataStream endpoint requires `apiKey` credential');
             }
         }
-        else if ((api === 'private') || (api === 'eapiPrivate') || (api === 'sapi' && path !== 'system/status') || (api === 'sapiV2') || (api === 'sapiV3') || (api === 'sapiV4') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2') || (api === 'fapiPrivateV3') || (api === 'papiV2' || api === 'papi' && path !== 'ping')) {
+        else if ((apiName === 'private') || (apiName === 'eapiPrivate') || (apiName === 'sapi' && path !== 'system/status') || (apiName === 'sapiV2') || (apiName === 'sapiV3') || (apiName === 'sapiV4') || (apiName === 'dapiPrivate') || (apiName === 'dapiPrivateV2') || (apiName === 'fapiPrivate') || (apiName === 'fapiPrivateV2') || (apiName === 'fapiPrivateV3') || (apiName === 'papiV2' || apiName === 'papi' && path !== 'ping')) {
             this.checkRequiredCredentials();
             if ((url.indexOf('testnet.binancefuture.com') > -1) && this.isSandboxModeEnabled && (!this.safeBool(this.options, 'disableFuturesSandboxWarning', false))) {
                 throw new errors.NotSupported(this.id + ' testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.');
             }
-            if (method === 'POST' && ((path === 'order') || (path === 'sor/order'))) {
-                // inject in implicit API calls
-                const newClientOrderId = this.safeString(params, 'newClientOrderId');
-                if (newClientOrderId === undefined) {
-                    params['newClientOrderId'] = this.generateClientOrderId(undefined, api);
-                }
-            }
-            else if (method === 'POST' && (path === 'algoOrder')) {
-                // the fapi/dapi algo order endpoints take clientAlgoId instead of newClientOrderId
-                const clientAlgoId = this.safeString(params, 'clientAlgoId');
-                if (clientAlgoId === undefined) {
-                    params['clientAlgoId'] = this.generateClientOrderId(undefined, api);
-                }
-            }
+            const requestParams = this.handleClientOrderId(params, apiName, path, method);
             let query = undefined;
             // handle batchOrders
             if ((path === 'batchOrders') && ((method === 'POST') || (method === 'PUT'))) {
-                const batchOrders = this.safeList(params, 'batchOrders', []);
-                let checkedBatchOrders = batchOrders;
-                if (method === 'POST' && ((api === 'fapiPrivate') || (api === 'dapiPrivate'))) {
-                    // check broker id if batchOrders are called with fapiPrivatePostBatchOrders / dapiPrivatePostBatchOrders
-                    checkedBatchOrders = [];
-                    for (let i = 0; i < batchOrders.length; i++) {
-                        const batchOrder = batchOrders[i];
-                        const newClientOrderId = this.safeString(batchOrder, 'newClientOrderId');
-                        if (newClientOrderId === undefined) {
-                            batchOrder['newClientOrderId'] = this.generateClientOrderId(undefined, api);
-                        }
-                        checkedBatchOrders.push(batchOrder);
-                    }
-                }
-                const queryBatch = (this.json(checkedBatchOrders));
-                params['batchOrders'] = queryBatch;
+                const batchOrders = this.safeList(requestParams, 'batchOrders', []);
+                const queryBatch = (this.json(batchOrders));
+                requestParams['batchOrders'] = queryBatch;
             }
             const defaultRecvWindow = this.safeInteger(this.options, 'recvWindow');
             let extendedParams = this.extend({
                 'timestamp': this.nonce(),
-            }, params);
+            }, requestParams);
             if (defaultRecvWindow !== undefined) {
                 extendedParams['recvWindow'] = defaultRecvWindow;
             }
-            const recvWindow = this.safeInteger(params, 'recvWindow');
+            const recvWindow = this.safeInteger(requestParams, 'recvWindow');
             if (recvWindow !== undefined) {
                 extendedParams['recvWindow'] = recvWindow;
             }
-            if ((api === 'sapi') && (path === 'asset/dust')) {
+            if ((apiName === 'sapi') && (path === 'asset/dust')) {
                 query = this.urlencodeWithArrayRepeat(extendedParams);
             }
             else if ((path === 'batchOrders') || (path.indexOf('sub-account') >= 0) || (path === 'capital/withdraw/apply') || (path.indexOf('staking') >= 0) || (path.indexOf('simple-earn') >= 0)) {
@@ -13609,8 +13669,8 @@ class binance extends binance$1["default"] {
                 url += '?' + this.urlencode(params);
             }
         }
-        const headersResolved = (signedHeaders !== undefined) ? signedHeaders : headers;
-        const bodyResolved = (signedBody !== undefined) ? signedBody : body;
+        const headersResolved = signedHeaders;
+        const bodyResolved = signedBody;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     getExceptionsByUrl(url, exactOrBroad) {
@@ -13751,23 +13811,23 @@ class binance extends binance$1["default"] {
         }
         return this.safeValue(config, 'cost', 1);
     }
-    async request(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}) {
-        const response = await this.fetch2(path, api, method, params, headers, body, config);
+    async request(path, api = ['public'], method = 'GET', params = {}, config = {}) {
+        const response = await this.fetch2(path, api, method, params, config);
         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
-        if (api === 'private') {
+        if (api[0] === 'private') {
             this.options['hasAlreadyAuthenticatedSuccessfully'] = true;
         }
         return response;
     }
     async modifyMarginHelper(symbol, amount, addOrReduce, params = {}) {
         // used to modify isolated positions
-        let defaultType = this.safeString(this.options, 'defaultType', 'future');
+        let defaultType = this.safeString(this.options, 'defaultType', 'swap');
         if (defaultType === 'spot') {
-            defaultType = 'future';
+            defaultType = 'swap';
         }
         const type = this.safeString(params, 'type', defaultType);
         if ((type === 'margin') || (type === 'spot')) {
-            throw new errors.NotSupported(this.id + ' add / reduce margin only supported with type future or delivery');
+            throw new errors.NotSupported(this.id + ' add / reduce margin only supported with linear or inverse swap/future markets');
         }
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -14502,13 +14562,16 @@ class binance extends binance$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let symbolKey = 'pair';
         if (market['linear'] === true) {
-            symbolKey = 'symbol';
+            request['symbol'] = market['id'];
         }
-        request[symbolKey] = market['id'];
-        if (market['inverse'] === true) {
-            request['contractType'] = this.safeString(paramsPaginate, 'contractType', 'CURRENT_QUARTER');
+        else if (market['inverse'] === true) {
+            // dapi expects the underlying pair (BTCUSD) and a contract type, not the market id (BTCUSD_PERP)
+            request['pair'] = this.safeString(market['info'], 'pair');
+            request['contractType'] = (market['swap'] === true) ? 'PERPETUAL' : this.safeString(market['info'], 'contractType');
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchOpenInterestHistory() supports linear and inverse contracts only');
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -14539,6 +14602,19 @@ class binance extends binance$1["default"] {
         //          "sumOpenInterest":"75375.61700000",
         //          "sumOpenInterestValue":"3248828883.71251440",
         //          "timestamp":1642179900000
+        //      },
+        //      ...
+        //  ]
+        //
+        // inverse
+        //
+        //  [
+        //      {
+        //          "contractType":"PERPETUAL",
+        //          "sumOpenInterest":"13069401.00000000",
+        //          "sumOpenInterestValue":"15796.96988405",
+        //          "pair":"BTCUSD",
+        //          "timestamp":1791835200000
         //      },
         //      ...
         //  ]

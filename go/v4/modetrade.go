@@ -839,6 +839,7 @@ func (this *Modetrade) ParseMarket(market any) any {
 	//
 	//   {
 	//     "symbol": "PERP_BTC_USDC",
+	//     "status": "ACTIVE",
 	//     "quote_min": 123,
 	//     "quote_max": 100000,
 	//     "quote_tick": 0.1,
@@ -864,6 +865,11 @@ func (this *Modetrade) ParseMarket(market any) any {
 	//   }
 	//
 	var marketId *string = this.SafeString(market, "symbol", "")
+	var status *string = this.SafeString(market, "status")
+	var active any = nil
+	if status != nil {
+		active = (status != nil && *status == "ACTIVE")
+	}
 	var parts []string = strings.Split(*marketId, "_")
 	var marketType string = "swap"
 	var baseId *string = this.SafeString(parts, 1)
@@ -891,7 +897,7 @@ func (this *Modetrade) ParseMarket(market any) any {
 		"swap":           true,
 		"future":         false,
 		"option":         false,
-		"active":         nil,
+		"active":         active,
 		"contract":       true,
 		"linear":         true,
 		"inverse":        false,
@@ -959,6 +965,7 @@ func (this *Modetrade) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs .
 	//       "rows": [
 	//         {
 	//           "symbol": "PERP_BTC_USDC",
+	//           "status": "ACTIVE",
 	//           "quote_min": 123,
 	//           "quote_max": 100000,
 	//           "quote_tick": 0.1,
@@ -1354,11 +1361,11 @@ func (this *Modetrade) fetchFundingIntervalBody(ch chan AsyncResult[map[string]a
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes95215 map[string]any = r.Value
-	if retRes95215 == nil {
+	var retRes95915 map[string]any = r.Value
+	if retRes95915 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes95215}
+		ch <- AsyncResult[map[string]any]{Value: retRes95915}
 	}
 	return nil
 }
@@ -1522,11 +1529,11 @@ func (this *Modetrade) fetchFundingRateHistoryBody(ch chan AsyncResult[any], opt
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes104819 []any = ListTyped(r1.Value)
-		if retRes104819 == nil {
+		var retRes105519 []any = ListTyped(r1.Value)
+		if retRes105519 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes104819}
+			ch <- AsyncResult[any]{Value: retRes105519}
 		}
 		return nil
 	}
@@ -1680,11 +1687,11 @@ func (this *Modetrade) fetchFundingHistoryBody(ch chan AsyncResult[any], optiona
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes115119 []any = ListTyped(r1.Value)
-		if retRes115119 == nil {
+		var retRes115819 []any = ListTyped(r1.Value)
+		if retRes115819 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes115119}
+			ch <- AsyncResult[any]{Value: retRes115819}
 		}
 		return nil
 	}
@@ -2965,11 +2972,11 @@ func (this *Modetrade) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ..
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes214719 []any = ListTyped(r1.Value)
-		if retRes214719 == nil {
+		var retRes215419 []any = ListTyped(r1.Value)
+		if retRes215419 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes214719}
+			ch <- AsyncResult[any]{Value: retRes215419}
 		}
 		return nil
 	}
@@ -3097,11 +3104,11 @@ func (this *Modetrade) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArg
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes223515 []any = ListTyped(r1.Value)
-	if retRes223515 == nil {
+	var retRes224215 []any = ListTyped(r1.Value)
+	if retRes224215 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes223515}
+		ch <- AsyncResult[any]{Value: retRes224215}
 	}
 	return nil
 }
@@ -3154,11 +3161,11 @@ func (this *Modetrade) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalA
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes226015 []any = ListTyped(r1.Value)
-	if retRes226015 == nil {
+	var retRes226715 []any = ListTyped(r1.Value)
+	if retRes226715 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes226015}
+		ch <- AsyncResult[any]{Value: retRes226715}
 	}
 	return nil
 }
@@ -3282,11 +3289,11 @@ func (this *Modetrade) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes233219 []any = ListTyped(r1.Value)
-		if retRes233219 == nil {
+		var retRes233919 []any = ListTyped(r1.Value)
+		if retRes233919 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes233219}
+			ch <- AsyncResult[any]{Value: retRes233919}
 		}
 		return nil
 	}
@@ -3592,8 +3599,8 @@ func (this *Modetrade) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ..
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv3349 := r.Value
-	var currencyRows []any = listRecv3349
+	listRecv3356 := r.Value
+	var currencyRows []any = listRecv3356
 	var currency any = this.SafeValue(currencyRows, 0)
 	var rows []any = SafeListTyped(currencyRows, 1)
 
@@ -3710,11 +3717,11 @@ func (this *Modetrade) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes264815 []any = ListTyped(r.Value)
-	if retRes264815 == nil {
+	var retRes265515 []any = ListTyped(r.Value)
+	if retRes265515 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes264815}
+		ch <- AsyncResult[any]{Value: retRes265515}
 	}
 	return nil
 }
@@ -3754,11 +3761,11 @@ func (this *Modetrade) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes266615 []any = ListTyped(r.Value)
-	if retRes266615 == nil {
+	var retRes267315 []any = ListTyped(r.Value)
+	if retRes267315 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes266615}
+		ch <- AsyncResult[any]{Value: retRes267315}
 	}
 	return nil
 }
@@ -3796,8 +3803,8 @@ func (this *Modetrade) fetchDepositsWithdrawalsBody(ch chan AsyncResult[any], op
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv3537 := r.Value
-	var currencyRows []any = listRecv3537
+	listRecv3544 := r.Value
+	var currencyRows []any = listRecv3544
 	var currency any = this.SafeValue(currencyRows, 0)
 	var rows []any = SafeListTypedDefault(currencyRows, 1, []any{})
 	//
@@ -3869,8 +3876,8 @@ func (this *Modetrade) SignMessage(message any, privateKey any) string {
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Modetrade) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
@@ -3881,9 +3888,7 @@ func (this *Modetrade) WithdrawAsync(code string, amount any, address any, optio
 func (this *Modetrade) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -4336,29 +4341,25 @@ func (this *Modetrade) Nonce() any {
 	return this.Milliseconds()
 }
 func (this *Modetrade) Sign(path string, optionalArgs ...any) any {
-	section := GetArg(optionalArgs, 0, "public")
+	section := GetArg(optionalArgs, 0, []any{"public"})
 	_ = section
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
-	var version any = GetValue(section, 0)
-	var access any = GetValue(section, 1)
+	var version *string = SafeStringPtr(GetValue(section, 0))
+	var access *string = SafeStringPtr(GetValue(section, 1))
 	var pathWithParams string = this.ImplodeParams(path, params)
 	var apiUrl *string = this.SafeString(this.Urls["api"], access)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = Add(Add(*apiUrl+"/", version), "/")
+	var url string = *apiUrl + "/" + *version + "/"
 	var paramsSorted map[string]any = this.Keysort(this.Omit(params, this.ExtractParams(path)))
-	if access == "public" {
-		url = Add(url, pathWithParams)
+	if access != nil && *access == "public" {
+		url += pathWithParams
 		if len(paramsSorted) > 0 {
-			url = Add(url, "?"+this.Urlencode(paramsSorted))
+			url += "?" + this.Urlencode(paramsSorted)
 		}
 	} else {
 		this.CheckRequiredCredentials()
@@ -4384,7 +4385,7 @@ func (this *Modetrade) Sign(path string, optionalArgs ...any) any {
 		}
 		var auth any = ""
 		var ts string = ToString(this.Nonce())
-		url = Add(url, pathWithParams)
+		url += pathWithParams
 		var apiKey any = this.ApiKey
 		if GetIndexOf(apiKey, "ed25519:") < 0 {
 			apiKey = Add("ed25519:", apiKey)
@@ -4394,7 +4395,7 @@ func (this *Modetrade) Sign(path string, optionalArgs ...any) any {
 			"orderly-key":        apiKey,
 			"orderly-timestamp":  ts,
 		}
-		auth = Add(Add(Add(ts+method+"/", version), "/"), pathWithParams)
+		auth = ts + method + "/" + *version + "/" + pathWithParams
 		var signedBody any = nil
 		if (method == "POST") || (method == "PUT") {
 			signedBody = this.Json(paramsSigned)
@@ -4402,7 +4403,7 @@ func (this *Modetrade) Sign(path string, optionalArgs ...any) any {
 			signedHeaders["content-type"] = "application/json"
 		} else {
 			if len(paramsSigned) > 0 {
-				url = Add(url, "?"+this.Urlencode(paramsSigned))
+				url += "?" + this.Urlencode(paramsSigned)
 				auth = Add(auth, "?"+this.Rawencode(paramsSigned))
 			}
 			signedHeaders["content-type"] = "application/x-www-form-urlencoded"
@@ -4410,7 +4411,7 @@ func (this *Modetrade) Sign(path string, optionalArgs ...any) any {
 				if method == "DELETE" {
 					return ""
 				}
-				return body
+				return nil
 			}()
 		}
 		var secret any = this.Secret
@@ -4435,8 +4436,8 @@ func (this *Modetrade) Sign(path string, optionalArgs ...any) any {
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    nil,
+		"headers": nil,
 	}
 }
 func (this *Modetrade) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
@@ -5253,8 +5254,8 @@ func (this *Modetrade) FetchDepositsWithdrawals(options ...FetchDepositsWithdraw
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Modetrade) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
@@ -5264,7 +5265,7 @@ func (this *Modetrade) Withdraw(code string, amount float64, address string, opt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

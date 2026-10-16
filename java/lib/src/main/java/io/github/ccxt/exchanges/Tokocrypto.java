@@ -12,6 +12,7 @@ import io.github.ccxt.types.DepositAddress;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
 import io.github.ccxt.types.Trade;
@@ -355,7 +356,7 @@ public class Tokocrypto extends TokocryptoApi
                 put( "reverseNetworks", new HashMap<String, Object>() {{
                     put( "tronscan.org", "TRC20" );
                     put( "etherscan.io", "ERC20" );
-                    put( "bscscan.com", "BSC" );
+                    put( "bscscan.com", "BEP20" );
                     put( "explorer.binance.org", "BEP2" );
                     put( "bithomp.com", "XRP" );
                     put( "bloks.io", "EOS" );
@@ -1736,7 +1737,7 @@ public class Tokocrypto extends TokocryptoApi
      * @see https://www.tokocrypto.com/apidocs/#account-information-signed
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot'
+     * @param {string} [params.type] 'spot', 'margin', 'swap', 'future', 'savings' or 'funding'
      * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
      * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
@@ -1945,7 +1946,8 @@ public class Tokocrypto extends TokocryptoApi
         //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
         String cost = this.safeStringN(order, new ArrayList<Object>(Arrays.asList("cummulativeQuoteQty", "cumQuote", "executedQuoteQty", "cumBase")));
         String id = this.safeString(order, "orderId");
-        String type = this.parseOrderType(this.safeStringLower(order, "type"));
+        String rawOrderType = this.safeStringLower(order, "type");
+        String type = this.parseOrderType(rawOrderType);
         String side = this.safeStringLower(order, "side");
         if (java.util.Objects.equals(side, "0"))
         {
@@ -1956,13 +1958,12 @@ public class Tokocrypto extends TokocryptoApi
         }
         List<Object> fills = (List<Object>) this.safeList(order, "fills", new ArrayList<Object>(Arrays.asList()));
         String clientOrderId = this.safeString2(order, "clientOrderId", "clientId");
-        String timeInForce = this.safeString(order, "timeInForce");
-        if (java.util.Objects.equals(timeInForce, "GTX"))
-        {
-            // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
-            timeInForce = "PO";
-        }
-        Boolean postOnly = (java.util.Objects.equals(type, "limit_maker")) || (java.util.Objects.equals(timeInForce, "PO"));
+        String timeInForce = this.parseTimeInForce(this.safeString(order, "timeInForce"));
+        // the order type carries the post only flag on its own, 7 on the open/v1
+        // payloads and LIMIT_MAKER on the binance shaped ones, so the time force
+        // echoed back by the venue is only the third witness
+        Boolean isLimitMaker = (java.util.Objects.equals(rawOrderType, "7")) || (java.util.Objects.equals(rawOrderType, "limit_maker"));
+        Boolean postOnly = Boolean.TRUE.equals(isLimitMaker) || (java.util.Objects.equals(timeInForce, "PO"));
         HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
         mapLiteral3.put("info", order);
         mapLiteral3.put("id", id);
@@ -1989,6 +1990,18 @@ public class Tokocrypto extends TokocryptoApi
         return this.safeOrder(mapLiteral3, market);
     }
 
+    public String parseTimeInForce(String timeInForce)
+    {
+        Map<String, Object> timeInForces = new HashMap<String, Object>() {{
+            put( "1", "GTC" );
+            put( "2", "IOC" );
+            put( "3", "FOK" );
+            put( "4", "PO" );
+            put( "GTX", "PO" );
+        }};
+        return this.safeString(timeInForces, timeInForce, timeInForce);
+    }
+
     public String parseOrderType(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
@@ -2013,6 +2026,8 @@ public class Tokocrypto extends TokocryptoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] the price at which a trigger order would be triggered
      * @param {float} [params.cost] for spot market buy orders, the quote quantity that can be used as an alternative for the amount
+     * @param {string} [params.timeInForce] 'GTC', 'IOC' or 'FOK', defaults to the defaultTimeInForce option on the order types that rest on the book, market orders accept 'IOC' as a no-op and reject the rest
+     * @param {bool} [params.postOnly] true for a post only order, the 'PO' and 'GTX' timeInForce spellings do the same
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
@@ -2026,16 +2041,29 @@ public class Tokocrypto extends TokocryptoApi
             }
             Map<String, Object> market = this.market(symbol);
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "clientId");
-            Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
+            String requestedType = ((String)type).toUpperCase();
+            String requestedTimeInForce = this.safeStringUpper(parameters, "timeInForce");
+            Boolean isMarketOrder = (java.util.Objects.equals(requestedType, "MARKET"));
+            // GTX is the venue spelling of post only, on top of the two unified spellings
+            Boolean isPostOnlyTimeInForce = (java.util.Objects.equals(requestedTimeInForce, "GTX"));
+            List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(isMarketOrder, isPostOnlyTimeInForce, parameters);
+            Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
+            Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
             // only supported for spot/margin api
             String typeResolved = (((java.util.Objects.equals(postOnly, true)))) ? "LIMIT_MAKER" : type;
+            // post only is expressed by the order type here, not by a time force
+            String timeInForceResolved = (((java.util.Objects.equals(postOnly, true)))) ? null : requestedTimeInForce;
             String initialUppercaseType = typeResolved.toUpperCase();
             String uppercaseType = initialUppercaseType;
             Object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
             List<Object> triggerKeys = (((!java.util.Objects.equals(triggerPrice, null)))) ? new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice")) : new ArrayList<Object>(Arrays.asList());
-            Map<String, Object> paramsRequest = this.omit(parameters, this.arrayConcat(new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId")), triggerKeys));
+            Map<String, Object> paramsRequest = this.omit(paramsPostOnly, this.arrayConcat(new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId", "timeInForce")), triggerKeys));
             if (!java.util.Objects.equals(triggerPrice, null))
             {
+                if (java.util.Objects.equals(postOnly, true))
+                {
+                    throw new InvalidOrder((this.id + " createOrder() does not support post only trigger orders, the venue has no post only trigger order type")) ;
+                }
                 if (java.util.Objects.equals(uppercaseType, "MARKET"))
                 {
                     uppercaseType = "STOP_LOSS";
@@ -2093,6 +2121,7 @@ public class Tokocrypto extends TokocryptoApi
             Boolean priceIsRequired = false;
             Boolean triggerPriceIsRequired = false;
             Boolean quantityIsRequired = false;
+            Boolean timeInForceIsRequired = false;
             //
             // spot/margin
             //
@@ -2111,7 +2140,7 @@ public class Tokocrypto extends TokocryptoApi
                     Object precision = ((Map<String, Object>)market.get("precision")).get("price");
                     Object quoteAmount = null;
                     Boolean createMarketBuyOrderRequiresPrice = true;
-                    io.github.ccxt.base.Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsRequestVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsRequest), "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                    Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsRequestVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsRequest), "createOrder", "createMarketBuyOrderRequiresPrice", true);
                     createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequestVariable.first();
                     paramsRequest = createMarketBuyOrderRequiresPriceparamsRequestVariable.second();
                     Double cost = this.safeNumber2(paramsRequest, "cost", "quoteOrderQty", (Object) null);
@@ -2143,6 +2172,7 @@ public class Tokocrypto extends TokocryptoApi
             {
                 priceIsRequired = true;
                 quantityIsRequired = true;
+                timeInForceIsRequired = true;
             } else if ((java.util.Objects.equals(uppercaseType, "STOP_LOSS")) || (java.util.Objects.equals(uppercaseType, "TAKE_PROFIT")))
             {
                 triggerPriceIsRequired = true;
@@ -2156,6 +2186,7 @@ public class Tokocrypto extends TokocryptoApi
                 quantityIsRequired = true;
                 triggerPriceIsRequired = true;
                 priceIsRequired = true;
+                timeInForceIsRequired = true;
             } else if (java.util.Objects.equals(uppercaseType, "LIMIT_MAKER"))
             {
                 priceIsRequired = true;
@@ -2181,6 +2212,34 @@ public class Tokocrypto extends TokocryptoApi
                 } else
                 {
                     request.put("stopPrice", this.priceToPrecision(symbol, triggerPrice));
+                }
+            }
+            if (Boolean.TRUE.equals(timeInForceIsRequired))
+            {
+                String defaultTimeInForce = this.safeString(this.options, "defaultTimeInForce", "GTC");
+                String timeInForce = (((java.util.Objects.equals(timeInForceResolved, null)))) ? defaultTimeInForce : timeInForceResolved;
+                // the endpoint takes the time force as a numeric code, post only is
+                // placed as a LIMIT_MAKER order rather than as the GTX code
+                Map<String, Object> timeInForceCodes = new HashMap<String, Object>() {{
+                    put( "GTC", "1" );
+                    put( "IOC", "2" );
+                    put( "FOK", "3" );
+                }};
+                String timeInForceCode = this.safeString(timeInForceCodes, timeInForce);
+                if (java.util.Objects.equals(timeInForceCode, null))
+                {
+                    throw new InvalidOrder((((this.id + " createOrder() does not support the ") + timeInForce) + " timeInForce, use GTC, IOC, FOK or the postOnly parameter")) ;
+                }
+                request.put("timeInForce", timeInForceCode);
+            } else if (!java.util.Objects.equals(timeInForceResolved, null))
+            {
+                // a market order fills immediately or not at all, so an IOC asks for
+                // what the order type already does and gets accepted as a no-op, while
+                // any other time force would be a promise the venue cannot keep here
+                Boolean isRedundantImmediateOrCancel = Boolean.TRUE.equals(isMarketOrder) && (java.util.Objects.equals(timeInForceResolved, "IOC"));
+                if (!Boolean.TRUE.equals(isRedundantImmediateOrCancel))
+                {
+                    throw new NotSupported((((((this.id + " createOrder() does not support the ") + timeInForceResolved) + " timeInForce for ") + type) + " orders")) ;
                 }
             }
             Map<String, Object> response = (this.privatePostOpenV1Orders(this.extend(request, paramsRequest))).join();
@@ -2582,12 +2641,12 @@ public class Tokocrypto extends TokocryptoApi
             {
                 tag = null;
             }
-            this.checkAddress(address);
+            this.checkAddress(address, (String) null, (String) null);
             {
                 HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
                 h2kMap0.put("info", response);
                 h2kMap0.put("currency", code);
-                h2kMap0.put("network", this.safeString(data, "network"));
+                h2kMap0.put("network", this.networkIdToCode(this.safeString(data, "network"), code));
                 h2kMap0.put("address", address);
                 h2kMap0.put("tag", tag);
                 return h2kMap0;
@@ -2871,7 +2930,7 @@ public class Tokocrypto extends TokocryptoApi
             h2kMap1.put("txid", txid);
             h2kMap1.put("type", type);
             h2kMap1.put("currency", code);
-            h2kMap1.put("network", this.safeString(transaction, "network"));
+            h2kMap1.put("network", this.networkIdToCode(this.safeString(transaction, "network"), code));
             h2kMap1.put("amount", this.safeNumber(transaction, "amount", (Object) null));
             h2kMap1.put("status", this.parseTransactionStatusByType(this.safeString(transaction, "status"), type));
             h2kMap1.put("timestamp", timestamp);
@@ -2898,23 +2957,23 @@ public class Tokocrypto extends TokocryptoApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (parameters));
-            var tagWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
+            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
+            String tagWithdrawTag = (String) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            this.checkAddress(address);
+            this.checkAddress(address, code, tagWithdrawTag);
             Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset", currency.get("id") );
@@ -2949,20 +3008,21 @@ public class Tokocrypto extends TokocryptoApi
 
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        if (!(Helpers.inOp(((Map<String, Object>)this.urls.get("api")).get("rest"), java.util.Objects.requireNonNullElse(api, "public"))))
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        if (!(Helpers.inOp(((Map<String, Object>)this.urls.get("api")).get("rest"), apiName)))
         {
-            throw new NotSupported((((this.id + " does not have a testnet/sandbox URL for ") + java.util.Objects.requireNonNullElse(api, "public")) + " endpoints")) ;
+            throw new NotSupported((((this.id + " does not have a testnet/sandbox URL for ") + apiName) + " endpoints")) ;
         }
-        String baseApiUrl = this.safeString(((Map<String, Object>)this.urls.get("api")).get("rest"), java.util.Objects.requireNonNullElse(api, "public"));
+        String baseApiUrl = this.safeString(((Map<String, Object>)this.urls.get("api")).get("rest"), apiName);
         if (java.util.Objects.equals(baseApiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = baseApiUrl;
         url = (url + ("/" + path));
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "wapi"))
+        if (java.util.Objects.equals(apiName, "wapi"))
         {
             url = (url + ".html");
         }
@@ -2976,7 +3036,7 @@ public class Tokocrypto extends TokocryptoApi
                     put( "X-MBX-APIKEY", Tokocrypto.this.apiKey );
                     put( "Content-Type", "application/x-www-form-urlencoded" );
                 }};
-                String bodyStream = (((!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))) ? this.urlencode(parameters) : body;
+                String bodyStream = (((!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))) ? this.urlencode(parameters) : null;
                 {
                     HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
                     h2kMap2.put("url", url);
@@ -2989,7 +3049,7 @@ public class Tokocrypto extends TokocryptoApi
             {
                 throw new AuthenticationError((this.id + " userDataStream endpoint requires `apiKey` credential")) ;
             }
-        } else if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "sapi") && !java.util.Objects.equals(path, "system/status")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "sapiV3")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "wapi") && !java.util.Objects.equals(path, "systemStatus")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "dapiPrivate")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "dapiPrivateV2")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "fapiPrivate")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "fapiPrivateV2")))
+        } else if ((java.util.Objects.equals(apiName, "private")) || (java.util.Objects.equals(apiName, "sapi") && !java.util.Objects.equals(path, "system/status")) || (java.util.Objects.equals(apiName, "sapiV3")) || (java.util.Objects.equals(apiName, "wapi") && !java.util.Objects.equals(path, "systemStatus")) || (java.util.Objects.equals(apiName, "dapiPrivate")) || (java.util.Objects.equals(apiName, "dapiPrivateV2")) || (java.util.Objects.equals(apiName, "fapiPrivate")) || (java.util.Objects.equals(apiName, "fapiPrivateV2")))
         {
             this.checkRequiredCredentials(true);
             String query = null;
@@ -3006,7 +3066,7 @@ public class Tokocrypto extends TokocryptoApi
             {
                 extendedParams.put("recvWindow", recvWindow);
             }
-            if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "sapi")) && (java.util.Objects.equals(path, "asset/dust")))
+            if ((java.util.Objects.equals(apiName, "sapi")) && (java.util.Objects.equals(path, "asset/dust")))
             {
                 query = this.urlencodeWithArrayRepeat(extendedParams);
             } else if ((java.util.Objects.equals(path, "batchOrders")) || (((String)path).indexOf("sub-account") >= 0) || (java.util.Objects.equals(path, "capital/withdraw/apply")) || (((String)path).indexOf("staking") >= 0))
@@ -3021,11 +3081,11 @@ public class Tokocrypto extends TokocryptoApi
             Map<String, Object> headersSigned = new HashMap<String, Object>() {{
                 put( "X-MBX-APIKEY", Tokocrypto.this.apiKey );
             }};
-            Boolean queryInUrl = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "wapi"));
+            Boolean queryInUrl = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")) || (java.util.Objects.equals(apiName, "wapi"));
             String bodySigned = query;
             if (Boolean.TRUE.equals(queryInUrl))
             {
-                bodySigned = body;
+                bodySigned = null;
             }
             if (Boolean.TRUE.equals(queryInUrl))
             {
@@ -3053,8 +3113,8 @@ public class Tokocrypto extends TokocryptoApi
             HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
             h2kMap4.put("url", url);
             h2kMap4.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap4.put("body", body);
-            h2kMap4.put("headers", headers);
+            h2kMap4.put("body", null);
+            h2kMap4.put("headers", null);
             return h2kMap4;
         }
     }

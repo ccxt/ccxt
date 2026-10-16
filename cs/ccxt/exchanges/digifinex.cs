@@ -584,16 +584,13 @@ public partial class digifinex : Exchange
                     { "AVALANCEC", "AVAX-CCHAIN" },
                     { "AVALANCEX", "AVAX-XCHAIN" },
                     { "BEP20", "BEP20" },
-                    { "BSC", "BEP20" },
                     { "CARDANO", "Cardano" },
                     { "CELO", "Celo" },
                     { "CHILIZ", "Chiliz" },
                     { "COSMOS", "COSMOS" },
                     { "CRC20", "Crypto.com" },
-                    { "CRONOS", "Crypto.com" },
                     { "DOGECOIN", "DogeChain" },
                     { "ERC20", "ERC20" },
-                    { "ETH", "ERC20" },
                     { "ETHW", "ETHW" },
                     { "IOTA", "MIOTA" },
                     { "KLAYTN", "KLAY" },
@@ -610,7 +607,6 @@ public partial class digifinex : Exchange
                     { "TERRA", "Terra" },
                     { "TON", "Ton" },
                     { "TRC20", "TRC20" },
-                    { "TRX", "TRC20" },
                     { "VECHAIN", "Vechain" },
                 } },
                 { "networksById", new Dictionary<string, object>() {
@@ -621,7 +617,7 @@ public partial class digifinex : Exchange
                     { "ERC20", "ERC20" },
                     { "ETH", "ERC20" },
                     { "Polygon", "POLYGON" },
-                    { "Crypto.com", "CRONOS" },
+                    { "Crypto.com", "CRC20" },
                 } },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
@@ -3689,7 +3685,7 @@ public partial class digifinex : Exchange
                 { "cost", feeCost },
             };
         }
-        string? network = this.safeString(transaction, "chain");
+        string? network = this.networkIdToCode(this.safeString(transaction, "chain"), code);
         return new Dictionary<string, object>() {
             { "info", transaction },
             { "id", id },
@@ -3856,17 +3852,17 @@ public partial class digifinex : Exchange
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleWithdrawTagAndParams(tag, parameters);
-        var tagWithdrawTag = tagWithdrawTagparamsWithdrawTagVariable[0];
+        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleParamString(parameters, "tag");
+        string? tagWithdrawTag = (string)tagWithdrawTagparamsWithdrawTagVariable[0];
         IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagWithdrawTagparamsWithdrawTagVariable[1]);
-        this.checkAddress(address);
+        this.checkAddress(address, code, tagWithdrawTag);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -5336,7 +5332,7 @@ public partial class digifinex : Exchange
         return ccxt.BaseExchange.ToDict(await this.privateSwapPostAccountPositionMode(this.extend(request, parameters)));
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -5397,7 +5393,7 @@ public partial class digifinex : Exchange
                 }
             }
             bool hasPostBody = ((method == "POST")) && ((urlencoded != null)) && (urlencoded != "");
-            object requestBody = body;
+            string? requestBody = null;
             if (hasPostBody)
             {
                 requestBody = urlencoded;
@@ -5423,8 +5419,8 @@ public partial class digifinex : Exchange
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", null },
+            { "headers", null },
         };
     }
 

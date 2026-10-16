@@ -204,12 +204,11 @@ class grvt extends Exchange {
                     'ARBITRUM' => '42161',
                     'AVAXC' => '43114',
                     'BASE' => '8453',
-                    'BSC' => '56',
-                    'ETH' => '1',
+                    'BEP20' => '56',
                     'ERC20' => '1',
                     'OP' => '10',
                     'SOL' => '900',
-                    'TRX' => '728126428',
+                    'TRC20' => '728126428',
                     'ZKSYNCERA' => '324',
                     'KAIA' => '8217',
                 ),
@@ -2030,11 +2029,11 @@ class grvt extends Exchange {
         return true;
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal
          *
@@ -2043,8 +2042,8 @@ class grvt extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @param {string} $params->network the network to withdraw on (mandatory)
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
@@ -3431,12 +3430,13 @@ class grvt extends Exchange {
         return $requestId;
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $requestHeaders = $headers;
-        $requestBody = $body;
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $requestHeaders = null;
+        $requestBody = null;
         $requestPath = $path;
         $query = $this->omit($params, $this->extract_params($requestPath));
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        $apiName = $api[0];
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
@@ -3463,7 +3463,7 @@ class grvt extends Exchange {
                 $requestBody = $this->json($params);
             }
         }
-        $isPrivate = str_starts_with($api, 'private');
+        $isPrivate = str_starts_with($apiName, 'private');
         if ($isPrivate === true) {
             $this->check_required_credentials();
             if ($queryString !== '') {

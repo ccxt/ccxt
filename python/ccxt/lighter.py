@@ -891,6 +891,13 @@ class lighter(Exchange, ImplicitAPI):
         groupingType, paramsGroupingType = self.handle_option_integer_and_params(params, method, 'groupingType', 3)  # default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         orderRequests = self.create_order_request(symbol, type, side, amount, price, paramsGroupingType)
         totalOrderRequests = len(orderRequests)
+        if totalOrderRequests > 1:
+            # the signer replaces a -1 expiry with now + 28 days reading the clock once per leg, and rejects
+            # a group whose legs differ ("OrderExpiry is invalid"), so resolve the default once for all legs
+            groupOrderExpiry = self.sum(self.milliseconds(), 2419200000)  # 28 days
+            for i in range(0, totalOrderRequests):
+                if self.safe_integer(orderRequests[i], 'order_expiry') == -1:
+                    orderRequests[i]['order_expiry'] = groupOrderExpiry
         order = None
         if totalOrderRequests > 0:
             order = orderRequests[0]
@@ -1314,7 +1321,7 @@ class lighter(Exchange, ImplicitAPI):
             'limit': 100,
         }
         if limit is not None:
-            request['limit'] = min(limit, 100)
+            request['limit'] = min(limit, 250)
         response = self.publicGetOrderBookOrders(self.extend(request, params))
         #
         #     {
@@ -2674,14 +2681,14 @@ class lighter(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str [tag]:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :param str [params.accountIndex]: account index
         :param str [params.apiKeyIndex]: api key index
         :param int [params.routeType]: wallet type, 0: perp, 1: spot, default is 0
@@ -3023,17 +3030,25 @@ class lighter(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        if (timeout < 300000) or (timeout > 1296000000):
-            raise BadRequest(self.id + ' timeout should be between 5 minutes and 15 days.')
+        if timeout is None:
+            raise ArgumentsRequired(self.id + ' cancelAllOrdersAfter() requires a timeout argument')
+        isScheduled = (timeout != 0)
+        if isScheduled and ((timeout < 300000) or (timeout > 1296000000)):
+            raise BadRequest(self.id + ' timeout should be between 5 minutes and 15 days, or 0 to cancel the timer.')
         apiKeyIndex, paramsApiKeyIndex = self.handle_api_key_index(params, 'cancelOrder', 'apiKeyIndex', 'api_key_index')
         accountIndex, paramsAccountIndex = self.handle_account_index(paramsApiKeyIndex, 'cancelAllOrdersAfter', 'accountIndex', 'account_index')
         strAccountIndex = self.number_to_string(accountIndex)
         strApiKeyIndex = self.number_to_string(apiKeyIndex)
         signer = self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex)
         nonce = self.fetch_nonce(accountIndex, apiKeyIndex, paramsAccountIndex)
+        timeInForce = 2  # 0: IMMEDIATE 1: SCHEDULED 2: ABORT
+        cancelTime = 0
+        if isScheduled:
+            timeInForce = 1
+            cancelTime = self.sum(self.milliseconds(), timeout)
         signRaw = {
-            'time_in_force': 1,  # 0: IMMEDIATE 1: SCHEDULED 2: ABORT
-            'time': self.milliseconds() + timeout,  # if time_in_force is not IMMEDIATE, set the timestamp_ms here
+            'time_in_force': timeInForce,
+            'time': cancelTime,
             'nonce': nonce,
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
@@ -3129,20 +3144,21 @@ class lighter(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def sign(self, path: str, api: object = 'public', method='GET', params={}, headers: dict = None, body: object = None):
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params={}):
+        apiName = api[0]
         url = None
-        if api == 'root':
+        if apiName == 'root':
             baseApiUrl = self.safe_string(self.urls['api'], 'public')
             if baseApiUrl is None:
                 raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
             url = self.implode_hostname(baseApiUrl)
         else:
-            baseApiUrl2 = self.safe_string(self.urls['api'], api)
+            baseApiUrl2 = self.safe_string(self.urls['api'], apiName)
             if baseApiUrl2 is None:
                 raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
             url = self.implode_hostname(baseApiUrl2) + '/api/' + self.version + '/' + path
         authHeaders = None
-        if api == 'private':
+        if apiName == 'private':
             authHeaders = {
                 'Authorization': self.create_auth(params),
             }
@@ -3153,9 +3169,9 @@ class lighter(Exchange, ImplicitAPI):
                 }
                 return {'url': url, 'method': method, 'body': params, 'headers': multipartHeaders}
             url += '?' + self.rawencode(params)
-        if api == 'private':
-            return {'url': url, 'method': method, 'body': body, 'headers': authHeaders}
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        if apiName == 'private':
+            return {'url': url, 'method': method, 'body': None, 'headers': authHeaders}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if (response is None) or (response is None):

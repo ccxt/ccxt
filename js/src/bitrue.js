@@ -2897,7 +2897,7 @@ export default class bitrue extends Exchange {
             currencyId = this.safeString(parts, 0);
             const networkId = this.safeString(parts, 1);
             if (networkId !== undefined) {
-                network = networkId.toUpperCase();
+                network = this.networkIdToCode(networkId.toUpperCase());
             }
         }
         const code = this.safeCurrencyCode(currencyId, currency);
@@ -2937,13 +2937,13 @@ export default class bitrue extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
-        this.checkAddress(address);
+    async withdraw(code, amount, address, params = {}) {
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
+        this.checkAddress(address, code, tagWithdrawTag);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -3273,7 +3273,7 @@ export default class bitrue extends Exchange {
         //
         return this.parseMarginModification(response, market);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         let requestBody = undefined;
         let requestHeaders = undefined;
         const type = this.safeString(api, 0);
@@ -3356,8 +3356,8 @@ export default class bitrue extends Exchange {
                 url += '?' + this.urlencode(paramsOmitted);
             }
         }
-        const bodyResult = (requestBody === undefined) ? body : requestBody;
-        const headersResult = (requestHeaders === undefined) ? headers : requestHeaders;
+        const bodyResult = requestBody;
+        const headersResult = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

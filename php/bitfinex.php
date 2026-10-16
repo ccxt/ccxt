@@ -929,7 +929,7 @@ class bitfinex extends Exchange {
                 $networks[$network] = array(
                     'info' => $networkId,
                     'id' => strtolower($networkId),
-                    'network' => $networkId,
+                    'network' => $network,
                     'active' => null,
                     'deposit' => $this->safe_integer($dwStatuses, 1) === 1,
                     'withdraw' => $this->safe_integer($dwStatuses, 2) === 1,
@@ -2454,7 +2454,8 @@ class bitfinex extends Exchange {
         }
         $currency = $this->currency($code);
         // if not provided explicitly we will try to match using the currency name
-        $network = $this->safe_string($params, 'network', $code);
+        $networkParam = $this->safe_string($params, 'network', $code);
+        $network = $this->safe_string($this->networkAliases, $networkParam, $networkParam);
         $currencyNetworks = $this->safe_dict($currency, 'networks', array());
         $currencyNetwork = $this->safe_dict($currencyNetworks, $network);
         $networkId = $this->safe_string($currencyNetwork, 'id');
@@ -2839,7 +2840,7 @@ class bitfinex extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
+    public function withdraw(string $code, float $amount, string $address, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -2848,18 +2849,20 @@ class bitfinex extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination $tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
+        list($tag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
         $this->check_address($address);
         if ($this->markets === null) {
             $this->load_markets();
         }
         $currency = $this->currency($code);
         // if not provided explicitly we will try to match using the currency name
-        $network = $this->safe_string($params, 'network', $code);
-        $paramsOmitted = $this->omit($params, 'network');
+        $networkParam = $this->safe_string($paramsWithdrawTag, 'network', $code);
+        $network = $this->safe_string($this->networkAliases, $networkParam, $networkParam);
+        $paramsOmitted = $this->omit($paramsWithdrawTag, 'network');
         $currencyNetworks = $this->safe_dict($currency, 'networks', array());
         $currencyNetwork = $this->safe_dict($currencyNetworks, $network);
         $networkId = $this->safe_string($currencyNetwork, 'id');
@@ -3061,27 +3064,28 @@ class bitfinex extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $request = '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
-        if ($api === 'v1') {
-            $request = $api . $request;
+        if ($apiName === 'v1') {
+            $request = $apiName . $request;
         } else {
             $request = $this->version . $request;
         }
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $apiUrl . '/' . $request;
         $requestBody = null;
         $requestHeaders = null;
-        if ($api === 'public') {
+        if ($apiName === 'public') {
             if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         }
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             // bitfinex rejects a nonce that is not greater than the previous one for the key (error 10114)
             $nonce = (string) $this->incrementing_nonce();
@@ -3095,8 +3099,8 @@ class bitfinex extends Exchange {
                 'Content-Type' => 'application/json',
             );
         }
-        $bodyResolved = ($requestBody === null) ? $body : $requestBody;
-        $headersResolved = ($requestHeaders === null) ? $headers : $requestHeaders;
+        $bodyResolved = $requestBody;
+        $headersResolved = $requestHeaders;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 

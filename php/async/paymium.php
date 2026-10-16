@@ -676,7 +676,7 @@ class paymium extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $baseApiUrl = $this->safe_string($this->urls['api'], 'rest');
         if ($baseApiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
@@ -684,7 +684,7 @@ class paymium extends Exchange {
         $baseUrl = $baseApiUrl;
         $url = $baseUrl . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
-        if ($api === 'public') {
+        if ($api[0] === 'public') {
             if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
@@ -698,7 +698,7 @@ class paymium extends Exchange {
                 'Api-Nonce' => $nonce,
             );
             $hasQuery = count($query) > 0;
-            $signedBody = $body;
+            $signedBody = null;
             if ($method === 'POST' && $hasQuery) {
                 $signedBody = $this->json($query);
             }
@@ -717,7 +717,7 @@ class paymium extends Exchange {
             $signedHeaders['Api-Signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
             return array( 'url' => $url, 'method' => $method, 'body' => $signedBody, 'headers' => $signedHeaders );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

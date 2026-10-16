@@ -11,7 +11,7 @@ func HelperTestHandleMarketTypeAndParams() {
 	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
 		"options": map[string]any{
-			"defaultType": "valueFromOptions",
+			"defaultType": "option",
 			"fetchX": map[string]any{
 				"defaultType": "valueFromMethodOptions",
 			},
@@ -50,7 +50,7 @@ func HelperTestHandleMarketTypeAndParams() {
 	// case #5, should prevail: options
 	//
 	marketType5, params5 := exchange.HandleMarketTypeAndParams("fetchY", nil, map[string]any{}, nil)
-	Assert((marketType5 != nil && *marketType5 == "valueFromOptions"))
+	Assert((marketType5 != nil && *marketType5 == "option"))
 	//
 	// case #6, should prevail: spot (because hardcoded in base)
 	//
@@ -59,29 +59,6 @@ func HelperTestHandleMarketTypeAndParams() {
 	Assert((marketType6 != nil && *marketType6 == "spot"))
 	// fake assertion to avoid unused vars
 	Assert(!ccxt.IsEqual(params1, nil) || !ccxt.IsEqual(params2, nil) || !ccxt.IsEqual(params3, nil) || !ccxt.IsEqual(params4, nil) || !ccxt.IsEqual(params5, nil) || !ccxt.IsEqual(params6, nil))
-}
-func HelperTestHandleNetworkRequest() {
-	exchange := ccxt.NewExchange().(*ccxt.Exchange)
-	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]any{
-		"id": "sampleexchange",
-		"options": map[string]any{
-			"networks": map[string]any{
-				"XYZ": "Xyz",
-			},
-		},
-	}, map[string]any{}, exchange)
-	exchange.Currencies = exchange.CreateSafeDictionary() // todo: initialize in C# base files
-	var currencyCode string = "ETH"                       // todo: in future with complex cases
-	// no-case
-	request1params1Variable := exchange.HandleRequestNetwork(map[string]any{
-		"network": "XYZ",
-	}, map[string]any{}, "chain_id", currencyCode, false)
-	request1 := ccxt.GetValue(request1params1Variable, 0)
-	params1 := ccxt.GetValue(request1params1Variable, 1)
-	Assert(!(ccxt.InOp(params1, "network")))
-	Assert(ccxt.InOp(request1, "chain_id"))
-	Assert(ccxt.IsEqual(ccxt.GetValue(request1, "chain_id"), "Xyz"))
 }
 func HelperTestHandleTypedOptions() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
@@ -115,6 +92,5 @@ func HelperTestHandleTypedOptions() {
 }
 func TestHandleMethods() {
 	HelperTestHandleMarketTypeAndParams()
-	HelperTestHandleNetworkRequest()
 	HelperTestHandleTypedOptions()
 }

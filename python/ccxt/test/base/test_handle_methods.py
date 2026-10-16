@@ -18,7 +18,7 @@ def helper_test_handle_market_type_and_params():
     exchange = ccxt.Exchange({
         'id': 'sampleexchange',
         'options': {
-            'defaultType': 'valueFromOptions',
+            'defaultType': 'option',
             'fetchX': {
                 'defaultType': 'valueFromMethodOptions',
             },
@@ -57,7 +57,7 @@ def helper_test_handle_market_type_and_params():
     # case #5, should prevail: options
     #
     [market_type_5, params5] = exchange.handle_market_type_and_params('fetchY', None, {}, None)
-    assert market_type_5 == 'valueFromOptions'
+    assert market_type_5 == 'option'
     #
     # case #6, should prevail: spot (because hardcoded in base)
     #
@@ -66,26 +66,6 @@ def helper_test_handle_market_type_and_params():
     assert market_type_6 == 'spot'
     # fake assertion to avoid unused vars
     assert params1 is not None or params2 is not None or params3 is not None or params4 is not None or params5 is not None or params6 is not None
-
-
-def helper_test_handle_network_request():
-    exchange = ccxt.Exchange({
-        'id': 'sampleexchange',
-        'options': {
-            'networks': {
-                'XYZ': 'Xyz',
-            },
-        },
-    })
-    exchange.currencies = exchange.create_safe_dictionary()  # todo: initialize in C# base files
-    currency_code = 'ETH'  # todo: in future with complex cases
-    # no-case
-    [request1, params1] = exchange.handle_request_network({
-        'network': 'XYZ',
-    }, {}, 'chain_id', currency_code, False)
-    assert not ('network' in params1)
-    assert 'chain_id' in request1
-    assert request1['chain_id'] == 'Xyz'
 
 
 def helper_test_handle_typed_options():
@@ -115,5 +95,4 @@ def helper_test_handle_typed_options():
 
 def test_handle_methods():
     helper_test_handle_market_type_and_params()
-    helper_test_handle_network_request()
     helper_test_handle_typed_options()

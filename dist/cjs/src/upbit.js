@@ -2363,12 +2363,12 @@ class upbit extends upbit$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const [tagResolved, paramsTag] = this.handleWithdrawTagAndParams(tag, params);
+    async withdraw(code, amount, address, params = {}) {
+        const [tagResolved, paramsTag] = this.handleParamString(params, 'tag');
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -2378,7 +2378,7 @@ class upbit extends upbit$1["default"] {
         };
         let response;
         if (code !== 'KRW') {
-            this.checkAddress(address);
+            this.checkAddress(address, code, tagResolved);
             // 2023-05-23 Change to required parameters for digital assets
             const network = this.safeStringUpper2(paramsTag, 'network', 'net_type');
             if (network === undefined) {
@@ -2415,8 +2415,9 @@ class upbit extends upbit$1["default"] {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const baseApiUrl = this.safeString(this.urls['api'], api);
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        const baseApiUrl = this.safeString(this.urls['api'], apiName);
         if (baseApiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
@@ -2430,13 +2431,13 @@ class upbit extends upbit$1["default"] {
                 url += '?' + this.urlencode(query);
             }
         }
-        const hasBody = (api === 'private') && (method !== 'GET') && (method !== 'DELETE');
-        let requestBody = body;
+        const hasBody = (apiName === 'private') && (method !== 'GET') && (method !== 'DELETE');
+        let requestBody = undefined;
         if (hasBody) {
             requestBody = this.json(params);
         }
         let privateHeaders = undefined;
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             privateHeaders = {};
             const nonce = this.uuid();
@@ -2460,7 +2461,7 @@ class upbit extends upbit$1["default"] {
             const token = rsa.jwt(request, this.encode(this.secret), sha2_js.sha256);
             privateHeaders['Authorization'] = 'Bearer ' + token;
         }
-        const requestHeaders = (api === 'private') ? privateHeaders : headers;
+        const requestHeaders = (apiName === 'private') ? privateHeaders : undefined;
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

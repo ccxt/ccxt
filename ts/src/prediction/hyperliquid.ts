@@ -2269,8 +2269,8 @@ export default class hyperliquid extends Exchange {
         return normalized.toLowerCase ();
     }
 
-    override sign (path: string, api: any = 'public', method = 'POST', params: Dict = {}, headers: any = undefined, body: any = undefined) {
-        const apiGroup = Array.isArray (api) ? api[0] : api;
+    override sign (path: string, api: string[] = [ 'public' ], method = 'POST', params: Dict = {}) {
+        const apiGroup = api[0];
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let baseUrl: string;
         if (sandboxMode === true) {
@@ -2281,8 +2281,8 @@ export default class hyperliquid extends Exchange {
             baseUrl = this.safeString (apiUrls, apiGroup, this.safeString (apiUrls, 'public', ''));
         }
         const url = baseUrl + '/' + path;
-        let headersValue: any = headers;
-        let bodyValue: any = body;
+        let headersValue: any = undefined;
+        let bodyValue: any = undefined;
         if (method === 'POST') {
             headersValue = { 'Content-Type': 'application/json' };
             bodyValue = this.json (params);
@@ -2318,7 +2318,7 @@ export default class hyperliquid extends Exchange {
         return undefined;
     }
 
-    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config: Dict = {}) {
+    override calculateRateLimiterCost (api: string[], method: any, path: any, params: any, config: Dict = {}) {
         if (('byType' in config) && ('type' in params)) {
             const type = params['type'];
             const byType = config['byType'] as Dict;

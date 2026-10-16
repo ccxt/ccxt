@@ -632,10 +632,8 @@ class xt(Exchange, ImplicitAPI):
                 'networks': {
                     'ERC20': 'Ethereum',
                     'TRC20': 'Tron',
-                    'TRX': 'Tron',
                     'BEP20': 'BNB Smart Chain',
                     'BEP2': 'BNB-BEP2',
-                    'ETH': 'Ethereum',
                     'AVAX': 'AVAX C-Chain',
                     'GAL': 'GAL(FT)',
                     'ALEO': 'ALEO(IOU)',
@@ -1981,6 +1979,17 @@ class xt(Exchange, ImplicitAPI):
         percentage = self.safe_string_2(ticker, 'cr', 'r')
         if percentage is not None:
             percentage = Precise.string_mul(percentage, '100')
+        baseVolume = self.safe_string_2(ticker, 'a', 'q')
+        quoteVolume = self.safe_string(ticker, 'v')
+        contractSize = self.safe_string(marketResolved, 'contractSize')
+        if (marketResolved['contract'] is True) and (contractSize is not None):
+            # 'a' counts contracts, 'v' is in the settle currency
+            contractVolume = Precise.string_mul(baseVolume, contractSize)
+            if marketResolved['inverse'] is True:
+                baseVolume = quoteVolume
+                quoteVolume = contractVolume
+            else:
+                baseVolume = contractVolume
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1999,8 +2008,8 @@ class xt(Exchange, ImplicitAPI):
             'change': self.safe_number(ticker, 'cv'),
             'percentage': self.parse_number(percentage),
             'average': None,
-            'baseVolume': self.safe_number_2(ticker, 'a', 'q'),
-            'quoteVolume': self.safe_number(ticker, 'v'),
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         }, marketResolved)
 
@@ -4092,7 +4101,7 @@ class xt(Exchange, ImplicitAPI):
         withdrawals = self.safe_list(data, 'items', [])
         return self.parse_transactions(withdrawals, currency, since, limit, params)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -4101,15 +4110,14 @@ class xt(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str [tag]:
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
-        self.check_address(address)
         if self.markets is None:
             await self.load_markets()
         currency = self.currency(code)
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
+        self.check_address(address, code, tagWithdrawTag)
         networkCode, paramsNetworkCode = self.handle_network_code_and_params(paramsWithdrawTag)
         networkIdsByCodes = self.safe_dict(self.options, 'networks', {})
         networkId = self.safe_string_2(networkIdsByCodes, networkCode, code, code)
@@ -4582,6 +4590,7 @@ class xt(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
         return await self.fetch_funding_rate(symbol, params)
@@ -5511,7 +5520,7 @@ class xt(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path: str, api: object = [], method='GET', params={}, headers: dict = None, body: object = None):
+    def sign(self, path: str, api: list[str] = [], method='GET', params={}):
         signed = api[0] == 'private'
         endpoint = api[1]
         request = '/' + self.implode_params(path, params)
@@ -5582,7 +5591,7 @@ class xt(Exchange, ImplicitAPI):
         else:
             if urlencoded != '':
                 url += '?' + urlencoded
-        bodyValue = body
+        bodyValue = None
         if signed:
             bodyValue = signedBody
         return {'url': url, 'method': method, 'body': bodyValue, 'headers': headersValue}

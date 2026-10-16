@@ -102,7 +102,7 @@ class krakenfutures extends Exchange {
                 ),
                 'www' => 'https://futures.kraken.com/',
                 'doc' => array(
-                    'https://docs.kraken.com/api/docs/futures-api/trading/market-data/',
+                    'https://docs.kraken.com/exchange/guides/futures/rest',
                 ),
                 'fees' => 'https://support.kraken.com/hc/en-us/articles/360022835771-Transaction-fees-and-rebates-for-Kraken-Futures',
                 'referral' => null,
@@ -790,8 +790,8 @@ class krakenfutures extends Exchange {
         /**
          * fetch the trading fees for multiple markets, resolving the account's 30-day usd $volume tier when API credentials are set
          *
-         * @see https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules
-         * @see https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules-$volumes
+         * @see https://docs.kraken.com/api-reference/fee-schedules/get-fee-schedules
+         * @see https://docs.kraken.com/api-reference/fee-schedules/get-fee-$schedule-$volumes
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by $market $symbols
@@ -892,7 +892,7 @@ class krakenfutures extends Exchange {
     public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          *
-         * @see https://docs.kraken.com/api/docs/futures-api/charts/candles
+         * @see https://docs.kraken.com/api-reference/candles/market-$candles
          *
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
@@ -984,8 +984,8 @@ class krakenfutures extends Exchange {
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          *
-         * @see https://docs.kraken.com/api/docs/futures-api/trading/get-history
-         * @see https://docs.kraken.com/api/docs/futures-api/history/get-public-execution-events
+         * @see https://docs.kraken.com/api-reference/market-data/get-trade-history
+         * @see https://docs.kraken.com/api-reference/market-history/get-public-execution-events
          *
          * Fetch a history of filled trades that this account has made
          * @param {string} $symbol Unified CCXT $market $symbol
@@ -1676,7 +1676,7 @@ class krakenfutures extends Exchange {
         /**
          * dead man's switch, cancel all orders after the given $timeout
          *
-         * @see https://docs.kraken.com/api/docs/futures-api/trading/cancel-all-orders-after
+         * @see https://docs.kraken.com/api-reference/order-management/dead-mans-switch
          *
          * @param {number} $timeout time in milliseconds, 0 represents cancel the timer
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2795,7 +2795,7 @@ class krakenfutures extends Exchange {
     public function fetch_balance($params = array()): array {
         /**
          *
-         * @see https://docs.kraken.com/api/docs/futures-api/trading/get-$accounts
+         * @see https://docs.kraken.com/api-reference/account-information/get-wallets
          *
          * Fetch the $balance for a sub-$account, all sub-$account balances are inside 'info' in the $response
          * @param {array} [$params] Exchange specific parameters
@@ -3812,13 +3812,14 @@ class krakenfutures extends Exchange {
         throw new ExchangeError($feedback); // unknown message
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $apiVersions = $this->safe_dict($this->options['versions'], $api, array());
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
+        $apiVersions = $this->safe_dict($this->options['versions'], $apiName, array());
         $methodVersions = $this->safe_dict($apiVersions, $method, array());
         $defaultVersion = $this->safe_string($methodVersions, $path, $this->version);
         $version = $this->safe_string($params, 'version', $defaultVersion);
         $paramsOmitted = $this->omit($params, 'version');
-        $apiAccess = $this->safe_dict($this->options['access'], $api, array());
+        $apiAccess = $this->safe_dict($this->options['access'], $apiName, array());
         $methodAccess = $this->safe_dict($apiAccess, $method, array());
         $access = $this->safe_string($methodAccess, $path, 'public');
         $endpoint = $version . '/' . $this->implode_params($path, $paramsOmitted);
@@ -3835,18 +3836,18 @@ class krakenfutures extends Exchange {
             }
             $query .= '?' . $postData;
         }
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $apiUrl . $query;
-        $requestBody = ($path === 'batchorder') ? $postData : $body;
+        $requestBody = ($path === 'batchorder') ? $postData : null;
         $privateHeaders = null;
-        if ($api === 'private' || $access === 'private') {
+        if ($apiName === 'private' || $access === 'private') {
             $this->check_required_credentials();
             $auth = $postData . '/api/';
-            if ($api !== 'private') {
-                $auth .= $api . '/';
+            if ($apiName !== 'private') {
+                $auth .= $apiName . '/';
             }
             $auth .= $endpoint; // 1
             $hash = $this->hash($this->encode($auth), 'sha256', 'binary'); // 2
@@ -3859,7 +3860,7 @@ class krakenfutures extends Exchange {
                 'Authent' => $signature,
             );
         }
-        $requestHeaders = ($privateHeaders !== null) ? $privateHeaders : $headers;
+        $requestHeaders = $privateHeaders;
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 }

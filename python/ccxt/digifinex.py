@@ -437,16 +437,13 @@ class digifinex(Exchange, ImplicitAPI):
                     'AVALANCEC': 'AVAX-CCHAIN',
                     'AVALANCEX': 'AVAX-XCHAIN',
                     'BEP20': 'BEP20',
-                    'BSC': 'BEP20',
                     'CARDANO': 'Cardano',
                     'CELO': 'Celo',
                     'CHILIZ': 'Chiliz',
                     'COSMOS': 'COSMOS',
                     'CRC20': 'Crypto.com',
-                    'CRONOS': 'Crypto.com',
                     'DOGECOIN': 'DogeChain',
                     'ERC20': 'ERC20',
-                    'ETH': 'ERC20',
                     'ETHW': 'ETHW',
                     'IOTA': 'MIOTA',
                     'KLAYTN': 'KLAY',
@@ -463,7 +460,6 @@ class digifinex(Exchange, ImplicitAPI):
                     'TERRA': 'Terra',
                     'TON': 'Ton',
                     'TRC20': 'TRC20',
-                    'TRX': 'TRC20',
                     'VECHAIN': 'Vechain',  # VET
                 },
                 'networksById': {
@@ -474,7 +470,7 @@ class digifinex(Exchange, ImplicitAPI):
                     'ERC20': 'ERC20',
                     'ETH': 'ERC20',
                     'Polygon': 'POLYGON',
-                    'Crypto.com': 'CRONOS',
+                    'Crypto.com': 'CRC20',
                 },
             },
             'commonCurrencies': {
@@ -2991,7 +2987,7 @@ class digifinex(Exchange, ImplicitAPI):
         fee = None
         if feeCost is not None:
             fee = {'currency': code, 'cost': feeCost}
-        network = self.safe_string(transaction, 'chain')
+        network = self.network_id_to_code(self.safe_string(transaction, 'chain'), code)
         return {
             'info': transaction,
             'id': id,
@@ -3131,18 +3127,18 @@ class digifinex(Exchange, ImplicitAPI):
             raise NullResponse(self.id + ' transfer() returned empty response')
         return self.parse_transfer(response, currency)
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
-        self.check_address(address)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
+        self.check_address(address, code, tagWithdrawTag)
         if self.markets is None:
             self.load_markets()
         currency = self.currency(code)
@@ -4371,7 +4367,7 @@ class digifinex(Exchange, ImplicitAPI):
         }
         return self.privateSwapPostAccountPositionMode(self.extend(request, params))
 
-    def sign(self, path: str, api: object = [], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = [], method='GET', params: dict = {}) -> dict:
         signed = self.safe_string(api, 0) == 'private'
         endpoint = self.safe_string(api, 1)
         pathPart = '/swap/v2'
@@ -4408,7 +4404,7 @@ class digifinex(Exchange, ImplicitAPI):
                 if (urlencoded is not None) and (urlencoded != ''):
                     url += '?' + urlencoded
             hasPostBody = (method == 'POST') and (urlencoded is not None) and (urlencoded != '')
-            requestBody = body
+            requestBody = None
             if hasPostBody:
                 requestBody = urlencoded
             privateHeaders = {
@@ -4420,7 +4416,7 @@ class digifinex(Exchange, ImplicitAPI):
         else:
             if (urlencoded is not None) and (urlencoded != ''):
                 url += '?' + urlencoded
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}
 
     def handle_errors(self, statusCode: int, statusText: str, url: str, method: str, responseHeaders: dict, responseBody: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:

@@ -15,7 +15,7 @@ func (this *Predictfun) PredictfunGetV1AuthMessage(args ...any) <-chan ccxt.Endp
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "v1/auth/message", "predictfun", "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "v1/auth/message", []string{"predictfun"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PredictfunGetV1Categories returns a channel that yields a JSON object.
@@ -24,7 +24,7 @@ func (this *Predictfun) PredictfunGetV1Categories(args ...any) <-chan ccxt.Endpo
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "v1/categories", "predictfun", "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "v1/categories", []string{"predictfun"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PredictfunGetV1CategoriesSlug returns a channel that yields a JSON object.
@@ -33,7 +33,7 @@ func (this *Predictfun) PredictfunGetV1CategoriesSlug(args ...any) <-chan ccxt.E
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "v1/categories/{slug}", "predictfun", "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "v1/categories/{slug}", []string{"predictfun"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PredictfunGetV1Tags returns a channel that yields a JSON object.
@@ -42,7 +42,7 @@ func (this *Predictfun) PredictfunGetV1Tags(args ...any) <-chan ccxt.EndpointRes
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "v1/tags", "predictfun", "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "v1/tags", []string{"predictfun"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PredictfunGetV1Markets returns a channel that yields a JSON object.
@@ -51,7 +51,7 @@ func (this *Predictfun) PredictfunGetV1Markets(args ...any) <-chan ccxt.Endpoint
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "v1/markets", "predictfun", "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "v1/markets", []string{"predictfun"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PredictfunGetV1MarketsId returns a channel that yields a JSON object.
@@ -60,7 +60,7 @@ func (this *Predictfun) PredictfunGetV1MarketsId(args ...any) <-chan ccxt.Endpoi
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "v1/markets/{id}", "predictfun", "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "v1/markets/{id}", []string{"predictfun"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PredictfunGetV1MarketsIdStats returns a channel that yields a JSON object.
@@ -69,7 +69,7 @@ func (this *Predictfun) PredictfunGetV1MarketsIdStats(args ...any) <-chan ccxt.E
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "v1/markets/{id}/stats", "predictfun", "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "v1/markets/{id}/stats", []string{"predictfun"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PredictfunGetV1MarketsIdLastSale returns a channel that yields a JSON object.
@@ -78,7 +78,7 @@ func (this *Predictfun) PredictfunGetV1MarketsIdLastSale(args ...any) <-chan ccx
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "v1/markets/{id}/last-sale", "predictfun", "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "v1/markets/{id}/last-sale", []string{"predictfun"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PredictfunGetV1MarketsIdOrderbook returns a channel that yields a JSON object.
@@ -87,7 +87,7 @@ func (this *Predictfun) PredictfunGetV1MarketsIdOrderbook(args ...any) <-chan cc
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "v1/markets/{id}/orderbook", "predictfun", "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "v1/markets/{id}/orderbook", []string{"predictfun"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PredictfunGetV1MarketsIdTimeseries returns a channel that yields a JSON object.
@@ -96,7 +96,7 @@ func (this *Predictfun) PredictfunGetV1MarketsIdTimeseries(args ...any) <-chan c
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "v1/markets/{id}/timeseries", "predictfun", "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "v1/markets/{id}/timeseries", []string{"predictfun"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PredictfunGetV1MarketsIdTimeseriesLatest returns a channel that yields a JSON object.
@@ -105,7 +105,7 @@ func (this *Predictfun) PredictfunGetV1MarketsIdTimeseriesLatest(args ...any) <-
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "v1/markets/{id}/timeseries/latest", "predictfun", "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "v1/markets/{id}/timeseries/latest", []string{"predictfun"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PredictfunGetV1OrdersHash returns a channel that yields a JSON object.
@@ -114,7 +114,7 @@ func (this *Predictfun) PredictfunGetV1OrdersHash(args ...any) <-chan ccxt.Endpo
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "v1/orders/{hash}", "predictfun", "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "v1/orders/{hash}", []string{"predictfun"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PredictfunGetV1Orders returns a channel that yields a JSON object.
@@ -123,7 +123,7 @@ func (this *Predictfun) PredictfunGetV1Orders(args ...any) <-chan ccxt.EndpointR
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "v1/orders", "predictfun", "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "v1/orders", []string{"predictfun"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PredictfunGetV1OrdersMatches returns a channel that yields a JSON object.
@@ -132,7 +132,7 @@ func (this *Predictfun) PredictfunGetV1OrdersMatches(args ...any) <-chan ccxt.En
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "v1/orders/matches", "predictfun", "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "v1/orders/matches", []string{"predictfun"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PredictfunGetV1Account returns a channel that yields a JSON object.
@@ -141,7 +141,7 @@ func (this *Predictfun) PredictfunGetV1Account(args ...any) <-chan ccxt.Endpoint
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "v1/account", "predictfun", "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "v1/account", []string{"predictfun"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PredictfunGetV1AccountActivity returns a channel that yields a JSON object.
@@ -150,7 +150,7 @@ func (this *Predictfun) PredictfunGetV1AccountActivity(args ...any) <-chan ccxt.
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "v1/account/activity", "predictfun", "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "v1/account/activity", []string{"predictfun"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PredictfunGetV1Positions returns a channel that yields a JSON object.
@@ -159,7 +159,7 @@ func (this *Predictfun) PredictfunGetV1Positions(args ...any) <-chan ccxt.Endpoi
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "v1/positions", "predictfun", "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "v1/positions", []string{"predictfun"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PredictfunGetV1PositionsAddress returns a channel that yields a JSON object.
@@ -168,7 +168,7 @@ func (this *Predictfun) PredictfunGetV1PositionsAddress(args ...any) <-chan ccxt
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "v1/positions/{address}", "predictfun", "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "v1/positions/{address}", []string{"predictfun"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PredictfunGetV1Search returns a channel that yields a JSON object.
@@ -177,7 +177,7 @@ func (this *Predictfun) PredictfunGetV1Search(args ...any) <-chan ccxt.EndpointR
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "v1/search", "predictfun", "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "v1/search", []string{"predictfun"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PredictfunPostV1Auth returns a channel that yields a JSON object.
@@ -186,7 +186,7 @@ func (this *Predictfun) PredictfunPostV1Auth(args ...any) <-chan ccxt.EndpointRe
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "v1/auth", "predictfun", "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "v1/auth", []string{"predictfun"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PredictfunPostV1OrdersRemove returns a channel that yields a JSON object.
@@ -195,7 +195,7 @@ func (this *Predictfun) PredictfunPostV1OrdersRemove(args ...any) <-chan ccxt.En
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "v1/orders/remove", "predictfun", "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "v1/orders/remove", []string{"predictfun"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PredictfunPostV1Orders returns a channel that yields a JSON object.
@@ -204,7 +204,7 @@ func (this *Predictfun) PredictfunPostV1Orders(args ...any) <-chan ccxt.Endpoint
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "v1/orders", "predictfun", "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "v1/orders", []string{"predictfun"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PredictfunPostV1OrdersRemoveByHash returns a channel that yields a JSON object.
@@ -213,7 +213,7 @@ func (this *Predictfun) PredictfunPostV1OrdersRemoveByHash(args ...any) <-chan c
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "v1/orders/remove-by-hash", "predictfun", "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "v1/orders/remove-by-hash", []string{"predictfun"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PredictfunPostV1AccountReferral returns a channel that yields a JSON object.
@@ -222,7 +222,7 @@ func (this *Predictfun) PredictfunPostV1AccountReferral(args ...any) <-chan ccxt
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "v1/account/referral", "predictfun", "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "v1/account/referral", []string{"predictfun"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PredictfunPostV1OauthFinalize returns a channel that yields a JSON object.
@@ -231,7 +231,7 @@ func (this *Predictfun) PredictfunPostV1OauthFinalize(args ...any) <-chan ccxt.E
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "v1/oauth/finalize", "predictfun", "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "v1/oauth/finalize", []string{"predictfun"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PredictfunPostV1OauthOrders returns a channel that yields a JSON object.
@@ -240,7 +240,7 @@ func (this *Predictfun) PredictfunPostV1OauthOrders(args ...any) <-chan ccxt.End
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "v1/oauth/orders", "predictfun", "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "v1/oauth/orders", []string{"predictfun"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PredictfunPostV1OauthOrdersCreate returns a channel that yields a JSON object.
@@ -249,7 +249,7 @@ func (this *Predictfun) PredictfunPostV1OauthOrdersCreate(args ...any) <-chan cc
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "v1/oauth/orders/create", "predictfun", "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "v1/oauth/orders/create", []string{"predictfun"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PredictfunPostV1OauthOrdersCancel returns a channel that yields a JSON object.
@@ -258,7 +258,7 @@ func (this *Predictfun) PredictfunPostV1OauthOrdersCancel(args ...any) <-chan cc
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "v1/oauth/orders/cancel", "predictfun", "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "v1/oauth/orders/cancel", []string{"predictfun"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PredictfunPostV1OauthPositions returns a channel that yields a JSON object.
@@ -267,5 +267,5 @@ func (this *Predictfun) PredictfunPostV1OauthPositions(args ...any) <-chan ccxt.
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "v1/oauth/positions", "predictfun", "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "v1/oauth/positions", []string{"predictfun"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }

@@ -330,8 +330,8 @@ impl Gateeu {
     }
 
     /// Typed wrapper around `withdraw`.
-    pub async fn withdraw(&mut self, code: &str, amount: f64, address: &str, tag: Option<&str>, params: impl Into<Params>) -> crate::Result<Transaction> {
-        let v = crate::runtime::call_typed(self.core_mut().withdraw(Value::from(code), Value::Float(amount), Value::from(address), &[tag.map(Value::from).unwrap_or(Value::Null), params.into().into_value()])).await?;
+    pub async fn withdraw(&mut self, code: &str, amount: f64, address: &str, params: impl Into<Params>) -> crate::Result<Transaction> {
+        let v = crate::runtime::call_typed(self.core_mut().withdraw(Value::from(code), Value::Float(amount), Value::from(address), &[params.into().into_value()])).await?;
         Ok(Transaction::from_value(v))
     }
 
@@ -870,9 +870,9 @@ impl Gateeu {
     }
 
     /// Typed wrapper around `fetchL3OrderBook`.
-    pub async fn fetch_l3_order_book(&mut self, symbol: &str, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<OrderBook> {
+    pub async fn fetch_l3_order_book(&mut self, symbol: &str, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<OrderBookL3> {
         let v = crate::runtime::call_typed(self.core_mut().fetch_l3_order_book(Value::from(symbol), &[limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
-        Ok(OrderBook::from_value(v))
+        Ok(OrderBookL3::from_value(v))
     }
 
     /// Typed wrapper around `fetchTrades`.

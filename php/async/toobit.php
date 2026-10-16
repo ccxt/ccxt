@@ -455,7 +455,6 @@ class toobit extends Exchange {
                 'networks' => array(
                     'BTC' => 'BTC',
                     'ERC20' => 'ETH',
-                    'ETH' => 'ETH',
                     'BEP20' => 'BSC',
                     'TRC20' => 'TRX',
                     'SOL' => 'SOL',
@@ -1394,12 +1393,12 @@ class toobit extends Exchange {
         /**
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
          *
-         * @see https://api-docs.toobit.com/api/spot-$market-data.html#_24hr-ticker-price-change-statistics
-         * @see https://api-docs.toobit.com/api/usdt-m-$market-data.html#_24hr-ticker-price-change-statistics
+         * @see https://api-docs.toobit.com/api/spot-$market-data.html#_24hr-$ticker-price-change-statistics
+         * @see https://api-docs.toobit.com/api/usdt-m-$market-data.html#_24hr-$ticker-price-change-statistics
          *
-         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
+         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structures~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1440,7 +1439,15 @@ class toobit extends Exchange {
         //        },
         //        ...
         //
-        return $this->parse_tickers($response, $symbolsNormalized, $paramsMarketType);
+        $rows = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $ticker = $response[$i];
+            $marketId = $this->safe_string($ticker, 's');
+            if (($marketId !== null) && ($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id))) {
+                $rows[] = $ticker;
+            }
+        }
+        return $this->parse_tickers($rows, $symbolsNormalized, $paramsMarketType);
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -1524,7 +1531,7 @@ class toobit extends Exchange {
             'symbol' => $marketResolved['symbol'],
             'timestamp' => null,
             'datetime' => null,
-            'price' => $this->safe_number_omit_zero($entry, 'price'),
+            'price' => $this->safe_number_omit_zero($entry, 'p'),
             'side' => null,
             'info' => $entry,
         );
@@ -2955,7 +2962,23 @@ class toobit extends Exchange {
             // ]
             //
         }
-        return $this->parse_transactions($response, $currency, $since, $limit, $paramsUntil);
+        $transactType = ($type === 'deposits') ? 'deposit' : 'withdrawal';
+        $results = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $results[] = $this->extend($this->parse_transaction_with_type($response[$i], $currency, $transactType), $paramsUntil);
+        }
+        $sorted = $this->sort_by($results, 'timestamp');
+        $currencyCode = ($currency !== null) ? $currency['code'] : null;
+        return $this->filter_by_currency_since_limit($sorted, $currencyCode, $since, $limit);
+    }
+
+    public function parse_transaction_with_type(array $transaction, ?array $currency = null, ?string $transactType = null) {
+        $result = $this->parse_transaction($transaction, $currency);
+        if ($transactType !== null) {
+            $result['type'] = $transactType;
+            $result['status'] = $this->parse_transaction_status($this->safe_string($transaction, 'status'), $transactType);
+        }
+        return $result;
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
@@ -3015,7 +3038,7 @@ class toobit extends Exchange {
         $tagFrom = $this->safe_string($transaction, 'fromAddressTag');
         $addressTo = $this->safe_string($transaction, 'address');
         $addressFrom = $this->safe_string($transaction, 'fromAddress');
-        $isWithdraw = (is_array($transaction) && array_key_exists('arriveQuantity' ?? '', $transaction));
+        $isWithdraw = (is_array($transaction) && array_key_exists('arriveQuantity' ?? '', $transaction)) || (is_array($transaction) && array_key_exists('success' ?? '', $transaction));
         $type = $isWithdraw ? 'withdrawal' : 'deposit';
         return array(
             'info' => $transaction,
@@ -3033,7 +3056,7 @@ class toobit extends Exchange {
             'type' => $type,
             'amount' => $this->safe_number($transaction, 'quantity'),
             'currency' => $code,
-            'status' => $this->parse_transaction_status($this->safe_string($transaction, 'status')),
+            'status' => $this->parse_transaction_status($this->safe_string($transaction, 'status'), $type),
             'updated' => null,
             'fee' => $fee,
             'comment' => null,
@@ -3041,16 +3064,29 @@ class toobit extends Exchange {
         );
     }
 
-    public function parse_transaction_status(?string $status) {
-        $statuses = array(
-            '2' => 'pending',
-            '12' => 'pending',
-            '11' => 'failed',
-            '3' => 'ok',
+    public function parse_transaction_status(?string $status, ?string $type = null) {
+        $statusesByType = array(
+            'deposit' => array(
+                '2' => 'ok', // DEPOSIT_CAN_WITHDRAW
+                '11' => 'failed', // REJECT
+                '12' => 'pending', // AUDIT
+            ),
+            'withdrawal' => array(
+                '0' => 'pending', // WITHDRAWAL_STATUS_UNKNOWN
+                '1' => 'pending', // BROKER_AUDITING_STATUS
+                '2' => 'failed', // BROKER_REJECT_STATUS
+                '3' => 'pending', // AUDITING_STATUS
+                '6' => 'ok', // WITHDRAWAL_SUCCESS_STATUS
+                '7' => 'failed', // WITHDRAWAL_FAILURE_STATUS
+                '9' => 'canceled', // WITHDRAWAL_CANCELLED_STATUS
+                '10' => 'pending', // WAIT_MERCHANT_PASS
+                '11' => 'pending', // APPLY_CANCEL, cancellation requested but not final yet
+            ),
         );
         if ($status === null) {
             return null;
         }
+        $statuses = $this->safe_dict($statusesByType, $type, array());
         return $this->safe_string($statuses, $status, $status);
     }
 
@@ -3107,11 +3143,11 @@ class toobit extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal
          *
@@ -3120,13 +3156,14 @@ class toobit extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag a memo for the transaction
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination $tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @param {string} [$params->addressType] recipient identifier type, one of BLOCK_CHAIN, PHONE_NUMBER, EMAIL, or UID
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
+        list($tag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
         $this->check_address($address);
-        list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($params);
+        list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($paramsWithdrawTag);
         if ($networkCode === null) {
             throw new ArgumentsRequired($this->id . ' withdraw() : param["network"] is required');
         }
@@ -3367,8 +3404,9 @@ class toobit extends Exchange {
         ));
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $baseApiUrl = $this->safe_string($this->urls['api'], $api);
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
+        $baseApiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($baseApiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
@@ -3378,7 +3416,7 @@ class toobit extends Exchange {
         $isDelete = $method === 'DELETE';
         $extraQuery = array();
         $query = $this->omit($params, $this->extract_params($path));
-        if ($api !== 'private') {
+        if ($apiName !== 'private') {
             // Public endpoints
             if (!$isPost) {
                 if (count($query) > 0) {
@@ -3405,7 +3443,7 @@ class toobit extends Exchange {
             } else {
                 $queryString = $this->urlencode($queryExtended);
             }
-            $payloadBody = $body;
+            $payloadBody = null;
             if ($isPost || $isDelete) {
                 $payloadBody = $privateBody;
             }
@@ -3426,13 +3464,13 @@ class toobit extends Exchange {
                 'X-BB-API-PLATFORM' => $this->safe_string($this->options, 'brokerId', '177321641268789'),
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
-            $requestBody = $body;
+            $requestBody = null;
             if ($isPost || $isDelete) {
                 $requestBody = $privateBody;
             }
             return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $privateHeaders );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

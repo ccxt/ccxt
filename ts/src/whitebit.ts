@@ -3128,11 +3128,12 @@ export default class whitebit extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
+        const [ tag, paramsWithdrawTag ] = this.handleParamString (params, 'tag');
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3142,7 +3143,7 @@ export default class whitebit extends Exchange {
             'amount': this.currencyToPrecision (code, amount),
             'address': address,
         };
-        let uniqueId = this.safeValue (params, 'uniqueId');
+        let uniqueId = this.safeValue (paramsWithdrawTag, 'uniqueId');
         if (uniqueId === undefined) {
             uniqueId = this.uuid22 ();
         }
@@ -3151,13 +3152,13 @@ export default class whitebit extends Exchange {
             request['memo'] = tag;
         }
         if (this.isFiat (code)) {
-            const provider = this.safeValue (params, 'provider');
+            const provider = this.safeValue (paramsWithdrawTag, 'provider');
             if (provider === undefined) {
                 throw new ArgumentsRequired (this.id + ' withdraw() requires a provider when the ticker is fiat');
             }
             request['provider'] = provider;
         }
-        const response = await this.v4PrivatePostMainAccountWithdraw (this.extend (request, params));
+        const response = await this.v4PrivatePostMainAccountWithdraw (this.extend (request, paramsWithdrawTag));
         //
         // empty array with a success status
         // go to deposit/withdraw history and check you request status by uniqueId
@@ -3210,7 +3211,7 @@ export default class whitebit extends Exchange {
             'txid': this.safeString (transaction, 'transactionId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': this.safeString (transaction, 'network'),
+            'network': this.networkIdToCode (this.safeString (transaction, 'network'), this.safeCurrencyCode (currencyId, currencyResolved)),
             'addressFrom': (method === '1') ? address : undefined,
             'address': address,
             'addressTo': (method === '2') ? address : undefined,
@@ -4267,11 +4268,11 @@ export default class whitebit extends Exchange {
         return this.milliseconds () - this.safeInteger (this.options, 'timeDifference', 0);
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
         const query = this.omit (params, this.extractParams (path));
         const version = this.safeValue (api, 0);
         const accessibility = this.safeString (api, 1);
-        const publicHeaders: Dict = (headers === undefined) ? {} : headers;
+        const publicHeaders: Dict = {};
         publicHeaders['User-Agent'] = 'ccxt/' + this.id + '-' + this.version;
         const pathWithParams = '/' + this.implodeParams (path, params);
         const apiUrl = this.safeString (this.urls['api'][version], accessibility);
@@ -4304,7 +4305,7 @@ export default class whitebit extends Exchange {
             };
         }
         const isPrivate = (accessibility === 'private');
-        let requestBody: Str = body;
+        let requestBody: Str = undefined;
         if (isPrivate) {
             requestBody = privateBody;
         }

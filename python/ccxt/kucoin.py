@@ -930,7 +930,7 @@ class kucoin(Exchange, ImplicitAPI):
                 'uta': None,
                 'version': 'v1',
                 'symbolSeparator': '-',
-                'fetchMyTradesMethod': 'private_get_fills',
+                'fetchMyTradesMethod': 'privateGetFills',
                 'timeDifference': 0,  # the difference between system clock and exchange clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'fetchCurrencies': {
@@ -1150,9 +1150,7 @@ class kucoin(Exchange, ImplicitAPI):
                     'BTC': 'btc',
                     'BRC20': 'btc',
                     'BTCNATIVESEGWIT': 'bech32',
-                    'ETH': 'eth',
                     'ERC20': 'eth',
-                    'TRX': 'trx',
                     'TRC20': 'trx',
                     'HECO': 'heco',
                     'HRC20': 'heco',
@@ -3600,7 +3598,7 @@ class kucoin(Exchange, ImplicitAPI):
         return {
             'info': response,
             'currency': currencyId,
-            'network': self.safe_string(data, 'chain'),
+            'network': self.network_id_to_code(self.safe_string(data, 'chain'), code),
             'address': address,
             'tag': self.safe_string(data, 'memo'),
         }
@@ -4939,7 +4937,7 @@ class kucoin(Exchange, ImplicitAPI):
             request['clientOid'] = clientOrderId
         else:
             if id is None:
-                raise ArgumentsRequired(self.id + ' fetchOrder() requires an id argument or clientOrderId parameter')
+                raise ArgumentsRequired(self.id + ' cancelOrder() requires an id argument or clientOrderId parameter')
             request['orderId'] = id
         if self.markets is None:
             self.load_markets()
@@ -6456,13 +6454,13 @@ class kucoin(Exchange, ImplicitAPI):
                 response = self.privateGetHfMarginFills(self.extend(request, paramsRequest))
             else:
                 response = self.privateGetHfFills(self.extend(request, paramsRequest))
-        elif method == 'private_get_fills':
+        elif (method == 'privateGetFills') or (method == 'private_get_fills'):
             # does not return trades earlier than 2019-02-18T00:00:00Z
             if since is not None:
                 # only returns trades up to one week after the since param
                 request['startAt'] = since
             response = self.privateGetFills(self.extend(request, paramsRequest))
-        elif method == 'private_get_limit_fills':
+        elif (method == 'privateGetLimitFills') or (method == 'private_get_limit_fills'):
             # does not return trades earlier than 2019-02-18T00:00:00Z
             # takes no params
             # only returns first 1000 trades (not only "in the last 24 hours" as stated in the docs)
@@ -7188,7 +7186,7 @@ class kucoin(Exchange, ImplicitAPI):
             'tierBased': True,
         }
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -7197,14 +7195,14 @@ class kucoin(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
         if self.markets is None:
             self.load_markets()
-        self.check_address(address)
+        self.check_address(address, code, tagWithdrawTag)
         currency = self.currency(code)
         request = {
             'currency': currency['id'],
@@ -8646,9 +8644,9 @@ class kucoin(Exchange, ImplicitAPI):
         items = self.safe_list_2(data, 'items', 'dataList', [])
         return self.parse_ledger(items, currency, since, limit)
 
-    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config: dict = {}):
+    def calculate_rate_limiter_cost(self, api: list[str], method: object, path: object, params: object, config: dict = {}):
         versions = self.safe_dict(self.options, 'versions', {})
-        apiVersions = self.safe_dict(versions, api, {})
+        apiVersions = self.safe_dict(versions, api[0], {})
         methodVersions = self.safe_dict(apiVersions, method, {})
         defaultVersion = self.safe_string(methodVersions, path, self.options['version'])
         version = self.safe_string(params, 'version', defaultVersion)
@@ -10963,37 +10961,36 @@ class kucoin(Exchange, ImplicitAPI):
             self.options['uta'] = uta
         return uta
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
         #
         # the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
         #                                ↑                 ↑
         #                                ↑                 ↑
         #
         versions = self.safe_dict(self.options, 'versions', {})
-        apiVersions = self.safe_dict(versions, api, {})
+        apiVersions = self.safe_dict(versions, apiName, {})
         methodVersions = self.safe_dict(apiVersions, method, {})
         defaultVersion = self.safe_string(methodVersions, path, self.options['version'])
         version = self.safe_string(params, 'version', defaultVersion)
         paramsOmitted = self.omit(params, 'version')
         endpoint = '/api/' + version + '/' + self.implode_params(path, paramsOmitted)
-        if api == 'utaV2':
+        if apiName == 'utaV2':
             endpoint = '/api/ua/v2/' + self.implode_params(path, paramsOmitted)
-        if api == 'webExchange':
+        if apiName == 'webExchange':
             endpoint = '/' + self.implode_params(path, paramsOmitted)
-        if api == 'earn':
+        if apiName == 'earn':
             endpoint = '/api/v1/' + self.implode_params(path, paramsOmitted)
         isUtaPrivate = False
-        if (api == 'uta') or (api == 'utaPrivate'):
+        if (apiName == 'uta') or (apiName == 'utaPrivate'):
             endpoint = '/api/ua/v1/' + self.implode_params(path, paramsOmitted)
-            if api == 'utaPrivate':
+            if apiName == 'utaPrivate':
                 isUtaPrivate = True
         query = self.omit(paramsOmitted, self.extract_params(path))
         endpart = ''
         headersBase = {}
-        if headers is not None:
-            headersBase = headers
-        bodyJson = body
-        apiUrl = self.safe_string(self.urls['api'], api)
+        bodyJson = None
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         tradeType = self.safe_string(query, 'tradeType')
@@ -11007,10 +11004,10 @@ class kucoin(Exchange, ImplicitAPI):
                 endpart = bodyJson
                 headersBase['Content-Type'] = 'application/json'
         headersResult = headersBase
-        isFuturePrivate = (api == 'futuresPrivate')
-        isPrivate = (api == 'private')
-        isBroker = (api == 'broker')
-        isEarn = (api == 'earn')
+        isFuturePrivate = (apiName == 'futuresPrivate')
+        isPrivate = (apiName == 'private')
+        isBroker = (apiName == 'broker')
+        isEarn = (apiName == 'earn')
         if isPrivate or isFuturePrivate or isBroker or isEarn or isUtaPrivate:
             self.check_required_credentials()
             timestamp = str(self.nonce())

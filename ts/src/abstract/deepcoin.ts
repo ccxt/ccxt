@@ -8,77 +8,282 @@
 import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    publicGetDeepcoinMarketBooks (params?: {}): Promise<Dict>;
-    publicGetDeepcoinMarketCandles (params?: {}): Promise<Dict>;
-    publicGetDeepcoinMarketInstruments (params?: {}): Promise<Dict>;
-    publicGetDeepcoinMarketTickers (params?: {}): Promise<Dict>;
-    publicGetDeepcoinMarketIndexCandles (params?: {}): Promise<Dict>;
-    publicGetDeepcoinMarketTrades (params?: {}): Promise<Dict>;
-    publicGetDeepcoinMarketMarkPriceCandles (params?: {}): Promise<Dict>;
-    publicGetDeepcoinMarketMarkPrice (params?: {}): Promise<Dict>;
-    publicGetDeepcoinMarketOpenInterestVolume (params?: {}): Promise<Dict>;
-    publicGetDeepcoinMarketLongShortRatio (params?: {}): Promise<Dict>;
-    publicGetDeepcoinMarketTakerVolume (params?: {}): Promise<Dict>;
-    publicGetDeepcoinMarketStepMargin (params?: {}): Promise<Dict>;
-    publicGetDeepcoinTradeFundingRate (params?: {}): Promise<Dict>;
-    publicGetDeepcoinTradeFundRateCurrentFundingRate (params?: {}): Promise<Dict>;
-    publicGetDeepcoinTradeFundRateHistory (params?: {}): Promise<Dict>;
-    privateGetDeepcoinAccountBalances (params?: {}): Promise<Dict>;
-    privateGetDeepcoinAccountAllBalances (params?: {}): Promise<Dict>;
-    privateGetDeepcoinAccountBills (params?: {}): Promise<Dict>;
-    privateGetDeepcoinAccountPositions (params?: {}): Promise<Dict>;
-    privateGetDeepcoinAccountTradeFee (params?: {}): Promise<Dict>;
-    privateGetDeepcoinAccountLeverageInfo (params?: {}): Promise<Dict>;
-    privateGetDeepcoinAccountPositionsHistory (params?: {}): Promise<Dict>;
-    privateGetDeepcoinTradeFills (params?: {}): Promise<Dict>;
-    privateGetDeepcoinTradeOrderByID (params?: {}): Promise<Dict>;
-    privateGetDeepcoinTradeOrder (params?: {}): Promise<Dict>;
-    privateGetDeepcoinTradeFinishOrderByID (params?: {}): Promise<Dict>;
-    privateGetDeepcoinTradeOrdersHistory (params?: {}): Promise<Dict>;
-    privateGetDeepcoinTradeV2OrdersPending (params?: {}): Promise<Dict>;
-    privateGetDeepcoinTradeTriggerOrdersPending (params?: {}): Promise<Dict>;
-    privateGetDeepcoinTradeTriggerOrdersHistory (params?: {}): Promise<Dict>;
-    privateGetDeepcoinCopytradingSupportContracts (params?: {}): Promise<Dict>;
-    privateGetDeepcoinCopytradingLeaderPosition (params?: {}): Promise<Dict>;
-    privateGetDeepcoinCopytradingEstimateProfit (params?: {}): Promise<Dict>;
-    privateGetDeepcoinCopytradingHistoryProfit (params?: {}): Promise<Dict>;
-    privateGetDeepcoinCopytradingFollowerRank (params?: {}): Promise<Dict>;
-    privateGetDeepcoinInternalTransferSupport (params?: {}): Promise<Dict>;
-    privateGetDeepcoinInternalTransferHistoryOrder (params?: {}): Promise<Dict>;
-    privateGetDeepcoinRebateConfig (params?: {}): Promise<Dict>;
-    privateGetDeepcoinAgentsUsers (params?: {}): Promise<Dict>;
-    privateGetDeepcoinAgentsUsersRebateList (params?: {}): Promise<Dict>;
-    privateGetDeepcoinAgentsUsersRebates (params?: {}): Promise<Dict>;
-    privateGetDeepcoinAssetDepositList (params?: {}): Promise<Dict>;
-    privateGetDeepcoinAssetWithdrawList (params?: {}): Promise<Dict>;
-    privateGetDeepcoinAssetRechargeChainList (params?: {}): Promise<Dict>;
-    privateGetDeepcoinListenkeyAcquire (params?: {}): Promise<Dict>;
-    privateGetDeepcoinListenkeyExtend (params?: {}): Promise<Dict>;
-    privateGetDeepcoinSubAccountSubAccountApikey (params?: {}): Promise<Dict>;
-    privatePostDeepcoinAccountSetLeverage (params?: {}): Promise<Dict>;
-    privatePostDeepcoinTradeOrder (params?: {}): Promise<Dict>;
-    privatePostDeepcoinTradeReplaceOrder (params?: {}): Promise<Dict>;
-    privatePostDeepcoinTradeCancelOrder (params?: {}): Promise<Dict>;
-    privatePostDeepcoinTradeBatchCancelOrder (params?: {}): Promise<Dict>;
-    privatePostDeepcoinTradeCancelTriggerOrder (params?: {}): Promise<Dict>;
-    privatePostDeepcoinTradeSwapCancelAll (params?: {}): Promise<Dict>;
-    privatePostDeepcoinTradeTriggerOrder (params?: {}): Promise<Dict>;
-    privatePostDeepcoinTradeAmendTriggerOrder (params?: {}): Promise<Dict>;
-    privatePostDeepcoinTradeBatchClosePosition (params?: {}): Promise<Dict>;
-    privatePostDeepcoinTradeReplaceOrderSltp (params?: {}): Promise<Dict>;
-    privatePostDeepcoinTradeClosePositionByIds (params?: {}): Promise<Dict>;
-    privatePostDeepcoinTradeIncreasePosition (params?: {}): Promise<Dict>;
-    privatePostDeepcoinTradeMergePositions (params?: {}): Promise<Dict>;
-    privatePostDeepcoinCopytradingLeaderSettings (params?: {}): Promise<Dict>;
-    privatePostDeepcoinCopytradingSetContracts (params?: {}): Promise<Dict>;
-    privatePostDeepcoinInternalTransfer (params?: {}): Promise<Dict>;
-    privatePostDeepcoinRebateConfig (params?: {}): Promise<Dict>;
-    privatePostDeepcoinAssetTransfer (params?: {}): Promise<Dict>;
-    privatePostDeepcoinSubAccountCreateSubAccount (params?: {}): Promise<Dict>;
-    privatePostDeepcoinSubAccountSubAccountApikey (params?: {}): Promise<Dict>;
-    privatePostDeepcoinSubAccountDeleteSubAccountApikey (params?: {}): Promise<Dict>;
-}
-abstract class Exchange extends _Exchange {}
+abstract class Exchange extends _Exchange {
+    publicGetDeepcoinMarketBooks (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/market/books', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
 
-export default Exchange
+    publicGetDeepcoinMarketCandles (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/market/candles', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetDeepcoinMarketInstruments (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/market/instruments', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetDeepcoinMarketTickers (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/market/tickers', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetDeepcoinMarketIndexCandles (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/market/index-candles', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetDeepcoinMarketTrades (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/market/trades', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetDeepcoinMarketMarkPriceCandles (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/market/mark-price-candles', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetDeepcoinMarketMarkPrice (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/market/mark-price', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetDeepcoinMarketOpenInterestVolume (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/market/open-interest-volume', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetDeepcoinMarketLongShortRatio (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/market/long-short-ratio', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetDeepcoinMarketTakerVolume (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/market/taker-volume', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetDeepcoinMarketStepMargin (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/market/step-margin', [ 'public' ], 'GET', params, { 'cost': 5 });
+    }
+
+    publicGetDeepcoinTradeFundingRate (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/trade/funding-rate', [ 'public' ], 'GET', params, { 'cost': 5 });
+    }
+
+    publicGetDeepcoinTradeFundRateCurrentFundingRate (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/trade/fund-rate/current-funding-rate', [ 'public' ], 'GET', params, { 'cost': 5 });
+    }
+
+    publicGetDeepcoinTradeFundRateHistory (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/trade/fund-rate/history', [ 'public' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetDeepcoinAccountBalances (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/account/balances', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetDeepcoinAccountAllBalances (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/account/all-balances', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetDeepcoinAccountBills (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/account/bills', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetDeepcoinAccountPositions (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/account/positions', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetDeepcoinAccountTradeFee (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/account/trade-fee', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetDeepcoinAccountLeverageInfo (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/account/leverage-info', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetDeepcoinAccountPositionsHistory (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/account/positions-history', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetDeepcoinTradeFills (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/trade/fills', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetDeepcoinTradeOrderByID (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/trade/orderByID', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetDeepcoinTradeOrder (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/trade/order', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetDeepcoinTradeFinishOrderByID (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/trade/finishOrderByID', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetDeepcoinTradeOrdersHistory (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/trade/orders-history', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetDeepcoinTradeV2OrdersPending (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/trade/v2/orders-pending', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetDeepcoinTradeTriggerOrdersPending (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/trade/trigger-orders-pending', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetDeepcoinTradeTriggerOrdersHistory (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/trade/trigger-orders-history', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetDeepcoinCopytradingSupportContracts (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/copytrading/support-contracts', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetDeepcoinCopytradingLeaderPosition (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/copytrading/leader-position', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetDeepcoinCopytradingEstimateProfit (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/copytrading/estimate-profit', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetDeepcoinCopytradingHistoryProfit (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/copytrading/history-profit', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetDeepcoinCopytradingFollowerRank (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/copytrading/follower-rank', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetDeepcoinInternalTransferSupport (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/internal-transfer/support', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetDeepcoinInternalTransferHistoryOrder (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/internal-transfer/history-order', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetDeepcoinRebateConfig (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/rebate/config', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetDeepcoinAgentsUsers (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/agents/users', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetDeepcoinAgentsUsersRebateList (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/agents/users/rebate-list', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetDeepcoinAgentsUsersRebates (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/agents/users/rebates', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetDeepcoinAssetDepositList (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/asset/deposit-list', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetDeepcoinAssetWithdrawList (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/asset/withdraw-list', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetDeepcoinAssetRechargeChainList (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/asset/recharge-chain-list', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetDeepcoinListenkeyAcquire (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/listenkey/acquire', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetDeepcoinListenkeyExtend (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/listenkey/extend', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privateGetDeepcoinSubAccountSubAccountApikey (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/sub-account/sub-account-apikey', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privatePostDeepcoinAccountSetLeverage (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/account/set-leverage', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    privatePostDeepcoinTradeOrder (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/trade/order', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    privatePostDeepcoinTradeReplaceOrder (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/trade/replace-order', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    privatePostDeepcoinTradeCancelOrder (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/trade/cancel-order', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    privatePostDeepcoinTradeBatchCancelOrder (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/trade/batch-cancel-order', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    privatePostDeepcoinTradeCancelTriggerOrder (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/trade/cancel-trigger-order', [ 'private' ], 'POST', params, { 'cost': 0.16666666666666666 });
+    }
+
+    privatePostDeepcoinTradeSwapCancelAll (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/trade/swap/cancel-all', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    privatePostDeepcoinTradeTriggerOrder (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/trade/trigger-order', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    privatePostDeepcoinTradeAmendTriggerOrder (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/trade/amend-trigger-order', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    privatePostDeepcoinTradeBatchClosePosition (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/trade/batch-close-position', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    privatePostDeepcoinTradeReplaceOrderSltp (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/trade/replace-order-sltp', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    privatePostDeepcoinTradeClosePositionByIds (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/trade/close-position-by-ids', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    privatePostDeepcoinTradeIncreasePosition (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/trade/increase-position', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    privatePostDeepcoinTradeMergePositions (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/trade/merge-positions', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    privatePostDeepcoinCopytradingLeaderSettings (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/copytrading/leader-settings', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    privatePostDeepcoinCopytradingSetContracts (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/copytrading/set-contracts', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    privatePostDeepcoinInternalTransfer (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/internal-transfer', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    privatePostDeepcoinRebateConfig (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/rebate/config', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    privatePostDeepcoinAssetTransfer (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/asset/transfer', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    privatePostDeepcoinSubAccountCreateSubAccount (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/sub-account/create-sub-account', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    privatePostDeepcoinSubAccountSubAccountApikey (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/sub-account/sub-account-apikey', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    privatePostDeepcoinSubAccountDeleteSubAccountApikey (params = {}): Promise<Dict> {
+        return this.request ('deepcoin/sub-account/delete-sub-account-apikey', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+}
+
+export default Exchange;

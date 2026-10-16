@@ -53,7 +53,7 @@ class apex extends apex$1["default"] {
                 'createStopOrder': true,
                 'createTriggerOrder': true,
                 'editOrder': false,
-                'fetchAccounts': true,
+                'fetchAccounts': false,
                 'fetchAllGreeks': false,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
@@ -113,8 +113,8 @@ class apex extends apex$1["default"] {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
-                'fetchTransfer': true,
-                'fetchTransfers': true,
+                'fetchTransfer': false,
+                'fetchTransfers': false,
                 'fetchVolatilityHistory': false,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': false,
@@ -1973,8 +1973,9 @@ class apex extends apex$1["default"] {
             'percentage': undefined,
         });
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const baseApiUrl = this.safeString(this.urls['api'], api);
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        const baseApiUrl = this.safeString(this.urls['api'], apiName);
         if (baseApiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
@@ -1985,7 +1986,7 @@ class apex extends apex$1["default"] {
             'Content-Type': 'application/x-www-form-urlencoded',
         };
         let signPath = '/api/' + path;
-        let signBody = body;
+        let signBody = undefined;
         if (method.toUpperCase() !== 'POST') {
             if (Object.keys(params).length > 0) {
                 signPath += '?' + this.rawencode(params);
@@ -1996,7 +1997,7 @@ class apex extends apex$1["default"] {
             const sortedQuery = this.keysort(params);
             signBody = this.rawencode(sortedQuery);
         }
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             const timestamp = this.milliseconds().toString();
             let messageString = timestamp + method.toUpperCase() + signPath;

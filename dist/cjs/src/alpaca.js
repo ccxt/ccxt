@@ -1752,13 +1752,13 @@ class alpaca extends alpaca$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag a memo for the transaction
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
-        this.checkAddress(address);
+    async withdraw(code, amount, address, params = {}) {
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
+        this.checkAddress(address, code, tagWithdrawTag);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -1994,7 +1994,6 @@ class alpaca extends alpaca$1["default"] {
             txid = this.safeString(transaction, 'tx_hash');
             datetime = this.safeString(transaction, 'created_at');
             timestamp = this.parse8601(datetime);
-            network = this.safeString(transaction, 'chain');
             address = this.safeString(transaction, 'to_address');
             addressTo = this.safeString(transaction, 'to_address');
             addressFrom = this.safeString(transaction, 'from_address');
@@ -2002,6 +2001,7 @@ class alpaca extends alpaca$1["default"] {
             amount = this.safeNumber(transaction, 'amount');
             const currencyId = this.safeString(transaction, 'asset');
             code = this.safeCurrencyCode(currencyId, currency);
+            network = this.networkIdToCode(this.safeString(transaction, 'chain'), code);
             status = this.parseTransactionStatus(this.safeString(transaction, 'status'));
             const fees = this.safeString(transaction, 'fees');
             const networkFee = this.safeString(transaction, 'network_fee');
@@ -2194,16 +2194,13 @@ class alpaca extends alpaca$1["default"] {
         }
         return this.safeBalance(result);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         let endpoint = '/' + this.implodeParams(path, params);
         const baseApiUrl = this.safeString(this.urls['api'], api[0]);
         if (baseApiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
-        let headersValue = {};
-        if (headers !== undefined) {
-            headersValue = headers;
-        }
+        const headersValue = {};
         if (api[1] === 'private') {
             this.checkRequiredCredentials();
             headersValue['APCA-API-KEY-ID'] = this.apiKey;
@@ -2221,7 +2218,7 @@ class alpaca extends alpaca$1["default"] {
             }
         }
         const url = this.implodeHostname(baseApiUrl) + endpoint;
-        const bodyResolved = (bodyJson === undefined) ? body : bodyJson;
+        const bodyResolved = bodyJson;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersValue };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

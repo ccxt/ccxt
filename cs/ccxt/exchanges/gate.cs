@@ -1587,13 +1587,10 @@ public partial class gate : Exchange
                 { "networks", new Dictionary<string, object>() {
                     { "BTC", "BTC" },
                     { "BRC20", "BTCBRC" },
-                    { "ETH", "ETH" },
                     { "ERC20", "ETH" },
-                    { "TRX", "TRX" },
                     { "TRC20", "TRX" },
                     { "HECO", "HT" },
                     { "HRC20", "HT" },
-                    { "BSC", "BSC" },
                     { "BEP20", "BSC" },
                     { "SOL", "SOL" },
                     { "MATIC", "MATIC" },
@@ -1605,7 +1602,7 @@ public partial class gate : Exchange
                     { "ARBITRUM_NOVA", "ARBNOVA" },
                     { "BASE", "BASEEVM" },
                     { "SUI", "SUI" },
-                    { "CRONOS", "CRO" },
+                    { "CRC20", "CRO" },
                     { "CRO", "CRO" },
                     { "APT", "APT" },
                     { "SCROLL", "SCROLLETH" },
@@ -3289,7 +3286,7 @@ public partial class gate : Exchange
         IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable.Item2);
         Dictionary<string, object> chainsIndexedByIdRaw = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(code, paramsNetworkCode));
         Dictionary<string, object> chainsIndexedById = chainsIndexedByIdRaw;
-        object selectedNetworkIdOrCode = this.selectNetworkCodeFromUnifiedNetworks(code, networkCode, chainsIndexedById);
+        object selectedNetworkIdOrCode = this.selectNetworkKeyFromNetworks(code, networkCode, chainsIndexedById, true);
         return ccxt.BaseExchange.ToDepositAddress(getValue(chainsIndexedById, ((string)selectedNetworkIdOrCode)));
     }
 
@@ -5305,17 +5302,17 @@ public partial class gate : Exchange
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleWithdrawTagAndParams(tag, parameters);
-        var tagWithdrawTag = tagWithdrawTagparamsWithdrawTagVariable[0];
+        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleParamString(parameters, "tag");
+        string? tagWithdrawTag = (string)tagWithdrawTagparamsWithdrawTagVariable[0];
         IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagWithdrawTagparamsWithdrawTagVariable[1]);
-        this.checkAddress(address);
+        this.checkAddress(address, code, tagWithdrawTag);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -8008,11 +8005,16 @@ public partial class gate : Exchange
     /**
      * @method
      * @name gate#fetchLeverageTiers
-     * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-     * @see https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts
-     * @see https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts-2
+     * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes, automatically paginating through all contracts
+     * @see https://www.gate.com/docs/developers/apiv4/en/#query-risk-limit-tiers
+     * @see https://www.gate.com/docs/developers/apiv4/en/#query-risk-limit-tiers-2
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'swap' or 'future'
+     * @param {string} [params.settle] settlement currency, default 'usdt' for swaps and 'btc' for futures
+     * @param {int} [params.limit] number of contracts per request, between 1 and 100, default 100
+     * @param {int} [params.offset] starting contract offset, default 0
+     * @param {string} [params.contract] exchange-specific contract id to fetch tiers for a single contract
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
     public async override Task<ccxt.LeverageTiers> FetchLeverageTiers(IList<object> symbols = null, object parameters = null)
@@ -8032,110 +8034,42 @@ public partial class gate : Exchange
         {
             throw new BadRequest ((this.id + " fetchLeverageTiers only supports swap and future")) ;
         }
-        List<object> response = null;
-        if ((type == "swap"))
+        object limit = mathMax(1, mathMin(this.safeInteger(requestParams, "limit", 100), 100));
+        object offset = this.safeInteger(requestParams, "offset", 0);
+        string? contract = this.safeString(requestParams, "contract", "");
+        Dictionary<string, object> paramsOmitted = this.omit(requestParams, new List<object>() {"limit", "offset"});
+        request["limit"] = limit;
+        Dictionary<string, object> tiers = new Dictionary<string, object>() {};
+        while (true)
         {
-            response = await this.publicFuturesGetSettleContracts(this.extend(request, requestParams));
-        } else if ((type == "future"))
-        {
-            response = await this.publicDeliveryGetSettleContracts(this.extend(request, requestParams));
-        } else
-        {
-            throw new NotSupported ((this.id + " fetchLeverageTiers() not support this market type")) ;
+            request["offset"] = offset;
+            List<object> response = null;
+            if ((type == "swap"))
+            {
+                response = await this.publicFuturesGetSettleRiskLimitTiers(this.extend(request, paramsOmitted));
+            } else
+            {
+                response = await this.publicDeliveryGetSettleRiskLimitTiers(this.extend(request, paramsOmitted));
+            }
+            // Each page contains all tiers for up to limit contracts, not limit rows.
+            Dictionary<string, object> grouped = new Dictionary<string, object>() {};
+            if (contract != "")
+            {
+                grouped[(string)contract] = response;
+            } else
+            {
+                grouped = this.groupBy(response, "contract");
+            }
+            tiers = this.extend(tiers, grouped);
+            List<object> contracts = new List<object>(grouped.Keys);
+            int numContracts = contracts.Count;
+            if ((contract != "") || (isLessThan(numContracts, limit)))
+            {
+                break;
+            }
+            offset = this.sum(offset, limit);
         }
-        //
-        // Perpetual swap
-        //
-        //    [
-        //        {
-        //            "name": "BTC_USDT",
-        //            "type": "direct",
-        //            "quanto_multiplier": "0.0001",
-        //            "ref_discount_rate": "0",
-        //            "order_price_deviate": "0.5",
-        //            "maintenance_rate": "0.005",
-        //            "mark_type": "index",
-        //            "last_price": "38026",
-        //            "mark_price": "37985.6",
-        //            "index_price": "37954.92",
-        //            "funding_rate_indicative": "0.000219",
-        //            "mark_price_round": "0.01",
-        //            "funding_offset": 0,
-        //            "in_delisting": false,
-        //            "risk_limit_base": "1000000",
-        //            "interest_rate": "0.0003",
-        //            "order_price_round": "0.1",
-        //            "order_size_min": 1,
-        //            "ref_rebate_rate": "0.2",
-        //            "funding_interval": 28800,
-        //            "risk_limit_step": "1000000",
-        //            "leverage_min": "1",
-        //            "leverage_max": "100",
-        //            "risk_limit_max": "8000000",
-        //            "maker_fee_rate": "-0.00025",
-        //            "taker_fee_rate": "0.00075",
-        //            "funding_rate": "0.002053",
-        //            "order_size_max": 1000000,
-        //            "funding_next_apply": 1610035200,
-        //            "short_users": 977,
-        //            "config_change_time": 1609899548,
-        //            "trade_size": 28530850594,
-        //            "position_size": 5223816,
-        //            "long_users": 455,
-        //            "funding_impact_value": "60000",
-        //            "orders_limit": 50,
-        //            "trade_id": 10851092,
-        //            "orderbook_id": 2129638396
-        //        }
-        //    ]
-        //
-        // Delivery Futures
-        //
-        //    [
-        //        {
-        //            "name": "BTC_USDT_20200814",
-        //            "underlying": "BTC_USDT",
-        //            "cycle": "WEEKLY",
-        //            "type": "direct",
-        //            "quanto_multiplier": "0.0001",
-        //            "mark_type": "index",
-        //            "last_price": "9017",
-        //            "mark_price": "9019",
-        //            "index_price": "9005.3",
-        //            "basis_rate": "0.185095",
-        //            "basis_value": "13.7",
-        //            "basis_impact_value": "100000",
-        //            "settle_price": "0",
-        //            "settle_price_interval": 60,
-        //            "settle_price_duration": 1800,
-        //            "settle_fee_rate": "0.0015",
-        //            "expire_time": 1593763200,
-        //            "order_price_round": "0.1",
-        //            "mark_price_round": "0.1",
-        //            "leverage_min": "1",
-        //            "leverage_max": "100",
-        //            "maintenance_rate": "1000000",
-        //            "risk_limit_base": "140.726652109199",
-        //            "risk_limit_step": "1000000",
-        //            "risk_limit_max": "8000000",
-        //            "maker_fee_rate": "-0.00025",
-        //            "taker_fee_rate": "0.00075",
-        //            "ref_discount_rate": "0",
-        //            "ref_rebate_rate": "0.2",
-        //            "order_price_deviate": "0.5",
-        //            "order_size_min": 1,
-        //            "order_size_max": 1000000,
-        //            "orders_limit": 50,
-        //            "orderbook_id": 63,
-        //            "trade_id": 26,
-        //            "trade_size": 435,
-        //            "position_size": 130,
-        //            "config_change_time": 1593158867,
-        //            "in_delisting": false
-        //        }
-        //    ]
-        //
-        return ccxt.BaseExchange.ToLeverageTiers(this.parseLeverageTiers(response, symbols, "name"));
+        return ccxt.BaseExchange.ToLeverageTiers(this.parseLeverageTiers(tiers, symbols));
     }
 
     /**
@@ -8246,7 +8180,7 @@ public partial class gate : Exchange
             tiers.Add(new Dictionary<string, object>() {
                 { "tier", this.sum(i, 1) },
                 { "symbol", this.safeString(market, "symbol") },
-                { "currency", this.safeString(market, "base") },
+                { "currency", this.safeString(market, "settle") },
                 { "minNotional", minNotional },
                 { "maxNotional", maxNotional },
                 { "maintenanceMarginRate", this.safeNumber(item, "maintenance_rate") },
@@ -8589,7 +8523,7 @@ public partial class gate : Exchange
         return ((Int64)((object)((this.milliseconds() - timeDifference)))!);
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -8694,8 +8628,8 @@ public partial class gate : Exchange
                 query = this.omit(query, "query");
                 bodyJson = this.json(query);
             }
-            object bodySigned = ((bodyJson == null)) ? body : bodyJson;
-            object bodyPayload = ((bodySigned == null)) ? "" : bodySigned;
+            string? bodySigned = bodyJson;
+            string? bodyPayload = ((bodySigned == null)) ? "" : bodySigned;
             string bodySignature = ((string)this.hash(this.encode(bodyPayload), sha512));
             Int64 nonce = this.nonce();
             Int64? timestamp = this.parseToInt(((double)nonce / 1000));
@@ -8712,8 +8646,8 @@ public partial class gate : Exchange
                 { "Content-Type", "application/json" },
             };
         }
-        object bodyResolved = ((bodyJson == null)) ? body : bodyJson;
-        object headersResolved = ((signedHeaders == null)) ? headers : signedHeaders;
+        string? bodyResolved = bodyJson;
+        Dictionary<string, object> headersResolved = signedHeaders;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
@@ -8831,8 +8765,8 @@ public partial class gate : Exchange
 
     /**
      * @method
-     * @name gate#fetchOpenInterest
-     * @description Retrieves the open interest of a currency
+     * @name gate#fetchOpenInterestHistory
+     * @description Retrieves the open interest history of a currency
      * @see https://www.gate.com/docs/developers/apiv4/en/#futures-statistics
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} timeframe "5m", "15m", "30m", "1h", "4h", "1d"
@@ -8861,7 +8795,7 @@ public partial class gate : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) != true))
         {
-            throw new BadRequest ((this.id + " fetchOpenInterest() supports swap markets only")) ;
+            throw new BadRequest ((this.id + " fetchOpenInterestHistory() supports swap markets only")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "contract", (market.ContainsKey("id") ? market["id"] : null) },

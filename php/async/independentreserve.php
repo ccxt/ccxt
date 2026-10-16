@@ -305,7 +305,7 @@ class independentreserve extends Exchange {
                 ),
                 'networks' => array(
                     'BTC' => 'Bitcoin',
-                    'ETH' => 'Ethereum',
+                    'ERC20' => 'Ethereum',
                     'BCH' => 'BitcoinCash',
                     'LTC' => 'Litecoin',
                     'XRP' => 'XrpLedger',
@@ -317,7 +317,7 @@ class independentreserve extends Exchange {
                     'DOT' => 'Polkadot',
                     'ADA' => 'Cardano',
                     'SOL' => 'Solana',
-                    'TRX' => 'Tron',
+                    'TRC20' => 'Tron',
                 ),
             ),
         ));
@@ -1079,11 +1079,11 @@ class independentreserve extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal
          *
@@ -1092,14 +1092,15 @@ class independentreserve extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {array} [$params->comment] withdrawal comment, should not exceed 500 characters
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
+        $this->check_address($address, $code, $tagWithdrawTag);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -1195,13 +1196,14 @@ class independentreserve extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $apiUrl . '/' . $path;
-        if ($api === 'public') {
+        if ($apiName === 'public') {
             if (count($params) > 0) {
                 $url .= '?' . $this->urlencode($params);
             }
@@ -1234,6 +1236,6 @@ class independentreserve extends Exchange {
             $signedHeaders = array( 'Content-Type' => 'application/json' );
             return array( 'url' => $url, 'method' => $method, 'body' => $signedBody, 'headers' => $signedHeaders );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 }

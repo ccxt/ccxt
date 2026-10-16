@@ -801,6 +801,7 @@ public partial class modetrade : Exchange
         //
         //   {
         //     "symbol": "PERP_BTC_USDC",
+        //     "status": "ACTIVE",
         //     "quote_min": 123,
         //     "quote_max": 100000,
         //     "quote_tick": 0.1,
@@ -826,6 +827,12 @@ public partial class modetrade : Exchange
         //   }
         //
         string? marketId = this.safeString(market, "symbol", "");
+        string? status = this.safeString(market, "status");
+        bool? active = null;
+        if ((status != null))
+        {
+            active = (status == "ACTIVE");
+        }
         List<object> parts = marketId.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
         string marketType = "swap";
         string? baseId = this.safeString(parts, 1);
@@ -854,7 +861,7 @@ public partial class modetrade : Exchange
             { "swap", true },
             { "future", false },
             { "option", false },
-            { "active", null },
+            { "active", active },
             { "contract", true },
             { "linear", true },
             { "inverse", false },
@@ -910,6 +917,7 @@ public partial class modetrade : Exchange
         //       "rows": [
         //         {
         //           "symbol": "PERP_BTC_USDC",
+        //           "status": "ACTIVE",
         //           "quote_min": 123,
         //           "quote_max": 100000,
         //           "quote_tick": 0.1,
@@ -3207,11 +3215,11 @@ public partial class modetrade : Exchange
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3581,9 +3589,9 @@ public partial class modetrade : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object section = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object section = null, string method = null, object parameters = null)
     {
-        section ??= "public";
+        section ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object version = getValue(section, 0);
@@ -3646,7 +3654,7 @@ public partial class modetrade : Exchange
                 { "orderly-timestamp", ts },
             };
             auth = (((((ts + method) + "/") + (version)) + "/") + pathWithParams);
-            object signedBody = null;
+            string? signedBody = null;
             if ((method == "POST") || (method == "PUT"))
             {
                 signedBody = this.json(paramsSigned);
@@ -3660,7 +3668,7 @@ public partial class modetrade : Exchange
                     auth = add(auth, ("?" + this.rawencode(paramsSigned)));
                 }
                 signedHeaders["content-type"] = "application/x-www-form-urlencoded";
-                signedBody = ((method == "DELETE")) ? "" : body;
+                signedBody = ((method == "DELETE")) ? "" : null;
             }
             object secret = this.secret;
             if (getIndexOf(secret, "ed25519:") >= 0)
@@ -3680,8 +3688,8 @@ public partial class modetrade : Exchange
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", null },
+            { "headers", null },
         };
     }
 

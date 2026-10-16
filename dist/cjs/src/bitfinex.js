@@ -928,7 +928,7 @@ class bitfinex extends bitfinex$1["default"] {
                 networks[network] = {
                     'info': networkId,
                     'id': networkId.toLowerCase(),
-                    'network': networkId,
+                    'network': network,
                     'active': undefined,
                     'deposit': this.safeInteger(dwStatuses, 1) === 1,
                     'withdraw': this.safeInteger(dwStatuses, 2) === 1,
@@ -2441,7 +2441,8 @@ class bitfinex extends bitfinex$1["default"] {
         }
         const currency = this.currency(code);
         // if not provided explicitly we will try to match using the currency name
-        const network = this.safeString(params, 'network', code);
+        const networkParam = this.safeString(params, 'network', code);
+        const network = this.safeString(this.networkAliases, networkParam, networkParam);
         const currencyNetworks = this.safeDict(currency, 'networks', {});
         const currencyNetwork = this.safeDict(currencyNetworks, network);
         const networkId = this.safeString(currencyNetwork, 'id');
@@ -2835,19 +2836,21 @@ class bitfinex extends bitfinex$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
+    async withdraw(code, amount, address, params = {}) {
+        const [tag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
         this.checkAddress(address);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
         const currency = this.currency(code);
         // if not provided explicitly we will try to match using the currency name
-        const network = this.safeString(params, 'network', code);
-        const paramsOmitted = this.omit(params, 'network');
+        const networkParam = this.safeString(paramsWithdrawTag, 'network', code);
+        const network = this.safeString(this.networkAliases, networkParam, networkParam);
+        const paramsOmitted = this.omit(paramsWithdrawTag, 'network');
         const currencyNetworks = this.safeDict(currency, 'networks', {});
         const currencyNetwork = this.safeDict(currencyNetworks, network);
         const networkId = this.safeString(currencyNetwork, 'id');
@@ -3045,28 +3048,29 @@ class bitfinex extends bitfinex$1["default"] {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         let request = '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
-        if (api === 'v1') {
-            request = api + request;
+        if (apiName === 'v1') {
+            request = apiName + request;
         }
         else {
             request = this.version + request;
         }
-        const apiUrl = this.safeString(this.urls['api'], api);
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         let url = apiUrl + '/' + request;
         let requestBody = undefined;
         let requestHeaders = undefined;
-        if (api === 'public') {
+        if (apiName === 'public') {
             if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             // bitfinex rejects a nonce that is not greater than the previous one for the key (error 10114)
             const nonce = this.incrementingNonce().toString();
@@ -3080,8 +3084,8 @@ class bitfinex extends bitfinex$1["default"] {
                 'Content-Type': 'application/json',
             };
         }
-        const bodyResolved = (requestBody === undefined) ? body : requestBody;
-        const headersResolved = (requestHeaders === undefined) ? headers : requestHeaders;
+        const bodyResolved = requestBody;
+        const headersResolved = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     handleErrors(statusCode, statusText, url, method, headers, body, response, requestHeaders, requestBody) {

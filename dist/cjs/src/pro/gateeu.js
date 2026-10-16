@@ -2,15 +2,15 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var gate = require('./gate.js');
-var gateeu$1 = require('../gateeu.js');
+var gateeu$1 = require('../abstract/pro/gateeu.js');
+var gateeu$2 = require('../gateeu.js');
 
 // ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-class gateeu extends gate["default"] {
+class gateeu extends gateeu$1["default"] {
     describe() {
         // eslint-disable-next-line new-cap
-        const restInstance = new gateeu$1["default"]();
+        const restInstance = new gateeu$2["default"]();
         const restDescribe = restInstance.describe();
         const parentWsDescribe = super.describeData();
         // the ws describe-data must be applied on top of the rest describe,

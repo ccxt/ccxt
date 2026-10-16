@@ -22,7 +22,7 @@ class htx extends htx$1["default"] {
             'countries': ['CN'],
             'rateLimit': 100,
             'userAgent': this.userAgents['chrome100'],
-            'certified': true,
+            'certified': false,
             'version': 'v1',
             'hostname': 'api.huobi.pro', // api.testnet.huobi.pro
             'pro': true,
@@ -882,7 +882,7 @@ class htx extends htx$1["default"] {
                     'LTC': 'LTC',
                     'XRP': 'XRP',
                     'XLM': 'XLM',
-                    'CRONOS': 'CRO',
+                    'CRC20': 'CRO',
                     'CRO': 'CRO',
                     'GLMR': 'GLMR',
                     'POLYGON': 'MATIC',
@@ -2019,7 +2019,17 @@ class htx extends htx$1["default"] {
         const open = this.safeString(ticker, 'open');
         const close = this.safeString(ticker, 'close');
         const baseVolume = this.safeString(ticker, 'amount');
-        const quoteVolume = this.safeString(ticker, 'vol');
+        let quoteVolume = this.safeString(ticker, 'vol');
+        const marketResolved = this.safeDict(this.markets, symbol, market);
+        if (this.safeBool(marketResolved, 'contract') === true) {
+            // contract tickers count 'vol' in contracts
+            if (this.safeBool(marketResolved, 'linear') === true) {
+                quoteVolume = this.safeString(ticker, 'trade_turnover');
+            }
+            else {
+                quoteVolume = Precise["default"].stringMul(quoteVolume, this.safeString(marketResolved, 'contractSize'));
+            }
+        }
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -6601,7 +6611,7 @@ class htx extends htx$1["default"] {
         const currency = this.currency(code);
         const [networkCode, paramsOmited] = this.handleNetworkCodeAndParams(params);
         const indexedAddresses = await this.fetchDepositAddressesByNetwork(code, paramsOmited);
-        const selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks(currency['code'], networkCode, indexedAddresses);
+        const selectedNetworkCode = this.selectNetworkKeyFromNetworks(currency['code'], networkCode, indexedAddresses, true);
         return this.safeValue(indexedAddresses, selectedNetworkCode);
     }
     async fetchWithdrawAddresses(code, note = undefined, networkCode = undefined, params = {}) {
@@ -6895,16 +6905,16 @@ class htx extends htx$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const [tagValue, paramsTag] = this.handleWithdrawTagAndParams(tag, params);
+    async withdraw(code, amount, address, params = {}) {
+        const [tagValue, paramsTag] = this.handleParamString(params, 'tag');
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        this.checkAddress(address);
+        this.checkAddress(address, code, tagValue);
         const currency = this.currency(code);
         const request = {
             'address': address, // only supports existing addresses in your withdraw address list
@@ -7733,7 +7743,7 @@ class htx extends htx$1["default"] {
     nonce() {
         return this.milliseconds() - this.safeInteger(this.options, 'timeDifference', 0);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         let signedHeaders = undefined;
         let signedBody = undefined;
         const pathString = path;
@@ -7746,16 +7756,18 @@ class htx extends htx$1["default"] {
         else {
             query = this.omit(params, this.extractParams(path));
         }
-        if (typeof api === 'string') {
+        const apiLength = api.length;
+        if (apiLength === 1) {
             // signing implementation for the old endpoints
-            if ((api === 'public') || (api === 'private')) {
+            const apiName = api[0];
+            if ((apiName === 'public') || (apiName === 'private')) {
                 url += this.version;
             }
-            else if ((api === 'v2Public') || (api === 'v2Private')) {
+            else if ((apiName === 'v2Public') || (apiName === 'v2Private')) {
                 url += 'v2';
             }
             url += '/' + this.implodeParams(path, params);
-            if (api === 'private' || api === 'v2Private') {
+            if (apiName === 'private' || apiName === 'v2Private') {
                 this.checkRequiredCredentials();
                 const timestamp = this.ymdhms(this.nonce(), 'T');
                 let request = {
@@ -7799,7 +7811,7 @@ class htx extends htx$1["default"] {
                     url += '?' + this.urlencode(query);
                 }
             }
-            const baseApiUrl = this.safeString(this.urls['api'], api);
+            const baseApiUrl = this.safeString(this.urls['api'], apiName);
             if (baseApiUrl === undefined) {
                 throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
             }
@@ -7902,8 +7914,8 @@ class htx extends htx$1["default"] {
                 'hostname': finalHostname,
             }) + url;
         }
-        const headersResolved = (signedHeaders !== undefined) ? signedHeaders : headers;
-        const bodyResolved = (signedBody !== undefined) ? signedBody : body;
+        const headersResolved = signedHeaders;
+        const bodyResolved = signedBody;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
@@ -8523,7 +8535,7 @@ class htx extends htx$1["default"] {
                 response = await this.contractPrivatePostSwapApiV1SwapAccountPositionInfo(this.extend(request, query));
             }
             else {
-                throw new errors.NotSupported(this.id + ' setLeverage() not support this market type');
+                throw new errors.NotSupported(this.id + ' fetchPosition() not support this market type');
             }
             //
             // future, swap

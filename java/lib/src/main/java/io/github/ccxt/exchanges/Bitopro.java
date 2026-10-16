@@ -289,11 +289,8 @@ public class Bitopro extends BitoproApi
             put( "options", new HashMap<String, Object>() {{
                 put( "networks", new HashMap<String, Object>() {{
                     put( "ERC20", "ERC20" );
-                    put( "ETH", "ERC20" );
-                    put( "TRX", "TRX" );
                     put( "TRC20", "TRX" );
                     put( "BEP20", "BSC" );
-                    put( "BSC", "BSC" );
                 }} );
                 put( "fetchCurrencies", new HashMap<String, Object>() {{
                     put( "fiatCurrencies", new ArrayList<Object>(Arrays.asList("TWD")) );
@@ -479,7 +476,7 @@ public class Bitopro extends BitoproApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> response = (this.publicGetProvisioningTradingPairs()).join();
+            Map<String, Object> response = (this.publicGetProvisioningTradingPairs(new HashMap<String, Object>() {{}})).join();
             List<Object> markets = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             //
             //     {
@@ -677,7 +674,7 @@ public class Bitopro extends BitoproApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> response = (this.publicGetTickers()).join();
+            Map<String, Object> response = (this.publicGetTickers(new HashMap<String, Object>() {{}})).join();
             List<Object> tickers = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             //
             //     {
@@ -2056,23 +2053,23 @@ public class Bitopro extends BitoproApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (parameters));
-            var tagWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
+            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
+            String tagWithdrawTag = (String) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            this.checkAddress(address);
+            this.checkAddress(address, code, tagWithdrawTag);
             Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", currency.get("id") );
@@ -2089,7 +2086,7 @@ public class Bitopro extends BitoproApi
             {
                 Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
                 String requestedNetwork = this.safeStringUpper(paramsWithdrawTag, "network");
-                String networkId = (((java.util.Objects.equals(requestedNetwork, null)))) ? null : this.safeString(networks, requestedNetwork);
+                String networkId = (((java.util.Objects.equals(requestedNetwork, null)))) ? null : this.safeString(networks, this.safeString(this.networkAliases, requestedNetwork, requestedNetwork));
                 if (java.util.Objects.equals(networkId, null))
                 {
                     throw new ExchangeError(((this.id + " invalid network ") + requestedNetwork)) ;
@@ -2187,29 +2184,30 @@ public class Bitopro extends BitoproApi
 
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String url = ("/" + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
-        Object requestHeaders = (((java.util.Objects.equals(headers, null)))) ? new HashMap<String, Object>() {{}} : headers;
-        Boolean isSignedBody = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private")) && ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PUT")));
+        Map<String, Object> requestHeaders = new HashMap<String, Object>() {{}};
+        Boolean isSignedBody = (java.util.Objects.equals(apiName, "private")) && ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PUT")));
         String signedBody = this.json(parameters);
-        String requestBody = body;
+        String requestBody = null;
         if (Boolean.TRUE.equals(isSignedBody))
         {
             requestBody = signedBody;
         }
-        ((Map<String, Object>)requestHeaders).put("X-BITOPRO-API", "ccxt");
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        requestHeaders.put("X-BITOPRO-API", "ccxt");
+        if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PUT"))
             {
                 String payload = this.stringToBase64(signedBody);
                 String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha384());
-                ((Map<String, Object>)requestHeaders).put("X-BITOPRO-APIKEY", this.apiKey);
-                ((Map<String, Object>)requestHeaders).put("X-BITOPRO-PAYLOAD", payload);
-                ((Map<String, Object>)requestHeaders).put("X-BITOPRO-SIGNATURE", signature);
+                requestHeaders.put("X-BITOPRO-APIKEY", this.apiKey);
+                requestHeaders.put("X-BITOPRO-PAYLOAD", payload);
+                requestHeaders.put("X-BITOPRO-SIGNATURE", signature);
             } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"))
             {
                 if (Helpers.objectKeys(query).size() > 0)
@@ -2223,11 +2221,11 @@ public class Bitopro extends BitoproApi
                 String data = this.json(rawData);
                 String payload = this.stringToBase64(data);
                 String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha384());
-                ((Map<String, Object>)requestHeaders).put("X-BITOPRO-APIKEY", this.apiKey);
-                ((Map<String, Object>)requestHeaders).put("X-BITOPRO-PAYLOAD", payload);
-                ((Map<String, Object>)requestHeaders).put("X-BITOPRO-SIGNATURE", signature);
+                requestHeaders.put("X-BITOPRO-APIKEY", this.apiKey);
+                requestHeaders.put("X-BITOPRO-PAYLOAD", payload);
+                requestHeaders.put("X-BITOPRO-SIGNATURE", signature);
             }
-        } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public") && java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
+        } else if (java.util.Objects.equals(apiName, "public") && java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
             if (Helpers.objectKeys(query).size() > 0)
             {

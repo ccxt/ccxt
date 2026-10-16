@@ -1357,12 +1357,21 @@ export default class hyperliquid extends Exchange {
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.dex] perp dex name for hip3 markets, eg: 'xyz', inferred from the symbols if not provided
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchFundingRates (symbols: Strings = undefined, params: Dict = {}): Promise<FundingRates> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const request: Dict = {
             'type': 'metaAndAssetCtxs',
         };
+        const dexName = this.getDexFromSymbols ('fetchFundingRates', symbolsNormalized);
+        if (dexName !== undefined) {
+            request['dex'] = dexName;
+        }
         const response = await this.publicPostInfo (this.extend (request, params));
         //
         //     [
@@ -1406,7 +1415,7 @@ export default class hyperliquid extends Exchange {
             );
             result.push (data);
         }
-        return this.parseFundingRates (result, symbols);
+        return this.parseFundingRates (result, symbolsNormalized);
     }
 
     override parseFundingRate (info: any, market: Market = undefined): FundingRate {
@@ -3877,17 +3886,15 @@ export default class hyperliquid extends Exchange {
         if (symbolsLength === 0) {
             return undefined;
         }
-        let dexName: Str = undefined;
-        for (let i = 0; i < symbolsLength; i++) {
-            if (dexName === undefined) {
-                const market = this.market (symbols[i]);
-                dexName = this.getDexFromHip3Symbol (market);
-            } else {
-                const market = this.market (symbols[i]);
-                const currentDexName = this.getDexFromHip3Symbol (market);
-                if (currentDexName !== dexName) {
-                    throw new NotSupported (this.id + ' ' + methodName + ' only supports fetching positions for one DEX at a time for HIP3 markets');
-                }
+        // the first symbol sets the dex (undefined for the main dex); every other symbol must match it,
+        // so a mix of main-dex and HIP-3 symbols throws instead of silently dropping one side
+        const firstMarket = this.market (symbols[0]);
+        const dexName = this.getDexFromHip3Symbol (firstMarket);
+        for (let i = 1; i < symbolsLength; i++) {
+            const market = this.market (symbols[i]);
+            const currentDexName = this.getDexFromHip3Symbol (market);
+            if (currentDexName !== dexName) {
+                throw new NotSupported (this.id + ' ' + methodName + ' only supports symbols from one DEX at a time for HIP3 markets');
             }
         }
         return dexName;
@@ -4418,12 +4425,12 @@ export default class hyperliquid extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.vaultAddress] vault address withdraw from
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
         this.checkRequiredCredentials ();
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -4886,6 +4893,7 @@ export default class hyperliquid extends Exchange {
      * @description Retrieves the open interest for a list of symbols
      * @param {string[]} [symbols] Unified CCXT market symbol
      * @param {object} [params] exchange specific parameters
+     * @param {string} [params.dex] perp dex name for hip3 markets, eg: 'xyz', inferred from the symbols if not provided
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     override async fetchOpenInterests (symbols: Strings = undefined, params: Dict = {}): Promise<OpenInterests> {
@@ -4893,7 +4901,12 @@ export default class hyperliquid extends Exchange {
             await this.loadMarkets ();
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
-        const swapMarkets = await this.fetchSwapMarkets ();
+        const request: Dict = {};
+        const dexName = this.getDexFromSymbols ('fetchOpenInterests', symbolsNormalized);
+        if (dexName !== undefined) {
+            request['dex'] = dexName;
+        }
+        const swapMarkets = await this.fetchSwapMarkets (this.extend (request, params));
         return this.parseOpenInterests (swapMarkets, symbolsNormalized) as OpenInterests;
     }
 
@@ -5202,8 +5215,9 @@ export default class hyperliquid extends Exchange {
         return undefined;
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        const apiUrl = this.safeString (this.urls['api'], api);
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
+        const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
@@ -5212,18 +5226,18 @@ export default class hyperliquid extends Exchange {
         const postHeaders: Dict = {
             'Content-Type': 'application/json',
         };
-        let requestHeaders: NullableDict = headers;
+        let requestHeaders: NullableDict = undefined;
         if (isPost) {
             requestHeaders = postHeaders;
         }
-        let requestBody: Str = body;
+        let requestBody: Str = undefined;
         if (isPost) {
             requestBody = this.json (params);
         }
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
-    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config: Dict = {}) {
+    override calculateRateLimiterCost (api: string[], method: any, path: any, params: any, config: Dict = {}) {
         if (('byType' in config) && ('type' in params)) {
             const type = params['type'];
             const byType = config['byType'] as Dict;

@@ -12,6 +12,7 @@ import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
 import io.github.ccxt.types.Trade;
@@ -478,7 +479,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
 
         return BaseExchange.supplyAsync(() -> {
 
-            io.github.ccxt.base.Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTradesForSymbols", "interval", "100ms");
+            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTradesForSymbols", "interval", "100ms");
             var interval = ((List<Object>) intervalparamsIntervalVariable).get(0);
             Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
             if (java.util.Objects.equals(interval, "raw"))
@@ -680,7 +681,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
 
         return BaseExchange.supplyAsync(() -> {
 
-            io.github.ccxt.base.Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBookForSymbols", "interval", "100ms");
+            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBookForSymbols", "interval", "100ms");
             String interval = intervalparamsIntervalVariable.first();
             Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
             if (java.util.Objects.equals(interval, "raw"))
@@ -688,13 +689,13 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
                 (this.authenticate(new HashMap<String, Object>() {{}})).join();
             }
             // for more info on useDepthEndpoint, see comment in .options
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> useDepthEndpointparamsUseDepthEndpointVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsInterval), "watchOrderBookForSymbols", "useDepthEndpoint", false);
+            Pair<Boolean, Map<String, Object>> useDepthEndpointparamsUseDepthEndpointVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsInterval), "watchOrderBookForSymbols", "useDepthEndpoint", false);
             Boolean useDepthEndpoint = useDepthEndpointparamsUseDepthEndpointVariable.first();
             Map<String, Object> paramsUseDepthEndpoint = useDepthEndpointparamsUseDepthEndpointVariable.second();
-            io.github.ccxt.base.Pair<String, Map<String, Object>> depthparamsDepthVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsUseDepthEndpoint), "watchOrderBookForSymbols", "depth", "20");
+            Pair<String, Map<String, Object>> depthparamsDepthVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsUseDepthEndpoint), "watchOrderBookForSymbols", "depth", "20");
             String depth = depthparamsDepthVariable.first();
             Map<String, Object> paramsDepth = depthparamsDepthVariable.second();
-            io.github.ccxt.base.Pair<String, Map<String, Object>> groupparamsGroupVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsDepth), "watchOrderBookForSymbols", "group", "none");
+            Pair<String, Map<String, Object>> groupparamsGroupVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsDepth), "watchOrderBookForSymbols", "group", "none");
             String group = groupparamsGroupVariable.first();
             Map<String, Object> paramsGroup = groupparamsGroupVariable.second();
             String descriptor = interval;

@@ -532,9 +532,7 @@ class weex(Exchange, ImplicitAPI):
                 },
                 'networks': {
                     'BEP20': 'BEP20(BSC)',
-                    'BSC': 'BEP20(BSC)',
                     'ERC20': 'ERC20',
-                    'ETH': 'ERC20',
                     'POLYGON': 'POLYGON(MATIC)',
                     'MATIC': 'POLYGON(MATIC)',
                     'ARBITRUM': 'ARBITRUM(ARB)',
@@ -4032,16 +4030,17 @@ class weex(Exchange, ImplicitAPI):
         super(weex, self).set_sandbox_mode(enable)
         self.options['sandboxMode'] = enable
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
         endpoint = self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         isBatch = (path.find('batch') >= 0)
         if not isBatch and ((method == 'GET') or (method == 'DELETE')):
             if len(query) > 0:
                 endpoint += '?' + self.urlencode(query)
-        isPrivate = (api == 'private') or (api == 'contractPrivate')
+        isPrivate = (apiName == 'private') or (apiName == 'contractPrivate')
         hasJsonBody = isPrivate and ((method == 'POST') or isBatch)
-        requestBody = body
+        requestBody = None
         if hasJsonBody:
             requestBody = self.json(query)
         requestHeaders = None
@@ -4068,7 +4067,7 @@ class weex(Exchange, ImplicitAPI):
             requestHeaders = {
                 'User-Agent': 'ccxt',
             }
-        baseApiUrl = self.safe_string(self.urls['api'], api)
+        baseApiUrl = self.safe_string(self.urls['api'], apiName)
         if baseApiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         baseUrl = baseApiUrl
@@ -4085,6 +4084,8 @@ class weex(Exchange, ImplicitAPI):
         message = self.safe_string(response, 'msg')
         if message is not None:
             errorCode = self.safe_string(response, 'code')
+            if errorCode == '200' and message.lower() == 'success':
+                return None
             feedback = self.id + ' ' + body
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)

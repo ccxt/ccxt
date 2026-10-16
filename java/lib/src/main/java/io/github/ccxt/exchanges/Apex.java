@@ -15,6 +15,7 @@ import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.OpenInterest;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Position;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
@@ -77,7 +78,7 @@ public class Apex extends ApexApi
                 put( "createStopOrder", true );
                 put( "createTriggerOrder", true );
                 put( "editOrder", false );
-                put( "fetchAccounts", true );
+                put( "fetchAccounts", false );
                 put( "fetchAllGreeks", false );
                 put( "fetchBalance", true );
                 put( "fetchBorrowInterest", false );
@@ -137,8 +138,8 @@ public class Apex extends ApexApi
                 put( "fetchTrades", true );
                 put( "fetchTradingFee", false );
                 put( "fetchTradingFees", false );
-                put( "fetchTransfer", true );
-                put( "fetchTransfers", true );
+                put( "fetchTransfer", false );
+                put( "fetchTransfers", false );
                 put( "fetchVolatilityHistory", false );
                 put( "fetchWithdrawal", false );
                 put( "fetchWithdrawals", false );
@@ -990,7 +991,7 @@ public class Apex extends ApexApi
             // default is 200 when requested with `since`, max 200
             Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 200L : Math.min(limit, 200);
             request.put("limit", limitResolved);
-            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 0.001);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 0.001);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             if (!java.util.Objects.equals(since, null))
@@ -2338,9 +2339,10 @@ public class Apex extends ApexApi
         return this.safePosition(mapLiteral3);
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        String baseApiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String baseApiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(baseApiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -2352,7 +2354,7 @@ public class Apex extends ApexApi
             put( "Content-Type", "application/x-www-form-urlencoded" );
         }};
         String signPath = ("/api/" + path);
-        String signBody = body;
+        String signBody = null;
         if (!java.util.Objects.equals(((String)java.util.Objects.requireNonNullElse(method, "GET")).toUpperCase(), "POST"))
         {
             if (((Map<String, Object>)parameters).size() > 0)
@@ -2365,7 +2367,7 @@ public class Apex extends ApexApi
             Map<String,Object> sortedQuery = this.keysort(parameters);
             signBody = this.rawencode(sortedQuery);
         }
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
             String timestamp = String.valueOf(this.milliseconds());

@@ -16,7 +16,7 @@ class woo extends Exchange {
             'countries' => array( 'KY' ), // Cayman Islands
             'rateLimit' => 100,
             'version' => 'v1',
-            'certified' => true,
+            'certified' => false,
             'pro' => true,
             'hostname' => 'woox.io',
             'has' => array(
@@ -340,7 +340,6 @@ class woo extends Exchange {
                 'sandboxMode' => false,
                 'createMarketBuyOrderRequiresPrice' => true,
                 'networks' => array(
-                    'TRX' => 'TRX', // WOO X renamed the network id from TRON to TRX
                     'TRC20' => 'TRX',
                     'ERC20' => 'ETH',
                     'BEP20' => 'BSC',
@@ -3377,7 +3376,7 @@ class woo extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
+    public function withdraw(string $code, float $amount, string $address, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -3386,15 +3385,15 @@ class woo extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $this->check_address($address);
+        $this->check_address($address, $code, $tagWithdrawTag);
         $currency = $this->currency($code);
         $request = array(
             'amount' => $amount,
@@ -3425,7 +3424,7 @@ class woo extends Exchange {
             'amount' => $amount,
             'addressTo' => $address,
             'tag' => $tagWithdrawTag,
-            'network' => $network,
+            'network' => $this->safe_string($this->networkAliases, $network, $network),
             'type' => 'withdrawal',
             'status' => 'pending',
         ));
@@ -3487,7 +3486,7 @@ class woo extends Exchange {
         return $this->milliseconds() - $this->safe_integer($this->options, 'timeDifference', 0);
     }
 
-    public function sign(string $path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $section = array('public'), $method = 'GET', $params = array()): array {
         $requestHeaders = null;
         $requestBody = null;
         $version = $this->safe_string($section, 0);
@@ -3560,8 +3559,8 @@ class woo extends Exchange {
             }
             $requestHeaders['x-api-signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
         }
-        $headersResult = ($requestHeaders !== null) ? $requestHeaders : $headers;
-        $bodyResult = ($requestBody !== null) ? $requestBody : $body;
+        $headersResult = $requestHeaders;
+        $bodyResult = $requestBody;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
     }
 
@@ -4780,7 +4779,7 @@ class woo extends Exchange {
         $networkKeys = is_array($networks) ? array_keys($networks) : array();
         for ($i = 0; $i < count($networkKeys); $i++) {
             $network = $networkKeys[$i];
-            if ($network === 'ETH') {
+            if ($network === 'ERC20') {
                 return $network;
             }
         }

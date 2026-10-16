@@ -437,7 +437,7 @@ class backpack(Exchange, ImplicitAPI):
                     'BERA': 'Berachain',
                     'BTC': 'Bitcoin',
                     'BCH': 'BitcoinCash',
-                    'BSC': 'Bsc',
+                    'BEP20': 'Bsc',
                     'ADA': 'Cardano',
                     'DOGE': 'Dogecoin',
                     'ECLIPSE': 'Eclipse',
@@ -462,7 +462,7 @@ class backpack(Exchange, ImplicitAPI):
                     'berachain': 'BERA',
                     'bitcoin': 'BTC',
                     'bitcoincash': 'BCH',
-                    'bsc': 'BSC',
+                    'bsc': 'BEP20',
                     'cardano': 'ADA',
                     'dogecoin': 'DOGE',
                     'eclipse': 'ECLIPSE',
@@ -1461,7 +1461,7 @@ class backpack(Exchange, ImplicitAPI):
         response = await self.privateGetWapiV1CapitalWithdrawals(self.extend(request, paramsUntil))
         return self.parse_transactions(response, currency, since, limit)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -1470,11 +1470,12 @@ class backpack(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :param str params['network']: the network to withdraw on(mandatory)
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
+        tag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
         if self.markets is None:
             await self.load_markets()
         currency = self.currency(code)
@@ -1485,7 +1486,7 @@ class backpack(Exchange, ImplicitAPI):
         }
         if tag is not None:
             request['clientId'] = tag  # memo or tag
-        networkCode, query = self.handle_network_code_and_params(params)
+        networkCode, query = self.handle_network_code_and_params(paramsWithdrawTag)
         networkId = self.network_code_to_id(networkCode, self.safe_string(currency, 'code'))
         if networkId is None:
             raise BadRequest(self.id + ' withdraw() requires a network parameter')
@@ -2236,16 +2237,17 @@ class backpack(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' nonce() requires a numeric options["timeDifference"]')
         return self.milliseconds() - timeDifference
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
         endpoint = '/' + path
-        apiUrl = self.safe_string(self.urls['api'], api)
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl
         sortedParams = params if isinstance(params, list) else self.keysort(params)
         headersSigned = None
         bodySigned = None
-        if api == 'private':
+        if apiName == 'private':
             self.check_required_credentials()
             ts = str(self.nonce())
             recvWindow = self.safe_string_2(self.options, 'recvWindow', 'X-Window', '5000')
@@ -2278,9 +2280,9 @@ class backpack(Exchange, ImplicitAPI):
             if len(query) != 0:
                 endpoint += '?' + query
         url += endpoint
-        headersResolved = headersSigned if (api == 'private') else headers
-        bodyResolved = body
-        if (api == 'private') and (method != 'GET'):
+        headersResolved = headersSigned if (apiName == 'private') else None
+        bodyResolved = None
+        if (apiName == 'private') and (method != 'GET'):
             bodyResolved = bodySigned
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 

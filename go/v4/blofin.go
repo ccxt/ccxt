@@ -2740,7 +2740,8 @@ func (this *Blofin) NetworkCodeToChainId(networkCode any, optionalArgs ...any) a
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var aliases map[string]any = SafeMapTyped(this.Options, "networkCodeAliases")
-	var unifiedCode *string = this.SafeString(aliases, networkCode, networkCode)
+	var aliasedCode *string = this.SafeString(aliases, networkCode, networkCode)
+	var unifiedCode *string = this.SafeString(this.NetworkAliases, aliasedCode, aliasedCode)
 	// prefer the exact chain id from the currencies registry when it is
 	// loaded, since some ids are currency-specific (USDT on Optimism)
 	if currency != nil {
@@ -3259,8 +3260,8 @@ func (this *Blofin) fetchWithdrawalBody(ch chan AsyncResult[map[string]any], id 
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw, the withdrawal fee is not included and must be reserved on top
  * @param {string} address the address to withdraw to, or a UID / email / phone number for an internal transfer
- * @param {string} tag additional identifier (memo / payment id) required by certain networks
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @param {string} [params.network] the unified network code for on-chain withdrawals, mapped to the exchange's chain name
  * @param {string} [params.dest] 'onchain' (default) or 'internal' for an internal transfer
  * @param {string} [params.addrType] address type, 1: wallet address, 2: UID, 3: email, 4: mobile phone
@@ -3286,14 +3287,12 @@ func (this *Blofin) withdrawBody(ch chan EndpointResult[map[string]any], code st
 	//   with 152002 "Invalid parameter" - see options["networks"]
 	// - 152002 responses omit the offending field name even though the
 	//   error table documents the message as "Parameter {} error"
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagValue *string = nil
+	var tagValue any = nil
 	var query any = nil
-	var tagValuequeryVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tagValue = SafeStringPtr(tagValuequeryVariable[0])
+	var tagValuequeryVariable []any = this.HandleParamString(params, "tag")
+	tagValue = GetValue(tagValuequeryVariable, 0)
 	query = GetValue(tagValuequeryVariable, 1)
 
 	r := <-this.LoadMarketsAsync()
@@ -3310,7 +3309,7 @@ func (this *Blofin) withdrawBody(ch chan EndpointResult[map[string]any], code st
 	request["dest"] = dest
 	query = this.Omit(query, "dest")
 	if dest != nil && *dest == "onchain" {
-		this.CheckAddress(address)
+		this.CheckAddress(address, code, tagValue)
 		// the doc's Request Parameters table marks addrType "Required:
 		// No", but the live venue rejects on-chain withdrawals without
 		// it (152001 "Parameter addrType cannot be empty") - default to
@@ -3406,11 +3405,11 @@ func (this *Blofin) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...an
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes247419 []any = ListTyped(r1.Value)
-		if retRes247419 == nil {
+		var retRes247519 []any = ListTyped(r1.Value)
+		if retRes247519 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes247419}
+			ch <- AsyncResult[any]{Value: retRes247519}
 		}
 		return nil
 	}
@@ -4440,11 +4439,11 @@ func (this *Blofin) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes324719 []any = ListTyped(r1.Value)
-		if retRes324719 == nil {
+		var retRes324819 []any = ListTyped(r1.Value)
+		if retRes324819 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes324719}
+			ch <- AsyncResult[any]{Value: retRes324819}
 		}
 		return nil
 	}
@@ -4840,16 +4839,13 @@ func (this *Blofin) HandleErrors(httpCode any, reason any, url any, method any, 
 	return nil
 }
 func (this *Blofin) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var request string = "/api/" + this.Version + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var apiUrl *string = this.SafeString(this.Urls["api"], "rest")
@@ -4858,11 +4854,11 @@ func (this *Blofin) Sign(path string, optionalArgs ...any) any {
 	}
 	var url string = *apiUrl + request
 	// const type = this.getPathAuthenticationType (path);
-	if api == "public" {
+	if apiName != nil && *apiName == "public" {
 		if !this.IsEmpty(query) {
 			url += "?" + this.Urlencode(query)
 		}
-	} else if api == "private" {
+	} else if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		var timestamp string = strconv.FormatInt(this.Milliseconds(), 10)
 		var signedHeaders map[string]any = map[string]any{
@@ -4889,12 +4885,7 @@ func (this *Blofin) Sign(path string, optionalArgs ...any) any {
 		var auth *string = SafeStringPtr(Add(request+method+timestamp+timestamp, sign_body))
 		var signature string = this.StringToBase64(this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256))
 		signedHeaders["ACCESS-SIGN"] = signature
-		var bodyResolved any = func() any {
-			if signedBody == nil {
-				return body
-			}
-			return signedBody
-		}()
+		var bodyResolved any = signedBody
 		return map[string]any{
 			"url":     url,
 			"method":  method,
@@ -4905,8 +4896,8 @@ func (this *Blofin) Sign(path string, optionalArgs ...any) any {
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    nil,
+		"headers": nil,
 	}
 }
 
@@ -5506,8 +5497,8 @@ func (this *Blofin) FetchWithdrawal(id string, options ...FetchWithdrawalOptions
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw, the withdrawal fee is not included and must be reserved on top
  * @param {string} address the address to withdraw to, or a UID / email / phone number for an internal transfer
- * @param {string} tag additional identifier (memo / payment id) required by certain networks
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @param {string} [params.network] the unified network code for on-chain withdrawals, mapped to the exchange's chain name
  * @param {string} [params.dest] 'onchain' (default) or 'internal' for an internal transfer
  * @param {string} [params.addrType] address type, 1: wallet address, 2: UID, 3: email, 4: mobile phone
@@ -5522,7 +5513,7 @@ func (this *Blofin) Withdraw(code string, amount float64, address string, option
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

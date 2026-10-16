@@ -18,6 +18,7 @@ import io.github.ccxt.types.Leverages;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Position;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
@@ -135,7 +136,7 @@ public class Krakenfutures extends KrakenfuturesApi
                     put( "private", "https://futures.kraken.com/derivatives/api/" );
                 }} );
                 put( "www", "https://futures.kraken.com/" );
-                put( "doc", new ArrayList<Object>(Arrays.asList("https://docs.kraken.com/api/docs/futures-api/trading/market-data/")) );
+                put( "doc", new ArrayList<Object>(Arrays.asList("https://docs.kraken.com/exchange/guides/futures/rest")) );
                 put( "fees", "https://support.kraken.com/hc/en-us/articles/360022835771-Transaction-fees-and-rebates-for-Kraken-Futures" );
                 put( "referral", null );
             }} );
@@ -953,8 +954,8 @@ public class Krakenfutures extends KrakenfuturesApi
      * @method
      * @name krakenfutures#fetchTradingFees
      * @description fetch the trading fees for multiple markets, resolving the account's 30-day usd volume tier when API credentials are set
-     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules
-     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules-volumes
+     * @see https://docs.kraken.com/api-reference/fee-schedules/get-fee-schedules
+     * @see https://docs.kraken.com/api-reference/fee-schedules/get-fee-schedule-volumes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
@@ -984,7 +985,7 @@ public class Krakenfutures extends KrakenfuturesApi
             Map<String, Object> volumes = new HashMap<String, Object>() {{}};
             if (this.checkRequiredCredentials(false))
             {
-                Map<String, Object> volumesResponse = (this.privateGetFeeschedulesVolumes()).join();
+                Map<String, Object> volumesResponse = (this.privateGetFeeschedulesVolumes(new HashMap<String, Object>() {{}})).join();
                 //
                 //    {
                 //        "result": "success",
@@ -1072,7 +1073,7 @@ public class Krakenfutures extends KrakenfuturesApi
     /**
      * @method
      * @name krakenfutures#fetchOHLCV
-     * @see https://docs.kraken.com/api/docs/futures-api/charts/candles
+     * @see https://docs.kraken.com/api-reference/candles/market-candles
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
@@ -1093,7 +1094,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -1172,8 +1173,8 @@ public class Krakenfutures extends KrakenfuturesApi
     /**
      * @method
      * @name krakenfutures#fetchTrades
-     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-history
-     * @see https://docs.kraken.com/api/docs/futures-api/history/get-public-execution-events
+     * @see https://docs.kraken.com/api-reference/market-data/get-trade-history
+     * @see https://docs.kraken.com/api-reference/market-history/get-public-execution-events
      * @description Fetch a history of filled trades that this account has made
      * @param {string} symbol Unified CCXT market symbol
      * @param {int} [since] Timestamp in ms of earliest trade. Not used by krakenfutures except in combination with params.until
@@ -1193,7 +1194,7 @@ public class Krakenfutures extends KrakenfuturesApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTrades", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTrades", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -1204,14 +1205,14 @@ public class Krakenfutures extends KrakenfuturesApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};
-            io.github.ccxt.base.Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsPaginate), "fetchTrades", "method", "historyGetMarketSymbolExecutions");
+            Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsPaginate), "fetchTrades", "method", "historyGetMarketSymbolExecutions");
             String method = methodparamsMethodVariable.first();
             Map<String, Object> paramsMethod = methodparamsMethodVariable.second();
             List<Object> rawTrades = new ArrayList<Object>(Arrays.asList());
             Boolean isFullHistoryEndpoint = (java.util.Objects.equals(method, "historyGetMarketSymbolExecutions"));
             if (Boolean.TRUE.equals(isFullHistoryEndpoint))
             {
-                io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("before", (Map<String, Object>) (request), (Map<String, Object>) (paramsMethod), 1);
+                Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("before", (Map<String, Object>) (request), (Map<String, Object>) (paramsMethod), 1);
                 Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
                 Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
                 if (!java.util.Objects.equals(since, null))
@@ -1288,7 +1289,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 }
             } else
             {
-                io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("lastTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsMethod), 1);
+                Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("lastTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsMethod), 1);
                 Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
                 Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
                 Map<String, Object> response = (this.publicGetHistory(this.extend(requestUntil, paramsUntil))).join();
@@ -1979,7 +1980,7 @@ public class Krakenfutures extends KrakenfuturesApi
      * @method
      * @name krakenfutures#cancelAllOrdersAfter
      * @description dead man's switch, cancel all orders after the given timeout
-     * @see https://docs.kraken.com/api/docs/futures-api/trading/cancel-all-orders-after
+     * @see https://docs.kraken.com/api-reference/order-management/dead-mans-switch
      * @param {number} timeout time in milliseconds, 0 represents cancel the timer
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
@@ -3238,7 +3239,7 @@ public class Krakenfutures extends KrakenfuturesApi
     /**
      * @method
      * @name krakenfutures#fetchBalance
-     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-accounts
+     * @see https://docs.kraken.com/api-reference/account-information/get-wallets
      * @description Fetch the balance for a sub-account, all sub-account balances are inside 'info' in the response
      * @param {object} [params] Exchange specific parameters
      * @param {string} [params.type] The sub-account type to query the balance of, possible values include 'flex', 'cash'/'main'/'funding', or a market symbol * defaults to 'flex' *
@@ -4406,14 +4407,15 @@ public class Krakenfutures extends KrakenfuturesApi
         throw new ExchangeError(feedback) ;
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Map<String, Object> apiVersions = (Map<String, Object>) this.safeDict(this.options.get("versions"), java.util.Objects.requireNonNullElse(api, "public"), new HashMap<String, Object>() {{}});
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        Map<String, Object> apiVersions = (Map<String, Object>) this.safeDict(this.options.get("versions"), apiName, new HashMap<String, Object>() {{}});
         Map<String, Object> methodVersions = (Map<String, Object>) this.safeDict(apiVersions, java.util.Objects.requireNonNullElse(method, "GET"), new HashMap<String, Object>() {{}});
         String defaultVersion = this.safeString(methodVersions, path, this.version);
         String version = this.safeString(parameters, "version", defaultVersion);
         Object paramsOmitted = this.omit(parameters, "version");
-        Map<String, Object> apiAccess = (Map<String, Object>) this.safeDict(this.options.get("access"), java.util.Objects.requireNonNullElse(api, "public"), new HashMap<String, Object>() {{}});
+        Map<String, Object> apiAccess = (Map<String, Object>) this.safeDict(this.options.get("access"), apiName, new HashMap<String, Object>() {{}});
         Map<String, Object> methodAccess = (Map<String, Object>) this.safeDict(apiAccess, java.util.Objects.requireNonNullElse(method, "GET"), new HashMap<String, Object>() {{}});
         String access = this.safeString(methodAccess, path, "public");
         String endpoint = ((version + "/") + this.implodeParams(path, paramsOmitted));
@@ -4434,21 +4436,21 @@ public class Krakenfutures extends KrakenfuturesApi
             }
             query = (query + ("?" + postData));
         }
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = (apiUrl + query);
-        String requestBody = (((java.util.Objects.equals(path, "batchorder")))) ? postData : body;
+        String requestBody = (((java.util.Objects.equals(path, "batchorder")))) ? postData : null;
         Map<String, Object> privateHeaders = null;
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private") || java.util.Objects.equals(access, "private"))
+        if (java.util.Objects.equals(apiName, "private") || java.util.Objects.equals(access, "private"))
         {
             this.checkRequiredCredentials(true);
             String auth = (postData + "/api/");
-            if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+            if (!java.util.Objects.equals(apiName, "private"))
             {
-                auth = (auth + (java.util.Objects.requireNonNullElse(api, "public") + "/"));
+                auth = (auth + (apiName + "/"));
             }
             auth = (auth + endpoint); // 1
             Object hash = this.hash(this.encode(auth), sha256(), "binary"); // 2
@@ -4461,7 +4463,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 put( "Authent", signature );
             }};
         }
-        Object requestHeaders = (((!java.util.Objects.equals(privateHeaders, null)))) ? privateHeaders : headers;
+        Map<String, Object> requestHeaders = privateHeaders;
         return new HashMap<String, Object>() {{
             put( "url", url );
             put( "method", java.util.Objects.requireNonNullElse(method, "GET") );

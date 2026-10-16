@@ -572,7 +572,7 @@ func (this *Backpack) Describe() any {
 				"BERA":        "Berachain",
 				"BTC":         "Bitcoin",
 				"BCH":         "BitcoinCash",
-				"BSC":         "Bsc",
+				"BEP20":       "Bsc",
 				"ADA":         "Cardano",
 				"DOGE":        "Dogecoin",
 				"ECLIPSE":     "Eclipse",
@@ -597,7 +597,7 @@ func (this *Backpack) Describe() any {
 				"berachain":   "BERA",
 				"bitcoin":     "BTC",
 				"bitcoincash": "BCH",
-				"bsc":         "BSC",
+				"bsc":         "BEP20",
 				"cardano":     "ADA",
 				"dogecoin":    "DOGE",
 				"eclipse":     "ECLIPSE",
@@ -2074,8 +2074,8 @@ func (this *Backpack) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArg
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @param {string} params.network the network to withdraw on (mandatory)
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
@@ -2087,10 +2087,11 @@ func (this *Backpack) WithdrawAsync(code string, amount any, address any, option
 func (this *Backpack) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
+	var tagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
+	var tag *string = SafeStringPtr(tagparamsWithdrawTagVariable[0])
+	var paramsWithdrawTag map[string]any = MapTyped(tagparamsWithdrawTagVariable[1])
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -2107,7 +2108,7 @@ func (this *Backpack) withdrawBody(ch chan EndpointResult[map[string]any], code 
 	if tag != nil {
 		request["clientId"] = tag // memo or tag
 	}
-	var networkCodequeryVariable []any = this.HandleNetworkCodeAndParams(params)
+	var networkCodequeryVariable []any = this.HandleNetworkCodeAndParams(paramsWithdrawTag)
 	var networkCode *string = SafeStringPtr(networkCodequeryVariable[0])
 	var query map[string]any = MapTyped(networkCodequeryVariable[1])
 	var networkId any = this.NetworkCodeToId(networkCode, this.SafeString(currency, "code"))
@@ -2428,11 +2429,11 @@ func (this *Backpack) createOrdersBody(ch chan AsyncResult[any], orders any, opt
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
 
-	listEp2294 := <-this.PrivatePostApiV1Orders(ordersRequests)
-	if listEp2294.Err != nil {
-		panic(listEp2294.Err)
+	listEp2295 := <-this.PrivatePostApiV1Orders(ordersRequests)
+	if listEp2295.Err != nil {
+		panic(listEp2295.Err)
 	}
-	var response []any = listEp2294.Value
+	var response []any = listEp2295.Value
 
 	ch <- AsyncResult[any]{Value: this.ParseOrders(response)}
 	return nil
@@ -2577,11 +2578,11 @@ func (this *Backpack) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs
 		request["symbol"] = market["id"]
 	}
 
-	listEp2436 := <-this.PrivateGetApiV1Orders(this.Extend(request, params))
-	if listEp2436.Err != nil {
-		panic(listEp2436.Err)
+	listEp2437 := <-this.PrivateGetApiV1Orders(this.Extend(request, params))
+	if listEp2437.Err != nil {
+		panic(listEp2437.Err)
 	}
-	var response []any = listEp2436.Value
+	var response []any = listEp2437.Value
 
 	ch <- AsyncResult[any]{Value: this.ParseOrders(response, market, since, limit)}
 	return nil
@@ -2719,11 +2720,11 @@ func (this *Backpack) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs
 		"symbol": market["id"],
 	}
 
-	listEp2557 := <-this.PrivateDeleteApiV1Orders(this.Extend(request, params))
-	if listEp2557.Err != nil {
-		panic(listEp2557.Err)
+	listEp2558 := <-this.PrivateDeleteApiV1Orders(this.Extend(request, params))
+	if listEp2558.Err != nil {
+		panic(listEp2558.Err)
 	}
-	var response []any = listEp2557.Value
+	var response []any = listEp2558.Value
 
 	ch <- AsyncResult[any]{Value: this.ParseOrders(response, market)}
 	return nil
@@ -2773,11 +2774,11 @@ func (this *Backpack) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...
 		request["limit"] = limit
 	}
 
-	listEp2604 := <-this.PrivateGetWapiV1HistoryOrders(this.Extend(request, params))
-	if listEp2604.Err != nil {
-		panic(listEp2604.Err)
+	listEp2605 := <-this.PrivateGetWapiV1HistoryOrders(this.Extend(request, params))
+	if listEp2605.Err != nil {
+		panic(listEp2605.Err)
 	}
-	var response []any = listEp2604.Value
+	var response []any = listEp2605.Value
 
 	ch <- AsyncResult[any]{Value: this.ParseOrders(response, market, since, limit)}
 	return nil
@@ -2974,11 +2975,11 @@ func (this *Backpack) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs 
 		}
 	}
 
-	listEp2798 := <-this.PrivateGetApiV1Position(params)
-	if listEp2798.Err != nil {
-		panic(listEp2798.Err)
+	listEp2799 := <-this.PrivateGetApiV1Position(params)
+	if listEp2799.Err != nil {
+		panic(listEp2799.Err)
 	}
-	var response []any = listEp2798.Value
+	var response []any = listEp2799.Value
 	var positions any = this.ParsePositions(response)
 	if this.IsEmpty(symbols) {
 
@@ -3123,11 +3124,11 @@ func (this *Backpack) fetchFundingHistoryBody(ch chan AsyncResult[any], optional
 		request["limit"] = limit
 	}
 
-	listEp2940 := <-this.PrivateGetWapiV1HistoryFunding(this.Extend(request, params))
-	if listEp2940.Err != nil {
-		panic(listEp2940.Err)
+	listEp2941 := <-this.PrivateGetWapiV1HistoryFunding(this.Extend(request, params))
+	if listEp2941.Err != nil {
+		panic(listEp2941.Err)
 	}
-	var response []any = listEp2940.Value
+	var response []any = listEp2941.Value
 
 	ch <- AsyncResult[any]{Value: this.ParseIncomes(response, market, since, limit)}
 	return nil
@@ -3170,18 +3171,15 @@ func (this *Backpack) Nonce() any {
 	return this.Milliseconds() - *timeDifference
 }
 func (this *Backpack) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var endpoint string = "/" + path
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -3194,7 +3192,7 @@ func (this *Backpack) Sign(path string, optionalArgs ...any) any {
 	}()
 	var headersSigned any = nil
 	var bodySigned *string = nil
-	if api == "private" {
+	if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		var ts string = ToString(this.Nonce())
 		var recvWindow *string = this.SafeString2(this.Options, "recvWindow", "X-Window", "5000")
@@ -3234,13 +3232,13 @@ func (this *Backpack) Sign(path string, optionalArgs ...any) any {
 	}
 	url = Add(url, endpoint)
 	var headersResolved any = func() any {
-		if api == "private" {
+		if apiName != nil && *apiName == "private" {
 			return headersSigned
 		}
-		return headers
+		return nil
 	}()
-	var bodyResolved *string = body
-	if (api == "private") && (method != "GET") {
+	var bodyResolved *string = nil
+	if (apiName != nil && *apiName == "private") && (method != "GET") {
 		bodyResolved = bodySigned
 	}
 	return map[string]any{
@@ -3675,8 +3673,8 @@ func (this *Backpack) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tr
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @param {string} params.network the network to withdraw on (mandatory)
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
@@ -3687,7 +3685,7 @@ func (this *Backpack) Withdraw(code string, amount float64, address string, opti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

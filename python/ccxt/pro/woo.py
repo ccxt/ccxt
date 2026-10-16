@@ -254,9 +254,13 @@ class woo(ccxt.async_support.woo):
         symbol = self.safe_string(subscription, 'symbol')  # watchOrderBook
         if symbol is None:
             return
-        if symbol in self.orderbooks:
-            del self.orderbooks[symbol]
-        self.orderbooks[symbol] = self.order_book({}, limit)
+        if not (symbol in self.orderbooks):
+            self.orderbooks[symbol] = self.order_book({}, limit)
+        orderbook = self.orderbooks[symbol]
+        # handleOrderBook queues deltas while timestamp is undefined, until the REST snapshot lands
+        orderbook['timestamp'] = None
+        orderbook['datetime'] = None
+        orderbook.cache = []
         self.spawn(self.fetch_order_book_snapshot, client, message, subscription)
 
     async def fetch_order_book_snapshot(self, client: Client, message: dict, subscription: dict):

@@ -523,9 +523,7 @@ export default class weex extends Exchange {
                 },
                 'networks': {
                     'BEP20': 'BEP20(BSC)',
-                    'BSC': 'BEP20(BSC)',
                     'ERC20': 'ERC20',
-                    'ETH': 'ERC20',
                     'POLYGON': 'POLYGON(MATIC)',
                     'MATIC': 'POLYGON(MATIC)',
                     'ARBITRUM': 'ARBITRUM(ARB)',
@@ -4362,7 +4360,8 @@ export default class weex extends Exchange {
         this.options['sandboxMode'] = enable;
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
         let endpoint = this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         const isBatch = (path.indexOf ('batch') >= 0);
@@ -4371,9 +4370,9 @@ export default class weex extends Exchange {
                 endpoint += '?' + this.urlencode (query);
             }
         }
-        const isPrivate = (api === 'private') || (api === 'contractPrivate');
+        const isPrivate = (apiName === 'private') || (apiName === 'contractPrivate');
         const hasJsonBody = isPrivate && ((method === 'POST') || isBatch);
-        let requestBody: Str = body;
+        let requestBody: Str = undefined;
         if (hasJsonBody) {
             requestBody = this.json (query);
         }
@@ -4405,7 +4404,7 @@ export default class weex extends Exchange {
                 'User-Agent': 'ccxt',
             };
         }
-        const baseApiUrl = this.safeString (this.urls['api'], api);
+        const baseApiUrl = this.safeString (this.urls['api'], apiName);
         if (baseApiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
@@ -4424,6 +4423,9 @@ export default class weex extends Exchange {
         const message = this.safeString (response, 'msg');
         if (message !== undefined) {
             const errorCode = this.safeString (response, 'code');
+            if (errorCode === '200' && message.toLowerCase () === 'success') {
+                return undefined;
+            }
             const feedback = this.id + ' ' + body;
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);

@@ -2220,7 +2220,7 @@ class upbit(Exchange, ImplicitAPI):
             raise AddressPending(self.id + ' is generating ' + code + ' deposit address, call fetchDepositAddress or createDepositAddress one more time later to retrieve the generated address')
         return self.parse_deposit_address(response)
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
 
         https://docs.upbit.com/kr/reference/withdraw
@@ -2230,11 +2230,11 @@ class upbit(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagResolved, paramsTag = self.handle_withdraw_tag_and_params(tag, params)
+        tagResolved, paramsTag = self.handle_param_string(params, 'tag')
         if self.markets is None:
             self.load_markets()
         currency = self.currency(code)
@@ -2243,7 +2243,7 @@ class upbit(Exchange, ImplicitAPI):
         }
         response: dict
         if code != 'KRW':
-            self.check_address(address)
+            self.check_address(address, code, tagResolved)
             # 2023-05-23 Change to required parameters for digital assets
             network = self.safe_string_upper_2(paramsTag, 'network', 'net_type')
             if network is None:
@@ -2276,8 +2276,9 @@ class upbit(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        baseApiUrl = self.safe_string(self.urls['api'], api)
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
+        baseApiUrl = self.safe_string(self.urls['api'], apiName)
         if baseApiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = self.implode_params(baseApiUrl, {
@@ -2288,12 +2289,12 @@ class upbit(Exchange, ImplicitAPI):
         if method != 'POST':
             if len(query) > 0:
                 url += '?' + self.urlencode(query)
-        hasBody = (api == 'private') and (method != 'GET') and (method != 'DELETE')
-        requestBody = body
+        hasBody = (apiName == 'private') and (method != 'GET') and (method != 'DELETE')
+        requestBody = None
         if hasBody:
             requestBody = self.json(params)
         privateHeaders = None
-        if api == 'private':
+        if apiName == 'private':
             self.check_required_credentials()
             privateHeaders = {}
             nonce = self.uuid()
@@ -2313,7 +2314,7 @@ class upbit(Exchange, ImplicitAPI):
                 request['query_hash_alg'] = 'SHA512'
             token = self.jwt(request, self.encode(self.secret), 'sha256')
             privateHeaders['Authorization'] = 'Bearer ' + token
-        requestHeaders = privateHeaders if (api == 'private') else headers
+        requestHeaders = privateHeaders if (apiName == 'private') else None
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

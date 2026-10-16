@@ -2487,7 +2487,7 @@ class bithumb(Exchange, ImplicitAPI):
         }
         return await self.cancel_order((order['id']), order['symbol'], self.extend(request, params))
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -2498,8 +2498,8 @@ class bithumb(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag: the secondary withdrawal destination address
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :param int [params.generation]: if you want to use the API generation 1 or 2, default is 2
         :param str [params.network]: the blockchain network to withdraw on, for example BTC or DASH
         :param str [params.destination]: secondary address destination for specific currencies, can alternatively use the tag argument
@@ -2517,8 +2517,8 @@ class bithumb(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         generation, paramsGeneration = self.handle_option_integer_and_params(params, 'withdraw', 'generation', 2)
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, paramsGeneration)
-        self.check_address(address)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(paramsGeneration, 'tag')
+        self.check_address(address, code, tagWithdrawTag)
         network = self.safe_string_2(paramsWithdrawTag, 'network', 'net_type')
         paramsNetwork = self.omit(paramsWithdrawTag, 'network')
         currency = self.currency(code)
@@ -2532,7 +2532,7 @@ class bithumb(Exchange, ImplicitAPI):
         if requiresDestination:
             destination = self.safe_string_2(paramsNetwork, 'destination', 'secondary_address')
             if (tagWithdrawTag is None) and (destination is None):
-                raise ArgumentsRequired(self.id + ' ' + code + ' withdraw() requires a tag argument or an extra destination param')
+                raise ArgumentsRequired(self.id + ' ' + code + ' withdraw() requires a tag or an extra destination param')
             elif tagWithdrawTag is not None:
                 destinationRequest = tagWithdrawTag
             else:
@@ -2551,7 +2551,7 @@ class bithumb(Exchange, ImplicitAPI):
                     raise ArgumentsRequired(self.id + ' ' + code + ' withdraw() requires a network parameter')
                 request['address'] = address
                 request['currency'] = currency['id']
-                request['net_type'] = network
+                request['net_type'] = self.network_code_to_id(network, code)
                 request['amount'] = self.number_to_string(amount)
                 if destinationRequest is not None:
                     request['secondary_address'] = destinationRequest
@@ -2579,7 +2579,7 @@ class bithumb(Exchange, ImplicitAPI):
             request['currency'] = currency['id']
             request['units'] = amount
             if network is not None:
-                request['net_type'] = network
+                request['net_type'] = self.network_code_to_id(network, code)
             if destinationRequest is not None:
                 request['destination'] = destinationRequest
             if receiverType is not None:
@@ -2635,7 +2635,7 @@ class bithumb(Exchange, ImplicitAPI):
             'txid': self.safe_string(transaction, 'txid'),
             'timestamp': timestamp,
             'datetime': datetime,
-            'network': self.safe_string(transaction, 'net_type'),
+            'network': self.network_id_to_code(self.safe_string(transaction, 'net_type'), currencyResolved['code']),
             'addressFrom': None,
             'address': None,
             'addressTo': None,
@@ -2938,7 +2938,7 @@ class bithumb(Exchange, ImplicitAPI):
         paramsOmitted = self.omit(paramsGeneration, 'network')
         if network is None:
             raise ArgumentsRequired(self.id + ' ' + code + ' createDepositAddress() requires a network parameter')
-        request['net_type'] = network
+        request['net_type'] = self.network_code_to_id(network, code)
         response = await self.privatePostV1DepositsGenerateCoinAddress(self.extend(request, paramsOmitted))
         #
         #     {
@@ -2975,7 +2975,7 @@ class bithumb(Exchange, ImplicitAPI):
         paramsOmitted = self.omit(paramsGeneration, 'network')
         if network is None:
             raise ArgumentsRequired(self.id + ' ' + code + ' fetchDepositAddress() requires a network parameter')
-        request['net_type'] = network
+        request['net_type'] = self.network_code_to_id(network, code)
         response = await self.privateGetV1DepositsCoinAddress(self.extend(request, paramsOmitted))
         #
         #     {
@@ -3036,7 +3036,7 @@ class bithumb(Exchange, ImplicitAPI):
         return {
             'info': response,
             'currency': code,
-            'network': self.safe_string(response, 'net_type'),
+            'network': self.network_id_to_code(self.safe_string(response, 'net_type'), code),
             'address': address,
             'tag': self.safe_string(response, 'secondary_address'),
         }
@@ -3078,11 +3078,12 @@ class bithumb(Exchange, ImplicitAPI):
                 result += encodedKey + '=' + encodedValue
         return result
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
         requestHeaders = None
         requestBody = None
         endpoint = '/' + self.implode_params(path, params)
-        apiUrl = self.safe_string(self.urls['api'], api)
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = self.implode_hostname(apiUrl) + endpoint
@@ -3090,7 +3091,7 @@ class bithumb(Exchange, ImplicitAPI):
         queryKeys = list(query.keys())
         queryKeysLength = len(queryKeys)
         hasQuery = (queryKeysLength > 0)
-        if api == 'public':
+        if apiName == 'public':
             requestHeaders = {
                 'OPEN-API-PARTNER': 'CCXT',
             }
@@ -3143,8 +3144,8 @@ class bithumb(Exchange, ImplicitAPI):
                     'Api-Nonce': nonce,
                     'OPEN-API-PARTNER': 'CCXT',
                 }
-        headersResult = requestHeaders if (requestHeaders is not None) else headers
-        bodyResult = requestBody if (requestBody is not None) else body
+        headersResult = requestHeaders
+        bodyResult = requestBody
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

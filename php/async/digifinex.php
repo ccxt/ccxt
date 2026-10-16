@@ -430,16 +430,13 @@ class digifinex extends Exchange {
                     'AVALANCEC' => 'AVAX-CCHAIN',
                     'AVALANCEX' => 'AVAX-XCHAIN',
                     'BEP20' => 'BEP20',
-                    'BSC' => 'BEP20',
                     'CARDANO' => 'Cardano',
                     'CELO' => 'Celo',
                     'CHILIZ' => 'Chiliz',
                     'COSMOS' => 'COSMOS',
                     'CRC20' => 'Crypto.com',
-                    'CRONOS' => 'Crypto.com',
                     'DOGECOIN' => 'DogeChain',
                     'ERC20' => 'ERC20',
-                    'ETH' => 'ERC20',
                     'ETHW' => 'ETHW',
                     'IOTA' => 'MIOTA',
                     'KLAYTN' => 'KLAY',
@@ -456,7 +453,6 @@ class digifinex extends Exchange {
                     'TERRA' => 'Terra',
                     'TON' => 'Ton',
                     'TRC20' => 'TRC20',
-                    'TRX' => 'TRC20',
                     'VECHAIN' => 'Vechain', // VET
                 ),
                 'networksById' => array(
@@ -467,7 +463,7 @@ class digifinex extends Exchange {
                     'ERC20' => 'ERC20',
                     'ETH' => 'ERC20',
                     'Polygon' => 'POLYGON',
-                    'Crypto.com' => 'CRONOS',
+                    'Crypto.com' => 'CRC20',
                 ),
             ),
             'commonCurrencies' => array(
@@ -3301,7 +3297,7 @@ class digifinex extends Exchange {
         if ($feeCost !== null) {
             $fee = array( 'currency' => $code, 'cost' => $feeCost );
         }
-        $network = $this->safe_string($transaction, 'chain');
+        $network = $this->network_id_to_code($this->safe_string($transaction, 'chain'), $code);
         return array(
             'info' => $transaction,
             'id' => $id,
@@ -3454,22 +3450,22 @@ class digifinex extends Exchange {
         return $this->parse_transfer($response, $currency);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->check_address($address);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
+        $this->check_address($address, $code, $tagWithdrawTag);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -4879,7 +4875,7 @@ class digifinex extends Exchange {
         return Async\await($this->privateSwapPostAccountPositionMode($this->extend($request, $params)));
     }
 
-    public function sign(string $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array(), $method = 'GET', $params = array()): array {
         $signed = $this->safe_string($api, 0) === 'private';
         $endpoint = $this->safe_string($api, 1);
         $pathPart = '/swap/v2';
@@ -4924,7 +4920,7 @@ class digifinex extends Exchange {
                 }
             }
             $hasPostBody = ($method === 'POST') && ($urlencoded !== null) && ($urlencoded !== '');
-            $requestBody = $body;
+            $requestBody = null;
             if ($hasPostBody) {
                 $requestBody = $urlencoded;
             }
@@ -4939,7 +4935,7 @@ class digifinex extends Exchange {
                 $url .= '?' . $urlencoded;
             }
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
     public function handle_errors(int $statusCode, string $statusText, string $url, string $method, array $responseHeaders, string $responseBody, mixed $response, mixed $requestHeaders, mixed $requestBody) {

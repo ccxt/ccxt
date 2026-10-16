@@ -1002,13 +1002,15 @@ export default class bitbank extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        const tagAndParams = this.handleWithdrawTagAndParams (tag, params);
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
+        const tagAndParams = this.handleParamString (params, 'tag');
+        const tagWithdrawTag: Str = tagAndParams[0];
         const paramsWithdrawTag: Dict = tagAndParams[1];
+        this.checkAddress (address, code, tagWithdrawTag);
         if (!('uuid' in paramsWithdrawTag)) {
             throw new ExchangeError (this.id + ' uuid is required for withdrawal');
         }
@@ -1089,16 +1091,17 @@ export default class bitbank extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
         let query = this.omit (params, this.extractParams (path));
-        const apiUrl = this.safeString (this.urls['api'], api);
+        const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
         let url = this.implodeHostname (apiUrl) + '/';
         let requestBody: Str = undefined;
         let requestHeaders: NullableDict = undefined;
-        if ((api === 'public') || (api === 'markets')) {
+        if ((apiName === 'public') || (apiName === 'markets')) {
             url += this.implodeParams (path, params);
             if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
@@ -1142,8 +1145,8 @@ export default class bitbank extends Exchange {
                 requestHeaders['ACCESS-NONCE'] = nonce;
             }
         }
-        const bodyResolved = (requestBody === undefined) ? body : requestBody;
-        const headersResolved = (requestHeaders === undefined) ? headers : requestHeaders;
+        const bodyResolved = requestBody;
+        const headersResolved = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 

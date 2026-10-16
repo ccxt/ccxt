@@ -3522,7 +3522,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)
         raise ExchangeError(feedback)
 
-    def sign(self, path: str, api: object = 'myriad', method='GET', params: dict = {}, headers: object = None, body: object = None):
+    def sign(self, path: str, api: list[str] = ['myriad'], method='GET', params: dict = {}):
         """
  @ignore
         builds the request url and attaches the apiKey header for private endpoints
@@ -3530,11 +3530,9 @@ class myriad(PredictionExchange, ImplicitAPI):
         :param string|str[] api: the api group and access level
         :param str method: the http method
         :param dict params: the request parameters
-        :param dict [headers]: request headers
-        :param str [body]: the request body
         :returns dict: a dict with url, method, body and headers
         """
-        apiGroup = api if isinstance(api, str) else api[0]
+        apiGroup = api[0]
         baseUrls = self.urls['api']
         baseUrl = self.safe_string(baseUrls, apiGroup, baseUrls['myriad'])
         url = baseUrl + '/' + self.implode_params(path, params)
@@ -3543,14 +3541,14 @@ class myriad(PredictionExchange, ImplicitAPI):
             querystring = self.urlencode(query)
             if querystring != '':
                 url += '?' + querystring
-        existingHeaders = headers if (headers is not None) else {}
+        existingHeaders = {}
         headersValue = self.extend({
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         }, existingHeaders)
         # non-GET requests carry the params as a JSON body (public POSTs like markets/quote
         # included — the previous logic only sent a body for authenticated requests)
-        bodyValue = body
+        bodyValue = None
         if method != 'GET':
             queryKeys = list(query.keys())
             queryKeysLength = len(queryKeys)

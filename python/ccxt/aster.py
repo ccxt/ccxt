@@ -3912,7 +3912,7 @@ class aster(Exchange, ImplicitAPI):
         signature = self.sign_message(msg, self.privateKey)
         return signature
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -3923,13 +3923,12 @@ class aster(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagAndParams = self.handle_withdraw_tag_and_params(tag, params)
-        paramsWithdrawTag = tagAndParams[1]
-        self.check_address(address)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
+        self.check_address(address, code, tagWithdrawTag)
         self.load_markets_and_sign_in()
         currency = self.currency(code)
         nonce = self.milliseconds() * 1000
@@ -3942,6 +3941,8 @@ class aster(Exchange, ImplicitAPI):
         # TODO: check how ARBI signature would work
         networks = self.safe_dict(self.options, 'networks', {})
         network = self.safe_string_upper(paramsWithdrawTag, 'network')
+        if network is not None:
+            network = self.safe_string(self.networkAliases, network, network)  # accepts aliases like ETH for ERC20
         network = self.safe_string(networks, network, network)
         if (chainId is None) and (network is not None):
             chainIds = self.safe_dict(self.options, 'networksToChainId', {})
@@ -4061,15 +4062,16 @@ class aster(Exchange, ImplicitAPI):
         v = self.int_to_base16(self.sum(27, signature['v']))
         return '0x' + r.rjust(64, '0') + s.rjust(64, '0') + v
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        baseApiUrl = self.safe_string(self.urls['api'], api)
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
+        baseApiUrl = self.safe_string(self.urls['api'], apiName)
         if baseApiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = baseApiUrl + '/' + path
-        if api == 'fapiPublic' or api == 'sapiPublic':
+        if apiName == 'fapiPublic' or apiName == 'sapiPublic':
             if len(params) > 0:
                 url += '?' + self.rawencode(params)
-        elif api == 'fapiPrivate' or api == 'sapiPrivate':
+        elif apiName == 'fapiPrivate' or apiName == 'sapiPrivate':
             self.check_required_credentials()
             nonce = self.milliseconds() * 1000
             # Sign using EIP-712 typed data per the AsterSignTransaction spec
@@ -4134,7 +4136,7 @@ class aster(Exchange, ImplicitAPI):
                     'Content-Type': 'application/x-www-form-urlencoded',
                 }
                 return {'url': url, 'method': method, 'body': queryString, 'headers': formHeaders}
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}
 
     def encode_values_with_json(self, values: dict) -> str:
         encodedString = ''

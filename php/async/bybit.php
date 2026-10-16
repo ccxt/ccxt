@@ -1226,11 +1226,8 @@ class bybit extends Exchange {
                 'networks' => array(
                     'BTC' => 'BTC',
                     'BRC20' => 'BTC',
-                    'ETH' => 'ETH',
                     'ERC20' => 'ETH',
-                    'TRX' => 'TRX',
                     'TRC20' => 'TRX',
-                    'BSC' => 'BSC',
                     'BEP20' => 'BSC',
                     'SOL' => 'SOL',
                     'ACA' => 'ACA',
@@ -1297,6 +1294,7 @@ class bybit extends Exchange {
                     // 'LUNA1': 'LUNA' (Terra)
                 ),
                 'networksById' => array(
+                    'BTC' => 'BTC', // BTC and BRC20 share the id 'BTC', the native chain wins
                     'ETH' => 'ERC20',
                     'TRX' => 'TRC20',
                     'BSC' => 'BEP20',
@@ -6237,7 +6235,7 @@ class bybit extends Exchange {
         $currency = $this->currency($code);
         list($networkCode, $paramsOmited) = $this->handle_network_code_and_params($params);
         $indexedAddresses = Async\await($this->fetch_deposit_addresses_by_network($code, $paramsOmited));
-        $selectedNetworkCode = $this->select_network_code_from_unified_networks($currency['code'], $networkCode, $indexedAddresses);
+        $selectedNetworkCode = $this->select_network_key_from_networks($currency['code'], $networkCode, $indexedAddresses, true);
         return $this->safe_value($indexedAddresses, $selectedNetworkCode);
     }
 
@@ -6803,11 +6801,11 @@ class bybit extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal
          *
@@ -6816,12 +6814,12 @@ class bybit extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @param {string} [$params->accountType] 'UTA', 'FUND', 'FUND,UTA', and 'SPOT (for classic $accounts only)
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
         $accounts = Async\await($this->is_unified_enabled());
         $isUta = $accounts[1];
         list($accountTypeOption, $paramsAccountType) = $this->handle_option_string_and_params($paramsWithdrawTag, 'withdraw', 'accountType');
@@ -6830,7 +6828,7 @@ class bybit extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $this->check_address($address);
+        $this->check_address($address, $code, $tagWithdrawTag);
         $currency = $this->currency($code);
         $request = array(
             'coin' => $currency['id'],
@@ -9293,8 +9291,8 @@ class bybit extends Exchange {
         $tiers = array();
         for ($i = 0; $i < count($info); $i++) {
             $tier = $this->safe_dict($info, $i);
-            $marketId = $this->safe_string($info, 'symbol');
-            $marketResolved = $this->safe_market($marketId);
+            $marketId = $this->safe_string($tier, 'symbol');
+            $marketResolved = $this->safe_market($marketId, $market, null, 'contract');
             $minNotional = $this->parse_number('0');
             if ($i !== 0) {
                 $minNotional = $this->safe_number($info[$i - 1], 'riskLimitValue');
@@ -10373,19 +10371,20 @@ class bybit extends Exchange {
         return $this->safe_string($marginModes, $marginMode, $marginMode);
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $requestBody = null;
         $requestHeaders = null;
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $this->implode_hostname($apiUrl) . '/' . $path;
-        if ($api === 'public') {
+        if ($apiName === 'public') {
             if (count($params) > 0) {
                 $url .= '?' . $this->rawencode($params);
             }
-        } elseif ($api === 'private') {
+        } elseif ($apiName === 'private') {
             $this->check_required_credentials();
             $isOpenapi = mb_strpos($url, 'openapi') !== false;
             $isV3UnifiedMargin = mb_strpos($url, 'unified/v3') !== false;
@@ -10474,12 +10473,12 @@ class bybit extends Exchange {
         }
         if ($method === 'POST') {
             $brokerId = $this->safe_string($this->options, 'brokerId', 'CCXT');
-            $headersBase = ($requestHeaders === null) ? $headers : $requestHeaders;
+            $headersBase = $requestHeaders;
             $requestHeaders = ($headersBase === null) ? array() : $headersBase;
             $requestHeaders['Referer'] = $brokerId;
         }
-        $bodyResolved = ($requestBody === null) ? $body : $requestBody;
-        $headersResolved = ($requestHeaders === null) ? $headers : $requestHeaders;
+        $bodyResolved = $requestBody;
+        $headersResolved = $requestHeaders;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 

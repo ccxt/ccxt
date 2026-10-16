@@ -1328,19 +1328,20 @@ class bitbns extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, $api = 'www', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('www'), $method = 'GET', $params = array()): array {
         $urls = $this->urls;
-        if (!(is_array($urls['api']) && array_key_exists($api ?? '', $urls['api']))) {
-            throw new ExchangeError($this->id . ' does not have a testnet/sandbox URL for ' . $api . ' endpoints');
+        $apiName = $api[0];
+        if (!(is_array($urls['api']) && array_key_exists($apiName ?? '', $urls['api']))) {
+            throw new ExchangeError($this->id . ' does not have a testnet/sandbox URL for ' . $apiName . ' endpoints');
         }
-        if ($api !== 'www') {
+        if ($apiName !== 'www') {
             $this->check_required_credentials();
         }
         $apiKeyHeaders = array(
             'X-BITBNS-APIKEY' => $this->apiKey,
         );
-        $requestHeaders = ($api !== 'www') ? $apiKeyHeaders : $headers;
-        $baseApiUrl = $this->safe_string($this->urls['api'], $api);
+        $requestHeaders = ($apiName !== 'www') ? $apiKeyHeaders : null;
+        $baseApiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($baseApiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
@@ -1353,7 +1354,7 @@ class bitbns extends Exchange {
         if ($queryLength > 0) {
             $postBody = $this->json($query);
         }
-        $requestBody = ($method === 'POST') ? $postBody : $body;
+        $requestBody = ($method === 'POST') ? $postBody : null;
         if ($method === 'GET') {
             if ($queryLength > 0) {
                 $url .= '?' . $this->urlencode($query);

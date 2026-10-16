@@ -385,7 +385,7 @@ class hashkey extends Exchange {
                     'TRC20' => 'TRC20',
                     'Tron' => 'TRC20',
                     'TON' => 'TON',
-                    'BSC(BEP20)' => 'BSC',
+                    'BSC(BEP20)' => 'BEP20',
                     'Klaytn' => 'KLAYTN',
                 ),
                 'defaultNetwork' => 'ERC20',
@@ -1222,7 +1222,7 @@ class hashkey extends Exchange {
         for ($j = 0; $j < count($networks); $j++) {
             $network = $networks[$j];
             $networkId = $this->safe_string($network, 'chainType');
-            $networkCode = $this->network_code_to_id($networkId, $code);
+            $networkCode = $this->network_id_to_code($networkId, $code);
             if ($networkCode !== null) {
                 $parsedNetworks[$networkCode] = array(
                     'id' => $networkId,
@@ -1974,7 +1974,7 @@ class hashkey extends Exchange {
          *
          * @param {string} $code unified $currency $code (default is 'USDT')
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->network] network for fetch deposit address (default is 'ETH')
+         * @param {string} [$params->network] network for fetch deposit address (default is 'ERC20')
          * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
         if ($this->markets === null) {
@@ -1985,7 +1985,7 @@ class hashkey extends Exchange {
             'coin' => $currency['id'],
         );
         list($networkCodeInParams, $paramsNetworkCode) = $this->handle_network_code_and_params($params);
-        $networkCode = ($networkCodeInParams === null) ? $this->default_network_code($code) : $networkCodeInParams;
+        $networkCode = ($networkCodeInParams === null) ? $this->safe_string($this->safe_dict($this->options, 'defaultNetworks', array()), $code, $this->safe_string($this->options, 'defaultNetwork')) : $networkCodeInParams;
         $request['chainType'] = $this->network_code_to_id($networkCode, $code);
         $response = Async\await($this->privateGetApiV1AccountDepositAddress($this->extend($request, $paramsNetworkCode)));
         //
@@ -2151,11 +2151,11 @@ class hashkey extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal
          *
@@ -2164,14 +2164,15 @@ class hashkey extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @param {string} [$params->network] network for withdraw
          * @param {string} [$params->clientOrderId] client order id
          * @param {string} [$params->platform] the platform to withdraw to (hashkey, HashKey HK)
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
+        $this->check_address($address, $code, $tagWithdrawTag);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -4712,14 +4713,15 @@ class hashkey extends Exchange {
         );
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $apiUrl . '/' . $path;
         $query = null;
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             $timestamp = $this->milliseconds();
             $additionalParams = array(
@@ -4754,7 +4756,7 @@ class hashkey extends Exchange {
             }
             $headersSigned['INPUT-SOURCE'] = $this->safe_string($this->options, 'broker', '10000700011');
             $headersSigned['broker_sign'] = $signature;
-            $bodyResolved = ($method === 'GET') ? $body : $bodySigned;
+            $bodyResolved = ($method === 'GET') ? null : $bodySigned;
             return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersSigned );
         } else {
             $query = $this->urlencode($params);
@@ -4762,7 +4764,7 @@ class hashkey extends Exchange {
                 $url .= '?' . $query;
             }
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
     public function custom_urlencode($params = array()): ?string {

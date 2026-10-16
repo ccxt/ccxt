@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.85'
+__version__ = '4.5.88'
 
 # -----------------------------------------------------------------------------
 
@@ -321,6 +321,7 @@ class BaseExchange(object):
     precisionMode = DECIMAL_PLACES
     paddingMode = NO_PADDING
     minFundingAddressLength = 1  # used in check_address
+    networkAliases = {'ETH': 'ERC20', 'TRX': 'TRC20', 'BSC': 'BEP20', 'BSC20': 'BEP20', 'CRONOS': 'CRC20', 'ARB': 'ARBITRUM', 'ARBONE': 'ARBITRUM', 'ARBNOVA': 'ARBITRUM_NOVA'}  # alias -> unified network code
     substituteCommonCurrencyCodes = True
     quoteJsonNumbers = True
     number: NumType = float  # or str (a pointer to a class)
@@ -392,10 +393,7 @@ class BaseExchange(object):
             else:
                 setattr(self, key, settings[key])
 
-        self.after_construct()
-
-        if self.safe_bool(config, 'sandbox') or self.safe_bool(config, 'testnet'):
-            self.set_sandbox_mode(True)
+        self.after_construct(config)
 
         # convert all properties from underscore notation foo_bar to camelcase notation fooBar
         cls = type(self)
@@ -3403,7 +3401,7 @@ class BaseExchange(object):
         if proxyAgentIsSet and proxyUrlIsSet:
             raise InvalidProxySettings(self.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy')
 
-    def check_address(self, address: Str = None):
+    def check_address(self, address: Str = None, code: Str = None, tag: Str = None):
         if address is None:
             raise InvalidAddress(self.id + ' address is None')
         # check the address is not the same letter like 'aaaaa' nor too short nor has a space
@@ -3411,6 +3409,11 @@ class BaseExchange(object):
         length = len(uniqChars)  # py transpiler trick
         if length == 1 or len(address) < self.minFundingAddressLength or address.find(' ') > -1:
             raise InvalidAddress(self.id + ' address is invalid or has less than ' + str(self.minFundingAddressLength) + ' characters: "' + str(address) + '"')
+        if code is not None:
+            tagRequiredCurrencies = self.safe_list(self.options, 'withdrawTagRequiredCurrencies', [])
+            if self.in_array(code, tagRequiredCurrencies):
+                if tag is None:
+                    raise ArgumentsRequired(self.id + ' withdraw() requires params["tag"] for ' + code)
         return address
 
     def find_message_hashes(self, client: object, element: str):
@@ -3528,7 +3531,7 @@ class BaseExchange(object):
             self.urls = newUrls
         self.options['enableDemoTrading'] = enable
 
-    def sign(self, path: str, api: object = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None):
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}):
         return {'url': None, 'method': None, 'headers': None, 'body': None}
 
     def fetch_accounts(self, params: dict = {}):
@@ -3712,7 +3715,7 @@ class BaseExchange(object):
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}):
         raise NotSupported(self.id + ' transfer() is not supported yet')
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}):
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}):
         raise NotSupported(self.id + ' withdraw() is not supported yet')
 
     def create_deposit_address(self, code: str, params: dict = {}):
@@ -3820,9 +3823,10 @@ class BaseExchange(object):
             return None
         return timestamp
 
-    def after_construct(self):
-        # networks
-        self.create_networks_by_id_object()
+    def after_construct(self, userConfig: dict = {}):
+        # networksById: inverse of options.networks, explicit options.networksById entries win
+        networkIdsToCodesGenerated = self.invert_flat_string_dictionary(self.safe_value(self.options, 'networks', {}))
+        self.options['networksById'] = self.extend(networkIdsToCodesGenerated, self.safe_value(self.options, 'networksById', {}))
         self.features_generator()
         # init predefined markets if any
         if self.markets is not None:
@@ -3833,6 +3837,9 @@ class BaseExchange(object):
         isSandbox = self.safe_bool_2(self.options, 'sandbox', 'testnet', False)
         if isSandbox is True:
             self.set_sandbox_mode(isSandbox)
+        # compatibility for sandbox/testnet options in userConfig
+        if (self.safe_bool(userConfig, 'sandbox', False)) or (self.safe_bool(userConfig, 'testnet', False)):
+            self.set_sandbox_mode(True)
 
     def init_rest_rate_limiter(self):
         if self.rateLimit is None or (self.id is not None and self.rateLimit == -1):
@@ -4008,24 +4015,10 @@ class BaseExchange(object):
             raise ArgumentsRequired(self.id + ' orderbookChecksumMessage() requires a symbol argument')
         return symbol + ' : ' + 'orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options["watchOrderBook"]["checksum"] = False'
 
-    def create_networks_by_id_object(self):
-        # automatically generate network-id-to-code mappings
-        networkIdsToCodesGenerated = self.invert_flat_string_dictionary(self.safe_value(self.options, 'networks', {}))  # invert defined networks dictionary
-        self.options['networksById'] = self.extend(networkIdsToCodesGenerated, self.safe_value(self.options, 'networksById', {}))  # support manually overriden "networksById" dictionary too
-
     def get_default_options(self):
         return {
-            'defaultNetworkCodeReplacements': {
-                'ETH': {'primary': 'ETH', 'secondary': 'ERC20', 'default': 'secondary'},
-                'CRO': {'primary': 'CRONOS', 'secondary': 'CRC20', 'default': 'secondary'},
-                'TRX': {'primary': 'TRX', 'secondary': 'TRC20', 'default': 'secondary'},
-                'BTC': {'primary': 'BTC', 'secondary': 'BRC20', 'default': 'primary'},
-            },
-            'backwardSupportedNetworkCodes': {
-                'ARB': 'ARBITRUM',
-                'ARBONE': 'ARBITRUM',
-                'ARBNOVA': 'ARBITRUM_NOVA',
-            },
+            # native-chain withdrawals of these currencies may need a destination tag / memo
+            'withdrawTagRequiredCurrencies': ['XRP', 'XLM', 'EOS', 'ATOM', 'HBAR', 'TON', 'KAVA', 'STX', 'XEM', 'IOST', 'OSMO', 'WAXP'],
         }
 
     def safe_ledger_entry(self, entry: object, currency: Currency = None):
@@ -4235,7 +4228,7 @@ class BaseExchange(object):
             return result
         return self.extend(cleanStructure)
 
-    def set_markets(self, markets: object, currencies=None):
+    def set_markets(self, markets: object, currencies: object = None):
         values = []
         self.markets_by_id = self.create_safe_dictionary()
         # handle marketId conflicts
@@ -5232,6 +5225,13 @@ class BaseExchange(object):
             result.append(self.parse_order_book_bid_ask(bidasksValue[i], priceKey, amountKey, countOrIdKey))
         return result
 
+    def parse_order_book_bids_asks_l3(self, bidasks: object, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
+        bidasksValue = self.to_array(bidasks)
+        result = []
+        for i in range(0, len(bidasksValue)):
+            result.append(self.parse_order_book_bid_ask_l3(bidasksValue[i], priceKey, amountKey, countOrIdKey))
+        return result
+
     def filter_by_key(self, objects: object, key: IndexType, value: Str = None):
         if value is None:
             return objects
@@ -5288,66 +5288,28 @@ class BaseExchange(object):
             },
         }
 
-    def prioritized_network_aliases(self, networkCode: Str = None, currencyCode: Str = None, allowDefault=False):
-        """
-        returns the chain pair [preferred, alternative] for the given networkCode & currency, e.g:
-   ---------------------------------
-   | input          | output       |
-   --------------------------------|
-   | ETH & USDC     | ERC20, ETH   |
-   | ERC20 & USDC   | ERC20, ETH   |
-   | ETH & ETH      | ETH, ERC20   |
-   | ERC20 & ETH    | ETH, ERC20   |
-   | ERC20          | ERC20, ETH   |
-   | ETH            | ERC20, ETH   |
-   ---------------------------------
-        :param str networkCode: unified network-code
-        :param str currencyCode: unified currency-code
-        :param boolean allowDefault: when currencyCode is None, order by replacement's "default" instead of by user input
-        :returns str[]: [preferredChain, alternativeChain]
-        """
-        if networkCode is None:
-            return None
-        replacements = self.safe_dict(self.options, 'defaultNetworkCodeReplacements', {})
-        keys = list(replacements.keys())
-        for i in range(0, len(keys)):
-            baseCoin = keys[i]
-            entry = replacements[baseCoin]
-            primary = entry['primary']
-            secondary = entry['secondary']
-            if networkCode != primary and networkCode != secondary:
-                continue
-            # pick which form goes first in the returned pair
-            preferPrimary = False
-            if currencyCode == baseCoin:
-                preferPrimary = True  # mainnet currency uses primary chain
-            elif currencyCode is not None:
-                preferPrimary = False  # any other (token) currency uses secondary chain
-            elif allowDefault:
-                preferPrimary = (entry['default'] == 'primary')
-            else:
-                preferPrimary = (networkCode == primary)  # keep user input first
-            return [primary, secondary] if (preferPrimary) else [secondary, primary]
-        return [networkCode, networkCode]
-
     def network_code_to_id(self, networkCode: Str, currencyCode: Str = None):
         """
  @ignore
-        tries to convert the provided networkCode(which is expected to be an unified network code) to a network id. In order to achieve self, derived class needs to have 'options->networks' defined.
+        tries to convert the provided networkCode(a unified network code or one of its aliases) to a network id. In order to achieve self, derived class needs to have 'options->networks' defined.
         :param str networkCode: unified network code
         :param str currencyCode: unified currency code, but self argument is not required by default, unless there is an exchange(like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
         :returns str|None: exchange-specific network id
         """
         if networkCode is None:
             return None
+        unifiedCode = self.safe_string(self.networkAliases, networkCode, networkCode)
         networkIdsByCodes = self.safe_dict(self.options, 'networks', {})
-        # try the preferred form first, fall back to its alternative (e.g. when only 'ETH' or only 'ERC20' is defined)
-        chainPair = self.prioritized_network_aliases(networkCode, currencyCode, False)
-        preferredChain = networkCode if (chainPair is None) else chainPair[0]
-        alternativeChain = networkCode if (chainPair is None) else chainPair[1]
-        networkId = self.safe_string_2(networkIdsByCodes, preferredChain, alternativeChain)
+        networkId = self.safe_string(networkIdsByCodes, unifiedCode)
         if networkId is not None:
             return networkId
+        # options.networks may still be keyed by an alias of the unified code
+        aliases = self.networkAliases
+        aliasKeys = list(aliases.keys())
+        for i in range(0, len(aliasKeys)):
+            alias = aliasKeys[i]
+            if (aliases[alias] == unifiedCode) and (alias in networkIdsByCodes):
+                return networkIdsByCodes[alias]
         # fall back to scanning loaded currencies
         currenciesToCheck = []
         if currencyCode is None:
@@ -5356,12 +5318,8 @@ class BaseExchange(object):
             currenciesToCheck = [self.safe_dict(self.currencies, currencyCode)]
         for i in range(0, len(currenciesToCheck)):
             networks = self.safe_dict(currenciesToCheck[i], 'networks', {})
-            if networkCode in networks:
-                return self.safe_string(networks[networkCode], 'id')
-        # before returning the original input, try to match if it's backward-maintained networkCode
-        oldCodes = self.safe_dict(self.options, 'backwardSupportedNetworkCodes', {})
-        if networkCode in oldCodes:
-            return self.network_code_to_id(oldCodes[networkCode], currencyCode)
+            if unifiedCode in networks:
+                return self.safe_string(networks[unifiedCode], 'id')
         return networkCode
 
     def network_id_to_code(self, networkId: Str = None, currencyCode: Str = None):
@@ -5375,44 +5333,15 @@ class BaseExchange(object):
         if networkId is None:
             return None
         networkCodesByIds = self.safe_dict(self.options, 'networksById', {})
-        networkCode = self.safe_string(networkCodesByIds, networkId, networkId)
-        chainPair = self.prioritized_network_aliases(networkCode, currencyCode, True)
-        if chainPair is None:
-            return networkCode
-        preferredChain = chainPair[0]
-        alternativeChain = chainPair[1]
-        # when the exchange explicitly defines both forms in options.networks (e.g. BTC + BRC20),
-        # it disambiguates them — trust the direct id→code inversion instead of guessing
-        if currencyCode is None:
-            networkIdsByCodes = self.safe_dict(self.options, 'networks', {})
-            if (preferredChain in networkIdsByCodes) and (alternativeChain in networkIdsByCodes):
-                return networkCode
-        return preferredChain
+        mappedCode = self.safe_string(networkCodesByIds, networkId)
+        networkCode = networkId if (mappedCode is None) else mappedCode
+        return self.safe_string(self.networkAliases, networkCode, networkCode)
 
     def handle_network_code_and_params(self, params: dict):
         networkCodeInParams = self.safe_string_2(params, 'networkCode', 'network')
         paramsOmitted = self.omit(params, ['networkCode', 'network']) if (networkCodeInParams is not None) else params
         # if it was not defined by user, we should not set it from 'defaultNetworks', because handleNetworkCodeAndParams is for only request-side and thus we do not fill it with anything. We can only use 'defaultNetworks' after parsing response-side
         return [networkCodeInParams, paramsOmitted]
-
-    def default_network_code(self, currencyCode: str):
-        defaultNetworkCode = None
-        defaultNetworks = self.safe_dict(self.options, 'defaultNetworks', {})
-        if currencyCode in defaultNetworks:
-            # if currency had set its network in "defaultNetworks", use it
-            defaultNetworkCode = defaultNetworks[currencyCode]
-        else:
-            # otherwise, try to use the global-scope 'defaultNetwork' value (even if that network is not supported by currency, it doesn't make any problem, this will be just used "at first" if currency supports this network at all)
-            defaultNetwork = self.safe_string(self.options, 'defaultNetwork')
-            if defaultNetwork is not None:
-                defaultNetworkCode = defaultNetwork
-        return defaultNetworkCode
-
-    def select_network_code_from_unified_networks(self, currencyCode: str, networkCode: object, indexedNetworkEntries: object):
-        return self.select_network_key_from_networks(currencyCode, networkCode, indexedNetworkEntries, True)
-
-    def select_network_id_from_raw_networks(self, currencyCode: str, networkCode: object, indexedNetworkEntries: object):
-        return self.select_network_key_from_networks(currencyCode, networkCode, indexedNetworkEntries, False)
 
     def select_network_key_from_networks(self, currencyCode: str, networkCode: Str, indexedNetworkEntries: object, isIndexedByUnifiedNetworkCode=False):
         # this method is used against raw & unparse network entries, which are just indexed by network id
@@ -5436,7 +5365,7 @@ class BaseExchange(object):
                 raise NotSupported(self.id + ' - no networks were returned for ' + currencyCode)
             else:
                 # if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
-                defaultNetworkCode = self.default_network_code(currencyCode)
+                defaultNetworkCode = self.safe_string(self.safe_dict(self.options, 'defaultNetworks', {}), currencyCode, self.safe_string(self.options, 'defaultNetwork'))
                 defaultNetworkId = defaultNetworkCode if isIndexedByUnifiedNetworkCode else self.network_code_to_id(defaultNetworkCode, currencyCode)
                 if defaultNetworkId is None:
                     raise ExchangeError(self.id + ' selectNetworkKeyFromNetworks() missing defaultNetworkId')
@@ -5452,6 +5381,18 @@ class BaseExchange(object):
     def parse_order_book(self, orderbook: object | None, symbol: Str, timestamp: Int = None, bidsKey='bids', asksKey='asks', priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
         bids = self.parse_order_book_bids_asks(self.safe_value(orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey)
         asks = self.parse_order_book_bids_asks(self.safe_value(orderbook, asksKey, []), priceKey, amountKey, countOrIdKey)
+        return {
+            'symbol': symbol,
+            'bids': self.sort_by(bids, 0, True),
+            'asks': self.sort_by(asks, 0),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'nonce': None,
+        }
+
+    def parse_order_book_l3(self, orderbook: object | None, symbol: Str, timestamp: Int = None, bidsKey='bids', asksKey='asks', priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
+        bids = self.parse_order_book_bids_asks_l3(self.safe_value(orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey)
+        asks = self.parse_order_book_bids_asks_l3(self.safe_value(orderbook, asksKey, []), priceKey, amountKey, countOrIdKey)
         return {
             'symbol': symbol,
             'bids': self.sort_by(bids, 0, True),
@@ -5694,22 +5635,6 @@ class BaseExchange(object):
         paramsOmitted = self.omit(params, [paramName1, paramName2]) if (value is not None) else params
         return [value, paramsOmitted]
 
-    def handle_request_network(self, params: dict, request: dict, exchangeSpecificKey: str, currencyCode: Str = None, isRequired: bool = False):
-        """
-        :param dict params: - extra parameters
-        :param dict request: - existing dictionary of request
-        :param str exchangeSpecificKey: - the key for chain id to be set in request
-        :param dict currencyCode: - (optional) existing dictionary of request
-        :param boolean isRequired: - (optional) whether that param is required to be present
-        :returns dict[]: - returns [request, params] where request is the modified request object and params is the modified params object
-        """
-        networkCode, paramsNetworkCode = self.handle_network_code_and_params(params)
-        if networkCode is not None:
-            request[exchangeSpecificKey] = self.network_code_to_id(networkCode, currencyCode)
-        elif isRequired:
-            raise ArgumentsRequired(self.id + ' - "network" param is required for self request')
-        return [request, paramsNetworkCode]
-
     def resolve_path(self, path: object, params: object):
         return [
             self.implode_params(path, params),
@@ -5776,7 +5701,7 @@ class BaseExchange(object):
             return self.index_by(results, key)
         return results
 
-    def fetch2(self, path: str, api: object = 'public', method='GET', params: dict = {}, headers: object = None, body: object = None, config: dict = {}):
+    def fetch2(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, config: dict = {}):
         if self.enableRateLimit:
             cost = self.calculate_rate_limiter_cost(api, method, path, params, config)
             self.throttle(cost)
@@ -5793,7 +5718,7 @@ class BaseExchange(object):
                 fetchData = {'request': None, 'response': {'body': None}, 'error': None}
             try:
                 self.set_last_rest_request_timestamp()
-                request = self.sign(path, api, method, paramsMaxRetriesOnFailureDelay, headers, body)
+                request = self.sign(path, api, method, paramsMaxRetriesOnFailureDelay)
                 if fetchData is not None:
                     fetchData['request'] = request
                 self.set_last_request(request)
@@ -5819,8 +5744,8 @@ class BaseExchange(object):
                     raise e
         return None  # this line is never reached, but exists for c# value return requirement
 
-    def request(self, path: str, api: object = 'public', method='GET', params: dict = {}, headers: object = None, body: object = None, config: dict = {}):
-        return self.fetch2(path, api, method, params, headers, body, config)
+    def request(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, config: dict = {}):
+        return self.fetch2(path, api, method, params, config)
 
     def load_accounts(self, reload=False, params: dict = {}):
         if reload:
@@ -5915,6 +5840,15 @@ class BaseExchange(object):
         price = self.safe_float(bidask, priceKey)
         amount = self.safe_float(bidask, amountKey)
         countOrId = self.safe_integer(bidask, countOrIdKey)
+        bidAsk = [price, amount]
+        if countOrId is not None:
+            bidAsk.append(countOrId)
+        return bidAsk
+
+    def parse_order_book_bid_ask_l3(self, bidask: object, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
+        price = self.safe_float(bidask, priceKey)
+        amount = self.safe_float(bidask, amountKey)
+        countOrId = self.safe_string(bidask, countOrIdKey)
         bidAsk = [price, amount]
         if countOrId is not None:
             bidAsk.append(countOrId)
@@ -6244,7 +6178,7 @@ class BaseExchange(object):
         # throw new NotSupported (this.id + ' handleErrors() not implemented yet');
         return None
 
-    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config: dict = {}):
+    def calculate_rate_limiter_cost(self, api: list[str], method: object, path: object, params: object, config: dict = {}):
         return self.safe_value(config, 'cost', 1)
 
     def fetch_spot_tickers(self, symbols: Strings = None, params: dict = {}):
@@ -6529,19 +6463,6 @@ class BaseExchange(object):
                     if (existingCurrencies is not None) and (baseCurrencyCode in existingCurrencies):
                         return True
         return False
-
-    def handle_withdraw_tag_and_params(self, tag: object, params: dict):
-        paramsExtended = params
-        tagValue = tag
-        if self.is_dictionary(tag):
-            paramsExtended = self.extend(tag, params)
-            tagValue = None
-        tagResolved = self.safe_string(paramsExtended, 'tag') if (tagValue is None) else tagValue
-        tagFromParams = (tagValue is None) and (tagResolved is not None)
-        paramsOmitted = paramsExtended
-        if tagFromParams:
-            paramsOmitted = self.omit(paramsExtended, 'tag')
-        return [tagResolved, paramsOmitted]
 
     def cost_to_precision(self, symbol: Str, cost: object):
         if cost is None:
@@ -7874,14 +7795,14 @@ class BaseExchange(object):
         """
         raise NotSupported(self.id + ' unWatchOHLCV () is not supported yet')
 
-    def withdraw_ws(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}):
+    def withdraw_ws(self, code: str, amount: float, address: str, params: dict = {}):
         """
         make a withdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the bitvavo api endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         raise NotSupported(self.id + ' withdrawWs () is not supported yet')

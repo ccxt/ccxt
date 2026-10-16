@@ -1167,7 +1167,7 @@ public partial class bitfinex : Exchange
                 networks[(string)network] = new Dictionary<string, object>() {
                     { "info", networkId },
                     { "id", networkId.ToLower() },
-                    { "network", networkId },
+                    { "network", network },
                     { "active", null },
                     { "deposit", (this.safeInteger(dwStatuses, 1) == 1) },
                     { "withdraw", (this.safeInteger(dwStatuses, 2) == 1) },
@@ -2881,7 +2881,8 @@ public partial class bitfinex : Exchange
         }
         Dictionary<string, object> currency = this.currency(code);
         // if not provided explicitly we will try to match using the currency name
-        string? network = this.safeString(parameters, "network", code);
+        string? networkParam = this.safeString(parameters, "network", code);
+        string? network = this.safeString(this.networkAliases, networkParam, networkParam);
         IDictionary<string, object> currencyNetworks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
         IDictionary<string, object> currencyNetwork = this.safeDict(currencyNetworks, network);
         string? networkId = this.safeString(currencyNetwork, "id");
@@ -3295,13 +3296,16 @@ public partial class bitfinex : Exchange
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        IList<object> tagparamsWithdrawTagVariable = (IList<object>)this.handleParamString(parameters, "tag");
+        string? tag = (string)tagparamsWithdrawTagVariable[0];
+        IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagparamsWithdrawTagVariable[1]);
         this.checkAddress(address);
         if ((this.markets == null))
         {
@@ -3309,8 +3313,9 @@ public partial class bitfinex : Exchange
         }
         Dictionary<string, object> currency = this.currency(code);
         // if not provided explicitly we will try to match using the currency name
-        string? network = this.safeString(parameters, "network", code);
-        object paramsOmitted = this.omit(parameters, "network");
+        string? networkParam = this.safeString(paramsWithdrawTag, "network", code);
+        string? network = this.safeString(this.networkAliases, networkParam, networkParam);
+        Dictionary<string, object> paramsOmitted = this.omit(paramsWithdrawTag, "network");
         IDictionary<string, object> currencyNetworks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
         IDictionary<string, object> currencyNetwork = this.safeDict(currencyNetworks, network);
         string? networkId = this.safeString(currencyNetwork, "id");
@@ -3525,21 +3530,22 @@ public partial class bitfinex : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        object apiName = getValue(api, 0);
         object request = ("/" + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
-        if (isEqual(api, "v1"))
+        if (isEqual(apiName, "v1"))
         {
-            request = add(api, request);
+            request = add(apiName, request);
         } else
         {
             request = (this.version + (request));
         }
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -3547,14 +3553,14 @@ public partial class bitfinex : Exchange
         string url = ((apiUrl + "/") + (request));
         string? requestBody = null;
         Dictionary<string, object> requestHeaders = null;
-        if ((api is "public"))
+        if ((apiName is "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
                 url = url + ("?" + this.urlencode(query));
             }
         }
-        if ((api is "private"))
+        if ((apiName is "private"))
         {
             this.checkRequiredCredentials();
             // bitfinex rejects a nonce that is not greater than the previous one for the key (error 10114)
@@ -3569,8 +3575,8 @@ public partial class bitfinex : Exchange
                 { "Content-Type", "application/json" },
             };
         }
-        object bodyResolved = ((requestBody == null)) ? body : requestBody;
-        object headersResolved = ((requestHeaders == null)) ? headers : requestHeaders;
+        string? bodyResolved = requestBody;
+        Dictionary<string, object> headersResolved = requestHeaders;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

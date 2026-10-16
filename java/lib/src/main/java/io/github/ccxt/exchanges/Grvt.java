@@ -16,6 +16,7 @@ import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Position;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Trade;
@@ -364,12 +365,11 @@ public class Grvt extends GrvtApi
                     put( "ARBITRUM", "42161" );
                     put( "AVAXC", "43114" );
                     put( "BASE", "8453" );
-                    put( "BSC", "56" );
-                    put( "ETH", "1" );
+                    put( "BEP20", "56" );
                     put( "ERC20", "1" );
                     put( "OP", "10" );
                     put( "SOL", "900" );
-                    put( "TRX", "728126428" );
+                    put( "TRC20", "728126428" );
                     put( "ZKSYNCERA", "324" );
                     put( "KAIA", "8217" );
                 }} );
@@ -871,7 +871,7 @@ public class Grvt extends GrvtApi
             {
                 return true;  // skip if builder fee is already approved
             }
-            Object results = (((List<?>)(new ArrayList<Object>(Arrays.asList(this.privateTradingPostFullV1GetAuthorizedBuilders(), this.loadAccountInfos())))).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            Object results = (((List<?>)(new ArrayList<Object>(Arrays.asList(this.privateTradingPostFullV1GetAuthorizedBuilders(new HashMap<String, Object>() {{}}), this.loadAccountInfos())))).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             //
             // {
             //     "results": [{
@@ -1516,7 +1516,7 @@ public class Grvt extends GrvtApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -1617,7 +1617,7 @@ public class Grvt extends GrvtApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingRateHistory", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingRateHistory", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -2138,7 +2138,7 @@ public class Grvt extends GrvtApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> currency = this.currency((String) (code));
             Long maxLimit = 1000L;
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTransfers", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTransfers", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -2244,10 +2244,10 @@ public class Grvt extends GrvtApi
             Object paramsFundingAccountId = parameters;
             if (Boolean.TRUE.equals(isInternal))
             {
-                io.github.ccxt.base.Pair<String, Map<String, Object>> tradingAccountIdparamsTradingAccountIdVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "transfer", "tradingAccountId", (String) null);
+                Pair<String, Map<String, Object>> tradingAccountIdparamsTradingAccountIdVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "transfer", "tradingAccountId", (String) null);
                 String tradingAccountId = tradingAccountIdparamsTradingAccountIdVariable.first();
                 Map<String, Object> paramsTradingAccountId = tradingAccountIdparamsTradingAccountIdVariable.second();
-                io.github.ccxt.base.Pair<String, Map<String, Object>> fundingAccountIdparamsFundingVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsTradingAccountId), "transfer", "fundingAccountId", (String) null);
+                Pair<String, Map<String, Object>> fundingAccountIdparamsFundingVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsTradingAccountId), "transfer", "fundingAccountId", (String) null);
                 String fundingAccountId = fundingAccountIdparamsFundingVariable.first();
                 Map<String, Object> paramsFunding = fundingAccountIdparamsFundingVariable.second();
                 if (java.util.Objects.equals(tradingAccountId, null) || java.util.Objects.equals(fundingAccountId, null))
@@ -2358,7 +2358,7 @@ public class Grvt extends GrvtApi
                 return false;
             }
             List<Object> promises = new ArrayList<Object>(Arrays.asList());
-            ((List<Object>)promises).add(this.privateTradingPostFullV1AggregatedAccountSummary());
+            ((List<Object>)promises).add(this.privateTradingPostFullV1AggregatedAccountSummary(new HashMap<String, Object>() {{}}));
             //
             //     {
             //         "result": {
@@ -2386,7 +2386,7 @@ public class Grvt extends GrvtApi
             Boolean accountIsUndefined = java.util.Objects.equals(this.safeString(this.options, "accountId"), null);
             if (Boolean.TRUE.equals(accountIsUndefined))
             {
-                ((List<Object>)promises).add(this.privateTradingPostFullV1GetSubAccounts());
+                ((List<Object>)promises).add(this.privateTradingPostFullV1GetSubAccounts(new HashMap<String, Object>() {{}}));
             }
             //
             //     {
@@ -2425,17 +2425,17 @@ public class Grvt extends GrvtApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} params.network the network to withdraw on (mandatory)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            this.checkAddress(address);
+            this.checkAddress(address, (String) null, (String) null);
             (this.loadMarketsAndSignIn()).join();
             String defaultFromAccountId = this.safeString(this.options, "userMainAccountId");
             Map<String, Object> currency = this.currency((String) (code));
@@ -2795,7 +2795,7 @@ public class Grvt extends GrvtApi
         return BaseExchange.supplyAsync(() -> {
 
             (this.loadMarketsAndSignIn()).join();
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -3173,7 +3173,7 @@ public class Grvt extends GrvtApi
         return BaseExchange.supplyAsync(() -> {
 
             (this.loadMarketsAndSignIn()).join();
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingHistory", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingHistory", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -3937,13 +3937,14 @@ public class Grvt extends GrvtApi
         return Helpers.toLongOrNull(requestId);
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object requestHeaders = headers;
-        String requestBody = body;
+        Map<String, Object> requestHeaders = null;
+        String requestBody = null;
         Object requestPath = path;
         Object query = this.omit(parameters, this.extractParams(requestPath));
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -3976,7 +3977,7 @@ public class Grvt extends GrvtApi
                 requestBody = this.json(parameters);
             }
         }
-        Boolean isPrivate = ((String)java.util.Objects.requireNonNullElse(api, "public")).startsWith("private");
+        Boolean isPrivate = ((String)apiName).startsWith("private");
         if (java.util.Objects.equals(isPrivate, true))
         {
             this.checkRequiredCredentials(true);
@@ -3989,7 +3990,7 @@ public class Grvt extends GrvtApi
             }};
             if ((java.util.Objects.equals(((String)requestPath).endsWith("auth/api_key/login"), true)) || (java.util.Objects.equals(((String)requestPath).endsWith("auth/wallet/login"), true)))
             {
-                ((Map<String, Object>)requestHeaders).put("Cookie", "rm=true;");
+                requestHeaders.put("Cookie", "rm=true;");
             } else
             {
                 String accountId = this.safeString(this.options, "AuthAccountId");
@@ -3998,8 +3999,8 @@ public class Grvt extends GrvtApi
                 {
                     throw new AuthenticationError((this.id + " : at first, you need to authenticate with exchange using signIn() method.")) ;
                 }
-                ((Map<String, Object>)requestHeaders).put("Cookie", cookieValue);
-                ((Map<String, Object>)requestHeaders).put("X-Grvt-Account-Id", accountId);
+                requestHeaders.put("Cookie", cookieValue);
+                requestHeaders.put("X-Grvt-Account-Id", accountId);
             }
         }
         {

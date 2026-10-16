@@ -2060,12 +2060,13 @@ export default class cryptocom extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
+    async withdraw(code, amount, address, params = {}) {
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
+        this.checkAddress(address, code, tagWithdrawTag);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -2178,12 +2179,15 @@ export default class cryptocom extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress(code, params = {}) {
-        const network = this.safeStringUpper(params, 'network');
+        const networkParam = this.safeStringUpper(params, 'network');
         const paramsOmitted = this.omit(params, ['network']);
         const depositAddressesRaw = await this.fetchDepositAddressesByNetwork(code, paramsOmitted);
         const depositAddresses = depositAddressesRaw;
-        if (network in depositAddresses) {
-            return depositAddresses[network];
+        if (networkParam !== undefined) {
+            const network = this.safeString(this.networkAliases, networkParam, networkParam);
+            if (network in depositAddresses) {
+                return depositAddresses[network];
+            }
         }
         const keys = Object.keys(depositAddresses);
         return depositAddresses[keys[0]];
@@ -3609,9 +3613,9 @@ export default class cryptocom extends Exchange {
             'tierBased': undefined,
         };
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let requestHeaders = headers;
-        let requestBody = body;
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        let requestHeaders = undefined;
+        let requestBody = undefined;
         const type = this.safeString(api, 0);
         const access = this.safeString(api, 1);
         const apiUrl = this.safeString(this.urls['api'], type);

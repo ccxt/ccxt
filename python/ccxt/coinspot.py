@@ -238,7 +238,7 @@ class coinspot(Exchange, ImplicitAPI):
                 'DRK': 'DASH',
             },
             'options': {
-                'fetchBalance': 'private_post_my_balances',
+                'fetchBalance': 'privatePostMyBalances',
             },
             'features': {
                 'spot': {
@@ -328,7 +328,7 @@ class coinspot(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        method = self.safe_string(self.options, 'fetchBalance', 'private_post_my_balances')
+        method = self.safe_string(self.options, 'fetchBalance', 'privatePostMyBalances')
         response = None
         if (method == 'private_post_ro_my_balances') or (method == 'privatePostRoMyBalances'):
             response = self.privatePostRoMyBalances(params)
@@ -719,12 +719,13 @@ class coinspot(Exchange, ImplicitAPI):
         # the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
         return self.milliseconds()
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        requestHeaders = headers
-        requestBody = body
-        isVersionedApi = isinstance(api, list)
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        requestHeaders = None
+        requestBody = None
+        apiLength = len(api)
+        isVersionedApi = apiLength > 1
         version = api[0] if isVersionedApi else None
-        accessType = api[1] if isVersionedApi else api
+        accessType = api[1] if isVersionedApi else api[0]
         endpoint = '/' + self.implode_params(path, params)
         fullPath = endpoint
         if version is not None:

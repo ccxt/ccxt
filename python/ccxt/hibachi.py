@@ -134,6 +134,7 @@ class hibachi(Exchange, ImplicitAPI):
                     'private': 'https://api.hibachi.xyz',
                 },
                 'www': 'https://www.hibachi.xyz/',
+                'doc': 'https://api-doc.hibachi.xyz/',
                 'referral': {
                     'url': 'https://hibachi.xyz/r/ZBL2YFWIHU',
                 },
@@ -1200,7 +1201,7 @@ class hibachi(Exchange, ImplicitAPI):
         message = self.binary_concat(encodedAssetId, encodedQuantity, encodedMaxFees, encodedAddress)
         return message
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -1209,8 +1210,8 @@ class hibachi(Exchange, ImplicitAPI):
         :param str code: unified currency code, only support USDT
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         withdrawAddress = address[-40:]
@@ -1715,9 +1716,10 @@ class hibachi(Exchange, ImplicitAPI):
             'percentage': None,
         })
 
-    def sign(self, path: str, api='public', method: object = 'GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: object = 'GET', params: dict = {}) -> dict:
+        apiName = api[0]
         endpoint = '/' + self.implode_params(path, params)
-        apiUrl = self.safe_string(self.urls['api'], api)
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + endpoint
@@ -1730,10 +1732,10 @@ class hibachi(Exchange, ImplicitAPI):
         hasJsonBody = (method == 'POST' or method == 'PUT' or method == 'DELETE')
         if hasJsonBody:
             headersValue['Content-Type'] = 'application/json'
-        bodyResult = body
+        bodyResult = None
         if hasJsonBody:
             bodyResult = self.json(params)
-        if api == 'private':
+        if apiName == 'private':
             self.check_required_credentials()
             headersValue['Authorization'] = self.apiKey
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersValue}

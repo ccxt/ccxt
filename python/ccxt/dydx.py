@@ -2009,22 +2009,23 @@ class dydx(Exchange, ImplicitAPI):
             'fee': None,
         }
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
+        tag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
         if code != 'USDC':
             raise NotSupported(self.id + ' withdraw() only support USDC')
         if self.markets is None:
             self.load_markets()
         self.check_address(address)
-        subaccountId = self.safe_integer(params, 'subaccountId')
+        subaccountId = self.safe_integer(paramsWithdrawTag, 'subaccountId')
         if subaccountId is None:
             raise ArgumentsRequired(self.id + ' withdraw requires subaccountId.')
         currency = self.currency(code)
@@ -2354,11 +2355,11 @@ class dydx(Exchange, ImplicitAPI):
                 return wallet
         raise ArgumentsRequired(self.id + ' getWalletAddress() requires a wallet address. Set `walletAddress` or `dydxAccount` in exchange options.')
 
-    def sign(self, path: str, section='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, section: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         requestHeaders = None
         requestBody = None
         pathWithParams = self.implode_params(path, params)
-        apiUrl = self.safe_string(self.urls['api'], section)
+        apiUrl = self.safe_string(self.urls['api'], section[0])
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl
@@ -2373,8 +2374,8 @@ class dydx(Exchange, ImplicitAPI):
             requestHeaders = {
                 'Content-type': 'application/json',
             }
-        headersResult = requestHeaders if (requestHeaders is not None) else headers
-        bodyResult = requestBody if (requestBody is not None) else body
+        headersResult = requestHeaders
+        bodyResult = requestBody
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

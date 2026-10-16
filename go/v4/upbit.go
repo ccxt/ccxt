@@ -3170,8 +3170,8 @@ func (this *Upbit) createDepositAddressBody(ch chan AsyncResult[any], code strin
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Upbit) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
@@ -3182,12 +3182,10 @@ func (this *Upbit) WithdrawAsync(code string, amount any, address any, optionalA
 func (this *Upbit) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagResolvedparamsTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	var tagResolved *string = SafeStringPtr(tagResolvedparamsTagVariable[0])
+	var tagResolvedparamsTagVariable []any = this.HandleParamString(params, "tag")
+	tagResolved := GetValue(tagResolvedparamsTagVariable, 0)
 	var paramsTag map[string]any = MapTyped(tagResolvedparamsTagVariable[1])
 	if this.Markets == nil {
 
@@ -3202,7 +3200,7 @@ func (this *Upbit) withdrawBody(ch chan EndpointResult[map[string]any], code str
 	}
 	var response any = nil
 	if code != "KRW" {
-		this.CheckAddress(address)
+		this.CheckAddress(address, code, tagResolved)
 		// 2023-05-23 Change to required parameters for digital assets
 		var network *string = this.SafeStringUpper2(paramsTag, "network", "net_type")
 		if network == nil {
@@ -3212,7 +3210,7 @@ func (this *Upbit) withdrawBody(ch chan EndpointResult[map[string]any], code str
 		request["net_type"] = network
 		request["currency"] = currency["id"]
 		request["address"] = address
-		if tagResolved != nil {
+		if !IsEqual(tagResolved, nil) {
 			request["secondary_address"] = tagResolved
 		}
 
@@ -3252,17 +3250,14 @@ func (this *Upbit) Nonce() any {
 	return this.Milliseconds()
 }
 func (this *Upbit) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
-	var baseApiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var baseApiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -3276,13 +3271,13 @@ func (this *Upbit) Sign(path string, optionalArgs ...any) any {
 			url += "?" + this.Urlencode(query)
 		}
 	}
-	var hasBody bool = (api == "private") && (method != "GET") && (method != "DELETE")
-	var requestBody any = body
+	var hasBody bool = (apiName != nil && *apiName == "private") && (method != "GET") && (method != "DELETE")
+	var requestBody *string = nil
 	if hasBody {
-		requestBody = this.Json(params)
+		requestBody = SafeStringPtr(this.Json(params))
 	}
 	var privateHeaders any = nil
-	if api == "private" {
+	if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		privateHeaders = map[string]any{}
 		var nonce string = this.Uuid()
@@ -3307,10 +3302,10 @@ func (this *Upbit) Sign(path string, optionalArgs ...any) any {
 		AddElementToObject(privateHeaders, "Authorization", "Bearer "+token)
 	}
 	var requestHeaders any = func() any {
-		if api == "private" {
+		if apiName != nil && *apiName == "private" {
 			return privateHeaders
 		}
-		return headers
+		return nil
 	}()
 	return map[string]any{
 		"url":     url,
@@ -4057,8 +4052,8 @@ func (this *Upbit) CreateDepositAddress(code string, options ...CreateDepositAdd
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Upbit) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
@@ -4068,7 +4063,7 @@ func (this *Upbit) Withdraw(code string, amount float64, address string, options
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

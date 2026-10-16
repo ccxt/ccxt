@@ -2604,14 +2604,14 @@ class coinbase extends Exchange {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
-         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/accounts/list-accounts
+         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/accounts/list-$accounts
          * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/accounts
          * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/get-futures-balance-summary
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->v3] default false, set true to use v3 api endpoint
          * @param {string} [$params->type] "spot" (default) or "swap" or "future"
-         * @param {int} [$params->limit] default 250, maximum number of accounts to return
+         * @param {int} [$params->limit] default 250, maximum number of $accounts to return
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         if ($this->markets === null) {
@@ -2628,6 +2628,22 @@ class coinbase extends Exchange {
         } elseif (($isV3 === true) || ($method === 'v3PrivateGetBrokerageAccounts')) {
             $request['limit'] = 250;
             $response = Async\await($this->v3PrivateGetBrokerageAccounts($this->extend($request, $paramsMarketType)));
+            // an explicit params.cursor means the caller pages manually
+            if ($this->safe_string($paramsMarketType, 'cursor') === null) {
+                $accounts = $this->safe_list($response, 'accounts', array());
+                $page = $response;
+                $cursor = $this->safe_string($page, 'cursor');
+                while ($this->safe_bool($page, 'has_next', false) && ($cursor !== null) && ($cursor !== '')) {
+                    $request['cursor'] = $cursor;
+                    $page = Async\await($this->v3PrivateGetBrokerageAccounts($this->extend($request, $paramsMarketType)));
+                    $accounts = $this->array_concat($accounts, $this->safe_list($page, 'accounts', array()));
+                    $nextCursor = $this->safe_string($page, 'cursor');
+                    $cursor = ($nextCursor === $cursor) ? null : $nextCursor;
+                }
+                $response['accounts'] = $accounts;
+                $response['has_next'] = $this->safe_bool($page, 'has_next', false);
+                $response['cursor'] = $this->safe_string($page, 'cursor');
+            }
         } else {
             $request['limit'] = 250;
             $response = Async\await($this->v2PrivateGetAccounts($this->extend($request, $paramsMarketType)));
@@ -4396,11 +4412,11 @@ class coinbase extends Exchange {
         return $this->parse_tickers($tickers, $symbolsNormalized);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal
          *
@@ -4409,14 +4425,14 @@ class coinbase extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} [$tag] an optional $tag for the withdrawal
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @param {string} [$params->network] the cryptocurrency network to use for the withdrawal using the lowercase name like bitcoin, ethereum, solana, etc.
          * @param {array} [$params->travel_rule_data] some regions require travel rule information for crypto withdrawals, see the exchange docs for details https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/travel-rule
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->check_address($address);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
+        $this->check_address($address, $code, $tagWithdrawTag);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -5561,7 +5577,7 @@ class coinbase extends Exchange {
         return $this->milliseconds() - $timeDifference;
     }
 
-    public function sign(string $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array(), $method = 'GET', $params = array()): array {
         $requestBody = null;
         $requestHeaders = null;
         $version = $this->safe_string($api, 0);
@@ -5665,8 +5681,8 @@ class coinbase extends Exchange {
                 }
             }
         }
-        $bodyResolved = ($requestBody === null) ? $body : $requestBody;
-        $headersResolved = ($requestHeaders === null) ? $headers : $requestHeaders;
+        $bodyResolved = $requestBody;
+        $headersResolved = $requestHeaders;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 

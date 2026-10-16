@@ -962,9 +962,11 @@ export const CORE_STRING_ARGS = {
     'watchPosition': [ 0 ],
     'watchTicker': [ 0 ],
     'watchTrades': [ 0 ],
-    'withdraw': [ 0, 2, 3 ],
+    'withdraw': [ 0, 2 ],
     'withdrawRequest': [ 0, 3 ],
-    'withdrawWs': [ 0, 2, 3 ],
+    'withdrawWs': [ 0, 2 ],
+    // fetchRestOrderBookSafe omitted: TS declares `symbol: any`, so the wrapper and the
+    // hand-written WsBridge caller both pass `object` and cannot be narrowed here
 };
 
 // ===== string-returning method signatures =====
@@ -1459,10 +1461,10 @@ export const CSHARP_COLLECTION_RETURN_METHODS = {
     'handleApiKeyIndex': 'List<object>', 'handleDeriveSubaccountId': 'List<object>', 'handleDeriveWalletAddress': 'List<object>', 'handleHfAndParams': 'List<object>',
     'handleMaxEntriesPerRequestAndParams': 'List<object>', 'handleNetworkCodeAndParams': 'List<object>', 'handleOriginAndSingleAddress': 'List<object>', 'handleParamBool': 'List<object>',
     'handleParamBool2': 'List<object>', 'handleParamInteger': 'List<object>', 'handleParamInteger2': 'List<object>', 'handlePostOnly': 'List<object>',
-    'handleProductTypeAndParams': 'List<object>', 'handlePublicAddress': 'List<object>', 'handleRequestNetwork': 'List<object>', 'handleSubTypeAndParams': 'List<object>',
+    'handleProductTypeAndParams': 'List<object>', 'handlePublicAddress': 'List<object>', 'handleSubTypeAndParams': 'List<object>',
     'handleTriggerAndParams': 'List<object>', 'handleTriggerDirectionAndParams': 'List<object>', 'handleTriggerOptionAndParams': 'List<object>', 'handleTriggerPrices': 'List<object>',
     'handleTriggerPricesAndParams': 'List<object>', 'handleTypePostOnlyAndTimeInForce': 'List<object>', 'handleUntilOption': 'List<object>', 'handleUntilOptionString': 'List<object>',
-    'handleWithdrawTagAndParams': 'List<object>', 'idsQueryStrings': 'List<object>', 'multiOrderSpotPrepareRequest': 'List<object>', 'orderRequest': 'List<object>',
+    'idsQueryStrings': 'List<object>', 'multiOrderSpotPrepareRequest': 'List<object>', 'orderRequest': 'List<object>',
     'orderRequestWs': 'List<object>', 'ordersToTrades': 'List<object>', 'parseAccountPositions': 'List<object>', 'parseAccounts': 'List<object>',
     'parseAddress': 'List<object>', 'parseBinaryMarketToOutcomes': 'List<object>', 'parseCancelOrders': 'List<object>', 'parseContractBidsAsks': 'List<object>',
     'parseCreateEditOrderArgs': 'List<object>', 'parseDepositMethodIds': 'List<object>', 'parseEventToMarkets': 'List<object>', 'parseEvents': 'List<object>',
@@ -3381,6 +3383,8 @@ const CSHARP_LOCAL_ANNOTATION_TYPES = {
     // string-literal unions (OrderSide includes `| string`, SubType/MarketType are closed)
     'MarketType': 'string?',
     'SubType': 'string?',
+    'DefaultType': 'string?',
+    'DefaultSubType': 'string?',
     'OrderSide': 'string?',
     'OrderType': 'string?',
     // Market / Currency are dictionary shapes. IDictionary<string, object> (not the
@@ -15769,7 +15773,7 @@ function coreArgParamType (csharp, node) {
 
 // the parameter is the target of a write anywhere in the method body: its own symbol, an
 // assignment (or compound assignment) left side -- through parens and array/object patterns, so
-// a `[ tag, params ] = this.handleWithdrawTagAndParams (…)` destructure counts -- or ++/--
+// a `[ type, params ] = this.handleMarketTypeAndParams (…)` destructure counts -- or ++/--
 function csharpParameterIsWritten (csharp, owner, declaration) {
     if (owner.body === undefined) {
         return false;
@@ -16756,7 +16760,6 @@ export const CSHARP_STRING_PARAMS = {
     'safeSymbol': { 2: 'string?' },
     'seedOrderBook': { 0: 'string?', 1: 'string?' },
     'seedPositionBalances': { 0: 'string?' },
-    'selectNetworkIdFromRawNetworks': { 0: 'string?' },
     'sendEvmTransaction': { 0: 'string?', 2: 'string?', 3: 'string?', 4: 'string?', 5: 'string?', 6: 'string?' },
     'setAgentAbstraction': { 0: 'string' },
     'setContractLeverage': { 1: 'string?' },

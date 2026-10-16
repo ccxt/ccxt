@@ -1,6 +1,6 @@
 Every endpoint in `krakenfutures`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/krakenfutures) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetFeeschedules`); the snake_case alias (`public_get_feeschedules`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`PublicGetFeeschedules`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetFeeschedules`); Python and PHP use the snake_case form (`public_get_feeschedules`), and Go uses the PascalCase form (`PublicGetFeeschedules`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -53,7 +53,7 @@ response := <-krakenfutures.PublicGetFeeschedules(params)
 
 Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; everything else in `params` is sent as the query string or request body. **Cost** is the rate-limiter weight of each call.
 
-📚 **Official krakenfutures API documentation:** [docs.kraken.com](https://docs.kraken.com/api/docs/futures-api/trading/market-data/)
+📚 **Official krakenfutures API documentation:** [docs.kraken.com](https://docs.kraken.com/exchange/guides/futures/rest)
 
 > 55 implicit endpoints across 4 access groups.
 

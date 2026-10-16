@@ -774,7 +774,11 @@ class mexc(ccxt.async_support.mexc):
         parts = msg.split('@')
         marketId = self.safe_string(parts, 2)
         symbol = self.safe_symbol(marketId)
-        self.orderbooks[symbol] = self.order_book({})
+        if not (symbol in self.orderbooks):
+            self.orderbooks[symbol] = self.order_book({})
+        orderbook = self.orderbooks[symbol]
+        orderbook['nonce'] = None
+        orderbook.cache = []
 
     def get_cache_index(self, orderbook: object, cache: object) -> float:
         # return the first index of the cache that can be applied to the orderbook or -1 if not possible

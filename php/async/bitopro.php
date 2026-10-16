@@ -235,11 +235,8 @@ class bitopro extends Exchange {
             'options' => array(
                 'networks' => array(
                     'ERC20' => 'ERC20',
-                    'ETH' => 'ERC20',
-                    'TRX' => 'TRX',
                     'TRC20' => 'TRX',
                     'BEP20' => 'BSC',
-                    'BSC' => 'BSC',
                 ),
                 'fetchCurrencies' => array(
                     'fiatCurrencies' => array( 'TWD' ), // the only fiat currency for exchange
@@ -1877,11 +1874,11 @@ class bitopro extends Exchange {
         return $this->parse_transaction($result, $currency);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal
          *
@@ -1890,15 +1887,15 @@ class bitopro extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $this->check_address($address);
+        $this->check_address($address, $code, $tagWithdrawTag);
         $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],
@@ -1913,7 +1910,7 @@ class bitopro extends Exchange {
         if ($hasNetwork) {
             $networks = $this->safe_dict($this->options, 'networks', array());
             $requestedNetwork = $this->safe_string_upper($paramsWithdrawTag, 'network');
-            $networkId = ($requestedNetwork === null) ? null : $this->safe_string($networks, $requestedNetwork);
+            $networkId = ($requestedNetwork === null) ? null : $this->safe_string($networks, $this->safe_string($this->networkAliases, $requestedNetwork, $requestedNetwork));
             if ($networkId === null) {
                 throw new ExchangeError($this->id . ' invalid network ' . $requestedNetwork);
             }
@@ -2003,18 +2000,19 @@ class bitopro extends Exchange {
         return $this->parse_deposit_withdraw_fees($data, $codes, 'currency');
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $url = '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
-        $requestHeaders = ($headers === null) ? array() : $headers;
-        $isSignedBody = ($api === 'private') && (($method === 'POST') || ($method === 'PUT'));
+        $requestHeaders = array();
+        $isSignedBody = ($apiName === 'private') && (($method === 'POST') || ($method === 'PUT'));
         $signedBody = $this->json($params);
-        $requestBody = $body;
+        $requestBody = null;
         if ($isSignedBody) {
             $requestBody = $signedBody;
         }
         $requestHeaders['X-BITOPRO-API'] = 'ccxt';
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             if ($method === 'POST' || $method === 'PUT') {
                 $payload = base64_encode($signedBody);
@@ -2037,7 +2035,7 @@ class bitopro extends Exchange {
                 $requestHeaders['X-BITOPRO-PAYLOAD'] = $payload;
                 $requestHeaders['X-BITOPRO-SIGNATURE'] = $signature;
             }
-        } elseif ($api === 'public' && $method === 'GET') {
+        } elseif ($apiName === 'public' && $method === 'GET') {
             if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }

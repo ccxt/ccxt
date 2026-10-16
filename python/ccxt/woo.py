@@ -35,7 +35,7 @@ class woo(Exchange, ImplicitAPI):
             'countries': ['KY'],  # Cayman Islands
             'rateLimit': 100,
             'version': 'v1',
-            'certified': True,
+            'certified': False,
             'pro': True,
             'hostname': 'woox.io',
             'has': {
@@ -359,7 +359,6 @@ class woo(Exchange, ImplicitAPI):
                 'sandboxMode': False,
                 'createMarketBuyOrderRequiresPrice': True,
                 'networks': {
-                    'TRX': 'TRX',  # WOO X renamed the network id from TRON to TRX
                     'TRC20': 'TRX',
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
@@ -3199,7 +3198,7 @@ class woo(Exchange, ImplicitAPI):
             'info': transfer,
         }
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -3208,14 +3207,14 @@ class woo(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
         if self.markets is None:
             self.load_markets()
-        self.check_address(address)
+        self.check_address(address, code, tagWithdrawTag)
         currency = self.currency(code)
         request = {
             'amount': amount,
@@ -3244,7 +3243,7 @@ class woo(Exchange, ImplicitAPI):
             'amount': amount,
             'addressTo': address,
             'tag': tagWithdrawTag,
-            'network': network,
+            'network': self.safe_string(self.networkAliases, network, network),
             'type': 'withdrawal',
             'status': 'pending',
         })
@@ -3301,7 +3300,7 @@ class woo(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)
 
-    def sign(self, path: str, section='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, section: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         requestHeaders = None
         requestBody = None
         version = self.safe_string(section, 0)
@@ -3362,8 +3361,8 @@ class woo(Exchange, ImplicitAPI):
                 auth += '|' + ts
                 requestHeaders['content-type'] = 'application/x-www-form-urlencoded'
             requestHeaders['x-api-signature'] = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
-        headersResult = requestHeaders if (requestHeaders is not None) else headers
-        bodyResult = requestBody if (requestBody is not None) else body
+        headersResult = requestHeaders
+        bodyResult = requestBody
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
@@ -4508,7 +4507,7 @@ class woo(Exchange, ImplicitAPI):
         networkKeys = list(networks.keys())
         for i in range(0, len(networkKeys)):
             network = networkKeys[i]
-            if network == 'ETH':
+            if network == 'ERC20':
                 return network
         # if it was not returned according to above options, then return the first network of currency
         return self.safe_string(networkKeys, 0)

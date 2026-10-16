@@ -566,35 +566,14 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         {
             return;
         }
-        String streamType = this.safeString(message, "stream_type");
         Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchOrderBook", new HashMap<String, Object>() {{}});
         Long obLimit = this.safeInteger(options, "limit", 1000);
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)) || (java.util.Objects.equals(streamType, "SNAPSHOT")))
+        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, obLimit));
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-        orderbook.reset(new HashMap<String, Object>() {{}});
-        orderbook.put("symbol", symbol);
-        io.github.ccxt.ws.OrderBookSide bids = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("bids"));
-        io.github.ccxt.ws.OrderBookSide asks = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("asks"));
         List<Object> units = (List<Object>) this.safeList(message, "orderbook_units", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)units).size(); i++)
-        {
-            Map<String, Object> entry = (Map<String, Object>) this.safeDict(units, i, (Object) null);
-            Double bidPrice = this.safeNumber(entry, "bid_price", (Object) null);
-            Double bidSize = this.safeNumber(entry, "bid_size", (Object) null);
-            Double askPrice = this.safeNumber(entry, "ask_price", (Object) null);
-            Double askSize = this.safeNumber(entry, "ask_size", (Object) null);
-            if ((!java.util.Objects.equals(bidPrice, null)) && (!java.util.Objects.equals(bidSize, null)))
-            {
-                bids.store(bidPrice, bidSize);
-            }
-            if ((!java.util.Objects.equals(askPrice, null)) && (!java.util.Objects.equals(askSize, null)))
-            {
-                asks.store(askPrice, askSize);
-            }
-        }
         String gen2TimestampStr = this.safeString2(message, "timestamp", "datetime");
         Long timestamp = null;
         if (!java.util.Objects.equals(gen2TimestampStr, null))
@@ -605,8 +584,29 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         {
             timestamp = this.milliseconds();
         }
-        orderbook.put("timestamp", timestamp);
-        orderbook.put("datetime", this.iso8601(timestamp));
+        List<Object> bidsSnapshot = new ArrayList<Object>(Arrays.asList());
+        List<Object> asksSnapshot = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < ((List<?>)units).size(); i++)
+        {
+            Map<String, Object> entry = (Map<String, Object>) this.safeDict(units, i, (Object) null);
+            Double bidPrice = this.safeNumber(entry, "bid_price", (Object) null);
+            Double bidSize = this.safeNumber(entry, "bid_size", (Object) null);
+            Double askPrice = this.safeNumber(entry, "ask_price", (Object) null);
+            Double askSize = this.safeNumber(entry, "ask_size", (Object) null);
+            if ((!java.util.Objects.equals(bidPrice, null)) && (!java.util.Objects.equals(bidSize, null)))
+            {
+                ((List<Object>)bidsSnapshot).add(new ArrayList<Object>(Arrays.asList(bidPrice, bidSize)));
+            }
+            if ((!java.util.Objects.equals(askPrice, null)) && (!java.util.Objects.equals(askSize, null)))
+            {
+                ((List<Object>)asksSnapshot).add(new ArrayList<Object>(Arrays.asList(askPrice, askSize)));
+            }
+        }
+        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(new HashMap<String, Object>() {{
+            put( "bids", bidsSnapshot );
+            put( "asks", asksSnapshot );
+        }}, symbol, timestamp, "bids", "asks", 0, 1, 2);
+        orderbook.reset(snapshot);
         String messageHash = (("orderbook" + ":") + symbol);
         client.resolve(orderbook, messageHash);
     }

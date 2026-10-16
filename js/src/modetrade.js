@@ -527,6 +527,7 @@ export default class modetrade extends Exchange {
         //
         //   {
         //     "symbol": "PERP_BTC_USDC",
+        //     "status": "ACTIVE",
         //     "quote_min": 123,
         //     "quote_max": 100000,
         //     "quote_tick": 0.1,
@@ -552,6 +553,11 @@ export default class modetrade extends Exchange {
         //   }
         //
         const marketId = this.safeString(market, 'symbol', '');
+        const status = this.safeString(market, 'status');
+        let active = undefined;
+        if (status !== undefined) {
+            active = (status === 'ACTIVE');
+        }
         const parts = marketId.split('_');
         const marketType = 'swap';
         const baseId = this.safeString(parts, 1);
@@ -579,7 +585,7 @@ export default class modetrade extends Exchange {
             'swap': true,
             'future': false,
             'option': false,
-            'active': undefined,
+            'active': active,
             'contract': true,
             'linear': true,
             'inverse': false,
@@ -632,6 +638,7 @@ export default class modetrade extends Exchange {
         //       "rows": [
         //         {
         //           "symbol": "PERP_BTC_USDC",
+        //           "status": "ACTIVE",
         //           "quote_min": 123,
         //           "quote_max": 100000,
         //           "quote_tick": 0.1,
@@ -2705,11 +2712,11 @@ export default class modetrade extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
+    async withdraw(code, amount, address, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -3035,7 +3042,7 @@ export default class modetrade extends Exchange {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, section = ['public'], method = 'GET', params = {}) {
         const version = section[0];
         const access = section[1];
         const pathWithParams = this.implodeParams(path, params);
@@ -3099,7 +3106,7 @@ export default class modetrade extends Exchange {
                     auth += '?' + this.rawencode(paramsSigned);
                 }
                 signedHeaders['content-type'] = 'application/x-www-form-urlencoded';
-                signedBody = (method === 'DELETE') ? '' : body;
+                signedBody = (method === 'DELETE') ? '' : undefined;
             }
             let secret = this.secret;
             if (secret.indexOf('ed25519:') >= 0) {
@@ -3110,7 +3117,7 @@ export default class modetrade extends Exchange {
             signedHeaders['orderly-signature'] = this.urlencodeBase64(this.base64ToBinary(signature));
             return { 'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if ((response === undefined) || (response === null)) {

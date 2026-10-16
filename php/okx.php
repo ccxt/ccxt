@@ -1165,15 +1165,11 @@ class okx extends Exchange {
                 'networks' => array(
                     'BTC' => 'Bitcoin',
                     'BTCLIGHTNING' => 'Lightning',
-                    'BSC' => 'BSC',
                     'BEP20' => 'BSC',
                     'BRC20' => 'BRC20',
-                    'ETH' => 'ERC20',
                     'ERC20' => 'ERC20',
-                    'TRX' => 'TRC20',
                     'TRC20' => 'TRC20',
                     'CRC20' => 'Crypto',
-                    'CRONOS' => 'Crypto',
                     'ACA' => 'Acala',
                     'ALGO' => 'Algorand',
                     'APT' => 'Aptos',
@@ -5590,7 +5586,7 @@ class okx extends Exchange {
         return $this->safe_dict($response, $first);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
+    public function withdraw(string $code, float $amount, string $address, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -5599,12 +5595,12 @@ class okx extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for $currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=$transaction-structure $transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->check_address($address);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
+        $this->check_address($address, $code, $tagWithdrawTag);
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -5623,7 +5619,9 @@ class okx extends Exchange {
         $network = $this->safe_string($paramsWithdrawTag, 'network'); // this line allows the user to specify either ERC20 or ETH
         if ($network !== null) {
             $networks = $this->safe_dict($this->options, 'networks', array());
-            $network = $this->safe_string($networks, strtoupper($network), $network); // handle ETH>ERC20 alias
+            $networkUpper = strtoupper($network);
+            $networkKey = $this->safe_string($this->networkAliases, $networkUpper, $networkUpper);
+            $network = $this->safe_string($networks, $networkKey, $network); // resolve aliases to the unified key
             $request['chain'] = $currency['id'] . '-' . $network;
         }
         $omitKeys = array( 'fee' );
@@ -6747,7 +6745,8 @@ class okx extends Exchange {
         return $this->parse_transfers($transfers, $currency, $since, $limit, $params);
     }
 
-    public function sign(string $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $isArray = (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params)));
         $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
@@ -6760,11 +6759,11 @@ class okx extends Exchange {
         $hasJsonBody = false;
         $jsonBody = null;
         // const type = this.getPathAuthenticationType (path);
-        if ($api === 'public') {
+        if ($apiName === 'public') {
             if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
-        } elseif ($api === 'private') {
+        } elseif ($apiName === 'private') {
             $this->check_required_credentials();
             // inject id in implicit api call
             if ($method === 'POST' && ($path === 'trade/batch-orders' || $path === 'trade/order-algo' || $path === 'trade/order')) {
@@ -6814,11 +6813,11 @@ class okx extends Exchange {
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
             $privateHeaders['OK-ACCESS-SIGN'] = $signature;
         }
-        $requestBody = $body;
+        $requestBody = null;
         if ($hasJsonBody) {
             $requestBody = $jsonBody;
         }
-        $requestHeaders = ($api === 'private') ? $privateHeaders : $headers;
+        $requestHeaders = ($apiName === 'private') ? $privateHeaders : null;
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
@@ -7732,8 +7731,8 @@ class okx extends Exchange {
         }
         $market = $this->market($symbol);
         $type = ($market['spot'] === true) ? 'MARGIN' : $this->convert_to_instrument_type($market['type']);
-        $uly = $this->safe_string($market['info'], 'uly');
-        if (($uly === null) || ($uly === '')) {
+        $instFamily = $this->safe_string($market['info'], 'instFamily');
+        if (($instFamily === null) || ($instFamily === '')) {
             if ($type !== 'MARGIN') {
                 throw new BadRequest($this->id . ' fetchMarketLeverageTiers() cannot fetch leverage tiers for ' . $symbol);
             }
@@ -7744,7 +7743,7 @@ class okx extends Exchange {
         $request = array(
             'instType' => $type,
             'tdMode' => $marginMode,
-            'uly' => $uly,
+            'instFamily' => $instFamily,
         );
         if ($type === 'MARGIN') {
             $request['instId'] = $market['id'];

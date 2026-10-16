@@ -2606,7 +2606,7 @@ class bitstamp extends bitstamp$1["default"] {
         const name = this.getCurrencyName(code);
         // the per-currency implicit methods (privatePostBtcAddress etc.) all route
         // through request(), called here directly to avoid dynamic dispatch
-        const response = await this.request(name + '_address/', 'private', 'POST', params);
+        const response = await this.request(name + '_address/', ['private'], 'POST', params);
         const address = this.safeString(response, 'address');
         const tag = this.safeString2(response, 'memo_id', 'destination_tag');
         this.checkAddress(address);
@@ -2627,18 +2627,18 @@ class bitstamp extends bitstamp$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
+    async withdraw(code, amount, address, params = {}) {
         // For fiat withdrawals please provide all required additional parameters in the 'params'
         // Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        this.checkAddress(address);
+        this.checkAddress(address, code, tagWithdrawTag);
         const request = {
             'amount': amount,
         };
@@ -2659,7 +2659,7 @@ class bitstamp extends bitstamp$1["default"] {
             request['address'] = address;
             // the per-currency implicit methods (privatePostBtcWithdrawal etc.) all
             // route through request(), called here directly to avoid dynamic dispatch
-            response = await this.request(name + '_withdrawal/', 'private', 'POST', this.extend(request, paramsWithdrawTag));
+            response = await this.request(name + '_withdrawal/', ['private'], 'POST', this.extend(request, paramsWithdrawTag));
         }
         else {
             currency = this.currency(code);
@@ -2743,8 +2743,9 @@ class bitstamp extends bitstamp$1["default"] {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const apiUrl = this.safeString(this.urls['api'], api);
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
@@ -2752,7 +2753,7 @@ class bitstamp extends bitstamp$1["default"] {
         url += this.version + '/';
         url += this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
-        const isPrivatePost = (api !== 'public') && (method === 'POST');
+        const isPrivatePost = (apiName !== 'public') && (method === 'POST');
         // an empty POST triggers an API0020 error, so empty requests send a dummy object
         // https://github.com/ccxt/ccxt/issues/6846
         const emptyPostBody = this.urlencode({ 'foo': 'bar' });
@@ -2760,12 +2761,12 @@ class bitstamp extends bitstamp$1["default"] {
         if (Object.keys(query).length > 0) {
             postBody = this.urlencode(query);
         }
-        let requestBody = body;
+        let requestBody = undefined;
         if (isPrivatePost) {
             requestBody = postBody;
         }
         let privateHeaders = undefined;
-        if (api === 'public') {
+        if (apiName === 'public') {
             if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
@@ -2795,7 +2796,7 @@ class bitstamp extends bitstamp$1["default"] {
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
             privateHeaders['X-Auth-Signature'] = signature;
         }
-        const requestHeaders = (api === 'public') ? headers : privateHeaders;
+        const requestHeaders = (apiName === 'public') ? undefined : privateHeaders;
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

@@ -29,7 +29,7 @@ func (this *Onetrading) Describe() any {
 			"spot":                           true,
 			"margin":                         false,
 			"swap":                           true,
-			"future":                         false,
+			"future":                         true,
 			"option":                         false,
 			"addMargin":                      false,
 			"borrowCrossMargin":              false,
@@ -631,6 +631,25 @@ func (this *Onetrading) ParseMarket(market any) any {
 	//      "state": "ACTIVE"
 	//  }
 	//
+	//  {
+	//      "base": { "code": "BTC", "precision": 8 },
+	//      "quote": { "code": "USD", "precision": 8 },
+	//      "amount_precision": 5,
+	//      "market_precision": 2,
+	//      "min_size": "10.0",
+	//      "min_price": "1000",
+	//      "max_price": "10000000",
+	//      "id": "BTC_USD_P",
+	//      "price_collar_percentage": "10",
+	//      "type": "DATED_FUTURE", // or EQUITY_FUTURE
+	//      "state": "ACTIVE",
+	//      "funding_period": 240,
+	//      "market_offset": 0,
+	//      "funding_schedule": { "type": "FIXED_INTERVAL", "period_minutes": 240 },
+	//      "contract_expiry_date": "2031-04-20",
+	//      "contract_duration": "5Y"
+	//  }
+	//
 	var baseAsset map[string]any = SafeMapTyped(market, "base")
 	var quoteAsset map[string]any = SafeMapTyped(market, "quote")
 	var baseId *string = this.SafeString(baseAsset, "code")
@@ -644,9 +663,29 @@ func (this *Onetrading) ParseMarket(market any) any {
 	var state *string = this.SafeString(market, "state")
 	var typeVar *string = this.SafeString(market, "type")
 	var isPerp bool = (typeVar != nil && *typeVar == "PERP")
+	var isFuture bool = (typeVar != nil && *typeVar == "DATED_FUTURE") || (typeVar != nil && *typeVar == "EQUITY_FUTURE")
+	var isContract bool = isPerp || isFuture
+	var expiry any = nil
+	var expiryDate *string = this.SafeString(market, "contract_expiry_date")
+	if expiryDate != nil {
+		if derefPtr := this.Parse8601(*expiryDate + "T00:00:00Z"); derefPtr != nil {
+			expiry = *derefPtr
+		} else {
+			expiry = nil
+		}
+	}
 	var symbol string = *base + "/" + *quote
-	if isPerp {
+	if isContract {
 		symbol = symbol + ":" + *quote
+		if isFuture && (expiry != nil) {
+			symbol = symbol + "-" + this.Yymmdd(expiry)
+		}
+	}
+	var marketType string = "spot"
+	if isPerp {
+		marketType = "swap"
+	} else if isFuture {
+		marketType = "future"
 	}
 	return this.SafeMarketStructure(map[string]any{
 		"id":     id,
@@ -654,7 +693,7 @@ func (this *Onetrading) ParseMarket(market any) any {
 		"base":   base,
 		"quote":  quote,
 		"settle": func() any {
-			if isPerp {
+			if isContract {
 				return quote
 			}
 			return nil
@@ -662,44 +701,39 @@ func (this *Onetrading) ParseMarket(market any) any {
 		"baseId":  baseId,
 		"quoteId": quoteId,
 		"settleId": func() any {
-			if isPerp {
+			if isContract {
 				return quoteId
 			}
 			return nil
 		}(),
-		"type": func() string {
-			if isPerp {
-				return "swap"
-			}
-			return "spot"
-		}(),
-		"spot":     !isPerp,
+		"type":     marketType,
+		"spot":     !isContract,
 		"margin":   false,
 		"swap":     isPerp,
-		"future":   false,
+		"future":   isFuture,
 		"option":   false,
-		"active":   (state != nil && *state == "ACTIVE"),
-		"contract": isPerp,
+		"active":   (state != nil && *state == "ACTIVE") || (state != nil && *state == "POST_ONLY"),
+		"contract": isContract,
 		"linear": func() any {
-			if isPerp {
+			if isContract {
 				return true
 			}
 			return nil
 		}(),
 		"inverse": func() any {
-			if isPerp {
+			if isContract {
 				return false
 			}
 			return nil
 		}(),
 		"contractSize": func() any {
-			if isPerp {
+			if isContract {
 				return this.ParseNumber("1")
 			}
 			return nil
 		}(),
-		"expiry":         nil,
-		"expiryDatetime": nil,
+		"expiry":         expiry,
+		"expiryDatetime": this.Iso8601(expiry),
 		"strike":         nil,
 		"optionType":     nil,
 		"precision": map[string]any{
@@ -761,11 +795,11 @@ func (this *Onetrading) fetchTradingFeesBody(ch chan AsyncResult[any], optionalA
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes62819 map[string]any = r.Value
-		if retRes62819 == nil {
+		var retRes66319 map[string]any = r.Value
+		if retRes66319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes62819}
+			ch <- AsyncResult[any]{Value: retRes66319}
 		}
 		return nil
 	} else if method != nil && *method == "fetchPublicTradingFees" {
@@ -774,11 +808,11 @@ func (this *Onetrading) fetchTradingFeesBody(ch chan AsyncResult[any], optionalA
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes63019 map[string]any = r1.Value
-		if retRes63019 == nil {
+		var retRes66519 map[string]any = r1.Value
+		if retRes66519 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes63019}
+			ch <- AsyncResult[any]{Value: retRes66519}
 		}
 		return nil
 	} else {
@@ -803,11 +837,11 @@ func (this *Onetrading) fetchPublicTradingFeesBody(ch chan EndpointResult[map[st
 		}
 	}
 
-	listEp782 := <-this.PublicGetFees(params)
-	if listEp782.Err != nil {
-		panic(listEp782.Err)
+	listEp812 := <-this.PublicGetFees(params)
+	if listEp812.Err != nil {
+		panic(listEp812.Err)
 	}
-	var response []any = listEp782.Value
+	var response []any = listEp812.Value
 	//
 	// [
 	//     {
@@ -1145,11 +1179,11 @@ func (this *Onetrading) fetchTickersBody(ch chan AsyncResult[any], optionalArgs 
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	listEp1104 := <-this.PublicGetMarketTicker(params)
-	if listEp1104.Err != nil {
-		panic(listEp1104.Err)
+	listEp1134 := <-this.PublicGetMarketTicker(params)
+	if listEp1134.Err != nil {
+		panic(listEp1134.Err)
 	}
-	var response []any = listEp1104.Value
+	var response []any = listEp1134.Value
 	//
 	//     [
 	//         {
@@ -2242,11 +2276,11 @@ func (this *Onetrading) fetchClosedOrdersBody(ch chan AsyncResult[any], optional
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes176415 []any = ListTyped(r.Value)
-	if retRes176415 == nil {
+	var retRes179915 []any = ListTyped(r.Value)
+	if retRes179915 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes176415}
+		ch <- AsyncResult[any]{Value: retRes179915}
 	}
 	return nil
 }
@@ -2437,27 +2471,24 @@ func (this *Onetrading) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs
 	return nil
 }
 func (this *Onetrading) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *apiUrl + "/" + this.Version + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	if api == "public" {
+	if apiName != nil && *apiName == "public" {
 		if len(ObjectKeys(query)) > 0 {
 			url += "?" + this.Urlencode(query)
 		}
-	} else if api == "private" {
+	} else if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		var headersSigned map[string]any = map[string]any{
 			"Accept":        "application/json",
@@ -2467,7 +2498,7 @@ func (this *Onetrading) Sign(path string, optionalArgs ...any) any {
 			if method == "POST" {
 				return SafeStringPtr(this.Json(query))
 			}
-			return body
+			return nil
 		}()
 		if method == "POST" {
 			headersSigned["Content-Type"] = "application/json"
@@ -2486,8 +2517,8 @@ func (this *Onetrading) Sign(path string, optionalArgs ...any) any {
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    nil,
+		"headers": nil,
 	}
 }
 func (this *Onetrading) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {

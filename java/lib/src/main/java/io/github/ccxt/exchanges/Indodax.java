@@ -287,7 +287,7 @@ public class Indodax extends IndodaxApi
                 put( "adjustForTimeDifference", false );
                 put( "networks", new HashMap<String, Object>() {{
                     put( "XLM", "Stellar Token" );
-                    put( "BSC", "bep20" );
+                    put( "BEP20", "bep20" );
                     put( "TRC20", "trc20" );
                     put( "MATIC", "polygon" );
                 }} );
@@ -1488,19 +1488,19 @@ public class Indodax extends IndodaxApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (parameters));
-            var tagWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
+            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
+            String tagWithdrawTag = (String) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
-            this.checkAddress(address);
+            this.checkAddress(address, code, tagWithdrawTag);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -1702,7 +1702,7 @@ public class Indodax extends IndodaxApi
                 String address = this.safeString(addresses, marketId);
                 if ((!java.util.Objects.equals(address, null)) && ((java.util.Objects.equals(codes, null)) || (this.inArray(code, codes))))
                 {
-                    this.checkAddress(address);
+                    this.checkAddress(address, (String) null, (String) null);
                     Object network = null;
                     if (networks.containsKey(marketId))
                     {
@@ -1754,9 +1754,10 @@ public class Indodax extends IndodaxApi
 
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -1764,7 +1765,7 @@ public class Indodax extends IndodaxApi
         Object url = apiUrl;
         String privateBody = null;
         Map<String, Object> privateHeaders = null;
-        Boolean isPublic = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"));
+        Boolean isPublic = (java.util.Objects.equals(apiName, "public"));
         if (Boolean.TRUE.equals(isPublic))
         {
             Object query = this.omit(parameters, this.extractParams(path));
@@ -1791,12 +1792,12 @@ public class Indodax extends IndodaxApi
         String requestBody = privateBody;
         if (Boolean.TRUE.equals(isPublic))
         {
-            requestBody = body;
+            requestBody = null;
         }
-        Object requestHeaders = privateHeaders;
+        Map<String, Object> requestHeaders = privateHeaders;
         if (Boolean.TRUE.equals(isPublic))
         {
-            requestHeaders = headers;
+            requestHeaders = null;
         }
         {
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();

@@ -2055,7 +2055,8 @@ class blofin extends Exchange {
 
     public function network_code_to_chain_id(string $networkCode, ?array $currency = null): ?string {
         $aliases = $this->safe_dict($this->options, 'networkCodeAliases', array());
-        $unifiedCode = $this->safe_string($aliases, $networkCode, $networkCode);
+        $aliasedCode = $this->safe_string($aliases, $networkCode, $networkCode);
+        $unifiedCode = $this->safe_string($this->networkAliases, $aliasedCode, $aliasedCode);
         // prefer the exact chain id from the currencies registry when it is
         // loaded, since some ids are currency-specific (USDT on Optimism)
         if ($currency !== null) {
@@ -2455,11 +2456,11 @@ class blofin extends Exchange {
         throw new ExchangeError($this->id . ' fetchWithdrawal() could not find withdrawal ' . $reference);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal
          *
@@ -2468,8 +2469,8 @@ class blofin extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw, the withdrawal fee is not included and must be reserved on top
          * @param {string} $address the $address to withdraw to, or a UID / email / phone number for an internal transfer
-         * @param {string} $tag additional identifier (memo / payment id) required by certain networks
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @param {string} [$params->network] the unified network $code for on-$chain withdrawals, mapped to the exchange's $chain name
          * @param {string} [$params->dest] 'onchain' (default) or 'internal' for an internal transfer
          * @param {string} [$params->addrType] $address type, 1 => wallet $address, 2 => UID, 3 => email, 4 => mobile phone
@@ -2489,7 +2490,7 @@ class blofin extends Exchange {
         //   error table documents the message as "Parameter {} error"
         $tagValue = null;
         $query = null;
-        list($tagValue, $query) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagValue, $query) = $this->handle_param_string($params, 'tag');
         Async\await($this->load_markets());
         $currency = $this->currency($code);
         $request = array(
@@ -2501,7 +2502,7 @@ class blofin extends Exchange {
         $request['dest'] = $dest;
         $query = $this->omit($query, 'dest');
         if ($dest === 'onchain') {
-            $this->check_address($address);
+            $this->check_address($address, $code, $tagValue);
             // the doc's Request Parameters table marks addrType "Required:
             // No", but the live venue rejects on-chain withdrawals without
             // it (152001 "Parameter addrType cannot be empty") - default to
@@ -3674,7 +3675,8 @@ class blofin extends Exchange {
         return null;
     }
 
-    public function sign(string $path, $api = 'public', mixed $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), mixed $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $apiUrl = $this->safe_string($this->urls['api'], 'rest');
@@ -3683,11 +3685,11 @@ class blofin extends Exchange {
         }
         $url = $apiUrl . $request;
         // const type = this.getPathAuthenticationType (path);
-        if ($api === 'public') {
+        if ($apiName === 'public') {
             if (!$this->is_empty($query)) {
                 $url .= '?' . $this->urlencode($query);
             }
-        } elseif ($api === 'private') {
+        } elseif ($apiName === 'private') {
             $this->check_required_credentials();
             $timestamp = (string) $this->milliseconds();
             $signedHeaders = array(
@@ -3714,9 +3716,9 @@ class blofin extends Exchange {
             $auth = $request . $method . $timestamp . $timestamp . $sign_body;
             $signature = base64_encode($this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256'));
             $signedHeaders['ACCESS-SIGN'] = $signature;
-            $bodyResolved = ($signedBody === null) ? $body : $signedBody;
+            $bodyResolved = $signedBody;
             return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $signedHeaders );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 }

@@ -49,6 +49,50 @@ let SignMode = undefined;
 // onJsonResponse regex, hoisted to module scope (shared safely: String.replace resets
 // lastIndex on the global regex) - profiled neutral vs a function-local literal
 // (<2%, within noise, V8 caches the compiled literal anyway), kept hoisted for tidiness
+// snake_case aliases of prototype members, computed once per class as flat [ camel, snake, ... ]
+const aliasPairsCache = new WeakMap();
+const unCamelCaseCache = new Map();
+const unCamelCaseCached = (k) => {
+    let snake = unCamelCaseCache.get(k);
+    if (snake === undefined) {
+        snake = unCamelCase(k);
+        unCamelCaseCache.set(k, snake);
+    }
+    return snake;
+};
+const ownerOf = (proto, k) => {
+    for (let o = proto; o !== null; o = Object.getPrototypeOf(o)) {
+        if (Object.prototype.hasOwnProperty.call(o, k)) {
+            return o;
+        }
+    }
+    return undefined;
+};
+const prototypeAliasPairs = (proto) => {
+    let pairs = aliasPairsCache.get(proto);
+    if (pairs !== undefined) {
+        return pairs;
+    }
+    pairs = [];
+    for (let o = proto; o !== null; o = Object.getPrototypeOf(o)) {
+        const names = Object.getOwnPropertyNames(o);
+        for (let i = 0; i < names.length; i++) {
+            const k = names[i];
+            const snake = unCamelCaseCached(k);
+            if (snake === k) {
+                continue;
+            }
+            // a class defining both names itself needs no alias
+            const owner = ownerOf(proto, k);
+            if ((owner !== undefined) && (owner === ownerOf(proto, snake))) {
+                continue;
+            }
+            pairs.push(k, snake);
+        }
+    }
+    aliasPairsCache.set(proto, pairs);
+    return pairs;
+};
 const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
 // -----------------------------------------------------------------------------
 /**
@@ -56,7 +100,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
  */
 export class BaseExchange {
     // this is updated by vss.js when building
-    static { this.ccxtVersion = '4.5.85'; }
+    static { this.ccxtVersion = '4.5.88'; }
     constructor(userConfig = {}) {
         this.isSandboxModeEnabled = false;
         this.certified = false;
@@ -93,6 +137,17 @@ export class BaseExchange {
         this.httpAgent = undefined;
         this.httpsAgent = undefined;
         this.minFundingAddressLength = 1; // used in checkAddress
+        // alias -> unified network code; aliases are accepted as input but never returned
+        this.networkAliases = {
+            'ETH': 'ERC20',
+            'TRX': 'TRC20',
+            'BSC': 'BEP20',
+            'BSC20': 'BEP20',
+            'CRONOS': 'CRC20',
+            'ARB': 'ARBITRUM',
+            'ARBONE': 'ARBITRUM',
+            'ARBNOVA': 'ARBITRUM_NOVA',
+        };
         this.substituteCommonCurrencyCodes = true; // reserved
         this.quoteJsonNumbers = true; // quote json numbers as precise strings when a response carries precision-risky (16+ digit or exponent) numbers
         // eslint-disable-next-line no-unused-vars
@@ -320,17 +375,18 @@ export class BaseExchange {
         this.last_json_response = undefined;
         this.last_request_body = undefined;
         // camelCase and snake_notation support
-        const unCamelCaseProperties = (obj = this) => {
-            if (obj !== null) {
-                const ownPropertyNames = Object.getOwnPropertyNames(obj);
-                for (let i = 0; i < ownPropertyNames.length; i++) {
-                    const k = ownPropertyNames[i];
-                    this[unCamelCase(k)] = this[k];
-                }
-                unCamelCaseProperties(Object.getPrototypeOf(obj));
+        const instanceNames = Object.getOwnPropertyNames(this);
+        for (let i = 0; i < instanceNames.length; i++) {
+            const k = instanceNames[i];
+            const snake = unCamelCaseCached(k);
+            if (snake !== k) {
+                this[snake] = this[k];
             }
-        };
-        unCamelCaseProperties();
+        }
+        const pairs = prototypeAliasPairs(Object.getPrototypeOf(this));
+        for (let i = 0; i < pairs.length; i += 2) {
+            this[pairs[i + 1]] = this[pairs[i]];
+        }
         // merge constructor overrides to this instance
         const configEntries = Object.entries(this.describe()).concat(Object.entries(userConfig));
         for (let i = 0; i < configEntries.length; i++) {
@@ -342,21 +398,8 @@ export class BaseExchange {
                 this[property] = value;
             }
         }
-        // generate old metainfo interface
-        const hasKeys = Object.keys(this.has);
-        for (let i = 0; i < hasKeys.length; i++) {
-            const k = hasKeys[i];
-            this['has' + this.capitalize(k)] = (this.has[k] !== undefined) && (this.has[k] !== false); // converts 'emulated' to true
-        }
-        // generate implicit api
-        if (this.api !== undefined) {
-            this.defineRestApi(this.api, 'request');
-        }
         this.newUpdates = (this.options.newUpdates !== undefined) ? this.options.newUpdates : true;
-        this.afterConstruct();
-        if ((this.safeBool(userConfig, 'sandbox', false)) || (this.safeBool(userConfig, 'testnet', false))) {
-            this.setSandboxMode(true);
-        }
+        this.afterConstruct(userConfig);
         // exchange specific libs
         this.loadExchangeSpecificFiles();
     }
@@ -410,59 +453,6 @@ export class BaseExchange {
     }
     initThrottler() {
         this.throttler = new Throttler(this.tokenBucket);
-    }
-    defineRestApiEndpoint(methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, config = {}) {
-        const splitPath = path.split(/[^a-zA-Z0-9]/);
-        const camelcaseSuffix = splitPath.map(this.capitalize).join('');
-        const underscoreSuffix = splitPath.map((x) => x.trim().toLowerCase()).filter((x) => x.length > 0).join('_');
-        const camelcasePrefix = [paths[0]].concat(paths.slice(1).map(this.capitalize)).join('');
-        const underscorePrefix = [paths[0]].concat(paths.slice(1).map((x) => x.trim()).filter((x) => x.length > 0)).join('_');
-        const camelcase = camelcasePrefix + camelcaseMethod + this.capitalize(camelcaseSuffix);
-        const underscore = underscorePrefix + '_' + lowercaseMethod + '_' + underscoreSuffix;
-        const typeArgument = (paths.length > 1) ? paths : paths[0];
-        // handle call costs here
-        const partial = async (params = {}, context = {}) => this[methodName](path, typeArgument, uppercaseMethod, params, undefined, undefined, config, context);
-        // const partial = async (params) => this[methodName] (path, typeArgument, uppercaseMethod, params || {})
-        this[camelcase] = partial;
-        this[underscore] = partial;
-    }
-    defineRestApi(api, methodName, paths = []) {
-        const keys = Object.keys(api);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const value = api[key];
-            const uppercaseMethod = key.toUpperCase();
-            const lowercaseMethod = key.toLowerCase();
-            const camelcaseMethod = this.capitalize(lowercaseMethod);
-            if (Array.isArray(value)) {
-                for (let k = 0; k < value.length; k++) {
-                    const path = value[k].trim();
-                    this.defineRestApiEndpoint(methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths);
-                }
-                // the options HTTP method conflicts with the 'options' API url path
-                // } else if (key.match (/^(?:get|post|put|delete|options|head|patch)$/i)) {
-            }
-            else if (key.match(/^(?:get|post|put|delete|head|patch)$/i) !== null) {
-                const endpoints = Object.keys(value);
-                for (let j = 0; j < endpoints.length; j++) {
-                    const endpoint = endpoints[j];
-                    const path = endpoint.trim();
-                    const config = value[endpoint];
-                    if (typeof config === 'object') {
-                        this.defineRestApiEndpoint(methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, config);
-                    }
-                    else if (typeof config === 'number') {
-                        this.defineRestApiEndpoint(methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, { 'cost': config });
-                    }
-                    else {
-                        throw new NotSupported(this.id + ' defineRestApi() API format is not supported, API leafs must strings, objects or numbers');
-                    }
-                }
-            }
-            else {
-                this.defineRestApi(value, methodName, paths.concat([key]));
-            }
-        }
     }
     log(...args) {
         console.log(...args);
@@ -2985,7 +2975,7 @@ export class BaseExchange {
             throw new InvalidProxySettings(this.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
         }
     }
-    checkAddress(address = undefined) {
+    checkAddress(address = undefined, code = undefined, tag = undefined) {
         if (address === undefined) {
             throw new InvalidAddress(this.id + ' address is undefined');
         }
@@ -2994,6 +2984,14 @@ export class BaseExchange {
         const length = uniqChars.length; // py transpiler trick
         if (length === 1 || address.length < this.minFundingAddressLength || address.indexOf(' ') > -1) {
             throw new InvalidAddress(this.id + ' address is invalid or has less than ' + this.minFundingAddressLength.toString() + ' characters: "' + address.toString() + '"');
+        }
+        if (code !== undefined) {
+            const tagRequiredCurrencies = this.safeList(this.options, 'withdrawTagRequiredCurrencies', []);
+            if (this.inArray(code, tagRequiredCurrencies)) {
+                if (tag === undefined) {
+                    throw new ArgumentsRequired(this.id + ' withdraw() requires params["tag"] for ' + code);
+                }
+            }
         }
         return address;
     }
@@ -3145,7 +3143,7 @@ export class BaseExchange {
         }
         this.options['enableDemoTrading'] = enable;
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         return { 'url': undefined, 'method': undefined, 'headers': undefined, 'body': undefined };
     }
     async fetchAccounts(params = {}) {
@@ -3338,7 +3336,7 @@ export class BaseExchange {
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
         throw new NotSupported(this.id + ' transfer() is not supported yet');
     }
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
+    async withdraw(code, amount, address, params = {}) {
         throw new NotSupported(this.id + ' withdraw() is not supported yet');
     }
     async createDepositAddress(code, params = {}) {
@@ -3452,9 +3450,10 @@ export class BaseExchange {
         }
         return timestamp;
     }
-    afterConstruct() {
-        // networks
-        this.createNetworksByIdObject();
+    afterConstruct(userConfig = {}) {
+        // networksById: inverse of options.networks, explicit options.networksById entries win
+        const networkIdsToCodesGenerated = this.invertFlatStringDictionary(this.safeValue(this.options, 'networks', {}));
+        this.options['networksById'] = this.extend(networkIdsToCodesGenerated, this.safeValue(this.options, 'networksById', {}));
         this.featuresGenerator();
         // init predefined markets if any
         if (this.markets !== undefined) {
@@ -3466,6 +3465,10 @@ export class BaseExchange {
         const isSandbox = this.safeBool2(this.options, 'sandbox', 'testnet', false);
         if (isSandbox === true) {
             this.setSandboxMode(isSandbox);
+        }
+        // compatibility for sandbox/testnet options in userConfig
+        if ((this.safeBool(userConfig, 'sandbox', false)) || (this.safeBool(userConfig, 'testnet', false))) {
+            this.setSandboxMode(true);
         }
     }
     initRestRateLimiter() {
@@ -3683,24 +3686,10 @@ export class BaseExchange {
         }
         return symbol + ' : ' + 'orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options["watchOrderBook"]["checksum"] = false';
     }
-    createNetworksByIdObject() {
-        // automatically generate network-id-to-code mappings
-        const networkIdsToCodesGenerated = this.invertFlatStringDictionary(this.safeValue(this.options, 'networks', {})); // invert defined networks dictionary
-        this.options['networksById'] = this.extend(networkIdsToCodesGenerated, this.safeValue(this.options, 'networksById', {})); // support manually overriden "networksById" dictionary too
-    }
     getDefaultOptions() {
         return {
-            'defaultNetworkCodeReplacements': {
-                'ETH': { 'primary': 'ETH', 'secondary': 'ERC20', 'default': 'secondary' },
-                'CRO': { 'primary': 'CRONOS', 'secondary': 'CRC20', 'default': 'secondary' },
-                'TRX': { 'primary': 'TRX', 'secondary': 'TRC20', 'default': 'secondary' },
-                'BTC': { 'primary': 'BTC', 'secondary': 'BRC20', 'default': 'primary' },
-            },
-            'backwardSupportedNetworkCodes': {
-                'ARB': 'ARBITRUM',
-                'ARBONE': 'ARBITRUM',
-                'ARBNOVA': 'ARBITRUM_NOVA',
-            },
+            // native-chain withdrawals of these currencies may need a destination tag / memo
+            'withdrawTagRequiredCurrencies': ['XRP', 'XLM', 'EOS', 'ATOM', 'HBAR', 'TON', 'KAVA', 'STX', 'XEM', 'IOST', 'OSMO', 'WAXP'],
         };
     }
     safeLedgerEntry(entry, currency = undefined) {
@@ -5137,6 +5126,14 @@ export class BaseExchange {
         }
         return result;
     }
+    parseOrderBookBidsAsksL3(bidasks, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
+        const bidasksValue = this.toArray(bidasks);
+        const result = [];
+        for (let i = 0; i < bidasksValue.length; i++) {
+            result.push(this.parseOrderBookBidAskL3(bidasksValue[i], priceKey, amountKey, countOrIdKey));
+        }
+        return result;
+    }
     filterByKey(objects, key, value = undefined) {
         if (value === undefined) {
             return objects;
@@ -5198,63 +5195,12 @@ export class BaseExchange {
             },
         };
     }
-    prioritizedNetworkAliases(networkCode = undefined, currencyCode = undefined, allowDefault = false) {
-        /**
-         * @method
-         * @name Exchange#prioritizedNetworkAliases
-         * @description returns the chain pair [preferred, alternative] for the given networkCode & currency, e.g:
-         *   ---------------------------------
-         *   | input          | output       |
-         *   --------------------------------|
-         *   | ETH & USDC     | ERC20, ETH   |
-         *   | ERC20 & USDC   | ERC20, ETH   |
-         *   | ETH & ETH      | ETH, ERC20   |
-         *   | ERC20 & ETH    | ETH, ERC20   |
-         *   | ERC20          | ERC20, ETH   |
-         *   | ETH            | ERC20, ETH   |
-         *   ---------------------------------
-         * @param {string} networkCode unified network-code
-         * @param {string} currencyCode unified currency-code
-         * @param {boolean} allowDefault when currencyCode is undefined, order by replacement's "default" instead of by user input
-         * @returns {string[]} [preferredChain, alternativeChain]
-         */
-        if (networkCode === undefined) {
-            return undefined;
-        }
-        const replacements = this.safeDict(this.options, 'defaultNetworkCodeReplacements', {});
-        const keys = Object.keys(replacements);
-        for (let i = 0; i < keys.length; i++) {
-            const baseCoin = keys[i];
-            const entry = replacements[baseCoin];
-            const primary = entry['primary'];
-            const secondary = entry['secondary'];
-            if (networkCode !== primary && networkCode !== secondary) {
-                continue;
-            }
-            // pick which form goes first in the returned pair
-            let preferPrimary = false;
-            if (currencyCode === baseCoin) {
-                preferPrimary = true; // mainnet currency uses primary chain
-            }
-            else if (currencyCode !== undefined) {
-                preferPrimary = false; // any other (token) currency uses secondary chain
-            }
-            else if (allowDefault) {
-                preferPrimary = (entry['default'] === 'primary');
-            }
-            else {
-                preferPrimary = (networkCode === primary); // keep user input first
-            }
-            return (preferPrimary) ? [primary, secondary] : [secondary, primary];
-        }
-        return [networkCode, networkCode];
-    }
     networkCodeToId(networkCode, currencyCode = undefined) {
         /**
          * @ignore
          * @method
          * @name exchange#networkCodeToId
-         * @description tries to convert the provided networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
+         * @description tries to convert the provided networkCode (a unified network code or one of its aliases) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
          * @param {string} networkCode unified network code
          * @param {string} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {string|undefined} exchange-specific network id
@@ -5262,14 +5208,20 @@ export class BaseExchange {
         if (networkCode === undefined) {
             return undefined;
         }
+        const unifiedCode = this.safeString(this.networkAliases, networkCode, networkCode);
         const networkIdsByCodes = this.safeDict(this.options, 'networks', {});
-        // try the preferred form first, fall back to its alternative (e.g. when only 'ETH' or only 'ERC20' is defined)
-        const chainPair = this.prioritizedNetworkAliases(networkCode, currencyCode, false);
-        const preferredChain = (chainPair === undefined) ? networkCode : chainPair[0];
-        const alternativeChain = (chainPair === undefined) ? networkCode : chainPair[1];
-        const networkId = this.safeString2(networkIdsByCodes, preferredChain, alternativeChain);
+        const networkId = this.safeString(networkIdsByCodes, unifiedCode);
         if (networkId !== undefined) {
             return networkId;
+        }
+        // options.networks may still be keyed by an alias of the unified code
+        const aliases = this.networkAliases;
+        const aliasKeys = Object.keys(aliases);
+        for (let i = 0; i < aliasKeys.length; i++) {
+            const alias = aliasKeys[i];
+            if ((aliases[alias] === unifiedCode) && (alias in networkIdsByCodes)) {
+                return networkIdsByCodes[alias];
+            }
         }
         // fall back to scanning loaded currencies
         let currenciesToCheck = [];
@@ -5281,14 +5233,9 @@ export class BaseExchange {
         }
         for (let i = 0; i < currenciesToCheck.length; i++) {
             const networks = this.safeDict(currenciesToCheck[i], 'networks', {});
-            if (networkCode in networks) {
-                return this.safeString(networks[networkCode], 'id');
+            if (unifiedCode in networks) {
+                return this.safeString(networks[unifiedCode], 'id');
             }
-        }
-        // before returning the original input, try to match if it's backward-maintained networkCode
-        const oldCodes = this.safeDict(this.options, 'backwardSupportedNetworkCodes', {});
-        if (networkCode in oldCodes) {
-            return this.networkCodeToId(oldCodes[networkCode], currencyCode);
         }
         return networkCode;
     }
@@ -5306,50 +5253,15 @@ export class BaseExchange {
             return undefined;
         }
         const networkCodesByIds = this.safeDict(this.options, 'networksById', {});
-        const networkCode = this.safeString(networkCodesByIds, networkId, networkId);
-        const chainPair = this.prioritizedNetworkAliases(networkCode, currencyCode, true);
-        if (chainPair === undefined) {
-            return networkCode;
-        }
-        const preferredChain = chainPair[0];
-        const alternativeChain = chainPair[1];
-        // when the exchange explicitly defines both forms in options.networks (e.g. BTC + BRC20),
-        // it disambiguates them — trust the direct id→code inversion instead of guessing
-        if (currencyCode === undefined) {
-            const networkIdsByCodes = this.safeDict(this.options, 'networks', {});
-            if ((preferredChain in networkIdsByCodes) && (alternativeChain in networkIdsByCodes)) {
-                return networkCode;
-            }
-        }
-        return preferredChain;
+        const mappedCode = this.safeString(networkCodesByIds, networkId);
+        const networkCode = (mappedCode === undefined) ? networkId : mappedCode;
+        return this.safeString(this.networkAliases, networkCode, networkCode);
     }
     handleNetworkCodeAndParams(params) {
         const networkCodeInParams = this.safeString2(params, 'networkCode', 'network');
         const paramsOmitted = (networkCodeInParams !== undefined) ? this.omit(params, ['networkCode', 'network']) : params;
         // if it was not defined by user, we should not set it from 'defaultNetworks', because handleNetworkCodeAndParams is for only request-side and thus we do not fill it with anything. We can only use 'defaultNetworks' after parsing response-side
         return [networkCodeInParams, paramsOmitted];
-    }
-    defaultNetworkCode(currencyCode) {
-        let defaultNetworkCode = undefined;
-        const defaultNetworks = this.safeDict(this.options, 'defaultNetworks', {});
-        if (currencyCode in defaultNetworks) {
-            // if currency had set its network in "defaultNetworks", use it
-            defaultNetworkCode = defaultNetworks[currencyCode];
-        }
-        else {
-            // otherwise, try to use the global-scope 'defaultNetwork' value (even if that network is not supported by currency, it doesn't make any problem, this will be just used "at first" if currency supports this network at all)
-            const defaultNetwork = this.safeString(this.options, 'defaultNetwork');
-            if (defaultNetwork !== undefined) {
-                defaultNetworkCode = defaultNetwork;
-            }
-        }
-        return defaultNetworkCode;
-    }
-    selectNetworkCodeFromUnifiedNetworks(currencyCode, networkCode, indexedNetworkEntries) {
-        return this.selectNetworkKeyFromNetworks(currencyCode, networkCode, indexedNetworkEntries, true);
-    }
-    selectNetworkIdFromRawNetworks(currencyCode, networkCode, indexedNetworkEntries) {
-        return this.selectNetworkKeyFromNetworks(currencyCode, networkCode, indexedNetworkEntries, false);
     }
     selectNetworkKeyFromNetworks(currencyCode, networkCode, indexedNetworkEntries, isIndexedByUnifiedNetworkCode = false) {
         // this method is used against raw & unparse network entries, which are just indexed by network id
@@ -5380,7 +5292,7 @@ export class BaseExchange {
             }
             else {
                 // if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
-                const defaultNetworkCode = this.defaultNetworkCode(currencyCode);
+                const defaultNetworkCode = this.safeString(this.safeDict(this.options, 'defaultNetworks', {}), currencyCode, this.safeString(this.options, 'defaultNetwork'));
                 const defaultNetworkId = isIndexedByUnifiedNetworkCode ? defaultNetworkCode : this.networkCodeToId(defaultNetworkCode, currencyCode);
                 if (defaultNetworkId === undefined) {
                     throw new ExchangeError(this.id + ' selectNetworkKeyFromNetworks() missing defaultNetworkId');
@@ -5400,6 +5312,18 @@ export class BaseExchange {
     parseOrderBook(orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, countOrIdKey = 2) {
         const bids = this.parseOrderBookBidsAsks(this.safeValue(orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
         const asks = this.parseOrderBookBidsAsks(this.safeValue(orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
+        return {
+            'symbol': symbol,
+            'bids': this.sortBy(bids, 0, true),
+            'asks': this.sortBy(asks, 0),
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'nonce': undefined,
+        };
+    }
+    parseOrderBookL3(orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, countOrIdKey = 2) {
+        const bids = this.parseOrderBookBidsAsksL3(this.safeValue(orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
+        const asks = this.parseOrderBookBidsAsksL3(this.safeValue(orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
         return {
             'symbol': symbol,
             'bids': this.sortBy(bids, 0, true),
@@ -5680,24 +5604,6 @@ export class BaseExchange {
         const paramsOmitted = (value !== undefined) ? this.omit(params, [paramName1, paramName2]) : params;
         return [value, paramsOmitted];
     }
-    /**
-     * @param {object} params - extra parameters
-     * @param {object} request - existing dictionary of request
-     * @param {string} exchangeSpecificKey - the key for chain id to be set in request
-     * @param {object} currencyCode - (optional) existing dictionary of request
-     * @param {boolean} isRequired - (optional) whether that param is required to be present
-     * @returns {object[]} - returns [request, params] where request is the modified request object and params is the modified params object
-     */
-    handleRequestNetwork(params, request, exchangeSpecificKey, currencyCode = undefined, isRequired = false) {
-        const [networkCode, paramsNetworkCode] = this.handleNetworkCodeAndParams(params);
-        if (networkCode !== undefined) {
-            request[exchangeSpecificKey] = this.networkCodeToId(networkCode, currencyCode);
-        }
-        else if (isRequired) {
-            throw new ArgumentsRequired(this.id + ' - "network" param is required for this request');
-        }
-        return [request, paramsNetworkCode];
-    }
     resolvePath(path, params) {
         return [
             this.implodeParams(path, params),
@@ -5782,7 +5688,7 @@ export class BaseExchange {
         }
         return results;
     }
-    async fetch2(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}) {
+    async fetch2(path, api = ['public'], method = 'GET', params = {}, config = {}) {
         if (this.enableRateLimit) {
             const cost = this.calculateRateLimiterCost(api, method, path, params, config);
             await this.throttle(cost);
@@ -5801,7 +5707,7 @@ export class BaseExchange {
             }
             try {
                 this.setLastRestRequestTimestamp();
-                const request = this.sign(path, api, method, paramsMaxRetriesOnFailureDelay, headers, body);
+                const request = this.sign(path, api, method, paramsMaxRetriesOnFailureDelay);
                 if (fetchData !== undefined) {
                     fetchData['request'] = request;
                 }
@@ -5839,8 +5745,8 @@ export class BaseExchange {
         }
         return undefined; // this line is never reached, but exists for c# value return requirement
     }
-    async request(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}) {
-        return await this.fetch2(path, api, method, params, headers, body, config);
+    async request(path, api = ['public'], method = 'GET', params = {}, config = {}) {
+        return await this.fetch2(path, api, method, params, config);
     }
     async loadAccounts(reload = false, params = {}) {
         if (reload) {
@@ -5950,6 +5856,16 @@ export class BaseExchange {
         const price = this.safeFloat(bidask, priceKey);
         const amount = this.safeFloat(bidask, amountKey);
         const countOrId = this.safeInteger(bidask, countOrIdKey);
+        const bidAsk = [price, amount];
+        if (countOrId !== undefined) {
+            bidAsk.push(countOrId);
+        }
+        return bidAsk;
+    }
+    parseOrderBookBidAskL3(bidask, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
+        const price = this.safeFloat(bidask, priceKey);
+        const amount = this.safeFloat(bidask, amountKey);
+        const countOrId = this.safeString(bidask, countOrIdKey);
         const bidAsk = [price, amount];
         if (countOrId !== undefined) {
             bidAsk.push(countOrId);
@@ -6685,21 +6601,6 @@ export class BaseExchange {
             }
         }
         return false;
-    }
-    handleWithdrawTagAndParams(tag, params) {
-        let paramsExtended = params;
-        let tagValue = tag;
-        if (this.isDictionary(tag)) {
-            paramsExtended = this.extend(tag, params);
-            tagValue = undefined;
-        }
-        const tagResolved = (tagValue === undefined) ? this.safeString(paramsExtended, 'tag') : tagValue;
-        const tagFromParams = (tagValue === undefined) && (tagResolved !== undefined);
-        let paramsOmitted = paramsExtended;
-        if (tagFromParams) {
-            paramsOmitted = this.omit(paramsExtended, 'tag');
-        }
-        return [tagResolved, paramsOmitted];
     }
     costToPrecision(symbol, cost) {
         if (cost === undefined) {
@@ -8295,7 +8196,7 @@ export class BaseExchange {
          */
         throw new NotSupported(this.id + ' unWatchOHLCV () is not supported yet');
     }
-    async withdrawWs(code, amount, address, tag = undefined, params = {}) {
+    async withdrawWs(code, amount, address, params = {}) {
         /**
          * @method
          * @name exchange#withdrawWs
@@ -8303,8 +8204,8 @@ export class BaseExchange {
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
-         * @param {string} tag
          * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+         * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
          */
         throw new NotSupported(this.id + ' withdrawWs () is not supported yet');

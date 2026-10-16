@@ -338,6 +338,7 @@ export default class bittrade extends Exchange {
                 'broad': {
                     'contract is restricted of closing positions on API.  Please contact customer service': OnMaintenance,
                     'maintain': OnMaintenance,
+                    'trade not open now': BadSymbol, // {"status":"error","err-code":"bad-request","err-msg":"symbol:maticjpy trade not open now "}
                 },
                 'exact': {
                     // err-code
@@ -376,8 +377,8 @@ export default class bittrade extends Exchange {
             'options': {
                 'defaultNetwork': 'ERC20',
                 'networks': {
-                    'ETH': 'erc20',
-                    'TRX': 'trc20',
+                    'ERC20': 'erc20',
+                    'TRC20': 'trc20',
                     'HRC20': 'hrc20',
                     'HECO': 'hrc20',
                     'HT': 'hrc20',
@@ -385,7 +386,7 @@ export default class bittrade extends Exchange {
                 },
                 // https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStates': {
-                    'method': 'private_get_order_orders', // 'private_get_order_history' // https://github.com/ccxt/ccxt/pull/5392
+                    'method': 'privateGetOrderOrders', // 'privateGetOrderHistory' // https://github.com/ccxt/ccxt/pull/5392
                 },
                 'fetchOpenOrders': {
                     'method': 'fetch_open_orders_v1', // 'fetch_open_orders_v2' // https://github.com/ccxt/ccxt/issues/5388
@@ -1281,7 +1282,7 @@ export default class bittrade extends Exchange {
             market = this.market(symbol);
             request['symbol'] = market['id'];
         }
-        const method = this.handleOption('fetchOrdersByStates', 'method', 'private_get_order_orders');
+        const method = this.handleOption('fetchOrdersByStates', 'method', 'privateGetOrderOrders');
         let response = undefined;
         if ((method === 'private_get_order_history') || (method === 'privateGetOrderHistory')) {
             response = await this.privateGetOrderHistory(this.extend(request, params));
@@ -1989,7 +1990,7 @@ export default class bittrade extends Exchange {
             'txid': this.safeString(transaction, 'tx-hash'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'network': this.safeStringUpper(transaction, 'chain'),
+            'network': this.networkIdToCode(this.safeStringUpper(transaction, 'chain'), code),
             'address': this.safeString(transaction, 'address'),
             'addressTo': undefined,
             'addressFrom': undefined,
@@ -2040,16 +2041,16 @@ export default class bittrade extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
+    async withdraw(code, amount, address, params = {}) {
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        this.checkAddress(address);
+        this.checkAddress(address, code, tagWithdrawTag);
         const currency = this.currency(code);
         const request = {
             'address': address, // only supports existing addresses in your withdraw address list
@@ -2060,7 +2061,10 @@ export default class bittrade extends Exchange {
             request['addr-tag'] = tagWithdrawTag; // only for XRP?
         }
         const networks = this.safeDict(this.options, 'networks', {});
-        let network = this.safeStringUpper(paramsWithdrawTag, 'network'); // this line allows the user to specify either ERC20 or ETH
+        let network = this.safeStringUpper(paramsWithdrawTag, 'network');
+        if (network !== undefined) {
+            network = this.safeString(this.networkAliases, network, network); // accepts aliases like ETH for ERC20
+        }
         network = this.safeStringLower(networks, network, network); // handle ETH>ERC20 alias
         if (network !== undefined) {
             // possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
@@ -2081,22 +2085,23 @@ export default class bittrade extends Exchange {
         //
         return this.parseTransaction(response, currency);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         let requestHeaders = undefined;
         let requestBody = undefined;
         let url = '/';
-        if (api === 'market') {
+        if (apiName === 'market') {
             url += 'market';
         }
-        else if ((api === 'public') || (api === 'private')) {
+        else if ((apiName === 'public') || (apiName === 'private')) {
             url += this.version;
         }
-        else if ((api === 'v2Public') || (api === 'v2Private')) {
+        else if ((apiName === 'v2Public') || (apiName === 'v2Private')) {
             url += 'v2';
         }
         url += '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
-        if (api === 'private' || api === 'v2Private') {
+        if (apiName === 'private' || apiName === 'v2Private') {
             this.checkRequiredCredentials();
             const timestamp = this.ymdhms(this.milliseconds(), 'T');
             let request = {
@@ -2134,15 +2139,15 @@ export default class bittrade extends Exchange {
                 url += '?' + this.urlencode(params);
             }
         }
-        const baseApiUrl = this.safeString(this.urls['api'], api);
+        const baseApiUrl = this.safeString(this.urls['api'], apiName);
         if (baseApiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         url = this.implodeParams(baseApiUrl, {
             'hostname': this.hostname,
         }) + url;
-        const headersResult = (requestHeaders !== undefined) ? requestHeaders : headers;
-        const bodyResult = (requestBody !== undefined) ? requestBody : body;
+        const headersResult = requestHeaders;
+        const bodyResult = requestBody;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

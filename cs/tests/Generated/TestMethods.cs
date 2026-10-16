@@ -2249,11 +2249,26 @@ public partial class testMainClass
         return true;
     }
 
+    public virtual object wsRequestWasSent(BaseExchange exchange, object url, object id)
+    {
+        object sentMessages = getWsSentMessages(exchange, url);
+        for (int i = 0; i < getArrayLength(sentMessages); i++)
+        {
+            if (isEqual(exchange.safeString(getValue(sentMessages, i), "id"), id))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public async virtual Task<object> injectWsMessages(BaseExchange exchange, object url, object messages, object sequential = null)
     {
         // before every frame, wait until the watch flow is actually awaiting
         // something — a fixed head-start sleep is not enough on slow ci
         // runners and the frame's resolution would be dropped
+        // a reply frame must not arrive before its request was sent, or it is dropped
+        // a frame given as { "binary": "<base16>" } is replayed as a binary frame (e.g. SBE)
         // threaded runtimes resolve futures on another thread — wait for
         // the consumed frame to settle so the pending check above does not
         // observe a stale future and burn the next frame early; frames
@@ -2268,7 +2283,20 @@ public partial class testMainClass
                 await exchange.sleep(50);
                 waited = add(waited, 50);
             }
-            injectWsMessage(exchange, url, getValue(messages, i));
+            object frameId = exchange.safeString(getValue(messages, i), "id");
+            object waitedSent = 0;
+            while (((frameId != null)) && !isTrue(this.wsRequestWasSent(exchange, url, frameId)) && (isLessThan(waitedSent, 5000)))
+            {
+                await exchange.sleep(50);
+                waitedSent = add(waitedSent, 50);
+            }
+            object frame = getValue(messages, i);
+            object binaryFrame = exchange.safeString(frame, "binary");
+            if ((binaryFrame != null))
+            {
+                frame = exchange.base16ToBinary(binaryFrame);
+            }
+            injectWsMessage(exchange, url, frame);
             object settled = 0;
             while (isTrue(wsClientHasPendingFutures(exchange, url)) && (isLessThan(settled, 500)))
             {
@@ -3022,6 +3050,52 @@ public partial class testMainClass
         // inverse swap
         object clientOrderIdInverse = getValue(swapInverseOrderRequest, "newClientOrderId");
         assert((((string)clientOrderIdInverse).StartsWith(((string)inverseSwapId)) == true), ((("binance - swap clientOrderIdInverse: " + (clientOrderIdInverse)) + " does not start with swapId") + inverseSwapId));
+        // defaultType swap routes spot-style symbols by defaultSubType: unset or linear -> USDⓈ-M, inverse -> COIN-M
+        exchange.extendExchangeOptions(new Dictionary<string, object>() {
+            { "defaultType", "swap" },
+        });
+        object swapNoSubTypeRequest = new Dictionary<string, object>() {};
+        try
+        {
+            await exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            swapNoSubTypeRequest = this.urlencodedToDict(exchange.last_request_body);
+        }
+        object swapNoSubTypeId = getValue(swapNoSubTypeRequest, "newClientOrderId");
+        assert((((string)swapNoSubTypeId).StartsWith(((string)swapId)) == true), ((("binance - defaultType swap without subType clientOrderId: " + (swapNoSubTypeId)) + " does not start with swapId") + swapId));
+        exchange.extendExchangeOptions(new Dictionary<string, object>() {
+            { "defaultSubType", "linear" },
+        });
+        object swapLinearRequest = new Dictionary<string, object>() {};
+        try
+        {
+            await exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            swapLinearRequest = this.urlencodedToDict(exchange.last_request_body);
+        }
+        object swapLinearId = getValue(swapLinearRequest, "newClientOrderId");
+        assert((((string)swapLinearId).StartsWith(((string)swapId)) == true), ((("binance - defaultType swap linear clientOrderId: " + (swapLinearId)) + " does not start with swapId") + swapId));
+        exchange.extendExchangeOptions(new Dictionary<string, object>() {
+            { "defaultSubType", "inverse" },
+        });
+        object swapInverseRequest = new Dictionary<string, object>() {};
+        try
+        {
+            await exchange.CreateOrder("BTC/USD", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            swapInverseRequest = this.urlencodedToDict(exchange.last_request_body);
+        }
+        object swapInverseId = getValue(swapInverseRequest, "newClientOrderId");
+        assert((((string)swapInverseId).StartsWith(((string)inverseSwapId)) == true), ((("binance - defaultType swap inverse clientOrderId: " + (swapInverseId)) + " does not start with inverseSwapId") + inverseSwapId));
+        exchange.extendExchangeOptions(new Dictionary<string, object>() {
+            { "defaultType", "spot" },
+        });
+        exchange.extendExchangeOptions(new Dictionary<string, object>() {
+            { "defaultSubType", "linear" },
+        });
         // linear swap conditional order
         object swapAlgoOrderRequest = new Dictionary<string, object>() {};
         try
@@ -3145,6 +3219,18 @@ public partial class testMainClass
         }
         object clientOrderIdInverseFuture = getValue(inverseFutureOrderRequest, "newClientOrderId");
         assert((((string)clientOrderIdInverseFuture).StartsWith(((string)inverseSwapId)) == true), ((("binance - inverse future clientOrderId: " + (clientOrderIdInverseFuture)) + " does not start with inverseSwapId") + inverseSwapId));
+        // the option api takes clientOrderId instead of newClientOrderId
+        object optionOrderRequest = new Dictionary<string, object>() {};
+        try
+        {
+            await exchange.CreateOrder("ETH/USDT:USDT-231229-800-C", "limit", "buy", 1, 100);
+        } catch(Exception e)
+        {
+            optionOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+        }
+        object optionClientOrderId = exchange.safeString(optionOrderRequest, "clientOrderId");
+        assert((optionClientOrderId != null), "binance - option order must send clientOrderId");
+        assert((((string)optionClientOrderId).StartsWith(((string)inverseSwapId)) == true), ((("binance - option clientOrderId: " + (optionClientOrderId)) + " does not start with the option broker id ") + inverseSwapId));
         // the implicit order endpoints inject the broker id of their api section
         // skipped in the sync flavours: callExchangeMethodDynamically is async-only there
         if (!isTrue(isSync()))
@@ -3209,6 +3295,400 @@ public partial class testMainClass
             object implicitFapiClientAlgoId = exchange.safeString(implicitFapiAlgoOrderRequest, "clientAlgoId");
             assert((implicitFapiClientAlgoId != null), "binance - implicit fapi algo order must inject clientAlgoId");
             assert((((string)implicitFapiClientAlgoId).StartsWith(((string)swapId)) == true), ((("binance - implicit fapi clientAlgoId: " + (implicitFapiClientAlgoId)) + " does not start with swapId") + swapId));
+            // the papi order endpoints resolve the broker id from the path, not from the api section
+            object implicitPapiUmOrderRequest = new Dictionary<string, object>() {};
+            try
+            {
+                await callExchangeMethodDynamically(exchange, "papiPostUmOrder", new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "ETHUSDT" },
+    { "side", "SELL" },
+    { "type", "LIMIT" },
+    { "quantity", "1" },
+    { "price", "4100" },
+    { "timeInForce", "GTC" },
+}});
+            } catch(Exception e)
+            {
+                implicitPapiUmOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            object implicitPapiUmClientOrderId = exchange.safeString(implicitPapiUmOrderRequest, "newClientOrderId");
+            assert((implicitPapiUmClientOrderId != null), "binance - implicit papi um order must inject newClientOrderId");
+            assert((((string)implicitPapiUmClientOrderId).StartsWith(((string)swapId)) == true), ((("binance - implicit papi um clientOrderId: " + (implicitPapiUmClientOrderId)) + " does not start with swapId") + swapId));
+            object implicitPapiCmOrderRequest = new Dictionary<string, object>() {};
+            try
+            {
+                await callExchangeMethodDynamically(exchange, "papiPostCmOrder", new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "ETHUSD_PERP" },
+    { "side", "SELL" },
+    { "type", "LIMIT" },
+    { "quantity", "1" },
+    { "price", "4100" },
+    { "timeInForce", "GTC" },
+}});
+            } catch(Exception e)
+            {
+                implicitPapiCmOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            object implicitPapiCmClientOrderId = exchange.safeString(implicitPapiCmOrderRequest, "newClientOrderId");
+            assert((implicitPapiCmClientOrderId != null), "binance - implicit papi cm order must inject newClientOrderId");
+            assert((((string)implicitPapiCmClientOrderId).StartsWith(((string)inverseSwapId)) == true), ((("binance - implicit papi cm clientOrderId: " + (implicitPapiCmClientOrderId)) + " does not start with inverseSwapId") + inverseSwapId));
+            object implicitPapiMarginOrderRequest = new Dictionary<string, object>() {};
+            try
+            {
+                await callExchangeMethodDynamically(exchange, "papiPostMarginOrder", new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "BTCUSDT" },
+    { "side", "BUY" },
+    { "type", "LIMIT" },
+    { "quantity", "0.001" },
+    { "price", "20000" },
+    { "timeInForce", "GTC" },
+}});
+            } catch(Exception e)
+            {
+                implicitPapiMarginOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            object implicitPapiMarginClientOrderId = exchange.safeString(implicitPapiMarginOrderRequest, "newClientOrderId");
+            assert((implicitPapiMarginClientOrderId != null), "binance - implicit papi margin order must inject newClientOrderId");
+            assert((((string)implicitPapiMarginClientOrderId).StartsWith(((string)spotId)) == true), ((("binance - implicit papi margin clientOrderId: " + (implicitPapiMarginClientOrderId)) + " does not start with spotId") + spotId));
+            object implicitSapiMarginOrderRequest = new Dictionary<string, object>() {};
+            try
+            {
+                await callExchangeMethodDynamically(exchange, "sapiPostMarginOrder", new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "BTCUSDT" },
+    { "side", "BUY" },
+    { "type", "LIMIT" },
+    { "quantity", "0.001" },
+    { "price", "20000" },
+    { "timeInForce", "GTC" },
+}});
+            } catch(Exception e)
+            {
+                implicitSapiMarginOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            object implicitSapiMarginClientOrderId = exchange.safeString(implicitSapiMarginOrderRequest, "newClientOrderId");
+            assert((implicitSapiMarginClientOrderId != null), "binance - implicit sapi margin order must inject newClientOrderId");
+            assert((((string)implicitSapiMarginClientOrderId).StartsWith(((string)spotId)) == true), ((("binance - implicit sapi margin clientOrderId: " + (implicitSapiMarginClientOrderId)) + " does not start with spotId") + spotId));
+            // the papi um algo order endpoint takes clientAlgoId
+            object implicitPapiUmAlgoOrderRequest = new Dictionary<string, object>() {};
+            try
+            {
+                await callExchangeMethodDynamically(exchange, "papiPostUmAlgoOrder", new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "ETHUSDT" },
+    { "side", "SELL" },
+    { "algoType", "CONDITIONAL" },
+    { "type", "STOP" },
+    { "quantity", "1" },
+    { "price", "4100" },
+    { "triggerPrice", "4200" },
+    { "timeInForce", "GTC" },
+}});
+            } catch(Exception e)
+            {
+                implicitPapiUmAlgoOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            object implicitPapiUmClientAlgoId = exchange.safeString(implicitPapiUmAlgoOrderRequest, "clientAlgoId");
+            assert((implicitPapiUmClientAlgoId != null), "binance - implicit papi um algo order must inject clientAlgoId");
+            assert((((string)implicitPapiUmClientAlgoId).StartsWith(((string)swapId)) == true), ((("binance - implicit papi um clientAlgoId: " + (implicitPapiUmClientAlgoId)) + " does not start with swapId") + swapId));
+            // the papi cm conditional order endpoint takes newClientStrategyId
+            object implicitPapiCmConditionalOrderRequest = new Dictionary<string, object>() {};
+            try
+            {
+                await callExchangeMethodDynamically(exchange, "papiPostCmConditionalOrder", new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "ETHUSD_PERP" },
+    { "side", "SELL" },
+    { "strategyType", "STOP" },
+    { "quantity", "1" },
+    { "price", "4100" },
+    { "stopPrice", "4200" },
+    { "timeInForce", "GTC" },
+}});
+            } catch(Exception e)
+            {
+                implicitPapiCmConditionalOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            object implicitPapiCmStrategyId = exchange.safeString(implicitPapiCmConditionalOrderRequest, "newClientStrategyId");
+            assert((implicitPapiCmStrategyId != null), "binance - implicit papi cm conditional order must inject newClientStrategyId");
+            assert((((string)implicitPapiCmStrategyId).StartsWith(((string)inverseSwapId)) == true), ((("binance - implicit papi cm newClientStrategyId: " + (implicitPapiCmStrategyId)) + " does not start with inverseSwapId") + inverseSwapId));
+            object implicitPapiUmConditionalOrderRequest = new Dictionary<string, object>() {};
+            try
+            {
+                await callExchangeMethodDynamically(exchange, "papiPostUmConditionalOrder", new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "ETHUSDT" },
+    { "side", "SELL" },
+    { "strategyType", "STOP" },
+    { "quantity", "1" },
+    { "price", "4100" },
+    { "stopPrice", "4200" },
+    { "timeInForce", "GTC" },
+}});
+            } catch(Exception e)
+            {
+                implicitPapiUmConditionalOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            object implicitPapiUmStrategyId = exchange.safeString(implicitPapiUmConditionalOrderRequest, "newClientStrategyId");
+            assert((implicitPapiUmStrategyId != null), "binance - implicit papi um conditional order must inject newClientStrategyId");
+            assert((((string)implicitPapiUmStrategyId).StartsWith(((string)swapId)) == true), ((("binance - implicit papi um newClientStrategyId: " + (implicitPapiUmStrategyId)) + " does not start with swapId") + swapId));
+            // the eapi order endpoints take clientOrderId
+            object implicitEapiOrderRequest = new Dictionary<string, object>() {};
+            try
+            {
+                await callExchangeMethodDynamically(exchange, "eapiPrivatePostOrder", new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "ETH-231229-800-C" },
+    { "side", "BUY" },
+    { "type", "LIMIT" },
+    { "quantity", "1" },
+    { "price", "100" },
+}});
+            } catch(Exception e)
+            {
+                implicitEapiOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            object implicitEapiClientOrderId = exchange.safeString(implicitEapiOrderRequest, "clientOrderId");
+            assert((implicitEapiClientOrderId != null), "binance - implicit eapi order must inject clientOrderId");
+            assert((((string)implicitEapiClientOrderId).StartsWith(((string)inverseSwapId)) == true), ((("binance - implicit eapi clientOrderId: " + (implicitEapiClientOrderId)) + " does not start with the option broker id ") + inverseSwapId));
+            object implicitEapiBatchRequest = new Dictionary<string, object>() {};
+            try
+            {
+                await callExchangeMethodDynamically(exchange, "eapiPrivatePostBatchOrders", new List<object>() {new Dictionary<string, object>() {
+    { "batchOrders", new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "ETH-231229-800-C" },
+    { "side", "BUY" },
+    { "type", "LIMIT" },
+    { "quantity", "1" },
+    { "price", "100" },
+}} },
+}});
+            } catch(Exception e)
+            {
+                implicitEapiBatchRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            object implicitEapiBatchOrders = exchange.safeList(implicitEapiBatchRequest, "batchOrders", new List<object>() {});
+            object implicitEapiBatchOrder = exchange.safeDict(implicitEapiBatchOrders, 0, new Dictionary<string, object>() {});
+            object implicitEapiBatchClientOrderId = exchange.safeString(implicitEapiBatchOrder, "clientOrderId");
+            assert((implicitEapiBatchClientOrderId != null), "binance - implicit eapi batch order must inject clientOrderId");
+            assert((((string)implicitEapiBatchClientOrderId).StartsWith(((string)inverseSwapId)) == true), ((("binance - implicit eapi batch clientOrderId: " + (implicitEapiBatchClientOrderId)) + " does not start with the option broker id ") + inverseSwapId));
+            // the equity order endpoint takes clientOrderId
+            object implicitEquityOrderRequest = new Dictionary<string, object>() {};
+            try
+            {
+                await callExchangeMethodDynamically(exchange, "sapiPostEquityOrderPlace", new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "AAPLUSDC" },
+    { "side", "BUY" },
+    { "orderType", "LIMIT" },
+    { "quantity", "1" },
+    { "price", "100" },
+    { "timeInForce", "GTC" },
+}});
+            } catch(Exception e)
+            {
+                implicitEquityOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            object implicitEquityClientOrderId = exchange.safeString(implicitEquityOrderRequest, "clientOrderId");
+            assert((implicitEquityClientOrderId != null), "binance - implicit equity order must inject clientOrderId");
+            assert((((string)implicitEquityClientOrderId).StartsWith(((string)spotId)) == true), ((("binance - implicit equity clientOrderId: " + (implicitEquityClientOrderId)) + " does not start with spotId") + spotId));
+            // the order list endpoints inject a listClientOrderId and one client order id per leg
+            object implicitOcoListRequest = new Dictionary<string, object>() {};
+            try
+            {
+                await callExchangeMethodDynamically(exchange, "privatePostOrderListOco", new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "BTCUSDT" },
+    { "side", "SELL" },
+    { "quantity", "0.001" },
+    { "abovePrice", "110000" },
+    { "aboveType", "LIMIT_MAKER" },
+    { "belowType", "STOP_LOSS" },
+    { "belowStopPrice", "95000" },
+}});
+            } catch(Exception e)
+            {
+                implicitOcoListRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            object ocoListClientOrderId = exchange.safeString(implicitOcoListRequest, "listClientOrderId");
+            object ocoAboveClientOrderId = exchange.safeString(implicitOcoListRequest, "aboveClientOrderId");
+            object ocoBelowClientOrderId = exchange.safeString(implicitOcoListRequest, "belowClientOrderId");
+            assert((ocoListClientOrderId != null), "binance - implicit oco list must inject listClientOrderId");
+            assert((((string)ocoListClientOrderId).StartsWith(((string)spotId)) == true), ((("binance - implicit oco listClientOrderId: " + (ocoListClientOrderId)) + " does not start with spotId") + spotId));
+            assert(((ocoAboveClientOrderId != null)) && ((((string)ocoAboveClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit oco aboveClientOrderId must inject the spot broker id");
+            assert(((ocoBelowClientOrderId != null)) && ((((string)ocoBelowClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit oco belowClientOrderId must inject the spot broker id");
+            object implicitOtocoListRequest = new Dictionary<string, object>() {};
+            try
+            {
+                await callExchangeMethodDynamically(exchange, "privatePostOrderListOtoco", new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "BTCUSDT" },
+    { "workingType", "LIMIT" },
+    { "workingSide", "BUY" },
+    { "workingPrice", "100000" },
+    { "workingQuantity", "0.001" },
+    { "pendingSide", "SELL" },
+    { "pendingQuantity", "0.001" },
+    { "pendingAboveType", "LIMIT_MAKER" },
+    { "pendingAbovePrice", "110000" },
+    { "pendingBelowType", "STOP_LOSS" },
+    { "pendingBelowStopPrice", "95000" },
+}});
+            } catch(Exception e)
+            {
+                implicitOtocoListRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            object otocoWorkingClientOrderId = exchange.safeString(implicitOtocoListRequest, "workingClientOrderId");
+            object otocoPendingAboveClientOrderId = exchange.safeString(implicitOtocoListRequest, "pendingAboveClientOrderId");
+            object otocoPendingBelowClientOrderId = exchange.safeString(implicitOtocoListRequest, "pendingBelowClientOrderId");
+            assert(((otocoWorkingClientOrderId != null)) && ((((string)otocoWorkingClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit otoco workingClientOrderId must inject the spot broker id");
+            assert(((otocoPendingAboveClientOrderId != null)) && ((((string)otocoPendingAboveClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit otoco pendingAboveClientOrderId must inject the spot broker id");
+            assert(((otocoPendingBelowClientOrderId != null)) && ((((string)otocoPendingBelowClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit otoco pendingBelowClientOrderId must inject the spot broker id");
+            object implicitSapiMarginOcoRequest = new Dictionary<string, object>() {};
+            try
+            {
+                await callExchangeMethodDynamically(exchange, "sapiPostMarginOrderOco", new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "BTCUSDT" },
+    { "side", "SELL" },
+    { "quantity", "0.001" },
+    { "price", "110000" },
+    { "stopPrice", "95000" },
+}});
+            } catch(Exception e)
+            {
+                implicitSapiMarginOcoRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            object sapiMarginOcoLimitClientOrderId = exchange.safeString(implicitSapiMarginOcoRequest, "limitClientOrderId");
+            object sapiMarginOcoStopClientOrderId = exchange.safeString(implicitSapiMarginOcoRequest, "stopClientOrderId");
+            assert(((sapiMarginOcoLimitClientOrderId != null)) && ((((string)sapiMarginOcoLimitClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit sapi margin oco limitClientOrderId must inject the spot broker id");
+            assert(((sapiMarginOcoStopClientOrderId != null)) && ((((string)sapiMarginOcoStopClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit sapi margin oco stopClientOrderId must inject the spot broker id");
+            object implicitPapiMarginOcoRequest = new Dictionary<string, object>() {};
+            try
+            {
+                await callExchangeMethodDynamically(exchange, "papiPostMarginOrderOco", new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "BTCUSDT" },
+    { "side", "SELL" },
+    { "quantity", "0.001" },
+    { "price", "110000" },
+    { "stopPrice", "95000" },
+}});
+            } catch(Exception e)
+            {
+                implicitPapiMarginOcoRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            object papiMarginOcoListClientOrderId = exchange.safeString(implicitPapiMarginOcoRequest, "listClientOrderId");
+            assert(((papiMarginOcoListClientOrderId != null)) && ((((string)papiMarginOcoListClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit papi margin oco listClientOrderId must inject the spot broker id");
+            object papiMarginOcoLimitClientOrderId = exchange.safeString(implicitPapiMarginOcoRequest, "limitClientOrderId");
+            object papiMarginOcoStopClientOrderId = exchange.safeString(implicitPapiMarginOcoRequest, "stopClientOrderId");
+            assert(((papiMarginOcoLimitClientOrderId != null)) && ((((string)papiMarginOcoLimitClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit papi margin oco limitClientOrderId must inject the spot broker id");
+            assert(((papiMarginOcoStopClientOrderId != null)) && ((((string)papiMarginOcoStopClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit papi margin oco stopClientOrderId must inject the spot broker id");
+            object implicitLegacyOcoRequest = new Dictionary<string, object>() {};
+            try
+            {
+                await callExchangeMethodDynamically(exchange, "privatePostOrderOco", new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "BTCUSDT" },
+    { "side", "SELL" },
+    { "quantity", "0.001" },
+    { "price", "110000" },
+    { "stopPrice", "95000" },
+}});
+            } catch(Exception e)
+            {
+                implicitLegacyOcoRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            object legacyOcoListClientOrderId = exchange.safeString(implicitLegacyOcoRequest, "listClientOrderId");
+            object legacyOcoLimitClientOrderId = exchange.safeString(implicitLegacyOcoRequest, "limitClientOrderId");
+            object legacyOcoStopClientOrderId = exchange.safeString(implicitLegacyOcoRequest, "stopClientOrderId");
+            assert(((legacyOcoListClientOrderId != null)) && ((((string)legacyOcoListClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit legacy oco listClientOrderId must inject the spot broker id");
+            assert(((legacyOcoLimitClientOrderId != null)) && ((((string)legacyOcoLimitClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit legacy oco limitClientOrderId must inject the spot broker id");
+            assert(((legacyOcoStopClientOrderId != null)) && ((((string)legacyOcoStopClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit legacy oco stopClientOrderId must inject the spot broker id");
+            object implicitOtoListRequest = new Dictionary<string, object>() {};
+            try
+            {
+                await callExchangeMethodDynamically(exchange, "privatePostOrderListOto", new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "BTCUSDT" },
+    { "workingType", "LIMIT" },
+    { "workingSide", "BUY" },
+    { "workingPrice", "100000" },
+    { "workingQuantity", "0.001" },
+    { "pendingType", "MARKET" },
+    { "pendingSide", "SELL" },
+    { "pendingQuantity", "0.001" },
+}});
+            } catch(Exception e)
+            {
+                implicitOtoListRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            object otoListClientOrderId = exchange.safeString(implicitOtoListRequest, "listClientOrderId");
+            object otoWorkingClientOrderId = exchange.safeString(implicitOtoListRequest, "workingClientOrderId");
+            object otoPendingClientOrderId = exchange.safeString(implicitOtoListRequest, "pendingClientOrderId");
+            assert(((otoListClientOrderId != null)) && ((((string)otoListClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit oto listClientOrderId must inject the spot broker id");
+            assert(((otoWorkingClientOrderId != null)) && ((((string)otoWorkingClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit oto workingClientOrderId must inject the spot broker id");
+            assert(((otoPendingClientOrderId != null)) && ((((string)otoPendingClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit oto pendingClientOrderId must inject the spot broker id");
+            object implicitOpoListRequest = new Dictionary<string, object>() {};
+            try
+            {
+                await callExchangeMethodDynamically(exchange, "privatePostOrderListOpo", new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "BTCUSDT" },
+    { "workingType", "LIMIT" },
+    { "workingSide", "BUY" },
+    { "workingPrice", "100000" },
+    { "workingQuantity", "0.001" },
+    { "pendingType", "MARKET" },
+    { "pendingSide", "SELL" },
+    { "pendingQuantity", "0.001" },
+}});
+            } catch(Exception e)
+            {
+                implicitOpoListRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            object opoListClientOrderId = exchange.safeString(implicitOpoListRequest, "listClientOrderId");
+            object opoWorkingClientOrderId = exchange.safeString(implicitOpoListRequest, "workingClientOrderId");
+            object opoPendingClientOrderId = exchange.safeString(implicitOpoListRequest, "pendingClientOrderId");
+            assert(((opoListClientOrderId != null)) && ((((string)opoListClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit opo listClientOrderId must inject the spot broker id");
+            assert(((opoWorkingClientOrderId != null)) && ((((string)opoWorkingClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit opo workingClientOrderId must inject the spot broker id");
+            assert(((opoPendingClientOrderId != null)) && ((((string)opoPendingClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit opo pendingClientOrderId must inject the spot broker id");
+            object implicitOpocoListRequest = new Dictionary<string, object>() {};
+            try
+            {
+                await callExchangeMethodDynamically(exchange, "privatePostOrderListOpoco", new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "BTCUSDT" },
+    { "workingType", "LIMIT" },
+    { "workingSide", "BUY" },
+    { "workingPrice", "100000" },
+    { "workingQuantity", "0.001" },
+    { "pendingSide", "SELL" },
+    { "pendingQuantity", "0.001" },
+    { "pendingAboveType", "LIMIT_MAKER" },
+    { "pendingAbovePrice", "110000" },
+    { "pendingBelowType", "STOP_LOSS" },
+    { "pendingBelowStopPrice", "95000" },
+}});
+            } catch(Exception e)
+            {
+                implicitOpocoListRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            object opocoListClientOrderId = exchange.safeString(implicitOpocoListRequest, "listClientOrderId");
+            object opocoWorkingClientOrderId = exchange.safeString(implicitOpocoListRequest, "workingClientOrderId");
+            object opocoPendingAboveClientOrderId = exchange.safeString(implicitOpocoListRequest, "pendingAboveClientOrderId");
+            object opocoPendingBelowClientOrderId = exchange.safeString(implicitOpocoListRequest, "pendingBelowClientOrderId");
+            assert(((opocoListClientOrderId != null)) && ((((string)opocoListClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit opoco listClientOrderId must inject the spot broker id");
+            assert(((opocoWorkingClientOrderId != null)) && ((((string)opocoWorkingClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit opoco workingClientOrderId must inject the spot broker id");
+            assert(((opocoPendingAboveClientOrderId != null)) && ((((string)opocoPendingAboveClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit opoco pendingAboveClientOrderId must inject the spot broker id");
+            assert(((opocoPendingBelowClientOrderId != null)) && ((((string)opocoPendingBelowClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit opoco pendingBelowClientOrderId must inject the spot broker id");
+            // the cancel-replace endpoint creates a new order and takes newClientOrderId for it
+            object implicitCancelReplaceRequest = new Dictionary<string, object>() {};
+            try
+            {
+                await callExchangeMethodDynamically(exchange, "privatePostOrderCancelReplace", new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "BTCUSDT" },
+    { "side", "BUY" },
+    { "type", "LIMIT" },
+    { "quantity", "0.001" },
+    { "price", "20000" },
+    { "timeInForce", "GTC" },
+    { "cancelReplaceMode", "STOP_ON_FAILURE" },
+    { "cancelOrderId", "12345" },
+}});
+            } catch(Exception e)
+            {
+                implicitCancelReplaceRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            object cancelReplaceClientOrderId = exchange.safeString(implicitCancelReplaceRequest, "newClientOrderId");
+            assert((cancelReplaceClientOrderId != null), "binance - implicit cancel-replace must inject newClientOrderId");
+            assert((((string)cancelReplaceClientOrderId).StartsWith(((string)spotId)) == true), ((("binance - implicit cancel-replace newClientOrderId: " + (cancelReplaceClientOrderId)) + " does not start with spotId") + spotId));
         }
         if (!isTrue(isSync()))
         {

@@ -51,6 +51,7 @@ class bingx extends Exchange {
                 'editOrder' => true,
                 'fetchAllGreeks' => false,
                 'fetchBalance' => true,
+                'fetchBidsAsks' => true,
                 'fetchBorrowInterest' => false,
                 'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
@@ -534,13 +535,11 @@ class bingx extends Exchange {
                     'asset' => array(
                         'v1' => array(
                             'private' => array(
-                                'post' => array(
-                                    'transfer' => array( 'cost' => 5 ),
-                                ),
-                            ),
-                            'public' => array(
                                 'get' => array(
                                     'transfer/supportCoins' => array( 'cost' => 5 ),
+                                ),
+                                'post' => array(
+                                    'transfer' => array( 'cost' => 5 ),
                                 ),
                             ),
                         ),
@@ -671,7 +670,7 @@ class bingx extends Exchange {
                 'recvWindow' => 5 * 1000, // 5 sec
                 'broker' => 'CCXT',
                 'defaultNetworks' => array(
-                    'ETH' => 'ETH',
+                    'ETH' => 'ERC20',
                     'USDT' => 'ERC20',
                     'USDC' => 'ERC20',
                     'BTC' => 'BTC',
@@ -717,7 +716,7 @@ class bingx extends Exchange {
                         'trailing' => true,
                         'leverage' => false,
                         'marketBuyRequiresPrice' => false,
-                        'marketBuyByCost' => false,
+                        'marketBuyByCost' => true,
                         'selfTradePrevention' => false,
                         'iceberg' => false,
                     ),
@@ -770,6 +769,9 @@ class bingx extends Exchange {
                 'defaultForInverse' => array(
                     'extends' => 'defaultForLinear',
                     'sandbox' => false,
+                    'createOrder' => array(
+                        'marketBuyByCost' => false,
+                    ),
                     'createOrders' => null,
                     'fetchOHLCV' => array(
                         'limit' => 1000,
@@ -2178,6 +2180,50 @@ class bingx extends Exchange {
         return $this->parse_ticker($dataDict, $market);
     }
 
+    public function fetch_bids_asks(?array $symbols = null, $params = array()): array {
+        /**
+         * fetches the bid and ask price and volume for multiple markets
+         *
+         * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/Symbol%20Order%20Book%20Ticker
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Symbol%20Order%20Book%20Ticker
+         *
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the bids and asks for, all spot markets are returned if not assigned, swap requires exactly one symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
+         */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $symbolsNormalized = $this->market_symbols($symbols);
+        $market = $this->get_market_from_symbols($symbolsNormalized);
+        list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchBidsAsks', $market, $params);
+        $request = array();
+        $rows = array();
+        $symbolsLength = ($symbolsNormalized === null) ? 0 : count($symbolsNormalized);
+        if ($type === 'spot') {
+            if (($market !== null) && ($symbolsLength === 1)) {
+                $request['symbol'] = $market['id'];
+            }
+            $response = $this->spotV2PublicGetQuoteBookTicker($this->extend($request, $paramsMarketType));
+            $rows = $this->safe_list($response, 'data', array());
+        } else {
+            if (($market === null) || ($market['inverse'] === true) || ($symbolsLength !== 1)) {
+                throw new ArgumentsRequired($this->id . ' fetchBidsAsks() requires exactly one linear swap symbol for contract markets');
+            }
+            $request['symbol'] = $market['id'];
+            $response = $this->swapV2PublicGetQuoteBookTicker($this->extend($request, $paramsMarketType));
+            $data = $this->safe_dict($response, 'data', array());
+            $rows = array( $this->safe_dict($data, 'book_ticker', array()) );
+        }
+        // a multi-symbol spot response holds every listed pair, the first symbol's market must not label unknown rows
+        $rowMarket = ($symbolsLength === 1) ? $market : null;
+        $results = array();
+        for ($i = 0; $i < count($rows); $i++) {
+            $results[] = $this->parse_ticker($rows[$i], $rowMarket);
+        }
+        return $this->filter_by_array_tickers($results, 'symbol', $symbolsNormalized);
+    }
+
     public function fetch_tickers(?array $symbols = null, $params = array()): array {
         /**
          * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
@@ -2423,6 +2469,9 @@ class bingx extends Exchange {
         if ($lastQty === null) {
             $type = 'spot';
         }
+        if ($market !== null) {
+            $type = $market['type'];
+        }
         $marketResolved = $this->safe_market($marketId, $market, null, $type);
         $symbol = $marketResolved['symbol'];
         $open = $this->safe_string($ticker, 'openPrice');
@@ -2436,15 +2485,15 @@ class bingx extends Exchange {
             $percentage = str_replace('%', '', $percentage);
         }
         $change = $this->safe_string($ticker, 'priceChange');
-        $ts = $this->safe_integer($ticker, 'closeTime');
+        $ts = $this->safe_integer_2($ticker, 'closeTime', 'time');
         if ($ts === 0) {
             $ts = null;
         }
         $datetime = $this->iso8601($ts);
-        $bid = $this->safe_string($ticker, 'bidPrice');
-        $bidVolume = $this->safe_string($ticker, 'bidQty');
-        $ask = $this->safe_string($ticker, 'askPrice');
-        $askVolume = $this->safe_string($ticker, 'askQty');
+        $bid = $this->safe_string_2($ticker, 'bidPrice', 'bid_price');
+        $bidVolume = $this->safe_string_2($ticker, 'bidQty', 'bid_qty');
+        $ask = $this->safe_string_2($ticker, 'askPrice', 'ask_price');
+        $askVolume = $this->safe_string_2($ticker, 'askQty', 'ask_qty');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $ts,
@@ -3084,7 +3133,7 @@ class bingx extends Exchange {
 
     public function create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array()): array {
         /**
-         * create a spot market order by providing the $symbol, $side and $cost
+         * create a spot or linear swap market order by providing the $symbol, $side and $cost
          * @param {string} $symbol unified $symbol of the market to create an order in
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $cost how much you want to trade in units of the quote currency
@@ -3097,7 +3146,7 @@ class bingx extends Exchange {
 
     public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()): array {
         /**
-         * create a spot market buy order by providing the $symbol and $cost
+         * create a spot or linear swap market buy order by providing the $symbol and $cost
          * @param {string} $symbol unified $symbol of the market to create an order in
          * @param {float} $cost how much you want to trade in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3109,7 +3158,7 @@ class bingx extends Exchange {
 
     public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array()): array {
         /**
-         * create a spot market sell order by providing the $symbol and $cost
+         * create a spot or linear swap market sell order by providing the $symbol and $cost
          * @param {string} $symbol unified $symbol of the market to create an order in
          * @param {float} $cost how much you want to trade in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3139,8 +3188,8 @@ class bingx extends Exchange {
          */
         $market = $this->market($symbol);
         $cost = $this->safe_string_2($params, 'cost', 'quoteOrderQty');
-        if (($market['contract'] === true) && ($cost !== null)) {
-            throw new NotSupported($this->id . ' createOrder() with cost or quoteOrderQty is not supported for contract markets');
+        if (($market['inverse'] === true) && ($cost !== null)) {
+            throw new NotSupported($this->id . ' createOrder() with cost or quoteOrderQty is not supported for inverse swap markets');
         }
         list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('createOrder', $market, $params);
         $typeValue = strtoupper($type);
@@ -3304,6 +3353,9 @@ class bingx extends Exchange {
                 }
             }
             if ($hasStopLoss || $hasTakeProfit) {
+                if ($cost !== null) {
+                    throw new InvalidOrder($this->id . ' createOrder() does not support attached stopLoss or takeProfit on a market order by cost');
+                }
                 $stringifiedAmount = $this->number_to_string($amount);
                 if ($hasStopLoss) {
                     $slTriggerPrice = $this->safe_string_2($stopLossDict, 'triggerPrice', 'stopPrice');
@@ -3362,7 +3414,9 @@ class bingx extends Exchange {
             }
             $request['positionSide'] = $positionSide;
             $closePosition = $this->safe_bool($paramsOrder, 'closePosition', false);
-            if ($closePosition !== true) {
+            if ($cost !== null) {
+                $request['quoteOrderQty'] = $this->parse_to_numeric($this->cost_to_precision($symbol, $cost));
+            } elseif ($closePosition !== true) {
                 $amountReq = $amount;
                 if ($market['inverse'] !== true) {
                     $amountReq = $this->parse_to_numeric($this->amount_to_precision($symbol, $amount));
@@ -3370,7 +3424,7 @@ class bingx extends Exchange {
                 $request['quantity'] = $amountReq; // precision not available for inverse contracts
             }
         }
-        $paramsRequest = $this->omit($paramsOrder, array( 'hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'trailingTriggerPrice', 'activationPrice', 'clientOrderId' ));
+        $paramsRequest = $this->omit($paramsOrder, array( 'hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'trailingTriggerPrice', 'activationPrice', 'clientOrderId', 'cost', 'quoteOrderQty' ));
         return $this->extend($request, $paramsRequest);
     }
 
@@ -3396,8 +3450,8 @@ class bingx extends Exchange {
          * @param {float} [$params->triggerPrice] triggerPrice at which the attached take profit / stop loss order will be triggered
          * @param {float} [$params->stopLossPrice] stop loss trigger $price, a spot order is placed and parsed back with triggerPrice
          * @param {float} [$params->takeProfitPrice] take profit trigger $price, a spot order is placed and parsed back with triggerPrice
-         * @param {float} [$params->cost] *spot only* the quote quantity that can be used as an alternative for the $amount
-         * @param {float} [$params->quoteOrderQty] *spot only* the quote quantity, an alternative to $params->cost
+         * @param {float} [$params->cost] *spot and linear swap only* the quote quantity that can be used as an alternative for the $amount
+         * @param {float} [$params->quoteOrderQty] *spot and linear swap only* the quote quantity, an alternative to $params->cost
          * @param {float} [$params->trailingAmount] *swap only* the quote $amount to trail away from the current $market $price
          * @param {float} [$params->trailingPercent] *swap only* the percent to trail away from the current $market $price
          * @param {float} [$params->trailingTriggerPrice] *swap only* the $price to activate a trailing order at
@@ -5530,7 +5584,7 @@ class bingx extends Exchange {
         // the 0x prefix on the evm networks, see https://github.com/ccxt/ccxt/issues/24331
         if ($address !== null) {
             $isPrefixed = str_starts_with($address, '0x') || str_starts_with($address, '0X');
-            $evmNetworks = array( 'BEP20', 'BSC', 'ERC20', 'ETH', 'HECO', 'MATIC', 'POLYGON', 'ARBITRUM', 'ARB', 'OPTIMISM', 'AVAXC', 'BASE', 'FTM', 'LINEA', 'ZKSYNC', 'OPBNB' );
+            $evmNetworks = array( 'BEP20', 'ERC20', 'HECO', 'MATIC', 'POLYGON', 'ARBITRUM', 'OPTIMISM', 'AVAXC', 'BASE', 'FTM', 'LINEA', 'ZKSYNC', 'OPBNB' );
             if (!$isPrefixed && $this->in_array($networkCode, $evmNetworks)) {
                 $address = '0x' . $address;
             }
@@ -6281,7 +6335,7 @@ class bingx extends Exchange {
         return $depositWithdrawFees;
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
+    public function withdraw(string $code, float $amount, string $address, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -6290,13 +6344,13 @@ class bingx extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} [$tag]
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @param {int} [$params->walletType] 1 fund (funding) account, 2 standard account, 3 perpetual account, 15 spot account
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->check_address($address);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
+        $this->check_address($address, $code, $tagWithdrawTag);
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -7132,7 +7186,7 @@ class bingx extends Exchange {
         return $tiers;
     }
 
-    public function sign(string $path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $section = array('public'), $method = 'GET', $params = array()): array {
         $type = $section[0];
         $version = $section[1];
         $access = $section[2];
@@ -7197,8 +7251,8 @@ class bingx extends Exchange {
                 $url .= '?' . $query . '&' . 'signature=' . $signature;
             }
         }
-        $bodyResult = ($requestBody !== null) ? $requestBody : $body;
-        $headersResult = ($requestHeaders !== null) ? $requestHeaders : $headers;
+        $bodyResult = $requestBody;
+        $headersResult = $requestHeaders;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
     }
 

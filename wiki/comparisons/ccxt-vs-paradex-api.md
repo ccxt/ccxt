@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the Paradex API and the official Paradex SDKs -->
 <!-- description: Paradex derives a Starknet account from an Ethereum signature and signs each order as typed data. Compare paradex-py and @paradex/sdk with CCXT on auth and coverage. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: Paradex publishes Python and JavaScript SDKs; both do the L1-to-L2 onboarding and JWT dance. CCXT does the same derivation internally and adds 50 unified capabilities, options markets and eight languages. -->
+<!-- summary: Paradex publishes Python and JavaScript SDKs; both do the L1-to-L2 onboarding and JWT dance. CCXT does the same derivation internally and adds 55 unified capabilities, options markets and eight languages. -->
 <!-- weight: 100 -->
 
 # CCXT vs the Paradex API and the official Paradex SDKs
@@ -15,7 +15,7 @@ Paradex publishes two official SDKs: [`tradeparadex/paradex-py`](https://github.
 ## TL;DR
 
 - **Pick `paradex-py` or `@paradex/sdk`** if Paradex is your only venue, you want request/response shapes that match Paradex's reference exactly, or you need something CCXT does not do — L2-only subkey auth and the threaded WebSocket client are the two concrete examples.
-- **Pick CCXT** if you want Paradex as one venue among many: 50 unified capabilities (30 of them `fetch*`), perps **and** options, seven `watch*` methods, and the same code in TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java or Rust.
+- **Pick CCXT** if you want Paradex as one venue among many: 55 unified capabilities (32 of them `fetch*`), perps **and** options, ten `watch*` methods, and the same code in TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java or Rust.
 - **The signing is the same either way.** CCXT does the L1 EIP-712 signature, derives the Starknet account, onboards, caches the JWT and refreshes it before expiry — so the trade-off is API shape and portability, not cryptography.
 
 ## At a glance
@@ -26,12 +26,12 @@ Paradex publishes two official SDKs: [`tradeparadex/paradex-py`](https://github.
 | Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Python (`paradex_py`) and JavaScript/TypeScript (`@paradex/sdk`) |
 | Packages to install | **1** (`ccxt`) | `pip install paradex-py` or `npm i @paradex/sdk` |
 | Unified market data + trading API | yes — same method names across every exchange | no — Paradex's own request/response shapes |
-| Unified capabilities implemented | 50 for `paradex`, of which 30 are `fetch*` | n/a |
+| Unified capabilities implemented | 55 for `paradex`, of which 32 are `fetch*` | n/a |
 | Symbols | `'BTC/USD:USDC'`, options as `'BTC/USD:USDC-117000-P'` | `BTC-USD-PERP` |
 | Auth | L1 key derives the Starknet account; JWT cached and refreshed automatically | same, plus an L2-only `ParadexSubkey` path |
 | L2-only (subkey) credentials | no — CCXT needs `walletAddress` + L1 `privateKey` | yes — `ParadexSubkey(l2_private_key, l2_address)` |
-| WebSockets | yes — 7 `watch*` methods | yes — async and threaded clients, plus an SBE market-data example |
-| Raw endpoint access | yes — 111 endpoints as implicit methods | whatever the SDK wraps |
+| WebSockets | yes — 10 `watch*` methods | yes — async and threaded clients, plus an SBE market-data example |
+| Raw endpoint access | yes — 127 endpoints as implicit methods | whatever the SDK wraps |
 | Built-in rate limiter | yes, per-endpoint weights, on by default (`rateLimit` 50 ms) | not a documented feature |
 | Unified error types | yes — 41 typed exceptions in one hierarchy | HTTP status plus Paradex error payloads |
 | Testnet | `set_sandbox_mode(True)` swaps REST and WS URLs | `Environment.TESTNET` / `PROD` / `NIGHTLY` |
@@ -173,7 +173,7 @@ asyncio.run(main())
 
 The two are not doing the same thing. The SDK's own example (`examples/public_ws_market_data.py`) shows why: what arrives is `update_type` plus `inserts`, and turning that into a book means holding state, applying deltas in order, and re-seeding after a gap. CCXT's `watch_order_book` returns a **live, merged book** in the same [order book structure](/docs/manual#order-book-structure) as `fetch_order_book`, with the snapshot/delta alignment, gap detection, bounded caching and reconnect-and-resubscribe already done.
 
-CCXT implements 7 streaming methods for `paradex`: `watchOrderBook`, `watchTrades`, `watchTicker`, `watchTickers`, `watchOrders`, `watchFundingRate` and `watchFundingRates`.
+CCXT implements 10 streaming methods for `paradex`: `watchOrderBook`, `watchTrades`, `watchTicker`, `watchTickers`, `watchOrders`, `watchMyTrades`, `watchPositions`, `watchBalance`, `watchFundingRate` and `watchFundingRates`.
 
 ## Where the differences actually bite
 
@@ -244,7 +244,7 @@ exchange.set_sandbox_mode(True)   # swaps in Paradex's testnet REST and WS URLs
 
 ### Nothing is hidden — the implicit API
 
-Alongside the 50 unified capabilities, **all 111 endpoints in the API definition are generated as callable implicit methods**, with authentication, rate-limit accounting and error mapping applied:
+Alongside the 55 unified capabilities, **all 127 endpoints in the API definition are generated as callable implicit methods**, with authentication, rate-limit accounting and error mapping applied:
 
 ```python
 # any raw Paradex endpoint, camelCased from its path
@@ -307,7 +307,7 @@ No. CCXT's `paradex` class requires the L1 wallet address and private key. `para
 Yes. Options markets are loaded alongside perpetuals in the same `paradex` instance, with symbols like `'BTC/USD:USDC-117000-P'`, and `fetch_greeks` / `fetch_all_greeks` are implemented.
 
 **Does CCXT support Paradex WebSockets?**
-Yes — seven methods: `watchOrderBook`, `watchTrades`, `watchTicker`, `watchTickers`, `watchOrders`, `watchFundingRate` and `watchFundingRates`. `watch_order_book` returns a merged book rather than raw insert/delete deltas.
+Yes — ten methods: `watchOrderBook`, `watchTrades`, `watchTicker`, `watchTickers`, `watchOrders`, `watchMyTrades`, `watchPositions`, `watchBalance`, `watchFundingRate` and `watchFundingRates`. `watch_order_book` returns a merged book rather than raw insert/delete deltas.
 
 **Can I test against Paradex testnet with CCXT?**
 Yes. `exchange.set_sandbox_mode(True)` swaps in the testnet REST and WebSocket URLs in one call, matching what `Environment.TESTNET` does in the Python SDK.

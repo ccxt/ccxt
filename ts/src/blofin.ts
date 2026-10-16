@@ -6,7 +6,7 @@ import Exchange from './abstract/blofin.js';
 import { ExchangeError, ExchangeNotAvailable, ArgumentsRequired, BadRequest, InvalidOrder, AuthenticationError, RateLimitExceeded, InsufficientFunds, NullResponse, PermissionDenied, InvalidNonce, InvalidAddress, OrderNotFound, DuplicateOrderId } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Bool, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Currencies, CurrencyInterface, DepositAddress, DepositWithdrawFees, Position, TransferEntry, Leverage, Leverages, MarginMode, Num, TradingFeeInterface, Dict, int, LedgerEntry, FundingRate, ADL, Fee, FeeString, List, NullableDict, IndexType, PositionModeInfo, Endpoint } from './base/types.js';
+import type { Bool, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Currencies, CurrencyInterface, DepositAddress, DepositWithdrawFees, Position, TransferEntry, Leverage, Leverages, MarginMode, Num, TradingFeeInterface, Dict, int, LedgerEntry, FundingRate, ADL, Fee, FeeString, List, IndexType, PositionModeInfo, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1987,7 +1987,8 @@ export default class blofin extends Exchange {
 
     networkCodeToChainId (networkCode: string, currency: Currency = undefined): Str {
         const aliases = this.safeDict (this.options, 'networkCodeAliases', {});
-        const unifiedCode = this.safeString (aliases, networkCode, networkCode);
+        const aliasedCode = this.safeString (aliases, networkCode, networkCode);
+        const unifiedCode = this.safeString (this.networkAliases, aliasedCode, aliasedCode);
         // prefer the exact chain id from the currencies registry when it is
         // loaded, since some ids are currency-specific (USDT on Optimism)
         if (currency !== undefined) {
@@ -2375,8 +2376,8 @@ export default class blofin extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw, the withdrawal fee is not included and must be reserved on top
      * @param {string} address the address to withdraw to, or a UID / email / phone number for an internal transfer
-     * @param {string} tag additional identifier (memo / payment id) required by certain networks
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.network] the unified network code for on-chain withdrawals, mapped to the exchange's chain name
      * @param {string} [params.dest] 'onchain' (default) or 'internal' for an internal transfer
      * @param {string} [params.addrType] address type, 1: wallet address, 2: UID, 3: email, 4: mobile phone
@@ -2384,7 +2385,7 @@ export default class blofin extends Exchange {
      * @param {string} [params.clientId] a client-supplied id of up to 32 case-sensitive alphanumerics
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
         // LIVE API vs DOCS quirks, verified against the venue 2026-09-14:
         // - addrType is documented optional but the live venue rejects
         //   on-chain withdrawals without it: 152001 "Parameter addrType
@@ -2397,7 +2398,7 @@ export default class blofin extends Exchange {
         //   error table documents the message as "Parameter {} error"
         let tagValue: Str = undefined;
         let query = undefined;
-        [ tagValue, query ] = this.handleWithdrawTagAndParams (tag, params);
+        [ tagValue, query ] = this.handleParamString (params, 'tag');
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request: Dict = {
@@ -2409,7 +2410,7 @@ export default class blofin extends Exchange {
         request['dest'] = dest;
         query = this.omit (query, 'dest');
         if (dest === 'onchain') {
-            this.checkAddress (address);
+            this.checkAddress (address, code, tagValue);
             // the doc's Request Parameters table marks addrType "Required:
             // No", but the live venue rejects on-chain withdrawals without
             // it (152001 "Parameter addrType cannot be empty") - default to
@@ -3522,7 +3523,8 @@ export default class blofin extends Exchange {
         return undefined;
     }
 
-    override sign (path: string, api = 'public', method: any = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: any = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
         let request = '/api/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         const apiUrl = this.safeString (this.urls['api'], 'rest');
@@ -3531,11 +3533,11 @@ export default class blofin extends Exchange {
         }
         let url = apiUrl + request;
         // const type = this.getPathAuthenticationType (path);
-        if (api === 'public') {
+        if (apiName === 'public') {
             if (!this.isEmpty (query)) {
                 url += '?' + this.urlencode (query);
             }
-        } else if (api === 'private') {
+        } else if (apiName === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ().toString ();
             const signedHeaders: Dict = {
@@ -3562,9 +3564,9 @@ export default class blofin extends Exchange {
             const auth = request + method + timestamp + timestamp + sign_body;
             const signature = this.stringToBase64 (this.hmac (this.encode (auth), this.encode (this.secret), sha256));
             signedHeaders['ACCESS-SIGN'] = signature;
-            const bodyResolved: Str = (signedBody === undefined) ? body : signedBody;
+            const bodyResolved: Str = signedBody;
             return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': signedHeaders };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 }

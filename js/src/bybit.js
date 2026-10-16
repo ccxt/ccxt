@@ -1222,11 +1222,8 @@ export default class bybit extends Exchange {
                 'networks': {
                     'BTC': 'BTC',
                     'BRC20': 'BTC',
-                    'ETH': 'ETH',
                     'ERC20': 'ETH',
-                    'TRX': 'TRX',
                     'TRC20': 'TRX',
-                    'BSC': 'BSC',
                     'BEP20': 'BSC',
                     'SOL': 'SOL',
                     'ACA': 'ACA',
@@ -1293,6 +1290,7 @@ export default class bybit extends Exchange {
                     // 'LUNA1': 'LUNA' (Terra)
                 },
                 'networksById': {
+                    'BTC': 'BTC', // BTC and BRC20 share the id 'BTC', the native chain wins
                     'ETH': 'ERC20',
                     'TRX': 'TRC20',
                     'BSC': 'BEP20',
@@ -6087,7 +6085,7 @@ export default class bybit extends Exchange {
         const currency = this.currency(code);
         const [networkCode, paramsOmited] = this.handleNetworkCodeAndParams(params);
         const indexedAddresses = await this.fetchDepositAddressesByNetwork(code, paramsOmited);
-        const selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks(currency['code'], networkCode, indexedAddresses);
+        const selectedNetworkCode = this.selectNetworkKeyFromNetworks(currency['code'], networkCode, indexedAddresses, true);
         return this.safeValue(indexedAddresses, selectedNetworkCode);
     }
     /**
@@ -6646,13 +6644,13 @@ export default class bybit extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.accountType] 'UTA', 'FUND', 'FUND,UTA', and 'SPOT (for classic accounts only)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
+    async withdraw(code, amount, address, params = {}) {
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
         const accounts = await this.isUnifiedEnabled();
         const isUta = accounts[1];
         const [accountTypeOption, paramsAccountType] = this.handleOptionStringAndParams(paramsWithdrawTag, 'withdraw', 'accountType');
@@ -6661,7 +6659,7 @@ export default class bybit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        this.checkAddress(address);
+        this.checkAddress(address, code, tagWithdrawTag);
         const currency = this.currency(code);
         const request = {
             'coin': currency['id'],
@@ -8984,8 +8982,8 @@ export default class bybit extends Exchange {
         const tiers = [];
         for (let i = 0; i < info.length; i++) {
             const tier = this.safeDict(info, i);
-            const marketId = this.safeString(info, 'symbol');
-            const marketResolved = this.safeMarket(marketId);
+            const marketId = this.safeString(tier, 'symbol');
+            const marketResolved = this.safeMarket(marketId, market, undefined, 'contract');
             let minNotional = this.parseNumber('0');
             if (i !== 0) {
                 minNotional = this.safeNumber(info[i - 1], 'riskLimitValue');
@@ -9997,20 +9995,21 @@ export default class bybit extends Exchange {
         };
         return this.safeString(marginModes, marginMode, marginMode);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         let requestBody = undefined;
         let requestHeaders = undefined;
-        const apiUrl = this.safeString(this.urls['api'], api);
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         let url = this.implodeHostname(apiUrl) + '/' + path;
-        if (api === 'public') {
+        if (apiName === 'public') {
             if (Object.keys(params).length > 0) {
                 url += '?' + this.rawencode(params);
             }
         }
-        else if (api === 'private') {
+        else if (apiName === 'private') {
             this.checkRequiredCredentials();
             const isOpenapi = url.indexOf('openapi') >= 0;
             const isV3UnifiedMargin = url.indexOf('unified/v3') >= 0;
@@ -10107,12 +10106,12 @@ export default class bybit extends Exchange {
         }
         if (method === 'POST') {
             const brokerId = this.safeString(this.options, 'brokerId', 'CCXT');
-            const headersBase = (requestHeaders === undefined) ? headers : requestHeaders;
+            const headersBase = requestHeaders;
             requestHeaders = (headersBase === undefined) ? {} : headersBase;
             requestHeaders['Referer'] = brokerId;
         }
-        const bodyResolved = (requestBody === undefined) ? body : requestBody;
-        const headersResolved = (requestHeaders === undefined) ? headers : requestHeaders;
+        const bodyResolved = requestBody;
+        const headersResolved = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

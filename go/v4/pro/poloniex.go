@@ -55,9 +55,13 @@ func (this *Poloniex) Describe() any {
 		},
 		"options": map[string]any{
 			"createMarketBuyOrderRequiresPrice": true,
-			"tradesLimit":                       1000,
-			"ordersLimit":                       1000,
-			"OHLCVLimit":                        1000,
+			"watchBalance": map[string]any{
+				"fetchBalanceSnapshot": true,
+				"awaitBalanceSnapshot": true,
+			},
+			"tradesLimit": 1000,
+			"ordersLimit": 1000,
+			"OHLCVLimit":  1000,
 			"watchOrderBook": map[string]any{
 				"name": "book_lv2",
 			},
@@ -1032,13 +1036,30 @@ func (this *Poloniex) watchBalanceBody(ch chan ccxt.AsyncResult[map[string]any],
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
+	// the balances channel only streams per-event deltas, so seed the
+	// balance from a rest snapshot once per subscription - otherwise the
+	// first resolves would only list the currencies that changed since
+	// subscribing
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "private"))
+	var client ccxt.ClientInterface = this.Client(url)
+	this.SetBalanceCache(client, name)
+	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")
+	var fetchBalanceSnapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", false)
+	var awaitBalanceSnapshot *bool = this.SafeBool(options, "awaitBalanceSnapshot", true)
+	if (fetchBalanceSnapshot != nil && *fetchBalanceSnapshot == true) && (awaitBalanceSnapshot != nil && *awaitBalanceSnapshot == true) {
 
-	r2 := <-this.SubscribeAsync(name, name, true, nil, params)
-	if r2.Err != nil {
-		panic(r2.Err)
+		r2 := <-client.(ccxt.ClientInterface).Future(name + ":fetchBalanceSnapshot")
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+	}
+
+	r3 := <-this.SubscribeAsync(name, name, true, nil, params)
+	if r3.Err != nil {
+		panic(r3.Err)
 	}
 	var resolved map[string]any
-	switch resolvedBox := r2.Value.(type) {
+	switch resolvedBox := r3.Value.(type) {
 	case map[string]any:
 		resolved = resolvedBox
 	case *sync.Map:
@@ -1048,6 +1069,63 @@ func (this *Poloniex) watchBalanceBody(ch chan ccxt.AsyncResult[map[string]any],
 		panic(ccxt.ExchangeError("resolved value is not map[string]any"))
 	}
 	ch <- ccxt.AsyncResult[map[string]any]{Value: resolved}
+	return nil
+}
+func (this *Poloniex) SetBalanceCache(client any, typeVar string) {
+	if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), typeVar) {
+		return
+	}
+	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")
+	var fetchBalanceSnapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", false)
+	if fetchBalanceSnapshot != nil && *fetchBalanceSnapshot == true {
+		var messageHash string = typeVar + ":fetchBalanceSnapshot"
+		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {
+			client.(ccxt.ClientInterface).Future(messageHash)
+			this.Spawn(this.LoadBalanceSnapshotAsync, client, messageHash, typeVar)
+		}
+	}
+}
+func (this *Poloniex) LoadBalanceSnapshotAsync(client any, messageHash any, typeVar any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
+	go this.loadBalanceSnapshotBody(ch, client, messageHash, typeVar)
+	return ch
+}
+func (this *Poloniex) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[any], client any, messageHash any, typeVar any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+
+	r := <-this.FetchBalanceAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	response := r.Value
+	// merge the snapshot into the existing balance object per currency so
+	// the object keeps its identity and deltas that arrived while the
+	// snapshot was in flight are not overwritten; the free/used/total
+	// aggregates are rebuilt from the merged currencies by safeBalance
+	var reserved []any = []any{"info", "timestamp", "datetime", "free", "used", "total"}
+	var keys []string = ccxt.ObjectKeys(response)
+	for i := 0; i < len(keys); i++ {
+		var key string = keys[i]
+		if this.InArray(key, reserved) {
+			continue
+		}
+		if !(ccxt.InOp(this.Balance, key)) {
+			ccxt.AddElementToObject(this.Balance, key, ccxt.GetValue(response, key))
+		}
+	}
+	if !(ccxt.InOp(this.Balance, "info")) {
+		ccxt.AddElementToObject(this.Balance, "info", ccxt.GetValue(response, "info"))
+		ccxt.AddElementToObject(this.Balance, "timestamp", ccxt.GetValue(response, "timestamp"))
+		ccxt.AddElementToObject(this.Balance, "datetime", ccxt.GetValue(response, "datetime"))
+	}
+	this.Balance = this.SafeBalance(this.Balance)
+	// don't remove the future from the .futures cache
+	if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
+		var future any = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+		future.(*ccxt.Future).Resolve()
+		client.(ccxt.ClientInterface).Resolve(this.Balance, typeVar)
+	}
 	return nil
 }
 func (this *Poloniex) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
@@ -1372,8 +1450,8 @@ func (this *Poloniex) HandleOrder(client any, message map[string]any) any {
 				if ccxt.IsEqual(ccxt.GetValue(previousOrder, "trades"), nil) {
 					ccxt.AddElementToObject(previousOrder, "trades", []any{})
 				}
-				retRes90420 := ccxt.GetValue(previousOrder, "trades")
-				ccxt.AppendToArray(&retRes90420, trade)
+				retRes96720 := ccxt.GetValue(previousOrder, "trades")
+				ccxt.AppendToArray(&retRes96720, trade)
 				ccxt.AddElementToObject(previousOrder, "lastTradeTimestamp", trade["timestamp"])
 				var totalCost any = "0"
 				var totalAmount any = "0"
@@ -1640,13 +1718,20 @@ func (this *Poloniex) HandleOrderBook(client any, message map[string]any) {
 		var asks []any = ccxt.SafeListTyped(item, "asks")
 		var bids []any = ccxt.SafeListTyped(item, "bids")
 		if snapshot || update {
-			if snapshot {
+			if snapshot && !(ccxt.InOp(this.Orderbooks, symbol)) {
 				ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
 			}
 			if !(ccxt.InOp(this.Orderbooks, symbol)) {
 				continue
 			}
 			var orderbook ccxt.OrderBookInterface = ccxt.OrderBookTyped(ccxt.GetValue(this.Orderbooks, symbol))
+			if snapshot {
+				// reset the existing orderbook in place instead of
+				// replacing it: a consumer awakened earlier keeps a
+				// reference to the old object and would be orphaned
+				// from later updates on a resync/reconnect otherwise
+				orderbook.(ccxt.OrderBookInterface).Reset(map[string]any{})
+			}
 			if bids != nil {
 				for j := 0; j < len(bids); j++ {
 					var bid []any = ccxt.SafeListTyped(bids, j)
@@ -1692,47 +1777,36 @@ func (this *Poloniex) HandleBalance(client any, message map[string]any) {
 	//        ]
 	//    }
 	//
-	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
+	// the balances channel only sends per-event deltas for the currencies
+	// that changed, so merge them into the existing balance object instead
+	// of rebuilding it from the current message: a rebuilt object would
+	// drop every other currency, and a consumer awakened by an earlier
+	// message keeps a reference to the old object while ccxt.Client.resolve is
+	// a no-op with no waiter, so updates landing in that window would
+	// never reach that consumer (same class as kraken issue #26773)
+	var data any = this.SafeList(message, "data", []any{})
 	var messageHash string = "balances"
-	this.Balance = this.ParseWsBalance(data)
-	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
-}
-func (this *Poloniex) ParseWsBalance(response []any) any {
-	//
-	//    [
-	//        {
-	//            "changeTime": 1657312008411,
-	//            "accountId": "1234",
-	//            "accountType": "SPOT",
-	//            "eventType": "place_order",
-	//            "available": "9999999983.668",
-	//            "currency": "BTC",
-	//            "id": 60018450912695040,
-	//            "userId": 12345,
-	//            "hold": "16.332",
-	//            "ts": 1657312008443
-	//        }
-	//    ]
-	//
-	var firstBalance map[string]any = ccxt.SafeMapTyped(response, 0)
-	var timestamp *int64 = this.SafeInteger(firstBalance, "ts")
-	var result map[string]any = map[string]any{
-		"info":      response,
-		"timestamp": timestamp,
-		"datetime":  this.Iso8601(timestamp),
+	if ccxt.IsEqual(this.Balance, nil) {
+		this.Balance = map[string]any{}
 	}
-	for i := 0; i < len(response); i++ {
-		var balance map[string]any = ccxt.SafeMapTyped(response, i)
+	ccxt.AddElementToObject(this.Balance, "info", data)
+	var firstBalance map[string]any = ccxt.SafeMapTyped(data, 0)
+	var timestamp *int64 = this.SafeInteger(firstBalance, "ts")
+	ccxt.AddElementToObject(this.Balance, "timestamp", timestamp)
+	ccxt.AddElementToObject(this.Balance, "datetime", this.Iso8601(timestamp))
+	for i := 0; i < ccxt.GetArrayLength(data); i++ {
+		var balance map[string]any = ccxt.SafeMapTyped(data, i)
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var newAccount map[string]any = this.Account()
 		newAccount["free"] = this.SafeString(balance, "available")
 		newAccount["used"] = this.SafeString(balance, "hold")
 		if code != nil {
-			result[*code] = newAccount
+			ccxt.AddElementToObject(this.Balance, code, newAccount)
 		}
 	}
-	return this.SafeBalance(result)
+	this.Balance = this.SafeBalance(this.Balance)
+	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
 func (this *Poloniex) HandleMyTrades(client any, parsedTrade map[string]any) {
 	// emulated using the orders' stream

@@ -3,7 +3,7 @@ import WsClient from './ws/WsClient.js';
 import type Client from './ws/Client.js';
 import { type FutureInterface } from './ws/Future.js';
 import { WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
-import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, NullableIndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, DepositWithdrawFees, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, NullableDict, SubType, NestedDictionary, List, NullableList, Status, PositionModeInfo, MarginLoan, AllGreeks, DepositAddresses } from './types.js';
+import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, NullableIndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, DepositWithdrawFees, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, NullableDict, SubType, NestedDictionary, List, NullableList, Status, PositionModeInfo, MarginLoan, AllGreeks, DepositAddresses, OrderBookL3 } from './types.js';
 import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
 export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, NullableIndexType, Int, Bool, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion, DepositAddress, LongShortRatio, ADL } from './types.js';
 /**
@@ -56,6 +56,7 @@ export declare class BaseExchange {
     httpAgent: any;
     httpsAgent: any;
     minFundingAddressLength: number;
+    networkAliases: Dictionary<string>;
     substituteCommonCurrencyCodes: boolean;
     quoteJsonNumbers: boolean;
     number: (numberString: string) => number;
@@ -324,8 +325,6 @@ export declare class BaseExchange {
     getCcxtVersion(): string;
     throttle(cost?: Num): any;
     initThrottler(): void;
-    defineRestApiEndpoint(methodName: any, uppercaseMethod: any, lowercaseMethod: any, camelcaseMethod: any, path: any, paths: any, config?: {}): void;
-    defineRestApi(api: any, methodName: any, paths?: string[]): void;
     log(...args: any[]): void;
     loadProxyModules(): Promise<any>;
     setProxyAgents(httpProxy: any, httpsProxy: any, socksProxy: any): any;
@@ -584,7 +583,7 @@ export declare class BaseExchange {
     checkProxySettings(url?: Str, method?: Str, headers?: any, body?: any): Str[];
     checkWsProxySettings(): Str[];
     checkConflictingProxies(proxyAgentSet: any, proxyUrlSet: any): void;
-    checkAddress(address?: Str): Str;
+    checkAddress(address?: Str, code?: Str, tag?: Str): Str;
     findMessageHashes(client: any, element: string): string[];
     filterByLimit(array: any[], limit?: Int, key?: IndexType, fromStart?: boolean): any[];
     filterBySinceLimit(array: object[] | undefined, since?: Int, limit?: Int, key?: IndexType, tail?: boolean): any[];
@@ -603,7 +602,7 @@ export declare class BaseExchange {
      * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
      */
     enableDemoTrading(enable: boolean): void;
-    sign(path: string, api?: any, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     fetchAccounts(params?: Dict): Promise<Account[]>;
     watchLiquidations(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Liquidation[]>;
     watchLiquidationsForSymbols(symbols: string[], since?: Int, limit?: Int, params?: Dict): Promise<Liquidation[]>;
@@ -656,7 +655,7 @@ export declare class BaseExchange {
     unWatchFundingRates(symbols?: Strings, params?: Dict): Promise<any>;
     watchFundingRatesForSymbols(symbols: string[], params?: Dict): Promise<FundingRates>;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: Dict): Promise<TransferEntry>;
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
     createDepositAddress(code: string, params?: Dict): Promise<DepositAddress>;
     setLeverage(leverage: int, symbol?: Str, params?: Dict): Promise<{}>;
     fetchLeverage(symbol: string, params?: Dict): Promise<Leverage>;
@@ -680,47 +679,20 @@ export declare class BaseExchange {
     isEmptyString(value: any): boolean;
     safeNumberOmitZero(obj: object, key: NullableIndexType, defaultValue?: Num): Num;
     safeIntegerOmitZero(obj: object, key: NullableIndexType, defaultValue?: Int): Int;
-    afterConstruct(): void;
+    afterConstruct(userConfig?: Dict): void;
     initRestRateLimiter(): void;
     featuresGenerator(): void;
     featuresMapper(initialFeatures: Dict, marketType: Str, subType?: Str): any;
     featureValue(symbol: string, methodName?: Str, paramName?: Str, defaultValue?: any): any;
     featureValueByType(marketType: string, subType: Str, methodName?: Str, paramName?: Str, defaultValue?: any): any;
     orderbookChecksumMessage(symbol: Str): string;
-    createNetworksByIdObject(): void;
     getDefaultOptions(): {
-        defaultNetworkCodeReplacements: {
-            ETH: {
-                primary: string;
-                secondary: string;
-                default: string;
-            };
-            CRO: {
-                primary: string;
-                secondary: string;
-                default: string;
-            };
-            TRX: {
-                primary: string;
-                secondary: string;
-                default: string;
-            };
-            BTC: {
-                primary: string;
-                secondary: string;
-                default: string;
-            };
-        };
-        backwardSupportedNetworkCodes: {
-            ARB: string;
-            ARBONE: string;
-            ARBNOVA: string;
-        };
+        withdrawTagRequiredCurrencies: string[];
     };
     safeLedgerEntry(entry: object, currency?: Currency): LedgerEntry;
     safeCurrencyStructure(currency: Dict): CurrencyInterface;
     safeMarketStructure(market?: NullableDict): Market;
-    setMarkets(markets: any, currencies?: undefined): Dictionary<Market>;
+    setMarkets(markets: any, currencies?: any): Dictionary<Market>;
     setMarketsFromExchange(sourceExchange: any): this;
     getDescribeForExtendedWsExchange(currentRestInstance: any, parentRestInstance: any, wsBaseDescribe: Dictionary<any>): any;
     safeBalance(balance: Dict): Balances;
@@ -774,6 +746,7 @@ export declare class BaseExchange {
     marketSymbols(symbols?: Strings, type?: Str, allowEmpty?: boolean, sameTypeOnly?: boolean, sameSubTypeOnly?: boolean): Strings;
     marketCodes(codes?: Strings): Strings;
     parseOrderBookBidsAsks(bidasks: any, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): Num[][];
+    parseOrderBookBidsAsksL3(bidasks: any, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): any[][];
     filterByKey(objects: any, key: IndexType, value?: Str): any;
     filterBySymbol(objects: any, symbol?: Str): any;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
@@ -798,16 +771,13 @@ export declare class BaseExchange {
             };
         };
     };
-    prioritizedNetworkAliases(networkCode?: Str, currencyCode?: Str, allowDefault?: boolean): Strings;
     networkCodeToId(networkCode: Str, currencyCode?: Str): Str;
     networkIdToCode(networkId?: Str, currencyCode?: Str): Str;
     handleNetworkCodeAndParams(params: Dict): [Str, Dict];
-    defaultNetworkCode(currencyCode: string): Str;
-    selectNetworkCodeFromUnifiedNetworks(currencyCode: string, networkCode: any, indexedNetworkEntries: any): Str;
-    selectNetworkIdFromRawNetworks(currencyCode: string, networkCode: any, indexedNetworkEntries: any): Str;
     selectNetworkKeyFromNetworks(currencyCode: string, networkCode: Str, indexedNetworkEntries: any, isIndexedByUnifiedNetworkCode?: boolean): Str;
     safeNumber2(dictionary: object | undefined, key1: NullableIndexType, key2: NullableIndexType, d?: Num): number;
     parseOrderBook(orderbook: object | undefined, symbol: Str, timestamp?: Int, bidsKey?: string, asksKey?: string, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): OrderBook;
+    parseOrderBookL3(orderbook: object | undefined, symbol: Str, timestamp?: Int, bidsKey?: string, asksKey?: string, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): OrderBookL3;
     parseOHLCVs(ohlcvs: object[] | undefined, market?: any, timeframe?: string, since?: Int, limit?: Int, tail?: Bool): OHLCV[];
     parseLeverageTiers(response: any, symbols?: Strings, marketIdKey?: Str): LeverageTiers;
     loadTradingLimits(symbols?: Strings, reload?: boolean, params?: Dict): Promise<Dict | undefined>;
@@ -843,22 +813,13 @@ export declare class BaseExchange {
     handleParamInteger2(params: object, paramName1: string, paramName2: string, defaultValue?: Int): [Int, Dict];
     handleParamBool(params: object, paramName: string, defaultValue?: Bool): [Bool, object];
     handleParamBool2(params: object, paramName1: string, paramName2: string, defaultValue?: Bool): [Bool, object];
-    /**
-     * @param {object} params - extra parameters
-     * @param {object} request - existing dictionary of request
-     * @param {string} exchangeSpecificKey - the key for chain id to be set in request
-     * @param {object} currencyCode - (optional) existing dictionary of request
-     * @param {boolean} isRequired - (optional) whether that param is required to be present
-     * @returns {object[]} - returns [request, params] where request is the modified request object and params is the modified params object
-     */
-    handleRequestNetwork(params: Dict, request: Dict, exchangeSpecificKey: string, currencyCode?: Str, isRequired?: boolean): Dict[];
     resolvePath(path: any, params: any): any[];
     getListFromObjectValues(objects: any, key: IndexType): string[];
     getSymbolsForMarketType(marketType?: Str, subType?: Str, symbolWithActiveStatus?: boolean, symbolWithUnknownStatus?: boolean): string[];
     filterByArray(objects: any, key: IndexType, values?: any, indexed?: boolean): any;
     filterOutByArray(objects: any, key: IndexType, values?: any, indexed?: boolean): any;
-    fetch2(path: string, api?: any, method?: string, params?: Dict, headers?: any, body?: any, config?: Dict): Promise<any>;
-    request(path: string, api?: any, method?: string, params?: Dict, headers?: any, body?: any, config?: Dict): Promise<any>;
+    fetch2(path: string, api?: string[], method?: string, params?: Dict, config?: Dict): Promise<any>;
+    request(path: string, api?: string[], method?: string, params?: Dict, config?: Dict): Promise<any>;
     loadAccounts(reload?: boolean, params?: Dict): Promise<Account[]>;
     buildOHLCVC(trades: Trade[], timeframe?: string, since?: number, limit?: number): OHLCVC[];
     parseTradingViewOHLCV(ohlcvs: any, market?: Market, timeframe?: string, since?: Int, limit?: Int): OHLCV[];
@@ -866,6 +827,7 @@ export declare class BaseExchange {
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<LedgerEntry[]>;
     fetchLedgerEntry(id: string, code?: Str, params?: Dict): Promise<LedgerEntry>;
     parseOrderBookBidAsk(bidask: any, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): Num[];
+    parseOrderBookBidAskL3(bidask: any, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): any[];
     safeCurrency(currencyId: Str, currency?: Currency): CurrencyInterface;
     safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
     marketOrNull(symbol?: Str): Market;
@@ -912,7 +874,7 @@ export declare class BaseExchange {
     throwBroadlyMatchedException(broad: any, string: any, message: any): void;
     findBroadlyMatchedKey(broad: any, string: Str): Str;
     handleErrors(statusCode: int, statusText: string, url: string, method: string, responseHeaders: Dict, responseBody: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: Dict): any;
+    calculateRateLimiterCost(api: string[], method: any, path: any, params: any, config?: Dict): any;
     fetchSpotTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     fetchContractTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     fetchOrderBooks(symbols?: Strings, limit?: Int, params?: Dict): Promise<OrderBooks>;
@@ -968,7 +930,6 @@ export declare class BaseExchange {
     market(symbol: Str): MarketInterface;
     createExpiredOptionMarket(symbol: string): MarketInterface;
     isLeveragedCurrency(currencyCode: any, checkBaseCoin?: Bool, existingCurrencies?: NullableDict): boolean;
-    handleWithdrawTagAndParams(tag: any, params: Dict): [Str, Dict];
     costToPrecision(symbol: Str, cost: any): Str;
     priceToPrecision(symbol: Str, price: any): Str;
     amountToPrecision(symbol: Str, amount: any): Str;
@@ -1071,7 +1032,7 @@ export declare class BaseExchange {
     fetchTransfer(id: string, code?: Str, params?: Dict): Promise<TransferEntry>;
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<TransferEntry[]>;
     unWatchOHLCV(symbol: string, timeframe?: string, params?: Dict): Promise<any>;
-    withdrawWs(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
+    withdrawWs(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
     unWatchMyTrades(symbol?: Str, params?: Dict): Promise<any>;
     fetchOrdersByStatusWs(status: string, symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     unWatchBidsAsks(symbols?: Strings, params?: Dict): Promise<any>;
@@ -1099,7 +1060,7 @@ export default class Exchange extends BaseExchange {
     watchBidsAsks(symbols?: Strings, params?: Dict): Promise<Tickers>;
     watchMarkPrice(symbol: string, params?: Dict): Promise<Ticker>;
     watchMarkPrices(symbols?: Strings, params?: Dict): Promise<Tickers>;
-    fetchL3OrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
+    fetchL3OrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBookL3>;
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: Dict): Promise<OrderBook>;
     watchOrdersForSymbols(symbols: string[], since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     cancelAllOrdersWs(symbol?: Str, params?: Dict): Promise<Order[]>;

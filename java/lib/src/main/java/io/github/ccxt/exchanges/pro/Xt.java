@@ -13,6 +13,7 @@ import io.github.ccxt.types.FundingRate;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Position;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
@@ -138,7 +139,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                     String listenKey = null;
                     if (Boolean.TRUE.equals(isContract))
                     {
-                        Map<String, Object> response = (this.privateLinearGetFutureUserV1UserListenKey()).join();
+                        Map<String, Object> response = (this.privateLinearGetFutureUserV1UserListenKey(new HashMap<String, Object>() {{}})).join();
                         //
                         //    {
                         //        returnCode: '0',
@@ -150,7 +151,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                         listenKey = this.safeString(response, "result");
                     } else
                     {
-                        Map<String, Object> response = (this.privateSpotPostWsToken()).join();
+                        Map<String, Object> response = (this.privateSpotPostWsToken(new HashMap<String, Object>() {{}})).join();
                         //
                         //    {
                         //        "rc": 0,
@@ -250,7 +251,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         return BaseExchange.supplyAsync(() -> {
 
             Boolean privateAccess = java.util.Objects.equals(access, "private");
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams(methodName, market, parameters, (String) null);
+            Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams(methodName, market, parameters, (String) null);
             String type = typeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
             Boolean isContract = (!java.util.Objects.equals(type, "spot"));
@@ -323,7 +324,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         return BaseExchange.supplyAsync(() -> {
 
             Boolean privateAccess = java.util.Objects.equals(access, "private");
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams(methodName, market, Helpers.toMapArg(parameters), (String) null);
+            Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams(methodName, market, Helpers.toMapArg(parameters), (String) null);
             String type = typeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
             Boolean isContract = (!java.util.Objects.equals(type, "spot"));

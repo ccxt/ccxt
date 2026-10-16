@@ -2106,11 +2106,12 @@ export default class dydx extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
+    async withdraw(code, amount, address, params = {}) {
+        const [tag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
         if (code !== 'USDC') {
             throw new NotSupported(this.id + ' withdraw() only support USDC');
         }
@@ -2118,7 +2119,7 @@ export default class dydx extends Exchange {
             await this.loadMarkets();
         }
         this.checkAddress(address);
-        const subaccountId = this.safeInteger(params, 'subaccountId');
+        const subaccountId = this.safeInteger(paramsWithdrawTag, 'subaccountId');
         if (subaccountId === undefined) {
             throw new ArgumentsRequired(this.id + ' withdraw requires subaccountId.');
         }
@@ -2461,11 +2462,11 @@ export default class dydx extends Exchange {
         }
         throw new ArgumentsRequired(this.id + ' getWalletAddress() requires a wallet address. Set `walletAddress` or `dydxAccount` in exchange options.');
     }
-    sign(path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, section = ['public'], method = 'GET', params = {}) {
         let requestHeaders = undefined;
         let requestBody = undefined;
         const pathWithParams = this.implodeParams(path, params);
-        const apiUrl = this.safeString(this.urls['api'], section);
+        const apiUrl = this.safeString(this.urls['api'], section[0]);
         if (apiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
@@ -2484,8 +2485,8 @@ export default class dydx extends Exchange {
                 'Content-type': 'application/json',
             };
         }
-        const headersResult = (requestHeaders !== undefined) ? requestHeaders : headers;
-        const bodyResult = (requestBody !== undefined) ? requestBody : body;
+        const headersResult = requestHeaders;
+        const bodyResult = requestBody;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

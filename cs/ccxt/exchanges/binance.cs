@@ -2980,7 +2980,6 @@ public partial class binance : Exchange
                     { "spot", "x-TKT5PX2F" },
                     { "margin", "x-TKT5PX2F" },
                     { "future", "x-cvBPrNm9" },
-                    { "delivery", "x-xcKtGhcu" },
                     { "swap", "x-cvBPrNm9" },
                     { "option", "x-xcKtGhcu" },
                     { "inverse", "x-xcKtGhcu" },
@@ -2991,8 +2990,6 @@ public partial class binance : Exchange
                     { "funding", "FUNDING" },
                     { "margin", "MARGIN" },
                     { "cross", "MARGIN" },
-                    { "future", "UMFUTURE" },
-                    { "delivery", "CMFUTURE" },
                     { "linear", "UMFUTURE" },
                     { "swap", "UMFUTURE" },
                     { "inverse", "CMFUTURE" },
@@ -3011,11 +3008,8 @@ public partial class binance : Exchange
                     { "BTCSEGWIT", "SEGWITBTC" },
                     { "BTCLIGHTNING", "LIGHTNING" },
                     { "ERC20", "ETH" },
-                    { "ETH", "ETH" },
                     { "TRC20", "TRX" },
-                    { "TRX", "TRX" },
                     { "BEP2", "BNB" },
-                    { "BSC", "BSC" },
                     { "BEP20", "BSC" },
                     { "CHZ2", "CHZ2" },
                     { "XRP", "XRP" },
@@ -4266,13 +4260,7 @@ public partial class binance : Exchange
 
     public virtual bool isInverse(object type, object subType = null)
     {
-        if ((subType == null))
-        {
-            return ((type is "delivery"));
-        } else
-        {
-            return (subType is "inverse");
-        }
+        return (subType is "inverse");
     }
 
     public virtual bool isLinear(object type, string? subType = null)
@@ -4368,12 +4356,13 @@ public partial class binance : Exchange
         {
             throw new ExchangeError ((this.id + " markets not loaded")) ;
         }
-        // defaultType has legacy support on binance
+        // defaultType 'swap' resolves spot-style symbols to the perpetual of defaultSubType
         string? defaultType = this.safeString(this.options, "defaultType");
         string? defaultSubType = this.safeString(this.options, "defaultSubType");
-        bool isLegacyLinear = defaultType == "future";
-        bool isLegacyInverse = defaultType == "delivery";
-        bool isLegacy = isLegacyLinear || isLegacyInverse;
+        bool isLegacy = defaultType == "swap";
+        bool isDerivative = isLegacy || (defaultType == "future");
+        bool isLegacyInverse = isLegacy && (defaultSubType == "inverse");
+        bool isLegacyLinear = isLegacy && !isLegacyInverse;
         if ((symbol is string))
         {
             if (((this.markets != null)) && ((this.markets != null && symbol is string inOpKey0 && this.markets.ContainsKey(inOpKey0))))
@@ -4396,12 +4385,9 @@ public partial class binance : Exchange
             {
                 object markets = getValue(this.markets_by_id, symbol);
                 // begin diff
-                if (isLegacyLinear)
+                if (isDerivative)
                 {
-                    defaultType = "linear";
-                } else if (isLegacyInverse)
-                {
-                    defaultType = "inverse";
+                    defaultType = (defaultSubType == "inverse") ? "inverse" : "linear";
                 } else if ((defaultType == null))
                 {
                     defaultType = defaultSubType;
@@ -4418,7 +4404,7 @@ public partial class binance : Exchange
                 return ccxt.BaseExchange.ToDict(getValue(markets, 0));
             } else if ((((string)symbol).IndexOf("/", StringComparison.Ordinal) > -1) && (((string)symbol).IndexOf(":", StringComparison.Ordinal) < 0))
             {
-                if (((defaultType != null)) && (defaultType != "spot"))
+                if (isLegacy)
                 {
                     // support legacy symbols
                     var bsquoteVariable = ((string)symbol).Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
@@ -5745,7 +5731,7 @@ public partial class binance : Exchange
      * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/account#option-margin-account-information // option
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Account-Balance                            // portfolio margin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot' or 'papi'
+     * @param {string} [params.type] 'spot', 'margin', 'swap', 'future', 'option', 'savings', 'funding' or 'papi', use params.subType 'inverse' for COIN-M
      * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
      * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the balance for a portfolio margin account
@@ -9021,11 +9007,12 @@ public partial class binance : Exchange
      * @ignore
      * @name binance#generateClientOrderId
      * @description builds a fresh client order id
-     * @param {object} [market] the market of the order, takes precedence over the api argument
+     * @param {object} [market] the market of the order, takes precedence over the other arguments
      * @param {string} [api] the implicit api section the order is sent to (private, sapi, fapiPrivate, dapiPrivate, eapiPrivate, ...)
+     * @param {string} [path] the implicit api path the order is sent to, resolves the market type from the um/, cm/, margin/ and equity/ path prefixes whose api section is ambiguous, takes precedence over the api argument
      * @returns {string} the broker prefix followed by 22 random characters
      */
-    public virtual string? generateClientOrderId(object market = null, object api = null)
+    public virtual string? generateClientOrderId(object market = null, object api = null, object path = null)
     {
         string? idMarketType = null;
         if ((market != null))
@@ -9043,7 +9030,24 @@ public partial class binance : Exchange
             {
                 idMarketType = "spot";
             }
-        } else if ((api != null))
+        }
+        if (((idMarketType == null)) && ((path != null)))
+        {
+            if ((((string)path).IndexOf("um/", StringComparison.Ordinal) == 0))
+            {
+                idMarketType = "swap";
+            } else if ((((string)path).IndexOf("cm/", StringComparison.Ordinal) == 0))
+            {
+                idMarketType = "inverse";
+            } else if ((((string)path).IndexOf("margin/", StringComparison.Ordinal) == 0))
+            {
+                idMarketType = "margin";
+            } else if ((((string)path).IndexOf("equity/", StringComparison.Ordinal) == 0))
+            {
+                idMarketType = "spot";
+            }
+        }
+        if (((idMarketType == null)) && ((api != null)))
         {
             bool isSpotOrMargin = (((string)api).IndexOf("sapi", StringComparison.Ordinal) > -1 || (api is "private"));
             if (isSpotOrMargin)
@@ -9059,15 +9063,13 @@ public partial class binance : Exchange
             {
                 idMarketType = "future";
             }
-        } else
+        }
+        if ((idMarketType == null))
         {
             string? defaultType = this.safeString(this.options, "defaultType", "spot");
             string? defaultSubType = this.safeString(this.options, "defaultSubType");
             idMarketType = defaultType;
-            if (defaultType == "delivery")
-            {
-                idMarketType = "inverse";
-            } else if ((defaultSubType == "inverse") && ((defaultType == "swap") || (defaultType == "future")))
+            if ((defaultSubType == "inverse") && ((defaultType == "swap") || (defaultType == "future")))
             {
                 idMarketType = "inverse";
             }
@@ -9083,6 +9085,102 @@ public partial class binance : Exchange
         IDictionary<string, object> broker = this.safeDict(this.options, "broker", new Dictionary<string, object>() {});
         string brokerId = this.safeString(broker, idMarketType, defaultId);
         return (brokerId + this.uuid22());
+    }
+
+    /**
+     * @method
+     * @name binance#handleClientOrderId
+     * @ignore
+     * @param {object} params request params
+     * @param {string} api the implicit api section the request is sent to
+     * @param {string} path the implicit api path the request is sent to
+     * @param {string} method HTTP method
+     * @returns {object} params with the injected client order id
+     */
+    public virtual object handleClientOrderId(object parameters, object api, object path, object method)
+    {
+        if (!(method is "POST"))
+        {
+            return parameters;
+        }
+        if (((path is "order")) || ((path is "sor/order")) || ((path is "order/cancelReplace")) || ((path is "um/order")) || ((path is "cm/order")) || ((path is "margin/order")))
+        {
+            // the eapi order endpoint takes clientOrderId instead of newClientOrderId
+            string clientOrderIdKey = ((api is "eapiPrivate")) ? "clientOrderId" : "newClientOrderId";
+            string? clientOrderId = this.safeString2(parameters, "clientOrderId", "newClientOrderId");
+            if ((clientOrderId == null))
+            {
+                ((IDictionary<string,object>)parameters)[clientOrderIdKey] = this.generateClientOrderId(null, api, path);
+            }
+        } else if (((path is "algoOrder")) || ((path is "um/algo/order")))
+        {
+            // the fapi/dapi/papi algo order endpoints take clientAlgoId instead of newClientOrderId
+            string? clientAlgoId = this.safeString(parameters, "clientAlgoId");
+            if ((clientAlgoId == null))
+            {
+                ((IDictionary<string,object>)parameters)["clientAlgoId"] = this.generateClientOrderId(null, api, path);
+            }
+        } else if (((path is "cm/conditional/order")) || ((path is "um/conditional/order")))
+        {
+            // the papi conditional order endpoints take newClientStrategyId instead of newClientOrderId
+            string? newClientStrategyId = this.safeString(parameters, "newClientStrategyId");
+            if ((newClientStrategyId == null))
+            {
+                ((IDictionary<string,object>)parameters)["newClientStrategyId"] = this.generateClientOrderId(null, api, path);
+            }
+        } else if ((path is "equity/order/place"))
+        {
+            // the equity order endpoint takes clientOrderId instead of newClientOrderId
+            string? equityClientOrderId = this.safeString(parameters, "clientOrderId");
+            if ((equityClientOrderId == null))
+            {
+                ((IDictionary<string,object>)parameters)["clientOrderId"] = this.generateClientOrderId(null, api, path);
+            }
+        } else if (((path is "order/oco")) || ((path is "margin/order/oco")) || ((path is "orderList/oco")) || ((path is "orderList/oto")) || ((path is "orderList/otoco")) || ((path is "orderList/opo")) || ((path is "orderList/opoco")))
+        {
+            // the order list endpoints take a listClientOrderId and one client order id per leg
+            List<object> clientOrderIdKeys = new List<object>() {"listClientOrderId", "limitClientOrderId", "stopClientOrderId"};
+            if ((path is "orderList/oco"))
+            {
+                clientOrderIdKeys = new List<object>() {"listClientOrderId", "aboveClientOrderId", "belowClientOrderId"};
+            } else if (((path is "orderList/oto")) || ((path is "orderList/opo")))
+            {
+                clientOrderIdKeys = new List<object>() {"listClientOrderId", "workingClientOrderId", "pendingClientOrderId"};
+            } else if (((path is "orderList/otoco")) || ((path is "orderList/opoco")))
+            {
+                clientOrderIdKeys = new List<object>() {"listClientOrderId", "workingClientOrderId", "pendingAboveClientOrderId", "pendingBelowClientOrderId"};
+            }
+            for (int i = 0; i < (clientOrderIdKeys?.Count ?? 0); i++)
+            {
+                object currentClientOrderIdKey = clientOrderIdKeys[i];
+                string? currentClientOrderId = this.safeString(parameters, currentClientOrderIdKey);
+                if ((currentClientOrderId == null))
+                {
+                    ((IDictionary<string,object>)parameters)[(string)currentClientOrderIdKey] = this.generateClientOrderId(null, api, path);
+                }
+            }
+        } else if ((path is "batchOrders"))
+        {
+            // the batch legs take the same client order id fields as the single order endpoints
+            if (((api is "fapiPrivate")) || ((api is "dapiPrivate")) || ((api is "eapiPrivate")))
+            {
+                string batchClientOrderIdKey = ((api is "eapiPrivate")) ? "clientOrderId" : "newClientOrderId";
+                List<object> batchOrders = this.safeList(parameters, "batchOrders", new List<object>() {});
+                List<object> checkedBatchOrders = new List<object>() {};
+                for (int i = 0; i < batchOrders.Count; i++)
+                {
+                    object batchOrder = batchOrders[i];
+                    string? batchClientOrderId = this.safeString(batchOrder, batchClientOrderIdKey);
+                    if ((batchClientOrderId == null))
+                    {
+                        ((IDictionary<string,object>)batchOrder)[batchClientOrderIdKey] = this.generateClientOrderId(null, api, path);
+                    }
+                    checkedBatchOrders.Add(batchOrder);
+                }
+                ((IDictionary<string,object>)parameters)["batchOrders"] = checkedBatchOrders;
+            }
+        }
+        return parameters;
     }
 
     /**
@@ -9282,6 +9380,10 @@ public partial class binance : Exchange
             clientOrderIdRequest = "clientAlgoId";
         } else if ((stock == true))
         {
+            clientOrderIdRequest = "clientOrderId";
+        } else if ((((market.ContainsKey("option") ? market["option"] : null) as bool?) == true))
+        {
+            // the option api takes clientOrderId instead of newClientOrderId
             clientOrderIdRequest = "clientOrderId";
         }
         if ((clientOrderId == null))
@@ -12424,8 +12526,8 @@ public partial class binance : Exchange
         {
             string? defaultType = this.safeString2(this.options, "fetchTransfers", "defaultType", "spot");
             string? fromAccount = this.safeString(paramsOmitted, "fromAccount", defaultType);
-            string defaultTo = "future";
-            if (fromAccount == "future")
+            string defaultTo = "swap";
+            if ((fromAccount == "swap") || (fromAccount == "linear"))
             {
                 defaultTo = "spot";
             }
@@ -12670,7 +12772,7 @@ public partial class binance : Exchange
             {
                 IDictionary<string, object> networkEntry = this.safeDict(networkList, j);
                 string? networkId = this.safeString(networkEntry, "network");
-                string? networkCode = this.safeCurrencyCode(networkId);
+                string? networkCode = this.networkIdToCode(networkId, code);
                 double? fee = this.safeNumber(networkEntry, "withdrawFee");
                 if (((code != null)) && ((networkCode != null)))
                 {
@@ -12827,17 +12929,17 @@ public partial class binance : Exchange
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleWithdrawTagAndParams(tag, parameters);
-        var tagWithdrawTag = tagWithdrawTagparamsWithdrawTagVariable[0];
+        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleParamString(parameters, "tag");
+        string? tagWithdrawTag = (string)tagWithdrawTagparamsWithdrawTagVariable[0];
         IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagWithdrawTagparamsWithdrawTagVariable[1]);
-        this.checkAddress(address);
+        this.checkAddress(address, code, tagWithdrawTag);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -13208,7 +13310,7 @@ public partial class binance : Exchange
      * @param {float} params.recvWindow
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=futures-transfer-structure}
      */
-    public async virtual Task<Dictionary<string, object>> futuresTransfer(string code, object amount, object type, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> futuresTransfer(string code, object amount, object type, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((isLessThan(type, 1)) || (isGreaterThan(type, 4)))
@@ -13319,7 +13421,7 @@ public partial class binance : Exchange
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate));
         }
-        string? defaultType = this.safeString2(this.options, "fetchFundingRateHistory", "defaultType", "future");
+        string? defaultType = this.safeString2(this.options, "fetchFundingRateHistory", "defaultType", "swap");
         string? type = this.safeString(paramsPaginate, "type", defaultType);
         IDictionary<string, object> market = null;
         if ((symbol != null))
@@ -13405,7 +13507,7 @@ public partial class binance : Exchange
             await this.loadMarkets();
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
-        string? defaultType = this.safeString2(this.options, "fetchFundingRates", "defaultType", "future");
+        string? defaultType = this.safeString2(this.options, "fetchFundingRates", "defaultType", "swap");
         string? type = this.safeString(parameters, "type", defaultType);
         IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("fetchFundingRates", null, parameters, "linear");
         string? subType = (string)subTypeparamsSubTypeVariable[0];
@@ -14077,7 +14179,7 @@ public partial class binance : Exchange
         IDictionary<string, object> leverageBrackets = this.safeDict(this.options, "leverageBrackets");
         if (((leverageBrackets == null)) || isTrue((reload)))
         {
-            string? defaultType = this.safeString(this.options, "defaultType", "future");
+            string? defaultType = this.safeString(this.options, "defaultType", "swap");
             string? type = this.safeString(parameters, "type", defaultType);
             object query = this.omit(parameters, "type");
             string? subType = null;
@@ -14544,7 +14646,7 @@ public partial class binance : Exchange
             await this.loadMarkets();
         }
         await this.loadLeverageBrackets(false, parameters);
-        string? defaultType = this.safeString(this.options, "defaultType", "future");
+        string? defaultType = this.safeString(this.options, "defaultType", "swap");
         string? type = this.safeString(parameters, "type", defaultType);
         object paramsOmitted = this.omit(parameters, "type");
         IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("fetchAccountPositions", null, paramsOmitted, "linear");
@@ -14624,7 +14726,7 @@ public partial class binance : Exchange
         }
         await this.loadLeverageBrackets(false, parameters);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        string? defaultType = "future";
+        string? defaultType = "swap";
         defaultType = this.safeString(this.options, "defaultType", defaultType);
         string? type = this.safeString(parameters, "type", defaultType);
         string? subType = null;
@@ -14826,7 +14928,7 @@ public partial class binance : Exchange
         {
             requestUntil["limit"] = limit;
         }
-        string? defaultType = this.safeString2(this.options, "fetchFundingHistory", "defaultType", "future");
+        string? defaultType = this.safeString2(this.options, "fetchFundingHistory", "defaultType", "swap");
         string? type = this.safeString(paramsUntil, "type", defaultType);
         Dictionary<string, object> paramsOmitted = this.omit(paramsUntil, "type");
         List<object> response = null;
@@ -15714,17 +15816,18 @@ public partial class binance : Exchange
         return (((scheme + "//") + domain) + "/");
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        object apiName = getValue(api, 0);
         object urls = this.urls;
-        if (!(inOp(getValue(urls, "api"), api)))
+        if (!(inOp(getValue(urls, "api"), apiName)))
         {
-            throw new NotSupported ((((this.id + " does not have a testnet/sandbox URL for ") + (api)) + " endpoints")) ;
+            throw new NotSupported ((((this.id + " does not have a testnet/sandbox URL for ") + (apiName)) + " endpoints")) ;
         }
-        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((baseApiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -15763,68 +15866,36 @@ public partial class binance : Exchange
             {
                 throw new AuthenticationError ((this.id + " userDataStream endpoint requires `apiKey` credential")) ;
             }
-        } else if (((api is "private")) || ((api is "eapiPrivate")) || ((api is "sapi") && (path != "system/status")) || (isEqual(api, "sapiV2")) || (isEqual(api, "sapiV3")) || (isEqual(api, "sapiV4")) || ((api is "dapiPrivate")) || (isEqual(api, "dapiPrivateV2")) || ((api is "fapiPrivate")) || (isEqual(api, "fapiPrivateV2")) || (isEqual(api, "fapiPrivateV3")) || (isEqual(api, "papiV2") || (api is "papi") && (path != "ping")))
+        } else if (((apiName is "private")) || ((apiName is "eapiPrivate")) || ((apiName is "sapi") && (path != "system/status")) || (isEqual(apiName, "sapiV2")) || (isEqual(apiName, "sapiV3")) || (isEqual(apiName, "sapiV4")) || ((apiName is "dapiPrivate")) || (isEqual(apiName, "dapiPrivateV2")) || ((apiName is "fapiPrivate")) || (isEqual(apiName, "fapiPrivateV2")) || (isEqual(apiName, "fapiPrivateV3")) || (isEqual(apiName, "papiV2") || (apiName is "papi") && (path != "ping")))
         {
             this.checkRequiredCredentials();
             if ((url.IndexOf("testnet.binancefuture.com", StringComparison.Ordinal) > -1) && this.isSandboxModeEnabled && (!(this.safeBool(this.options, "disableFuturesSandboxWarning", false) == true)))
             {
                 throw new NotSupported ((this.id + " testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.")) ;
             }
-            if ((method == "POST") && (((path == "order")) || ((path == "sor/order"))))
-            {
-                // inject in implicit API calls
-                string? newClientOrderId = this.safeString(parameters, "newClientOrderId");
-                if ((newClientOrderId == null))
-                {
-                    ((IDictionary<string,object>)parameters)["newClientOrderId"] = this.generateClientOrderId(null, api);
-                }
-            } else if ((method == "POST") && ((path == "algoOrder")))
-            {
-                // the fapi/dapi algo order endpoints take clientAlgoId instead of newClientOrderId
-                string? clientAlgoId = this.safeString(parameters, "clientAlgoId");
-                if ((clientAlgoId == null))
-                {
-                    ((IDictionary<string,object>)parameters)["clientAlgoId"] = this.generateClientOrderId(null, api);
-                }
-            }
+            object requestParams = this.handleClientOrderId(parameters, apiName, path, method);
             object query = null;
             // handle batchOrders
             if (((path == "batchOrders")) && (((method == "POST")) || ((method == "PUT"))))
             {
-                List<object> batchOrders = this.safeList(parameters, "batchOrders", new List<object>() {});
-                List<object> checkedBatchOrders = batchOrders;
-                if ((method == "POST") && (((api is "fapiPrivate")) || ((api is "dapiPrivate"))))
-                {
-                    // check broker id if batchOrders are called with fapiPrivatePostBatchOrders / dapiPrivatePostBatchOrders
-                    checkedBatchOrders = new List<object>() {};
-                    for (int i = 0; i < batchOrders.Count; i++)
-                    {
-                        object batchOrder = batchOrders[i];
-                        string? newClientOrderId = this.safeString(batchOrder, "newClientOrderId");
-                        if ((newClientOrderId == null))
-                        {
-                            ((IDictionary<string,object>)batchOrder)["newClientOrderId"] = this.generateClientOrderId(null, api);
-                        }
-                        checkedBatchOrders.Add(batchOrder);
-                    }
-                }
-                string queryBatch = (this.json(checkedBatchOrders));
-                ((IDictionary<string,object>)parameters)["batchOrders"] = queryBatch;
+                List<object> batchOrders = this.safeList(requestParams, "batchOrders", new List<object>() {});
+                string queryBatch = (this.json(batchOrders));
+                ((IDictionary<string,object>)requestParams)["batchOrders"] = queryBatch;
             }
             Int64? defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
             Dictionary<string, object> extendedParams = this.extend(new Dictionary<string, object>() {
                 { "timestamp", this.nonce() },
-            }, parameters);
+            }, requestParams);
             if ((defaultRecvWindow != null))
             {
                 extendedParams["recvWindow"] = defaultRecvWindow;
             }
-            Int64? recvWindow = this.safeInteger(parameters, "recvWindow");
+            Int64? recvWindow = this.safeInteger(requestParams, "recvWindow");
             if ((recvWindow != null))
             {
                 extendedParams["recvWindow"] = recvWindow;
             }
-            if (((api is "sapi")) && ((path == "asset/dust")))
+            if (((apiName is "sapi")) && ((path == "asset/dust")))
             {
                 query = this.urlencodeWithArrayRepeat(extendedParams);
             } else if (((path == "batchOrders")) || (path.IndexOf("sub-account", StringComparison.Ordinal) >= 0) || ((path == "capital/withdraw/apply")) || (path.IndexOf("staking", StringComparison.Ordinal) >= 0) || (path.IndexOf("simple-earn", StringComparison.Ordinal) >= 0))
@@ -15896,8 +15967,8 @@ public partial class binance : Exchange
                 url = url + ("?" + this.urlencode(parameters));
             }
         }
-        object headersResolved = ((signedHeaders != null)) ? signedHeaders : headers;
-        object bodyResolved = ((signedBody != null)) ? signedBody : body;
+        Dictionary<string, object> headersResolved = signedHeaders;
+        object bodyResolved = signedBody;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
@@ -16070,15 +16141,15 @@ public partial class binance : Exchange
         return this.safeValue(config, "cost", 1);
     }
 
-    public async override Task<object> request(string path, object api = null, object method = null, object parameters = null, object headers = null, object body = null, object config = null)
+    public async override Task<object> request(string path, object api = null, object method = null, object parameters = null, object config = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         config ??= new Dictionary<string, object>();
-        object response = await this.fetch2(path, api, method, parameters, headers, body, config);
+        object response = await this.fetch2(path, api, method, parameters, config);
         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
-        if ((api is "private"))
+        if (isEqual(getValue(api, 0), "private"))
         {
             this.options["hasAlreadyAuthenticatedSuccessfully"] = true;
         }
@@ -16089,15 +16160,15 @@ public partial class binance : Exchange
     {
         // used to modify isolated positions
         parameters ??= new Dictionary<string, object>();
-        string? defaultType = this.safeString(this.options, "defaultType", "future");
+        string? defaultType = this.safeString(this.options, "defaultType", "swap");
         if (defaultType == "spot")
         {
-            defaultType = "future";
+            defaultType = "swap";
         }
         string? type = this.safeString(parameters, "type", defaultType);
         if ((type == "margin") || (type == "spot"))
         {
-            throw new NotSupported ((this.id + " add / reduce margin only supported with type future or delivery")) ;
+            throw new NotSupported ((this.id + " add / reduce margin only supported with linear or inverse swap/future markets")) ;
         }
         if ((this.markets == null))
         {
@@ -16900,15 +16971,17 @@ public partial class binance : Exchange
         {
             request["limit"] = limit;
         }
-        string symbolKey = "pair";
         if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
         {
-            symbolKey = "symbol";
-        }
-        request[(string)symbolKey] = (market.ContainsKey("id") ? market["id"] : null);
-        if ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true))
+            request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
+        } else if ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true))
         {
-            request["contractType"] = this.safeString(paramsPaginate, "contractType", "CURRENT_QUARTER");
+            // dapi expects the underlying pair (BTCUSD) and a contract type, not the market id (BTCUSD_PERP)
+            request["pair"] = this.safeString((market.ContainsKey("info") ? market["info"] : null), "pair");
+            request["contractType"] = ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true)) ? "PERPETUAL" : this.safeString((market.ContainsKey("info") ? market["info"] : null), "contractType");
+        } else
+        {
+            throw new NotSupported ((this.id + " fetchOpenInterestHistory() supports linear and inverse contracts only")) ;
         }
         if ((since != null))
         {
@@ -16942,6 +17015,19 @@ public partial class binance : Exchange
         //          "sumOpenInterest":"75375.61700000",
         //          "sumOpenInterestValue":"3248828883.71251440",
         //          "timestamp":1642179900000
+        //      },
+        //      ...
+        //  ]
+        //
+        // inverse
+        //
+        //  [
+        //      {
+        //          "contractType":"PERPETUAL",
+        //          "sumOpenInterest":"13069401.00000000",
+        //          "sumOpenInterestValue":"15796.96988405",
+        //          "pair":"BTCUSD",
+        //          "timestamp":1791835200000
         //      },
         //      ...
         //  ]

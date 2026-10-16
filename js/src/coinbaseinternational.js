@@ -277,7 +277,7 @@ export default class coinbaseinternational extends Exchange {
                     'method': 'v1PrivatePostTransfersWithdraw', // use v1PrivatePostTransfersWithdrawCounterparty for counterparty withdrawals
                 },
                 'networksById': {
-                    'ethereum': 'ETH',
+                    'ethereum': 'ERC20',
                     'arbitrum': 'ARBITRUM',
                     'avacchain': 'AVAX',
                     'optimism': 'OPTIMISM',
@@ -2302,17 +2302,16 @@ export default class coinbaseinternational extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} [tag] an optional tag for the withdrawal
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {boolean} [params.add_network_fee_to_total] if true, deducts network fee from the portfolio, otherwise deduct fee from the withdrawal
      * @param {string} [params.network_arn_id] Identifies the blockchain network (e.g., networks/ethereum-mainnet/assets/313ef8a9-ae5a-5f2f-8a56-572c0e2a4d5a)
      * @param {string} [params.nonce] a unique integer representing the withdrawal request
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const tagAndParams = this.handleWithdrawTagAndParams(tag, params);
-        const paramsWithdrawTag = tagAndParams[1];
-        this.checkAddress(address);
+    async withdraw(code, amount, address, params = {}) {
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
+        this.checkAddress(address, code, tagWithdrawTag);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -2344,7 +2343,7 @@ export default class coinbaseinternational extends Exchange {
         //
         return this.parseTransaction(response, currency);
     }
-    sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = [], method = 'GET', params = {}) {
         const version = this.safeString(api, 0);
         const signed = this.safeString(api, 1) === 'private';
         let fullPath = '/' + version + '/' + this.implodeParams(path, params);
@@ -2365,7 +2364,7 @@ export default class coinbaseinternational extends Exchange {
         if (hasSignedBody) {
             signedBody = this.json(query);
         }
-        let requestBody = body;
+        let requestBody = undefined;
         if (hasSignedBody) {
             requestBody = signedBody;
         }
@@ -2383,7 +2382,7 @@ export default class coinbaseinternational extends Exchange {
                 'CB-ACCESS-KEY': this.apiKey,
             };
         }
-        let requestHeaders = headers;
+        let requestHeaders = undefined;
         if (signed) {
             requestHeaders = signedHeaders;
         }

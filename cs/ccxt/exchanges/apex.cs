@@ -44,7 +44,7 @@ public partial class apex : Exchange
                 { "createStopOrder", true },
                 { "createTriggerOrder", true },
                 { "editOrder", false },
-                { "fetchAccounts", true },
+                { "fetchAccounts", false },
                 { "fetchAllGreeks", false },
                 { "fetchBalance", true },
                 { "fetchBorrowInterest", false },
@@ -104,8 +104,8 @@ public partial class apex : Exchange
                 { "fetchTrades", true },
                 { "fetchTradingFee", false },
                 { "fetchTradingFees", false },
-                { "fetchTransfer", true },
-                { "fetchTransfers", true },
+                { "fetchTransfer", false },
+                { "fetchTransfers", false },
                 { "fetchVolatilityHistory", false },
                 { "fetchWithdrawal", false },
                 { "fetchWithdrawals", false },
@@ -2197,12 +2197,13 @@ public partial class apex : Exchange
         });
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        object apiName = getValue(api, 0);
+        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((baseApiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -2214,7 +2215,7 @@ public partial class apex : Exchange
             { "Content-Type", "application/x-www-form-urlencoded" },
         };
         string signPath = ("/api/" + path);
-        object signBody = body;
+        string? signBody = null;
         if ((method.ToUpper() != "POST"))
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
@@ -2227,14 +2228,14 @@ public partial class apex : Exchange
             Dictionary<string, object> sortedQuery = this.keysort(parameters);
             signBody = this.rawencode(sortedQuery);
         }
-        if ((api is "private"))
+        if ((apiName is "private"))
         {
             this.checkRequiredCredentials();
             string timestamp = this.milliseconds().ToString();
-            object messageString = ((timestamp + method.ToUpper()) + signPath);
+            string messageString = ((timestamp + method.ToUpper()) + signPath);
             if ((signBody != null))
             {
-                messageString = add(messageString, signBody);
+                messageString = (messageString + signBody);
             }
             string signature = this.hmac(this.encode(messageString), this.encode(this.stringToBase64(this.secret)), sha256, "base64");
             headersValue["APEX-SIGNATURE"] = signature;

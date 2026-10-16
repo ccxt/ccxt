@@ -1,5 +1,5 @@
 import Exchange from './abstract/deepcoin.js';
-import type { Balances, Currency, DepositAddress, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, LedgerEntry, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
+import type { Balances, Currency, DepositAddress, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
 /**
  * @class deepcoin
  * @augments Exchange
@@ -19,7 +19,7 @@ export default class deepcoin extends Exchange {
     fetchMarkets(params?: Dict): Promise<Market[]>;
     fetchMarketsByType(type: Str, params?: Dict): Promise<Market[]>;
     parseMarket(market: Dict): Market;
-    setMarkets(markets: any, currencies?: undefined): import("./base/types.js").Dictionary<Market>;
+    setMarkets(markets: any, currencies?: any): import("./base/types.js").Dictionary<Market>;
     /**
      * @method
      * @name deepcoin#fetchOrderBook
@@ -482,6 +482,6 @@ export default class deepcoin extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     closePosition(symbol: string, side?: Str, params?: Dict): Promise<Order>;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

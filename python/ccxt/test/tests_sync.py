@@ -1557,6 +1557,13 @@ class testMainClass:
         set_fetch_response(exchange, None)  # reset state
         return True
 
+    def ws_request_was_sent(self, exchange, url, id):
+        sent_messages = get_ws_sent_messages(exchange, url)
+        for i in range(0, len(sent_messages)):
+            if exchange.safe_string(sent_messages[i], 'id') == id:
+                return True
+        return False
+
     def inject_ws_messages(self, exchange, url, messages, sequential=False):
         # before every frame, wait until the watch flow is actually awaiting
         # something — a fixed head-start sleep is not enough on slow ci
@@ -1566,7 +1573,18 @@ class testMainClass:
             while not ws_client_has_pending_futures(exchange, url) and (waited < 5000):
                 exchange.sleep(50)
                 waited = waited + 50
-            inject_ws_message(exchange, url, messages[i])
+            # a reply frame must not arrive before its request was sent, or it is dropped
+            frame_id = exchange.safe_string(messages[i], 'id')
+            waited_sent = 0
+            while (frame_id is not None) and not self.ws_request_was_sent(exchange, url, frame_id) and (waited_sent < 5000):
+                exchange.sleep(50)
+                waited_sent = waited_sent + 50
+            # a frame given as { "binary": "<base16>" } is replayed as a binary frame (e.g. SBE)
+            frame = messages[i]
+            binary_frame = exchange.safe_string(frame, 'binary')
+            if binary_frame is not None:
+                frame = exchange.base16_to_binary(binary_frame)
+            inject_ws_message(exchange, url, frame)
             # threaded runtimes resolve futures on another thread — wait for
             # the consumed frame to settle so the pending check above does not
             # observe a stale future and burn the next frame early; frames
@@ -2091,6 +2109,43 @@ class testMainClass:
         # inverse swap
         client_order_id_inverse = swap_inverse_order_request['newClientOrderId']
         assert client_order_id_inverse.startswith(inverse_swap_id), 'binance - swap clientOrderIdInverse: ' + client_order_id_inverse + ' does not start with swapId' + inverse_swap_id
+        # defaultType swap routes spot-style symbols by defaultSubType: unset or linear -> USDⓈ-M, inverse -> COIN-M
+        exchange.extend_exchange_options({
+            'defaultType': 'swap',
+        })
+        swap_no_sub_type_request = {}
+        try:
+            exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            swap_no_sub_type_request = self.urlencoded_to_dict(exchange.last_request_body)
+        swap_no_sub_type_id = swap_no_sub_type_request['newClientOrderId']
+        assert swap_no_sub_type_id.startswith(swap_id), 'binance - defaultType swap without subType clientOrderId: ' + swap_no_sub_type_id + ' does not start with swapId' + swap_id
+        exchange.extend_exchange_options({
+            'defaultSubType': 'linear',
+        })
+        swap_linear_request = {}
+        try:
+            exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            swap_linear_request = self.urlencoded_to_dict(exchange.last_request_body)
+        swap_linear_id = swap_linear_request['newClientOrderId']
+        assert swap_linear_id.startswith(swap_id), 'binance - defaultType swap linear clientOrderId: ' + swap_linear_id + ' does not start with swapId' + swap_id
+        exchange.extend_exchange_options({
+            'defaultSubType': 'inverse',
+        })
+        swap_inverse_request = {}
+        try:
+            exchange.create_order('BTC/USD', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            swap_inverse_request = self.urlencoded_to_dict(exchange.last_request_body)
+        swap_inverse_id = swap_inverse_request['newClientOrderId']
+        assert swap_inverse_id.startswith(inverse_swap_id), 'binance - defaultType swap inverse clientOrderId: ' + swap_inverse_id + ' does not start with inverseSwapId' + inverse_swap_id
+        exchange.extend_exchange_options({
+            'defaultType': 'spot',
+        })
+        exchange.extend_exchange_options({
+            'defaultSubType': 'linear',
+        })
         # linear swap conditional order
         swap_algo_order_request = {}
         try:
@@ -2191,6 +2246,15 @@ class testMainClass:
             inverse_future_order_request = self.urlencoded_to_dict(exchange.last_request_body)
         client_order_id_inverse_future = inverse_future_order_request['newClientOrderId']
         assert client_order_id_inverse_future.startswith(inverse_swap_id), 'binance - inverse future clientOrderId: ' + client_order_id_inverse_future + ' does not start with inverseSwapId' + inverse_swap_id
+        # the option api takes clientOrderId instead of newClientOrderId
+        option_order_request = {}
+        try:
+            exchange.create_order('ETH/USDT:USDT-231229-800-C', 'limit', 'buy', 1, 100)
+        except Exception as e:
+            option_order_request = self.urlencoded_to_dict(exchange.last_request_body)
+        option_client_order_id = exchange.safe_string(option_order_request, 'clientOrderId')
+        assert option_client_order_id is not None, 'binance - option order must send clientOrderId'
+        assert option_client_order_id.startswith(inverse_swap_id), 'binance - option clientOrderId: ' + option_client_order_id + ' does not start with the option broker id ' + inverse_swap_id
         # the implicit order endpoints inject the broker id of their api section
         # skipped in the sync flavours: callExchangeMethodDynamically is async-only there
         if not is_sync():
@@ -2245,6 +2309,343 @@ class testMainClass:
             implicit_fapi_client_algo_id = exchange.safe_string(implicit_fapi_algo_order_request, 'clientAlgoId')
             assert implicit_fapi_client_algo_id is not None, 'binance - implicit fapi algo order must inject clientAlgoId'
             assert implicit_fapi_client_algo_id.startswith(swap_id), 'binance - implicit fapi clientAlgoId: ' + implicit_fapi_client_algo_id + ' does not start with swapId' + swap_id
+            # the papi order endpoints resolve the broker id from the path, not from the api section
+            implicit_papi_um_order_request = {}
+            try:
+                call_exchange_method_dynamically(exchange, 'papiPostUmOrder', [{
+    'symbol': 'ETHUSDT',
+    'side': 'SELL',
+    'type': 'LIMIT',
+    'quantity': '1',
+    'price': '4100',
+    'timeInForce': 'GTC',
+}])
+            except Exception as e:
+                implicit_papi_um_order_request = self.urlencoded_to_dict(exchange.last_request_body)
+            implicit_papi_um_client_order_id = exchange.safe_string(implicit_papi_um_order_request, 'newClientOrderId')
+            assert implicit_papi_um_client_order_id is not None, 'binance - implicit papi um order must inject newClientOrderId'
+            assert implicit_papi_um_client_order_id.startswith(swap_id), 'binance - implicit papi um clientOrderId: ' + implicit_papi_um_client_order_id + ' does not start with swapId' + swap_id
+            implicit_papi_cm_order_request = {}
+            try:
+                call_exchange_method_dynamically(exchange, 'papiPostCmOrder', [{
+    'symbol': 'ETHUSD_PERP',
+    'side': 'SELL',
+    'type': 'LIMIT',
+    'quantity': '1',
+    'price': '4100',
+    'timeInForce': 'GTC',
+}])
+            except Exception as e:
+                implicit_papi_cm_order_request = self.urlencoded_to_dict(exchange.last_request_body)
+            implicit_papi_cm_client_order_id = exchange.safe_string(implicit_papi_cm_order_request, 'newClientOrderId')
+            assert implicit_papi_cm_client_order_id is not None, 'binance - implicit papi cm order must inject newClientOrderId'
+            assert implicit_papi_cm_client_order_id.startswith(inverse_swap_id), 'binance - implicit papi cm clientOrderId: ' + implicit_papi_cm_client_order_id + ' does not start with inverseSwapId' + inverse_swap_id
+            implicit_papi_margin_order_request = {}
+            try:
+                call_exchange_method_dynamically(exchange, 'papiPostMarginOrder', [{
+    'symbol': 'BTCUSDT',
+    'side': 'BUY',
+    'type': 'LIMIT',
+    'quantity': '0.001',
+    'price': '20000',
+    'timeInForce': 'GTC',
+}])
+            except Exception as e:
+                implicit_papi_margin_order_request = self.urlencoded_to_dict(exchange.last_request_body)
+            implicit_papi_margin_client_order_id = exchange.safe_string(implicit_papi_margin_order_request, 'newClientOrderId')
+            assert implicit_papi_margin_client_order_id is not None, 'binance - implicit papi margin order must inject newClientOrderId'
+            assert implicit_papi_margin_client_order_id.startswith(spot_id), 'binance - implicit papi margin clientOrderId: ' + implicit_papi_margin_client_order_id + ' does not start with spotId' + spot_id
+            implicit_sapi_margin_order_request = {}
+            try:
+                call_exchange_method_dynamically(exchange, 'sapiPostMarginOrder', [{
+    'symbol': 'BTCUSDT',
+    'side': 'BUY',
+    'type': 'LIMIT',
+    'quantity': '0.001',
+    'price': '20000',
+    'timeInForce': 'GTC',
+}])
+            except Exception as e:
+                implicit_sapi_margin_order_request = self.urlencoded_to_dict(exchange.last_request_body)
+            implicit_sapi_margin_client_order_id = exchange.safe_string(implicit_sapi_margin_order_request, 'newClientOrderId')
+            assert implicit_sapi_margin_client_order_id is not None, 'binance - implicit sapi margin order must inject newClientOrderId'
+            assert implicit_sapi_margin_client_order_id.startswith(spot_id), 'binance - implicit sapi margin clientOrderId: ' + implicit_sapi_margin_client_order_id + ' does not start with spotId' + spot_id
+            # the papi um algo order endpoint takes clientAlgoId
+            implicit_papi_um_algo_order_request = {}
+            try:
+                call_exchange_method_dynamically(exchange, 'papiPostUmAlgoOrder', [{
+    'symbol': 'ETHUSDT',
+    'side': 'SELL',
+    'algoType': 'CONDITIONAL',
+    'type': 'STOP',
+    'quantity': '1',
+    'price': '4100',
+    'triggerPrice': '4200',
+    'timeInForce': 'GTC',
+}])
+            except Exception as e:
+                implicit_papi_um_algo_order_request = self.urlencoded_to_dict(exchange.last_request_body)
+            implicit_papi_um_client_algo_id = exchange.safe_string(implicit_papi_um_algo_order_request, 'clientAlgoId')
+            assert implicit_papi_um_client_algo_id is not None, 'binance - implicit papi um algo order must inject clientAlgoId'
+            assert implicit_papi_um_client_algo_id.startswith(swap_id), 'binance - implicit papi um clientAlgoId: ' + implicit_papi_um_client_algo_id + ' does not start with swapId' + swap_id
+            # the papi cm conditional order endpoint takes newClientStrategyId
+            implicit_papi_cm_conditional_order_request = {}
+            try:
+                call_exchange_method_dynamically(exchange, 'papiPostCmConditionalOrder', [{
+    'symbol': 'ETHUSD_PERP',
+    'side': 'SELL',
+    'strategyType': 'STOP',
+    'quantity': '1',
+    'price': '4100',
+    'stopPrice': '4200',
+    'timeInForce': 'GTC',
+}])
+            except Exception as e:
+                implicit_papi_cm_conditional_order_request = self.urlencoded_to_dict(exchange.last_request_body)
+            implicit_papi_cm_strategy_id = exchange.safe_string(implicit_papi_cm_conditional_order_request, 'newClientStrategyId')
+            assert implicit_papi_cm_strategy_id is not None, 'binance - implicit papi cm conditional order must inject newClientStrategyId'
+            assert implicit_papi_cm_strategy_id.startswith(inverse_swap_id), 'binance - implicit papi cm newClientStrategyId: ' + implicit_papi_cm_strategy_id + ' does not start with inverseSwapId' + inverse_swap_id
+            implicit_papi_um_conditional_order_request = {}
+            try:
+                call_exchange_method_dynamically(exchange, 'papiPostUmConditionalOrder', [{
+    'symbol': 'ETHUSDT',
+    'side': 'SELL',
+    'strategyType': 'STOP',
+    'quantity': '1',
+    'price': '4100',
+    'stopPrice': '4200',
+    'timeInForce': 'GTC',
+}])
+            except Exception as e:
+                implicit_papi_um_conditional_order_request = self.urlencoded_to_dict(exchange.last_request_body)
+            implicit_papi_um_strategy_id = exchange.safe_string(implicit_papi_um_conditional_order_request, 'newClientStrategyId')
+            assert implicit_papi_um_strategy_id is not None, 'binance - implicit papi um conditional order must inject newClientStrategyId'
+            assert implicit_papi_um_strategy_id.startswith(swap_id), 'binance - implicit papi um newClientStrategyId: ' + implicit_papi_um_strategy_id + ' does not start with swapId' + swap_id
+            # the eapi order endpoints take clientOrderId
+            implicit_eapi_order_request = {}
+            try:
+                call_exchange_method_dynamically(exchange, 'eapiPrivatePostOrder', [{
+    'symbol': 'ETH-231229-800-C',
+    'side': 'BUY',
+    'type': 'LIMIT',
+    'quantity': '1',
+    'price': '100',
+}])
+            except Exception as e:
+                implicit_eapi_order_request = self.urlencoded_to_dict(exchange.last_request_body)
+            implicit_eapi_client_order_id = exchange.safe_string(implicit_eapi_order_request, 'clientOrderId')
+            assert implicit_eapi_client_order_id is not None, 'binance - implicit eapi order must inject clientOrderId'
+            assert implicit_eapi_client_order_id.startswith(inverse_swap_id), 'binance - implicit eapi clientOrderId: ' + implicit_eapi_client_order_id + ' does not start with the option broker id ' + inverse_swap_id
+            implicit_eapi_batch_request = {}
+            try:
+                call_exchange_method_dynamically(exchange, 'eapiPrivatePostBatchOrders', [{
+    'batchOrders': [{
+    'symbol': 'ETH-231229-800-C',
+    'side': 'BUY',
+    'type': 'LIMIT',
+    'quantity': '1',
+    'price': '100',
+}],
+}])
+            except Exception as e:
+                implicit_eapi_batch_request = self.urlencoded_to_dict(exchange.last_request_body)
+            implicit_eapi_batch_orders = exchange.safe_list(implicit_eapi_batch_request, 'batchOrders', [])
+            implicit_eapi_batch_order = exchange.safe_dict(implicit_eapi_batch_orders, 0, {})
+            implicit_eapi_batch_client_order_id = exchange.safe_string(implicit_eapi_batch_order, 'clientOrderId')
+            assert implicit_eapi_batch_client_order_id is not None, 'binance - implicit eapi batch order must inject clientOrderId'
+            assert implicit_eapi_batch_client_order_id.startswith(inverse_swap_id), 'binance - implicit eapi batch clientOrderId: ' + implicit_eapi_batch_client_order_id + ' does not start with the option broker id ' + inverse_swap_id
+            # the equity order endpoint takes clientOrderId
+            implicit_equity_order_request = {}
+            try:
+                call_exchange_method_dynamically(exchange, 'sapiPostEquityOrderPlace', [{
+    'symbol': 'AAPLUSDC',
+    'side': 'BUY',
+    'orderType': 'LIMIT',
+    'quantity': '1',
+    'price': '100',
+    'timeInForce': 'GTC',
+}])
+            except Exception as e:
+                implicit_equity_order_request = self.urlencoded_to_dict(exchange.last_request_body)
+            implicit_equity_client_order_id = exchange.safe_string(implicit_equity_order_request, 'clientOrderId')
+            assert implicit_equity_client_order_id is not None, 'binance - implicit equity order must inject clientOrderId'
+            assert implicit_equity_client_order_id.startswith(spot_id), 'binance - implicit equity clientOrderId: ' + implicit_equity_client_order_id + ' does not start with spotId' + spot_id
+            # the order list endpoints inject a listClientOrderId and one client order id per leg
+            implicit_oco_list_request = {}
+            try:
+                call_exchange_method_dynamically(exchange, 'privatePostOrderListOco', [{
+    'symbol': 'BTCUSDT',
+    'side': 'SELL',
+    'quantity': '0.001',
+    'abovePrice': '110000',
+    'aboveType': 'LIMIT_MAKER',
+    'belowType': 'STOP_LOSS',
+    'belowStopPrice': '95000',
+}])
+            except Exception as e:
+                implicit_oco_list_request = self.urlencoded_to_dict(exchange.last_request_body)
+            oco_list_client_order_id = exchange.safe_string(implicit_oco_list_request, 'listClientOrderId')
+            oco_above_client_order_id = exchange.safe_string(implicit_oco_list_request, 'aboveClientOrderId')
+            oco_below_client_order_id = exchange.safe_string(implicit_oco_list_request, 'belowClientOrderId')
+            assert oco_list_client_order_id is not None, 'binance - implicit oco list must inject listClientOrderId'
+            assert oco_list_client_order_id.startswith(spot_id), 'binance - implicit oco listClientOrderId: ' + oco_list_client_order_id + ' does not start with spotId' + spot_id
+            assert (oco_above_client_order_id is not None) and (oco_above_client_order_id.startswith(spot_id)), 'binance - implicit oco aboveClientOrderId must inject the spot broker id'
+            assert (oco_below_client_order_id is not None) and (oco_below_client_order_id.startswith(spot_id)), 'binance - implicit oco belowClientOrderId must inject the spot broker id'
+            implicit_otoco_list_request = {}
+            try:
+                call_exchange_method_dynamically(exchange, 'privatePostOrderListOtoco', [{
+    'symbol': 'BTCUSDT',
+    'workingType': 'LIMIT',
+    'workingSide': 'BUY',
+    'workingPrice': '100000',
+    'workingQuantity': '0.001',
+    'pendingSide': 'SELL',
+    'pendingQuantity': '0.001',
+    'pendingAboveType': 'LIMIT_MAKER',
+    'pendingAbovePrice': '110000',
+    'pendingBelowType': 'STOP_LOSS',
+    'pendingBelowStopPrice': '95000',
+}])
+            except Exception as e:
+                implicit_otoco_list_request = self.urlencoded_to_dict(exchange.last_request_body)
+            otoco_working_client_order_id = exchange.safe_string(implicit_otoco_list_request, 'workingClientOrderId')
+            otoco_pending_above_client_order_id = exchange.safe_string(implicit_otoco_list_request, 'pendingAboveClientOrderId')
+            otoco_pending_below_client_order_id = exchange.safe_string(implicit_otoco_list_request, 'pendingBelowClientOrderId')
+            assert (otoco_working_client_order_id is not None) and (otoco_working_client_order_id.startswith(spot_id)), 'binance - implicit otoco workingClientOrderId must inject the spot broker id'
+            assert (otoco_pending_above_client_order_id is not None) and (otoco_pending_above_client_order_id.startswith(spot_id)), 'binance - implicit otoco pendingAboveClientOrderId must inject the spot broker id'
+            assert (otoco_pending_below_client_order_id is not None) and (otoco_pending_below_client_order_id.startswith(spot_id)), 'binance - implicit otoco pendingBelowClientOrderId must inject the spot broker id'
+            implicit_sapi_margin_oco_request = {}
+            try:
+                call_exchange_method_dynamically(exchange, 'sapiPostMarginOrderOco', [{
+    'symbol': 'BTCUSDT',
+    'side': 'SELL',
+    'quantity': '0.001',
+    'price': '110000',
+    'stopPrice': '95000',
+}])
+            except Exception as e:
+                implicit_sapi_margin_oco_request = self.urlencoded_to_dict(exchange.last_request_body)
+            sapi_margin_oco_limit_client_order_id = exchange.safe_string(implicit_sapi_margin_oco_request, 'limitClientOrderId')
+            sapi_margin_oco_stop_client_order_id = exchange.safe_string(implicit_sapi_margin_oco_request, 'stopClientOrderId')
+            assert (sapi_margin_oco_limit_client_order_id is not None) and (sapi_margin_oco_limit_client_order_id.startswith(spot_id)), 'binance - implicit sapi margin oco limitClientOrderId must inject the spot broker id'
+            assert (sapi_margin_oco_stop_client_order_id is not None) and (sapi_margin_oco_stop_client_order_id.startswith(spot_id)), 'binance - implicit sapi margin oco stopClientOrderId must inject the spot broker id'
+            implicit_papi_margin_oco_request = {}
+            try:
+                call_exchange_method_dynamically(exchange, 'papiPostMarginOrderOco', [{
+    'symbol': 'BTCUSDT',
+    'side': 'SELL',
+    'quantity': '0.001',
+    'price': '110000',
+    'stopPrice': '95000',
+}])
+            except Exception as e:
+                implicit_papi_margin_oco_request = self.urlencoded_to_dict(exchange.last_request_body)
+            papi_margin_oco_list_client_order_id = exchange.safe_string(implicit_papi_margin_oco_request, 'listClientOrderId')
+            assert (papi_margin_oco_list_client_order_id is not None) and (papi_margin_oco_list_client_order_id.startswith(spot_id)), 'binance - implicit papi margin oco listClientOrderId must inject the spot broker id'
+            papi_margin_oco_limit_client_order_id = exchange.safe_string(implicit_papi_margin_oco_request, 'limitClientOrderId')
+            papi_margin_oco_stop_client_order_id = exchange.safe_string(implicit_papi_margin_oco_request, 'stopClientOrderId')
+            assert (papi_margin_oco_limit_client_order_id is not None) and (papi_margin_oco_limit_client_order_id.startswith(spot_id)), 'binance - implicit papi margin oco limitClientOrderId must inject the spot broker id'
+            assert (papi_margin_oco_stop_client_order_id is not None) and (papi_margin_oco_stop_client_order_id.startswith(spot_id)), 'binance - implicit papi margin oco stopClientOrderId must inject the spot broker id'
+            implicit_legacy_oco_request = {}
+            try:
+                call_exchange_method_dynamically(exchange, 'privatePostOrderOco', [{
+    'symbol': 'BTCUSDT',
+    'side': 'SELL',
+    'quantity': '0.001',
+    'price': '110000',
+    'stopPrice': '95000',
+}])
+            except Exception as e:
+                implicit_legacy_oco_request = self.urlencoded_to_dict(exchange.last_request_body)
+            legacy_oco_list_client_order_id = exchange.safe_string(implicit_legacy_oco_request, 'listClientOrderId')
+            legacy_oco_limit_client_order_id = exchange.safe_string(implicit_legacy_oco_request, 'limitClientOrderId')
+            legacy_oco_stop_client_order_id = exchange.safe_string(implicit_legacy_oco_request, 'stopClientOrderId')
+            assert (legacy_oco_list_client_order_id is not None) and (legacy_oco_list_client_order_id.startswith(spot_id)), 'binance - implicit legacy oco listClientOrderId must inject the spot broker id'
+            assert (legacy_oco_limit_client_order_id is not None) and (legacy_oco_limit_client_order_id.startswith(spot_id)), 'binance - implicit legacy oco limitClientOrderId must inject the spot broker id'
+            assert (legacy_oco_stop_client_order_id is not None) and (legacy_oco_stop_client_order_id.startswith(spot_id)), 'binance - implicit legacy oco stopClientOrderId must inject the spot broker id'
+            implicit_oto_list_request = {}
+            try:
+                call_exchange_method_dynamically(exchange, 'privatePostOrderListOto', [{
+    'symbol': 'BTCUSDT',
+    'workingType': 'LIMIT',
+    'workingSide': 'BUY',
+    'workingPrice': '100000',
+    'workingQuantity': '0.001',
+    'pendingType': 'MARKET',
+    'pendingSide': 'SELL',
+    'pendingQuantity': '0.001',
+}])
+            except Exception as e:
+                implicit_oto_list_request = self.urlencoded_to_dict(exchange.last_request_body)
+            oto_list_client_order_id = exchange.safe_string(implicit_oto_list_request, 'listClientOrderId')
+            oto_working_client_order_id = exchange.safe_string(implicit_oto_list_request, 'workingClientOrderId')
+            oto_pending_client_order_id = exchange.safe_string(implicit_oto_list_request, 'pendingClientOrderId')
+            assert (oto_list_client_order_id is not None) and (oto_list_client_order_id.startswith(spot_id)), 'binance - implicit oto listClientOrderId must inject the spot broker id'
+            assert (oto_working_client_order_id is not None) and (oto_working_client_order_id.startswith(spot_id)), 'binance - implicit oto workingClientOrderId must inject the spot broker id'
+            assert (oto_pending_client_order_id is not None) and (oto_pending_client_order_id.startswith(spot_id)), 'binance - implicit oto pendingClientOrderId must inject the spot broker id'
+            implicit_opo_list_request = {}
+            try:
+                call_exchange_method_dynamically(exchange, 'privatePostOrderListOpo', [{
+    'symbol': 'BTCUSDT',
+    'workingType': 'LIMIT',
+    'workingSide': 'BUY',
+    'workingPrice': '100000',
+    'workingQuantity': '0.001',
+    'pendingType': 'MARKET',
+    'pendingSide': 'SELL',
+    'pendingQuantity': '0.001',
+}])
+            except Exception as e:
+                implicit_opo_list_request = self.urlencoded_to_dict(exchange.last_request_body)
+            opo_list_client_order_id = exchange.safe_string(implicit_opo_list_request, 'listClientOrderId')
+            opo_working_client_order_id = exchange.safe_string(implicit_opo_list_request, 'workingClientOrderId')
+            opo_pending_client_order_id = exchange.safe_string(implicit_opo_list_request, 'pendingClientOrderId')
+            assert (opo_list_client_order_id is not None) and (opo_list_client_order_id.startswith(spot_id)), 'binance - implicit opo listClientOrderId must inject the spot broker id'
+            assert (opo_working_client_order_id is not None) and (opo_working_client_order_id.startswith(spot_id)), 'binance - implicit opo workingClientOrderId must inject the spot broker id'
+            assert (opo_pending_client_order_id is not None) and (opo_pending_client_order_id.startswith(spot_id)), 'binance - implicit opo pendingClientOrderId must inject the spot broker id'
+            implicit_opoco_list_request = {}
+            try:
+                call_exchange_method_dynamically(exchange, 'privatePostOrderListOpoco', [{
+    'symbol': 'BTCUSDT',
+    'workingType': 'LIMIT',
+    'workingSide': 'BUY',
+    'workingPrice': '100000',
+    'workingQuantity': '0.001',
+    'pendingSide': 'SELL',
+    'pendingQuantity': '0.001',
+    'pendingAboveType': 'LIMIT_MAKER',
+    'pendingAbovePrice': '110000',
+    'pendingBelowType': 'STOP_LOSS',
+    'pendingBelowStopPrice': '95000',
+}])
+            except Exception as e:
+                implicit_opoco_list_request = self.urlencoded_to_dict(exchange.last_request_body)
+            opoco_list_client_order_id = exchange.safe_string(implicit_opoco_list_request, 'listClientOrderId')
+            opoco_working_client_order_id = exchange.safe_string(implicit_opoco_list_request, 'workingClientOrderId')
+            opoco_pending_above_client_order_id = exchange.safe_string(implicit_opoco_list_request, 'pendingAboveClientOrderId')
+            opoco_pending_below_client_order_id = exchange.safe_string(implicit_opoco_list_request, 'pendingBelowClientOrderId')
+            assert (opoco_list_client_order_id is not None) and (opoco_list_client_order_id.startswith(spot_id)), 'binance - implicit opoco listClientOrderId must inject the spot broker id'
+            assert (opoco_working_client_order_id is not None) and (opoco_working_client_order_id.startswith(spot_id)), 'binance - implicit opoco workingClientOrderId must inject the spot broker id'
+            assert (opoco_pending_above_client_order_id is not None) and (opoco_pending_above_client_order_id.startswith(spot_id)), 'binance - implicit opoco pendingAboveClientOrderId must inject the spot broker id'
+            assert (opoco_pending_below_client_order_id is not None) and (opoco_pending_below_client_order_id.startswith(spot_id)), 'binance - implicit opoco pendingBelowClientOrderId must inject the spot broker id'
+            # the cancel-replace endpoint creates a new order and takes newClientOrderId for it
+            implicit_cancel_replace_request = {}
+            try:
+                call_exchange_method_dynamically(exchange, 'privatePostOrderCancelReplace', [{
+    'symbol': 'BTCUSDT',
+    'side': 'BUY',
+    'type': 'LIMIT',
+    'quantity': '0.001',
+    'price': '20000',
+    'timeInForce': 'GTC',
+    'cancelReplaceMode': 'STOP_ON_FAILURE',
+    'cancelOrderId': '12345',
+}])
+            except Exception as e:
+                implicit_cancel_replace_request = self.urlencoded_to_dict(exchange.last_request_body)
+            cancel_replace_client_order_id = exchange.safe_string(implicit_cancel_replace_request, 'newClientOrderId')
+            assert cancel_replace_client_order_id is not None, 'binance - implicit cancel-replace must inject newClientOrderId'
+            assert cancel_replace_client_order_id.startswith(spot_id), 'binance - implicit cancel-replace newClientOrderId: ' + cancel_replace_client_order_id + ' does not start with spotId' + spot_id
         if not is_sync():
             close(exchange)
         return True

@@ -3904,7 +3904,6 @@
                   "USDT",
                   3,
                   "0x62d35481cb74fa959aec61d33a5d4507a1234567",
-                  null,
                   {
                     "network": "OP"
                   }
@@ -6339,7 +6338,7 @@
                                     }
                                 }
                             },
-                            "ETH": {
+                            "ERC20": {
                                 "info": {
                                     "chainName": "ERC20",
                                     "withdrawalMinSize": "0.003",
@@ -6361,7 +6360,7 @@
                                 },
                                 "id": "eth",
                                 "name": "ERC20",
-                                "code": "ETH",
+                                "code": "ERC20",
                                 "active": null,
                                 "fee": 0.0015,
                                 "deposit": true,

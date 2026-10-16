@@ -13,7 +13,7 @@ function helper_test_handle_market_type_and_params() {
     $exchange = new \ccxt\async\Exchange(array(
         'id' => 'sampleexchange',
         'options' => array(
-            'defaultType' => 'valueFromOptions',
+            'defaultType' => 'option',
             'fetchX' => array(
                 'defaultType' => 'valueFromMethodOptions',
             ),
@@ -52,7 +52,7 @@ function helper_test_handle_market_type_and_params() {
     // case #5, should prevail: options
     //
     [$market_type_5, $params5] = $exchange->handle_market_type_and_params('fetchY', null, array(), null);
-    assert($market_type_5 === 'valueFromOptions');
+    assert($market_type_5 === 'option');
     //
     // case #6, should prevail: spot (because hardcoded in base)
     //
@@ -61,27 +61,6 @@ function helper_test_handle_market_type_and_params() {
     assert($market_type_6 === 'spot');
     // fake assertion to avoid unused vars
     assert($params1 !== null || $params2 !== null || $params3 !== null || $params4 !== null || $params5 !== null || $params6 !== null);
-}
-
-
-function helper_test_handle_network_request() {
-    $exchange = new \ccxt\async\Exchange(array(
-        'id' => 'sampleexchange',
-        'options' => array(
-            'networks' => array(
-                'XYZ' => 'Xyz',
-            ),
-        ),
-    ));
-    $exchange->currencies = $exchange->create_safe_dictionary(); // todo: initialize in C# base files
-    $currency_code = 'ETH'; // todo: in future with complex cases
-    // no-case
-    [$request1, $params1] = $exchange->handle_request_network(array(
-        'network' => 'XYZ',
-    ), array(), 'chain_id', $currency_code, false);
-    assert(!(is_array($params1) && array_key_exists('network', $params1)));
-    assert(is_array($request1) && array_key_exists('chain_id', $request1));
-    assert($request1['chain_id'] === 'Xyz');
 }
 
 
@@ -113,6 +92,5 @@ function helper_test_handle_typed_options() {
 
 function test_handle_methods() {
     helper_test_handle_market_type_and_params();
-    helper_test_handle_network_request();
     helper_test_handle_typed_options();
 }

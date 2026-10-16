@@ -150,9 +150,9 @@
                                     ]
                                 }
                             },
-                            "BSC": {
+                            "BEP20": {
                                 "id": "Binance",
-                                "network": "BSC",
+                                "network": "BEP20",
                                 "deposit": true,
                                 "withdraw": true,
                                 "active": true,

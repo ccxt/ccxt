@@ -2128,16 +2128,14 @@ public partial class binance : PredictionExchange
      * @param {string|string[]} [api] the api group and access level
      * @param {string} [method] HTTP method
      * @param {object} [params] request parameters
-     * @param {object} [headers] request headers
-     * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "sapi";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object apiGroup = (api is string) ? api : getValue(api, 0);
+        object apiGroup = getValue(api, 0);
         object baseUrls = (this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null);
         string baseUrl = this.safeString(baseUrls, apiGroup, ((string)getValue(baseUrls, "sapi")));
         string url = ((baseUrl + "/") + this.implodeParams(path, parameters));
@@ -2159,7 +2157,7 @@ public partial class binance : PredictionExchange
         Dictionary<string, object> headersValue = new Dictionary<string, object>() {
             { "X-MBX-APIKEY", this.apiKey },
         };
-        object bodyValue = body;
+        string? bodyValue = null;
         if (((method == "GET")) || ((method == "DELETE")))
         {
             url = ((url + "?") + querystring);

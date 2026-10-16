@@ -1948,6 +1948,16 @@
                 ]
             }
         ],
+        "fetchMarketLeverageTiers": [
+            {
+                "description": "swap leverage tiers",
+                "method": "fetchMarketLeverageTiers",
+                "url": "https://www.okx.com/api/v5/public/position-tiers?instType=SWAP&tdMode=cross&instFamily=BTC-USDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
         "fetchOptionChain": [
             {
                 "description": "Fetch an option chain",
@@ -2025,7 +2035,6 @@
                   "USDT",
                   5,
                   "TTsY9uu2Y3aXXXXXscA4v",
-                  null,
                   {
                     "network": "TRC20",
                     "fee": 1

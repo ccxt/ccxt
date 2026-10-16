@@ -690,7 +690,7 @@ class coinsph extends Exchange {
         ));
     }
 
-    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
+    public function calculate_rate_limiter_cost(array $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
         if ((is_array($config) && array_key_exists('noSymbol' ?? '', $config)) && !(is_array($params) && array_key_exists('symbol' ?? '', $params))) {
             return $config['noSymbol'];
         } elseif ((is_array($config) && array_key_exists('noSymbolAndNoSymbols' ?? '', $config)) && !(is_array($params) && array_key_exists('symbol' ?? '', $params)) && !(is_array($params) && array_key_exists('symbols' ?? '', $params))) {
@@ -2012,11 +2012,11 @@ class coinsph extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal to coins_ph account
          *
@@ -2025,16 +2025,17 @@ class coinsph extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address not used by withdraw ()
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination $tag, required for currencies in $options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
+        list($tag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
         $options = $this->safe_dict($this->options, 'withdraw');
         $warning = $this->safe_bool($options, 'warning', true);
         if ($warning === true) {
             throw new InvalidAddress($this->id . " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account");
         }
-        $networkCode = $this->safe_string($params, 'network');
+        $networkCode = $this->safe_string($paramsWithdrawTag, 'network');
         $networkId = ($networkCode === null) ? null : $this->network_code_to_id($networkCode, $code);
         if ($networkId === null) {
             throw new BadRequest($this->id . ' withdraw() require network parameter');
@@ -2052,7 +2053,7 @@ class coinsph extends Exchange {
         if ($tag !== null) {
             $request['withdrawOrderId'] = $tag;
         }
-        $paramsOmitted = $this->omit($params, 'network');
+        $paramsOmitted = $this->omit($paramsWithdrawTag, 'network');
         $response = Async\await($this->privatePostOpenapiWalletV1WithdrawApply($this->extend($request, $paramsOmitted)));
         return $this->parse_transaction($response, $currency);
     }
@@ -2257,15 +2258,15 @@ class coinsph extends Exchange {
         if ($feeCost !== null) {
             $fee = array( 'currency' => $code, 'cost' => $feeCost );
         }
-        $network = $this->safe_string($transaction, 'network');
-        $internal = $network === 'Internal';
+        $networkId = $this->safe_string($transaction, 'network');
+        $internal = $networkId === 'Internal';
         return array(
             'info' => $transaction,
             'id' => $id,
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => $network,
+            'network' => $this->network_id_to_code($networkId, $code),
             'address' => $address,
             'addressTo' => $address,
             'addressFrom' => null,
@@ -2387,15 +2388,16 @@ class coinsph extends Exchange {
         return $urlEncodedParam;
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $query = $this->omit($params, $this->extract_params($path));
         $endpoint = $this->implode_params($path, $params);
         $url = $apiUrl . '/' . $endpoint;
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             $query['timestamp'] = $this->milliseconds();
             $recvWindow = $this->safe_integer($query, 'recvWindow');
@@ -2411,13 +2413,13 @@ class coinsph extends Exchange {
             $signedHeaders = array(
                 'X-COINS-APIKEY' => $this->apiKey,
             );
-            return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $signedHeaders );
+            return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => $signedHeaders );
         }
         $encodedQuery = $this->url_encode_query($query);
         if (strlen($encodedQuery) !== 0) {
             $url .= '?' . $encodedQuery;
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

@@ -270,11 +270,8 @@ func (this *Bitopro) Describe() any {
 		"options": map[string]any{
 			"networks": map[string]any{
 				"ERC20": "ERC20",
-				"ETH":   "ERC20",
-				"TRX":   "TRX",
 				"TRC20": "TRX",
 				"BEP20": "BSC",
-				"BSC":   "BSC",
 			},
 			"fetchCurrencies": map[string]any{
 				"fiatCurrencies": []any{"TWD"},
@@ -2331,8 +2328,8 @@ func (this *Bitopro) fetchWithdrawalBody(ch chan AsyncResult[map[string]any], id
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Bitopro) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
@@ -2343,12 +2340,10 @@ func (this *Bitopro) WithdrawAsync(code string, amount any, address any, optiona
 func (this *Bitopro) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	var tagWithdrawTag *string = SafeStringPtr(tagWithdrawTagparamsWithdrawTagVariable[0])
+	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
+	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 	if this.Markets == nil {
 
@@ -2357,7 +2352,7 @@ func (this *Bitopro) withdrawBody(ch chan EndpointResult[map[string]any], code s
 			panic(r.Err)
 		}
 	}
-	this.CheckAddress(address)
+	this.CheckAddress(address, code, tagWithdrawTag)
 	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
@@ -2376,14 +2371,14 @@ func (this *Bitopro) withdrawBody(ch chan EndpointResult[map[string]any], code s
 			if requestedNetwork == nil {
 				return nil
 			}
-			return this.SafeString(networks, requestedNetwork)
+			return this.SafeString(networks, this.SafeString(this.NetworkAliases, requestedNetwork, requestedNetwork))
 		}()
 		if networkId == nil {
 			panic(ExchangeError(Add(this.Id+" invalid network ", requestedNetwork)))
 		}
 		request["protocol"] = networkId
 	}
-	if tagWithdrawTag != nil {
+	if !IsEqual(tagWithdrawTag, nil) {
 		request["message"] = tagWithdrawTag
 	}
 
@@ -2494,39 +2489,31 @@ func (this *Bitopro) fetchDepositWithdrawFeesBody(ch chan AsyncResult[any], opti
 	return nil
 }
 func (this *Bitopro) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var headers map[string]any = GetArgMap(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var url string = "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var requestHeaders map[string]any = func() map[string]any {
-		if headers == nil {
-			return map[string]any{}
-		}
-		return headers
-	}()
-	var isSignedBody bool = (api == "private") && ((method == "POST") || (method == "PUT"))
+	var requestHeaders map[string]any = map[string]any{}
+	var isSignedBody bool = (apiName != nil && *apiName == "private") && ((method == "POST") || (method == "PUT"))
 	var signedBody string = this.Json(params)
-	var requestBody any = body
+	var requestBody *string = nil
 	if isSignedBody {
-		requestBody = signedBody
+		requestBody = SafeStringPtr(signedBody)
 	}
-	AddElementToObject(requestHeaders, "X-BITOPRO-API", "ccxt")
-	if api == "private" {
+	requestHeaders["X-BITOPRO-API"] = "ccxt"
+	if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		if (method == "POST") || (method == "PUT") {
 			var payload string = this.StringToBase64(signedBody)
 			var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha384)
-			AddElementToObject(requestHeaders, "X-BITOPRO-APIKEY", this.ApiKey)
-			AddElementToObject(requestHeaders, "X-BITOPRO-PAYLOAD", payload)
-			AddElementToObject(requestHeaders, "X-BITOPRO-SIGNATURE", signature)
+			requestHeaders["X-BITOPRO-APIKEY"] = this.ApiKey
+			requestHeaders["X-BITOPRO-PAYLOAD"] = payload
+			requestHeaders["X-BITOPRO-SIGNATURE"] = signature
 		} else if (method == "GET") || (method == "DELETE") {
 			if len(ObjectKeys(query)) > 0 {
 				url += "?" + this.Urlencode(query)
@@ -2538,11 +2525,11 @@ func (this *Bitopro) Sign(path string, optionalArgs ...any) any {
 			var data string = this.Json(rawData)
 			var payload string = this.StringToBase64(data)
 			var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha384)
-			AddElementToObject(requestHeaders, "X-BITOPRO-APIKEY", this.ApiKey)
-			AddElementToObject(requestHeaders, "X-BITOPRO-PAYLOAD", payload)
-			AddElementToObject(requestHeaders, "X-BITOPRO-SIGNATURE", signature)
+			requestHeaders["X-BITOPRO-APIKEY"] = this.ApiKey
+			requestHeaders["X-BITOPRO-PAYLOAD"] = payload
+			requestHeaders["X-BITOPRO-SIGNATURE"] = signature
 		}
-	} else if (api == "public") && (method == "GET") {
+	} else if (apiName != nil && *apiName == "public") && (method == "GET") {
 		if len(ObjectKeys(query)) > 0 {
 			url += "?" + this.Urlencode(query)
 		}
@@ -3099,8 +3086,8 @@ func (this *Bitopro) FetchWithdrawal(id string, options ...FetchWithdrawalOption
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Bitopro) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
@@ -3110,7 +3097,7 @@ func (this *Bitopro) Withdraw(code string, amount float64, address string, optio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

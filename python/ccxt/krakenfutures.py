@@ -123,7 +123,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 },
                 'www': 'https://futures.kraken.com/',
                 'doc': [
-                    'https://docs.kraken.com/api/docs/futures-api/trading/market-data/',
+                    'https://docs.kraken.com/exchange/guides/futures/rest',
                 ],
                 'fees': 'https://support.kraken.com/hc/en-us/articles/360022835771-Transaction-fees-and-rebates-for-Kraken-Futures',
                 'referral': None,
@@ -794,8 +794,8 @@ class krakenfutures(Exchange, ImplicitAPI):
         """
         fetch the trading fees for multiple markets, resolving the account's 30-day usd volume tier when API credentials are set
 
-        https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules
-        https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules-volumes
+        https://docs.kraken.com/api-reference/fee-schedules/get-fee-schedules
+        https://docs.kraken.com/api-reference/fee-schedules/get-fee-schedule-volumes
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
@@ -886,7 +886,7 @@ class krakenfutures(Exchange, ImplicitAPI):
     def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
 
-        https://docs.kraken.com/api/docs/futures-api/charts/candles
+        https://docs.kraken.com/api-reference/candles/market-candles
 
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -971,8 +971,8 @@ class krakenfutures(Exchange, ImplicitAPI):
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
 
-        https://docs.kraken.com/api/docs/futures-api/trading/get-history
-        https://docs.kraken.com/api/docs/futures-api/history/get-public-execution-events
+        https://docs.kraken.com/api-reference/market-data/get-trade-history
+        https://docs.kraken.com/api-reference/market-history/get-public-execution-events
 
         Fetch a history of filled trades that self account has made
         :param str symbol: Unified CCXT market symbol
@@ -1612,7 +1612,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         """
         dead man's switch, cancel all orders after the given timeout
 
-        https://docs.kraken.com/api/docs/futures-api/trading/cancel-all-orders-after
+        https://docs.kraken.com/api-reference/order-management/dead-mans-switch
 
         :param number timeout: time in milliseconds, 0 represents cancel the timer
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2649,7 +2649,7 @@ class krakenfutures(Exchange, ImplicitAPI):
     def fetch_balance(self, params: dict = {}) -> Balances:
         """
 
-        https://docs.kraken.com/api/docs/futures-api/trading/get-accounts
+        https://docs.kraken.com/api-reference/account-information/get-wallets
 
         Fetch the balance for a sub-account, all sub-account balances are inside 'info' in the response
         :param dict [params]: Exchange specific parameters
@@ -3589,13 +3589,14 @@ class krakenfutures(Exchange, ImplicitAPI):
             raise BadRequest(feedback)
         raise ExchangeError(feedback)  # unknown message
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        apiVersions = self.safe_dict(self.options['versions'], api, {})
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
+        apiVersions = self.safe_dict(self.options['versions'], apiName, {})
         methodVersions = self.safe_dict(apiVersions, method, {})
         defaultVersion = self.safe_string(methodVersions, path, self.version)
         version = self.safe_string(params, 'version', defaultVersion)
         paramsOmitted = self.omit(params, 'version')
-        apiAccess = self.safe_dict(self.options['access'], api, {})
+        apiAccess = self.safe_dict(self.options['access'], apiName, {})
         methodAccess = self.safe_dict(apiAccess, method, {})
         access = self.safe_string(methodAccess, path, 'public')
         endpoint = version + '/' + self.implode_params(path, paramsOmitted)
@@ -3610,17 +3611,17 @@ class krakenfutures(Exchange, ImplicitAPI):
             else:
                 postData = self.urlencode(paramsOmitted2)
             query += '?' + postData
-        apiUrl = self.safe_string(self.urls['api'], api)
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + query
-        requestBody = postData if (path == 'batchorder') else body
+        requestBody = postData if (path == 'batchorder') else None
         privateHeaders = None
-        if api == 'private' or access == 'private':
+        if apiName == 'private' or access == 'private':
             self.check_required_credentials()
             auth = postData + '/api/'
-            if api != 'private':
-                auth += api + '/'
+            if apiName != 'private':
+                auth += apiName + '/'
             auth += endpoint  # 1
             hash = self.hash(self.encode(auth), 'sha256', 'binary')  # 2
             secret = self.base64_to_binary(self.secret)  # 3
@@ -3631,5 +3632,5 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'APIKey': self.apiKey,
                 'Authent': signature,
             }
-        requestHeaders = privateHeaders if (privateHeaders is not None) else headers
+        requestHeaders = privateHeaders
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}

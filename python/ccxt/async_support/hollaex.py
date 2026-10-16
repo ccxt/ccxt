@@ -288,9 +288,7 @@ class hollaex(Exchange, ImplicitAPI):
                 'api-expires': self.parse_to_int(self.timeout / 1000),
                 'networks': {
                     'BTC': 'btc',
-                    'ETH': 'eth',
                     'ERC20': 'eth',
-                    'TRX': 'trx',
                     'TRC20': 'trx',
                     'XRP': 'xrp',
                     'XLM': 'xlm',
@@ -1490,11 +1488,11 @@ class hollaex(Exchange, ImplicitAPI):
         self.check_address(address)
         currencyId = self.safe_string(depositAddress, 'currency')
         currencyResolved = self.safe_currency(currencyId, currency)
-        network = self.safe_string(depositAddress, 'network')
+        networkId = self.safe_string(depositAddress, 'network')
         return {
             'info': depositAddress,
             'currency': currencyResolved['code'],
-            'network': network,
+            'network': self.network_id_to_code(networkId, currencyResolved['code']),
             'address': address,
             'tag': tag,
         }
@@ -1564,7 +1562,7 @@ class hollaex(Exchange, ImplicitAPI):
         if network is None:
             addresses = wallet
         else:
-            addresses = self.filter_by(wallet, 'network', network)
+            addresses = self.filter_by(wallet, 'network', self.network_code_to_id(network))
         return self.parse_deposit_addresses(addresses, codes, False)
 
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
@@ -1826,7 +1824,7 @@ class hollaex(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -1835,12 +1833,12 @@ class hollaex(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
-        self.check_address(address)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
+        self.check_address(address, code, tagWithdrawTag)
         if self.markets is None:
             await self.load_markets()
         currency = self.currency(code)
@@ -1985,7 +1983,7 @@ class hollaex(Exchange, ImplicitAPI):
         coins = self.safe_dict(response, 'coins', {})
         return self.parse_deposit_withdraw_fees(coins, codes, 'symbol')
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         query = self.omit(params, self.extract_params(path))
         requestPath = '/' + self.version + '/' + self.implode_params(path, params)
         if (method == 'GET') or (method == 'DELETE'):
@@ -1997,7 +1995,7 @@ class hollaex(Exchange, ImplicitAPI):
         url = apiUrl + requestPath
         requestBody = None
         requestHeaders = None
-        if api == 'private':
+        if api[0] == 'private':
             self.check_required_credentials()
             defaultExpires = self.safe_integer_2(self.options, 'api-expires', 'expires', self.parse_to_int(self.timeout / 1000))
             expires = self.sum(self.seconds(), defaultExpires)
@@ -2014,8 +2012,8 @@ class hollaex(Exchange, ImplicitAPI):
                     auth += requestBody
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
             requestHeaders['api-signature'] = signature
-        bodyResult = body if (requestBody is None) else requestBody
-        headersResult = headers if (requestHeaders is None) else requestHeaders
+        bodyResult = requestBody
+        headersResult = requestHeaders
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

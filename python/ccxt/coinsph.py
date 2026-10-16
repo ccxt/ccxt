@@ -690,7 +690,7 @@ class coinsph(Exchange, ImplicitAPI):
             'limits': {},
         })
 
-    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config: dict = {}):
+    def calculate_rate_limiter_cost(self, api: list[str], method: object, path: object, params: object, config: dict = {}):
         if ('noSymbol' in config) and not ('symbol' in params):
             return config['noSymbol']
         elif ('noSymbolAndNoSymbols' in config) and not ('symbol' in params) and not ('symbols' in params):
@@ -1839,7 +1839,7 @@ class coinsph(Exchange, ImplicitAPI):
             'tierBased': None,
         }
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal to coins_ph account
 
@@ -1848,15 +1848,16 @@ class coinsph(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: not used by withdraw()
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
+        tag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
         options = self.safe_dict(self.options, 'withdraw')
         warning = self.safe_bool(options, 'warning', True)
         if warning is True:
             raise InvalidAddress(self.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = False to make a withdrawal to your coins_ph account")
-        networkCode = self.safe_string(params, 'network')
+        networkCode = self.safe_string(paramsWithdrawTag, 'network')
         networkId = None if (networkCode is None) else self.network_code_to_id(networkCode, code)
         if networkId is None:
             raise BadRequest(self.id + ' withdraw() require network parameter')
@@ -1871,7 +1872,7 @@ class coinsph(Exchange, ImplicitAPI):
         }
         if tag is not None:
             request['withdrawOrderId'] = tag
-        paramsOmitted = self.omit(params, 'network')
+        paramsOmitted = self.omit(paramsWithdrawTag, 'network')
         response = self.privatePostOpenapiWalletV1WithdrawApply(self.extend(request, paramsOmitted))
         return self.parse_transaction(response, currency)
 
@@ -2053,15 +2054,15 @@ class coinsph(Exchange, ImplicitAPI):
         fee = None
         if feeCost is not None:
             fee = {'currency': code, 'cost': feeCost}
-        network = self.safe_string(transaction, 'network')
-        internal = network == 'Internal'
+        networkId = self.safe_string(transaction, 'network')
+        internal = networkId == 'Internal'
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': network,
+            'network': self.network_id_to_code(networkId, code),
             'address': address,
             'addressTo': address,
             'addressFrom': None,
@@ -2166,14 +2167,15 @@ class coinsph(Exchange, ImplicitAPI):
         urlEncodedParam = key + '=' + stringifiedArray
         return urlEncodedParam
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        apiUrl = self.safe_string(self.urls['api'], api)
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         query = self.omit(params, self.extract_params(path))
         endpoint = self.implode_params(path, params)
         url = apiUrl + '/' + endpoint
-        if api == 'private':
+        if apiName == 'private':
             self.check_required_credentials()
             query['timestamp'] = self.milliseconds()
             recvWindow = self.safe_integer(query, 'recvWindow')
@@ -2187,11 +2189,11 @@ class coinsph(Exchange, ImplicitAPI):
             signedHeaders = {
                 'X-COINS-APIKEY': self.apiKey,
             }
-            return {'url': url, 'method': method, 'body': body, 'headers': signedHeaders}
+            return {'url': url, 'method': method, 'body': None, 'headers': signedHeaders}
         encodedQuery = self.url_encode_query(query)
         if len(encodedQuery) != 0:
             url += '?' + encodedQuery
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:

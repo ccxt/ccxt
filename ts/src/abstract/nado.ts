@@ -8,24 +8,70 @@
 import { List, Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    gatewayPublicGetSymbols (params?: {}): Promise<List>;
-    gatewayPublicGetQuery (params?: {}): Promise<Dict>;
-    gatewayPublicGetEdgeQuery (params?: {}): Promise<Dict>;
-    gatewayPublicPostQuery (params?: {}): Promise<Dict>;
-    gatewayPublicPostEdgeQuery (params?: {}): Promise<Dict>;
-    gatewayPrivatePostExecute (params?: {}): Promise<Dict>;
-    gatewayV2PublicGetAssets (params?: {}): Promise<List>;
-    gatewayV2PublicGetPairs (params?: {}): Promise<List>;
-    gatewayV2PublicGetOrderbook (params?: {}): Promise<Dict>;
-    archivePost (params?: {}): Promise<Dict>;
-    archiveV2PublicGetTickers (params?: {}): Promise<Dict>;
-    archiveV2PublicGetContracts (params?: {}): Promise<Dict>;
-    archiveV2PublicGetTrades (params?: {}): Promise<List>;
-    archiveV2PublicGetSymbols (params?: {}): Promise<Dict>;
-    triggerPrivatePostExecute (params?: {}): Promise<Dict>;
-    triggerPrivatePostQuery (params?: {}): Promise<Dict>;
-}
-abstract class Exchange extends _Exchange {}
+abstract class Exchange extends _Exchange {
+    gatewayPublicGetSymbols (params = {}): Promise<List> {
+        return this.request ('symbols', [ 'gateway', 'public' ], 'GET', params, { 'cost': 2 });
+    }
 
-export default Exchange
+    gatewayPublicGetQuery (params = {}): Promise<Dict> {
+        return this.request ('query', [ 'gateway', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    gatewayPublicGetEdgeQuery (params = {}): Promise<Dict> {
+        return this.request ('edge/query', [ 'gateway', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    gatewayPublicPostQuery (params = {}): Promise<Dict> {
+        return this.request ('query', [ 'gateway', 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    gatewayPublicPostEdgeQuery (params = {}): Promise<Dict> {
+        return this.request ('edge/query', [ 'gateway', 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    gatewayPrivatePostExecute (params = {}): Promise<Dict> {
+        return this.request ('execute', [ 'gateway', 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    gatewayV2PublicGetAssets (params = {}): Promise<List> {
+        return this.request ('assets', [ 'gatewayV2', 'public' ], 'GET', params, { 'cost': 2 });
+    }
+
+    gatewayV2PublicGetPairs (params = {}): Promise<List> {
+        return this.request ('pairs', [ 'gatewayV2', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    gatewayV2PublicGetOrderbook (params = {}): Promise<Dict> {
+        return this.request ('orderbook', [ 'gatewayV2', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    archivePost (params = {}): Promise<Dict> {
+        return this.request ('', [ 'archive' ], 'POST', params, { 'cost': 1 });
+    }
+
+    archiveV2PublicGetTickers (params = {}): Promise<Dict> {
+        return this.request ('tickers', [ 'archiveV2', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    archiveV2PublicGetContracts (params = {}): Promise<Dict> {
+        return this.request ('contracts', [ 'archiveV2', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    archiveV2PublicGetTrades (params = {}): Promise<List> {
+        return this.request ('trades', [ 'archiveV2', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    archiveV2PublicGetSymbols (params = {}): Promise<Dict> {
+        return this.request ('symbols', [ 'archiveV2', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    triggerPrivatePostExecute (params = {}): Promise<Dict> {
+        return this.request ('execute', [ 'trigger', 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    triggerPrivatePostQuery (params = {}): Promise<Dict> {
+        return this.request ('query', [ 'trigger', 'private' ], 'POST', params, { 'cost': 1 });
+    }
+}
+
+export default Exchange;

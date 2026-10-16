@@ -837,8 +837,8 @@ public partial class phemex : Exchange
                     { "BEP20", "BNB" },
                 } },
                 { "defaultNetworks", new Dictionary<string, object>() {
-                    { "USDT", "ETH" },
-                    { "MKR", "ETH" },
+                    { "USDT", "ERC20" },
+                    { "MKR", "ERC20" },
                 } },
                 { "defaultSubType", "linear" },
                 { "accountsByType", new Dictionary<string, object>() {
@@ -4094,7 +4094,10 @@ public partial class phemex : Exchange
         IDictionary<string, object> networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
         string? network = this.safeStringUpper2(parameters, "network", "chainName", defaultNetwork);
         object paramsOmitted = this.omit(parameters, "network");
-        network = this.safeString(networks, network, network);
+        if ((network != null))
+        {
+            network = this.safeString(networks, this.safeString(this.networkAliases, network, network), network);
+        }
         if ((network == null))
         {
             throw new ArgumentsRequired ((this.id + " fetchDepositAddress() requires a network parameter")) ;
@@ -5311,11 +5314,12 @@ public partial class phemex : Exchange
         return tiers;
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        object apiName = getValue(api, 0);
         object query = this.omit(parameters, this.extractParams(path));
         string requestPath = ("/" + this.implodeParams(path, parameters));
         string url = requestPath;
@@ -5330,7 +5334,7 @@ public partial class phemex : Exchange
         }
         string? requestBody = null;
         Dictionary<string, object> privateHeaders = null;
-        if ((api is "private"))
+        if ((apiName is "private"))
         {
             this.checkRequiredCredentials();
             Int64 timestamp = this.seconds();
@@ -5360,19 +5364,19 @@ public partial class phemex : Exchange
             string auth = (((requestPath + queryString) + expiryString) + payload);
             privateHeaders["x-phemex-request-signature"] = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
         }
-        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((baseApiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         url = (this.implodeHostname(baseApiUrl) + url);
-        bool isPrivatePost = ((api is "private")) && ((method == "POST"));
-        object bodyResolved = body;
+        bool isPrivatePost = ((apiName is "private")) && ((method == "POST"));
+        string? bodyResolved = null;
         if (isPrivatePost)
         {
             bodyResolved = requestBody;
         }
-        object requestHeaders = ((api is "private")) ? privateHeaders : headers;
+        Dictionary<string, object> requestHeaders = ((apiName is "private")) ? privateHeaders : null;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
@@ -5782,22 +5786,22 @@ public partial class phemex : Exchange
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.network] unified network code
      * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleWithdrawTagAndParams(tag, parameters);
-        var tagWithdrawTag = tagWithdrawTagparamsWithdrawTagVariable[0];
+        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleParamString(parameters, "tag");
+        string? tagWithdrawTag = (string)tagWithdrawTagparamsWithdrawTagVariable[0];
         IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagWithdrawTagparamsWithdrawTagVariable[1]);
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        this.checkAddress(address);
+        this.checkAddress(address, code, tagWithdrawTag);
         Dictionary<string, object> currency = this.currency(code);
         (string?, object) networkCodeparamsNetworkCodeVariable = this.handleNetworkCodeAndParams(paramsWithdrawTag);
         string? networkCode = networkCodeparamsNetworkCodeVariable.Item1;

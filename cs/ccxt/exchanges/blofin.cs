@@ -2345,7 +2345,8 @@ public partial class blofin : Exchange
     public virtual string? networkCodeToChainId(string? networkCode, object currency = null)
     {
         IDictionary<string, object> aliases = this.safeDict(this.options, "networkCodeAliases", new Dictionary<string, object>() {});
-        string? unifiedCode = this.safeString(aliases, networkCode, networkCode);
+        string? aliasedCode = this.safeString(aliases, networkCode, networkCode);
+        string? unifiedCode = this.safeString(this.networkAliases, aliasedCode, aliasedCode);
         // prefer the exact chain id from the currencies registry when it is
         // loaded, since some ids are currency-specific (USDT on Optimism)
         if ((currency != null))
@@ -2781,8 +2782,8 @@ public partial class blofin : Exchange
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw, the withdrawal fee is not included and must be reserved on top
      * @param {string} address the address to withdraw to, or a UID / email / phone number for an internal transfer
-     * @param {string} tag additional identifier (memo / payment id) required by certain networks
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.network] the unified network code for on-chain withdrawals, mapped to the exchange's chain name
      * @param {string} [params.dest] 'onchain' (default) or 'internal' for an internal transfer
      * @param {string} [params.addrType] address type, 1: wallet address, 2: UID, 3: email, 4: mobile phone
@@ -2790,7 +2791,7 @@ public partial class blofin : Exchange
      * @param {string} [params.clientId] a client-supplied id of up to 32 case-sensitive alphanumerics
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         // LIVE API vs DOCS quirks, verified against the venue 2026-09-14:
         // - addrType is documented optional but the live venue rejects
@@ -2803,10 +2804,10 @@ public partial class blofin : Exchange
         // - 152002 responses omit the offending field name even though the
         //   error table documents the message as "Parameter {} error"
         parameters ??= new Dictionary<string, object>();
-        object tagValue = null;
+        string? tagValue = null;
         object query = null;
-        IList<object> tagValuequeryVariable = (IList<object>)this.handleWithdrawTagAndParams(tag, parameters);
-        tagValue = tagValuequeryVariable[0];
+        IList<object> tagValuequeryVariable = (IList<object>)this.handleParamString(parameters, "tag");
+        tagValue = (string)tagValuequeryVariable[0];
         query = tagValuequeryVariable[1];
         await this.loadMarkets();
         Dictionary<string, object> currency = this.currency(code);
@@ -2820,7 +2821,7 @@ public partial class blofin : Exchange
         query = this.omit(query, "dest");
         if (dest == "onchain")
         {
-            this.checkAddress(address);
+            this.checkAddress(address, code, tagValue);
             // the doc's Request Parameters table marks addrType "Required:
             // No", but the live venue rejects on-chain withdrawals without
             // it (152001 "Parameter addrType cannot be empty") - default to
@@ -4065,11 +4066,12 @@ public partial class blofin : Exchange
         return null;
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        object apiName = getValue(api, 0);
         object request = ((("/api/" + this.version) + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         object apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest");
@@ -4079,13 +4081,13 @@ public partial class blofin : Exchange
         }
         object url = add(apiUrl, request);
         // const type = this.getPathAuthenticationType (path);
-        if ((api is "public"))
+        if ((apiName is "public"))
         {
             if (!this.isEmpty(query))
             {
                 url = add(url, ("?" + this.urlencode(query)));
             }
-        } else if ((api is "private"))
+        } else if ((apiName is "private"))
         {
             this.checkRequiredCredentials();
             string timestamp = this.milliseconds().ToString();
@@ -4117,7 +4119,7 @@ public partial class blofin : Exchange
             string? auth = ((string)add(add(add(add(request, method), timestamp), timestamp), sign_body));
             string signature = this.stringToBase64(this.hmac(this.encode(auth), this.encode(this.secret), sha256));
             signedHeaders["ACCESS-SIGN"] = signature;
-            object bodyResolved = ((signedBody == null)) ? body : signedBody;
+            string? bodyResolved = signedBody;
             return new Dictionary<string, object>() {
                 { "url", url },
                 { "method", method },
@@ -4128,8 +4130,8 @@ public partial class blofin : Exchange
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", null },
+            { "headers", null },
         };
     }
 }

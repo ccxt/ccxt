@@ -12,6 +12,7 @@ import io.github.ccxt.types.DepositAddress;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
 import io.github.ccxt.types.Trade;
@@ -1966,7 +1967,7 @@ public class Bithumb extends BithumbApi
                 typeRequest = "price";
                 // for market buy it requires the amount of quote currency to spend
                 String cost = this.safeString(paramsOrder, "cost");
-                io.github.ccxt.base.Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams((Map<String, Object>) (this.omit(paramsOrder, "cost")), "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams((Map<String, Object>) (this.omit(paramsOrder, "cost")), "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 Boolean createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.first();
                 Map<String, Object> paramsRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.second();
                 paramsOrder = paramsRequiresPrice;
@@ -3031,8 +3032,8 @@ public class Bithumb extends BithumbApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag the secondary withdrawal destination address
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @param {string} [params.network] the blockchain network to withdraw on, for example BTC or DASH
      * @param {string} [params.destination] secondary address destination for specific currencies, can alternatively use the tag argument
@@ -3047,7 +3048,7 @@ public class Bithumb extends BithumbApi
      * @param {string} [params.two_factor_type] *generation 2 KRW withdraw only* the two factor type, for example kakao
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3059,16 +3060,16 @@ public class Bithumb extends BithumbApi
             List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "withdraw", "generation", 2L);
             Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
             Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
-            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (paramsGeneration));
-            var tagWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
+            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(paramsGeneration, "tag", (String) null);
+            String tagWithdrawTag = (String) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
-            this.checkAddress(address);
+            this.checkAddress(address, code, tagWithdrawTag);
             String network = this.safeString2(paramsWithdrawTag, "network", "net_type");
             Map<String, Object> paramsNetwork = this.omit(paramsWithdrawTag, "network");
             Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> response = null;
-            Object destinationRequest = null;
+            String destinationRequest = null;
             Boolean requiresDestination = (java.util.Objects.equals(code, "XRP") || java.util.Objects.equals(code, "XMR") || java.util.Objects.equals(code, "EOS") || java.util.Objects.equals(code, "STEEM") || java.util.Objects.equals(code, "TON"));
             Map<String, Object> paramsDestination = paramsNetwork;
             if (Boolean.TRUE.equals(requiresDestination))
@@ -3080,7 +3081,7 @@ public class Bithumb extends BithumbApi
                 String destination = this.safeString2(paramsNetwork, "destination", "secondary_address");
                 if ((java.util.Objects.equals(tagWithdrawTag, null)) && (java.util.Objects.equals(destination, null)))
                 {
-                    throw new ArgumentsRequired((((this.id + " ") + code) + " withdraw() requires a tag argument or an extra destination param")) ;
+                    throw new ArgumentsRequired((((this.id + " ") + code) + " withdraw() requires a tag or an extra destination param")) ;
                 } else if (!java.util.Objects.equals(tagWithdrawTag, null))
                 {
                     destinationRequest = tagWithdrawTag;
@@ -3112,7 +3113,7 @@ public class Bithumb extends BithumbApi
                     }
                     request.put("address", address);
                     request.put("currency", currency.get("id"));
-                    request.put("net_type", network);
+                    request.put("net_type", this.networkCodeToId(network, code));
                     request.put("amount", this.numberToString(amount));
                     if (!java.util.Objects.equals(destinationRequest, null))
                     {
@@ -3131,7 +3132,7 @@ public class Bithumb extends BithumbApi
                 request.put("units", amount);
                 if (!java.util.Objects.equals(network, null))
                 {
-                    request.put("net_type", network);
+                    request.put("net_type", this.networkCodeToId(network, code));
                 }
                 if (!java.util.Objects.equals(destinationRequest, null))
                 {
@@ -3201,7 +3202,7 @@ public class Bithumb extends BithumbApi
             h2kMap0.put("txid", this.safeString(transaction, "txid"));
             h2kMap0.put("timestamp", timestamp);
             h2kMap0.put("datetime", datetime);
-            h2kMap0.put("network", this.safeString(transaction, "net_type"));
+            h2kMap0.put("network", this.networkIdToCode(this.safeString(transaction, "net_type"), Helpers.toStringArg(currencyResolved.get("code"))));
             h2kMap0.put("addressFrom", null);
             h2kMap0.put("address", null);
             h2kMap0.put("addressTo", null);
@@ -3609,7 +3610,7 @@ public class Bithumb extends BithumbApi
             {
                 throw new ArgumentsRequired((((this.id + " ") + code) + " createDepositAddress() requires a network parameter")) ;
             }
-            request.put("net_type", network);
+            request.put("net_type", this.networkCodeToId(network, code));
             Map<String, Object> response = (this.privatePostV1DepositsGenerateCoinAddress(this.extend(request, paramsOmitted))).join();
             //
             //     {
@@ -3661,7 +3662,7 @@ public class Bithumb extends BithumbApi
             {
                 throw new ArgumentsRequired((((this.id + " ") + code) + " fetchDepositAddress() requires a network parameter")) ;
             }
-            request.put("net_type", network);
+            request.put("net_type", this.networkCodeToId(network, code));
             Map<String, Object> response = (this.privateGetV1DepositsCoinAddress(this.extend(request, paramsOmitted))).join();
             //
             //     {
@@ -3737,12 +3738,12 @@ public class Bithumb extends BithumbApi
         {
             throw new ExchangeError((this.id + " parseDepositAddress() could not find deposit_address")) ;
         }
-        this.checkAddress(address);
+        this.checkAddress(address, (String) null, (String) null);
         {
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
             h2kMap1.put("info", response);
             h2kMap1.put("currency", code);
-            h2kMap1.put("network", this.safeString(response, "net_type"));
+            h2kMap1.put("network", this.networkIdToCode(this.safeString(response, "net_type"), code));
             h2kMap1.put("address", address);
             h2kMap1.put("tag", this.safeString(response, "secondary_address"));
             return h2kMap1;
@@ -3809,12 +3810,13 @@ public class Bithumb extends BithumbApi
         return result;
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Map<String, Object> requestHeaders = null;
         Object requestBody = null;
         String endpoint = ("/" + this.implodeParams(path, parameters));
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -3824,7 +3826,7 @@ public class Bithumb extends BithumbApi
         List<Object> queryKeys = Helpers.objectKeys(query);
         Integer queryKeysLength = ((List<?>)queryKeys).size();
         Boolean hasQuery = ((queryKeysLength != null && queryKeysLength > 0));
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
+        if (java.util.Objects.equals(apiName, "public"))
         {
             requestHeaders = new HashMap<String, Object>() {{
                 put( "OPEN-API-PARTNER", "CCXT" );
@@ -3892,8 +3894,8 @@ public class Bithumb extends BithumbApi
                 }};
             }
         }
-        Object headersResult = (((!java.util.Objects.equals(requestHeaders, null)))) ? requestHeaders : headers;
-        Object bodyResult = (((!java.util.Objects.equals(requestBody, null)))) ? requestBody : body;
+        Map<String, Object> headersResult = requestHeaders;
+        Object bodyResult = requestBody;
         {
             HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
             h2kMap2.put("url", url);

@@ -279,7 +279,7 @@ class coinbaseinternational extends Exchange {
                     'method' => 'v1PrivatePostTransfersWithdraw', // use v1PrivatePostTransfersWithdrawCounterparty for counterparty withdrawals
                 ),
                 'networksById' => array(
-                    'ethereum' => 'ETH',
+                    'ethereum' => 'ERC20',
                     'arbitrum' => 'ARBITRUM',
                     'avacchain' => 'AVAX',
                     'optimism' => 'OPTIMISM',
@@ -2446,11 +2446,11 @@ class coinbaseinternational extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal
          *
@@ -2460,16 +2460,15 @@ class coinbaseinternational extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} [$tag] an optional $tag for the withdrawal
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @param {boolean} [$params->add_network_fee_to_total] if true, deducts network fee from the $portfolio, otherwise deduct fee from the withdrawal
          * @param {string} [$params->network_arn_id] Identifies the blockchain network (e.g., networks/ethereum-mainnet/assets/313ef8a9-ae5a-5f2f-8a56-572c0e2a4d5a)
          * @param {string} [$params->nonce] a unique integer representing the withdrawal $request
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        $tagAndParams = $this->handle_withdraw_tag_and_params($tag, $params);
-        $paramsWithdrawTag = $tagAndParams[1];
-        $this->check_address($address);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
+        $this->check_address($address, $code, $tagWithdrawTag);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -2501,7 +2500,7 @@ class coinbaseinternational extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function sign(string $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array(), $method = 'GET', $params = array()): array {
         $version = $this->safe_string($api, 0);
         $signed = $this->safe_string($api, 1) === 'private';
         $fullPath = '/' . $version . '/' . $this->implode_params($path, $params);
@@ -2522,7 +2521,7 @@ class coinbaseinternational extends Exchange {
         if ($hasSignedBody) {
             $signedBody = $this->json($query);
         }
-        $requestBody = $body;
+        $requestBody = null;
         if ($hasSignedBody) {
             $requestBody = $signedBody;
         }
@@ -2540,7 +2539,7 @@ class coinbaseinternational extends Exchange {
                 'CB-ACCESS-KEY' => $this->apiKey,
             );
         }
-        $requestHeaders = $headers;
+        $requestHeaders = null;
         if ($signed) {
             $requestHeaders = $signedHeaders;
         }

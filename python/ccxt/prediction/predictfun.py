@@ -3585,16 +3585,14 @@ class predictfun(PredictionExchange, ImplicitAPI):
         # unique when two identical orders are signed within the same millisecond
         return self.milliseconds()
 
-    def sign(self, path: str, api: object = 'predictfun', method='GET', params: dict = {}, headers: object = None, body: object = None):
+    def sign(self, path: str, api: list[str] = ['predictfun'], method='GET', params: dict = {}):
         """
  @ignore
         builds the request URL and attaches the API key header required by every endpoint
         :param str path: the endpoint path
-        :param string|str[] [api]: the API group and access level
+        :param str[] [api]: the API group and access level
         :param str [method]: HTTP method
         :param dict [params]: request parameters
-        :param dict [headers]: request headers
-        :param dict [body]: request body
         :returns dict: a dictionary with url, method, body and headers
         """
         # the venue authenticates every endpoint, so the key is required up front rather than
@@ -3604,7 +3602,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         apiKey = self.apiKey
         if (apiKey is None) and not sandboxMode:
             raise AuthenticationError(self.id + ' sign() requires the "apiKey" credential for all endpoints')
-        apiGroup = api if isinstance(api, str) else api[0]
+        apiGroup = api[0]
         baseUrls = self.urls['api']
         baseUrl = self.safe_string(baseUrls, apiGroup, baseUrls['predictfun'])
         url = baseUrl + '/' + self.implode_params(path, params)
@@ -3612,7 +3610,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         if method == 'GET':
             if len(query) > 0:
                 url += '?' + self.urlencode(query)
-        existingHeaders = headers if (headers is not None) else {}
+        existingHeaders = {}
         headersValue = existingHeaders
         authHeaders = {}
         if (apiKey is not None) and (not sandboxMode):
@@ -3646,7 +3644,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         # 401 without it, so it is attached on both hosts
         if (jwtToken is not None) and self.in_array(path, walletPaths):
             authHeaders['Authorization'] = 'Bearer ' + jwtToken
-        bodyValue = body
+        bodyValue = None
         if method != 'GET':
             if not sandboxMode:
                 self.check_required_credentials()

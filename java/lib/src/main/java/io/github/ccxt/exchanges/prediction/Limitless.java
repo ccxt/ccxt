@@ -12,6 +12,7 @@ import io.github.ccxt.Client;
 import io.github.ccxt.types.Account;
 import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.PredictionEvent;
 import io.github.ccxt.types.PredictionOrder;
 import io.github.ccxt.types.PredictionOrderBook;
@@ -2431,7 +2432,7 @@ public class Limitless extends LimitlessApi
             paramsValue = ((List<Object>) makerparamsValueVariable).get(1);
             try
             {
-                this.checkAddress(Helpers.toStringArg(maker));
+                this.checkAddress(Helpers.toStringArg(maker), (String) null, (String) null);
             } catch(Exception e)
             {
                 throw new InvalidAddress((this.id + " createOrder requires a valid maker address. Set the \"maker\" parameter to a valid address or set the \"walletAddress\" property in the constructor options.")) ;
@@ -2451,7 +2452,7 @@ public class Limitless extends LimitlessApi
             paramsValue = ((List<Object>) signerparamsValueVariable).get(1);
             try
             {
-                this.checkAddress(Helpers.toStringArg(signer));
+                this.checkAddress(Helpers.toStringArg(signer), (String) null, (String) null);
             } catch(Exception e)
             {
                 throw new InvalidAddress((this.id + " createOrder requires a valid signer address. Set the \"signer\" parameter to a valid address or set the \"walletAddress\" property in the constructor options.")) ;
@@ -2462,7 +2463,7 @@ public class Limitless extends LimitlessApi
             paramsValue = ((List<Object>) takerparamsValueVariable).get(1);
             try
             {
-                this.checkAddress(Helpers.toStringArg(taker));
+                this.checkAddress(Helpers.toStringArg(taker), (String) null, (String) null);
             } catch(Exception e)
             {
                 throw new InvalidAddress((this.id + " createOrder requires a valid taker address. Set the \"taker\" parameter to a valid address or set the \"nullAddress\" property in the constructor options.")) ;
@@ -2519,7 +2520,7 @@ public class Limitless extends LimitlessApi
             if (Boolean.TRUE.equals(isMarket) && (java.util.Objects.equals(side, "buy")))
             {
                 Boolean createMarketBuyOrderRequiresPrice = true;
-                io.github.ccxt.base.Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsValueVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsValue), "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsValueVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsValue), "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsValueVariable.first();
                 paramsValue = createMarketBuyOrderRequiresPriceparamsValueVariable.second();
                 Double cost = this.safeNumber(paramsValue, "cost", (Object) null);
@@ -3648,7 +3649,7 @@ public class Limitless extends LimitlessApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> categoriesResponse = (this.limitlessPublicGetCategories()).join();
+            List<Object> categoriesResponse = (this.limitlessPublicGetCategories(new HashMap<String, Object>() {{}})).join();
             List<Object> categories = new ArrayList<Object>(Arrays.asList());
             if ((categoriesResponse instanceof List))
             {
@@ -3724,17 +3725,16 @@ public class Limitless extends LimitlessApi
      * @name limitless#sign
      * @description builds the request URL and attaches the lmts authentication headers for private endpoints
      * @param {string} path the endpoint path
-     * @param {string|string[]} [api] the api group and access level
+     * @param {string[]} [api] the api group and access level
      * @param {string} [method] HTTP method
      * @param {object} [params] request parameters
-     * @param {object} [headers] request headers
-     * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, Object body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiGroup = (((java.util.Objects.requireNonNullElse(api, "limitless") instanceof String))) ? java.util.Objects.requireNonNullElse(api, "limitless") : Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "limitless"), 0);
-        Object access = (((java.util.Objects.requireNonNullElse(api, "limitless") instanceof String))) ? "public" : Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "limitless"), 1);
+        Object apiGroup = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        Integer apiLength = ((List<?>)api).size();
+        Object access = ((((apiLength != null && apiLength > 1)))) ? (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1)) : "public";
         Object baseUrls = this.urls.get("api");
         String baseUrl = this.safeString(baseUrls, apiGroup, ((Map<String, Object>)baseUrls).get("limitless"));
         Object url = ("/" + this.implodeParams(path, parameters));
@@ -3744,8 +3744,8 @@ public class Limitless extends LimitlessApi
         {
             url = (url + ("?" + querystring));
         }
-        Object headersValue = headers;
-        Object bodyValue = body;
+        Map<String, Object> headersValue = null;
+        String bodyValue = null;
         if (java.util.Objects.equals(access, "private"))
         {
             String bodyString = "";
@@ -3786,10 +3786,6 @@ public class Limitless extends LimitlessApi
             h2kMap1.put("headers", headersValue);
             return h2kMap1;
         }
-    }
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
-    {
-        return this.sign(path, api, method, parameters, headers, (Object) (body));
     }
 
     /**

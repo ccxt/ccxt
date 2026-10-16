@@ -2,6 +2,142 @@
     "exchange": "poloniex",
     "skipKeys": [],
     "methods": {
+        "transfer": [
+            {
+                "description": "transfer with exchange-specific toAccount",
+                "method": "transfer",
+                "input": [
+                    "USDT",
+                    1,
+                    "spot",
+                    "FUTURES"
+                ],
+                "httpResponse": {
+                    "transferId": "344182875"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "transferId": "344182875"
+                    },
+                    "id": "344182875",
+                    "timestamp": null,
+                    "datetime": null,
+                    "currency": "USDT",
+                    "amount": 1,
+                    "fromAccount": "spot",
+                    "toAccount": "FUTURES",
+                    "status": null
+                }
+            }
+        ],
+        "fetchTransfer": [
+            {
+                "description": "fetch transfer by id",
+                "method": "fetchTransfer",
+                "input": [
+                    "344182843"
+                ],
+                "httpResponse": {
+                    "id": "344182843",
+                    "fromAccount": "SPOT",
+                    "toAccount": "FUTURES",
+                    "currency": "USDT",
+                    "amount": "1",
+                    "state": "SUCCESS",
+                    "createTime": 1791973212353
+                },
+                "parsedResponse": {
+                    "info": {
+                        "id": "344182843",
+                        "fromAccount": "SPOT",
+                        "toAccount": "FUTURES",
+                        "currency": "USDT",
+                        "amount": "1",
+                        "state": "SUCCESS",
+                        "createTime": 1791973212353
+                    },
+                    "id": "344182843",
+                    "timestamp": 1791973212353,
+                    "datetime": "2026-10-14T10:20:12.353Z",
+                    "currency": "USDT",
+                    "amount": 1,
+                    "fromAccount": "spot",
+                    "toAccount": "future",
+                    "status": "ok"
+                }
+            }
+        ],
+        "fetchTransfers": [
+            {
+                "description": "fetch usdt transfers since",
+                "method": "fetchTransfers",
+                "input": [
+                    "USDT",
+                    1786990000000,
+                    2
+                ],
+                "httpResponse": [
+                    {
+                        "id": "342284495",
+                        "fromAccount": "FUTURES",
+                        "toAccount": "SPOT",
+                        "currency": "USDT",
+                        "amount": "6",
+                        "state": "SUCCESS",
+                        "createTime": 1787154736417
+                    },
+                    {
+                        "id": "342284469",
+                        "fromAccount": "SPOT",
+                        "toAccount": "FUTURES",
+                        "currency": "USDT",
+                        "amount": "6",
+                        "state": "SUCCESS",
+                        "createTime": 1787154661691
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "342284469",
+                            "fromAccount": "SPOT",
+                            "toAccount": "FUTURES",
+                            "currency": "USDT",
+                            "amount": "6",
+                            "state": "SUCCESS",
+                            "createTime": 1787154661691
+                        },
+                        "id": "342284469",
+                        "timestamp": 1787154661691,
+                        "datetime": "2026-08-19T15:51:01.691Z",
+                        "currency": "USDT",
+                        "amount": 6,
+                        "fromAccount": "spot",
+                        "toAccount": "future",
+                        "status": "ok"
+                    },
+                    {
+                        "info": {
+                            "id": "342284495",
+                            "fromAccount": "FUTURES",
+                            "toAccount": "SPOT",
+                            "currency": "USDT",
+                            "amount": "6",
+                            "state": "SUCCESS",
+                            "createTime": 1787154736417
+                        },
+                        "id": "342284495",
+                        "timestamp": 1787154736417,
+                        "datetime": "2026-08-19T15:52:16.417Z",
+                        "currency": "USDT",
+                        "amount": 6,
+                        "fromAccount": "future",
+                        "toAccount": "spot",
+                        "status": "ok"
+                    }
+                ]
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "default",
@@ -393,7 +529,7 @@
                 "input": [
                     "ETH",
                     {
-                        "network": "ETH"
+                        "network": "ERC20"
                     }
                 ],
                 "httpResponse": {
@@ -404,7 +540,7 @@
                         "ETH": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
                     },
                     "currency": "ETH",
-                    "network": "ETH",
+                    "network": "ERC20",
                     "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22",
                     "tag": null
                 }
@@ -459,7 +595,7 @@
                 "input": [
                     "USDT",
                     {
-                        "network": "ETH"
+                        "network": "ERC20"
                     }
                 ],
                 "httpResponse": {
@@ -505,7 +641,7 @@
                 "input": [
                     "ETH",
                     {
-                        "network": "ETH"
+                        "network": "ERC20"
                     }
                 ],
                 "httpResponse": {
@@ -516,7 +652,7 @@
                         "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
                     },
                     "currency": "ETH",
-                    "network": "ETH",
+                    "network": "ERC20",
                     "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22",
                     "tag": null
                 }
@@ -549,7 +685,7 @@
                 "input": [
                     "USDT",
                     {
-                        "network": "ETH"
+                        "network": "ERC20"
                     }
                 ],
                 "httpResponse": {
@@ -618,7 +754,6 @@
                     "USDT",
                     5,
                     "0x883b79D31EA07AA200A4a83c50d444470A212eEE",
-                    null,
                     {
                         "network": "ERC20"
                     }
@@ -2059,6 +2194,224 @@
                         "USDT": 7.203956665
                     }
                 }
+            }
+        ],
+        "createOrders": [
+            {
+                "description": "spot batch with one accepted and one rejected order, live-captured",
+                "method": "createOrders",
+                "input": [
+                    [
+                        {
+                            "symbol": "BTC/USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 0.0001,
+                            "price": 10000,
+                            "params": {
+                                "clientOrderId": "ccxtBatchSpot1"
+                            }
+                        },
+                        {
+                            "symbol": "BTC/USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 0.0001,
+                            "price": 9000
+                        }
+                    ]
+                ],
+                "httpResponse": [
+                    {
+                        "id": "613157738154983424",
+                        "clientOrderId": "ccxtBatchSpot1"
+                    },
+                    {
+                        "code": 21322,
+                        "message": "Amount less than minAmount",
+                        "clientOrderId": ""
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "613157738154983424",
+                            "clientOrderId": "ccxtBatchSpot1"
+                        },
+                        "id": "613157738154983424",
+                        "clientOrderId": "ccxtBatchSpot1",
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastTradeTimestamp": null,
+                        "status": null,
+                        "symbol": "BTC/USDT",
+                        "type": null,
+                        "timeInForce": null,
+                        "postOnly": false,
+                        "side": null,
+                        "price": null,
+                        "triggerPrice": null,
+                        "cost": null,
+                        "average": null,
+                        "amount": null,
+                        "filled": null,
+                        "remaining": null,
+                        "trades": [],
+                        "fee": null,
+                        "marginMode": null,
+                        "reduceOnly": null,
+                        "leverage": null,
+                        "hedged": true,
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    },
+                    {
+                        "info": {
+                            "code": 21322,
+                            "message": "Amount less than minAmount",
+                            "clientOrderId": ""
+                        },
+                        "id": null,
+                        "clientOrderId": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastTradeTimestamp": null,
+                        "status": "rejected",
+                        "symbol": "BTC/USDT",
+                        "type": null,
+                        "timeInForce": null,
+                        "postOnly": false,
+                        "side": null,
+                        "price": null,
+                        "triggerPrice": null,
+                        "cost": null,
+                        "average": null,
+                        "amount": null,
+                        "filled": null,
+                        "remaining": null,
+                        "trades": [],
+                        "fee": null,
+                        "marginMode": null,
+                        "reduceOnly": null,
+                        "leverage": null,
+                        "hedged": true,
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "cancelOrders": [
+            {
+                "description": "swap batch cancel with one success and one ORDER_NOT_EXISTS rejection",
+                "method": "cancelOrders",
+                "input": [
+                    [
+                        "613158248048390144",
+                        "613158248098721792"
+                    ],
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": 200,
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "code": "200",
+                            "msg": "Success",
+                            "ordId": "613158248048390144",
+                            "clOrdId": "ccxtBatchSwap2"
+                        },
+                        {
+                            "code": "11008",
+                            "msg": "ORDER_NOT_EXISTS",
+                            "ordId": "613158248098721792",
+                            "clOrdId": ""
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "code": "200",
+                            "msg": "Success",
+                            "ordId": "613158248048390144",
+                            "clOrdId": "ccxtBatchSwap2"
+                        },
+                        "id": "613158248048390144",
+                        "clientOrderId": "ccxtBatchSwap2",
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastTradeTimestamp": null,
+                        "status": null,
+                        "symbol": "BTC/USDT:USDT",
+                        "type": null,
+                        "timeInForce": null,
+                        "postOnly": false,
+                        "side": null,
+                        "price": null,
+                        "triggerPrice": null,
+                        "cost": null,
+                        "average": null,
+                        "amount": null,
+                        "filled": null,
+                        "remaining": null,
+                        "trades": [],
+                        "fee": null,
+                        "marginMode": null,
+                        "reduceOnly": null,
+                        "leverage": null,
+                        "hedged": true,
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    },
+                    {
+                        "info": {
+                            "code": "11008",
+                            "msg": "ORDER_NOT_EXISTS",
+                            "ordId": "613158248098721792",
+                            "clOrdId": ""
+                        },
+                        "id": "613158248098721792",
+                        "clientOrderId": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastTradeTimestamp": null,
+                        "status": "rejected",
+                        "symbol": "BTC/USDT:USDT",
+                        "type": null,
+                        "timeInForce": null,
+                        "postOnly": false,
+                        "side": null,
+                        "price": null,
+                        "triggerPrice": null,
+                        "cost": null,
+                        "average": null,
+                        "amount": null,
+                        "filled": null,
+                        "remaining": null,
+                        "trades": [],
+                        "fee": null,
+                        "marginMode": null,
+                        "reduceOnly": null,
+                        "leverage": null,
+                        "hedged": true,
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
             }
         ],
         "createOrder": [

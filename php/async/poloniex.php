@@ -9,6 +9,7 @@ use Exception; // a common import
 use ccxt\async\abstract\poloniex as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
+use ccxt\BadRequest;
 use ccxt\BadSymbol;
 use ccxt\InvalidOrder;
 use ccxt\NotSupported;
@@ -39,13 +40,13 @@ class poloniex extends Exchange {
                 'addMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'cancelOrders' => null, // not yet implemented, because RL is worse than cancelOrder
+                'cancelOrders' => true,
                 'createDepositAddress' => true,
                 'createMarketBuyOrderWithCost' => true,
                 'createMarketOrderWithCost' => false,
                 'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
-                'createOrders' => null, // not yet implemented, because RL is worse than createOrder
+                'createOrders' => true,
                 'createStopOrder' => true,
                 'createTriggerOrder' => true,
                 'editOrder' => true,
@@ -94,8 +95,8 @@ class poloniex extends Exchange {
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
                 'fetchTransactions' => 'emulated',
-                'fetchTransfer' => false,
-                'fetchTransfers' => false,
+                'fetchTransfer' => true,
+                'fetchTransfers' => true,
                 'fetchVolatilityHistory' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
@@ -303,7 +304,7 @@ class poloniex extends Exchange {
                 'XAP' => 'API Coin',
                 // this is not documented in the API docs for Poloniex
                 // https://github.com/ccxt/ccxt/issues/7084
-                // when the user calls withdraw ('USDT', amount, address, tag, params)
+                // when the user calls withdraw ('USDT', amount, address, params)
                 // with params = { 'currencyToWithdrawAs': 'USDTTRON' }
                 // or params = { 'currencyToWithdrawAs': 'USDTETH' }
                 // fetchWithdrawals ('USDT') returns the corresponding withdrawals
@@ -323,7 +324,6 @@ class poloniex extends Exchange {
                     'ERC20' => 'ETH',
                     // v2 withdraw accepts only the blockchain id: 'TRX' passes validation, 'TRON' is rejected with 830111 (live-verified)
                     'TRC20' => 'TRX',
-                    'TRX' => 'TRX',
                 ),
                 'networksById' => array(
                     'TRX' => 'TRC20',
@@ -353,6 +353,8 @@ class poloniex extends Exchange {
                 'accountsById' => array(
                     'exchange' => 'spot',
                     'futures' => 'future',
+                    'SPOT' => 'spot',
+                    'FUTURES' => 'future',
                 ),
             ),
             'features' => array(
@@ -1844,6 +1846,11 @@ class poloniex extends Exchange {
         $amount = $this->safe_string_2($order, 'quantity', 'sz');
         $filled = $this->safe_string_2($order, 'filledQuantity', 'execQty');
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
+        $errorCode = $this->safe_integer($order, 'code');
+        if (($status === null) && ($errorCode !== null) && ($errorCode !== 200)) {
+            // the batch endpoints report per-element failures with an error code instead of throwing
+            $status = 'rejected';
+        }
         $side = $this->safe_string_lower($order, 'side');
         $rawType = $this->safe_string($order, 'type');
         $type = $this->parse_order_type($rawType);
@@ -2168,6 +2175,97 @@ class poloniex extends Exchange {
         return $this->parse_order($response, $market);
     }
 
+    public function create_orders(array $orders, $params = array()) {
+        return Async\async(self::do_create_orders(...))($orders, $params);
+    }
+
+    private function do_create_orders(array $orders, $params = array()) {
+        /**
+         * create a list of trade $orders, all $orders must be of the same $market $type, either spot or swap
+         *
+         * @see https://api-docs.poloniex.com/spot/api/private/order#create-multiple-$orders
+         * @see https://api-docs.poloniex.com/v3/futures/api/trade/place-multiple-$orders
+         *
+         * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint, applied to every order
+         * @param {string} [$params->marginMode] *swap only* 'cross' or 'isolated', defaults to 'cross'
+         * @param {string} [$params->posSide] *swap only* 'LONG', 'SHORT' or 'BOTH', defaults to 'BOTH', the batch endpoint requires it explicitly
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        Async\await($this->load_markets());
+        $ordersRequests = array();
+        $ordersMarkets = array();
+        $market = null;
+        $isContract = false;
+        for ($i = 0; $i < count($orders); $i++) {
+            $rawOrder = $orders[$i];
+            $symbol = $rawOrder['symbol'];
+            $marketInner = $this->market($symbol);
+            if ($market === null) {
+                $market = $marketInner;
+                $isContract = ($marketInner['contract'] === true);
+            } elseif ($market['type'] !== $marketInner['type']) {
+                throw new BadRequest($this->id . ' createOrders() requires all orders to be of the same market type, either spot or swap');
+            }
+            $type = $rawOrder['type'];
+            $side = $rawOrder['side'];
+            $amount = $this->safe_number($rawOrder, 'amount');
+            $price = $this->safe_number($rawOrder, 'price');
+            $orderParams = $this->safe_dict($rawOrder, 'params', array());
+            // the request body is a bare list, so there is no room for common params - extend each order with them instead
+            $extendedParams = $this->extend($orderParams, $params);
+            $request = array(
+                'symbol' => $marketInner['id'],
+                'side' => $this->safe_string_upper($rawOrder, 'side'),
+            );
+            list($request, $extendedParams) = $this->order_request($symbol, $type, $side, $amount, $request, $price, $extendedParams);
+            $merged = $this->extend($request, $extendedParams);
+            if ($isContract) {
+                // unlike the single-order endpoint, the batch endpoint refuses to apply server-side defaults: "Param error mgnMode and posSide must be present and not empty"
+                if (!(is_array($merged) && array_key_exists('mgnMode' ?? '', $merged))) {
+                    $merged['mgnMode'] = 'CROSS';
+                }
+                if (!(is_array($merged) && array_key_exists('posSide' ?? '', $merged))) {
+                    $merged['posSide'] = 'BOTH';
+                }
+            }
+            $ordersRequests[] = $merged;
+            $ordersMarkets[] = $marketInner;
+        }
+        $data = array();
+        if ($isContract) {
+            $response = Async\await($this->swapPrivatePostV3TradeOrders($ordersRequests));
+            //
+            //     {
+            //         "code": 200,
+            //         "msg": "Success",
+            //         "data": [
+            //             { "code": 200, "msg": "", "ordId": "613155521545418752", "clOrdId": "batch-swap-1" },
+            //             { "code": 10014, "msg": "Order price exceeds the limit", "ordId": "", "clOrdId": "" }
+            //         ]
+            //     }
+            //
+            $data = $this->safe_list($response, 'data', array());
+        } else {
+            //
+            //     [
+            //         { "id": "613155521545418752", "clientOrderId": "batch-1" },
+            //         { "code": 21709, "message": "Low available balance", "clientOrderId": "" }
+            //     ]
+            //
+            $data = Async\await($this->privatePostOrdersBatch($ordersRequests));
+        }
+        // the responses are positional, aligned with the submitted orders
+        $results = array();
+        $dataLength = count($data);
+        for ($i = 0; $i < $dataLength; $i++) {
+            $entry = $data[$i];
+            $entryMarket = $ordersMarkets[$i];
+            $results[] = $this->parse_order($entry, $entryMarket);
+        }
+        return $results;
+    }
+
     public function order_request(string $symbol, string $type, string $side, ?float $amount, array $request, ?float $price = null, $params = array()): array {
         $triggerPrice = $this->safe_number_2($params, 'stopPrice', 'triggerPrice');
         $market = $this->market($symbol);
@@ -2378,6 +2476,73 @@ class poloniex extends Exchange {
         //   }
         //
         return $this->parse_order($response);
+    }
+
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
+        return Async\async(self::do_cancel_orders(...))($ids, $symbol, $params);
+    }
+
+    private function do_cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
+        /**
+         * cancel multiple orders
+         *
+         * @see https://api-docs.poloniex.com/spot/api/private/order#cancel-multiple-orders-by-$ids
+         * @see https://api-docs.poloniex.com/v3/futures/api/trade/cancel-multiple-orders
+         *
+         * @param {string[]} $ids order $ids
+         * @param {string} [$symbol] unified $market $symbol, required for swap markets
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string[]} [$params->clientOrderIds] alternative to $ids, cancel by client order $ids
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        Async\await($this->load_markets());
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('cancelOrders', $market, $params);
+        $clientOrderIds = $this->safe_list_2($paramsMarketType, 'clientOrderIds', 'clOrdIds');
+        $query = $this->omit($paramsMarketType, array( 'clientOrderIds', 'clOrdIds' ));
+        $request = array();
+        $idsLength = count($ids);
+        if ($marketType !== 'spot') {
+            if ($market === null) {
+                throw new ArgumentsRequired($this->id . ' cancelOrders() requires a symbol argument for ' . $marketType . ' markets');
+            }
+            $request['symbol'] = $market['id'];
+            // the api ignores clOrdIds when ordIds are also present
+            if ($idsLength > 0) {
+                $request['ordIds'] = $ids;
+            } elseif ($clientOrderIds !== null) {
+                $request['clOrdIds'] = $clientOrderIds;
+            }
+            $responseRaw = Async\await($this->swapPrivateDeleteV3TradeBatchOrders($this->extend($request, $query)));
+            //
+            //     {
+            //         "code": 200,
+            //         "msg": "Success",
+            //         "data": [
+            //             { "code": "200", "msg": "Success", "ordId": "613143856837730304", "clOrdId": "" },
+            //             { "code": "11008", "msg": "ORDER_NOT_EXISTS", "ordId": "613144005890699264", "clOrdId": "" }
+            //         ]
+            //     }
+            //
+            $data = $this->safe_list($responseRaw, 'data', array());
+            return $this->parse_orders($data, $market);
+        }
+        if ($idsLength > 0) {
+            $request['orderIds'] = $ids;
+        }
+        if ($clientOrderIds !== null) {
+            $request['clientOrderIds'] = $clientOrderIds;
+        }
+        $response = Async\await($this->privateDeleteOrdersCancelByIds($this->extend($request, $query)));
+        //
+        //     [
+        //         { "orderId": "123456789", "clientOrderId": "", "state": "PENDING_CANCEL", "code": 200, "message": "" }
+        //     ]
+        //
+        return $this->parse_orders($response, $market);
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {
@@ -2903,7 +3068,7 @@ class poloniex extends Exchange {
         if ($networkEntry !== null) {
             $exchangeNetworkId = $networkEntry['id'];
         } else {
-            $exchangeNetworkId = $networkCode;
+            $exchangeNetworkId = $this->network_code_to_id($networkCode, $code);
         }
         $request = array(
             'currency' => $exchangeNetworkId,
@@ -2955,9 +3120,10 @@ class poloniex extends Exchange {
         $currency = $this->currency($code);
         $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
         $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
-        $toId = $this->safe_string($accountsByType, $toAccount, $fromAccount);
+        $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
+        $amountToPrecision = $this->currency_to_precision($code, $amount);
         $request = array(
-            'amount' => $this->currency_to_precision($code, $amount),
+            'amount' => $amountToPrecision,
             'currency' => $currency['id'],
             'fromAccount' => $fromId,
             'toAccount' => $toId,
@@ -2968,33 +3134,147 @@ class poloniex extends Exchange {
         //        "transferId" : "168041074"
         //    }
         //
-        return $this->parse_transfer($response, $currency);
+        return $this->extend($this->parse_transfer($response, $currency), array(
+            'amount' => $this->parse_number($amountToPrecision),
+            'fromAccount' => $fromAccount,
+            'toAccount' => $toAccount,
+        ));
+    }
+
+    public function fetch_transfer(string $id, ?string $code = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_transfer(...))($id, $code, $params);
+    }
+
+    private function do_fetch_transfer(string $id, ?string $code = null, $params = array()) {
+        /**
+         * fetch a transfer
+         *
+         * @see https://api-docs.poloniex.com/spot/api/private/account#accounts-transfer-record
+         *
+         * @param {string} $id transfer $id
+         * @param {string} [$code] not used by poloniex fetchTransfer
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?$id=transfer-structure transfer structure~
+         */
+        Async\await($this->load_markets());
+        $request = array(
+            'id' => $id,
+        );
+        $response = Async\await($this->privateGetAccountsTransferId($this->extend($request, $params)));
+        //
+        //     {
+        //         "id": "342284495",
+        //         "fromAccount": "FUTURES",
+        //         "toAccount": "SPOT",
+        //         "currency": "USDT",
+        //         "amount": "6",
+        //         "state": "SUCCESS",
+        //         "createTime": 1787154736417
+        //     }
+        //
+        return $this->parse_transfer($response);
+    }
+
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_transfers(...))($code, $since, $limit, $params);
+    }
+
+    private function do_fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch a history of internal transfers made on an account
+         *
+         * @see https://api-docs.poloniex.com/spot/api/private/account#accounts-transfer-records
+         *
+         * @param {string} [$code] unified $currency $code of the $currency transferred
+         * @param {int} [$since] the earliest time in ms to fetch transfers for
+         * @param {int} [$limit] the maximum number of transfer structures to retrieve, default 100, max 1000
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch transfers for
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
+         */
+        Async\await($this->load_markets());
+        $currency = null;
+        $request = array();
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency'] = $currency['id'];
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('endTime', $request, $params);
+        $response = Async\await($this->privateGetAccountsTransfer($this->extend($requestUntil, $paramsUntil)));
+        //
+        //     [
+        //         {
+        //             "id": "342284495",
+        //             "fromAccount": "FUTURES",
+        //             "toAccount": "SPOT",
+        //             "currency": "USDT",
+        //             "amount": "6",
+        //             "state": "SUCCESS",
+        //             "createTime": 1787154736417
+        //         }
+        //     ]
+        //
+        return $this->parse_transfers($response, $currency, $since, $limit);
+    }
+
+    public function parse_transfer_status(?string $status): ?string {
+        $statuses = array(
+            'SUCCESS' => 'ok',
+            'PROCESSING' => 'pending',
+            'PROCESSSING' => 'pending',
+            'FAILED' => 'failed',
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
-        //    {
-        //        "transferId" : "168041074"
-        //    }
+        // transfer
         //
+        //     {
+        //         "transferId" : "168041074"
+        //     }
+        //
+        // fetchTransfer, fetchTransfers
+        //
+        //     {
+        //         "id": "342284495",
+        //         "fromAccount": "FUTURES",
+        //         "toAccount": "SPOT",
+        //         "currency": "USDT",
+        //         "amount": "6",
+        //         "state": "SUCCESS",
+        //         "createTime": 1787154736417
+        //     }
+        //
+        $timestamp = $this->safe_integer($transfer, 'createTime');
+        $fromAccountId = $this->safe_string($transfer, 'fromAccount');
+        $toAccountId = $this->safe_string($transfer, 'toAccount');
+        $accountIds = $this->safe_dict($this->options, 'accountsById', array());
         return array(
             'info' => $transfer,
-            'id' => $this->safe_string($transfer, 'transferId'),
-            'timestamp' => null,
-            'datetime' => null,
-            'currency' => $this->safe_string($currency, 'id'),
-            'amount' => null,
-            'fromAccount' => null,
-            'toAccount' => null,
-            'status' => null,
+            'id' => $this->safe_string_2($transfer, 'id', 'transferId'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'currency' => $this->safe_currency_code($this->safe_string($transfer, 'currency'), $currency),
+            'amount' => $this->safe_number($transfer, 'amount'),
+            'fromAccount' => $this->safe_string($accountIds, $fromAccountId, $fromAccountId),
+            'toAccount' => $this->safe_string($accountIds, $toAccountId, $toAccountId),
+            'status' => $this->parse_transfer_status($this->safe_string($transfer, 'state')),
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal
          *
@@ -3003,12 +3283,12 @@ class poloniex extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->check_address($address);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
+        $this->check_address($address, $code, $tagWithdrawTag);
         $currency = $this->currency($code);
         $request = array(
             'coin' => $currency['id'],
@@ -3870,9 +4150,11 @@ class poloniex extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
+        $isArray = (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params)));
         $url = $this->urls['api']['spot'];
-        if ($this->in_array($api, array( 'swapPublic', 'swapPrivate' ))) {
+        if ($this->in_array($apiName, array( 'swapPublic', 'swapPrivate' ))) {
             $url = $this->urls['api']['swap'];
         }
         if ($method === 'GET' && (is_array($params) && array_key_exists('symbol' ?? '', $params))) {
@@ -3882,7 +4164,7 @@ class poloniex extends Exchange {
         $implodedPath = $this->implode_params($path, $params);
         $bodyJson = null;
         $signedHeaders = null;
-        if ($api === 'public' || $api === 'swapPublic') {
+        if ($apiName === 'public' || $apiName === 'swapPublic') {
             $url .= '/' . $implodedPath;
             if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
@@ -3895,7 +4177,7 @@ class poloniex extends Exchange {
             $auth .= '/' . $implodedPath;
             if (($method === 'POST') || ($method === 'PUT') || ($method === 'DELETE')) {
                 $auth .= "\n"; // eslint-disable-line quotes
-                if (count($query) > 0) {
+                if ($isArray || count($query) > 0) {
                     $bodyJson = $this->json($query);
                     $auth .= 'requestBody=' . $bodyJson . '&';
                 }
@@ -3916,8 +4198,8 @@ class poloniex extends Exchange {
                 'signature' => $signature,
             );
         }
-        $bodyResolved = ($bodyJson === null) ? $body : $bodyJson;
-        $headersResolved = ($signedHeaders === null) ? $headers : $signedHeaders;
+        $bodyResolved = $bodyJson;
+        $headersResolved = $signedHeaders;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 

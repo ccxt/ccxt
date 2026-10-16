@@ -1114,6 +1114,7 @@ class Transpiler {
             'OptionChain': /-> OptionChain:/,
             'Order': /-> (?:[Ll]ist\[)?Order\]?:/,
             'OrderBook': /-> OrderBook:/,
+            'OrderBookL3': /-> OrderBookL3:/,
             'OrderRequest': /: (?:[Ll]ist\[)?OrderRequest/,
             'CancellationRequest': /: (?:[Ll]ist\[)?CancellationRequest/,
             'OrderSide': /: OrderSide/,
@@ -2423,7 +2424,7 @@ class Transpiler {
                     // the ws order book class alias prints untyped, as `any` did
                     'WsOrderBook': 'mixed',
                 }
-                const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|ADL|Order|OrderBooks?|Tickers?|Trade|Transaction|Balances?|MarketInterface|CurrencyInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|AllGreeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|MarginLoan|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|DepositWithdrawFee|DepositWithdrawFees|DepositWithdrawFeeNetwork|CrossBorrowRates?|IsolatedBorrowRates?|FundingRates|FundingRate|FundingRateHistory|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|DepositAddresses|LongShortRatio|PositionModeInfo|Position|BorrowInterest|PredictionTicker|PredictionTickers|PredictionOrder|PredictionTrade|PredictionPosition|PredictionOrderBook|PredictionEvent|PredictionMarket|PredictionOutcome|PredictionTradingFee|PredictionOpenInterest|PredictionSettlement|fetchEventsParams|OpenInterests?|Options?|OptionChain|Liquidations?|Status)( \| undefined)?$|\w+\[\]/
+                const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|ADL|Order|OrderBooks?|OrderBookL3|Tickers?|Trade|Transaction|Balances?|MarketInterface|CurrencyInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|AllGreeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|MarginLoan|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|DepositWithdrawFee|DepositWithdrawFees|DepositWithdrawFeeNetwork|CrossBorrowRates?|IsolatedBorrowRates?|FundingRates|FundingRate|FundingRateHistory|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|DepositAddresses|LongShortRatio|PositionModeInfo|Position|BorrowInterest|PredictionTicker|PredictionTickers|PredictionOrder|PredictionTrade|PredictionPosition|PredictionOrderBook|PredictionEvent|PredictionMarket|PredictionOutcome|PredictionTradingFee|PredictionOpenInterest|PredictionSettlement|fetchEventsParams|OpenInterests?|Options?|OptionChain|Liquidations?|Status)( \| undefined)?$|\w+\[\]/
 
                 phpArgs = argsArray.map (x => {
                     const parts = x.split (':')
@@ -2435,7 +2436,8 @@ class Transpiler {
                         let nullable = false
                         let endpart = ''
                         if (secondPart.length === 2) {
-                            const trimmed = secondPart[1].trim ()
+                            // php-cs-fixer wants long array syntax for list defaults: `[ 'public' ]` -> `array('public')`
+                            const trimmed = secondPart[1].trim ().replace (/^\[\s*(.*?)\s*\]$/, 'array($1)')
                             nullable = trimmed === 'undefined'
                             endpart = ' = ' + trimmed
                         }
@@ -2522,7 +2524,8 @@ class Transpiler {
                         const annotation = parts[1].trim ()
                         const defaultIndex = annotation.indexOf (' = ')
                         const typeExpression = (defaultIndex === -1) ? annotation : annotation.slice (0, defaultIndex)
-                        const defaultExpression = (defaultIndex === -1) ? '' : annotation.slice (defaultIndex)
+                        // PEP8 E201/E202: list/dict defaults carry ts bracket padding (`[ 'public' ]`)
+                        const defaultExpression = (defaultIndex === -1) ? '' : annotation.slice (defaultIndex).replace (/([\[{]) +/g, '$1').replace (/ +([\]}])/g, '$1')
                         const rawType = unwrapLists (typeExpression.trim ())
                         return variable + ': ' + rawType + defaultExpression
                     } else {
@@ -3411,7 +3414,8 @@ class Transpiler {
         const exchangeCamelCaseProps = (str: string) => {
             // replace all snake_case exchange props to camelCase
             return str.
-                replace (/precision_mode/g, 'precisionMode');
+                replace (/precision_mode/g, 'precisionMode').
+                replace (/network_aliases/g, 'networkAliases');
         };
 
         const pyFixes = (str: string, sync = false) => {

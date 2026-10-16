@@ -288,10 +288,7 @@ class kraken(Exchange, ImplicitAPI):
                 'delistedMarketsById': {},
                 # cannot withdraw/deposit these
                 'inactiveCurrencies': ['CAD', 'USD', 'JPY', 'GBP'],
-                'networks': {
-                    'ETH': 'ERC20',
-                    'TRX': 'TRC20',
-                },
+                'networks': {},
                 'depositMethods': {
                     '1INCH': '1inch' + ' ' + '(1INCH)',
                     'AAVE': 'Aave',
@@ -3140,8 +3137,8 @@ class kraken(Exchange, ImplicitAPI):
             self.load_markets()
         currency = self.currency(code)
         network = self.safe_string_upper(params, 'network')
-        networks = self.safe_dict(self.options, 'networks', {})
-        network = self.safe_string(networks, network, network)  # support ETH > ERC20 aliases
+        if network is not None:
+            network = self.safe_string(self.networkAliases, network, network)
         paramsOmitted = self.omit(params, 'network')
         codeResolved = code
         if (code == 'USDT') and (network == 'TRC20'):
@@ -3205,7 +3202,7 @@ class kraken(Exchange, ImplicitAPI):
             'tag': tag,
         }
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -3214,11 +3211,12 @@ class kraken(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to, not required can be '' or None/none/None
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagAndParams = self.handle_withdraw_tag_and_params(tag, params)
+        tagAndParams = self.handle_param_string(params, 'tag')
+        tagWithdrawTag = tagAndParams[0]
         paramsWithdrawTag = tagAndParams[1]
         if 'key' in paramsWithdrawTag:
             self.load_markets()
@@ -3230,7 +3228,7 @@ class kraken(Exchange, ImplicitAPI):
             }
             if address is not None and address != '':
                 request['address'] = address
-                self.check_address(address)
+                self.check_address(address, code, tagWithdrawTag)
             response = self.privatePostWithdraw(self.extend(request, paramsWithdrawTag))
             #
             #     {
@@ -3452,13 +3450,14 @@ class kraken(Exchange, ImplicitAPI):
             'status': 'sucess',
         }
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        url = '/' + self.version + '/' + api + '/' + path
-        if api == 'public':
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
+        url = '/' + self.version + '/' + apiName + '/' + path
+        if apiName == 'public':
             if len(params) > 0:
                 # rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
                 url += '?' + self.urlencode_nested(params)
-        elif api == 'private':
+        elif apiName == 'private':
             price = self.safe_string(params, 'price')
             isTriggerPercent = False
             if price is not None:
@@ -3489,17 +3488,17 @@ class kraken(Exchange, ImplicitAPI):
                 headersSigned['Content-Type'] = 'application/json'
             else:
                 headersSigned['Content-Type'] = 'application/x-www-form-urlencoded'
-            baseApiUrl = self.safe_string(self.urls['api'], api)
+            baseApiUrl = self.safe_string(self.urls['api'], apiName)
             if baseApiUrl is None:
                 raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
             urlSigned = baseApiUrl + url
             return {'url': urlSigned, 'method': method, 'body': bodySigned, 'headers': headersSigned}
         else:
             url = '/' + path
-        apiUrl = self.safe_string(self.urls['api'], api)
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-        return {'url': apiUrl + url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': apiUrl + url, 'method': method, 'body': None, 'headers': None}
 
     def nonce(self) -> float:
         return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)

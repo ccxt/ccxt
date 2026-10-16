@@ -328,6 +328,15 @@ func AssertEqual(exchange ccxt.ICoreExchange, skippedProperties any, method any,
 		Assert(ccxt.Precise.StringEq(value, compareTo), Add(Add(Add(Add(Add(StringValue(key), " key (with a value of "), StringValue(value)), ") was expected to be equal to "), StringValue(compareTo)), logText))
 	}
 }
+func AssertUnifiedNetworkCode(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, networkCode any) {
+	// returned network codes must be the unified code, never one of its aliases (e.g. ERC20, not ETH)
+	if (InOp(skippedProperties, "network")) || (networkCode == nil) {
+		return
+	}
+	var logText any = LogTemplate(exchange, method, entry)
+	var unifiedCode any = ccxt.DerefScalar(exchange.SafeString(exchange.GetNetworkAliases(), networkCode, networkCode))
+	Assert((unifiedCode == networkCode), Add(Add(Add(Add("network code ", networkCode), " is an alias, expected the unified code "), unifiedCode), logText))
+}
 func AssertNonEqual(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, key any, compareTo any, optionalArgs ...any) {
 	var allowNull bool = GetArgBool(optionalArgs, 0, true)
 	_ = allowNull

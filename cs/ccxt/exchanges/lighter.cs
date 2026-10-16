@@ -1199,6 +1199,19 @@ public partial class lighter : Exchange
         IDictionary<string, object> paramsGroupingType = ((IDictionary<string, object>)groupingTypeparamsGroupingTypeVariable.Item2); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         List<object> orderRequests = this.createOrderRequest(symbol, type, side, amount, price, paramsGroupingType);
         int totalOrderRequests = (orderRequests?.Count ?? 0);
+        if (totalOrderRequests > 1)
+        {
+            // the signer replaces a -1 expiry with now + 28 days reading the clock once per leg, and rejects
+            // a group whose legs differ ("OrderExpiry is invalid"), so resolve the default once for all legs
+            Int64 groupOrderExpiry = this.sum(this.milliseconds(), 2419200000); // 28 days
+            for (int i = 0; i < totalOrderRequests; i++)
+            {
+                if ((this.safeInteger((orderRequests != null && i < orderRequests.Count ? orderRequests[i] : null), "order_expiry") == -1))
+                {
+                    ((IDictionary<string,object>)(orderRequests != null && i < orderRequests.Count ? orderRequests[i] : null))["order_expiry"] = groupOrderExpiry;
+                }
+            }
+        }
         object order = null;
         if (totalOrderRequests > 0)
         {
@@ -1691,7 +1704,7 @@ public partial class lighter : Exchange
         };
         if ((limit != null))
         {
-            request["limit"] = Math.Min(limit.Value, 100);
+            request["limit"] = Math.Min(limit.Value, 250);
         }
         Dictionary<string, object> response = await this.publicGetOrderBookOrders(this.extend(request, parameters));
         //
@@ -3290,14 +3303,14 @@ public partial class lighter : Exchange
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} [tag]
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.accountIndex] account index
      * @param {string} [params.apiKeyIndex] api key index
      * @param {int} [params.routeType] wallet type, 0: perp, 1: spot, default is 0
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3768,9 +3781,14 @@ public partial class lighter : Exchange
         {
             await this.loadMarkets();
         }
-        if ((((timeout == null || timeout < 300000))) || ((timeout > 1296000000)))
+        if ((timeout == null))
         {
-            throw new BadRequest ((this.id + " timeout should be between 5 minutes and 15 days.")) ;
+            throw new ArgumentsRequired ((this.id + " cancelAllOrdersAfter() requires a timeout argument")) ;
+        }
+        bool isScheduled = ((timeout != 0));
+        if (isScheduled && (((timeout < 300000)) || ((timeout > 1296000000))))
+        {
+            throw new BadRequest ((this.id + " timeout should be between 5 minutes and 15 days, or 0 to cancel the timer.")) ;
         }
         IList<object> apiKeyIndexparamsApiKeyIndexVariable = (IList<object>)this.handleApiKeyIndex(parameters, "cancelOrder", "apiKeyIndex", "api_key_index");
         Int64? apiKeyIndex = (Int64?)apiKeyIndexparamsApiKeyIndexVariable[0];
@@ -3782,9 +3800,16 @@ public partial class lighter : Exchange
         string strApiKeyIndex = this.numberToString(apiKeyIndex);
         object signer = await this.loadAccount((this.options.ContainsKey("chainId") ? this.options["chainId"] : null), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex);
         Int64 nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex));
+        int timeInForce = 2; // 0: IMMEDIATE 1: SCHEDULED 2: ABORT
+        object cancelTime = 0;
+        if (isScheduled)
+        {
+            timeInForce = 1;
+            cancelTime = this.sum(this.milliseconds(), timeout);
+        }
         Dictionary<string, object> signRaw = new Dictionary<string, object>() {
-            { "time_in_force", 1 },
-            { "time", add(this.milliseconds(), timeout) },
+            { "time_in_force", timeInForce },
+            { "time", cancelTime },
             { "nonce", nonce },
             { "api_key_index", apiKeyIndex },
             { "account_index", accountIndex },
@@ -3914,13 +3939,14 @@ public partial class lighter : Exchange
         };
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        object apiName = getValue(api, 0);
         object url = null;
-        if ((api is "root"))
+        if ((apiName is "root"))
         {
             string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "public");
             if ((baseApiUrl == null))
@@ -3930,7 +3956,7 @@ public partial class lighter : Exchange
             url = this.implodeHostname(baseApiUrl);
         } else
         {
-            string? baseApiUrl2 = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+            string? baseApiUrl2 = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
             if ((baseApiUrl2 == null))
             {
                 throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -3938,7 +3964,7 @@ public partial class lighter : Exchange
             url = ((((this.implodeHostname(baseApiUrl2) + "/api/") + this.version) + "/") + path);
         }
         Dictionary<string, object> authHeaders = null;
-        if ((api is "private"))
+        if ((apiName is "private"))
         {
             authHeaders = new Dictionary<string, object>() {
                 { "Authorization", this.createAuth(parameters) },
@@ -3960,20 +3986,20 @@ public partial class lighter : Exchange
             }
             url = add(url, ("?" + this.rawencode(parameters)));
         }
-        if ((api is "private"))
+        if ((apiName is "private"))
         {
             return new Dictionary<string, object>() {
                 { "url", url },
                 { "method", method },
-                { "body", body },
+                { "body", null },
                 { "headers", authHeaders },
             };
         }
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", null },
+            { "headers", null },
         };
     }
 

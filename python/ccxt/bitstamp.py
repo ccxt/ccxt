@@ -2472,7 +2472,7 @@ class bitstamp(Exchange, ImplicitAPI):
         name = self.get_currency_name(code)
         # the per-currency implicit methods (privatePostBtcAddress etc.) all route
         # through request(), called here directly to avoid dynamic dispatch
-        response = self.request(name + '_address/', 'private', 'POST', params)
+        response = self.request(name + '_address/', ['private'], 'POST', params)
         address = self.safe_string(response, 'address')
         tag = self.safe_string_2(response, 'memo_id', 'destination_tag')
         self.check_address(address)
@@ -2484,7 +2484,7 @@ class bitstamp(Exchange, ImplicitAPI):
             'tag': tag,
         }
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -2494,16 +2494,16 @@ class bitstamp(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         # For fiat withdrawals please provide all required additional parameters in the 'params'
         # Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
         if self.markets is None:
             self.load_markets()
-        self.check_address(address)
+        self.check_address(address, code, tagWithdrawTag)
         request = {
             'amount': amount,
         }
@@ -2520,7 +2520,7 @@ class bitstamp(Exchange, ImplicitAPI):
             request['address'] = address
             # the per-currency implicit methods (privatePostBtcWithdrawal etc.) all
             # route through request(), called here directly to avoid dynamic dispatch
-            response = self.request(name + '_withdrawal/', 'private', 'POST', self.extend(request, paramsWithdrawTag))
+            response = self.request(name + '_withdrawal/', ['private'], 'POST', self.extend(request, paramsWithdrawTag))
         else:
             currency = self.currency(code)
             request['iban'] = address
@@ -2597,26 +2597,27 @@ class bitstamp(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: str, api='public', method: object = 'GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        apiUrl = self.safe_string(self.urls['api'], api)
+    def sign(self, path: str, api: list[str] = ['public'], method: object = 'GET', params: dict = {}) -> dict:
+        apiName = api[0]
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + '/'
         url += self.version + '/'
         url += self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        isPrivatePost = (api != 'public') and (method == 'POST')
+        isPrivatePost = (apiName != 'public') and (method == 'POST')
         # an empty POST triggers an API0020 error, so empty requests send a dummy object
         # https://github.com/ccxt/ccxt/issues/6846
         emptyPostBody = self.urlencode({'foo': 'bar'})
         postBody = emptyPostBody
         if len(query) > 0:
             postBody = self.urlencode(query)
-        requestBody = body
+        requestBody = None
         if isPrivatePost:
             requestBody = postBody
         privateHeaders = None
-        if api == 'public':
+        if apiName == 'public':
             if len(query) > 0:
                 url += '?' + self.urlencode(query)
         else:
@@ -2641,7 +2642,7 @@ class bitstamp(Exchange, ImplicitAPI):
             auth = xAuth + method + url.replace('https://', '') + contentType + xAuthNonce + xAuthTimestamp + xAuthVersion + authBody
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
             privateHeaders['X-Auth-Signature'] = signature
-        requestHeaders = headers if (api == 'public') else privateHeaders
+        requestHeaders = None if (apiName == 'public') else privateHeaders
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

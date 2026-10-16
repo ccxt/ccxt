@@ -899,10 +899,16 @@ export default class bitvavo extends bitvavoRest {
     handleOrderBookSubscription (client: Client, message: Dict, subscription: Dict) {
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
-        if ((symbol as string) in this.orderbooks) {
-            delete this.orderbooks[symbol as string];
+        const limits = this.safeDict (this.options, 'orderBookLimits', {});
+        const storedLimit = this.safeInteger (limits, symbol);
+        if (!((symbol as string) in this.orderbooks) || (storedLimit !== limit)) {
+            this.orderbooks[symbol as string] = this.orderBook ({}, limit);
+            limits[symbol as string] = limit;
+            this.options['orderBookLimits'] = limits;
         }
-        this.orderbooks[symbol as string] = this.orderBook ({}, limit);
+        const orderbook = this.orderbooks[symbol as string];
+        orderbook['nonce'] = undefined;
+        orderbook.cache = [];
     }
 
     handleOrderBookSubscriptions (client: Client, message: Dict, marketIds: any[]) {
@@ -1340,13 +1346,13 @@ export default class bitvavo extends bitvavoRest {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdrawWs (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
-        this.checkAddress (address);
+    override async withdrawWs (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleParamString (params, 'tag');
+        this.checkAddress (address, code, tagWithdrawTag);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

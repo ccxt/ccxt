@@ -2054,15 +2054,11 @@ public partial class okx : Exchange
                 { "networks", new Dictionary<string, object>() {
                     { "BTC", "Bitcoin" },
                     { "BTCLIGHTNING", "Lightning" },
-                    { "BSC", "BSC" },
                     { "BEP20", "BSC" },
                     { "BRC20", "BRC20" },
-                    { "ETH", "ERC20" },
                     { "ERC20", "ERC20" },
-                    { "TRX", "TRC20" },
                     { "TRC20", "TRC20" },
                     { "CRC20", "Crypto" },
-                    { "CRONOS", "Crypto" },
                     { "ACA", "Acala" },
                     { "ALGO", "Algorand" },
                     { "APT", "Aptos" },
@@ -6883,27 +6879,27 @@ public partial class okx : Exchange
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleWithdrawTagAndParams(tag, parameters);
-        var tagWithdrawTag = tagWithdrawTagparamsWithdrawTagVariable[0];
+        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleParamString(parameters, "tag");
+        string? tagWithdrawTag = (string)tagWithdrawTagparamsWithdrawTagVariable[0];
         IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagWithdrawTagparamsWithdrawTagVariable[1]);
-        this.checkAddress(address);
+        this.checkAddress(address, code, tagWithdrawTag);
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(code);
-        bool hasTag = ((tagWithdrawTag != null)) && (((string)tagWithdrawTag).Length > 0);
+        bool hasTag = ((tagWithdrawTag != null)) && (tagWithdrawTag.Length > 0);
         object addressWithTag = address;
         if (hasTag)
         {
-            addressWithTag = ((address + ":") + (tagWithdrawTag));
+            addressWithTag = ((address + ":") + tagWithdrawTag);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "ccy", (currency.ContainsKey("id") ? currency["id"] : null) },
@@ -6915,7 +6911,9 @@ public partial class okx : Exchange
         if ((network != null))
         {
             IDictionary<string, object> networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
-            network = this.safeString(networks, network.ToUpper(), network); // handle ETH>ERC20 alias
+            string networkUpper = network.ToUpper();
+            string? networkKey = this.safeString(this.networkAliases, networkUpper, networkUpper);
+            network = this.safeString(networks, networkKey, network); // resolve aliases to the unified key
             request["chain"] = add(add((currency.ContainsKey("id") ? currency["id"] : null), "-"), network);
         }
         List<object> omitKeys = new List<object>() {"fee"};
@@ -8125,11 +8123,12 @@ public partial class okx : Exchange
         return ccxt.BaseExchange.ToTransferEntryList(this.parseTransfers(transfers, currency, since, limit, parameters));
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        object apiName = getValue(api, 0);
         bool isArray = ((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
         string request = ((("/api/" + this.version) + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
@@ -8143,13 +8142,13 @@ public partial class okx : Exchange
         bool hasJsonBody = false;
         string? jsonBody = null;
         // const type = this.getPathAuthenticationType (path);
-        if ((api is "public"))
+        if ((apiName is "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
                 url = url + ("?" + this.urlencode(query));
             }
-        } else if ((api is "private"))
+        } else if ((apiName is "private"))
         {
             this.checkRequiredCredentials();
             // inject id in implicit api call
@@ -8207,12 +8206,12 @@ public partial class okx : Exchange
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256, "base64");
             privateHeaders["OK-ACCESS-SIGN"] = signature;
         }
-        object requestBody = body;
+        string? requestBody = null;
         if (hasJsonBody)
         {
             requestBody = jsonBody;
         }
-        object requestHeaders = ((api is "private")) ? privateHeaders : headers;
+        Dictionary<string, object> requestHeaders = ((apiName is "private")) ? privateHeaders : null;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
@@ -9140,8 +9139,8 @@ public partial class okx : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         string? type = ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) ? "MARGIN" : this.convertToInstrumentType((market.ContainsKey("type") ? market["type"] : null));
-        string? uly = this.safeString((market.ContainsKey("info") ? market["info"] : null), "uly");
-        if (((uly == null)) || (uly == ""))
+        string? instFamily = this.safeString((market.ContainsKey("info") ? market["info"] : null), "instFamily");
+        if (((instFamily == null)) || (instFamily == ""))
         {
             if (type != "MARGIN")
             {
@@ -9156,7 +9155,7 @@ public partial class okx : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instType", type },
             { "tdMode", marginMode },
-            { "uly", uly },
+            { "instFamily", instFamily },
         };
         if (type == "MARGIN")
         {

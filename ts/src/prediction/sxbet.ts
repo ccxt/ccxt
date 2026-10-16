@@ -2743,16 +2743,14 @@ export default class sxbet extends Exchange {
      * @name sxbet#sign
      * @description builds the request url and attaches the x-sx-api-key header; every private v3 route authenticates with the apiKey credential, so its absence fails fast instead of surfacing a raw 401
      * @param {string} path the endpoint path
-     * @param {string|string[]} api the api group and access level
+     * @param {string[]} api the api group and access level
      * @param {string} method the http method
      * @param {object} params the request parameters
-     * @param {object} [headers] request headers
-     * @param {string} [body] the request body
      * @returns {object} a dict with url, method, body and headers
      */
-    override sign (path: string, api: any = 'sxbet', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined) {
-        const apiGroup: string = typeof api === 'string' ? api : api[0];
-        const accessLevel: string = typeof api === 'string' ? 'public' : api[1];
+    override sign (path: string, api: string[] = [ 'sxbet' ], method = 'GET', params: Dict = {}) {
+        const apiGroup: string = api[0];
+        const accessLevel: string = this.safeString (api, 1, 'public');
         if ((accessLevel === 'private') && (this.apiKey === undefined)) {
             throw new AuthenticationError (this.id + ' ' + path + ' is a private endpoint and requires the apiKey credential (the x-sx-api-key header)');
         }
@@ -2760,7 +2758,7 @@ export default class sxbet extends Exchange {
         const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['sxbet'] as string);
         let url = baseUrl + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        const existingHeaders = (headers !== undefined) ? headers : {};
+        const existingHeaders = {};
         const headersExtended: any = this.extend ({
             'Accept': 'application/json',
             'Content-Type': 'application/json',
@@ -2775,7 +2773,7 @@ export default class sxbet extends Exchange {
             const hasOrdersList = ('orders' in query);
             sendAsQuery = !hasOrdersList;
         }
-        let bodyValue: any = body;
+        let bodyValue: any = undefined;
         if (sendAsQuery) {
             const querystring = this.urlencode (query);
             if (querystring !== '') {

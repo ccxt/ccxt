@@ -1040,13 +1040,13 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         Int64? limit = this.safeInteger(subscription, "limit");
         if (type == "snapshot")
         {
-            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
+            if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+            {
+                ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
+            }
             ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
-            this.handleDeltas(orderbook?.asks, this.safeList(message, "asks", new List<object>() {}));
-            this.handleDeltas(orderbook?.bids, this.safeList(message, "bids", new List<object>() {}));
-            orderbook["timestamp"] = null;
-            orderbook["datetime"] = null;
-            orderbook["symbol"] = symbol;
+            ccxt.OrderBook snapshot = this.parseOrderBook(message, symbol);
+            (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
             client.resolve(orderbook, messageHash);
         } else if (type == "l2update")
         {

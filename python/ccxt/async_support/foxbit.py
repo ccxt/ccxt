@@ -219,7 +219,7 @@ class foxbit(Exchange, ImplicitAPI):
                     'cardano': 'ADA',
                     'cosmos': 'ATOM',
                     'dogecoin': 'DOGE',
-                    'erc20': 'ETH',
+                    'erc20': 'ERC20',
                     'hedera': 'HBAR',
                     'litecoin': 'LTC',
                     'near': 'NEAR',
@@ -243,7 +243,7 @@ class foxbit(Exchange, ImplicitAPI):
                     'ADA': 'cardano',
                     'ATOM': 'cosmos',
                     'DOGE': 'dogecoin',
-                    'ETH': 'erc20',
+                    'ERC20': 'erc20',
                     'HBAR': 'hedera',
                     'LTC': 'litecoin',
                     'NEAR': 'near',
@@ -1487,7 +1487,7 @@ class foxbit(Exchange, ImplicitAPI):
         created = self.safe_dict(response, 'create', {})
         return self.parse_order(created, market)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         Make a withdrawal.
 
@@ -1496,11 +1496,12 @@ class foxbit(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
+        self.check_address(address, code, tagWithdrawTag)
         if self.markets is None:
             await self.load_markets()
         currency = self.currency(code)
@@ -1828,7 +1829,7 @@ class foxbit(Exchange, ImplicitAPI):
             'txid': self.safe_string(cryptoDetails, 'transaction_id'),
             'timestamp': timestamp,
             'datetime': datetime,
-            'network': self.safe_string(transaction, 'network_code'),
+            'network': self.network_id_to_code(self.safe_string(transaction, 'network_code'), currencyCode),
             'address': address,
             'addressTo': address,
             'addressFrom': None,
@@ -1911,7 +1912,7 @@ class foxbit(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def sign(self, path: str, api: object = [], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = [], method='GET', params: dict = {}) -> dict:
         version = api[0]
         urlPath = api[1]
         fullPath = '/rest/' + version + '/' + self.implode_params(path, params)
@@ -1939,7 +1940,7 @@ class foxbit(Exchange, ImplicitAPI):
                     signatureQuery += key + '=' + value
                 if i < paramKeysLength - 1:
                     signatureQuery += '&'
-        requestBody = body
+        requestBody = None
         if method == 'POST' or method == 'PUT':
             requestBody = self.json(paramsOmitted)
         bodyToSignature = ''

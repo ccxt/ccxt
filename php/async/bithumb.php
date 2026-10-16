@@ -2732,11 +2732,11 @@ class bithumb extends Exchange {
         return Async\await($this->cancel_order(($order['id']), $order['symbol'], $this->extend($request, $params)));
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal
          *
@@ -2747,11 +2747,11 @@ class bithumb extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag the secondary withdrawal $destination $address
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / $destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @param {int} [$params->generation] if you want to use the API $generation 1 or 2, default is 2
          * @param {string} [$params->network] the blockchain $network to withdraw on, for example BTC or DASH
-         * @param {string} [$params->destination] secondary $address $destination for specific currencies, can alternatively use the $tag argument
+         * @param {string} [$params->destination] secondary $address $destination for specific currencies, can alternatively use the tag argument
          * @param {string} [$params->exchange_name] withdrawal exchange name
          * @param {string} [$params->receiver_type] either personal or corporation
          * @param {string} [$params->ko_name] *$generation 1 only* the receiver name in korean
@@ -2767,8 +2767,8 @@ class bithumb extends Exchange {
             Async\await($this->load_markets());
         }
         list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'withdraw', 'generation', 2);
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $paramsGeneration);
-        $this->check_address($address);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($paramsGeneration, 'tag');
+        $this->check_address($address, $code, $tagWithdrawTag);
         $network = $this->safe_string_2($paramsWithdrawTag, 'network', 'net_type');
         $paramsNetwork = $this->omit($paramsWithdrawTag, 'network');
         $currency = $this->currency($code);
@@ -2783,7 +2783,7 @@ class bithumb extends Exchange {
         if ($requiresDestination) {
             $destination = $this->safe_string_2($paramsNetwork, 'destination', 'secondary_address');
             if (($tagWithdrawTag === null) && ($destination === null)) {
-                throw new ArgumentsRequired($this->id . ' ' . $code . ' withdraw() requires a tag argument or an extra destination param');
+                throw new ArgumentsRequired($this->id . ' ' . $code . ' withdraw() requires a tag or an extra destination param');
             } elseif ($tagWithdrawTag !== null) {
                 $destinationRequest = $tagWithdrawTag;
             } else {
@@ -2806,7 +2806,7 @@ class bithumb extends Exchange {
                 }
                 $request['address'] = $address;
                 $request['currency'] = $currency['id'];
-                $request['net_type'] = $network;
+                $request['net_type'] = $this->network_code_to_id($network, $code);
                 $request['amount'] = $this->number_to_string($amount);
                 if ($destinationRequest !== null) {
                     $request['secondary_address'] = $destinationRequest;
@@ -2837,7 +2837,7 @@ class bithumb extends Exchange {
             $request['currency'] = $currency['id'];
             $request['units'] = $amount;
             if ($network !== null) {
-                $request['net_type'] = $network;
+                $request['net_type'] = $this->network_code_to_id($network, $code);
             }
             if ($destinationRequest !== null) {
                 $request['destination'] = $destinationRequest;
@@ -2901,7 +2901,7 @@ class bithumb extends Exchange {
             'txid' => $this->safe_string($transaction, 'txid'),
             'timestamp' => $timestamp,
             'datetime' => $datetime,
-            'network' => $this->safe_string($transaction, 'net_type'),
+            'network' => $this->network_id_to_code($this->safe_string($transaction, 'net_type'), $currencyResolved['code']),
             'addressFrom' => null,
             'address' => null,
             'addressTo' => null,
@@ -3259,7 +3259,7 @@ class bithumb extends Exchange {
         if ($network === null) {
             throw new ArgumentsRequired($this->id . ' ' . $code . ' createDepositAddress() requires a network parameter');
         }
-        $request['net_type'] = $network;
+        $request['net_type'] = $this->network_code_to_id($network, $code);
         $response = Async\await($this->privatePostV1DepositsGenerateCoinAddress($this->extend($request, $paramsOmitted)));
         //
         //     {
@@ -3304,7 +3304,7 @@ class bithumb extends Exchange {
         if ($network === null) {
             throw new ArgumentsRequired($this->id . ' ' . $code . ' fetchDepositAddress() requires a network parameter');
         }
-        $request['net_type'] = $network;
+        $request['net_type'] = $this->network_code_to_id($network, $code);
         $response = Async\await($this->privateGetV1DepositsCoinAddress($this->extend($request, $paramsOmitted)));
         //
         //     {
@@ -3374,7 +3374,7 @@ class bithumb extends Exchange {
         return array(
             'info' => $response,
             'currency' => $code,
-            'network' => $this->safe_string($response, 'net_type'),
+            'network' => $this->network_id_to_code($this->safe_string($response, 'net_type'), $code),
             'address' => $address,
             'tag' => $this->safe_string($response, 'secondary_address'),
         );
@@ -3428,11 +3428,12 @@ class bithumb extends Exchange {
         return $result;
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $requestHeaders = null;
         $requestBody = null;
         $endpoint = '/' . $this->implode_params($path, $params);
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
@@ -3441,7 +3442,7 @@ class bithumb extends Exchange {
         $queryKeys = is_array($query) ? array_keys($query) : array();
         $queryKeysLength = count($queryKeys);
         $hasQuery = ($queryKeysLength > 0);
-        if ($api === 'public') {
+        if ($apiName === 'public') {
             $requestHeaders = array(
                 'OPEN-API-PARTNER' => 'CCXT',
             );
@@ -3500,8 +3501,8 @@ class bithumb extends Exchange {
                 );
             }
         }
-        $headersResult = ($requestHeaders !== null) ? $requestHeaders : $headers;
-        $bodyResult = ($requestBody !== null) ? $requestBody : $body;
+        $headersResult = $requestHeaders;
+        $bodyResult = $requestBody;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
     }
 

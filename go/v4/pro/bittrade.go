@@ -656,10 +656,12 @@ func (this *Bittrade) HandleOrderBookSubscription(client any, message map[string
 		return
 	}
 	var limit *int64 = this.SafeInteger(subscription, "limit")
-	if ccxt.InOp(this.Orderbooks, symbol) {
-		ccxt.Remove(this.Orderbooks, symbol)
+	if !(ccxt.InOp(this.Orderbooks, symbol)) {
+		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
 	}
-	ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
+	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	ccxt.AddElementToObject(orderbook, "nonce", nil)
+	orderbook.(ccxt.OrderBookInterface).SetCache([]any{})
 	// watch the snapshot in a separate async call
 	this.Spawn(this.WatchOrderBookSnapshotAsync, client, message, subscription)
 }
@@ -784,6 +786,8 @@ func (this *Bittrade) HandleErrorMessage(client any, message any) bool {
 		var subscription any = this.SafeDict(subscriptionsById, id)
 		if subscription != nil {
 			var errorCode *string = this.SafeString(message, "err-code")
+			var errorMessage *string = this.SafeString(message, "err-msg")
+			var feedback string = this.Id + " " + this.Json(message)
 
 			{
 				func(this *Bittrade) (ret_ any) {
@@ -805,8 +809,10 @@ func (this *Bittrade) HandleErrorMessage(client any, message any) bool {
 						}
 					}()
 					// try block:
-					this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, this.Json(message))
-					return nil
+					this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorMessage, feedback)
+					this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
+					panic(ccxt.ExchangeError(feedback))
+
 				}(this)
 
 			}

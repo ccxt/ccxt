@@ -850,8 +850,8 @@ func (this *Phemex) Describe() any {
 				"BEP20": "BNB",
 			},
 			"defaultNetworks": map[string]any{
-				"USDT": "ETH",
-				"MKR":  "ETH",
+				"USDT": "ERC20",
+				"MKR":  "ERC20",
 			},
 			"defaultSubType": "linear",
 			"accountsByType": map[string]any{
@@ -4518,7 +4518,9 @@ func (this *Phemex) fetchDepositAddressBody(ch chan AsyncResult[any], code strin
 	var networks map[string]any = SafeMapTyped(this.Options, "networks")
 	var network *string = this.SafeStringUpper2(params, "network", "chainName", defaultNetwork)
 	var paramsOmitted map[string]any = this.OmitDict(params, "network")
-	network = this.SafeString(networks, network, network)
+	if network != nil {
+		network = this.SafeString(networks, this.SafeString(this.NetworkAliases, network, network), network)
+	}
 	if network == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddress() requires a network parameter"))
 	} else {
@@ -5958,16 +5960,13 @@ func (this *Phemex) ParseMarketLeverageTiers(info any, optionalArgs ...any) any 
 	return tiers
 }
 func (this *Phemex) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var requestPath string = "/" + this.ImplodeParams(path, params)
 	var url string = requestPath
@@ -5980,7 +5979,7 @@ func (this *Phemex) Sign(path string, optionalArgs ...any) any {
 	}
 	var requestBody *string = nil
 	var privateHeaders any = nil
-	if api == "private" {
+	if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		var timestamp int64 = this.Seconds()
 		var xPhemexRequestExpiry *int64 = this.SafeInteger(this.Options, "x-phemex-request-expiry", 60)
@@ -6006,21 +6005,21 @@ func (this *Phemex) Sign(path string, optionalArgs ...any) any {
 		var auth string = requestPath + queryString + expiryString + payload
 		AddElementToObject(privateHeaders, "x-phemex-request-signature", this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256))
 	}
-	var baseApiUrl *string = this.SafeString(this.Urls["api"], api)
+	var baseApiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	url = this.ImplodeHostname(baseApiUrl) + url
-	var isPrivatePost bool = (api == "private") && (method == "POST")
-	var bodyResolved *string = body
+	var isPrivatePost bool = (apiName != nil && *apiName == "private") && (method == "POST")
+	var bodyResolved *string = nil
 	if isPrivatePost {
 		bodyResolved = requestBody
 	}
 	var requestHeaders any = func() any {
-		if api == "private" {
+		if apiName != nil && *apiName == "private" {
 			return privateHeaders
 		}
-		return headers
+		return nil
 	}()
 	return map[string]any{
 		"url":     url,
@@ -6429,11 +6428,11 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan AsyncResult[any], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes508719 []any = ListTyped(r1.Value)
-		if retRes508719 == nil {
+		var retRes509019 []any = ListTyped(r1.Value)
+		if retRes509019 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes508719}
+			ch <- AsyncResult[any]{Value: retRes509019}
 		}
 		return nil
 	}
@@ -6513,8 +6512,8 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan AsyncResult[any], option
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @param {string} [params.network] unified network code
  * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
  */
@@ -6526,12 +6525,10 @@ func (this *Phemex) WithdrawAsync(code string, amount any, address any, optional
 func (this *Phemex) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	var tagWithdrawTag *string = SafeStringPtr(tagWithdrawTagparamsWithdrawTagVariable[0])
+	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
+	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 	if this.Markets == nil {
 
@@ -6540,7 +6537,7 @@ func (this *Phemex) withdrawBody(ch chan EndpointResult[map[string]any], code st
 			panic(r.Err)
 		}
 	}
-	this.CheckAddress(address)
+	this.CheckAddress(address, code, tagWithdrawTag)
 	var currency map[string]any = this.Currency(code)
 	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(paramsWithdrawTag)
 	var networkCode *string = SafeStringPtr(networkCodeparamsNetworkCodeVariable[0])
@@ -6563,7 +6560,7 @@ func (this *Phemex) withdrawBody(ch chan EndpointResult[map[string]any], code st
 		"amount":    amount,
 		"chainName": ToUpper(networkId),
 	}
-	if tagWithdrawTag != nil {
+	if !IsEqual(tagWithdrawTag, nil) {
 		request["addressTag"] = tagWithdrawTag
 	}
 
@@ -8111,8 +8108,8 @@ func (this *Phemex) FetchFundingRateHistory(options ...FetchFundingRateHistoryOp
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @param {string} [params.network] unified network code
  * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
  */
@@ -8123,7 +8120,7 @@ func (this *Phemex) Withdraw(code string, amount float64, address string, option
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

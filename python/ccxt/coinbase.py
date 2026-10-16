@@ -2417,6 +2417,20 @@ class coinbase(Exchange, ImplicitAPI):
         elif (isV3 is True) or (method == 'v3PrivateGetBrokerageAccounts'):
             request['limit'] = 250
             response = self.v3PrivateGetBrokerageAccounts(self.extend(request, paramsMarketType))
+            # an explicit params.cursor means the caller pages manually
+            if self.safe_string(paramsMarketType, 'cursor') is None:
+                accounts = self.safe_list(response, 'accounts', [])
+                page = response
+                cursor = self.safe_string(page, 'cursor')
+                while(self.safe_bool(page, 'has_next', False) and (cursor is not None) and (cursor != '')):
+                    request['cursor'] = cursor
+                    page = self.v3PrivateGetBrokerageAccounts(self.extend(request, paramsMarketType))
+                    accounts = self.array_concat(accounts, self.safe_list(page, 'accounts', []))
+                    nextCursor = self.safe_string(page, 'cursor')
+                    cursor = None if (nextCursor == cursor) else nextCursor
+                response['accounts'] = accounts
+                response['has_next'] = self.safe_bool(page, 'has_next', False)
+                response['cursor'] = self.safe_string(page, 'cursor')
         else:
             request['limit'] = 250
             response = self.v2PrivateGetAccounts(self.extend(request, paramsMarketType))
@@ -3981,7 +3995,7 @@ class coinbase(Exchange, ImplicitAPI):
         tickers = self.safe_list(response, 'pricebooks', [])
         return self.parse_tickers(tickers, symbolsNormalized)
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -3990,14 +4004,14 @@ class coinbase(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str [tag]: an optional tag for the withdrawal
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :param str [params.network]: the cryptocurrency network to use for the withdrawal using the lowercase name like bitcoin, ethereum, solana, etc.
         :param dict [params.travel_rule_data]: some regions require travel rule information for crypto withdrawals, see the exchange docs for details https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/travel-rule
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
-        self.check_address(address)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
+        self.check_address(address, code, tagWithdrawTag)
         if self.markets is None:
             self.load_markets()
         currency = self.currency(code)
@@ -5013,7 +5027,7 @@ class coinbase(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' nonce() requires a numeric options["timeDifference"]')
         return self.milliseconds() - timeDifference
 
-    def sign(self, path: str, api: object = [], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = [], method='GET', params: dict = {}) -> dict:
         requestBody = None
         requestHeaders = None
         version = self.safe_string(api, 0)
@@ -5102,8 +5116,8 @@ class coinbase(Exchange, ImplicitAPI):
                 if method != 'GET':
                     if len(query) > 0:
                         requestBody = self.json(query)
-        bodyResolved = body if (requestBody is None) else requestBody
-        headersResolved = headers if (requestHeaders is None) else requestHeaders
+        bodyResolved = requestBody
+        headersResolved = requestHeaders
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

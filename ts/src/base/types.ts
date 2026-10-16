@@ -1,6 +1,9 @@
 export type Int = number | undefined;
 export type int = number;
 export type Str = string | undefined;
+
+/** unified network code; editors suggest the canonical codes, any other chain code is still accepted */
+export type NetworkCode = 'ERC20' | 'TRC20' | 'BEP20' | 'SOL' | 'BTC' | 'BRC20' | 'ARBITRUM' | 'ARBITRUM_NOVA' | 'OPTIMISM' | 'BASE' | 'POL' | 'AVAXC' | 'AVAXX' | 'CRC20' | 'TON' | 'SUI' | 'APT' | 'NEAR' | 'XRP' | 'XLM' | 'LTC' | 'DOGE' | 'BCH' | 'ADA' | 'DOT' | 'ATOM' | 'ALGO' | 'HBAR' | 'KAVA' | 'ZKSYNCERA' | 'LINEA' | 'SCROLL' | 'MANTLE' | 'CELO' | 'FTM' | 'SONIC' | 'EOS' | 'XTZ' | (string & {});
 export type Strings = string[] | undefined;
 export type Num = number | undefined;
 export type Bool = boolean | undefined;
@@ -12,6 +15,13 @@ export type OrderSide = 'buy' | 'sell' | string;
 export type OrderType = 'limit' | 'market' | string;
 export type MarketType = 'spot' | 'margin' | 'swap' | 'future' | 'option' | 'delivery' | 'index' | 'prediction';
 export type SubType = 'linear' | 'inverse' | undefined;
+export type DefaultType = 'spot' | 'margin' | 'option' | 'swap' | 'future';
+export type DefaultSubType = 'linear' | 'inverse';
+
+export interface ExchangeOptions extends Dictionary<any> {
+    defaultType?: DefaultType;
+    defaultSubType?: DefaultSubType;
+}
 
 export interface Dictionary<T> {
     [key: string]: T;
@@ -529,6 +539,16 @@ export interface OrderBook {
     copy (): OrderBook;
 }
 
+export interface OrderBookL3 {
+    asks: [Num, Num, Str][];
+    bids: [Num, Num, Str][];
+    datetime: Str;
+    timestamp: Int;
+    nonce: Int;
+    symbol: Str;
+    copy (): OrderBookL3;
+}
+
 export interface OrderBooks extends Dictionary<OrderBook> {
 }
 
@@ -575,7 +595,7 @@ export interface Transaction {
     status: 'pending' | 'ok' | 'failed' | 'canceled' | Str;
     updated: Int;
     fee: Fee;
-    network: Str;
+    network: NetworkCode | undefined;
     comment: Str;
     internal: Bool;
 }
@@ -647,7 +667,7 @@ export interface Balances extends Dictionary<Balance> {
 export interface DepositAddress {
     info: any;
     currency: Str;
-    network?: Str;
+    network?: NetworkCode;
     address: Str;
     tag?: Str;
     note?: Str;
@@ -1078,7 +1098,7 @@ interface BaseConstructorArgs {
     verbose?: boolean;
     sandbox?: boolean; // redundant with testnet but kept for backward compatibility
     testnet?: boolean;
-    options?: Dict;
+    options?: ExchangeOptions;
     enableRateLimit?: boolean;
     httpsProxy?: string;
     socksProxy?: string;

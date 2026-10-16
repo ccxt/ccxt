@@ -58,6 +58,7 @@ func (this *Bingx) Describe() any {
 			"editOrder":                            true,
 			"fetchAllGreeks":                       false,
 			"fetchBalance":                         true,
+			"fetchBidsAsks":                        true,
 			"fetchBorrowInterest":                  false,
 			"fetchBorrowRate":                      false,
 			"fetchBorrowRateHistories":             false,
@@ -913,15 +914,13 @@ func (this *Bingx) Describe() any {
 				"asset": map[string]any{
 					"v1": map[string]any{
 						"private": map[string]any{
-							"post": map[string]any{
-								"transfer": map[string]any{
+							"get": map[string]any{
+								"transfer/supportCoins": map[string]any{
 									"cost": 5,
 								},
 							},
-						},
-						"public": map[string]any{
-							"get": map[string]any{
-								"transfer/supportCoins": map[string]any{
+							"post": map[string]any{
+								"transfer": map[string]any{
 									"cost": 5,
 								},
 							},
@@ -1080,7 +1079,7 @@ func (this *Bingx) Describe() any {
 			"recvWindow": 5 * 1000,
 			"broker":     "CCXT",
 			"defaultNetworks": map[string]any{
-				"ETH":  "ETH",
+				"ETH":  "ERC20",
 				"USDT": "ERC20",
 				"USDC": "ERC20",
 				"BTC":  "BTC",
@@ -1126,7 +1125,7 @@ func (this *Bingx) Describe() any {
 					"trailing":               true,
 					"leverage":               false,
 					"marketBuyRequiresPrice": false,
-					"marketBuyByCost":        false,
+					"marketBuyByCost":        true,
 					"selfTradePrevention":    false,
 					"iceberg":                false,
 				},
@@ -1177,8 +1176,11 @@ func (this *Bingx) Describe() any {
 				},
 			},
 			"defaultForInverse": map[string]any{
-				"extends":      "defaultForLinear",
-				"sandbox":      false,
+				"extends": "defaultForLinear",
+				"sandbox": false,
+				"createOrder": map[string]any{
+					"marketBuyByCost": false,
+				},
 				"createOrders": nil,
 				"fetchOHLCV": map[string]any{
 					"limit": 1000,
@@ -1786,11 +1788,11 @@ func (this *Bingx) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, optio
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes123019 []any = ListTyped(r1.Value)
-		if retRes123019 == nil {
+		var retRes123219 []any = ListTyped(r1.Value)
+		if retRes123219 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes123019}
+			ch <- AsyncResult[any]{Value: retRes123219}
 		}
 		return nil
 	}
@@ -2631,11 +2633,11 @@ func (this *Bingx) fetchFundingRateHistoryBody(ch chan AsyncResult[any], optiona
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes188619 []any = ListTyped(r1.Value)
-		if retRes188619 == nil {
+		var retRes188819 []any = ListTyped(r1.Value)
+		if retRes188819 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes188619}
+			ch <- AsyncResult[any]{Value: retRes188819}
 		}
 		return nil
 	}
@@ -2751,11 +2753,11 @@ func (this *Bingx) fetchFundingHistoryBody(ch chan AsyncResult[any], optionalArg
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes196319 []any = ListTyped(r1.Value)
-		if retRes196319 == nil {
+		var retRes196519 []any = ListTyped(r1.Value)
+		if retRes196519 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes196319}
+			ch <- AsyncResult[any]{Value: retRes196519}
 		}
 		return nil
 	}
@@ -3072,6 +3074,92 @@ func (this *Bingx) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol s
 
 /**
  * @method
+ * @name bingx#fetchBidsAsks
+ * @description fetches the bid and ask price and volume for multiple markets
+ * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/Symbol%20Order%20Book%20Ticker
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Symbol%20Order%20Book%20Ticker
+ * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all spot markets are returned if not assigned, swap requires exactly one symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+func (this *Bingx) FetchBidsAsksAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
+	go this.fetchBidsAsksBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Bingx) fetchBidsAsksBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
+	_ = symbols
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
+	var market any = this.GetMarketFromSymbols(symbolsNormalized)
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchBidsAsks", market, params)
+	var request map[string]any = map[string]any{}
+	var rows []any = []any{}
+	var symbolsLength int = func() int {
+		if symbolsNormalized == nil {
+			return 0
+		}
+		return len(symbolsNormalized)
+	}()
+	if typeVar != nil && *typeVar == "spot" {
+		if (!IsEqual(market, nil)) && (symbolsLength == 1) {
+			request["symbol"] = GetValue(market, "id")
+		}
+
+		r1 := <-this.SpotV2PublicGetQuoteBookTicker(this.Extend(request, paramsMarketType))
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		response := r1.Raw
+		rows = ArrayTyped(this.SafeList(response, "data", []any{}))
+	} else {
+		if (IsEqual(market, nil)) || (GetValue(market, "inverse") == true) || (symbolsLength != 1) {
+			panic(ArgumentsRequired(this.Id + " fetchBidsAsks() requires exactly one linear swap symbol for contract markets"))
+		}
+		request["symbol"] = GetValue(market, "id")
+
+		r2 := <-this.SwapV2PublicGetQuoteBookTicker(this.Extend(request, paramsMarketType))
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		response := r2.Raw
+		var data map[string]any = SafeMapTyped(response, "data")
+		rows = []any{this.SafeDict(data, "book_ticker", map[string]any{})}
+	}
+	// a multi-symbol spot response holds every listed pair, the first symbol's market must not label unknown rows
+	var rowMarket any = func() any {
+		if symbolsLength == 1 {
+			return market
+		}
+		return nil
+	}()
+	var results []any = []any{}
+	for i := 0; i < len(rows); i++ {
+		results = append(results, TickerToMap(this.ParseTicker(func() any {
+			if i >= 0 && i < len(rows) {
+				return DerefScalar(rows[i])
+			}
+			return nil
+		}(), rowMarket)))
+	}
+
+	ch <- AsyncResult[any]{Value: this.FilterByArrayTickers(results, "symbol", symbolsNormalized)}
+	return nil
+}
+
+/**
+ * @method
  * @name bingx#fetchTickers
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
  * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/24hr%20Ticker%20Price%20Change%20Statistics
@@ -3372,9 +3460,12 @@ func (this *Bingx) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var lastQty *string = this.SafeString(ticker, "lastQty")
 	// in spot markets, lastQty is not present
 	// it's (bad, but) the only way we can check the tickers origin
-	var typeVar string = "swap"
+	var typeVar any = "swap"
 	if lastQty == nil {
 		typeVar = "spot"
+	}
+	if market != nil {
+		typeVar = GetValue(market, "type")
 	}
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, typeVar)
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])
@@ -3389,15 +3480,15 @@ func (this *Bingx) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		percentage = SafeStringPtr(strings.Replace(*percentage, "%", "", 1))
 	}
 	var change *string = this.SafeString(ticker, "priceChange")
-	var ts *int64 = this.SafeInteger(ticker, "closeTime")
+	var ts *int64 = this.SafeInteger2(ticker, "closeTime", "time")
 	if ts != nil && *ts == 0 {
 		ts = nil
 	}
 	var datetime *string = this.Iso8601(ts)
-	var bid *string = this.SafeString(ticker, "bidPrice")
-	var bidVolume *string = this.SafeString(ticker, "bidQty")
-	var ask *string = this.SafeString(ticker, "askPrice")
-	var askVolume *string = this.SafeString(ticker, "askQty")
+	var bid *string = this.SafeString2(ticker, "bidPrice", "bid_price")
+	var bidVolume *string = this.SafeString2(ticker, "bidQty", "bid_qty")
+	var ask *string = this.SafeString2(ticker, "askPrice", "ask_price")
+	var askVolume *string = this.SafeString2(ticker, "askQty", "ask_qty")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     ts,
@@ -3971,7 +4062,7 @@ func (this *Bingx) ParsePosition(position any, optionalArgs ...any) any {
 /**
  * @method
  * @name bingx#createMarketOrderWithCost
- * @description create a spot market order by providing the symbol, side and cost
+ * @description create a spot or linear swap market order by providing the symbol, side and cost
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} side 'buy' or 'sell'
  * @param {float} cost how much you want to trade in units of the quote currency
@@ -3994,11 +4085,11 @@ func (this *Bingx) createMarketOrderWithCostBody(ch chan AsyncResult[map[string]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes311815 map[string]any = r.Value
-	if retRes311815 == nil {
+	var retRes316715 map[string]any = r.Value
+	if retRes316715 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes311815}
+		ch <- AsyncResult[map[string]any]{Value: retRes316715}
 	}
 	return nil
 }
@@ -4006,7 +4097,7 @@ func (this *Bingx) createMarketOrderWithCostBody(ch chan AsyncResult[map[string]
 /**
  * @method
  * @name bingx#createMarketBuyOrderWithCost
- * @description create a spot market buy order by providing the symbol and cost
+ * @description create a spot or linear swap market buy order by providing the symbol and cost
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4028,11 +4119,11 @@ func (this *Bingx) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any], sy
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes313215 map[string]any = r.Value
-	if retRes313215 == nil {
+	var retRes318115 map[string]any = r.Value
+	if retRes318115 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes313215}
+		ch <- AsyncResult[any]{Value: retRes318115}
 	}
 	return nil
 }
@@ -4040,7 +4131,7 @@ func (this *Bingx) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any], sy
 /**
  * @method
  * @name bingx#createMarketSellOrderWithCost
- * @description create a spot market sell order by providing the symbol and cost
+ * @description create a spot or linear swap market sell order by providing the symbol and cost
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4062,11 +4153,11 @@ func (this *Bingx) createMarketSellOrderWithCostBody(ch chan AsyncResult[any], s
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes314615 map[string]any = r.Value
-	if retRes314615 == nil {
+	var retRes319515 map[string]any = r.Value
+	if retRes319515 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes314615}
+		ch <- AsyncResult[any]{Value: retRes319515}
 	}
 	return nil
 }
@@ -4096,8 +4187,8 @@ func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 	 */
 	var market map[string]any = this.Market(symbol)
 	var cost *string = this.SafeString2(params, "cost", "quoteOrderQty")
-	if (market["contract"] == true) && (cost != nil) {
-		panic(NotSupported(this.Id + " createOrder() with cost or quoteOrderQty is not supported for contract markets"))
+	if (market["inverse"] == true) && (cost != nil) {
+		panic(NotSupported(this.Id + " createOrder() with cost or quoteOrderQty is not supported for inverse swap markets"))
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("createOrder", market, params)
 	var typeValue string = ToUpper(typeVar)
@@ -4209,6 +4300,7 @@ func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 		var trailingAmount *string = this.SafeString(paramsPostOnly, "trailingAmount")
 		var trailingPercent *string = this.SafeString2(paramsPostOnly, "trailingPercent", "priceRate")
 		var trailingType *string = this.SafeString(paramsPostOnly, "trailingType", "TRAILING_STOP_MARKET")
+		var trailingTriggerPrice *string = this.SafeString2(paramsPostOnly, "trailingTriggerPrice", "activationPrice")
 		var isTrailingAmountOrder bool = (trailingAmount != nil)
 		var isTrailingPercentOrder bool = (trailingPercent != nil)
 		var isTrailing bool = isTrailingAmountOrder || isTrailingPercentOrder
@@ -4262,8 +4354,14 @@ func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 				var requestTrailingPercent *string = Precise.StringDiv(trailingPercent, "100")
 				request["priceRate"] = this.ParseToNumeric(requestTrailingPercent)
 			}
+			if trailingTriggerPrice != nil {
+				request["activationPrice"] = this.ParseToNumeric(this.PriceToPrecision(symbol, trailingTriggerPrice))
+			}
 		}
 		if hasStopLoss || hasTakeProfit {
+			if cost != nil {
+				panic(InvalidOrder(this.Id + " createOrder() does not support attached stopLoss or takeProfit on a market order by cost"))
+			}
 			var stringifiedAmount *string = this.NumberToString(amount)
 			if hasStopLoss {
 				var slTriggerPrice *string = this.SafeString2(stopLossDict, "triggerPrice", "stopPrice")
@@ -4337,7 +4435,9 @@ func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 		}
 		request["positionSide"] = positionSide
 		var closePosition *bool = this.SafeBool(paramsOrder, "closePosition", false)
-		if closePosition == nil || *closePosition != true {
+		if cost != nil {
+			request["quoteOrderQty"] = this.ParseToNumeric(this.CostToPrecision(symbol, cost))
+		} else if closePosition == nil || *closePosition != true {
 			var amountReq any = amount
 			if market["inverse"] != true {
 				amountReq = this.ParseToNumeric(this.AmountToPrecision(symbol, amount))
@@ -4345,7 +4445,7 @@ func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 			request["quantity"] = amountReq // precision not available for inverse contracts
 		}
 	}
-	var paramsRequest any = this.Omit(paramsOrder, []any{"hedged", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "clientOrderId"})
+	var paramsRequest any = this.Omit(paramsOrder, []any{"hedged", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "trailingTriggerPrice", "activationPrice", "clientOrderId", "cost", "quoteOrderQty"})
 	return this.Extend(request, paramsRequest)
 }
 
@@ -4370,10 +4470,11 @@ func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount 
  * @param {float} [params.triggerPrice] triggerPrice at which the attached take profit / stop loss order will be triggered
  * @param {float} [params.stopLossPrice] stop loss trigger price, a spot order is placed as TAKE_STOP and parsed back with triggerPrice
  * @param {float} [params.takeProfitPrice] take profit trigger price, a spot order is placed as TAKE_STOP and parsed back with triggerPrice
- * @param {float} [params.cost] *spot only* the quote quantity that can be used as an alternative for the amount
- * @param {float} [params.quoteOrderQty] *spot only* the quote quantity, an alternative to params.cost
+ * @param {float} [params.cost] *spot and linear swap only* the quote quantity that can be used as an alternative for the amount
+ * @param {float} [params.quoteOrderQty] *spot and linear swap only* the quote quantity, an alternative to params.cost
  * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
  * @param {float} [params.trailingPercent] *swap only* the percent to trail away from the current market price
+ * @param {float} [params.trailingTriggerPrice] *swap only* the price to activate a trailing order at
  * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
  * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
  * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
@@ -6410,11 +6511,11 @@ func (this *Bingx) fetchTransfersBody(ch chan AsyncResult[any], optionalArgs ...
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes540719 []any = ListTyped(r1.Value)
-		if retRes540719 == nil {
+		var retRes546619 []any = ListTyped(r1.Value)
+		if retRes546619 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes540719}
+			ch <- AsyncResult[any]{Value: retRes546619}
 		}
 		return nil
 	}
@@ -6623,7 +6724,7 @@ func (this *Bingx) ParseDepositAddress(depositAddress any, optionalArgs ...any) 
 	// the 0x prefix on the evm networks, see https://github.com/ccxt/ccxt/issues/24331
 	if address != nil {
 		var isPrefixed bool = StartsWith(address, "0x") || StartsWith(address, "0X")
-		var evmNetworks []any = []any{"BEP20", "BSC", "ERC20", "ETH", "HECO", "MATIC", "POLYGON", "ARBITRUM", "ARB", "OPTIMISM", "AVAXC", "BASE", "FTM", "LINEA", "ZKSYNC", "OPBNB"}
+		var evmNetworks []any = []any{"BEP20", "ERC20", "HECO", "MATIC", "POLYGON", "ARBITRUM", "OPTIMISM", "AVAXC", "BASE", "FTM", "LINEA", "ZKSYNC", "OPBNB"}
 		if !isPrefixed && this.InArray(networkCode, evmNetworks) {
 			address = Add("0x", address)
 		}
@@ -6687,11 +6788,11 @@ func (this *Bingx) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ...a
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 
-	listEp6233 := <-this.SpotV3PrivateGetCapitalDepositHisrec(this.Extend(requestUntil, paramsUntil))
-	if listEp6233.Err != nil {
-		panic(listEp6233.Err)
+	listEp6325 := <-this.SpotV3PrivateGetCapitalDepositHisrec(this.Extend(requestUntil, paramsUntil))
+	if listEp6325.Err != nil {
+		panic(listEp6325.Err)
 	}
-	var response []any = listEp6233.Value
+	var response []any = listEp6325.Value
 
 	//
 	//    [
@@ -6763,11 +6864,11 @@ func (this *Bingx) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs .
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 
-	listEp6302 := <-this.SpotV3PrivateGetCapitalWithdrawHistory(this.Extend(requestUntil, paramsUntil))
-	if listEp6302.Err != nil {
-		panic(listEp6302.Err)
+	listEp6394 := <-this.SpotV3PrivateGetCapitalWithdrawHistory(this.Extend(requestUntil, paramsUntil))
+	if listEp6394.Err != nil {
+		panic(listEp6394.Err)
 	}
-	var response []any = listEp6302.Value
+	var response []any = listEp6394.Value
 
 	//
 	//    [
@@ -7026,11 +7127,11 @@ func (this *Bingx) addMarginBody(ch chan AsyncResult[map[string]any], symbol str
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes586615 map[string]any = MapTyped(r.Value)
-	if retRes586615 == nil {
+	var retRes592515 map[string]any = MapTyped(r.Value)
+	if retRes592515 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes586615}
+		ch <- AsyncResult[map[string]any]{Value: retRes592515}
 	}
 	return nil
 }
@@ -7052,11 +7153,11 @@ func (this *Bingx) reduceMarginBody(ch chan EndpointResult[map[string]any], symb
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes587315 map[string]any = MapTyped(r.Value)
-	if retRes587315 == nil {
+	var retRes593215 map[string]any = MapTyped(r.Value)
+	if retRes593215 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes587315, Raw: retRes587315}
+		ch <- EndpointResult[map[string]any]{Value: retRes593215, Raw: retRes593215}
 	}
 	return nil
 }
@@ -7526,8 +7627,8 @@ func (this *Bingx) fetchDepositWithdrawFeesBody(ch chan AsyncResult[any], option
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} [tag]
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @param {int} [params.walletType] 1 fund (funding) account, 2 standard account, 3 perpetual account, 15 spot account
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
@@ -7539,14 +7640,12 @@ func (this *Bingx) WithdrawAsync(code string, amount any, address any, optionalA
 func (this *Bingx) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	var tagWithdrawTag *string = SafeStringPtr(tagWithdrawTagparamsWithdrawTagVariable[0])
+	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
+	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
-	this.CheckAddress(address)
+	this.CheckAddress(address, code, tagWithdrawTag)
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -7577,7 +7676,7 @@ func (this *Bingx) withdrawBody(ch chan EndpointResult[map[string]any], code str
 	if network != nil {
 		request["network"] = this.NetworkCodeToId(network, this.SafeString(currency, "code"))
 	}
-	if tagWithdrawTag != nil {
+	if !IsEqual(tagWithdrawTag, nil) {
 		request["addressTag"] = tagWithdrawTag
 	}
 	var paramsOmitted map[string]any = this.OmitDict(paramsWalletType, []any{"walletType", "network"})
@@ -8493,47 +8592,43 @@ func (this *Bingx) ParseMarketLeverageTiers(info any, optionalArgs ...any) any {
 	return tiers
 }
 func (this *Bingx) Sign(path string, optionalArgs ...any) any {
-	section := GetArg(optionalArgs, 0, "public")
+	section := GetArg(optionalArgs, 0, []any{"public"})
 	_ = section
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
-	var typeVar any = GetValue(section, 0)
+	var typeVar *string = SafeStringPtr(GetValue(section, 0))
 	var version any = GetValue(section, 1)
 	var access any = GetValue(section, 2)
 	var isSandbox *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	var url any = this.ImplodeHostname(GetValue(this.Urls["api"], typeVar))
 	if (isSandbox != nil && *isSandbox == true) && (url == nil) {
-		panic(NotSupported(Add(Add(this.Id+" does not have a testnet/sandbox URL for ", typeVar), " endpoints")))
+		panic(NotSupported(this.Id + " does not have a testnet/sandbox URL for " + *typeVar + " endpoints"))
 	}
 	var pathValue string = this.ImplodeParams(path, params)
 	var versionIsTransfer bool = (version == "transfer")
 	var versionIsAsset bool = (version == "asset")
 	if versionIsTransfer || versionIsAsset {
 		if versionIsTransfer {
-			typeVar = "account/transfer"
+			typeVar = SafeStringPtr("account/transfer")
 		} else {
-			typeVar = "api/asset"
+			typeVar = SafeStringPtr("api/asset")
 		}
 		version = GetValue(section, 2)
 		access = GetValue(section, 3)
 	}
 	var flatAccountPaths []any = []any{"account/apiPermissions", "account/apiRestrictions"}
 	if !this.InArray(pathValue, flatAccountPaths) {
-		if (typeVar == "spot") && (version == "v3") {
+		if (typeVar != nil && *typeVar == "spot") && (version == "v3") {
 			url = Add(url, "/api")
 		} else {
-			url = Add(url, Add("/", typeVar))
+			url = Add(url, "/"+*typeVar)
 		}
 	}
 	url = Add(url, Add(Add(Add("/", version), "/"), pathValue))
 	var requestHeaders any = nil
-	var requestBody any = nil
+	var requestBody *string = nil
 	var paramsOmitted any = this.Omit(params, this.ExtractParams(pathValue))
 	AddElementToObject(paramsOmitted, "timestamp", this.Nonce())
 	var paramsSorted map[string]any = this.Keysort(paramsOmitted)
@@ -8543,7 +8638,7 @@ func (this *Bingx) Sign(path string, optionalArgs ...any) any {
 		}
 	} else if access == "private" {
 		this.CheckRequiredCredentials()
-		var isJsonContentType bool = (((typeVar == "subAccount") || (typeVar == "account/transfer")) && (method == "POST"))
+		var isJsonContentType bool = (((typeVar != nil && *typeVar == "subAccount") || (typeVar != nil && *typeVar == "account/transfer")) && (method == "POST"))
 		var parsedParams any = nil
 		var encodeRequest any = nil
 		if isJsonContentType {
@@ -8566,24 +8661,14 @@ func (this *Bingx) Sign(path string, optionalArgs ...any) any {
 		if isJsonContentType {
 			AddElementToObject(requestHeaders, "Content-Type", "application/json")
 			paramsSorted["signature"] = signature
-			requestBody = this.Json(paramsSorted)
+			requestBody = SafeStringPtr(this.Json(paramsSorted))
 		} else {
 			var query string = this.Urlencode(parsedParams, true)
 			url = Add(url, "?"+query+"&"+"signature="+signature)
 		}
 	}
-	var bodyResult any = func() any {
-		if requestBody != nil {
-			return requestBody
-		}
-		return body
-	}()
-	var headersResult any = func() any {
-		if requestHeaders != nil {
-			return requestHeaders
-		}
-		return headers
-	}()
+	var bodyResult *string = requestBody
+	var headersResult any = requestHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,
@@ -8964,6 +9049,31 @@ func (this *Bingx) FetchTicker(symbol string, options ...FetchTickerOptions) (Ti
 
 /**
  * @method
+ * @name bingx#fetchBidsAsks
+ * @description fetches the bid and ask price and volume for multiple markets
+ * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/Symbol%20Order%20Book%20Ticker
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Symbol%20Order%20Book%20Ticker
+ * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all spot markets are returned if not assigned, swap requires exactly one symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+func (this *Bingx) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
+
+	opts := FetchBidsAsksOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.FetchBidsAsksAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return Tickers{}, r.Err
+	}
+	var res Tickers = NewTickers(r.Value)
+	return res, nil
+}
+
+/**
+ * @method
  * @name bingx#fetchTickers
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
  * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/24hr%20Ticker%20Price%20Change%20Statistics
@@ -9142,7 +9252,7 @@ func (this *Bingx) FetchPosition(symbol string, options ...FetchPositionOptions)
 /**
  * @method
  * @name bingx#createMarketOrderWithCost
- * @description create a spot market order by providing the symbol, side and cost
+ * @description create a spot or linear swap market order by providing the symbol, side and cost
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} side 'buy' or 'sell'
  * @param {float} cost how much you want to trade in units of the quote currency
@@ -9167,7 +9277,7 @@ func (this *Bingx) CreateMarketOrderWithCost(symbol string, side string, cost fl
 /**
  * @method
  * @name bingx#createMarketBuyOrderWithCost
- * @description create a spot market buy order by providing the symbol and cost
+ * @description create a spot or linear swap market buy order by providing the symbol and cost
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -9191,7 +9301,7 @@ func (this *Bingx) CreateMarketBuyOrderWithCost(symbol string, cost float64, opt
 /**
  * @method
  * @name bingx#createMarketSellOrderWithCost
- * @description create a spot market sell order by providing the symbol and cost
+ * @description create a spot or linear swap market sell order by providing the symbol and cost
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -9233,10 +9343,11 @@ func (this *Bingx) CreateMarketSellOrderWithCost(symbol string, cost float64, op
  * @param {float} [params.triggerPrice] triggerPrice at which the attached take profit / stop loss order will be triggered
  * @param {float} [params.stopLossPrice] stop loss trigger price, a spot order is placed as TAKE_STOP and parsed back with triggerPrice
  * @param {float} [params.takeProfitPrice] take profit trigger price, a spot order is placed as TAKE_STOP and parsed back with triggerPrice
- * @param {float} [params.cost] *spot only* the quote quantity that can be used as an alternative for the amount
- * @param {float} [params.quoteOrderQty] *spot only* the quote quantity, an alternative to params.cost
+ * @param {float} [params.cost] *spot and linear swap only* the quote quantity that can be used as an alternative for the amount
+ * @param {float} [params.quoteOrderQty] *spot and linear swap only* the quote quantity, an alternative to params.cost
  * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
  * @param {float} [params.trailingPercent] *swap only* the percent to trail away from the current market price
+ * @param {float} [params.trailingTriggerPrice] *swap only* the price to activate a trailing order at
  * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
  * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
  * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
@@ -9909,8 +10020,8 @@ func (this *Bingx) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesO
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} [tag]
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @param {int} [params.walletType] 1 fund (funding) account, 2 standard account, 3 perpetual account, 15 spot account
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
@@ -9921,7 +10032,7 @@ func (this *Bingx) Withdraw(code string, amount float64, address string, options
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
@@ -10218,9 +10329,6 @@ func (this *Bingx) FetchAccounts(params ...any) ([]Account, error) {
 }
 func (this *Bingx) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
-}
-func (this *Bingx) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
-	return this.exchangeTyped.FetchBidsAsks(options...)
 }
 func (this *Bingx) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error) {
 	return this.exchangeTyped.FetchBorrowInterest(options...)

@@ -13,6 +13,7 @@ import io.github.ccxt.types.FundingRate;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Position;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
@@ -189,7 +190,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "method", "orderbook");
+            Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "method", "orderbook");
             String method = methodparamsMethodVariable.first();
             Map<String, Object> paramsMethod = methodparamsMethodVariable.second();
             Map<String, Object> market = this.market(symbol);
@@ -241,7 +242,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "method", "orderbook");
+            Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "method", "orderbook");
             String method = methodparamsMethodVariable.first();
             var paramsMethod = ((List<Object>) methodparamsMethodVariable).get(1);
             Map<String, Object> market = this.market(symbol);
@@ -347,11 +348,15 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         {
             return;
         }
-        if (((Map<?, ?>)this.orderbooks).containsKey(symbol))
+        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
-            ((Map<String,Object>)this.orderbooks).remove((String)symbol);
+            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
         }
-        Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
+        // handleOrderBook queues deltas while timestamp is undefined, until the REST snapshot lands
+        orderbook.put("timestamp", null);
+        orderbook.put("datetime", null);
+        Helpers.addElementToObject(orderbook, "cache", new ArrayList<Object>(Arrays.asList()));
         this.spawn(() -> { try { this.fetchOrderBookSnapshot(client, (Map<String, Object>) (message), (Map<String, Object>) (subscription)); } catch(Exception _e) { throw new RuntimeException(_e); } });
     }
 
@@ -483,7 +488,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTicker", "method", "ticker");
+            Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTicker", "method", "ticker");
             String method = methodparamsMethodVariable.first();
             var paramsMethod = ((List<Object>) methodparamsMethodVariable).get(1);
             Map<String, Object> market = this.market(symbol);

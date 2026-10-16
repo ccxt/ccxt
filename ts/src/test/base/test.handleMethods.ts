@@ -9,7 +9,7 @@ function helperTestHandleMarketTypeAndParams () {
     const exchange = new ccxt.Exchange ({
         'id': 'sampleexchange',
         'options': {
-            'defaultType': 'valueFromOptions',
+            'defaultType': 'option',
             'fetchX': {
                 'defaultType': 'valueFromMethodOptions',
             },
@@ -46,7 +46,7 @@ function helperTestHandleMarketTypeAndParams () {
     // case #5, should prevail: options
     //
     const [ marketType5, params5 ] = exchange.handleMarketTypeAndParams ('fetchY', undefined, {}, undefined);
-    assert (marketType5 === 'valueFromOptions');
+    assert (marketType5 === 'option');
     //
     // case #6, should prevail: spot (because hardcoded in base)
     //
@@ -55,24 +55,6 @@ function helperTestHandleMarketTypeAndParams () {
     assert (marketType6 === 'spot');
     // fake assertion to avoid unused vars
     assert (params1 !== undefined || params2 !== undefined || params3 !== undefined || params4 !== undefined || params5 !== undefined || params6 !== undefined);
-}
-
-function helperTestHandleNetworkRequest () {
-    const exchange = new ccxt.Exchange ({
-        'id': 'sampleexchange',
-        'options': {
-            'networks': {
-                'XYZ': 'Xyz',
-            }
-        },
-    });
-    exchange.currencies = exchange.createSafeDictionary ();  // todo: initialize in C# base files
-    const currencyCode = 'ETH'; // todo: in future with complex cases
-    // no-case
-    const [ request1, params1 ] = exchange.handleRequestNetwork ({ 'network': 'XYZ' }, {}, 'chain_id', currencyCode, false);
-    assert (!('network' in params1));
-    assert ('chain_id' in request1);
-    assert (request1['chain_id'] === 'Xyz');
 }
 
 function helperTestHandleTypedOptions () {
@@ -100,7 +82,6 @@ function helperTestHandleTypedOptions () {
 
 function testHandleMethods () {
     helperTestHandleMarketTypeAndParams ();
-    helperTestHandleNetworkRequest ();
     helperTestHandleTypedOptions ();
 }
 

@@ -556,7 +556,8 @@ func (this *Bittrade) Describe() any {
 		"exceptions": map[string]any{
 			"broad": map[string]any{
 				"contract is restricted of closing positions on API.  Please contact customer service": OnMaintenance,
-				"maintain": OnMaintenance,
+				"maintain":           OnMaintenance,
+				"trade not open now": BadSymbol,
 			},
 			"exact": map[string]any{
 				"bad-request":                               BadRequest,
@@ -593,15 +594,15 @@ func (this *Bittrade) Describe() any {
 		"options": map[string]any{
 			"defaultNetwork": "ERC20",
 			"networks": map[string]any{
-				"ETH":   "erc20",
-				"TRX":   "trc20",
+				"ERC20": "erc20",
+				"TRC20": "trc20",
 				"HRC20": "hrc20",
 				"HECO":  "hrc20",
 				"HT":    "hrc20",
 				"ALGO":  "algo",
 			},
 			"fetchOrdersByStates": map[string]any{
-				"method": "private_get_order_orders",
+				"method": "privateGetOrderOrders",
 			},
 			"fetchOpenOrders": map[string]any{
 				"method": "fetch_open_orders_v1",
@@ -1885,7 +1886,7 @@ func (this *Bittrade) fetchOrdersByStatesBody(ch chan AsyncResult[[]any], states
 		market = this.Market(symbol)
 		request["symbol"] = market["id"]
 	}
-	var method any = this.HandleOption("fetchOrdersByStates", "method", "private_get_order_orders")
+	var method any = this.HandleOption("fetchOrdersByStates", "method", "privateGetOrderOrders")
 	var response any = nil
 	if (IsEqual(method, "private_get_order_history")) || (IsEqual(method, "privateGetOrderHistory")) {
 
@@ -1998,11 +1999,11 @@ func (this *Bittrade) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes135815 []any = r.Value
-	if retRes135815 == nil {
+	var retRes135915 []any = r.Value
+	if retRes135915 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes135815}
+		ch <- AsyncResult[any]{Value: retRes135915}
 	}
 	return nil
 }
@@ -2040,11 +2041,11 @@ func (this *Bittrade) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes137419 []any = r.Value
-		if retRes137419 == nil {
+		var retRes137519 []any = r.Value
+		if retRes137519 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes137419}
+			ch <- AsyncResult[any]{Value: retRes137519}
 		}
 		return nil
 	}
@@ -2053,12 +2054,12 @@ func (this *Bittrade) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv1931 := r1.Value
-	var retRes137615 []any = listRecv1931
-	if retRes137615 == nil {
+	listRecv1932 := r1.Value
+	var retRes137715 []any = listRecv1932
+	if retRes137715 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes137615}
+		ch <- AsyncResult[any]{Value: retRes137715}
 	}
 	return nil
 }
@@ -2086,11 +2087,11 @@ func (this *Bittrade) fetchOpenOrdersV1Body(ch chan EndpointResult[[]any], optio
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes138315 []any = r.Value
-	if retRes138315 == nil {
+	var retRes138415 []any = r.Value
+	if retRes138415 == nil {
 		ch <- EndpointResult[[]any]{}
 	} else {
-		ch <- EndpointResult[[]any]{Value: retRes138315, Raw: retRes138315}
+		ch <- EndpointResult[[]any]{Value: retRes138415, Raw: retRes138415}
 	}
 	return nil
 }
@@ -2126,11 +2127,11 @@ func (this *Bittrade) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes139715 []any = r.Value
-	if retRes139715 == nil {
+	var retRes139815 []any = r.Value
+	if retRes139815 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes139715}
+		ch <- AsyncResult[any]{Value: retRes139815}
 	}
 	return nil
 }
@@ -2365,11 +2366,11 @@ func (this *Bittrade) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any],
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes157315 map[string]any = r1.Value
-	if retRes157315 == nil {
+	var retRes157415 map[string]any = r1.Value
+	if retRes157415 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes157315}
+		ch <- AsyncResult[any]{Value: retRes157415}
 	}
 	return nil
 }
@@ -2953,7 +2954,7 @@ func (this *Bittrade) ParseTransaction(transaction any, optionalArgs ...any) map
 		"txid":        this.SafeString(transaction, "tx-hash"),
 		"timestamp":   timestamp,
 		"datetime":    this.Iso8601(timestamp),
-		"network":     this.SafeStringUpper(transaction, "chain"),
+		"network":     this.NetworkIdToCode(this.SafeStringUpper(transaction, "chain"), code),
 		"address":     this.SafeString(transaction, "address"),
 		"addressTo":   nil,
 		"addressFrom": nil,
@@ -3002,8 +3003,8 @@ func (this *Bittrade) ParseTransactionStatus(status *string) *string {
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Bittrade) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
@@ -3014,11 +3015,9 @@ func (this *Bittrade) WithdrawAsync(code string, amount any, address any, option
 func (this *Bittrade) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
+	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
 	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 	if this.Markets == nil {
@@ -3028,7 +3027,7 @@ func (this *Bittrade) withdrawBody(ch chan EndpointResult[map[string]any], code 
 			panic(r.Err)
 		}
 	}
-	this.CheckAddress(address)
+	this.CheckAddress(address, code, tagWithdrawTag)
 	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"address":  address,
@@ -3039,8 +3038,11 @@ func (this *Bittrade) withdrawBody(ch chan EndpointResult[map[string]any], code 
 		request["addr-tag"] = tagWithdrawTag // only for XRP?
 	}
 	var networks map[string]any = SafeMapTyped(this.Options, "networks")
-	var network *string = this.SafeStringUpper(paramsWithdrawTag, "network") // this line allows the user to specify either ERC20 or ETH
-	network = this.SafeStringLower(networks, network, network)               // handle ETH>ERC20 alias
+	var network *string = this.SafeStringUpper(paramsWithdrawTag, "network")
+	if network != nil {
+		network = this.SafeString(this.NetworkAliases, network, network) // accepts aliases like ETH for ERC20
+	}
+	network = this.SafeStringLower(networks, network, network) // handle ETH>ERC20 alias
 	if network != nil {
 		// possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
 		if network != nil && *network == "erc20" {
@@ -3073,29 +3075,26 @@ func (this *Bittrade) withdrawBody(ch chan EndpointResult[map[string]any], code 
 	return nil
 }
 func (this *Bittrade) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var requestHeaders any = nil
-	var requestBody any = nil
+	var requestBody *string = nil
 	var url string = "/"
-	if api == "market" {
+	if apiName != nil && *apiName == "market" {
 		url += "market"
-	} else if (api == "public") || (api == "private") {
+	} else if (apiName != nil && *apiName == "public") || (apiName != nil && *apiName == "private") {
 		url += this.Version
-	} else if (api == "v2Public") || (api == "v2Private") {
+	} else if (apiName != nil && *apiName == "v2Public") || (apiName != nil && *apiName == "v2Private") {
 		url += "v2"
 	}
 	url += "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	if (api == "private") || (api == "v2Private") {
+	if (apiName != nil && *apiName == "private") || (apiName != nil && *apiName == "v2Private") {
 		this.CheckRequiredCredentials()
 		var timestamp string = this.Ymdhms(this.Milliseconds(), "T")
 		var request map[string]any = map[string]any{
@@ -3119,7 +3118,7 @@ func (this *Bittrade) Sign(path string, optionalArgs ...any) any {
 		})
 		url += "?" + auth
 		if method == "POST" {
-			requestBody = this.Json(query)
+			requestBody = SafeStringPtr(this.Json(query))
 			requestHeaders = map[string]any{
 				"Content-Type": "application/json",
 			}
@@ -3133,25 +3132,15 @@ func (this *Bittrade) Sign(path string, optionalArgs ...any) any {
 			url += "?" + this.Urlencode(params)
 		}
 	}
-	var baseApiUrl *string = this.SafeString(this.Urls["api"], api)
+	var baseApiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	url = this.ImplodeParams(baseApiUrl, map[string]any{
 		"hostname": this.Hostname,
 	}) + url
-	var headersResult any = func() any {
-		if requestHeaders != nil {
-			return requestHeaders
-		}
-		return headers
-	}()
-	var bodyResult any = func() any {
-		if requestBody != nil {
-			return requestBody
-		}
-		return body
-	}()
+	var headersResult any = requestHeaders
+	var bodyResult *string = requestBody
 	return map[string]any{
 		"url":     url,
 		"method":  method,
@@ -3796,8 +3785,8 @@ func (this *Bittrade) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tr
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Bittrade) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
@@ -3807,7 +3796,7 @@ func (this *Bittrade) Withdraw(code string, amount float64, address string, opti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

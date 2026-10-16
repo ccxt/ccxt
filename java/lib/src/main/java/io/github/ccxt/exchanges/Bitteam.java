@@ -302,10 +302,10 @@ public class Bitteam extends BitteamApi
                     put( "ethereum", "ERC20" );
                     put( "Tron", "TRC20" );
                     put( "tron", "TRC20" );
-                    put( "Binance", "BSC" );
-                    put( "binance", "BSC" );
-                    put( "Binance Smart Chain", "BSC" );
-                    put( "bscscan", "BSC" );
+                    put( "Binance", "BEP20" );
+                    put( "binance", "BEP20" );
+                    put( "Binance Smart Chain", "BEP20" );
+                    put( "bscscan", "BEP20" );
                     put( "Bitcoin", "BTC" );
                     put( "bitcoin", "BTC" );
                     put( "Litecoin", "LTC" );
@@ -717,7 +717,7 @@ public class Bitteam extends BitteamApi
             Map<String, Object> responseResult = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> currencies = (List<Object>) this.safeList(responseResult, "currencies", new ArrayList<Object>(Arrays.asList()));
             // using another endpoint to fetch statuses of deposits and withdrawals
-            Object statusesResponse = (this.publicGetTradeApiCmcAssets()).join();
+            Object statusesResponse = (this.publicGetTradeApiCmcAssets(new HashMap<String, Object>() {{}})).join();
             //
             //     {
             //         "ZNX": {
@@ -1605,7 +1605,7 @@ public class Bitteam extends BitteamApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> response = (this.publicGetTradeApiCmcSummary()).join();
+            List<Object> response = (this.publicGetTradeApiCmcSummary(new HashMap<String, Object>() {{}})).join();
             //
             //     [
             //         {
@@ -2668,11 +2668,12 @@ public class Bitteam extends BitteamApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Object request = this.omit(parameters, this.extractParams(path));
         String endpoint = ("/" + this.implodeParams(path, parameters));
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -2681,7 +2682,7 @@ public class Bitteam extends BitteamApi
         String query = this.urlencode(request);
         String requestBody = null;
         Map<String, Object> requestHeaders = null;
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
@@ -2702,8 +2703,8 @@ public class Bitteam extends BitteamApi
         {
             url = (url + ("?" + query));
         }
-        String bodyResolved = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
-        Object headersResolved = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
+        String bodyResolved = requestBody;
+        Map<String, Object> headersResolved = requestHeaders;
         {
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
             h2kMap1.put("url", url);

@@ -23,7 +23,7 @@ func (this *Woo) Describe() any {
 		"countries": []any{"KY"},
 		"rateLimit": 100,
 		"version":   "v1",
-		"certified": true,
+		"certified": false,
 		"pro":       true,
 		"hostname":  "woox.io",
 		"has": map[string]any{
@@ -618,7 +618,6 @@ func (this *Woo) Describe() any {
 			"sandboxMode":                       false,
 			"createMarketBuyOrderRequiresPrice": true,
 			"networks": map[string]any{
-				"TRX":      "TRX",
 				"TRC20":    "TRX",
 				"ERC20":    "ETH",
 				"BEP20":    "BSC",
@@ -1741,11 +1740,11 @@ func (this *Woo) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any], symb
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes128715 map[string]any = r1.Value
-	if retRes128715 == nil {
+	var retRes128615 map[string]any = r1.Value
+	if retRes128615 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes128715}
+		ch <- AsyncResult[any]{Value: retRes128615}
 	}
 	return nil
 }
@@ -1786,11 +1785,11 @@ func (this *Woo) createMarketSellOrderWithCostBody(ch chan AsyncResult[any], sym
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes130815 map[string]any = r1.Value
-	if retRes130815 == nil {
+	var retRes130715 map[string]any = r1.Value
+	if retRes130715 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes130815}
+		ch <- AsyncResult[any]{Value: retRes130715}
 	}
 	return nil
 }
@@ -1839,11 +1838,11 @@ func (this *Woo) createTrailingAmountOrderBody(ch chan AsyncResult[any], symbol 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes133515 map[string]any = r.Value
-	if retRes133515 == nil {
+	var retRes133415 map[string]any = r.Value
+	if retRes133415 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes133515}
+		ch <- AsyncResult[any]{Value: retRes133415}
 	}
 	return nil
 }
@@ -1892,11 +1891,11 @@ func (this *Woo) createTrailingPercentOrderBody(ch chan AsyncResult[any], symbol
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes136215 map[string]any = r.Value
-	if retRes136215 == nil {
+	var retRes136115 map[string]any = r.Value
+	if retRes136115 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes136215}
+		ch <- AsyncResult[any]{Value: retRes136115}
 	}
 	return nil
 }
@@ -2572,11 +2571,11 @@ func (this *Woo) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes195019 []any = ListTyped(r1.Value)
-		if retRes195019 == nil {
+		var retRes194919 []any = ListTyped(r1.Value)
+		if retRes194919 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes195019}
+			ch <- AsyncResult[any]{Value: retRes194919}
 		}
 		return nil
 	}
@@ -2670,11 +2669,11 @@ func (this *Woo) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...a
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes208915 []any = ListTyped(r1.Value)
-	if retRes208915 == nil {
+	var retRes208815 []any = ListTyped(r1.Value)
+	if retRes208815 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes208915}
+		ch <- AsyncResult[any]{Value: retRes208815}
 	}
 	return nil
 }
@@ -2727,11 +2726,11 @@ func (this *Woo) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs ..
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes211415 []any = ListTyped(r1.Value)
-	if retRes211415 == nil {
+	var retRes211315 []any = ListTyped(r1.Value)
+	if retRes211315 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes211415}
+		ch <- AsyncResult[any]{Value: retRes211315}
 	}
 	return nil
 }
@@ -3423,11 +3422,11 @@ func (this *Woo) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...any
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes264719 []any = ListTyped(r1.Value)
-		if retRes264719 == nil {
+		var retRes264619 []any = ListTyped(r1.Value)
+		if retRes264619 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes264719}
+			ch <- AsyncResult[any]{Value: retRes264619}
 		}
 		return nil
 	}
@@ -3911,8 +3910,8 @@ func (this *Woo) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...any) 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv3670 := r.Value
-	var currencyRows []any = listRecv3670
+	listRecv3669 := r.Value
+	var currencyRows []any = listRecv3669
 	var currency any = this.SafeValue(currencyRows, 0)
 	var rows []any = SafeListTyped(currencyRows, 1)
 
@@ -4033,11 +4032,11 @@ func (this *Woo) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ...any
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes309915 []any = ListTyped(r.Value)
-	if retRes309915 == nil {
+	var retRes309815 []any = ListTyped(r.Value)
+	if retRes309815 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes309915}
+		ch <- AsyncResult[any]{Value: retRes309815}
 	}
 	return nil
 }
@@ -4077,11 +4076,11 @@ func (this *Woo) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs ...
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes311715 []any = ListTyped(r.Value)
-	if retRes311715 == nil {
+	var retRes311615 []any = ListTyped(r.Value)
+	if retRes311615 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes311715}
+		ch <- AsyncResult[any]{Value: retRes311615}
 	}
 	return nil
 }
@@ -4121,8 +4120,8 @@ func (this *Woo) fetchDepositsWithdrawalsBody(ch chan AsyncResult[any], optional
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv3864 := r.Value
-	var currencyRows []any = listRecv3864
+	listRecv3863 := r.Value
+	var currencyRows []any = listRecv3863
 	var currency any = this.SafeValue(currencyRows, 0)
 	var rows []any = SafeListTypedDefault(currencyRows, 1, []any{})
 
@@ -4430,8 +4429,8 @@ func (this *Woo) ParseTransfer(transfer any, optionalArgs ...any) map[string]any
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Woo) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
@@ -4442,12 +4441,10 @@ func (this *Woo) WithdrawAsync(code string, amount any, address any, optionalArg
 func (this *Woo) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	var tagWithdrawTag *string = SafeStringPtr(tagWithdrawTagparamsWithdrawTagVariable[0])
+	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
+	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 	if this.Markets == nil {
 
@@ -4456,13 +4453,13 @@ func (this *Woo) withdrawBody(ch chan EndpointResult[map[string]any], code strin
 			panic(r.Err)
 		}
 	}
-	this.CheckAddress(address)
+	this.CheckAddress(address, code, tagWithdrawTag)
 	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"amount":  amount,
 		"address": address,
 	}
-	if tagWithdrawTag != nil {
+	if !IsEqual(tagWithdrawTag, nil) {
 		request["extra"] = tagWithdrawTag
 	}
 	var network *string = this.SafeString(paramsWithdrawTag, "network")
@@ -4492,7 +4489,7 @@ func (this *Woo) withdrawBody(ch chan EndpointResult[map[string]any], code strin
 		"amount":    amount,
 		"addressTo": address,
 		"tag":       tagWithdrawTag,
-		"network":   network,
+		"network":   this.SafeString(this.NetworkAliases, network, network),
 		"type":      "withdrawal",
 		"status":    "pending",
 	})
@@ -4585,16 +4582,12 @@ func (this *Woo) Nonce() any {
 	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 func (this *Woo) Sign(path string, optionalArgs ...any) any {
-	section := GetArg(optionalArgs, 0, "public")
+	section := GetArg(optionalArgs, 0, []any{"public"})
 	_ = section
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	var requestHeaders any = nil
 	var requestBody any = nil
 	var version *string = this.SafeString(section, 0)
@@ -4667,18 +4660,8 @@ func (this *Woo) Sign(path string, optionalArgs ...any) any {
 		}
 		AddElementToObject(requestHeaders, "x-api-signature", this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256))
 	}
-	var headersResult any = func() any {
-		if requestHeaders != nil {
-			return requestHeaders
-		}
-		return headers
-	}()
-	var bodyResult any = func() any {
-		if requestBody != nil {
-			return requestBody
-		}
-		return body
-	}()
+	var headersResult any = requestHeaders
+	var bodyResult any = requestBody
 	return map[string]any{
 		"url":     url,
 		"method":  method,
@@ -4791,11 +4774,11 @@ func (this *Woo) fetchFundingHistoryBody(ch chan AsyncResult[any], optionalArgs 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes364519 []any = ListTyped(r1.Value)
-		if retRes364519 == nil {
+		var retRes364419 []any = ListTyped(r1.Value)
+		if retRes364419 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes364519}
+			ch <- AsyncResult[any]{Value: retRes364419}
 		}
 		return nil
 	}
@@ -4934,11 +4917,11 @@ func (this *Woo) fetchFundingIntervalBody(ch chan AsyncResult[map[string]any], s
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes376015 map[string]any = r.Value
-	if retRes376015 == nil {
+	var retRes375915 map[string]any = r.Value
+	if retRes375915 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes376015}
+		ch <- AsyncResult[map[string]any]{Value: retRes375915}
 	}
 	return nil
 }
@@ -5112,11 +5095,11 @@ func (this *Woo) fetchFundingRateHistoryBody(ch chan AsyncResult[any], optionalA
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes386619 []any = ListTyped(r1.Value)
-		if retRes386619 == nil {
+		var retRes386519 []any = ListTyped(r1.Value)
+		if retRes386519 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes386619}
+			ch <- AsyncResult[any]{Value: retRes386519}
 		}
 		return nil
 	}
@@ -5416,11 +5399,11 @@ func (this *Woo) addMarginBody(ch chan AsyncResult[map[string]any], symbol strin
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes413615 map[string]any = MapTyped(r.Value)
-	if retRes413615 == nil {
+	var retRes413515 map[string]any = MapTyped(r.Value)
+	if retRes413515 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes413615}
+		ch <- AsyncResult[map[string]any]{Value: retRes413515}
 	}
 	return nil
 }
@@ -5451,11 +5434,11 @@ func (this *Woo) reduceMarginBody(ch chan EndpointResult[map[string]any], symbol
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes415115 map[string]any = MapTyped(r.Value)
-	if retRes415115 == nil {
+	var retRes415015 map[string]any = MapTyped(r.Value)
+	if retRes415015 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes415115, Raw: retRes415115}
+		ch <- EndpointResult[map[string]any]{Value: retRes415015, Raw: retRes415015}
 	}
 	return nil
 }
@@ -6318,7 +6301,7 @@ func (this *Woo) DefaultNetworkCodeForCurrency(code any) any {
 	}
 	for i := 0; i < len(networkKeys); i++ {
 		var network string = networkKeys[i]
-		if network == "ETH" {
+		if network == "ERC20" {
 			return network
 		}
 	}
@@ -7251,8 +7234,8 @@ func (this *Woo) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEnt
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Woo) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
@@ -7262,7 +7245,7 @@ func (this *Woo) Withdraw(code string, amount float64, address string, options .
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

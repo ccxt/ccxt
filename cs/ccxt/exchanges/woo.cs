@@ -13,7 +13,7 @@ public partial class woo : Exchange
             { "countries", new List<object>() {"KY"} },
             { "rateLimit", 100 },
             { "version", "v1" },
-            { "certified", true },
+            { "certified", false },
             { "pro", true },
             { "hostname", "woox.io" },
             { "has", new Dictionary<string, object>() {
@@ -608,7 +608,6 @@ public partial class woo : Exchange
                 { "sandboxMode", false },
                 { "createMarketBuyOrderRequiresPrice", true },
                 { "networks", new Dictionary<string, object>() {
-                    { "TRX", "TRX" },
                     { "TRC20", "TRX" },
                     { "ERC20", "ETH" },
                     { "BEP20", "BSC" },
@@ -3742,21 +3741,21 @@ public partial class woo : Exchange
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleWithdrawTagAndParams(tag, parameters);
-        var tagWithdrawTag = tagWithdrawTagparamsWithdrawTagVariable[0];
+        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleParamString(parameters, "tag");
+        string? tagWithdrawTag = (string)tagWithdrawTagparamsWithdrawTagVariable[0];
         IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagWithdrawTagparamsWithdrawTagVariable[1]);
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        this.checkAddress(address);
+        this.checkAddress(address, code, tagWithdrawTag);
         Dictionary<string, object> currency = this.currency(code);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "amount", amount },
@@ -3789,7 +3788,7 @@ public partial class woo : Exchange
             { "amount", amount },
             { "addressTo", address },
             { "tag", tagWithdrawTag },
-            { "network", network },
+            { "network", this.safeString(this.networkAliases, network, network) },
             { "type", "withdrawal" },
             { "status", "pending" },
         });
@@ -3856,9 +3855,9 @@ public partial class woo : Exchange
         return ((Int64)((object)((this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0))))!);
     }
 
-    public override Dictionary<string, object> sign(string path, object section = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object section = null, string method = null, object parameters = null)
     {
-        section ??= "public";
+        section ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> requestHeaders = null;
@@ -3951,8 +3950,8 @@ public partial class woo : Exchange
             }
             requestHeaders["x-api-signature"] = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
         }
-        object headersResult = ((requestHeaders != null)) ? requestHeaders : headers;
-        object bodyResult = ((requestBody != null)) ? requestBody : body;
+        Dictionary<string, object> headersResult = requestHeaders;
+        object bodyResult = requestBody;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
@@ -5222,7 +5221,7 @@ public partial class woo : Exchange
         for (int i = 0; i < networkKeys.Count; i++)
         {
             object network = networkKeys[i];
-            if ((network is "ETH"))
+            if (isEqual(network, "ERC20"))
             {
                 return network;
             }

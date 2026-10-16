@@ -62,7 +62,7 @@ use function abs, array_change_key_case, array_filter, array_is_list, array_key_
     stripos, strlen, strpos, strtolower, strtotime, strtoupper, strtr, strval, substr, sys_get_temp_dir,
     time, trim, unpack, urldecode, urlencode, usleep, usort, var_export;
 
-$version = '4.5.85';
+$version = '4.5.88';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -81,10 +81,10 @@ const PAD_WITH_ZERO = 6;
 
 class BaseExchange {
 
-    const VERSION = '4.5.85';
+    const VERSION = '4.5.88';
 
     // this is updated by build/vss.js
-    public static $ccxt_version = '4.5.85';
+    public static $ccxt_version = '4.5.88';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -285,6 +285,7 @@ class BaseExchange {
     public $reloadingEvents = null;
     public $eventsLoading = null;
     public $minFundingAddressLength = 1; // used in check_address
+    public $networkAliases = array('ETH' => 'ERC20', 'TRX' => 'TRC20', 'BSC' => 'BEP20', 'BSC20' => 'BEP20', 'CRONOS' => 'CRC20', 'ARB' => 'ARBITRUM', 'ARBONE' => 'ARBITRUM', 'ARBNOVA' => 'ARBITRUM_NOVA'); // alias -> unified network code
     public $substituteCommonCurrencyCodes = true;
 
     // whether fees should be summed by currency code
@@ -1012,7 +1013,7 @@ class BaseExchange {
         // array_replace instead of array_merge: extend() implements dictionary merging with
         // right-operand precedence, and array_merge silently REINDEXES numeric keys, wiping
         // maps keyed by numeric strings (e.g. options['networksById'] built from evm chain
-        // ids like 42161/56/1 in createNetworksByIdObject) into plain 0..n-1 lists.
+        // ids like 42161/56/1 in afterConstruct) into plain 0..n-1 lists.
         // array_replace preserves keys and has identical semantics for string-keyed dicts.
         // see https://github.com/ccxt/ccxt/pull/29549
         return array_replace(...$args);
@@ -1334,11 +1335,7 @@ class BaseExchange {
             }
         }
 
-        $this->after_construct();
-
-        if ($this->safe_bool($options, 'sandbox') || $this->safe_bool($options, 'testnet')) {
-            $this->set_sandbox_mode(true);
-        }
+        $this->after_construct($options);
     }
 
     public function init_throttler() {
@@ -3838,7 +3835,7 @@ class BaseExchange {
         }
     }
 
-    public function check_address(?string $address = null) {
+    public function check_address(?string $address = null, ?string $code = null, ?string $tag = null) {
         if ($address === null) {
             throw new InvalidAddress($this->id . ' address is null');
         }
@@ -3847,6 +3844,14 @@ class BaseExchange {
         $length = count($uniqChars); // py transpiler trick
         if ($length === 1 || strlen($address) < $this->minFundingAddressLength || mb_strpos($address, ' ') > -1) {
             throw new InvalidAddress($this->id . ' address is invalid or has less than ' . (string) $this->minFundingAddressLength . ' characters => "' . (string) $address . '"');
+        }
+        if ($code !== null) {
+            $tagRequiredCurrencies = $this->safe_list($this->options, 'withdrawTagRequiredCurrencies', array());
+            if ($this->in_array($code, $tagRequiredCurrencies)) {
+                if ($tag === null) {
+                    throw new ArgumentsRequired($this->id . ' withdraw() requires params["tag"] for ' . $code);
+                }
+            }
         }
         return $address;
     }
@@ -3996,7 +4001,7 @@ class BaseExchange {
         $this->options['enableDemoTrading'] = $enable;
     }
 
-    public function sign(string $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()) {
         return array( 'url' => null, 'method' => null, 'headers' => null, 'body' => null );
     }
 
@@ -4241,7 +4246,7 @@ class BaseExchange {
         throw new NotSupported($this->id . ' transfer() is not supported yet');
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    public function withdraw(string $code, float $amount, string $address, $params = array()) {
         throw new NotSupported($this->id . ' withdraw() is not supported yet');
     }
 
@@ -4376,9 +4381,10 @@ class BaseExchange {
         return $timestamp;
     }
 
-    public function after_construct() {
-        // networks
-        $this->create_networks_by_id_object();
+    public function after_construct(array $userConfig = array()) {
+        // networksById: inverse of options.networks, explicit options.networksById entries win
+        $networkIdsToCodesGenerated = $this->invert_flat_string_dictionary($this->safe_value($this->options, 'networks', array()));
+        $this->options['networksById'] = $this->extend($networkIdsToCodesGenerated, $this->safe_value($this->options, 'networksById', array()));
         $this->features_generator();
         // init predefined markets if any
         if ($this->markets !== null) {
@@ -4390,6 +4396,10 @@ class BaseExchange {
         $isSandbox = $this->safe_bool_2($this->options, 'sandbox', 'testnet', false);
         if ($isSandbox === true) {
             $this->set_sandbox_mode($isSandbox);
+        }
+        // compatibility for sandbox/testnet options in userConfig
+        if (($this->safe_bool($userConfig, 'sandbox', false)) || ($this->safe_bool($userConfig, 'testnet', false))) {
+            $this->set_sandbox_mode(true);
         }
     }
 
@@ -4606,25 +4616,10 @@ class BaseExchange {
         return $symbol . ' : ' . 'orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options["watchOrderBook"]["checksum"] = false';
     }
 
-    public function create_networks_by_id_object() {
-        // automatically generate network-id-to-code mappings
-        $networkIdsToCodesGenerated = $this->invert_flat_string_dictionary($this->safe_value($this->options, 'networks', array())); // invert defined networks dictionary
-        $this->options['networksById'] = $this->extend($networkIdsToCodesGenerated, $this->safe_value($this->options, 'networksById', array())); // support manually overriden "networksById" dictionary too
-    }
-
     public function get_default_options() {
         return array(
-            'defaultNetworkCodeReplacements' => array(
-                'ETH' => array( 'primary' => 'ETH', 'secondary' => 'ERC20', 'default' => 'secondary' ),
-                'CRO' => array( 'primary' => 'CRONOS', 'secondary' => 'CRC20', 'default' => 'secondary' ),
-                'TRX' => array( 'primary' => 'TRX', 'secondary' => 'TRC20', 'default' => 'secondary' ),
-                'BTC' => array( 'primary' => 'BTC', 'secondary' => 'BRC20', 'default' => 'primary' ),
-            ),
-            'backwardSupportedNetworkCodes' => array(
-                'ARB' => 'ARBITRUM',
-                'ARBONE' => 'ARBITRUM',
-                'ARBNOVA' => 'ARBITRUM_NOVA',
-            ),
+            // native-chain withdrawals of these currencies may need a destination tag / memo
+            'withdrawTagRequiredCurrencies' => array( 'XRP', 'XLM', 'EOS', 'ATOM', 'HBAR', 'TON', 'KAVA', 'STX', 'XEM', 'IOST', 'OSMO', 'WAXP' ),
         );
     }
 
@@ -4865,7 +4860,7 @@ class BaseExchange {
         return $this->extend($cleanStructure);
     }
 
-    public function set_markets(mixed $markets, $currencies = null) {
+    public function set_markets(mixed $markets, mixed $currencies = null) {
         $values = array();
         $this->markets_by_id = $this->create_safe_dictionary();
         // handle marketId conflicts
@@ -6074,6 +6069,15 @@ class BaseExchange {
         return $result;
     }
 
+    public function parse_order_book_bids_asks_l3(mixed $bidasks, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
+        $bidasksValue = $this->to_array($bidasks);
+        $result = array();
+        for ($i = 0; $i < count($bidasksValue); $i++) {
+            $result[] = $this->parse_order_book_bid_ask_l3($bidasksValue[$i], $priceKey, $amountKey, $countOrIdKey);
+        }
+        return $result;
+    }
+
     public function filter_by_key(mixed $objects, int|string $key, ?string $value = null) {
         if ($value === null) {
             return $objects;
@@ -6139,57 +6143,10 @@ class BaseExchange {
         );
     }
 
-    public function prioritized_network_aliases(?string $networkCode = null, ?string $currencyCode = null, $allowDefault = false) {
-        /**
-         * returns the chain pair [preferred, alternative] for the given $networkCode & currency, e.g:
-         *   ---------------------------------
-         *   | input          | output       |
-         *   --------------------------------|
-         *   | ETH & USDC     | ERC20, ETH   |
-         *   | ERC20 & USDC   | ERC20, ETH   |
-         *   | ETH & ETH      | ETH, ERC20   |
-         *   | ERC20 & ETH    | ETH, ERC20   |
-         *   | ERC20          | ERC20, ETH   |
-         *   | ETH            | ERC20, ETH   |
-         *   ---------------------------------
-         * @param {string} $networkCode unified network-code
-         * @param {string} $currencyCode unified currency-code
-         * @param {boolean} $allowDefault when $currencyCode is null, order by replacement's "default" instead of by user input
-         * @return {string[]} [preferredChain, alternativeChain]
-         */
-        if ($networkCode === null) {
-            return null;
-        }
-        $replacements = $this->safe_dict($this->options, 'defaultNetworkCodeReplacements', array());
-        $keys = is_array($replacements) ? array_keys($replacements) : array();
-        for ($i = 0; $i < count($keys); $i++) {
-            $baseCoin = $keys[$i];
-            $entry = $replacements[$baseCoin];
-            $primary = $entry['primary'];
-            $secondary = $entry['secondary'];
-            if ($networkCode !== $primary && $networkCode !== $secondary) {
-                continue;
-            }
-            // pick which form goes first in the returned pair
-            $preferPrimary = false;
-            if ($currencyCode === $baseCoin) {
-                $preferPrimary = true; // mainnet currency uses primary chain
-            } elseif ($currencyCode !== null) {
-                $preferPrimary = false; // any other (token) currency uses secondary chain
-            } elseif ($allowDefault) {
-                $preferPrimary = ($entry['default'] === 'primary');
-            } else {
-                $preferPrimary = ($networkCode === $primary); // keep user input first
-            }
-            return ($preferPrimary) ? array( $primary, $secondary ) : array( $secondary, $primary );
-        }
-        return array( $networkCode, $networkCode );
-    }
-
     public function network_code_to_id(?string $networkCode, ?string $currencyCode = null) {
         /**
          * @ignore
-         * tries to convert the provided $networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
+         * tries to convert the provided $networkCode (a unified network code or one of its $aliases) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
          * @param {string} $networkCode unified network code
          * @param {string} $currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass $currencyCode argument additionally
          * @return {string|null} exchange-specific network id
@@ -6197,14 +6154,20 @@ class BaseExchange {
         if ($networkCode === null) {
             return null;
         }
+        $unifiedCode = $this->safe_string($this->networkAliases, $networkCode, $networkCode);
         $networkIdsByCodes = $this->safe_dict($this->options, 'networks', array());
-        // try the preferred form first, fall back to its alternative (e.g. when only 'ETH' or only 'ERC20' is defined)
-        $chainPair = $this->prioritized_network_aliases($networkCode, $currencyCode, false);
-        $preferredChain = ($chainPair === null) ? $networkCode : $chainPair[0];
-        $alternativeChain = ($chainPair === null) ? $networkCode : $chainPair[1];
-        $networkId = $this->safe_string_2($networkIdsByCodes, $preferredChain, $alternativeChain);
+        $networkId = $this->safe_string($networkIdsByCodes, $unifiedCode);
         if ($networkId !== null) {
             return $networkId;
+        }
+        // options.networks may still be keyed by an alias of the unified code
+        $aliases = $this->networkAliases;
+        $aliasKeys = is_array($aliases) ? array_keys($aliases) : array();
+        for ($i = 0; $i < count($aliasKeys); $i++) {
+            $alias = $aliasKeys[$i];
+            if (($aliases[$alias] === $unifiedCode) && (is_array($networkIdsByCodes) && array_key_exists($alias ?? '', $networkIdsByCodes))) {
+                return $networkIdsByCodes[$alias];
+            }
         }
         // fall back to scanning loaded currencies
         $currenciesToCheck = array();
@@ -6215,14 +6178,9 @@ class BaseExchange {
         }
         for ($i = 0; $i < count($currenciesToCheck); $i++) {
             $networks = $this->safe_dict($currenciesToCheck[$i], 'networks', array());
-            if (is_array($networks) && array_key_exists($networkCode ?? '', $networks)) {
-                return $this->safe_string($networks[$networkCode], 'id');
+            if (is_array($networks) && array_key_exists($unifiedCode ?? '', $networks)) {
+                return $this->safe_string($networks[$unifiedCode], 'id');
             }
-        }
-        // before returning the original input, try to match if it's backward-maintained networkCode
-        $oldCodes = $this->safe_dict($this->options, 'backwardSupportedNetworkCodes', array());
-        if (is_array($oldCodes) && array_key_exists($networkCode ?? '', $oldCodes)) {
-            return $this->network_code_to_id($oldCodes[$networkCode], $currencyCode);
         }
         return $networkCode;
     }
@@ -6239,22 +6197,9 @@ class BaseExchange {
             return null;
         }
         $networkCodesByIds = $this->safe_dict($this->options, 'networksById', array());
-        $networkCode = $this->safe_string($networkCodesByIds, $networkId, $networkId);
-        $chainPair = $this->prioritized_network_aliases($networkCode, $currencyCode, true);
-        if ($chainPair === null) {
-            return $networkCode;
-        }
-        $preferredChain = $chainPair[0];
-        $alternativeChain = $chainPair[1];
-        // when the exchange explicitly defines both forms in options.networks (e.g. BTC + BRC20),
-        // it disambiguates them — trust the direct id→code inversion instead of guessing
-        if ($currencyCode === null) {
-            $networkIdsByCodes = $this->safe_dict($this->options, 'networks', array());
-            if ((is_array($networkIdsByCodes) && array_key_exists($preferredChain ?? '', $networkIdsByCodes)) && (is_array($networkIdsByCodes) && array_key_exists($alternativeChain ?? '', $networkIdsByCodes))) {
-                return $networkCode;
-            }
-        }
-        return $preferredChain;
+        $mappedCode = $this->safe_string($networkCodesByIds, $networkId);
+        $networkCode = ($mappedCode === null) ? $networkId : $mappedCode;
+        return $this->safe_string($this->networkAliases, $networkCode, $networkCode);
     }
 
     public function handle_network_code_and_params(array $params) {
@@ -6262,30 +6207,6 @@ class BaseExchange {
         $paramsOmitted = ($networkCodeInParams !== null) ? $this->omit($params, array( 'networkCode', 'network' )) : $params;
         // if it was not defined by user, we should not set it from 'defaultNetworks', because handleNetworkCodeAndParams is for only request-side and thus we do not fill it with anything. We can only use 'defaultNetworks' after parsing response-side
         return array( $networkCodeInParams, $paramsOmitted );
-    }
-
-    public function default_network_code(string $currencyCode) {
-        $defaultNetworkCode = null;
-        $defaultNetworks = $this->safe_dict($this->options, 'defaultNetworks', array());
-        if (is_array($defaultNetworks) && array_key_exists($currencyCode ?? '', $defaultNetworks)) {
-            // if currency had set its network in "defaultNetworks", use it
-            $defaultNetworkCode = $defaultNetworks[$currencyCode];
-        } else {
-            // otherwise, try to use the global-scope 'defaultNetwork' value (even if that network is not supported by currency, it doesn't make any problem, this will be just used "at first" if currency supports this network at all)
-            $defaultNetwork = $this->safe_string($this->options, 'defaultNetwork');
-            if ($defaultNetwork !== null) {
-                $defaultNetworkCode = $defaultNetwork;
-            }
-        }
-        return $defaultNetworkCode;
-    }
-
-    public function select_network_code_from_unified_networks(string $currencyCode, mixed $networkCode, mixed $indexedNetworkEntries) {
-        return $this->select_network_key_from_networks($currencyCode, $networkCode, $indexedNetworkEntries, true);
-    }
-
-    public function select_network_id_from_raw_networks(string $currencyCode, mixed $networkCode, mixed $indexedNetworkEntries) {
-        return $this->select_network_key_from_networks($currencyCode, $networkCode, $indexedNetworkEntries, false);
     }
 
     public function select_network_key_from_networks(string $currencyCode, ?string $networkCode, mixed $indexedNetworkEntries, $isIndexedByUnifiedNetworkCode = false) {
@@ -6313,7 +6234,7 @@ class BaseExchange {
                 throw new NotSupported($this->id . ' - no networks were returned for ' . $currencyCode);
             } else {
                 // if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
-                $defaultNetworkCode = $this->default_network_code($currencyCode);
+                $defaultNetworkCode = $this->safe_string($this->safe_dict($this->options, 'defaultNetworks', array()), $currencyCode, $this->safe_string($this->options, 'defaultNetwork'));
                 $defaultNetworkId = $isIndexedByUnifiedNetworkCode ? $defaultNetworkCode : $this->network_code_to_id($defaultNetworkCode, $currencyCode);
                 if ($defaultNetworkId === null) {
                     throw new ExchangeError($this->id . ' selectNetworkKeyFromNetworks() missing defaultNetworkId');
@@ -6335,6 +6256,19 @@ class BaseExchange {
     public function parse_order_book(?array $orderbook, ?string $symbol, ?int $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
         $bids = $this->parse_order_book_bids_asks($this->safe_value($orderbook, $bidsKey, array()), $priceKey, $amountKey, $countOrIdKey);
         $asks = $this->parse_order_book_bids_asks($this->safe_value($orderbook, $asksKey, array()), $priceKey, $amountKey, $countOrIdKey);
+        return array(
+            'symbol' => $symbol,
+            'bids' => $this->sort_by($bids, 0, true),
+            'asks' => $this->sort_by($asks, 0),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'nonce' => null,
+        );
+    }
+
+    public function parse_order_book_l3(?array $orderbook, ?string $symbol, ?int $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
+        $bids = $this->parse_order_book_bids_asks_l3($this->safe_value($orderbook, $bidsKey, array()), $priceKey, $amountKey, $countOrIdKey);
+        $asks = $this->parse_order_book_bids_asks_l3($this->safe_value($orderbook, $asksKey, array()), $priceKey, $amountKey, $countOrIdKey);
         return array(
             'symbol' => $symbol,
             'bids' => $this->sort_by($bids, 0, true),
@@ -6635,24 +6569,6 @@ class BaseExchange {
         return array( $value, $paramsOmitted );
     }
 
-    public function handle_request_network(array $params, array $request, string $exchangeSpecificKey, ?string $currencyCode = null, bool $isRequired = false) {
-        /**
-         * @param {array} $params - extra parameters
-         * @param {array} $request - existing dictionary of $request
-         * @param {string} $exchangeSpecificKey - the key for chain id to be set in $request
-         * @param {array} $currencyCode - (optional) existing dictionary of $request
-         * @param {boolean} $isRequired - (optional) whether that param is required to be present
-         * @return {array[]} - returns [$request, $params] where $request is the modified $request object and $params is the modified $params object
-         */
-        list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($params);
-        if ($networkCode !== null) {
-            $request[$exchangeSpecificKey] = $this->network_code_to_id($networkCode, $currencyCode);
-        } elseif ($isRequired) {
-            throw new ArgumentsRequired($this->id . ' - "network" param is required for this request');
-        }
-        return array( $request, $paramsNetworkCode );
-    }
-
     public function resolve_path(mixed $path, mixed $params) {
         return array(
             $this->implode_params($path, $params),
@@ -6740,7 +6656,7 @@ class BaseExchange {
         return $results;
     }
 
-    public function fetch2(string $path, mixed $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, array $config = array()) {
+    public function fetch2(string $path, array $api = array('public'), $method = 'GET', $params = array(), array $config = array()) {
         if ($this->enableRateLimit) {
             $cost = $this->calculate_rate_limiter_cost($api, $method, $path, $params, $config);
             $this->throttle($cost);
@@ -6759,7 +6675,7 @@ class BaseExchange {
             }
             try {
                 $this->set_last_rest_request_timestamp();
-                $request = $this->sign($path, $api, $method, $paramsMaxRetriesOnFailureDelay, $headers, $body);
+                $request = $this->sign($path, $api, $method, $paramsMaxRetriesOnFailureDelay);
                 if ($fetchData !== null) {
                     $fetchData['request'] = $request;
                 }
@@ -6795,8 +6711,8 @@ class BaseExchange {
         return null; // this line is never reached, but exists for c# value return requirement
     }
 
-    public function request(string $path, mixed $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, array $config = array()) {
-        return $this->fetch2($path, $api, $method, $params, $headers, $body, $config);
+    public function request(string $path, array $api = array('public'), $method = 'GET', $params = array(), array $config = array()) {
+        return $this->fetch2($path, $api, $method, $params, $config);
     }
 
     public function load_accounts($reload = false, $params = array()) {
@@ -6910,6 +6826,17 @@ class BaseExchange {
         $price = $this->safe_float($bidask, $priceKey);
         $amount = $this->safe_float($bidask, $amountKey);
         $countOrId = $this->safe_integer($bidask, $countOrIdKey);
+        $bidAsk = array( $price, $amount );
+        if ($countOrId !== null) {
+            $bidAsk[] = $countOrId;
+        }
+        return $bidAsk;
+    }
+
+    public function parse_order_book_bid_ask_l3(mixed $bidask, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
+        $price = $this->safe_float($bidask, $priceKey);
+        $amount = $this->safe_float($bidask, $amountKey);
+        $countOrId = $this->safe_string($bidask, $countOrIdKey);
         $bidAsk = array( $price, $amount );
         if ($countOrId !== null) {
             $bidAsk[] = $countOrId;
@@ -7330,7 +7257,7 @@ class BaseExchange {
         return null;
     }
 
-    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
+    public function calculate_rate_limiter_cost(array $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
         return $this->safe_value($config, 'cost', 1);
     }
 
@@ -7694,22 +7621,6 @@ class BaseExchange {
             }
         }
         return false;
-    }
-
-    public function handle_withdraw_tag_and_params(mixed $tag, array $params) {
-        $paramsExtended = $params;
-        $tagValue = $tag;
-        if ($this->is_dictionary($tag)) {
-            $paramsExtended = $this->extend($tag, $params);
-            $tagValue = null;
-        }
-        $tagResolved = ($tagValue === null) ? $this->safe_string($paramsExtended, 'tag') : $tagValue;
-        $tagFromParams = ($tagValue === null) && ($tagResolved !== null);
-        $paramsOmitted = $paramsExtended;
-        if ($tagFromParams) {
-            $paramsOmitted = $this->omit($paramsExtended, 'tag');
-        }
-        return array( $tagResolved, $paramsOmitted );
     }
 
     public function cost_to_precision(?string $symbol, mixed $cost) {
@@ -9329,14 +9240,14 @@ class BaseExchange {
         throw new NotSupported($this->id . ' unWatchOHLCV () is not supported yet');
     }
 
-    public function withdraw_ws(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    public function withdraw_ws(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal
          * @param {string} $code unified currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         throw new NotSupported($this->id . ' withdrawWs () is not supported yet');

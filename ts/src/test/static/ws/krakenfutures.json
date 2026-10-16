@@ -7,6 +7,7 @@
             {
                 "description": "cash balance snapshot followed by rapid updates (live capture, trimmed to nonzero entries) - updates arriving while no consumer is awaiting must still reach the object handed to the consumer (same class of bug as kraken issue 26773); the cash frame is replayed last so every plain-hash resolve hands out the same object in first-resolve-wins and last-resolve-wins runtimes alike",
                 "disabledPHP": "php arrays are value types - the consumer holds a copy, so updates resolved with no waiter can only be delivered by a client-level queue (see issue 30220)",
+                "disabledGO": "the typed WatchBalance wrapper copies the dict into a ccxt.Balances struct at resolve time, freezing the consumer's view - only a client-level queue can deliver later updates (see issue 30220)",
                 "disabledCS": "the typed WatchBalance wrapper copies the dict into a Balances struct at resolve time, freezing the consumer's view - only a client-level queue can deliver later updates (see issue 30220)",
                 "input": [],
                 "url": "wss://futures.kraken.com/ws/v1",

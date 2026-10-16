@@ -126,6 +126,7 @@ class hibachi extends Exchange {
                     'private' => 'https://api.hibachi.xyz',
                 ),
                 'www' => 'https://www.hibachi.xyz/',
+                'doc' => 'https://api-doc.hibachi.xyz/',
                 'referral' => array(
                     'url' => 'https://hibachi.xyz/r/ZBL2YFWIHU',
                 ),
@@ -1260,7 +1261,7 @@ class hibachi extends Exchange {
         return $message;
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
+    public function withdraw(string $code, float $amount, string $address, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -1269,8 +1270,8 @@ class hibachi extends Exchange {
          * @param {string} $code unified currency $code, only support USDT
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         $withdrawAddress = mb_substr($address, -40);
@@ -1804,9 +1805,10 @@ class hibachi extends Exchange {
         ));
     }
 
-    public function sign(string $path, $api = 'public', mixed $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), mixed $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $endpoint = '/' . $this->implode_params($path, $params);
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
@@ -1823,11 +1825,11 @@ class hibachi extends Exchange {
         if ($hasJsonBody) {
             $headersValue['Content-Type'] = 'application/json';
         }
-        $bodyResult = $body;
+        $bodyResult = null;
         if ($hasJsonBody) {
             $bodyResult = $this->json($params);
         }
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             $headersValue['Authorization'] = $this->apiKey;
         }

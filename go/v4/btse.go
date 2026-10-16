@@ -4970,19 +4970,16 @@ func (this *Btse) HandleErrors(code any, reason any, url any, method any, header
 	return nil
 }
 func (this *Btse) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
-	var requestBody any = nil
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var requestBody *string = nil
 	var requestHeaders any = nil
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -5001,14 +4998,14 @@ func (this *Btse) Sign(path string, optionalArgs ...any) any {
 			url += "?" + queryString
 		}
 	}
-	if api == "private" {
+	if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		var nonce any = this.Nonce()
 		var bodyString string = this.Json(query)
 		if ((method == "GET") || (method == "DELETE")) && !isBodyDelete {
 			bodyString = ""
 		} else {
-			requestBody = bodyString
+			requestBody = SafeStringPtr(bodyString)
 		}
 		// the signed urlpath is the path relative to the base url of the product, the
 		// spot and futures apis of every generation mount under /spot and /futures and
@@ -5030,18 +5027,8 @@ func (this *Btse) Sign(path string, optionalArgs ...any) any {
 			"BROKER-ID":     "ccxt",
 		}
 	}
-	var bodyResolved any = func() any {
-		if requestBody == nil {
-			return body
-		}
-		return requestBody
-	}()
-	var headersResolved any = func() any {
-		if requestHeaders == nil {
-			return headers
-		}
-		return requestHeaders
-	}()
+	var bodyResolved *string = requestBody
+	var headersResolved any = requestHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,

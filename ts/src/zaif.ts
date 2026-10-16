@@ -754,13 +754,13 @@ export default class zaif extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
-        this.checkAddress (address);
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleParamString (params, 'tag');
+        this.checkAddress (address, code, tagWithdrawTag);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -852,22 +852,23 @@ export default class zaif extends Exchange {
         return nonce.toFixed (8);
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
         const baseApiUrl = this.safeString (this.urls['api'], 'rest');
         if (baseApiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
         const baseUrl: string = baseApiUrl;
         let url = baseUrl + '/';
-        if (api === 'public') {
+        if (apiName === 'public') {
             url += 'api/' + this.version + '/' + this.implodeParams (path, params);
-        } else if (api === 'fapi') {
+        } else if (apiName === 'fapi') {
             url += 'fapi/' + this.version + '/' + this.implodeParams (path, params);
         } else {
             this.checkRequiredCredentials ();
-            if (api === 'ecapi') {
+            if (apiName === 'ecapi') {
                 url += 'ecapi';
-            } else if (api === 'tlapi') {
+            } else if (apiName === 'tlapi') {
                 url += 'tlapi';
             } else {
                 url += 'tapi';
@@ -884,7 +885,7 @@ export default class zaif extends Exchange {
             };
             return { 'url': url, 'method': method, 'body': bodyEncoded, 'headers': headersSigned };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

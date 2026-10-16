@@ -1362,8 +1362,8 @@ func (this *Bitbank) fetchDepositAddressBody(ch chan AsyncResult[any], code stri
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Bitbank) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
@@ -1374,12 +1374,22 @@ func (this *Bitbank) WithdrawAsync(code string, amount any, address any, optiona
 func (this *Bitbank) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagAndParams any = this.HandleWithdrawTagAndParams(tag, params)
-	var paramsWithdrawTag any = GetValue(tagAndParams, 1)
+	var tagAndParams []any = this.HandleParamString(params, "tag")
+	var tagWithdrawTag *string = SafeStringPtr(func() any {
+		if 0 >= 0 && 0 < len(tagAndParams) {
+			return DerefScalar(tagAndParams[0])
+		}
+		return nil
+	}())
+	var paramsWithdrawTag any = func() any {
+		if 1 >= 0 && 1 < len(tagAndParams) {
+			return DerefScalar(tagAndParams[1])
+		}
+		return nil
+	}()
+	this.CheckAddress(address, code, tagWithdrawTag)
 	if !(InOp(paramsWithdrawTag, "uuid")) {
 		panic(ExchangeError(this.Id + " uuid is required for withdrawal"))
 	}
@@ -1472,25 +1482,22 @@ func (this *Bitbank) Nonce() any {
 	return this.Milliseconds()
 }
 func (this *Bitbank) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url any = this.ImplodeHostname(apiUrl) + "/"
 	var requestBody any = nil
 	var requestHeaders any = nil
-	if (api == "public") || (api == "markets") {
+	if (apiName != nil && *apiName == "public") || (apiName != nil && *apiName == "markets") {
 		url = Add(url, this.ImplodeParams(path, params))
 		if len(ObjectKeys(query)) > 0 {
 			url = Add(url, "?"+this.Urlencode(query))
@@ -1534,18 +1541,8 @@ func (this *Bitbank) Sign(path string, optionalArgs ...any) any {
 			AddElementToObject(requestHeaders, "ACCESS-NONCE", nonce)
 		}
 	}
-	var bodyResolved any = func() any {
-		if requestBody == nil {
-			return body
-		}
-		return requestBody
-	}()
-	var headersResolved any = func() any {
-		if requestHeaders == nil {
-			return headers
-		}
-		return requestHeaders
-	}()
+	var bodyResolved any = requestBody
+	var headersResolved any = requestHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,
@@ -1960,8 +1957,8 @@ func (this *Bitbank) FetchDepositAddress(code string, options ...FetchDepositAdd
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Bitbank) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
@@ -1971,7 +1968,7 @@ func (this *Bitbank) Withdraw(code string, amount float64, address string, optio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

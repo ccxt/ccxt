@@ -123,6 +123,7 @@ public partial class hibachi : Exchange
                     { "private", "https://api.hibachi.xyz" },
                 } },
                 { "www", "https://www.hibachi.xyz/" },
+                { "doc", "https://api-doc.hibachi.xyz/" },
                 { "referral", new Dictionary<string, object>() {
                     { "url", "https://hibachi.xyz/r/ZBL2YFWIHU" },
                 } },
@@ -1396,11 +1397,11 @@ public partial class hibachi : Exchange
      * @param {string} code unified currency code, only support USDT
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? withdrawAddress = ((address == null) ? null : address.Substring(Math.Max(address.Length - 40, 0)));
@@ -1951,13 +1952,14 @@ public partial class hibachi : Exchange
         });
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        object apiName = getValue(api, 0);
         string endpoint = ("/" + this.implodeParams(path, parameters));
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -1980,12 +1982,12 @@ public partial class hibachi : Exchange
         {
             headersValue["Content-Type"] = "application/json";
         }
-        object bodyResult = body;
+        string? bodyResult = null;
         if (hasJsonBody)
         {
             bodyResult = this.json(parameters);
         }
-        if ((api is "private"))
+        if ((apiName is "private"))
         {
             this.checkRequiredCredentials();
             headersValue["Authorization"] = this.apiKey;

@@ -4753,16 +4753,17 @@ public partial class aster : Exchange
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        List<object> tagAndParams = this.handleWithdrawTagAndParams(tag, parameters);
-        object paramsWithdrawTag = (tagAndParams != null && 1 < tagAndParams.Count ? tagAndParams[1] : null);
-        this.checkAddress(address);
+        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleParamString(parameters, "tag");
+        string? tagWithdrawTag = (string)tagWithdrawTagparamsWithdrawTagVariable[0];
+        IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagWithdrawTagparamsWithdrawTagVariable[1]);
+        this.checkAddress(address, code, tagWithdrawTag);
         await this.loadMarketsAndSignIn();
         Dictionary<string, object> currency = this.currency(code);
         Int64 nonce = (this.milliseconds() * 1000);
@@ -4775,6 +4776,10 @@ public partial class aster : Exchange
         // TODO: check how ARBI signature would work
         IDictionary<string, object> networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
         string? network = this.safeStringUpper(paramsWithdrawTag, "network");
+        if ((network != null))
+        {
+            network = this.safeString(this.networkAliases, network, network); // accepts aliases like ETH for ERC20
+        }
         network = this.safeString(networks, network, network);
         if (((chainId == null)) && ((network != null)))
         {
@@ -4792,7 +4797,7 @@ public partial class aster : Exchange
             throw new ArgumentsRequired ((this.id + " withdraw require fee parameter")) ;
         }
         request["fee"] = fee;
-        object paramsOmitted = this.omit(paramsWithdrawTag, new List<object>() {"chainId", "network", "fee"});
+        Dictionary<string, object> paramsOmitted = this.omit(paramsWithdrawTag, new List<object>() {"chainId", "network", "fee"});
         request["amount"] = this.currencyToPrecision(code, amount, network);
         request["userSignature"] = this.signWithdrawPayload(request, network);
         Dictionary<string, object> response = await this.sapiPrivatePostV3AsterUserWithdraw(this.extend(request, paramsOmitted));
@@ -4919,24 +4924,25 @@ public partial class aster : Exchange
         return ((("0x" + ((r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + ((s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + v);
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        object apiName = getValue(api, 0);
+        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((baseApiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string url = ((baseApiUrl + "/") + path);
-        if ((api is "fapiPublic") || (api is "sapiPublic"))
+        if ((apiName is "fapiPublic") || (apiName is "sapiPublic"))
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
                 url = url + ("?" + this.rawencode(parameters));
             }
-        } else if ((api is "fapiPrivate") || (api is "sapiPrivate"))
+        } else if ((apiName is "fapiPrivate") || (apiName is "sapiPrivate"))
         {
             this.checkRequiredCredentials();
             Int64 nonce = (this.milliseconds() * 1000);
@@ -5035,8 +5041,8 @@ public partial class aster : Exchange
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", null },
+            { "headers", null },
         };
     }
 

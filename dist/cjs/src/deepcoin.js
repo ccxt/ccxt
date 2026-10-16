@@ -98,12 +98,12 @@ class deepcoin extends deepcoin$1["default"] {
                 'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchOrderTrades': true,
-                'fetchPosition': true,
+                'fetchPosition': false,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
                 'fetchPositionsForSymbol': true,
-                'fetchPositionsHistory': true,
+                'fetchPositionsHistory': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': false,
                 'fetchTicker': false,
@@ -326,7 +326,7 @@ class deepcoin extends deepcoin$1["default"] {
                     'ERC20': 'ERC20',
                     'TRC20': 'TRC20',
                     'ARBITRUM': 'ARBITRUM',
-                    'BSC': 'BSC(BEP20)',
+                    'BEP20': 'BSC(BEP20)',
                     'SOL': 'SOL',
                     'BTC': 'Bitcoin',
                     'ADA': 'Cardano',
@@ -1212,6 +1212,9 @@ class deepcoin extends deepcoin$1["default"] {
         const defaultNetwork = this.safeString(defaultNetworks, code);
         if ((network === undefined) || (network === '')) {
             network = defaultNetwork;
+        }
+        if (network !== undefined) {
+            network = this.safeString(this.networkAliases, network, network);
         }
         const paramsOmitted = (network !== undefined) ? this.omit(params, 'network') : params;
         const addressess = await this.fetchDepositAddresses([code], paramsOmitted);
@@ -3046,7 +3049,8 @@ class deepcoin extends deepcoin$1["default"] {
         const data = this.safeList(response, 'data', []);
         return this.parseOrder(data, market);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         let requestPath = path;
         if (method === 'GET') {
             const query = this.urlencode(params);
@@ -3054,12 +3058,12 @@ class deepcoin extends deepcoin$1["default"] {
                 requestPath += '?' + query;
             }
         }
-        const apiUrl = this.safeString(this.urls['api'], api);
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         const url = apiUrl + '/' + requestPath;
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             const timestamp = this.milliseconds();
             const dateTime = this.iso8601(timestamp);
@@ -3070,7 +3074,7 @@ class deepcoin extends deepcoin$1["default"] {
                 'DC-ACCESS-PASSPHRASE': this.password,
                 'appid': '200103',
             };
-            const requestBody = (method !== 'GET') ? this.json(params) : body;
+            const requestBody = (method !== 'GET') ? this.json(params) : undefined;
             if (method !== 'GET') {
                 privateHeaders['Content-Type'] = 'application/json';
                 payload += requestBody;
@@ -3079,7 +3083,7 @@ class deepcoin extends deepcoin$1["default"] {
             privateHeaders['DC-ACCESS-SIGN'] = signature;
             return { 'url': url, 'method': method, 'body': requestBody, 'headers': privateHeaders };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         const data = this.safeDict(response, 'data', {});
