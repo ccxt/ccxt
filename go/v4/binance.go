@@ -3002,7 +3002,6 @@ func (this *Binance) Describe() any {
 				"funding": "FUNDING",
 				"margin":  "MARGIN",
 				"cross":   "MARGIN",
-				"future":  "UMFUTURE",
 				"linear":  "UMFUTURE",
 				"swap":    "UMFUTURE",
 				"inverse": "CMFUTURE",
@@ -4362,10 +4361,11 @@ func (this *Binance) Market(symbol any) map[string]any {
 	if this.Markets == nil {
 		panic(ExchangeError(this.Id + " markets not loaded"))
 	}
-	// defaultType 'future' resolves spot-style symbols to the derivative market of defaultSubType
+	// defaultType 'swap' resolves spot-style symbols to the perpetual of defaultSubType
 	var defaultType *string = this.SafeString(this.Options, "defaultType")
 	var defaultSubType *string = this.SafeString(this.Options, "defaultSubType")
-	var isLegacy bool = (defaultType != nil && *defaultType == "future")
+	var isLegacy bool = (defaultType != nil && *defaultType == "swap")
+	var isDerivative bool = isLegacy || (defaultType != nil && *defaultType == "future")
 	var isLegacyInverse bool = isLegacy && (defaultSubType != nil && *defaultSubType == "inverse")
 	var isLegacyLinear bool = isLegacy && !isLegacyInverse
 	if IsString(symbol) {
@@ -4389,10 +4389,13 @@ func (this *Binance) Market(symbol any) map[string]any {
 		} else if (this.Markets_by_id != nil) && (InOp(this.Markets_by_id, symbol)) {
 			var markets any = GetValue(this.Markets_by_id, symbol)
 			// begin diff
-			if isLegacyLinear {
-				defaultType = SafeStringPtr("linear")
-			} else if isLegacyInverse {
-				defaultType = SafeStringPtr("inverse")
+			if isDerivative {
+				defaultType = SafeStringPtr(func() string {
+					if defaultSubType != nil && *defaultSubType == "inverse" {
+						return "inverse"
+					}
+					return "linear"
+				}())
 			} else if defaultType == nil {
 				defaultType = defaultSubType
 			}
@@ -4405,7 +4408,7 @@ func (this *Binance) Market(symbol any) map[string]any {
 			}
 			return MarketTyped(GetValue(markets, 0))
 		} else if (GetIndexOf(symbol, "/") > -1) && (GetIndexOf(symbol, ":") < 0) {
-			if (defaultType != nil) && (defaultType == nil || *defaultType != "spot") {
+			if isLegacy {
 				// support legacy symbols
 				basequoteVariable := Split(symbol, "/")
 				base := GetValue(basequoteVariable, 0)
@@ -6873,25 +6876,25 @@ func (this *Binance) fetchMarkPriceBody(ch chan AsyncResult[map[string]any], sym
 	var response []any = nil
 	if market["option"] == true {
 
-		listEp6723 := <-this.EapiPublicGetMark(this.Extend(request, paramsSubType))
-		if listEp6723.Err != nil {
-			panic(listEp6723.Err)
-		}
-		response = listEp6723.Value
-	} else if this.IsLinear(typeVar, subType) {
-
-		listEp6726 := <-this.FapiPublicGetPremiumIndex(this.Extend(request, paramsSubType))
+		listEp6726 := <-this.EapiPublicGetMark(this.Extend(request, paramsSubType))
 		if listEp6726.Err != nil {
 			panic(listEp6726.Err)
 		}
 		response = listEp6726.Value
-	} else if this.IsInverse(typeVar, subType) {
+	} else if this.IsLinear(typeVar, subType) {
 
-		listEp6729 := <-this.DapiPublicGetPremiumIndex(this.Extend(request, paramsSubType))
+		listEp6729 := <-this.FapiPublicGetPremiumIndex(this.Extend(request, paramsSubType))
 		if listEp6729.Err != nil {
 			panic(listEp6729.Err)
 		}
 		response = listEp6729.Value
+	} else if this.IsInverse(typeVar, subType) {
+
+		listEp6732 := <-this.DapiPublicGetPremiumIndex(this.Extend(request, paramsSubType))
+		if listEp6732.Err != nil {
+			panic(listEp6732.Err)
+		}
+		response = listEp6732.Value
 	} else {
 		panic(NotSupported(this.Id + " fetchMarkPrice() does not support " + *typeVar + " markets yet"))
 	}
@@ -6946,25 +6949,25 @@ func (this *Binance) fetchMarkPricesBody(ch chan AsyncResult[map[string]any], op
 	var response []any = nil
 	if typeVar != nil && *typeVar == "option" {
 
-		listEp6781 := <-this.EapiPublicGetMark(paramsSubType)
-		if listEp6781.Err != nil {
-			panic(listEp6781.Err)
-		}
-		response = listEp6781.Value
-	} else if this.IsLinear(typeVar, subType) {
-
-		listEp6784 := <-this.FapiPublicGetPremiumIndex(paramsSubType)
+		listEp6784 := <-this.EapiPublicGetMark(paramsSubType)
 		if listEp6784.Err != nil {
 			panic(listEp6784.Err)
 		}
 		response = listEp6784.Value
-	} else if this.IsInverse(typeVar, subType) {
+	} else if this.IsLinear(typeVar, subType) {
 
-		listEp6787 := <-this.DapiPublicGetPremiumIndex(paramsSubType)
+		listEp6787 := <-this.FapiPublicGetPremiumIndex(paramsSubType)
 		if listEp6787.Err != nil {
 			panic(listEp6787.Err)
 		}
 		response = listEp6787.Value
+	} else if this.IsInverse(typeVar, subType) {
+
+		listEp6790 := <-this.DapiPublicGetPremiumIndex(paramsSubType)
+		if listEp6790.Err != nil {
+			panic(listEp6790.Err)
+		}
+		response = listEp6790.Value
 	} else {
 		panic(NotSupported(this.Id + " fetchMarkPrices() does not support " + *typeVar + " markets yet"))
 	}
@@ -7090,11 +7093,11 @@ func (this *Binance) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opt
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes516219 []any = ListTyped(r1.Value)
-		if retRes516219 == nil {
+		var retRes516019 []any = ListTyped(r1.Value)
+		if retRes516019 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes516219}
+			ch <- AsyncResult[any]{Value: retRes516019}
 		}
 		return nil
 	}
@@ -7634,11 +7637,11 @@ func (this *Binance) fetchTradesBody(ch chan AsyncResult[any], symbol any, optio
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes559519 []any = ListTyped(r1.Value)
-		if retRes559519 == nil {
+		var retRes559319 []any = ListTyped(r1.Value)
+		if retRes559319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes559519}
+			ch <- AsyncResult[any]{Value: retRes559319}
 		}
 		return nil
 	}
@@ -8261,11 +8264,11 @@ func (this *Binance) editOrderBody(ch chan AsyncResult[map[string]any], id strin
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes606519 map[string]any = r1.Value
-		if retRes606519 == nil {
+		var retRes606319 map[string]any = r1.Value
+		if retRes606319 == nil {
 			ch <- AsyncResult[map[string]any]{Value: nil}
 		} else {
-			ch <- AsyncResult[map[string]any]{Value: retRes606519}
+			ch <- AsyncResult[map[string]any]{Value: retRes606319}
 		}
 		return nil
 	} else {
@@ -8274,11 +8277,11 @@ func (this *Binance) editOrderBody(ch chan AsyncResult[map[string]any], id strin
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes606719 map[string]any = r2.Value
-		if retRes606719 == nil {
+		var retRes606519 map[string]any = r2.Value
+		if retRes606519 == nil {
 			ch <- AsyncResult[map[string]any]{Value: nil}
 		} else {
-			ch <- AsyncResult[map[string]any]{Value: retRes606719}
+			ch <- AsyncResult[map[string]any]{Value: retRes606519}
 		}
 		return nil
 	}
@@ -9200,25 +9203,25 @@ func (this *Binance) createOrdersBody(ch chan AsyncResult[any], orders any, opti
 	request = this.Extend(request, params)
 	if market["linear"] == true {
 
-		listEp8900 := <-this.FapiPrivatePostBatchOrders(request)
-		if listEp8900.Err != nil {
-			panic(listEp8900.Err)
-		}
-		response = listEp8900.Value
-	} else if market["option"] == true {
-
-		listEp8903 := <-this.EapiPrivatePostBatchOrders(request)
+		listEp8903 := <-this.FapiPrivatePostBatchOrders(request)
 		if listEp8903.Err != nil {
 			panic(listEp8903.Err)
 		}
 		response = listEp8903.Value
-	} else {
+	} else if market["option"] == true {
 
-		listEp8906 := <-this.DapiPrivatePostBatchOrders(request)
+		listEp8906 := <-this.EapiPrivatePostBatchOrders(request)
 		if listEp8906.Err != nil {
 			panic(listEp8906.Err)
 		}
 		response = listEp8906.Value
+	} else {
+
+		listEp8909 := <-this.DapiPrivatePostBatchOrders(request)
+		if listEp8909.Err != nil {
+			panic(listEp8909.Err)
+		}
+		response = listEp8909.Value
 	}
 
 	//
@@ -10148,11 +10151,11 @@ func (this *Binance) createMarketOrderWithCostBody(ch chan AsyncResult[map[strin
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes767315 map[string]any = r1.Value
-	if retRes767315 == nil {
+	var retRes767115 map[string]any = r1.Value
+	if retRes767115 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes767315}
+		ch <- AsyncResult[map[string]any]{Value: retRes767115}
 	}
 	return nil
 }
@@ -10196,11 +10199,11 @@ func (this *Binance) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any], 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes769715 map[string]any = r1.Value
-	if retRes769715 == nil {
+	var retRes769515 map[string]any = r1.Value
+	if retRes769515 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes769715}
+		ch <- AsyncResult[any]{Value: retRes769515}
 	}
 	return nil
 }
@@ -10242,11 +10245,11 @@ func (this *Binance) createMarketSellOrderWithCostBody(ch chan AsyncResult[any],
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes771915 map[string]any = r1.Value
-	if retRes771915 == nil {
+	var retRes771715 map[string]any = r1.Value
+	if retRes771715 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes771915}
+		ch <- AsyncResult[any]{Value: retRes771715}
 	}
 	return nil
 }
@@ -10493,11 +10496,11 @@ func (this *Binance) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...a
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes786819 []any = ListTyped(r1.Value)
-		if retRes786819 == nil {
+		var retRes786619 []any = ListTyped(r1.Value)
+		if retRes786619 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes786819}
+			ch <- AsyncResult[any]{Value: retRes786619}
 		}
 		return nil
 	}
@@ -12140,11 +12143,11 @@ func (this *Binance) fetchOrderTradesBody(ch chan AsyncResult[any], id string, o
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes911215 []any = ListTyped(r1.Value)
-	if retRes911215 == nil {
+	var retRes911015 []any = ListTyped(r1.Value)
+	if retRes911015 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes911215}
+		ch <- AsyncResult[any]{Value: retRes911015}
 	}
 	return nil
 }
@@ -12204,11 +12207,11 @@ func (this *Binance) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ..
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes914619 []any = ListTyped(r1.Value)
-		if retRes914619 == nil {
+		var retRes914419 []any = ListTyped(r1.Value)
+		if retRes914419 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes914619}
+			ch <- AsyncResult[any]{Value: retRes914419}
 		}
 		return nil
 	}
@@ -12761,11 +12764,11 @@ func (this *Binance) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ..
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes957519 []any = ListTyped(r1.Value)
-		if retRes957519 == nil {
+		var retRes957319 []any = ListTyped(r1.Value)
+		if retRes957319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes957519}
+			ch <- AsyncResult[any]{Value: retRes957319}
 		}
 		return nil
 	}
@@ -12887,11 +12890,11 @@ func (this *Binance) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes969819 []any = ListTyped(r1.Value)
-		if retRes969819 == nil {
+		var retRes969619 []any = ListTyped(r1.Value)
+		if retRes969619 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes969819}
+			ch <- AsyncResult[any]{Value: retRes969619}
 		}
 		return nil
 	}
@@ -13486,11 +13489,11 @@ func (this *Binance) fetchTransfersBody(ch chan AsyncResult[any], optionalArgs .
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes1025919 []any = ListTyped(r1.Value)
-		if retRes1025919 == nil {
+		var retRes1025719 []any = ListTyped(r1.Value)
+		if retRes1025719 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes1025919}
+			ch <- AsyncResult[any]{Value: retRes1025719}
 		}
 		return nil
 	}
@@ -13503,8 +13506,8 @@ func (this *Binance) fetchTransfersBody(ch chan AsyncResult[any], optionalArgs .
 	if internal == nil || *internal != true {
 		var defaultType *string = this.SafeString2(this.Options, "fetchTransfers", "defaultType", "spot")
 		var fromAccount *string = this.SafeString(paramsOmitted, "fromAccount", defaultType)
-		var defaultTo string = "future"
-		if fromAccount != nil && *fromAccount == "future" {
+		var defaultTo string = "swap"
+		if (fromAccount != nil && *fromAccount == "swap") || (fromAccount != nil && *fromAccount == "linear") {
 			defaultTo = "spot"
 		}
 		var toAccount *string = this.SafeString(paramsOmitted, "toAccount", defaultTo)
@@ -13838,11 +13841,11 @@ func (this *Binance) fetchDepositWithdrawFeesBody(ch chan AsyncResult[any], opti
 		}
 	}
 
-	listEp13063 := <-this.SapiGetCapitalConfigGetall(params)
-	if listEp13063.Err != nil {
-		panic(listEp13063.Err)
+	listEp13066 := <-this.SapiGetCapitalConfigGetall(params)
+	if listEp13066.Err != nil {
+		panic(listEp13066.Err)
 	}
-	var response []any = listEp13063.Value
+	var response []any = listEp13066.Value
 
 	//
 	//    [
@@ -14570,15 +14573,15 @@ func (this *Binance) fetchFundingRateHistoryBody(ch chan AsyncResult[any], optio
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes1114519 []any = ListTyped(r1.Value)
-		if retRes1114519 == nil {
+		var retRes1114319 []any = ListTyped(r1.Value)
+		if retRes1114319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes1114519}
+			ch <- AsyncResult[any]{Value: retRes1114319}
 		}
 		return nil
 	}
-	var defaultType *string = this.SafeString2(this.Options, "fetchFundingRateHistory", "defaultType", "future")
+	var defaultType *string = this.SafeString2(this.Options, "fetchFundingRateHistory", "defaultType", "swap")
 	var typeVar *string = this.SafeString(paramsPaginate, "type", defaultType)
 	var market map[string]any = nil
 	if symbol != nil {
@@ -14602,18 +14605,18 @@ func (this *Binance) fetchFundingRateHistoryBody(ch chan AsyncResult[any], optio
 	var response []any = nil
 	if this.IsLinear(typeVar, subType) {
 
-		listEp13763 := <-this.FapiPublicGetFundingRate(this.Extend(request, paramsOmitted2))
-		if listEp13763.Err != nil {
-			panic(listEp13763.Err)
-		}
-		response = listEp13763.Value
-	} else if this.IsInverse(typeVar, subType) {
-
-		listEp13766 := <-this.DapiPublicGetFundingRate(this.Extend(request, paramsOmitted2))
+		listEp13766 := <-this.FapiPublicGetFundingRate(this.Extend(request, paramsOmitted2))
 		if listEp13766.Err != nil {
 			panic(listEp13766.Err)
 		}
 		response = listEp13766.Value
+	} else if this.IsInverse(typeVar, subType) {
+
+		listEp13769 := <-this.DapiPublicGetFundingRate(this.Extend(request, paramsOmitted2))
+		if listEp13769.Err != nil {
+			panic(listEp13769.Err)
+		}
+		response = listEp13769.Value
 	} else {
 		panic(NotSupported(this.Id + " fetchFundingRateHistory() is not supported for " + *typeVar + " markets"))
 	}
@@ -14679,25 +14682,25 @@ func (this *Binance) fetchFundingRatesBody(ch chan AsyncResult[any], optionalArg
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	var defaultType *string = this.SafeString2(this.Options, "fetchFundingRates", "defaultType", "future")
+	var defaultType *string = this.SafeString2(this.Options, "fetchFundingRates", "defaultType", "swap")
 	var typeVar *string = this.SafeString(params, "type", defaultType)
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchFundingRates", nil, params, "linear")
 	var query map[string]any = this.OmitDict(paramsSubType, "type")
 	var response []any = nil
 	if this.IsLinear(typeVar, subType) {
 
-		listEp13836 := <-this.FapiPublicGetPremiumIndex(query)
-		if listEp13836.Err != nil {
-			panic(listEp13836.Err)
-		}
-		response = listEp13836.Value
-	} else if this.IsInverse(typeVar, subType) {
-
-		listEp13839 := <-this.DapiPublicGetPremiumIndex(query)
+		listEp13839 := <-this.FapiPublicGetPremiumIndex(query)
 		if listEp13839.Err != nil {
 			panic(listEp13839.Err)
 		}
 		response = listEp13839.Value
+	} else if this.IsInverse(typeVar, subType) {
+
+		listEp13842 := <-this.DapiPublicGetPremiumIndex(query)
+		if listEp13842.Err != nil {
+			panic(listEp13842.Err)
+		}
+		response = listEp13842.Value
 	} else {
 		panic(NotSupported(this.Id + " fetchFundingRates() supports linear and inverse contracts only"))
 	}
@@ -15421,7 +15424,7 @@ func (this *Binance) loadLeverageBracketsBody(ch chan AsyncResult[any], optional
 	// it contains useful stuff like the maintenance margin and initial margin for positions
 	var leverageBrackets any = this.SafeDict(this.Options, "leverageBrackets")
 	if (leverageBrackets == nil) || (reload == true) {
-		var defaultType *string = this.SafeString(this.Options, "defaultType", "future")
+		var defaultType *string = this.SafeString(this.Options, "defaultType", "swap")
 		var typeVar *string = this.SafeString(params, "type", defaultType)
 		var query map[string]any = this.OmitDict(params, "type")
 		var subType *string = nil
@@ -15688,11 +15691,11 @@ func (this *Binance) fetchPositionBody(ch chan AsyncResult[any], symbol any, opt
 		"symbol": market["id"],
 	}
 
-	listEp14737 := <-this.EapiPrivateGetPosition(this.Extend(request, params))
-	if listEp14737.Err != nil {
-		panic(listEp14737.Err)
+	listEp14740 := <-this.EapiPrivateGetPosition(this.Extend(request, params))
+	if listEp14740.Err != nil {
+		panic(listEp14740.Err)
 	}
-	var response []any = listEp14737.Value
+	var response []any = listEp14740.Value
 
 	//
 	//     [
@@ -15772,11 +15775,11 @@ func (this *Binance) fetchOptionPositionsBody(ch chan AsyncResult[[]any], option
 		request["symbol"] = market["id"]
 	}
 
-	listEp14814 := <-this.EapiPrivateGetPosition(this.Extend(request, params))
-	if listEp14814.Err != nil {
-		panic(listEp14814.Err)
+	listEp14817 := <-this.EapiPrivateGetPosition(this.Extend(request, params))
+	if listEp14817.Err != nil {
+		panic(listEp14817.Err)
 	}
-	var response []any = listEp14814.Value
+	var response []any = listEp14817.Value
 	//
 	//     [
 	//         {
@@ -15922,11 +15925,11 @@ func (this *Binance) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs .
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes1219919 []any = r.Value
-		if retRes1219919 == nil {
+		var retRes1219719 []any = r.Value
+		if retRes1219719 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes1219919}
+			ch <- AsyncResult[any]{Value: retRes1219719}
 		}
 		return nil
 	} else if defaultMethod != nil && *defaultMethod == "account" {
@@ -15935,11 +15938,11 @@ func (this *Binance) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs .
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes1220119 []any = r1.Value
-		if retRes1220119 == nil {
+		var retRes1219919 []any = r1.Value
+		if retRes1219919 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes1220119}
+			ch <- AsyncResult[any]{Value: retRes1219919}
 		}
 		return nil
 	} else if defaultMethod != nil && *defaultMethod == "option" {
@@ -15948,11 +15951,11 @@ func (this *Binance) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs .
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes1220319 []any = r2.Value
-		if retRes1220319 == nil {
+		var retRes1220119 []any = r2.Value
+		if retRes1220119 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes1220319}
+			ch <- AsyncResult[any]{Value: retRes1220119}
 		}
 		return nil
 	} else {
@@ -16007,7 +16010,7 @@ func (this *Binance) fetchAccountPositionsBody(ch chan AsyncResult[[]any], optio
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var defaultType *string = this.SafeString(this.Options, "defaultType", "future")
+	var defaultType *string = this.SafeString(this.Options, "defaultType", "swap")
 	var typeVar *string = this.SafeString(params, "type", defaultType)
 	var paramsOmitted map[string]any = this.OmitDict(params, "type")
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchAccountPositions", nil, paramsOmitted, "linear")
@@ -16113,7 +16116,7 @@ func (this *Binance) fetchPositionsRiskBody(ch chan AsyncResult[[]any], optional
 		panic(r1.Err)
 	}
 	var request map[string]any = map[string]any{}
-	var defaultType any = "future"
+	var defaultType any = "swap"
 	defaultType = DerefScalar(this.SafeString(this.Options, "defaultType", defaultType))
 	var typeVar *string = this.SafeString(params, "type", defaultType)
 	var subType *string = nil
@@ -16335,41 +16338,41 @@ func (this *Binance) fetchFundingHistoryBody(ch chan AsyncResult[any], optionalA
 	if limit != nil {
 		requestUntil["limit"] = *limit
 	}
-	var defaultType *string = this.SafeString2(this.Options, "fetchFundingHistory", "defaultType", "future")
+	var defaultType *string = this.SafeString2(this.Options, "fetchFundingHistory", "defaultType", "swap")
 	var typeVar *string = this.SafeString(paramsUntil, "type", defaultType)
 	var paramsOmitted map[string]any = this.OmitDict(paramsUntil, "type")
 	var response []any = nil
 	if this.IsLinear(typeVar, subType) {
 		if isPortfolioMargin {
 
-			listEp15318 := <-this.PapiGetUmIncome(this.Extend(requestUntil, paramsOmitted))
-			if listEp15318.Err != nil {
-				panic(listEp15318.Err)
-			}
-			response = listEp15318.Value
-		} else {
-
-			listEp15321 := <-this.FapiPrivateGetIncome(this.Extend(requestUntil, paramsOmitted))
+			listEp15321 := <-this.PapiGetUmIncome(this.Extend(requestUntil, paramsOmitted))
 			if listEp15321.Err != nil {
 				panic(listEp15321.Err)
 			}
 			response = listEp15321.Value
+		} else {
+
+			listEp15324 := <-this.FapiPrivateGetIncome(this.Extend(requestUntil, paramsOmitted))
+			if listEp15324.Err != nil {
+				panic(listEp15324.Err)
+			}
+			response = listEp15324.Value
 		}
 	} else if this.IsInverse(typeVar, subType) {
 		if isPortfolioMargin {
 
-			listEp15326 := <-this.PapiGetCmIncome(this.Extend(requestUntil, paramsOmitted))
-			if listEp15326.Err != nil {
-				panic(listEp15326.Err)
-			}
-			response = listEp15326.Value
-		} else {
-
-			listEp15329 := <-this.DapiPrivateGetIncome(this.Extend(requestUntil, paramsOmitted))
+			listEp15329 := <-this.PapiGetCmIncome(this.Extend(requestUntil, paramsOmitted))
 			if listEp15329.Err != nil {
 				panic(listEp15329.Err)
 			}
 			response = listEp15329.Value
+		} else {
+
+			listEp15332 := <-this.DapiPrivateGetIncome(this.Extend(requestUntil, paramsOmitted))
+			if listEp15332.Err != nil {
+				panic(listEp15332.Err)
+			}
+			response = listEp15332.Value
 		}
 	} else {
 		panic(NotSupported(this.Id + " fetchFundingHistory() supports linear and inverse contracts only"))
@@ -16867,11 +16870,11 @@ func (this *Binance) fetchSettlementHistoryBody(ch chan AsyncResult[[]any], opti
 		request["limit"] = limit
 	}
 
-	listEp15770 := <-this.EapiPublicGetExerciseHistory(this.Extend(request, paramsMarketType))
-	if listEp15770.Err != nil {
-		panic(listEp15770.Err)
+	listEp15773 := <-this.EapiPublicGetExerciseHistory(this.Extend(request, paramsMarketType))
+	if listEp15773.Err != nil {
+		panic(listEp15773.Err)
 	}
-	var response []any = listEp15770.Value
+	var response []any = listEp15773.Value
 	//
 	//     [
 	//         {
@@ -16951,11 +16954,11 @@ func (this *Binance) fetchMySettlementHistoryBody(ch chan AsyncResult[[]any], op
 		request["limit"] = limit
 	}
 
-	listEp15847 := <-this.EapiPrivateGetExerciseRecord(this.Extend(request, paramsMarketType))
-	if listEp15847.Err != nil {
-		panic(listEp15847.Err)
+	listEp15850 := <-this.EapiPrivateGetExerciseRecord(this.Extend(request, paramsMarketType))
+	if listEp15850.Err != nil {
+		panic(listEp15850.Err)
 	}
-	var response []any = listEp15847.Value
+	var response []any = listEp15850.Value
 	//
 	//     [
 	//         {
@@ -17178,11 +17181,11 @@ func (this *Binance) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...a
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes1309719 []any = ListTyped(r1.Value)
-		if retRes1309719 == nil {
+		var retRes1309519 []any = ListTyped(r1.Value)
+		if retRes1309519 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes1309719}
+			ch <- AsyncResult[any]{Value: retRes1309519}
 		}
 		return nil
 	}
@@ -17216,42 +17219,42 @@ func (this *Binance) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...a
 		}
 		request["currency"] = GetValue(currency, "id")
 
-		listEp16095 := <-this.EapiPrivateGetBill(this.Extend(request, paramsPaginate))
-		if listEp16095.Err != nil {
-			panic(listEp16095.Err)
+		listEp16098 := <-this.EapiPrivateGetBill(this.Extend(request, paramsPaginate))
+		if listEp16098.Err != nil {
+			panic(listEp16098.Err)
 		}
-		response = listEp16095.Value
+		response = listEp16098.Value
 	} else if this.IsLinear(typeVar, subType) {
 		if isPortfolioMargin == true {
 
-			listEp16099 := <-this.PapiGetUmIncome(this.Extend(request, paramsPaginate))
-			if listEp16099.Err != nil {
-				panic(listEp16099.Err)
-			}
-			response = listEp16099.Value
-		} else {
-
-			listEp16102 := <-this.FapiPrivateGetIncome(this.Extend(request, paramsPaginate))
+			listEp16102 := <-this.PapiGetUmIncome(this.Extend(request, paramsPaginate))
 			if listEp16102.Err != nil {
 				panic(listEp16102.Err)
 			}
 			response = listEp16102.Value
+		} else {
+
+			listEp16105 := <-this.FapiPrivateGetIncome(this.Extend(request, paramsPaginate))
+			if listEp16105.Err != nil {
+				panic(listEp16105.Err)
+			}
+			response = listEp16105.Value
 		}
 	} else if this.IsInverse(typeVar, subType) {
 		if isPortfolioMargin == true {
 
-			listEp16107 := <-this.PapiGetCmIncome(this.Extend(request, paramsPaginate))
-			if listEp16107.Err != nil {
-				panic(listEp16107.Err)
-			}
-			response = listEp16107.Value
-		} else {
-
-			listEp16110 := <-this.DapiPrivateGetIncome(this.Extend(request, paramsPaginate))
+			listEp16110 := <-this.PapiGetCmIncome(this.Extend(request, paramsPaginate))
 			if listEp16110.Err != nil {
 				panic(listEp16110.Err)
 			}
 			response = listEp16110.Value
+		} else {
+
+			listEp16113 := <-this.DapiPrivateGetIncome(this.Extend(request, paramsPaginate))
+			if listEp16113.Err != nil {
+				panic(listEp16113.Err)
+			}
+			response = listEp16113.Value
 		}
 	} else {
 		panic(NotSupported(this.Id + " fetchLedger() supports contract wallets only"))
@@ -17750,9 +17753,9 @@ func (this *Binance) modifyMarginHelperBody(ch chan AsyncResult[any], symbol str
 	// used to modify isolated positions
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var defaultType *string = this.SafeString(this.Options, "defaultType", "future")
+	var defaultType *string = this.SafeString(this.Options, "defaultType", "swap")
 	if defaultType != nil && *defaultType == "spot" {
-		defaultType = SafeStringPtr("future")
+		defaultType = SafeStringPtr("swap")
 	}
 	var typeVar *string = this.SafeString(params, "type", defaultType)
 	if (typeVar != nil && *typeVar == "margin") || (typeVar != nil && *typeVar == "spot") {
@@ -17891,11 +17894,11 @@ func (this *Binance) reduceMarginBody(ch chan EndpointResult[map[string]any], sy
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes1366615 map[string]any = MapTyped(r.Value)
-	if retRes1366615 == nil {
+	var retRes1366415 map[string]any = MapTyped(r.Value)
+	if retRes1366415 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes1366615, Raw: retRes1366615}
+		ch <- EndpointResult[map[string]any]{Value: retRes1366415, Raw: retRes1366415}
 	}
 	return nil
 }
@@ -17926,11 +17929,11 @@ func (this *Binance) addMarginBody(ch chan AsyncResult[map[string]any], symbol s
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes1368115 map[string]any = MapTyped(r.Value)
-	if retRes1368115 == nil {
+	var retRes1367915 map[string]any = MapTyped(r.Value)
+	if retRes1367915 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes1368115}
+		ch <- AsyncResult[map[string]any]{Value: retRes1367915}
 	}
 	return nil
 }
@@ -18835,11 +18838,11 @@ func (this *Binance) fetchOpenInterestHistoryBody(ch chan AsyncResult[any], symb
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes1431319 []any = ListTyped(r1.Value)
-		if retRes1431319 == nil {
+		var retRes1431119 []any = ListTyped(r1.Value)
+		if retRes1431119 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes1431319}
+			ch <- AsyncResult[any]{Value: retRes1431119}
 		}
 		return nil
 	}
@@ -18886,18 +18889,18 @@ func (this *Binance) fetchOpenInterestHistoryBody(ch chan AsyncResult[any], symb
 	var response []any = nil
 	if market["inverse"] == true {
 
-		listEp17640 := <-this.DapiDataGetOpenInterestHist(this.Extend(request, paramsOmitted))
-		if listEp17640.Err != nil {
-			panic(listEp17640.Err)
-		}
-		response = listEp17640.Value
-	} else {
-
-		listEp17643 := <-this.FapiDataGetOpenInterestHist(this.Extend(request, paramsOmitted))
+		listEp17643 := <-this.DapiDataGetOpenInterestHist(this.Extend(request, paramsOmitted))
 		if listEp17643.Err != nil {
 			panic(listEp17643.Err)
 		}
 		response = listEp17643.Value
+	} else {
+
+		listEp17646 := <-this.FapiDataGetOpenInterestHist(this.Extend(request, paramsOmitted))
+		if listEp17646.Err != nil {
+			panic(listEp17646.Err)
+		}
+		response = listEp17646.Value
 	}
 
 	//
@@ -19117,11 +19120,11 @@ func (this *Binance) fetchMyLiquidationsBody(ch chan AsyncResult[any], optionalA
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes1450519 []any = ListTyped(r1.Value)
-		if retRes1450519 == nil {
+		var retRes1450319 []any = ListTyped(r1.Value)
+		if retRes1450319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes1450519}
+			ch <- AsyncResult[any]{Value: retRes1450319}
 		}
 		return nil
 	}
@@ -19415,11 +19418,11 @@ func (this *Binance) fetchGreeksBody(ch chan AsyncResult[map[string]any], symbol
 		"symbol": market["id"],
 	}
 
-	listEp18118 := <-this.EapiPublicGetMark(this.Extend(request, params))
-	if listEp18118.Err != nil {
-		panic(listEp18118.Err)
+	listEp18121 := <-this.EapiPublicGetMark(this.Extend(request, params))
+	if listEp18121.Err != nil {
+		panic(listEp18121.Err)
 	}
-	var response []any = listEp18118.Value
+	var response []any = listEp18121.Value
 
 	//
 	//     [
@@ -19486,11 +19489,11 @@ func (this *Binance) fetchAllGreeksBody(ch chan AsyncResult[any], optionalArgs .
 		}
 	}
 
-	listEp18182 := <-this.EapiPublicGetMark(this.Extend(request, params))
-	if listEp18182.Err != nil {
-		panic(listEp18182.Err)
+	listEp18185 := <-this.EapiPublicGetMark(this.Extend(request, params))
+	if listEp18185.Err != nil {
+		panic(listEp18185.Err)
 	}
-	var response []any = listEp18182.Value
+	var response []any = listEp18185.Value
 
 	//
 	//     [
@@ -19572,8 +19575,8 @@ func (this *Binance) fetchTradingLimitsBody(ch chan EndpointResult[map[string]an
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv18322, _ := r.Value.([]any)
-	var markets []any = listRecv18322
+	listRecv18325, _ := r.Value.([]any)
+	var markets []any = listRecv18325
 	var tradingLimits map[string]any = map[string]any{}
 	for i := 0; i < len(markets); i++ {
 		var market any = GetValue(markets, i)
@@ -19757,11 +19760,11 @@ func (this *Binance) fetchMarginModeBody(ch chan AsyncResult[any], symbol any, o
 			"symbol": market["id"],
 		}
 
-		listEp18423 := <-this.FapiPrivateGetSymbolConfig(this.Extend(request, paramsSubType))
-		if listEp18423.Err != nil {
-			panic(listEp18423.Err)
+		listEp18426 := <-this.FapiPrivateGetSymbolConfig(this.Extend(request, paramsSubType))
+		if listEp18426.Err != nil {
+			panic(listEp18426.Err)
 		}
-		response = listEp18423.Value
+		response = listEp18426.Value
 	} else if subType != nil && *subType == "inverse" {
 
 		r1 := <-this.FetchMarginModesAsync([]any{symbol}, paramsSubType)
@@ -19845,11 +19848,11 @@ func (this *Binance) fetchOptionBody(ch chan AsyncResult[map[string]any], symbol
 		"symbol": market["id"],
 	}
 
-	listEp18501 := <-this.EapiPublicGetTicker(this.Extend(request, params))
-	if listEp18501.Err != nil {
-		panic(listEp18501.Err)
+	listEp18504 := <-this.EapiPublicGetTicker(this.Extend(request, params))
+	if listEp18504.Err != nil {
+		panic(listEp18504.Err)
 	}
-	var response []any = listEp18501.Value
+	var response []any = listEp18504.Value
 	//
 	//     [
 	//         {
@@ -19997,18 +20000,18 @@ func (this *Binance) fetchMarginAdjustmentHistoryBody(ch chan AsyncResult[[]any]
 	var response []any = nil
 	if market["linear"] == true {
 
-		listEp18646 := <-this.FapiPrivateGetPositionMarginHistory(this.Extend(request, paramsOmitted))
-		if listEp18646.Err != nil {
-			panic(listEp18646.Err)
-		}
-		response = listEp18646.Value
-	} else if market["inverse"] == true {
-
-		listEp18649 := <-this.DapiPrivateGetPositionMarginHistory(this.Extend(request, paramsOmitted))
+		listEp18649 := <-this.FapiPrivateGetPositionMarginHistory(this.Extend(request, paramsOmitted))
 		if listEp18649.Err != nil {
 			panic(listEp18649.Err)
 		}
 		response = listEp18649.Value
+	} else if market["inverse"] == true {
+
+		listEp18652 := <-this.DapiPrivateGetPositionMarginHistory(this.Extend(request, paramsOmitted))
+		if listEp18652.Err != nil {
+			panic(listEp18652.Err)
+		}
+		response = listEp18652.Value
 	} else {
 		panic(BadRequest(Add(this.Id+" fetchMarginAdjustmentHistory () is not supported for markets of type ", market["type"])))
 	}
@@ -20062,11 +20065,11 @@ func (this *Binance) fetchConvertCurrenciesBody(ch chan EndpointResult[map[strin
 		}
 	}
 
-	listEp18700 := <-this.SapiGetConvertAssetInfo(params)
-	if listEp18700.Err != nil {
-		panic(listEp18700.Err)
+	listEp18703 := <-this.SapiGetConvertAssetInfo(params)
+	if listEp18703.Err != nil {
+		panic(listEp18703.Err)
 	}
-	var response []any = listEp18700.Value
+	var response []any = listEp18703.Value
 	//
 	//     [
 	//         {
@@ -20562,18 +20565,18 @@ func (this *Binance) fetchFundingIntervalsBody(ch chan AsyncResult[map[string]an
 	var response []any = nil
 	if this.IsLinear(typeVar, subType) {
 
-		listEp19160 := <-this.FapiPublicGetFundingInfo(paramsSubType)
-		if listEp19160.Err != nil {
-			panic(listEp19160.Err)
-		}
-		response = listEp19160.Value
-	} else if this.IsInverse(typeVar, subType) {
-
-		listEp19163 := <-this.DapiPublicGetFundingInfo(paramsSubType)
+		listEp19163 := <-this.FapiPublicGetFundingInfo(paramsSubType)
 		if listEp19163.Err != nil {
 			panic(listEp19163.Err)
 		}
 		response = listEp19163.Value
+	} else if this.IsInverse(typeVar, subType) {
+
+		listEp19166 := <-this.DapiPublicGetFundingInfo(paramsSubType)
+		if listEp19166.Err != nil {
+			panic(listEp19166.Err)
+		}
+		response = listEp19166.Value
 	} else {
 		panic(NotSupported(this.Id + " fetchFundingIntervals() supports linear and inverse swap contracts only"))
 	}
@@ -20654,19 +20657,19 @@ func (this *Binance) fetchLongShortRatioHistoryBody(ch chan AsyncResult[any], op
 	if subType != nil && *subType == "linear" {
 		AddElementToObject(requestUntil, "symbol", market["id"])
 
-		listEp19241 := <-this.FapiDataGetGlobalLongShortAccountRatio(this.Extend(requestUntil, paramsSubType))
-		if listEp19241.Err != nil {
-			panic(listEp19241.Err)
+		listEp19244 := <-this.FapiDataGetGlobalLongShortAccountRatio(this.Extend(requestUntil, paramsSubType))
+		if listEp19244.Err != nil {
+			panic(listEp19244.Err)
 		}
-		response = listEp19241.Value
+		response = listEp19244.Value
 	} else if subType != nil && *subType == "inverse" {
 		requestUntil["pair"] = GetValue(market["info"], "pair")
 
-		listEp19245 := <-this.DapiDataGetGlobalLongShortAccountRatio(this.Extend(requestUntil, paramsSubType))
-		if listEp19245.Err != nil {
-			panic(listEp19245.Err)
+		listEp19248 := <-this.DapiDataGetGlobalLongShortAccountRatio(this.Extend(requestUntil, paramsSubType))
+		if listEp19248.Err != nil {
+			panic(listEp19248.Err)
 		}
-		response = listEp19245.Value
+		response = listEp19248.Value
 	} else {
 		panic(BadRequest(this.Id + " fetchLongShortRatioHistory() supports linear and inverse subTypes only"))
 	}
@@ -20800,34 +20803,34 @@ func (this *Binance) fetchPositionsADLRankBody(ch chan AsyncResult[any], optiona
 	if subType != nil && *subType == "linear" {
 		if isPortfolioMargin {
 
-			listEp19369 := <-this.PapiGetUmAdlQuantile(paramsPapi)
-			if listEp19369.Err != nil {
-				panic(listEp19369.Err)
-			}
-			response = listEp19369.Value
-		} else {
-
-			listEp19372 := <-this.FapiPrivateGetAdlQuantile(paramsPapi)
+			listEp19372 := <-this.PapiGetUmAdlQuantile(paramsPapi)
 			if listEp19372.Err != nil {
 				panic(listEp19372.Err)
 			}
 			response = listEp19372.Value
+		} else {
+
+			listEp19375 := <-this.FapiPrivateGetAdlQuantile(paramsPapi)
+			if listEp19375.Err != nil {
+				panic(listEp19375.Err)
+			}
+			response = listEp19375.Value
 		}
 	} else if subType != nil && *subType == "inverse" {
 		if isPortfolioMargin {
 
-			listEp19377 := <-this.PapiGetCmAdlQuantile(paramsPapi)
-			if listEp19377.Err != nil {
-				panic(listEp19377.Err)
-			}
-			response = listEp19377.Value
-		} else {
-
-			listEp19380 := <-this.DapiPrivateGetAdlQuantile(paramsPapi)
+			listEp19380 := <-this.PapiGetCmAdlQuantile(paramsPapi)
 			if listEp19380.Err != nil {
 				panic(listEp19380.Err)
 			}
 			response = listEp19380.Value
+		} else {
+
+			listEp19383 := <-this.DapiPrivateGetAdlQuantile(paramsPapi)
+			if listEp19383.Err != nil {
+				panic(listEp19383.Err)
+			}
+			response = listEp19383.Value
 		}
 	} else {
 		panic(BadRequest(this.Id + " fetchPositionsADLRank() supports linear and inverse subTypes only"))
