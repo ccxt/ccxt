@@ -9744,6 +9744,12 @@ export default class Exchange extends BaseExchange {
         if (client.error === undefined) {
             client.error = error; // onClose must not treat this as a server disconnect
         }
+        // onError rejects every remaining pending future with the error instead of
+        // cancelling them: in python a cancelled future raises CancelledError, which a
+        // watch loop cannot tell apart from its own task being stopped, so all other
+        // symbols on the shared connection would silently die, see
+        // https://github.com/ccxt/ccxt/issues/30876
+        client.onError (error);
         client.close ();
         if (this.clients[client.url] === client) {
             delete this.clients[client.url];
