@@ -425,7 +425,12 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         String symbol = this.safeString(subscription, "symbol");
         String messageHash = this.safeString(subscription, "messageHash");
         Long timestamp = this.safeInteger(message, "ts");
-        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
+        if (java.util.Objects.equals(orderbook, null))
+        {
+            // the book was removed (unwatch/cleanCache) before the snapshot arrived
+            return;
+        }
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", (Object) null);
         Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, (Long) null, "bids", "asks", 0, 1, 2);
         snapshot.put("nonce", this.safeInteger(data, "seqNum"));
@@ -434,7 +439,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         orderbook.reset(snapshot);
         // unroll the accumulated deltas
         List<Object> messages = ((List<Object>)(orderbook == null ? null : orderbook.get("cache")));
-        for (var i = 0; i < ((List<?>)messages).size(); i++)
+        for (var i = 0; i < (messages == null ? 0 : messages.size()); i++)
         {
             this.handleOrderBookMessage(client, (Map<String, Object>) ((messages == null || i < 0 || i >= messages.size() ? null : messages.get(i))), orderbook);
         }
@@ -572,7 +577,12 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         List<Object> parts = (List<Object>) Helpers.split(ch, ".");
         String marketId = this.safeString(parts, 1);
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
+        if (java.util.Objects.equals(orderbook, null))
+        {
+            // no active subscription holds a book for this symbol, drop the delta
+            return;
+        }
         if (java.util.Objects.equals((orderbook == null ? null : orderbook.get("nonce")), null))
         {
             ((List<Object>)((List<Object>)(orderbook == null ? null : orderbook.get("cache")))).add(message);

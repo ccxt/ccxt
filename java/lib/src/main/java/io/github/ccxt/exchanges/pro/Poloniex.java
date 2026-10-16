@@ -1420,15 +1420,16 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             List<Object> bids = (List<Object>) this.safeList(item, "bids", (Object) null);
             if (Boolean.TRUE.equals(snapshot) || Boolean.TRUE.equals(update))
             {
-                if (Boolean.TRUE.equals(snapshot) && !(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+                io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
+                if (Boolean.TRUE.equals(snapshot) && (java.util.Objects.equals(orderbook, null)))
                 {
-                    Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
+                    orderbook = this.orderBook(new HashMap<String, Object>() {{}}, limit);
+                    Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
                 }
-                if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+                if (java.util.Objects.equals(orderbook, null))
                 {
                     continue;
                 }
-                io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
                 if (Boolean.TRUE.equals(snapshot))
                 {
                     // reset the existing orderbook in place instead of
@@ -1444,8 +1445,8 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                         List<Object> bid = (List<Object>) this.safeList(bids, j, (Object) null);
                         Double price = this.safeNumber(bid, 0, (Object) null);
                         Double amount = this.safeNumber(bid, 1, (Object) null);
-                        io.github.ccxt.ws.OrderBookSide bidsSide = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("bids"));
-                        bidsSide.store(price, amount);
+                        Object bidsSide = (orderbook == null ? null : orderbook.get("bids"));
+                        ((io.github.ccxt.ws.OrderBookSide) bidsSide).store(price, amount);
                     }
                 }
                 if (!java.util.Objects.equals(asks, null))
@@ -1455,8 +1456,8 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                         List<Object> ask = (List<Object>) this.safeList(asks, j, (Object) null);
                         Double price = this.safeNumber(ask, 0, (Object) null);
                         Double amount = this.safeNumber(ask, 1, (Object) null);
-                        io.github.ccxt.ws.OrderBookSide asksSide = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("asks"));
-                        asksSide.store(price, amount);
+                        Object asksSide = (orderbook == null ? null : orderbook.get("asks"));
+                        ((io.github.ccxt.ws.OrderBookSide) asksSide).store(price, amount);
                     }
                 }
                 orderbook.put("symbol", symbol);
