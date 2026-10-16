@@ -786,6 +786,8 @@ func (this *Bittrade) HandleErrorMessage(client any, message any) bool {
 		var subscription any = this.SafeDict(subscriptionsById, id)
 		if subscription != nil {
 			var errorCode *string = this.SafeString(message, "err-code")
+			var errorMessage *string = this.SafeString(message, "err-msg")
+			var feedback string = this.Id + " " + this.Json(message)
 
 			{
 				func(this *Bittrade) (ret_ any) {
@@ -807,8 +809,10 @@ func (this *Bittrade) HandleErrorMessage(client any, message any) bool {
 						}
 					}()
 					// try block:
-					this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, this.Json(message))
-					return nil
+					this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorMessage, feedback)
+					this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
+					panic(ccxt.ExchangeError(feedback))
+
 				}(this)
 
 			}
