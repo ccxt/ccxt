@@ -565,8 +565,12 @@ class bittrade(ccxt.async_support.bittrade):
             subscription = self.safe_dict(subscriptionsById, id)
             if subscription is not None:
                 errorCode = self.safe_string(message, 'err-code')
+                errorMessage = self.safe_string(message, 'err-msg')
+                feedback = self.id + ' ' + self.json(message)
                 try:
-                    self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, self.json(message))
+                    self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
+                    self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+                    raise ExchangeError(feedback)
                 except Exception as e:
                     messageHash = self.safe_string(subscription, 'messageHash')
                     client.reject(e, messageHash)
