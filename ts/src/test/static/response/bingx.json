@@ -3,6 +3,122 @@
     "skipKeys": [ "tranId", "timestamp" ],
     "options": {},
     "methods": {
+        "fetchBidsAsks": [
+            {
+                "description": "linear swap bids and asks for one symbol",
+                "method": "fetchBidsAsks",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "data": {
+                        "book_ticker": {
+                            "symbol": "BTC-USDT",
+                            "bid_price": 82219.6,
+                            "bid_qty": 93.7389,
+                            "ask_price": 82219.7,
+                            "ask_qty": 14.7997,
+                            "lastUpdateId": 744262406,
+                            "time": 1792134368539
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "BTC/USDT:USDT": {
+                        "symbol": "BTC/USDT:USDT",
+                        "timestamp": 1792134368539,
+                        "datetime": "2026-10-16T07:06:08.539Z",
+                        "high": null,
+                        "low": null,
+                        "bid": 82219.6,
+                        "bidVolume": 93.7389,
+                        "ask": 82219.7,
+                        "askVolume": 14.7997,
+                        "vwap": null,
+                        "open": null,
+                        "close": null,
+                        "last": null,
+                        "previousClose": null,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "symbol": "BTC-USDT",
+                            "bid_price": 82219.6,
+                            "bid_qty": 93.7389,
+                            "ask_price": 82219.7,
+                            "ask_qty": 14.7997,
+                            "lastUpdateId": 744262406,
+                            "time": 1792134368539
+                        }
+                    }
+                }
+            },
+            {
+                "description": "spot bids and asks for one symbol",
+                "method": "fetchBidsAsks",
+                "input": [
+                    [
+                        "BTC/USDT"
+                    ]
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "timestamp": 1792134367451,
+                    "data": [
+                        {
+                            "time": 1792134367180,
+                            "symbol": "BTC-USDT",
+                            "bidPrice": "82250.03",
+                            "bidQty": "0.006049",
+                            "askPrice": "82250.05",
+                            "askQty": "0.006010"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC/USDT": {
+                        "symbol": "BTC/USDT",
+                        "timestamp": 1792134367180,
+                        "datetime": "2026-10-16T07:06:07.180Z",
+                        "high": null,
+                        "low": null,
+                        "bid": 82250.03,
+                        "bidVolume": 0.006049,
+                        "ask": 82250.05,
+                        "askVolume": 0.00601,
+                        "vwap": null,
+                        "open": null,
+                        "close": null,
+                        "last": null,
+                        "previousClose": null,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "time": 1792134367180,
+                            "symbol": "BTC-USDT",
+                            "bidPrice": "82250.03",
+                            "bidQty": "0.006049",
+                            "askPrice": "82250.05",
+                            "askQty": "0.006010"
+                        }
+                    }
+                }
+            }
+        ],
         "fetchWithdrawals": [
             {
                 "description": "withdrawal history parses completed and internal flags",
