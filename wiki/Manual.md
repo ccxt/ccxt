@@ -8506,21 +8506,16 @@ ex.Number = "String" // "String" | "Number"
 
 # Order Router
 
-`OrderRouter` is two things, and you can use either half without the other.
+`OrderRouter` is two things, and you can use either half without the other:
 
-It is a **client for the CCXT order-router service** — a separate process that holds live order
-books across many venues and answers one question: *what is the cheapest way to turn asset A into
-asset B right now?* The answer accounts for book depth, fees, and bridges (`SOL -> USDT -> BTC`
-when no `SOL/BTC` market exists).
+- a **client for the CCXT order-router service**, which holds live order books across many venues
+  and answers *what is the cheapest way to turn asset A into asset B right now?* — accounting for
+  depth, fees and bridges (`SOL -> USDT -> BTC` when no `SOL/BTC` market exists);
+- a **multi-venue execution engine** for any plan, including ones you build yourself, with the
+  notional cap, halt-and-reconcile logic, resting-order cleanup and unwind plan. That path needs no
+  router service and no `apiKey`. See [Executing your own plans](#executing-your-own-plans).
 
-It is also a **multi-venue execution engine for plans you build yourself**. `execute` takes a plan,
-not a route, and never asks where that plan came from — so your own strategy can supply its own
-list of trades and still get the notional cap, the halt-and-reconcile logic, the resting-order
-cleanup and the unwind plan. That path needs no router service and no `apiKey`. See
-[Executing your own plans](#executing-your-own-plans).
-
-It is not an exchange. It does not extend `Exchange`, has no unified methods, and is constructed
-directly:
+It is not an exchange: it does not extend `Exchange` and is constructed directly:
 
 <!-- tabs:start -->
 #### **Javascript**
@@ -8564,55 +8559,26 @@ let route = router.fetch_route("USDT", "BTC", &Value::Map(params)).await?;
 ```
 <!-- tabs:end -->
 
-Rust differs from the other five in two places, both forced by the language rather than chosen.
-The fallible methods return `Result<_, ExchangeError>` where the others throw — the error's `kind`
-carries the same class name, so `err.is("NetworkError")` asks the question the other ports ask of
-an exception class. And `execute` takes `BTreeMap<String, Box<dyn RouterVenue>>` rather than your
-exchange objects directly: `ExchangeBase`'s methods return `impl Future`, which is not
-object-safe, so a map of exchanges cannot exist. `RouterVenue` is that map's element type, narrowed
-to the operations the money path performs, and you implement it for whatever exchange type you
-hold.
+Rust differs in two places, both forced by the language. Fallible methods return
+`Result<_, ExchangeError>`; the error's `kind` carries the usual class name, so
+`err.is("NetworkError")` replaces an exception-class check. And `execute` takes
+`BTreeMap<String, Box<dyn RouterVenue>>`, because `ExchangeBase`'s `impl Future` methods are not
+object-safe; implement `RouterVenue` for whatever exchange type you hold.
 
 ## The service
 
-`OrderRouter` talks to `https://docs.ccxt.com/router/api`. **Every endpoint is public**: there is
-no API key, no signup and no login. The service rate-limits by client IP address instead, so the
-constructor takes no credential and `new OrderRouter ()` is the normal way to build one.
+`OrderRouter` talks to `https://router.ccxt.com`. **Every endpoint is public** — no API key, no
+signup; the service rate-limits by client IP. An `apiKey` is still accepted and sent as `x-api-key`
+for deployments that still authenticate; with no key the header is omitted rather than sent empty.
 
-The client still accepts an `apiKey` and still sends it as `x-api-key` when you pass one. Nothing
-needs it today — a keyless server ignores the header — but a deployment that has not yet dropped
-authentication is satisfied by it, so the same client works either side of that change. With no key
-the header is omitted entirely rather than sent empty, because a server that does still
-authenticate reads an empty credential as malformed rather than as an anonymous caller.
+The full contract is published as OpenAPI 3.1 at `https://router.ccxt.com/openapi.json`. It is the
+authority on every field this client reads — use it for codegen, Postman/Insomnia, or diffing
+between deploys; if the client and spec disagree, the spec is right. A rendered version lives at
+[docs.ccxt.com/router/docs](https://docs.ccxt.com/router/docs) (endpoint reference at
+[/router/docs/api](https://docs.ccxt.com/router/docs/api)).
 
-### The OpenAPI spec
-
-The full contract is published as OpenAPI 3.1:
-
-```
-https://docs.ccxt.com/router/openapi.yaml
-```
-
-```bash
-curl -O https://docs.ccxt.com/router/openapi.yaml
-```
-
-It is the authority on every field this client reads, and it is there to be used rather than only
-read: point `openapi-generator`, `oapi-codegen` or any other codegen at it to build a client in a
-language ccxt does not cover, import it into Postman or Insomnia to poke at the endpoints by hand,
-or diff it between deploys to see what changed. If this client and the spec ever disagree, the spec
-is right and the disagreement is a bug worth reporting.
-
-Prefer prose? The same contract is rendered at
-[docs.ccxt.com/router/docs](https://docs.ccxt.com/router/docs), with a per-endpoint reference at
-[/router/docs/api](https://docs.ccxt.com/router/docs/api).
-
-**The service is free to use for now, up to the published rate limit.** That is not a permanent
-commitment: it holds live books for ~60 venues and running it costs real money, so expect a paid
-tier at some point.
-
-Every response carries the limit headers, and they are the number to trust rather than any figure
-written down here:
+**The service is free for now, up to the published rate limit**; expect a paid tier at some point.
+Trust the headers on every response rather than any figure written here:
 
 | Header | Meaning |
 |---|---|
@@ -8621,20 +8587,13 @@ written down here:
 | `x-ratelimit-reset` | seconds until the window resets |
 | `retry-after` | sent on a `429` and on a `503`; how long to wait |
 
-Exceeding it raises `RateLimitExceeded`, and the client folds the retry interval into the message
-so you do not have to read the headers yourself to back off sensibly.
+Exceeding it raises `RateLimitExceeded` with the retry interval in the message.
 
-**A `403` from this service is never an authentication failure** — it has no credentials to reject.
-Its only `403` is the IPv4-only refusal: the router resolves the client address before rate
-limiting, accepts a dotted quad (normalising `::ffff:a.b.c.d` to `a.b.c.d`), and refuses everything
-else, IPv6 included. The client raises `PermissionDenied` and says so in the message, because
-reporting it as an `AuthenticationError` would send you looking for a key that exists for nobody.
-The remedy is to reach the service over IPv4.
+**A `403` is never an authentication failure.** The only `403` is the IPv4-only refusal (IPv6 is
+refused; `::ffff:a.b.c.d` is normalised to `a.b.c.d`). The client raises `PermissionDenied`; reach
+the service over IPv4.
 
 ### The read-only endpoints
-
-Besides routing, the service answers a handful of questions about itself. They are cheap, and like
-every other endpoint they are public:
 
 | Method | Endpoint | What it answers |
 |---|---|---|
@@ -8645,13 +8604,8 @@ every other endpoint they are public:
 | `fetchExchangesStatus ()` | `/exchanges/status` | per-venue connection health |
 | `fetchCachedOrderBook (exchangeId, symbol)` | `/orderbook/{exchange}/{symbol}` | the exact book a route was ranked on |
 
-`fetchHealth` and `fetchReadiness` answer different questions and the difference matters: `/health`
-is `200` before a single websocket has connected, so a deploy gate pointed at it sends traffic to a
-router whose only possible answer is `all_books_stale`. `fetchReadiness` is the one to gate on.
-
-**`fetchReadiness` does not throw when the answer is "no".** The service replies `503` carrying the
-same body it returns on `200`, and the client returns it, because a caller asking *are you ready*
-needs the counts that say why not:
+Gate deploys on `fetchReadiness`, not `fetchHealth` — `/health` is `200` before any websocket has
+connected. `fetchReadiness` **does not throw on "no"**: the `503` body is returned so you can see why:
 
 ```javascript
 const readiness = await router.fetchReadiness ();
@@ -8660,62 +8614,41 @@ if (readiness['status'] !== 'ready') {
 }
 ```
 
-`/metrics` (Prometheus) has no client method: it answers `text/plain` and this class parses every
-response as JSON. Scrape it with your own tooling.
+`/metrics` (Prometheus, `text/plain`) has no client method; scrape it with your own tooling.
 
 ### Watching a route — `watchRoute`
 
-`/stream/route` is the same request over a WebSocket: identical parameters, identical response
-body, pushed whenever any market the route depends on moves. Every leg of every candidate path is
-watched, so a bridged route does not miss half the price changes that alter its answer.
-
-`watchRoute` BLOCKS for the life of the stream, and the hook is how you read it. Return `'stop'`
-to close the socket cleanly; the call then returns the last route it saw.
+`/stream/route` is the same request over a WebSocket, pushed whenever any leg of any candidate path
+moves. `watchRoute` blocks for the life of the stream; return `'stop'` from the hook to close it and
+get the last route back. Each frame is stamped like `fetchRoute`'s answer, so it can go straight into
+`buildExecutionPlan`:
 
 ```javascript
 const last = await router.watchRoute ('USDT', 'BTC', { 'amountIn': 1000 }, (route) => {
     console.log (route['effectiveRate'], route['impactBps']);
-    //  every frame is stamped exactly as fetchRoute stamps its answer, so it can go
-    //  straight into buildExecutionPlan
     return (route['impactBps'] < 5) ? 'stop' : 'continue';
 });
 ```
 
-Three things differ from `fetchRoute`, all of them the endpoint's own rules rather than this
-client's:
+Differences from `fetchRoute`:
 
-- **`balances` and `balanceMode` are refused**, and refused client-side before a socket is opened.
-  A stream is held open for minutes and carries no channel to update the holdings it was opened
-  with, so every frame after the first would price a portfolio you may already have traded away.
-  Use `fetchRoute` when you need a funded-aware route.
-- **`includeQuotes` defaults to false here**, where it defaults to true on REST. One socket
-  measured 658 frames/sec at 9.3KB, almost all of it the per-venue diagnostic. Pass it explicitly
-  if you want it anyway.
-- **Refusals arrive as close codes, not HTTP statuses.** Once the socket is open there are no
-  status codes left, so the service sends one JSON frame and closes: `1008` for what REST answers
-  as a `400` (including a bridged exact-out, which REST refuses as a `501`), and `1013` for a cold
-  cache. The client raises the same exceptions the REST path raises for those — `BadRequest` and
-  `ExchangeNotAvailable` — so you do not have to learn a second vocabulary. A failed upgrade is
-  still an ordinary status: `401` raises `AuthenticationError`, `403` `PermissionDenied`, `429`
-`RateLimitExceeded` — the same mapping the REST path uses, for the same reasons.
+- **`balances` and `balanceMode` are refused** client-side — a long-lived stream cannot update the
+  holdings it was opened with. Use `fetchRoute` for a funded-aware route.
+- **`includeQuotes` defaults to false** (true on REST); the per-venue diagnostic dominates frame size.
+- **Refusals arrive as close codes**: `1008` (a REST `400`, or a bridged exact-out) raises
+  `BadRequest`, `1013` (cold cache) raises `ExchangeNotAvailable`. A failed upgrade maps like REST:
+  `401` `AuthenticationError`, `403` `PermissionDenied`, `429` `RateLimitExceeded`.
+- A hook that throws stops the stream and the exception reaches you (unlike `execute`'s `onStep`).
 
-A hook that throws stops the stream and the exception reaches you — the opposite of `execute`'s
-`onStep`, which is protected because losing that report would destroy the only account of orders
-already live. Nothing has been placed here, so swallowing your bug would only hide it.
-
-**Availability.** `watchRoute` is implemented in TypeScript/JavaScript, C#, Go and Rust. In
-**Python and PHP it raises `NotSupported`**: those ports are synchronous — they do their I/O with
-`requests` and curl — and neither has a websocket client to drive. Polling `fetchRoute` on a timer
-is not the same thing and is not silently substituted for it. `streamUrl` IS implemented in both,
-so the url grammar and the client-side refusals stay verified in every port.
+`watchRoute` is implemented in TypeScript/JavaScript, C#, Go and Rust. In **Python and PHP it raises
+`NotSupported`** (those ports are synchronous with no websocket client); `streamUrl` is available in
+all ports.
 
 ### When the router is still warming up
 
-A router that has restarted is alive long before it can price anything. Asked to route in that
-window it refuses with `503 cache_cold` rather than ranking across whichever venues happened to
-connect first, and the client raises **`ExchangeNotAvailable`** — a retry, distinct from the
-`ExchangeError` that means something is actually wrong. The message carries the counts and the
-interval the service asked for:
+A freshly restarted router refuses to route with `503 cache_cold` rather than rank across whichever
+venues connected first. The client raises **`ExchangeNotAvailable`** (retryable, unlike
+`ExchangeError`) with the counts and interval:
 
 ```
 OrderRouter: cache is cold (0 of 12 books fresh, 1 needed), retry after 5s
@@ -8744,52 +8677,36 @@ Exactly one of `amountIn` / `amountOut` is required; everything else is optional
 | `requestId` | string | a caller-chosen audit id, sent as `x-request-id`. The service mints one when absent |
 | `requireBalancesApplied` | bool | client-side only — see below. Default true |
 
-**An empty value is not the same as omitting one**, and this catches people out. Omit `bridges`
-and you get the service's default bridge set; send `bridges=` and you have asked for **no
-bridging at all**. The same holds for `exchanges=` (no venues) and `balances=` (you hold nothing,
-which is a legitimate answer and comes back unroutable). The client forwards an empty value
-faithfully rather than dropping it, because the difference is the caller's to make.
+**An empty value is not the same as omitting one.** Omit `bridges` for the default set; `bridges=`
+means **no bridging**. Likewise `exchanges=` (no venues) and `balances=` (you hold nothing). The
+client forwards empty values faithfully.
 
 ### Two flags the client verifies for you
 
-Both exist because a parameter that is silently lost in transit is worse than one that was never
-sent — the answer looks identical.
-
-**`balances`.** `/route` declares its query without a JSON schema, so a server that predates the
-balances feature simply ignores them and answers byte-identically to one that never received any.
-Executing a plan computed against a portfolio the server never saw is the case worth failing on,
-so `fetchRoute` throws unless the router echoes `balancesApplied` (or `balanceEntryCount`, which is
-how a current server confirms an *empty* wallet). Pass `requireBalancesApplied: false` to opt out.
-
-**`requireFullFill`.** This is the one route flag that fails *open*: lose it and an explicit
-"refuse rather than shrink" silently degrades to an advisory `partial_fill` you might not read. The
-client stamps what you asked for onto the route, and `checkExecutionPlanSafety` makes
-`partial_fill` **blocking** when you asked for a full fill and did not get one.
+- **`balances`** — a server that predates balances silently ignores them, so `fetchRoute` throws
+  unless the router echoes `balancesApplied` (or `balanceEntryCount` for an empty wallet). Opt out
+  with `requireBalancesApplied: false`.
+- **`requireFullFill`** — if lost in transit it would degrade to an advisory `partial_fill`, so the
+  client stamps it onto the route and `checkExecutionPlanSafety` makes `partial_fill` **blocking**.
 
 ### Holdings are POSTed, never put in a URL
 
-`fetchRoute` sends a `GET` — cacheable, linkable, and what every caller already uses. The one
-exception is `params.balances`: when you send holdings, the client switches to `POST /route` and
-puts every parameter in the body.
-
-This is not cosmetic. The service scrubs balances out of its own logs, but a URL does not stay
-inside that process — a reverse proxy, an ALB and a CDN all log the full request line by default,
-as do browser history and client-side tracing, and a `Referer` carries it off-origin. No amount of
-in-process redaction reaches any of that. `fetchRouteWithBalances` builds the holdings for you and
-goes down the same path, so you get this without doing anything.
+`fetchRoute` sends a `GET`, except when `params.balances` is set: then it sends `POST /route` with
+every parameter in the body, so holdings never land in proxy, CDN, browser or `Referer` logs.
+`fetchRouteWithBalances` uses the same path.
 
 ## The pipeline
 
-Routing and executing are separate steps on purpose. Every step between the route and the orders
-is **pure** — no I/O, and the same input produces the same output in all six languages — so a
-plan can be inspected, logged, diffed and tested before anything is placed.
+Routing and executing are separate steps. Everything between the route and the orders is **pure**
+— no I/O, identical output in all six languages — so a plan can be inspected, logged and tested
+before anything is placed.
 
 | Method | I/O | What it does |
 |---|---|---|
 | `fetchRoute (from, to, params)` | HTTP | asks the router for a route. Exactly one of `params.amountIn` / `params.amountOut`. |
 | `fetchRouteWithBalances (from, to, venues, params)` | HTTP + venues | reads live balances from the supplied exchange instances first, so the route is one you can actually fund |
 | `buildExecutionPlan (route, options)` | none | flattens hops and legs into an ordered list of concrete orders |
-| `checkExecutionPlanSafety (plan, markets, options)` | none | checks each step against per-venue market rules and the hard per-trade USD notional cap |
+| `checkExecutionPlanSafety (plan, markets, options)` | none | checks each step against per-venue market rules and the per-trade USD notional cap |
 | `execute (routeOrPlan, [venues], options)` | **places orders** | the only impure method. Takes a route as well as a plan, building the plan itself when given one. Venues default to the router's, so the options may be the second argument |
 | `marketsOf (venues)` | loads markets | the dict `checkExecutionPlanSafety` wants; `execute` builds it for you |
 | `reconcileExecutionStep (plan, i, realisedOut)` | none | compares what a step produced against what the route predicted; resizes downstream hops, or halts |
@@ -8797,47 +8714,24 @@ plan can be inspected, logged, diffed and tested before anything is placed.
 
 ## Executing
 
-**`execute` places orders.** Calling it is the instruction; there is no permission flag beside it,
-exactly as `createOrder` has none. Pass `dryRun: true` to rehearse instead, which makes not one
-call against a venue, not even a read.
+**`execute` places orders** — there is no permission flag, just as `createOrder` has none. Pass
+`dryRun: true` to rehearse without a single venue call. `strategy` says *how* orders go out,
+`dryRun` says *whether*, so the two combine freely.
 
-`strategy` and `dryRun` are independent on purpose: `strategy` says only HOW the orders go out,
-`dryRun` says only WHETHER. That is why rehearsing a `limit_protected` run is sayable.
-
-**Hold your venues on the router.** `new OrderRouter ({ venues })` says where you can trade:
-routes are filtered to those venues — you cannot trade where you hold no keys — and `execute`
-sends the orders to those same instances. The filter costs nothing, touches no venue, and cannot
-go stale, so it is always on.
-
-**Whether the router also reads your wallets is a separate mode**, because it is a separate
-decision with a real price: one authenticated call per venue, holdings that go stale the moment
-anything moves, and a bad key on any one venue failing the whole quote.
+**Hold your venues on the router.** `new OrderRouter ({ venues })` filters routes to the venues you
+hold and is where `execute` sends orders. Add `trackBalances: true` to also read your wallets:
 
 | | `fetchRoute` | Routes are |
 |---|---|---|
 | `{ venues }` | one HTTP request, no venue touched | the best price on venues you can trade |
 | `{ venues, trackBalances: true }` | reads each wallet once, then one request | the best price **you can actually fund** |
 
-There is deliberately no setting in between. A router that half-knows your balances is worse than
-one that knows none of them, which is also why there is no expiry to tune: the holdings are either
-managed or they are not.
+With `trackBalances`, wallets are read **once and cached** like `loadMarkets`. `loadBalances ()`
+primes the cache and `loadBalances (true)` refreshes it; a live `execute` drops it before dispatch
+(a rehearsal keeps it). For real-time holdings, run `watchBalance ()` on your own pro instances and
+call `router.invalidateBalances ()`. Call-site `exchanges`, `balances` and venues always win.
 
-With `trackBalances`, the wallets are read **once and cached**, exactly as `loadMarkets` caches, so
-`fetchRoute` stays a single HTTP request however often you call it. `loadBalances ()` primes that
-cache at start-up and `loadBalances (true)` refreshes it — but you rarely need either, because a
-live `execute` **drops the cache itself**. Placing an order is precisely what makes the cached
-holdings wrong, and it is dropped *before* dispatch: a run that throws half way through has still
-moved money. A rehearsal reaches no venue and keeps the cache.
-
-Want real-time holdings instead? Drive it yourself — `watchBalance ()` on your own pro instances,
-then `router.invalidateBalances ()`. The router never opens a socket you did not open.
-
-Anything you pass at the call site wins: your own `exchanges`, your own `balances`, your own
-venues argument to `execute`.
-
-**`balances` takes the shape you would naturally write.** A per-venue wallet, a flat one, or the
-rendered string — all three are accepted, and anything that cannot be rendered is refused here
-rather than at the far end:
+`balances` accepts any of these shapes:
 
 ```javascript
 { 'balances': { 'mexc': { 'USDT': 100, 'BTC': 0.5 } } }   // per venue
@@ -8845,37 +8739,32 @@ rather than at the far end:
 { 'balances': 'mexc.USDT:100,mexc.BTC:0.5' }               // already rendered
 ```
 
-**The whole pipeline is two calls.** `execute` accepts the route itself, and does the rest: it
-builds the plan, loads each venue's markets if they are not loaded, runs `checkExecutionPlanSafety`
-and **throws rather than place anything** when a violation is blocking. A refusal a caller can
-forget to read is not a refusal, so it is not returned for inspection — it is raised.
+**The whole pipeline is two calls.** Given a route, `execute` builds the plan, loads markets, runs
+`checkExecutionPlanSafety` and **throws** on any blocking violation:
 
 ```javascript
 const route = await router.fetchRoute ('USDT', 'BTC', { 'amountIn': 1000 });
 const report = await router.execute (route, { 'binance': binance, 'kraken': kraken }, {
     'strategy': 'sequential',
-        'usdRates': { 'USDT': 1 },
+    'usdRates': { 'USDT': 1 },
 });
 ```
 
-The stages in between stay public, and take the same options, for when you want to see or change
-what will be placed before it is — log the plan, diff it, veto it, or hand-assemble one of your own:
+The intermediate stages stay public for when you want to inspect or veto the plan:
 
 ```javascript
 const plan = router.buildExecutionPlan (route, { 'slippageBps': 50 });
 const violations = router.checkExecutionPlanSafety (plan, markets, { 'maxNotionalUsd': 25 });
-//  blocking: true means do not send this; blocking: false is advisory, and
-//  amount_precision / price_precision are advisory on almost every real route
+//  blocking: false is advisory (amount/price precision usually are)
 if (violations.length === 0) {
     const report = await router.execute (plan, { 'binance': binance, 'kraken': kraken }, {
         'strategy': 'sequential',
-                'usdRates': { 'USDT': 1 },
+        'usdRates': { 'USDT': 1 },
     });
 }
 ```
 
-When a route is passed, `buildExecutionPlan`'s own options — `slippageBps` and
-`reconcileToleranceRatio` — travel in the same options dict as the execution options.
+When a route is passed, `slippageBps` and `reconcileToleranceRatio` go in the same options dict.
 
 ### Strategies
 
@@ -8883,67 +8772,38 @@ When a route is passed, `buildExecutionPlan`'s own options — `slippageBps` and
 |---|---|
 | `sequential` | **the default.** One order at a time in plan order, reconciling after each and obeying the halt verdict |
 | `parallel_within_hop` | the legs of a hop concurrently, the hops strictly in order |
-| `limit_protected` | rests a limit order instead of taking, polling it every `pollIntervalMs` (default 1000, must be positive) until it fills or `orderTimeoutMs` (default 20000) elapses, then cancels. A partial fill is kept and reconciled; an order the venue already closed is not cancelled again; a cancel that fails is recorded in `openOrders` rather than assumed |
+| `limit_protected` | rests a limit order instead of taking, polling it every `pollIntervalMs` (default 1000, must be positive) until it fills or `orderTimeoutMs` (default 20000) elapses, then cancels. A partial fill is kept and reconciled; a cancel that fails is recorded in `openOrders` |
 | `atomic_ish` | sequential, but requires the whole route pre-funded so a hop's shortfall does not resize the next |
 | `best_effort` | places what it can and never halts; single-hop only, and demands explicit acknowledgements |
 
-`parallel_within_hop` guarantees **concurrent across venues, serialised within a venue**. That is
-an ordering guarantee, not a performance promise — it is what lets five very different runtimes
-honour the same words. Two legs of one hop that land on the same exchange instance never have two
-orders in flight against that instance's throttle and nonce state.
+`parallel_within_hop` is **concurrent across venues, serialised within a venue**: two legs on the
+same exchange instance never have two orders in flight against its throttle and nonce state.
 
 ### Plan freshness
 
-A plan is a snapshot of an order book, and `calculatedAt` records when that snapshot was taken.
-Every report carries `planAgeMs`, the plan's age in milliseconds at the moment `execute` was
-called — always, whether or not anything is being enforced, because how stale the snapshot is
-decides whether any number in the plan means anything. `planAgeMs` is `-1` when the route carried
-no `calculatedAt`; that is *unknown*, not *fresh*, and never `0`.
-
-Enforcement is opt-in, exactly like the cap: pass `options.maxPlanAgeMs` and a live execution of an
-older plan is refused before anything reaches a venue. There is no default limit — recomputing the
-route is the fix, and only the caller knows how long their own confirmation step takes. Under an
-active limit a plan whose age *cannot be determined* is also refused, on the same reasoning as the
-cap: a freshness check that silently passes when the timestamp is missing is not a freshness check.
+Every report carries `planAgeMs`, the plan's age when `execute` was called (`-1` if the route had no
+`calculatedAt` — unknown, not fresh). Pass `options.maxPlanAgeMs` to refuse older plans before
+anything reaches a venue; under that limit, a plan of unknown age is refused too. There is no
+default limit.
 
 ### The notional cap is opt-in
 
-There is **no cap by default**. This class does not decide how much of your money you may trade:
-trade cents or trade thousands. `maxNotionalUsd` is a guardrail you ask for — pass it to the
-constructor, or per call in `options`, and it is honoured exactly at whatever value you choose, in
-either direction. Omit it, or pass `0`, and no notional check runs at all. Only a negative value is
-refused.
+There is **no cap by default**. Pass `maxNotionalUsd` to the constructor or per call and it is
+honoured exactly; omit it or pass `0` for no check. Negative values are refused.
 
-(An earlier version enforced a hard 25 USD ceiling that could be lowered but never raised. That
-number came from this repository's rule for its own live tests against real exchanges — it was
-never meant to govern the people using the library.)
+When a cap is set, `checkExecutionPlanSafety` and `execute` both enforce it, re-checking the
+notional before **every** `createOrder` because reconciliation may have resized the plan. Under a cap:
 
-When a cap **is** in force, `checkExecutionPlanSafety` and `execute` both enforce it, and the
-notional is recomputed immediately before **every** `createOrder` — the plan-level check already
-ran, but a reconciliation may have resized the plan since, and the snapped price is not the one
-that was checked.
-
-A market order cannot be placed under a cap, and asking for both is refused. The cap is evaluated
-against the plan's limit price; a market order is then sent with no price at all and fills wherever
-the book is, which is exactly what the cap exists to bound. Passing the check and then discarding
-the price it was computed from would be a cap that silently disappears. Lift `maxNotionalUsd`, or
-drop `allowMarketOrders`.
-
-Under a cap, a step that cannot be valued in USD **blocks**. It is never skipped: a cap that
-silently disappears when a rate is missing is not a cap. Supply `options.usdRates` for every quote
-asset in the plan. With no cap set there is nothing to evaluate, so `usdRates` is not required
-either — demanding the inputs for a check nobody asked for would be asking for something nobody
-wanted.
+- market orders are refused (they discard the limit price the cap was checked against) — lift
+  `maxNotionalUsd` or drop `allowMarketOrders`;
+- a step that cannot be valued in USD **blocks**, so supply `options.usdRates` for every quote asset.
+  Without a cap, `usdRates` is not required.
 
 ### Executing your own plans
 
-Everything after `fetchRoute` is plain data. `execute` takes a plan dictionary and reads only its
-`steps`, its `calculatedAt` and its identity — it does not check that a route produced it. A plan
-you assemble yourself is a first-class input, and so is a plan that has been through JSON, a
-database, or a hand-rebuilt tail of a halted route.
-
-A step is a single order on a single venue. Only the first six fields are required; the rest carry
-the router's own predictions and default to `0` when you have nothing to say:
+`execute` reads only a plan's `steps`, `calculatedAt` and identity, so a hand-built plan (or one
+from JSON, a database, or a rebuilt tail of a halted route) is a first-class input. A step is one
+order on one venue; only the first six fields are required:
 
 | Field | Required | Meaning |
 |---|---|---|
@@ -8960,7 +8820,7 @@ the router's own predictions and default to `0` when you have nothing to say:
 
 ```javascript
 const plan = {
-    'requestId': 'my-strategy-2026-09-06-0001',
+    'requestId': 'my-strategy-2024-06-01T12:00-0001',
     'calculatedAt': exchange.milliseconds (),
     'steps': [
         { 'exchangeId': 'binance', 'symbol': 'BTC/USDT', 'side': 'buy', 'amount': 0.01,
@@ -8971,77 +8831,44 @@ const plan = {
 };
 const report = await router.execute (plan, { 'binance': binance, 'kraken': kraken }, {
     'strategy': 'parallel_within_hop',
-        'usdRates': { 'USDT': 1 },
+    'usdRates': { 'USDT': 1 },
     'maxNotionalUsd': 25,
 });
 ```
 
-`checkExecutionPlanSafety` works on your plan too, and is worth running first: it checks each step
-against that venue's real market rules — minimum amount, minimum cost, precision — which is where a
-hand-written amount most often goes wrong.
+Run `checkExecutionPlanSafety` first: it checks each step against the venue's minimum amount,
+minimum cost and precision, which is where hand-written amounts usually go wrong.
 
 #### Identity is required for a live run
 
-A live `execute` needs an identity for the plan, and refuses without one. It keys the in-process
-re-execution guard: the identity is remembered on the `OrderRouter` instance, so a second `execute`
-of the same plan is refused before any venue is contacted.
+A live `execute` refuses a plan with no identity. Supply `plan['requestId']` (routed plans have one)
+or `options.idempotencyKey`; the instance remembers it and refuses a second `execute` of the same
+plan. Make it stable per *intent* (strategy name + signal timestamp), not `Date.now()`. Pass
+`options.allowReexecution: true` to re-run on purpose.
 
-Supply it as `plan['requestId']` (routed plans carry one already) or as `options.idempotencyKey`:
-
-```javascript
-await router.execute (plan, venues, { 'idempotencyKey': 'my-strategy-0001', ... });
-```
-
-Make it stable and unique to the *intent* — a strategy name plus a signal timestamp is a good one,
-`Date.now()` is not: a fresh identity on every call turns the guard off. There is deliberately no
-generated default, because the only two options are a random id, which silently disables the
-mechanism, or a fingerprint of the plan's contents, which makes two genuinely separate runs of an
-identical plan indistinguishable.
-
-To re-run a plan on purpose — say a first attempt that placed nothing — pass
-`options.allowReexecution: true`.
-
-`execute` never sets a `clientOrderId` of its own. Each exchange's `createOrder` keeps sending
-whatever identifier it generates internally, and anything you put in `options.orderParams` — a
-`clientOrderId` included — travels to the venue untouched. `orderParams` apply to every step of the
-plan alike, so a single `clientOrderId` there reaches every order, and a venue that requires client
-order ids to be unique will reject the second one. The id the venue reports back is recorded on each
-step of the report as `clientOrderId`. The in-process guard does not survive a restart; if your
-plans must never re-execute across restarts, key idempotency at the venue yourself.
-
-Two further limits of that guard are worth knowing before you rely on it. Which venues actually
-honour a client order id — and with what length and charset — is not mapped in CCXT, so passing one
-through `orderParams` is not a portable idempotency key. And the guard's check-then-write is not
-atomic: two `execute` calls for the same plan issued concurrently on one instance can both pass the
-check before either records the plan. Serialise `execute` yourself if that race is reachable in
-your process.
+`execute` never sets a `clientOrderId` itself; `options.orderParams` reach every order untouched
+(so one `clientOrderId` there hits every step), and the venue's id is reported per step. Limits of
+the guard: it is in-process only (lost on restart), client-order-id support is not mapped across
+venues, and concurrent `execute` calls for the same plan can race — serialise them if that matters.
 
 ### Watching a run, and stopping it — `onStep`
 
-`execute` used to be opaque from call to return. `options.onStep` is called after each step
-completes **and after its reconciliation**, never mid-order, and its return value decides whether
-the route continues:
+`options.onStep` is called after each step **and its reconciliation**; return `'halt'` to stop the
+route:
 
 <!-- tabs:start -->
 #### **Javascript**
 ```javascript
 const report = await router.execute (plan, venues, {
     'strategy': 'sequential', 'usdRates': { 'USDT': 1 },
-    'onStep': (event) => {
-        console.log (event['stepIndex'], event['status'], event['outAmount']);
-        //  return 'halt' to stop the route; anything else continues
-        return (event['status'] === 'partial') ? 'halt' : '';
-    },
+    'onStep': (event) => (event['status'] === 'partial') ? 'halt' : '',
 });
 ```
 #### **Python**
 ```python
-def on_step(event):
-    print(event['stepIndex'], event['status'], event['outAmount'])
-    return 'halt' if event['status'] == 'partial' else ''
-
 report = router.execute(plan, venues, {
-    'strategy': 'sequential', 'usdRates': {'USDT': 1}, 'onStep': on_step,
+    'strategy': 'sequential', 'usdRates': {'USDT': 1},
+    'onStep': lambda event: 'halt' if event['status'] == 'partial' else '',
 })
 ```
 #### **PHP**
@@ -9056,14 +8883,16 @@ $report = $router->execute($plan, $venues, array(
 #### **C#**
 ```csharp
 var report = await router.Execute(plan, venues, new Dictionary<string, object> {
-    { "strategy", "sequential" },     { "onStep", (Func<IDictionary<string, object>, string>)(ev =>
+    { "strategy", "sequential" },
+    { "onStep", (Func<IDictionary<string, object>, string>)(ev =>
         (string)ev["status"] == "partial" ? "halt" : "") },
 });
 ```
 #### **Go**
 ```go
 report, err := router.Execute(plan, venues, map[string]any{
-    "strategy": "sequential",     "onStep": func(event map[string]any) string {
+    "strategy": "sequential",
+    "onStep": func(event map[string]any) string {
         if event["status"] == "partial" { return "halt" }
         return ""
     },
@@ -9071,8 +8900,7 @@ report, err := router.Execute(plan, venues, map[string]any{
 ```
 #### **Rust**
 ```rust
-// Rust DIFFERS: the hook is installed on the router, not passed in options.
-// `Value` is a closed enum deriving Debug/Clone/PartialEq, so it cannot carry a closure.
+// The hook is installed on the router: `Value` cannot carry a closure.
 router.set_on_step(Arc::new(|event: &Value| {
     if router_str(event, "status") == "partial" { "halt".to_string() } else { String::new() }
 }));
@@ -9081,80 +8909,51 @@ router.clear_on_step();
 ```
 <!-- tabs:end -->
 
-The event carries `planId`, `stepIndex`, `hopIndex`, `legIndex`, `exchangeId`, `symbol`, `side`,
-`status`, `requestedAmount`, `filledAmount`, `outAsset`, `outAmount`, `orderId`, `clientOrderId`,
-`errorCode`, `attempt`, `reconciliation`, `ordersPlaced`, `halted`, `haltReason`, `stepsTotal` and
-`stepsRemaining`. It is a plain dictionary, so fields can be added without breaking callers.
+The event is a plain dictionary with `planId`, `stepIndex`, `hopIndex`, `legIndex`, `exchangeId`,
+`symbol`, `side`, `status`, `requestedAmount`, `filledAmount`, `outAsset`, `outAmount`, `orderId`,
+`clientOrderId`, `errorCode`, `attempt`, `reconciliation`, `ordersPlaced`, `halted`, `haltReason`,
+`stepsTotal` and `stepsRemaining`.
 
-Four rules worth knowing before you rely on it:
+- **It can only narrow**: `'halt'` sets `haltReason: halted_by_on_step`; nothing resumes a route the
+  reconciliation halted.
+- **It is called on halt paths too** (with an empty `reconciliation` if none ran).
+- **Do no network I/O in it** — it sits between orders on the money path.
+- **A throwing hook does not fail the run**: it is recorded as `on_step_hook_failed` in
+  `report['errors']` and execution continues.
 
-- **It can only narrow.** Returning `'halt'` stops the route and sets `haltReason` to
-  `halted_by_on_step`. Nothing it returns will *resume* a route the reconciliation already halted —
-  the halt is a money decision made in one pure place so that six execution loops cannot each
-  forget it, and a hook that could wave it through would be a way to forget it.
-- **It is called on the halt paths too**, with an empty `reconciliation` where the step halted
-  before reconciling, so the hook always learns how the route ended.
-- **Do no network I/O in it.** It sits between orders on the money path; every millisecond spent
-  there is a millisecond the next order is not placed and the price is moving.
-- **A hook that throws does not fail the run.** The failure is recorded in `report['errors']` as
-  `on_step_hook_failed` and execution continues as if the hook had no opinion. The report is the
-  only account of orders that are already live, and losing it to an exception raised by
-  observability code is the worse outcome.
-
-For decisions that need I/O — re-quoting, checking a balance, consulting a model — slice the plan
-and call `execute` once per hop or step instead, with its own `idempotencyKey` per slice. Between
-calls you have the whole language available.
+For decisions that need I/O, slice the plan and call `execute` per hop or step, each with its own
+`idempotencyKey`.
 
 ### Retrying a rejected step
 
 `options.retryFailedSteps` (default `0`) re-places a step **the venue definitively rejected**, up to
-that many times, waiting `options.retryDelayMs` (default `1000`) between attempts. The winning
-attempt is reported as `attempt` on that step's result.
-
-An `outcome_unknown` step is **never** retried, at any setting. A rejected order was not placed, so
-re-placing it cannot double-fill; an unknown outcome may already be a live position that simply
-could not be read back, and re-placing that is the exact double-fill this class exists to prevent.
-
-The router sets no client order id of its own, on a first attempt or a retry: whatever you put in
-`options.orderParams` travels untouched and each exchange's own identifier generation applies. An id
-derived from the plan identity used to be forced onto every order, but venues disagree on length and
-charset — gate refuses one over 28 characters, okx and mexc cap at 32, lighter parses it as an
-integer — so it was rejected exactly where it mattered.
+that many times, `options.retryDelayMs` (default `1000`) apart; the winning attempt is reported as
+`attempt`. An `outcome_unknown` step is **never** retried — it may already be a live order. Retries
+set no client order id of their own; `options.orderParams` travel untouched.
 
 ## Reading the report
 
 `execute` returns a report whose `steps[]` mirrors the plan. Three fields deserve attention:
 
-- **`status: 'outcome_unknown'`** — the request may or may not have reached the venue (a timeout,
-  or the venue being unavailable), so whether an order exists is genuinely unknown. Execution halts
-  with `haltReason: 'outcome_unknown'` rather than reconciling, because reconciling would read
-  `outAmount` as 0 and report `nothing_filled` — asserting the one thing nobody knows. Check
-  `openOrders` and the venue before retrying.
-- **`placementAttempted`** — false until an order was actually dispatched. A failure before
-  dispatch cannot have left anything resting.
-- **`outAmount` vs `grossOutAmount`** — `filled` and `cost` are gross of fees. When the venue took
-  its cut in the asset the step *produced*, `outAmount` is net of it and `grossOutAmount` carries
-  the original; the next hop is sized on the net figure, because that is what actually arrived.
+- **`status: 'outcome_unknown'`** — the request may or may not have reached the venue. Execution
+  halts with `haltReason: 'outcome_unknown'` instead of reconciling; check `openOrders` and the
+  venue before retrying.
+- **`placementAttempted`** — false until an order was dispatched, so nothing can be resting.
+- **`outAmount` vs `grossOutAmount`** — when the fee was taken in the produced asset, `outAmount`
+  is net and `grossOutAmount` gross; the next hop is sized on the net figure.
 
 ## What the client refuses
 
-The router's answer is checked against the client's own record of the question. `fetchRoute` stamps
-what you asked for onto the route, and `buildExecutionPlan` throws when:
-
-- the route does not run from the asset you offered to the asset you wanted, or
-- a hop does not spend exactly what the previous hop produced.
-
-Without that check, a compromised — or simply buggy — router response could steer real orders into
-any real market, and every safety check would pass it.
+`buildExecutionPlan` throws when the route does not run from the asset you offered to the asset you
+wanted, or when a hop does not spend exactly what the previous hop produced — so a buggy or
+compromised router response cannot steer orders into arbitrary markets.
 
 ## Unwinding
 
-When a run halts partway through a bridged route, capital is stranded in the bridge asset.
-`buildUnwindPlan (report)` computes the reverse orders that sell each residual back toward the
-original from-asset, on the venue that actually holds it.
-
-It is **never automatic**. The result carries `requiresConfirmation`, and nothing in this class
-executes it — unwinding is a second set of real trades, and that decision belongs to a human.
+When a run halts partway through a bridged route, `buildUnwindPlan (report)` computes the reverse
+orders that sell each stranded residual back toward the from-asset, on the venue that holds it. It
+is **never automatic**: the result carries `requiresConfirmation`, and nothing in this class
+executes it.
 
 # Resource clean-up
 
