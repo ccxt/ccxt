@@ -1720,22 +1720,18 @@ impl BingxCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("private".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("post".to_string(), Value::Map({
+        m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("transfer".to_string(), Value::Map({
+        m.insert("transfer/supportCoins".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(5));
     m
 }));
     m
 }));
-    m
-}));
-        m.insert("public".to_string(), Value::Map({
+        m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("get".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("transfer/supportCoins".to_string(), Value::Map({
+        m.insert("transfer".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(5));
     m

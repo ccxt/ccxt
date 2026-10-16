@@ -454,6 +454,115 @@ impl NadoCore {
 }));
         m.insert("features".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
+        m.insert("default".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("sandbox".to_string(), Value::Bool(true));
+        m.insert("createOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("marginMode".to_string(), Value::Bool(false));
+        m.insert("triggerPrice".to_string(), Value::Bool(true));
+        m.insert("triggerPriceType".to_string(), Value::Null);
+        m.insert("triggerDirection".to_string(), Value::Bool(true));
+        m.insert("stopLossPrice".to_string(), Value::Bool(true));
+        m.insert("takeProfitPrice".to_string(), Value::Bool(true));
+        m.insert("attachedStopLossTakeProfit".to_string(), Value::Null);
+        m.insert("timeInForce".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("IOC".to_string(), Value::Bool(true));
+        m.insert("FOK".to_string(), Value::Bool(true));
+        m.insert("PO".to_string(), Value::Bool(true));
+        m.insert("GTD".to_string(), Value::Bool(false));
+    m
+}));
+        m.insert("hedged".to_string(), Value::Bool(false));
+        m.insert("trailing".to_string(), Value::Bool(false));
+        m.insert("leverage".to_string(), Value::Bool(false));
+        m.insert("marketBuyByCost".to_string(), Value::Bool(false));
+        m.insert("marketBuyRequiresPrice".to_string(), Value::Bool(false));
+        m.insert("selfTradePrevention".to_string(), Value::Bool(false));
+        m.insert("iceberg".to_string(), Value::Bool(false));
+    m
+}));
+        m.insert("createOrders".to_string(), Value::Null);
+        m.insert("fetchMyTrades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("marginMode".to_string(), Value::Bool(false));
+        m.insert("limit".to_string(), Value::Int(500));
+        m.insert("daysBack".to_string(), Value::Null);
+        m.insert("untilDays".to_string(), Value::Null);
+        m.insert("symbolRequired".to_string(), Value::Bool(false));
+    m
+}));
+        m.insert("fetchOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("marginMode".to_string(), Value::Bool(false));
+        m.insert("trigger".to_string(), Value::Bool(false));
+        m.insert("trailing".to_string(), Value::Bool(false));
+        m.insert("symbolRequired".to_string(), Value::Bool(true));
+    m
+}));
+        m.insert("fetchOpenOrders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("marginMode".to_string(), Value::Bool(false));
+        m.insert("limit".to_string(), Value::Null);
+        m.insert("trigger".to_string(), Value::Bool(true));
+        m.insert("trailing".to_string(), Value::Bool(false));
+        m.insert("symbolRequired".to_string(), Value::Bool(true));
+    m
+}));
+        m.insert("fetchOrders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("marginMode".to_string(), Value::Bool(false));
+        m.insert("limit".to_string(), Value::Int(500));
+        m.insert("daysBack".to_string(), Value::Null);
+        m.insert("untilDays".to_string(), Value::Null);
+        m.insert("trigger".to_string(), Value::Bool(true));
+        m.insert("trailing".to_string(), Value::Bool(false));
+        m.insert("symbolRequired".to_string(), Value::Bool(false));
+    m
+}));
+        m.insert("fetchClosedOrders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("marginMode".to_string(), Value::Bool(false));
+        m.insert("limit".to_string(), Value::Int(500));
+        m.insert("daysBack".to_string(), Value::Null);
+        m.insert("daysBackCanceled".to_string(), Value::Null);
+        m.insert("untilDays".to_string(), Value::Null);
+        m.insert("trigger".to_string(), Value::Bool(true));
+        m.insert("trailing".to_string(), Value::Bool(false));
+        m.insert("symbolRequired".to_string(), Value::Bool(false));
+    m
+}));
+        m.insert("fetchOHLCV".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("limit".to_string(), Value::Int(500));
+    m
+}));
+    m
+}));
+        m.insert("spot".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("extends".to_string(), Value::Str("default".into()));
+        m.insert("createOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("triggerPrice".to_string(), Value::Bool(false));
+        m.insert("triggerDirection".to_string(), Value::Bool(false));
+        m.insert("stopLossPrice".to_string(), Value::Bool(false));
+        m.insert("takeProfitPrice".to_string(), Value::Bool(false));
+    m
+}));
+    m
+}));
+        m.insert("swap".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("linear".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("extends".to_string(), Value::Str("default".into()));
+    m
+}));
+        m.insert("inverse".to_string(), Value::Null);
+    m
+}));
     m
 }));
         m.insert("exceptions".to_string(), Value::Map({

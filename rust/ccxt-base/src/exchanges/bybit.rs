@@ -12323,8 +12323,8 @@ impl BybitCore {
             let mut __for_first_505: bool = true;
             while { if !__for_first_505 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_505 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&info).as_f64().unwrap_or(f64::NAN) } {
             let mut tier: Value = self.safe_dict(info.clone(), i.clone(), &[]);
-            let mut marketId: Value = self.safe_string_k(info.clone(), "symbol", &[]);
-            let mut marketResolved: Value = self.safe_market(&[marketId.clone()]);
+            let mut marketId: Value = self.safe_string_k(tier.clone(), "symbol", &[]);
+            let mut marketResolved: Value = self.safe_market(&[marketId.clone(), market.clone(), Value::Null, Value::Str("contract".into())]);
             let mut minNotional: Value = self.parse_number(Value::Str("0".into()), &[]);
             if (i.as_f64() != Some(0.0)) {
                 minNotional = self.safe_number(get_value(&info, &(match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), Value::Str("riskLimitValue".into()), &[]);
