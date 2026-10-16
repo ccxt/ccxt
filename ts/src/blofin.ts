@@ -3047,7 +3047,7 @@ export default class blofin extends Exchange {
             'lastUpdateTimestamp': undefined,
             'maintenanceMargin': maintenanceMargin,
             'maintenanceMarginPercentage': maintenanceMarginPercentage,
-            'margin': this.parseNumber (marginString),
+            'positionMargin': this.parseNumber (marginString),
             'collateral': this.parseNumber (collateralString),
             'initialMargin': this.parseNumber (initialMarginString),
             'initialMarginPercentage': this.parseNumber (initialMarginPercentage),

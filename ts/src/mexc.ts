@@ -5493,7 +5493,7 @@ export default class mexc extends Exchange {
             'contracts': this.parseNumber (contracts),
             'contractSize': this.safeNumber (marketResolved, 'contractSize'),
             'entryPrice': entryPrice,
-            'margin': this.parseNumber (marginString),
+            'positionMargin': this.parseNumber (marginString),
             'collateral': this.parseNumber (collateralString),
             'side': side,
             'unrealizedPnl': this.parseNumber (unrealizedPnl),

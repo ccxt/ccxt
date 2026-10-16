@@ -1655,7 +1655,7 @@
                     "lastUpdateTimestamp": null,
                     "maintenanceMargin": null,
                     "maintenanceMarginPercentage": null,
-                    "margin": null,
+                    "positionMargin": null,
                     "collateral": null,
                     "initialMargin": 1.5187625,
                     "initialMarginPercentage": 0.25,

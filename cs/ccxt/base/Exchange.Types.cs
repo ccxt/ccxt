@@ -1475,7 +1475,7 @@ public struct Position
     public bool? isolated;
     public double? exitPrice;
 
-    public double? margin;
+    public double? positionMargin;
     public Position(object position)
     {
         symbol = Exchange.SafeString(position, "symbol");
@@ -1508,7 +1508,7 @@ public struct Position
         stopLossPrice = Exchange.SafeFloat(position, "stopLossPrice");
         isolated = Exchange.SafeValue(position, "isolated") != null ? (bool)Exchange.SafeValue(position, "isolated") : null;
         exitPrice = Exchange.SafeFloat(position, "exitPrice");
-        margin = Exchange.SafeFloat(position, "margin");
+        positionMargin = Exchange.SafeFloat(position, "positionMargin");
     }
 
 }

@@ -10944,7 +10944,7 @@ export default class kucoin extends Exchange {
             'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
             'markPrice': this.safeNumber (position, 'markPrice'),
             'lastPrice': this.safeNumber (position, 'closePrice'),
-            'margin': this.parseNumber (marginString),
+            'positionMargin': this.parseNumber (marginString),
             'collateral': this.parseNumber (collateralString),
             'marginMode': marginMode,
             'side': side,

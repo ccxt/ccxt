@@ -6523,7 +6523,7 @@ export default class okx extends Exchange {
             'lastUpdateTimestamp': this.safeInteger (position, 'uTime'),
             'maintenanceMargin': maintenanceMargin,
             'maintenanceMarginPercentage': maintenanceMarginPercentage,
-            'margin': this.parseNumber (marginString),
+            'positionMargin': this.parseNumber (marginString),
             'collateral': this.parseNumber (collateralString),
             'initialMargin': this.parseNumber (initialMarginString),
             'initialMarginPercentage': this.parseNumber (initialMarginPercentage),

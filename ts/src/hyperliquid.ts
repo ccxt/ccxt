@@ -4053,7 +4053,7 @@ export default class hyperliquid extends Exchange {
             'markPrice': this.parseNumber (markPriceString),
             'notional': this.parseNumber (positionValueString),
             'leverage': this.safeNumber (leverage, 'value'),
-            'margin': this.parseNumber (marginString),
+            'positionMargin': this.parseNumber (marginString),
             'collateral': this.parseNumber (marginUsed),
             'initialMargin': this.parseNumber (initialMargin),
             'maintenanceMargin': undefined,

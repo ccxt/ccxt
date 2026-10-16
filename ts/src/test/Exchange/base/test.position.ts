@@ -8,7 +8,7 @@ function testPosition (exchange: Exchange, skippedProperties: object, method: st
     // `symbol`), with no opened-at timestamp and none of the derivatives semantics — skip the
     // leverage / margin / mark-price / liquidation / pnl fields that don't apply
     if (exchange.safeBool (exchange.has, 'prediction', false)) {
-        skippedProperties = exchange.extend ({ 'symbol': true, 'timestamp': true, 'datetime': true, 'leverage': true, 'initialMargin': true, 'initialMarginPercentage': true, 'maintenanceMargin': true, 'maintenanceMarginPercentage': true, 'entryPrice': true, 'notional': true, 'unrealizedPnl': true, 'marginRatio': true, 'liquidationPrice': true, 'markPrice': true, 'margin': true, 'collateral': true, 'percentage': true }, skippedProperties);
+        skippedProperties = exchange.extend ({ 'symbol': true, 'timestamp': true, 'datetime': true, 'leverage': true, 'initialMargin': true, 'initialMarginPercentage': true, 'maintenanceMargin': true, 'maintenanceMarginPercentage': true, 'entryPrice': true, 'notional': true, 'unrealizedPnl': true, 'marginRatio': true, 'liquidationPrice': true, 'markPrice': true, 'positionMargin': true, 'collateral': true, 'percentage': true }, skippedProperties);
     }
     const format = {
         'info': {}, // or []
@@ -28,13 +28,13 @@ function testPosition (exchange: Exchange, skippedProperties: object, method: st
         'marginRatio': exchange.parseNumber ('1.234'),
         'liquidationPrice': exchange.parseNumber ('1.234'),
         'markPrice': exchange.parseNumber ('1.234'),
-        'margin': exchange.parseNumber ('1.234'),
+        'positionMargin': exchange.parseNumber ('1.234'),
         'collateral': exchange.parseNumber ('1.234'),
         'marginMode': 'cross',
         'side': 'long',
         'percentage': exchange.parseNumber ('1.234'),
     };
-    const emptyotAllowedFor = [ 'margin', 'liquidationPrice', 'initialMargin', 'initialMarginPercentage', 'maintenanceMargin', 'maintenanceMarginPercentage', 'marginRatio' ];
+    const emptyotAllowedFor = [ 'positionMargin', 'liquidationPrice', 'initialMargin', 'initialMarginPercentage', 'maintenanceMargin', 'maintenanceMarginPercentage', 'marginRatio' ];
     testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyotAllowedFor);
     testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, entry, now);
     testSharedMethods.assertSymbol (exchange, skippedProperties, method, entry, 'symbol', symbol);
@@ -74,7 +74,7 @@ function testPosition (exchange: Exchange, skippedProperties: object, method: st
                 testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'liquidationPrice', entryPriceString);
             }
         }
-        const marginString = exchange.safeString (entry, 'margin');
+        const marginString = exchange.safeString (entry, 'positionMargin');
         if ((marginString !== undefined) && (collateralString !== undefined) && (unrealizedPnlString !== undefined)) {
             // collateral is margin + unrealizedPnl
             const expectedCollateral = Precise.stringAdd (marginString, unrealizedPnlString);

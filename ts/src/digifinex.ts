@@ -4087,7 +4087,7 @@ export default class digifinex extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'maintenanceMargin': this.parseNumber (maintenanceMarginString),
             'maintenanceMarginPercentage': this.safeNumber (position, 'maint_margin_ratio'),
-            'margin': this.parseNumber (marginString),
+            'positionMargin': this.parseNumber (marginString),
             'collateral': this.parseNumber (collateralString),
             'initialMargin': this.parseNumber (positionMargin),
             'initialMarginPercentage': undefined,

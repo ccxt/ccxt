@@ -709,7 +709,7 @@ export interface Position {
     leverage?: Num;
     unrealizedPnl?: Num;
     realizedPnl?: Num;
-    margin?: Num;
+    positionMargin?: Num;
     collateral?: Num;
     entryPrice?: Num;
     markPrice?: Num;

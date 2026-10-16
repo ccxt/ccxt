@@ -9241,7 +9241,7 @@ export default class bitget extends Exchange {
             'lastUpdateTimestamp': this.safeInteger2 (position, 'utime', 'updatedTime'),
             'maintenanceMargin': this.parseNumber (maintenanceMargin),
             'maintenanceMarginPercentage': this.parseNumber (maintenanceMarginPercentage),
-            'margin': this.parseNumber (marginString),
+            'positionMargin': this.parseNumber (marginString),
             'collateral': this.parseNumber (collateral),
             'initialMargin': this.parseNumber (initialMargin),
             'initialMarginPercentage': this.parseNumber (initialMarginPercentage),

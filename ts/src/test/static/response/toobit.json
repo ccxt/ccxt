@@ -925,7 +925,7 @@
                         "markPrice": 0.20921,
                         "lastPrice": 0.20932,
                         "notional": 13.3503,
-                        "margin": null,
+                        "positionMargin": null,
                         "collateral": null,
                         "unrealizedPnl": -0.1701,
                         "side": "long",

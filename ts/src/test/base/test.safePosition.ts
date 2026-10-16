@@ -185,7 +185,7 @@ function testSafePosition () {
     const res11 = exchange.safePosition (pos11);
     assert (exchange.safeValue (res11, 'initialMargin') === undefined);
     assert (exchange.safeValue (res11, 'maintenanceMargin') === undefined);
-    assert (exchange.safeValue (res11, 'margin') === undefined);
+    assert (exchange.safeValue (res11, 'positionMargin') === undefined);
 
     // CASE 12 - margin given: collateral = margin + unrealizedPnl, and margin drives the liquidation equation
     const pos12 = {
@@ -195,7 +195,7 @@ function testSafePosition () {
         'liquidationPrice': 90.5,
         'contracts': 1,
         'contractSize': 1,
-        'margin': 10,
+        'positionMargin': 10,
         'unrealizedPnl': 2,
     };
     const res12 = exchange.safePosition (pos12);
@@ -214,7 +214,7 @@ function testSafePosition () {
         'unrealizedPnl': -3,
     };
     const res13 = exchange.safePosition (pos13);
-    assert (preciseEqualPositionStr (exchange, res13, 'margin', '20'));
+    assert (preciseEqualPositionStr (exchange, res13, 'positionMargin', '20'));
 }
 
 export default testSafePosition;

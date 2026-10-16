@@ -6070,7 +6070,7 @@ export class BaseExchange {
         let contractsString = this.safeString (position, 'contracts');
         let contractSizeString = this.safeString (position, 'contractSize');
         // margin is the amount held in the position (excludes unrealized pnl), collateral = margin + unrealizedPnl
-        let marginString = this.safeString (position, 'margin');
+        let marginString = this.safeString (position, 'positionMargin');
         if ((marginString === undefined) && (marginMode === 'isolated') && (collateralString !== undefined)) {
             let derivedMargin: Str = collateralString;
             if ((unrealizedPnlString !== undefined) && !Precise.stringEq (collateralString, initialMarginString)) {
@@ -6078,11 +6078,11 @@ export class BaseExchange {
             }
             if (Precise.stringGt (derivedMargin, '0')) {
                 marginString = derivedMargin;
-                position['margin'] = this.parseNumber (derivedMargin);
+                position['positionMargin'] = this.parseNumber (derivedMargin);
             }
         }
         if (marginString === undefined) {
-            position['margin'] = undefined; // keep the unified key present across all exchanges
+            position['positionMargin'] = undefined; // keep the unified key present across all exchanges
         }
         if ((collateralString === undefined) && (marginString !== undefined) && (unrealizedPnlString !== undefined)) {
             collateralString = Precise.stringAdd (marginString, unrealizedPnlString);
@@ -6136,7 +6136,7 @@ export class BaseExchange {
                     initialMarginString = derivedEntryMargin;
                     position['initialMargin'] = this.parseNumber (derivedEntryMargin);
                     marginString = derivedEntryMargin;
-                    position['margin'] = this.parseNumber (derivedEntryMargin);
+                    position['positionMargin'] = this.parseNumber (derivedEntryMargin);
                     const derivedCollateral = (unrealizedPnlString !== undefined) ? Precise.stringAdd (derivedEntryMargin, unrealizedPnlString) : derivedEntryMargin;
                     if (Precise.stringGt (derivedCollateral, '0')) {
                         collateralString = derivedCollateral;

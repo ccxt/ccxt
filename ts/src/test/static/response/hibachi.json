@@ -58,7 +58,7 @@
                         "entryPrice": null,
                         "markPrice": 169.29507,
                         "notional": "33.859014",
-                        "margin": null,
+                        "positionMargin": null,
                         "collateral": null,
                         "unrealizedPnl": "0.050481",
                         "side": "long",

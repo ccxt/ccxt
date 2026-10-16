@@ -196,7 +196,7 @@
                         "liquidationPrice": 0.77,
                         "markPrice": 109440.37,
                         "lastPrice": null,
-                        "margin": null,
+                        "positionMargin": null,
                         "collateral": null,
                         "marginMode": null,
                         "side": "long",

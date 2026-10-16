@@ -6417,7 +6417,7 @@ export default class gate extends Exchange {
             'liquidationPrice': this.parseNumber (liqPriceString),
             'markPrice': this.safeNumber (position, 'mark_price'),
             'lastPrice': undefined,
-            'margin': this.parseNumber (marginBalance),
+            'positionMargin': this.parseNumber (marginBalance),
             'collateral': this.parseNumber (collateral),
             'marginMode': marginMode,
             'side': side,
