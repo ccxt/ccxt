@@ -295849,8 +295849,8 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         const tiers = [];
         for(let i = 0; i < info.length; i++){
             const tier = this.safeDict(info, i);
-            const marketId = this.safeString(info, 'symbol');
-            const marketResolved = this.safeMarket(marketId);
+            const marketId = this.safeString(tier, 'symbol');
+            const marketResolved = this.safeMarket(marketId, market, undefined, 'contract');
             let minNotional = this.parseNumber('0');
             if (i !== 0) {
                 minNotional = this.safeNumber(info[i - 1], 'riskLimitValue');
