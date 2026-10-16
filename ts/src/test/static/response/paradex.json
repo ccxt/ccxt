@@ -466,6 +466,166 @@
                         "interval": "8h"
                     }
                 }
+            },
+            {
+                "description": "the whole venue answers and only perpetuals are kept",
+                "method": "fetchFundingRates",
+                "input": [],
+                "httpResponse": {
+                    "results": [
+                        {
+                            "symbol": "BTC-USD-PERP",
+                            "mark_price": "81655.05254791",
+                            "delta": "1.00051847",
+                            "greeks": {
+                                "delta": "1.00051847253522",
+                                "gamma": "0",
+                                "vega": "0"
+                            },
+                            "last_traded_price": "81658.4",
+                            "bid": "81654.6",
+                            "bid_size": "0.00015",
+                            "ask": "81664.8",
+                            "ask_size": "0.06616",
+                            "volume_24h": "1724439.989215001",
+                            "total_volume": "133885902008.4117",
+                            "created_at": 1792184404215,
+                            "underlying_price": "81612.73858443",
+                            "open_interest": "77.67804",
+                            "funding_rate": "0.00009628468505",
+                            "price_change_rate_24h": "-0.004459",
+                            "external_fair_price": "81577.88605565",
+                            "risk_free_rate": "0",
+                            "open_interest_long": "38.83902",
+                            "open_interest_short": "38.83902",
+                            "funding_interval_minutes": 480
+                        },
+                        {
+                            "symbol": "ETH-USD",
+                            "mark_price": "2412.67199008",
+                            "greeks": {
+                                "delta": "0",
+                                "gamma": "0",
+                                "vega": "0"
+                            },
+                            "last_traded_price": "2394.5",
+                            "bid": "2411.87",
+                            "bid_size": "0.0828",
+                            "ask": "2413.4",
+                            "ask_size": "0.0829",
+                            "volume_24h": "29.25089",
+                            "total_volume": "6802773.984814",
+                            "created_at": 1792184399215,
+                            "underlying_price": "2412.67199008",
+                            "open_interest": "0",
+                            "funding_rate": "",
+                            "price_change_rate_24h": "-0.015758",
+                            "risk_free_rate": "0"
+                        },
+                        {
+                            "symbol": "BTC-USD-25JUN27-86000-C",
+                            "mark_price": "10208.06163869",
+                            "mark_iv": "0.3861385",
+                            "delta": "0.56464213",
+                            "greeks": {
+                                "delta": "0.5646421291399385",
+                                "gamma": "0.000015722769376066935",
+                                "vega": "278.60881595368477",
+                                "theta": "-28.10748063091501",
+                                "rho": "-70.32608920247297",
+                                "vanna": "-0.0018491299901875473",
+                                "volga": "-0.16802581257408714"
+                            },
+                            "last_traded_price": "",
+                            "bid": "9724.82",
+                            "bid_size": "1",
+                            "bid_iv": "0.36986",
+                            "ask": "10717.12",
+                            "ask_size": "1",
+                            "ask_iv": "0.4054928",
+                            "volume_24h": "0",
+                            "total_volume": "0",
+                            "created_at": 1792184399215,
+                            "underlying_price": "81615.89729692",
+                            "open_interest": "0",
+                            "funding_rate": "",
+                            "price_change_rate_24h": "-0.034111",
+                            "future_funding_rate": "0.00009629",
+                            "forward_rate": "0.05319271",
+                            "risk_free_rate": "0"
+                        },
+                        {
+                            "symbol": "USDC",
+                            "mark_price": "0.99978839",
+                            "greeks": {
+                                "delta": "0",
+                                "gamma": "0",
+                                "vega": "0"
+                            },
+                            "last_traded_price": "",
+                            "bid": "",
+                            "bid_size": "",
+                            "ask": "",
+                            "ask_size": "",
+                            "volume_24h": "0",
+                            "total_volume": "0",
+                            "created_at": 1792183389215,
+                            "underlying_price": "",
+                            "open_interest": "0",
+                            "funding_rate": "",
+                            "price_change_rate_24h": "-0.00006",
+                            "risk_free_rate": "0"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC/USD:USDC": {
+                        "info": {
+                            "symbol": "BTC-USD-PERP",
+                            "mark_price": "81655.05254791",
+                            "delta": "1.00051847",
+                            "greeks": {
+                                "delta": "1.00051847253522",
+                                "gamma": "0",
+                                "vega": "0"
+                            },
+                            "last_traded_price": "81658.4",
+                            "bid": "81654.6",
+                            "bid_size": "0.00015",
+                            "ask": "81664.8",
+                            "ask_size": "0.06616",
+                            "volume_24h": "1724439.989215001",
+                            "total_volume": "133885902008.4117",
+                            "created_at": 1792184404215,
+                            "underlying_price": "81612.73858443",
+                            "open_interest": "77.67804",
+                            "funding_rate": "0.00009628468505",
+                            "price_change_rate_24h": "-0.004459",
+                            "external_fair_price": "81577.88605565",
+                            "risk_free_rate": "0",
+                            "open_interest_long": "38.83902",
+                            "open_interest_short": "38.83902",
+                            "funding_interval_minutes": 480
+                        },
+                        "symbol": "BTC/USD:USDC",
+                        "markPrice": 81655.05254791,
+                        "indexPrice": 81612.73858443,
+                        "interestRate": null,
+                        "estimatedSettlePrice": null,
+                        "timestamp": 1792184404215,
+                        "datetime": "2026-10-16T21:00:04.215Z",
+                        "fundingRate": 0.00009628468505,
+                        "fundingTimestamp": null,
+                        "fundingDatetime": null,
+                        "nextFundingRate": null,
+                        "nextFundingTimestamp": null,
+                        "nextFundingDatetime": null,
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null,
+                        "interval": "8h"
+                    }
+                }
             }
         ],
         "fetchMyLiquidations": [
@@ -2095,6 +2255,24 @@
                             "max_order_size": "20",
                             "funding_period_hours": 0,
                             "trading_mode": "STANDARD"
+                        },
+                        {
+                            "symbol": "NEAR-USD-26MAR99-9_2-P",
+                            "base_currency": "NEAR",
+                            "quote_currency": "USD",
+                            "settlement_currency": "USDC",
+                            "order_size_increment": "10",
+                            "price_tick_size": "0.0001",
+                            "min_notional": "20",
+                            "open_at": 1791441599262,
+                            "expiry_at": 4078195200000,
+                            "asset_kind": "OPTION",
+                            "market_kind": "cross",
+                            "max_order_size": "50000",
+                            "option_type": "PUT",
+                            "strike_price": "9.2",
+                            "funding_period_hours": 0,
+                            "trading_mode": "STANDARD"
                         }
                     ]
                 },
@@ -2502,6 +2680,81 @@
                             "asset_kind": "SPOT",
                             "market_kind": "cross",
                             "max_order_size": "20",
+                            "funding_period_hours": 0,
+                            "trading_mode": "STANDARD"
+                        }
+                    },
+                    {
+                        "id": "NEAR-USD-26MAR99-9_2-P",
+                        "lowercaseId": null,
+                        "symbol": "NEAR/USD:USDC-990326-9.2-P",
+                        "base": "NEAR",
+                        "quote": "USD",
+                        "settle": "USDC",
+                        "baseId": "NEAR",
+                        "quoteId": "USD",
+                        "settleId": "USDC",
+                        "type": "option",
+                        "spot": false,
+                        "margin": null,
+                        "swap": false,
+                        "future": false,
+                        "option": true,
+                        "index": null,
+                        "active": true,
+                        "contract": true,
+                        "linear": true,
+                        "inverse": false,
+                        "subType": null,
+                        "taker": 0.0001,
+                        "maker": 0.0001,
+                        "contractSize": 1,
+                        "expiry": 4078195200000,
+                        "expiryDatetime": "2099-03-26T08:00:00.000Z",
+                        "strike": 9.2,
+                        "optionType": "put",
+                        "precision": {
+                            "amount": 10,
+                            "price": 0.0001
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": null,
+                                "max": 50000
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": 20,
+                                "max": null
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": 1791441599262,
+                        "info": {
+                            "symbol": "NEAR-USD-26MAR99-9_2-P",
+                            "base_currency": "NEAR",
+                            "quote_currency": "USD",
+                            "settlement_currency": "USDC",
+                            "order_size_increment": "10",
+                            "price_tick_size": "0.0001",
+                            "min_notional": "20",
+                            "open_at": 1791441599262,
+                            "expiry_at": 4078195200000,
+                            "asset_kind": "OPTION",
+                            "market_kind": "cross",
+                            "max_order_size": "50000",
+                            "option_type": "PUT",
+                            "strike_price": "9.2",
                             "funding_period_hours": 0,
                             "trading_mode": "STANDARD"
                         }
@@ -3530,6 +3783,104 @@
                         }
                     }
                 }
+            },
+            {
+                "description": "a single symbol that is not loaded keeps its row",
+                "method": "fetchTickers",
+                "input": [
+                    [
+                        "ZEC/USD:USDC-261106-900-P"
+                    ]
+                ],
+                "httpResponse": {
+                    "results": [
+                        {
+                            "symbol": "ZEC-USD-6NOV26-900-P",
+                            "mark_price": "16.84548151",
+                            "mark_iv": "0.96918771",
+                            "delta": "-0.11802552",
+                            "greeks": {
+                                "delta": "-0.11802551645695727",
+                                "gamma": "0.0007522951894309633",
+                                "vega": "0.5374321823544733",
+                                "theta": "-1.2447012610915982",
+                                "rho": "-0.00944733000274431",
+                                "vanna": "0.0004633165933323023",
+                                "volga": "0.006307066033027708"
+                            },
+                            "last_traded_price": "",
+                            "bid": "",
+                            "bid_size": "",
+                            "ask": "",
+                            "ask_size": "",
+                            "volume_24h": "0",
+                            "total_volume": "0",
+                            "created_at": 1792183389215,
+                            "underlying_price": "1146.43890186",
+                            "open_interest": "0",
+                            "funding_rate": "",
+                            "price_change_rate_24h": "",
+                            "future_funding_rate": "0.00009026",
+                            "forward_rate": "0.07439721",
+                            "risk_free_rate": "0"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "ZEC/USD:USDC-261106-900-P": {
+                        "symbol": "ZEC/USD:USDC-261106-900-P",
+                        "timestamp": 1792183389215,
+                        "datetime": "2026-10-16T20:43:09.215Z",
+                        "high": null,
+                        "low": null,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": null,
+                        "close": null,
+                        "last": null,
+                        "previousClose": null,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "baseVolume": null,
+                        "quoteVolume": 0,
+                        "markPrice": 16.84548151,
+                        "indexPrice": 1146.43890186,
+                        "info": {
+                            "symbol": "ZEC-USD-6NOV26-900-P",
+                            "mark_price": "16.84548151",
+                            "mark_iv": "0.96918771",
+                            "delta": "-0.11802552",
+                            "greeks": {
+                                "delta": "-0.11802551645695727",
+                                "gamma": "0.0007522951894309633",
+                                "vega": "0.5374321823544733",
+                                "theta": "-1.2447012610915982",
+                                "rho": "-0.00944733000274431",
+                                "vanna": "0.0004633165933323023",
+                                "volga": "0.006307066033027708"
+                            },
+                            "last_traded_price": "",
+                            "bid": "",
+                            "bid_size": "",
+                            "ask": "",
+                            "ask_size": "",
+                            "volume_24h": "0",
+                            "total_volume": "0",
+                            "created_at": 1792183389215,
+                            "underlying_price": "1146.43890186",
+                            "open_interest": "0",
+                            "funding_rate": "",
+                            "price_change_rate_24h": "",
+                            "future_funding_rate": "0.00009026",
+                            "forward_rate": "0.07439721",
+                            "risk_free_rate": "0"
+                        }
+                    }
+                }
             }
         ],
         "fetchTicker": [
@@ -3960,7 +4311,7 @@
                 ]
             },
             {
-                "description": "a trade on an expired option keeps its unified symbol",
+                "description": "a trade on an option that is not listed keeps its unified symbol",
                 "method": "fetchTrades",
                 "input": [
                     "NEAR/USD:USDC-261030-5.6-C",
@@ -6443,6 +6794,97 @@
                         "underlyingPrice": 81598.69900987,
                         "change": null,
                         "percentage": 1.2339,
+                        "baseVolume": null,
+                        "quoteVolume": 0
+                    }
+                }
+            },
+            {
+                "description": "an option id with a one digit day is rebuilt into its unified symbol",
+                "method": "fetchOptionChain",
+                "input": [
+                    "ZEC"
+                ],
+                "httpResponse": {
+                    "results": [
+                        {
+                            "symbol": "ZEC-USD-6NOV26-900-P",
+                            "mark_price": "16.84548151",
+                            "mark_iv": "0.96918771",
+                            "delta": "-0.11802552",
+                            "greeks": {
+                                "delta": "-0.11802551645695727",
+                                "gamma": "0.0007522951894309633",
+                                "vega": "0.5374321823544733",
+                                "theta": "-1.2447012610915982",
+                                "rho": "-0.00944733000274431",
+                                "vanna": "0.0004633165933323023",
+                                "volga": "0.006307066033027708"
+                            },
+                            "last_traded_price": "",
+                            "bid": "",
+                            "bid_size": "",
+                            "ask": "",
+                            "ask_size": "",
+                            "volume_24h": "0",
+                            "total_volume": "0",
+                            "created_at": 1792183389215,
+                            "underlying_price": "1146.43890186",
+                            "open_interest": "0",
+                            "funding_rate": "",
+                            "price_change_rate_24h": "",
+                            "future_funding_rate": "0.00009026",
+                            "forward_rate": "0.07439721",
+                            "risk_free_rate": "0"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "ZEC/USD:USDC-261106-900-P": {
+                        "info": {
+                            "symbol": "ZEC-USD-6NOV26-900-P",
+                            "mark_price": "16.84548151",
+                            "mark_iv": "0.96918771",
+                            "delta": "-0.11802552",
+                            "greeks": {
+                                "delta": "-0.11802551645695727",
+                                "gamma": "0.0007522951894309633",
+                                "vega": "0.5374321823544733",
+                                "theta": "-1.2447012610915982",
+                                "rho": "-0.00944733000274431",
+                                "vanna": "0.0004633165933323023",
+                                "volga": "0.006307066033027708"
+                            },
+                            "last_traded_price": "",
+                            "bid": "",
+                            "bid_size": "",
+                            "ask": "",
+                            "ask_size": "",
+                            "volume_24h": "0",
+                            "total_volume": "0",
+                            "created_at": 1792183389215,
+                            "underlying_price": "1146.43890186",
+                            "open_interest": "0",
+                            "funding_rate": "",
+                            "price_change_rate_24h": "",
+                            "future_funding_rate": "0.00009026",
+                            "forward_rate": "0.07439721",
+                            "risk_free_rate": "0"
+                        },
+                        "currency": "ZEC",
+                        "symbol": "ZEC/USD:USDC-261106-900-P",
+                        "timestamp": 1792183389215,
+                        "datetime": "2026-10-16T20:43:09.215Z",
+                        "impliedVolatility": 0.96918771,
+                        "openInterest": 0,
+                        "bidPrice": null,
+                        "askPrice": null,
+                        "midPrice": null,
+                        "markPrice": 16.84548151,
+                        "lastPrice": null,
+                        "underlyingPrice": 1146.43890186,
+                        "change": null,
+                        "percentage": null,
                         "baseVolume": null,
                         "quoteVolume": 0
                     }

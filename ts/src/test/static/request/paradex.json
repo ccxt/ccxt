@@ -75,15 +75,49 @@
                 ]
             },
             {
-                "description": "an until is kept as the end of the range",
+                "description": "an until past one page from since is clamped to that page",
                 "method": "fetchFundingRateHistory",
-                "url": "https://api.prod.paradex.trade/v1/funding/data?market=BTC-USD-PERP&page_size=10&end_at=1790600600000&start_at=1790600000000",
+                "url": "https://api.prod.paradex.trade/v1/funding/data?market=BTC-USD-PERP&page_size=10&end_at=1790600050000&start_at=1790600000000",
                 "input": [
                     "BTC/USD:USDC",
                     1790600000000,
                     10,
                     {
                         "until": 1790600600000
+                    }
+                ],
+                "forceCheckKeys": [
+                    "start_at",
+                    "end_at"
+                ]
+            },
+            {
+                "description": "an until inside one page from since is kept",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.prod.paradex.trade/v1/funding/data?market=BTC-USD-PERP&page_size=10&end_at=1790600030000&start_at=1790600000000",
+                "input": [
+                    "BTC/USD:USDC",
+                    1790600000000,
+                    10,
+                    {
+                        "until": 1790600030000
+                    }
+                ],
+                "forceCheckKeys": [
+                    "start_at",
+                    "end_at"
+                ]
+            },
+            {
+                "description": "paginate asks for full pages back from as many pages after since as the calls allow",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.prod.paradex.trade/v1/funding/data?market=BTC-USD-PERP&page_size=5000&start_at=1790600000000&end_at=1790850000000",
+                "input": [
+                    "BTC/USD:USDC",
+                    1790600000000,
+                    null,
+                    {
+                        "paginate": true
                     }
                 ],
                 "forceCheckKeys": [
@@ -348,7 +382,7 @@
                 ]
             },
             {
-                "description": "an expired option id keeps the underscore of a decimal strike",
+                "description": "an option that is not listed keeps the underscore of a decimal strike in its id",
                 "method": "fetchTrades",
                 "url": "https://api.prod.paradex.trade/v1/trades?market=NEAR-USD-30OCT26-5_6-C",
                 "input": [
@@ -1150,6 +1184,34 @@
                 "url": "https://api.prod.paradex.trade/v1/markets/summary?market=ALL",
                 "input": [
                     "BTC"
+                ]
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "a single symbol is asked for by name",
+                "method": "fetchFundingRates",
+                "url": "https://api.prod.paradex.trade/v1/markets/summary?market=BTC-USD-PERP",
+                "input": [
+                    [
+                        "BTC/USD:USDC"
+                    ]
+                ]
+            },
+            {
+                "description": "no symbols need the whole venue",
+                "method": "fetchFundingRates",
+                "url": "https://api.prod.paradex.trade/v1/markets/summary?market=ALL",
+                "input": []
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fetchFundingRate asks for its market by name",
+                "method": "fetchFundingRate",
+                "url": "https://api.prod.paradex.trade/v1/markets/summary?market=BTC-USD-PERP",
+                "input": [
+                    "BTC/USD:USDC"
                 ]
             }
         ]

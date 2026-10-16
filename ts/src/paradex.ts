@@ -449,13 +449,8 @@ export default class paradex extends Exchange {
                         'leverage': false,
                         'marketBuyByCost': false,
                         'marketBuyRequiresPrice': false,
-                        // sent as the stp param, the venue expires the maker when it is omitted
-                        'selfTradePrevention': {
-                            'EXPIRE_MAKER': true,
-                            'EXPIRE_TAKER': true,
-                            'EXPIRE_BOTH': true,
-                            'NONE': false,
-                        },
+                        // the venue takes EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH as the raw stp param, the unified param is not mapped
+                        'selfTradePrevention': false,
                         'iceberg': false,
                     },
                     'createOrders': {
@@ -948,11 +943,13 @@ export default class paradex extends Exchange {
     override safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
         // a dated option id has five parts, BTC-USD-29MAY26-80000-C
         if ((marketId !== undefined) && (marketId.indexOf ('/') < 0) && (marketId.endsWith ('-C') || marketId.endsWith ('-P'))) {
-            const marketIdParts = marketId.split ('-');
-            const marketIdPartsLength = marketIdParts.length;
             const isKnown = (this.markets_by_id !== undefined) && (marketId in this.markets_by_id);
-            if ((marketIdPartsLength === 5) && !isKnown) {
-                return this.createExpiredOptionMarket (marketId);
+            if (!isKnown) {
+                const marketIdParts = marketId.split ('-');
+                const marketIdPartsLength = marketIdParts.length;
+                if (marketIdPartsLength === 5) {
+                    return this.createExpiredOptionMarket (marketId);
+                }
             }
         }
         return super.safeMarket (marketId, market, delimiter, marketType);
@@ -1072,9 +1069,11 @@ export default class paradex extends Exchange {
         //     }
         //
         const fees = this.safeList (response, 'results', []) as List;
+        // markets left out by options.fetchMarkets.types are skipped
+        const loadedFees = this.filterLoadedSummaries (fees);
         const result: Dict = {};
-        for (let i = 0; i < fees.length; i++) {
-            const fee = this.parseTradingFee (fees[i]);
+        for (let i = 0; i < loadedFees.length; i++) {
+            const fee = this.parseTradingFee (loadedFees[i]);
             const symbol = fee['symbol'];
             result[(symbol as string)] = fee;
         }
@@ -1216,7 +1215,8 @@ export default class paradex extends Exchange {
         //     }
         //
         const data: Dict[] = this.safeList (response, 'results', []);
-        return this.parseTickers (this.filterLoadedSummaries (data), symbolsNormalized);
+        const rows = (request['market'] === 'ALL') ? this.filterLoadedSummaries (data) : data;
+        return this.parseTickers (rows, symbolsNormalized);
     }
 
     /**
@@ -1241,8 +1241,8 @@ export default class paradex extends Exchange {
      * @method
      * @ignore
      * @name paradex#filterLoadedSummaries
-     * @description keeps the markets/summary rows of loaded markets, the endpoint also answers for the USDC collateral and for market types left out by options.fetchMarkets.types
-     * @param {object[]} summaries the results of markets/summary
+     * @description keeps the markets or markets/summary rows of loaded markets, the endpoints also answer for the USDC collateral and for market types left out by options.fetchMarkets.types
+     * @param {object[]} summaries the results of markets or markets/summary
      * @param {string} [marketType] keep this market type only
      * @returns {object[]} the rows of loaded markets
      */
@@ -1256,9 +1256,13 @@ export default class paradex extends Exchange {
             const summary = summaries[i];
             const marketId = this.safeString (summary, 'symbol');
             if ((marketId !== undefined) && (marketId in marketsById)) {
-                const market = this.safeMarket (marketId);
-                if ((marketType === undefined) || (market['type'] === marketType)) {
+                if (marketType === undefined) {
                     result.push (summary);
+                } else {
+                    const market = this.safeMarket (marketId);
+                    if (market['type'] === marketType) {
+                        result.push (summary);
+                    }
                 }
             }
         }
@@ -1381,7 +1385,9 @@ export default class paradex extends Exchange {
         };
         const response = await this.publicGetMarketsSummary (this.extend (request, params));
         const data: Dict[] = this.safeList (response, 'results', []);
-        return this.parseFundingRates (data, symbolsNormalized);
+        // only a perpetual funds, the other rows are dropped before they are parsed
+        const rows = (request['market'] === 'ALL') ? this.filterLoadedSummaries (data, 'swap') : data;
+        return this.parseFundingRates (rows, symbolsNormalized);
     }
 
     /**
@@ -3625,7 +3631,8 @@ export default class paradex extends Exchange {
         //
         const results: Dict[] = this.safeList (response, 'results', []);
         // the summary also answers for perpetuals, spot and the USDC collateral, which carry no option greeks
-        return this.parseAllGreeks (this.filterLoadedSummaries (results, 'option'), symbolsNormalized);
+        const rows = (request['market'] === 'ALL') ? this.filterLoadedSummaries (results, 'option') : results;
+        return this.parseAllGreeks (rows, symbolsNormalized);
     }
 
     override parseGreeks (greeks: Dict, market: Market = undefined): Greeks {
@@ -3765,12 +3772,17 @@ export default class paradex extends Exchange {
         const response = await this.publicGetMarketsSummary (this.extend (request, params));
         const data: Dict[] = this.safeList (response, 'results', []);
         const result: Dict = {};
+        const prefix = code + '-';
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
-            // options left out by options.fetchMarkets.types are rebuilt from their id
-            const market = this.safeMarket (this.safeString (entry, 'symbol'));
-            if ((market['option'] === true) && (market['base'] === code)) {
-                result[market['symbol']] = this.parseOption (entry, undefined, market);
+            const marketId = this.safeString (entry, 'symbol', '');
+            // the id starts with the base, so the other underlyings are skipped before the market is resolved
+            if (marketId.startsWith (prefix)) {
+                // options left out by options.fetchMarkets.types are rebuilt from their id
+                const market = this.safeMarket (marketId);
+                if (market['option'] === true) {
+                    result[market['symbol']] = this.parseOption (entry, undefined, market);
+                }
             }
         }
         return result as OptionChain;
@@ -3943,15 +3955,21 @@ export default class paradex extends Exchange {
             await this.loadMarkets ();
         }
         const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
+        const rowSpacing = 5000; // the venue records a funding rate observation every five seconds
         if (paginate) {
             if (since === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a since argument when paginate is true');
             }
-            // the pages run newest first and the cursor keeps the start_at filter, so they end at since,
-            // the until keeps every page off the since window below
-            const paramsUntilNow = this.extend ({ 'until': this.milliseconds () }, paramsPaginate);
+            // the pages run newest first from end_at and the cursor keeps the start_at filter, so they stop at since,
+            // end_at is set to as many full pages from since as the calls allow, so the rows begin at since
+            const [ paginationCalls, paramsCalls ] = this.handleOptionIntegerAndParams (paramsPaginate, 'fetchFundingRateHistory', 'paginationCalls', 10);
+            let endAt = this.safeInteger (paramsCalls, 'until');
+            if (endAt === undefined) {
+                endAt = Math.min (this.milliseconds (), this.sum (since, paginationCalls * 5000 * rowSpacing));
+            }
+            const paramsEndAt = this.extend (this.omit (paramsPaginate, 'until'), { 'end_at': endAt });
             // the cursor helper returns the newest rows first, the limit is applied once they are oldest first
-            const pages = await this.fetchPaginatedCallCursor ('fetchFundingRateHistory', symbol, since, undefined, paramsUntilNow, 'next', 'cursor', undefined, 5000);
+            const pages = await this.fetchPaginatedCallCursor ('fetchFundingRateHistory', symbol, since, undefined, paramsEndAt, 'next', 'cursor', undefined, 5000);
             const sortedPages = this.sortBy (pages, 'timestamp');
             return this.filterBySinceLimit (sortedPages, since, limit) as FundingRateHistory[];
         }
@@ -3967,10 +3985,12 @@ export default class paradex extends Exchange {
         const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end_at', request, paramsPaginate);
         if (since !== undefined) {
             requestUntil['start_at'] = since;
-            if (!('end_at' in requestUntil)) {
-                // a page holds the newest rows of its range, an open range would return the latest rows and
-                // skip since, a rate is published every five seconds, so the range is cut to one page from since
-                requestUntil['end_at'] = this.sum (since, pageSize * 5000);
+            // a page holds the newest rows of its range, so a range wider than one page would return the latest
+            // rows and skip since, the range is cut to one page of rows from since
+            const windowEnd = this.sum (since, pageSize * rowSpacing);
+            const endAt = this.safeInteger (requestUntil, 'end_at', windowEnd) as number;
+            if (!('end_at' in requestUntil) || (endAt > windowEnd)) {
+                requestUntil['end_at'] = windowEnd;
             }
         }
         const response = await this.publicGetFundingData (this.extend (requestUntil, paramsUntil));
@@ -3992,8 +4012,8 @@ export default class paradex extends Exchange {
         // }
         //
         // every row is one observation of a rate quoted for a whole funding period,
-        // not a settled payment: paradex recomputes it each second and accrues it
-        // into funding_index, so the series cannot be summed
+        // not a settled payment: paradex accrues it into funding_index each second
+        // and records an observation every five seconds, so the series cannot be summed
         const results: Dict[] = this.safeList (response, 'results', []) as List;
         const next = this.safeString (response, 'next');
         const rates: List = [];
