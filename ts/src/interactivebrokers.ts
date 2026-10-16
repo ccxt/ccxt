@@ -510,7 +510,7 @@ export default class interactivebrokers extends Exchange {
                 'fetchTickers': {
                     // 31 last, 55 symbol, 70 high, 71 low, 82 change, 83 change %, 84 bid, 85 ask size, 86 ask, 88 bid size,
                     // 7295 open, 7296 close, 7635 mark, 7741 prior close, 7762 volume (full precision), 6509 market data availability
-                    'fields': '31,55,70,71,82,83,84,85,86,88,6509,7295,7296,7635,7741,7762',
+                    'fields': '31,55,70,71,82,83,84,85,86,88,6457,6509,7295,7296,7635,7741,7762',
                     'retries': 5, // the first snapshot request only subscribes, data arrives on subsequent requests
                     'retryDelay': 500,
                 },
@@ -839,7 +839,7 @@ export default class interactivebrokers extends Exchange {
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         await this.loadServiceAccounts ();
-        const stockMarketsPromise = this.fetchStockMarkets (params);
+        const stockMarketsPromise = new Promise<Market[]> ((resolve) => resolve ([]));//this.fetchStockMarkets (params);
         const cryptoMarketsPromise = this.fetchCryptoMarkets (params);
         const fxMarketsPromise = this.fetchForexMarkets (params);
         const [ stockMarkets, cryptoMarkets, fxMarkets ] = await Promise.all ([ stockMarketsPromise, cryptoMarketsPromise, fxMarketsPromise ]);
@@ -1174,7 +1174,7 @@ export default class interactivebrokers extends Exchange {
             conids.push (this.safeString (market, 'id', ''));
         }
         const options = this.safeDict (this.options, 'fetchTickers', {});
-        const [ fields, query ] = this.handleOptionAndParams (params, 'fetchTickers', 'fields', '31,55,70,71,82,83,84,85,86,88,6509,7295,7296,7635,7741,7762');
+        const [ fields, query ] = this.handleOptionAndParams (params, 'fetchTickers', 'fields');
         const retries = this.safeInteger (options, 'retries', 5);
         const retryDelay = this.safeInteger (options, 'retryDelay', 500);
         const request: Dict = {
@@ -1266,7 +1266,7 @@ export default class interactivebrokers extends Exchange {
         const marketId = this.safeString (ticker, 'conid');
         const resolved = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (ticker, '_updated');
-        const last = this.ibkrParseValue (this.safeString (ticker, '31'));
+        const last = this.ibkrParseValue (this.safeString (ticker, '7296')); // 31 might contain symbol
         return this.safeTicker ({
             'symbol': resolved['symbol'],
             'timestamp': timestamp,
@@ -1282,7 +1282,7 @@ export default class interactivebrokers extends Exchange {
             'close': last,
             'last': last,
             'previousClose': this.ibkrParseValue (this.safeString (ticker, '7741')),
-            'change': undefined,
+            'change': this.ibkrParseValue (this.safeString (ticker, '82')),
             'percentage': undefined,
             'average': undefined,
             'baseVolume': this.ibkrParseValue (this.safeString (ticker, '7762')),
