@@ -58,11 +58,29 @@
                 "output": { "amount": "5", "currency": "UST", "currency_to": "UST", "from": "margin", "to": "exchange" }
             }
         ],
+        "fetchL3OrderBook": [
+            {
+                "description": "Spot l3",
+                "method": "fetchL3OrderBook",
+                "url": "https://api-pub.bitfinex.com/v2/book/tBTCUST/R0",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "swap l3",
+                "method": "fetchL3OrderBook",
+                "url": "https://api-pub.bitfinex.com/v2/book/tBTCF0:USTF0/R0",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
         "fetchOrderBook": [
             {
                 "description": "Spot fetch order book",
                 "method": "fetchOrderBook",
-                "url": "https://api-pub.bitfinex.com/v2/book/tBTCUST/R0",
+                "url": "https://api-pub.bitfinex.com/v2/book/tBTCUST/P0",
                 "input": [
                     "BTC/USDT"
                 ]
@@ -70,7 +88,7 @@
             {
                 "description": "Swap fetch order book with a limit argument",
                 "method": "fetchOrderBook",
-                "url": "https://api-pub.bitfinex.com/v2/book/tBTCF0:USTF0/R0?len=25",
+                "url": "https://api-pub.bitfinex.com/v2/book/tBTCF0:USTF0/P0?len=25",
                 "input": [
                     "BTC/USDT:USDT",
                     25
@@ -79,7 +97,7 @@
             {
                 "description": "spot orderbook",
                 "method": "fetchOrderBook",
-                "url": "https://api-pub.bitfinex.com/v2/book/tBTCUST/R0",
+                "url": "https://api-pub.bitfinex.com/v2/book/tBTCUST/P0",
                 "input": [
                     "BTC/USDT"
                 ]
@@ -87,7 +105,7 @@
             {
                 "description": "swap orderbook",
                 "method": "fetchOrderBook",
-                "url": "https://api-pub.bitfinex.com/v2/book/tBTCF0:USTF0/R0",
+                "url": "https://api-pub.bitfinex.com/v2/book/tBTCF0:USTF0/P0",
                 "input": [
                     "BTC/USDT:USDT"
                 ]
