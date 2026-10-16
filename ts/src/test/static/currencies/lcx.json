@@ -1,0 +1,46 @@
+{
+    "LCX": {
+        "id": "LCX",
+        "code": "LCX",
+        "precision": 1e-8,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    },
+    "BTC": {
+        "id": "BTC",
+        "code": "BTC",
+        "precision": 1e-8,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    },
+    "ETH": {
+        "id": "ETH",
+        "code": "ETH",
+        "precision": 1e-8,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    },
+    "EUR": {
+        "id": "EUR",
+        "code": "EUR",
+        "precision": 1e-8,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    }
+}
