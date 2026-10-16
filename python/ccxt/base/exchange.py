@@ -5225,6 +5225,13 @@ class BaseExchange(object):
             result.append(self.parse_order_book_bid_ask(bidasksValue[i], priceKey, amountKey, countOrIdKey))
         return result
 
+    def parse_order_book_bids_asks_l3(self, bidasks: object, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
+        bidasksValue = self.to_array(bidasks)
+        result = []
+        for i in range(0, len(bidasksValue)):
+            result.append(self.parse_order_book_bid_ask_l3(bidasksValue[i], priceKey, amountKey, countOrIdKey))
+        return result
+
     def filter_by_key(self, objects: object, key: IndexType, value: Str = None):
         if value is None:
             return objects
@@ -5374,6 +5381,18 @@ class BaseExchange(object):
     def parse_order_book(self, orderbook: object | None, symbol: Str, timestamp: Int = None, bidsKey='bids', asksKey='asks', priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
         bids = self.parse_order_book_bids_asks(self.safe_value(orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey)
         asks = self.parse_order_book_bids_asks(self.safe_value(orderbook, asksKey, []), priceKey, amountKey, countOrIdKey)
+        return {
+            'symbol': symbol,
+            'bids': self.sort_by(bids, 0, True),
+            'asks': self.sort_by(asks, 0),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'nonce': None,
+        }
+
+    def parse_order_book_l3(self, orderbook: object | None, symbol: Str, timestamp: Int = None, bidsKey='bids', asksKey='asks', priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
+        bids = self.parse_order_book_bids_asks_l3(self.safe_value(orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey)
+        asks = self.parse_order_book_bids_asks_l3(self.safe_value(orderbook, asksKey, []), priceKey, amountKey, countOrIdKey)
         return {
             'symbol': symbol,
             'bids': self.sort_by(bids, 0, True),
@@ -5821,6 +5840,15 @@ class BaseExchange(object):
         price = self.safe_float(bidask, priceKey)
         amount = self.safe_float(bidask, amountKey)
         countOrId = self.safe_integer(bidask, countOrIdKey)
+        bidAsk = [price, amount]
+        if countOrId is not None:
+            bidAsk.append(countOrId)
+        return bidAsk
+
+    def parse_order_book_bid_ask_l3(self, bidask: object, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
+        price = self.safe_float(bidask, priceKey)
+        amount = self.safe_float(bidask, amountKey)
+        countOrId = self.safe_string(bidask, countOrIdKey)
         bidAsk = [price, amount]
         if countOrId is not None:
             bidAsk.append(countOrId)

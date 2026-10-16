@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.blockchaincom import ImplicitAPI
-from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
+from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderBookL3, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -435,9 +435,9 @@ class blockchaincom(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        return self.fetch_l3_order_book(symbol, limit, params)
+        return self.fetch_l2_order_book(symbol, limit, params)
 
-    def fetch_l3_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
+    def fetch_l3_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBookL3:
         """
         fetches level 3 information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -457,9 +457,9 @@ class blockchaincom(Exchange, ImplicitAPI):
         if limit is not None:
             request['depth'] = limit
         response = self.publicGetL3Symbol(self.extend(request, params))
-        return self.parse_order_book(response, market['symbol'], None, 'bids', 'asks', 'px', 'qty')
+        return self.parse_order_book_l3(response, market['symbol'], None, 'bids', 'asks', 'px', 'qty', 'num')
 
-    def fetch_l2_order_book(self, symbol: str, limit: Int = None, params: dict = {}):
+    def fetch_l2_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
