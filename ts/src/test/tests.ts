@@ -2741,6 +2741,36 @@ class testMainClass {
         // inverse swap
         const clientOrderIdInverse = swapInverseOrderRequest['newClientOrderId'];
         assert (clientOrderIdInverse.startsWith (inverseSwapId) === true, 'binance - swap clientOrderIdInverse: ' + clientOrderIdInverse + ' does not start with swapId' + inverseSwapId);
+        // defaultType swap routes spot-style symbols by defaultSubType: unset or linear -> USDⓈ-M, inverse -> COIN-M
+        exchange.extendExchangeOptions ({ 'defaultType': 'swap' });
+        let swapNoSubTypeRequest: Dict = {};
+        try {
+            await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
+        } catch (e) {
+            swapNoSubTypeRequest = this.urlencodedToDict (exchange.last_request_body);
+        }
+        const swapNoSubTypeId = swapNoSubTypeRequest['newClientOrderId'];
+        assert (swapNoSubTypeId.startsWith (swapId) === true, 'binance - defaultType swap without subType clientOrderId: ' + swapNoSubTypeId + ' does not start with swapId' + swapId);
+        exchange.extendExchangeOptions ({ 'defaultSubType': 'linear' });
+        let swapLinearRequest: Dict = {};
+        try {
+            await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
+        } catch (e) {
+            swapLinearRequest = this.urlencodedToDict (exchange.last_request_body);
+        }
+        const swapLinearId = swapLinearRequest['newClientOrderId'];
+        assert (swapLinearId.startsWith (swapId) === true, 'binance - defaultType swap linear clientOrderId: ' + swapLinearId + ' does not start with swapId' + swapId);
+        exchange.extendExchangeOptions ({ 'defaultSubType': 'inverse' });
+        let swapInverseRequest: Dict = {};
+        try {
+            await exchange.createOrder ('BTC/USD', 'limit', 'buy', 1, 20000);
+        } catch (e) {
+            swapInverseRequest = this.urlencodedToDict (exchange.last_request_body);
+        }
+        const swapInverseId = swapInverseRequest['newClientOrderId'];
+        assert (swapInverseId.startsWith (inverseSwapId) === true, 'binance - defaultType swap inverse clientOrderId: ' + swapInverseId + ' does not start with inverseSwapId' + inverseSwapId);
+        exchange.extendExchangeOptions ({ 'defaultType': 'spot' });
+        exchange.extendExchangeOptions ({ 'defaultSubType': 'linear' });
         // linear swap conditional order
         let swapAlgoOrderRequest: Dict = {};
         try {
