@@ -3119,6 +3119,68 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // inverse swap
         let mut clientOrderIdInverse: Value = swapInverseOrderRequest.as_map().and_then(|__m| __m.get("newClientOrderId")).cloned().unwrap_or(Value::Null);
         assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderIdInverse, &inverseSwapId)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("binance - swap clientOrderIdInverse: ".into()), &clientOrderIdInverse), Value::Str(" does not start with swapId".into())).into()), inverseSwapId).into())]);
+        // defaultType swap routes spot-style symbols by defaultSubType: unset or linear -> USDⓈ-M, inverse -> COIN-M
+        exchange.extend_exchange_options(Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("defaultType".to_string(), Value::Str("swap".into()));
+            m
+        }));
+        let mut swapNoSubTypeRequest: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
+        let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
+         #[allow(unreachable_code)] { Value::Null }})).await;
+if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+            swapNoSubTypeRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
+        }
+        let mut swapNoSubTypeId: Value = swapNoSubTypeRequest.as_map().and_then(|__m| __m.get("newClientOrderId")).cloned().unwrap_or(Value::Null);
+        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&swapNoSubTypeId, &swapId)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("binance - defaultType swap without subType clientOrderId: ".into()), &swapNoSubTypeId), Value::Str(" does not start with swapId".into())).into()), swapId).into())]);
+        exchange.extend_exchange_options(Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("defaultSubType".to_string(), Value::Str("linear".into()));
+            m
+        }));
+        let mut swapLinearRequest: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
+        let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
+         #[allow(unreachable_code)] { Value::Null }})).await;
+if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+            swapLinearRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
+        }
+        let mut swapLinearId: Value = swapLinearRequest.as_map().and_then(|__m| __m.get("newClientOrderId")).cloned().unwrap_or(Value::Null);
+        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&swapLinearId, &swapId)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("binance - defaultType swap linear clientOrderId: ".into()), &swapLinearId), Value::Str(" does not start with swapId".into())).into()), swapId).into())]);
+        exchange.extend_exchange_options(Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("defaultSubType".to_string(), Value::Str("inverse".into()));
+            m
+        }));
+        let mut swapInverseRequest: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
+        let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USD".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
+         #[allow(unreachable_code)] { Value::Null }})).await;
+if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+            swapInverseRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
+        }
+        let mut swapInverseId: Value = swapInverseRequest.as_map().and_then(|__m| __m.get("newClientOrderId")).cloned().unwrap_or(Value::Null);
+        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&swapInverseId, &inverseSwapId)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("binance - defaultType swap inverse clientOrderId: ".into()), &swapInverseId), Value::Str(" does not start with inverseSwapId".into())).into()), inverseSwapId).into())]);
+        exchange.extend_exchange_options(Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("defaultType".to_string(), Value::Str("spot".into()));
+            m
+        }));
+        exchange.extend_exchange_options(Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("defaultSubType".to_string(), Value::Str("linear".into()));
+            m
+        }));
         // linear swap conditional order
         let mut swapAlgoOrderRequest: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

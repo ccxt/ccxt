@@ -107,6 +107,10 @@ impl crate::exchange::DerivedExchange for HyperliquidCore {
         // Forward to the inherent method on HyperliquidCore.
         HyperliquidCore::parse_income(self, info, &[market])
     }
+    fn market(&self, symbol: crate::Value) -> crate::Value {
+        // Forward to the inherent method on HyperliquidCore.
+        HyperliquidCore::market(self, symbol)
+    }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on HyperliquidCore.
         HyperliquidCore::sign(self, path, &[api, method, params, headers, body])

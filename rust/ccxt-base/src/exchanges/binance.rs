@@ -155,6 +155,10 @@ impl crate::exchange::DerivedExchange for BinanceCore {
         // Forward to the inherent method on BinanceCore.
         BinanceCore::create_expired_option_market(self, symbol)
     }
+    fn market(&self, symbol: crate::Value) -> crate::Value {
+        // Forward to the inherent method on BinanceCore.
+        BinanceCore::market(self, symbol)
+    }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on BinanceCore.
         BinanceCore::sign(self, path, &[api, method, params, headers, body])
@@ -5176,7 +5180,6 @@ impl BinanceCore {
         m.insert("funding".to_string(), Value::Str("FUNDING".into()));
         m.insert("margin".to_string(), Value::Str("MARGIN".into()));
         m.insert("cross".to_string(), Value::Str("MARGIN".into()));
-        m.insert("future".to_string(), Value::Str("UMFUTURE".into()));
         m.insert("linear".to_string(), Value::Str("UMFUTURE".into()));
         m.insert("swap".to_string(), Value::Str("UMFUTURE".into()));
         m.insert("inverse".to_string(), Value::Str("CMFUTURE".into()));
@@ -6661,10 +6664,11 @@ impl BinanceCore {
         if (self.markets.clone() == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" markets not loaded".into()))));
         }
-        // defaultType 'future' resolves spot-style symbols to the derivative market of defaultSubType
+        // defaultType 'swap' resolves spot-style symbols to the perpetual of defaultSubType
         let mut defaultType: Value = self.safe_string_k(self.options.clone(), "defaultType", &[]);
         let mut defaultSubType: Value = self.safe_string_k(self.options.clone(), "defaultSubType", &[]);
-        let mut isLegacy: bool = defaultType.as_str() == Some("future");
+        let mut isLegacy: bool = defaultType.as_str() == Some("swap");
+        let mut isDerivative: bool = isLegacy || (defaultType.as_str() == Some("future"));
         let mut isLegacyInverse: bool = isLegacy && (defaultSubType.as_str() == Some("inverse"));
         let mut isLegacyLinear: bool = isLegacy && !isLegacyInverse;
         if matches!(&symbol, Value::Str(_)) {
@@ -6683,10 +6687,8 @@ impl BinanceCore {
             }  else if (self.markets_by_id.clone() != Value::Null) && (in_op(&self.markets_by_id, &symbol)) {
                 let mut markets: Value = get_value(&self.markets_by_id, &symbol);
                 // begin diff
-                if isLegacyLinear {
-                    defaultType = Value::Str("linear".into());
-                }  else if isLegacyInverse {
-                    defaultType = Value::Str("inverse".into());
+                if isDerivative {
+                    defaultType = (if (defaultSubType.as_str() == Some("inverse")) { Value::Str("inverse".into()) } else { Value::Str("linear".into()) });
                 }  else if (defaultType == Value::Null) {
                     defaultType = defaultSubType;
                 }
@@ -6703,7 +6705,7 @@ impl BinanceCore {
                 }
                 return get_value(&markets, &Value::Int(0));
             }  else if (Value::Int(symbol.as_str().and_then(|__s| __s.find("/")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64)) && (Value::Int(symbol.as_str().and_then(|__s| __s.find(":")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) < ((0i64) as f64)) {
-                if (defaultType != Value::Null) && (defaultType.as_str() != Some("spot")) {
+                if isLegacy {
                     // support legacy symbols
                     let mut basequoteVariable = split(&symbol, &Value::Str("/".into()));
                     let mut base: Value = basequoteVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
@@ -14391,8 +14393,8 @@ impl BinanceCore {
         if (internal.as_bool() != Some(true)) {
             let mut defaultType: Value = self.safe_string2(self.options.clone(), Value::Str("fetchTransfers".into()), Value::Str("defaultType".into()), &[Value::Str("spot".into())]);
             let mut fromAccount: Value = self.safe_string_k(paramsOmitted.clone(), "fromAccount", &[defaultType]);
-            let mut defaultTo: Value = Value::Str("future".into());
-            if (fromAccount.as_str() == Some("future")) {
+            let mut defaultTo: Value = Value::Str("swap".into());
+            if (fromAccount.as_str() == Some("swap")) || (fromAccount.as_str() == Some("linear")) {
                 defaultTo = Value::Str("spot".into());
             }
             let mut toAccount: Value = self.safe_string_k(paramsOmitted.clone(), "toAccount", &[defaultTo]);
@@ -15303,7 +15305,7 @@ impl BinanceCore {
         if is_true(&paginate) {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::Str("8h".into()), paramsPaginate.clone()]).await;
         }
-        let mut defaultType: Value = self.safe_string2(self.options.clone(), Value::Str("fetchFundingRateHistory".into()), Value::Str("defaultType".into()), &[Value::Str("future".into())]);
+        let mut defaultType: Value = self.safe_string2(self.options.clone(), Value::Str("fetchFundingRateHistory".into()), Value::Str("defaultType".into()), &[Value::Str("swap".into())]);
         let mut type_var: Value = self.safe_string_k(paramsPaginate.clone(), "type", &[defaultType]);
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
@@ -15385,7 +15387,7 @@ impl BinanceCore {
             self.load_markets(&[]).await;
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        let mut defaultType: Value = self.safe_string2(self.options.clone(), Value::Str("fetchFundingRates".into()), Value::Str("defaultType".into()), &[Value::Str("future".into())]);
+        let mut defaultType: Value = self.safe_string2(self.options.clone(), Value::Str("fetchFundingRates".into()), Value::Str("defaultType".into()), &[Value::Str("swap".into())]);
         let mut type_var: Value = self.safe_string_k(params.clone(), "type", &[defaultType]);
         let mut subTypeparamsSubTypeVariable = self.handle_sub_type_and_params(Value::Str("fetchFundingRates".into()), &[Value::Null, params, Value::Str("linear".into())]);
         let mut subType: Value = subTypeparamsSubTypeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
@@ -16059,7 +16061,7 @@ impl BinanceCore {
         // it contains useful stuff like the maintenance margin and initial margin for positions
         let mut leverageBrackets: Value = self.safe_dict_k(self.options.clone(), "leverageBrackets", &[]);
         if (leverageBrackets == Value::Null) || is_true(&(reload)) {
-            let mut defaultType: Value = self.safe_string_k(self.options.clone(), "defaultType", &[Value::Str("future".into())]);
+            let mut defaultType: Value = self.safe_string_k(self.options.clone(), "defaultType", &[Value::Str("swap".into())]);
             let mut type_var: Value = self.safe_string_k(params.clone(), "type", &[defaultType]);
             let mut query: Value = self.omit(params.clone(), Value::Str("type".into()), &[]);
             let mut subType: Value = Value::Null;
@@ -16479,7 +16481,7 @@ impl BinanceCore {
             self.load_markets(&[]).await;
         }
         self.load_leverage_brackets(&[Value::Bool(false), params.clone()]).await;
-        let mut defaultType: Value = self.safe_string_k(self.options.clone(), "defaultType", &[Value::Str("future".into())]);
+        let mut defaultType: Value = self.safe_string_k(self.options.clone(), "defaultType", &[Value::Str("swap".into())]);
         let mut type_var: Value = self.safe_string_k(params.clone(), "type", &[defaultType]);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("type".into()), &[]);
         let mut subTypeparamsSubTypeVariable = self.handle_sub_type_and_params(Value::Str("fetchAccountPositions".into()), &[Value::Null, paramsOmitted, Value::Str("linear".into())]);
@@ -16555,7 +16557,7 @@ impl BinanceCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut defaultType: Value = Value::Str("future".into());
+        let mut defaultType: Value = Value::Str("swap".into());
         defaultType = self.safe_string_k(self.options.clone(), "defaultType", &[defaultType.clone()]);
         let mut type_var: Value = self.safe_string_k(params.clone(), "type", &[defaultType]);
         let mut subType: Value = Value::Null;
@@ -16750,7 +16752,7 @@ impl BinanceCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut requestUntil, &Value::Str("limit".into()), limit.clone());
         }
-        let mut defaultType: Value = self.safe_string2(self.options.clone(), Value::Str("fetchFundingHistory".into()), Value::Str("defaultType".into()), &[Value::Str("future".into())]);
+        let mut defaultType: Value = self.safe_string2(self.options.clone(), Value::Str("fetchFundingHistory".into()), Value::Str("defaultType".into()), &[Value::Str("swap".into())]);
         let mut type_var: Value = self.safe_string_k(paramsUntil.clone(), "type", &[defaultType]);
         let mut paramsOmitted: Value = self.omit(paramsUntil, Value::Str("type".into()), &[]);
         let mut response: Value = Value::Null;
@@ -17962,9 +17964,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         // used to modify isolated positions
-        let mut defaultType: Value = self.safe_string_k(self.options.clone(), "defaultType", &[Value::Str("future".into())]);
+        let mut defaultType: Value = self.safe_string_k(self.options.clone(), "defaultType", &[Value::Str("swap".into())]);
         if (defaultType.as_str() == Some("spot")) {
-            defaultType = Value::Str("future".into());
+            defaultType = Value::Str("swap".into());
         }
         let mut type_var: Option<String> = self.safe_string_k(params.clone(), "type", &[defaultType]).as_str().map(str::to_owned);
         if (type_var.as_deref() == Some("margin")) || (type_var.as_deref() == Some("spot")) {

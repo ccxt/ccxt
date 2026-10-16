@@ -2255,7 +2255,7 @@ pub trait ExchangeBase:
          * @param {object} [defaultValue] return default value if no result found
          * @returns {object} returns feature value
          */
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.clone());
         return self.feature_value_by_type(market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null), market.as_map().and_then(|__m| __m.get("subType")).cloned().unwrap_or(Value::Null), &[methodName, paramName, defaultValue]);
 
     Value::Null
@@ -4164,7 +4164,7 @@ pub trait ExchangeBase:
                         let mut i: Value = Value::Int(0);
             let mut __for_first_109: bool = true;
             while { if !__for_first_109 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_109 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
-            append_to_array(&mut result, self.market(symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)));
+            append_to_array(&mut result, <Self as crate::exchange_generated::ExchangeBase>::market(self, symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)));
         }
         }
         return result;
@@ -4208,7 +4208,7 @@ pub trait ExchangeBase:
                         let mut i: Value = Value::Int(0);
             let mut __for_first_110: bool = true;
             while { if !__for_first_110 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_110 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
-            let mut market: Value = self.market(symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
+            let mut market: Value = <Self as crate::exchange_generated::ExchangeBase>::market(self, symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
             if is_true(&sameTypeOnly) && (marketType != Value::Null) {
                 if (market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str() != marketType.as_str()) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" symbols must be of the same type, either ".into())).into()), marketType).into()), Value::Str(" or ".into())).into()), market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null)).into()), Value::Str(".".into()))));
@@ -4976,7 +4976,7 @@ pub trait ExchangeBase:
 }
 
     fn market_id(&self, mut symbol: Value) -> Value {
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.clone());
         if (market != Value::Null) {
             return market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
         }
@@ -4989,7 +4989,7 @@ pub trait ExchangeBase:
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" symbol() requires a symbol argument".into()))));
         }
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.clone());
         return self.safe_string_k(market, "symbol", &[symbol]);
 
     Value::Null
@@ -5561,7 +5561,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (symbol == Value::Null) {
             return Value::Null;
         }
-        return self.market(symbol);
+        return <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol);
 
     Value::Null
 }
@@ -6283,7 +6283,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }));
         if (self.has.as_map().and_then(|__m| __m.get("fetchPositionsADLRank")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchPositionsADLRank")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             self.load_markets(&[]).await;
-            let mut market: Value = self.market(symbol);
+            let mut market: Value = <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol);
             let mut symbolResolved: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut ranks: Value = self.fetch_positions_adl_rank(&[Value::from(vec![symbolResolved.clone()]), params]).await;
             let mut rank: Value = self.safe_dict(ranks, Value::Int(0), &[]);
@@ -6769,6 +6769,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     fn market(&self, mut symbol: Value) -> Value {
+        // virtual-dispatch (static: DerivedExchange::market(self, ...))
+        { let __v = crate::exchange::DerivedExchange::market(self, symbol.clone()); if !matches!(__v, crate::Value::Null) { return __v; } }
+        self.market_non_virtual(symbol)
+    }
+
+    fn market_non_virtual(&self, mut symbol: Value) -> Value {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" market() requires a symbol argument".into()))));
         }
@@ -6844,7 +6850,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (cost == Value::Null) {
             return Value::Null;
         }
-        let mut market: Value = self.market(symbol);
+        let mut market: Value = <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol);
         return self.decimal_to_precision(cost, Value::Int(crate::runtime::TRUNCATE), self.safe_string2(market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null), Value::Str("cost".into()), Value::Str("price".into()), &[]), &[self.precisionMode.clone(), self.paddingMode.clone()]);
 
     Value::Null
@@ -6854,7 +6860,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (price == Value::Null) {
             return Value::Null;
         }
-        let mut market: Value = self.market(symbol);
+        let mut market: Value = <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol);
         let mut result: Value = self.decimal_to_precision(price, Value::Int(crate::runtime::ROUND), market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("price")).cloned().unwrap_or(Value::Null), &[self.precisionMode.clone(), self.paddingMode.clone()]);
         if (result.as_str() == Some("0")) {
             let mut pricePrecision: Value = self.number_to_string(market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("price")).cloned().unwrap_or(Value::Null));
@@ -6872,7 +6878,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (amount == Value::Null) {
             return Value::Null;
         }
-        let mut market: Value = self.market(symbol);
+        let mut market: Value = <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol);
         let mut result: Value = self.decimal_to_precision(amount, Value::Int(crate::runtime::TRUNCATE), market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("amount")).cloned().unwrap_or(Value::Null), &[self.precisionMode.clone(), self.paddingMode.clone()]);
         if (result.as_str() == Some("0")) {
             let mut amountPrecision: Value = self.number_to_string(market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("amount")).cloned().unwrap_or(Value::Null));
@@ -6890,7 +6896,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (fee == Value::Null) {
             return Value::Null;
         }
-        let mut market: Value = self.market(symbol);
+        let mut market: Value = <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol);
         return self.decimal_to_precision(fee, Value::Int(crate::runtime::ROUND), market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("price")).cloned().unwrap_or(Value::Null), &[self.precisionMode.clone(), self.paddingMode.clone()]);
 
     Value::Null
@@ -7069,7 +7075,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 }));
         if (self.has.as_map().and_then(|__m| __m.get("fetchLeverageTiers")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchLeverageTiers")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
-            let mut market: Value = self.market(symbol.clone());
+            let mut market: Value = <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.clone());
             if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
                 panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" fetchMarketLeverageTiers() supports contract markets only".into()))));
             }
@@ -7706,7 +7712,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }));
         if (self.has.as_map().and_then(|__m| __m.get("fetchFundingRates")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchFundingRates")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             self.load_markets(&[]).await;
-            let mut market: Value = self.market(symbol);
+            let mut market: Value = <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol);
             let mut symbolResolved: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
                 panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRate() supports contract markets only".into()))));
@@ -7737,7 +7743,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }));
         if (self.has.as_map().and_then(|__m| __m.get("fetchFundingIntervals")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchFundingIntervals")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             self.load_markets(&[]).await;
-            let mut market: Value = self.market(symbol);
+            let mut market: Value = <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol);
             let mut symbolResolved: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
                 panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingInterval() supports contract markets only".into()))));
@@ -7897,7 +7903,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut markets: Value = self.markets.clone();
         let mut marketsById: Value = self.markets_by_id.clone();
         if ((markets != Value::Null) && (in_op(&markets, &account))) || ((marketsById != Value::Null) && (in_op(&marketsById, &account))) {
-            let mut market: Value = self.market(account.clone());
+            let mut market: Value = <Self as crate::exchange_generated::ExchangeBase>::market(self, account.clone());
             return market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
         }  else {
             return account;
@@ -8114,7 +8120,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (firstMarket == Value::Null) {
             return Value::Null;
         }
-        let mut market: Value = self.market(firstMarket);
+        let mut market: Value = <Self as crate::exchange_generated::ExchangeBase>::market(self, firstMarket);
         return market;
 
     Value::Null
@@ -9582,7 +9588,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }));
         if (self.has.as_map().and_then(|__m| __m.get("fetchMarkPrices")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchMarkPrices")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             self.load_markets(&[]).await;
-            let mut market: Value = self.market(symbol);
+            let mut market: Value = <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol);
             let mut symbolResolved: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut tickers: Value = self.fetch_mark_prices(&[Value::from(vec![symbolResolved.clone()]), params]).await;
             let mut ticker: Value = self.safe_dict(tickers, symbolResolved.clone(), &[]);
@@ -10254,7 +10260,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }));
         if (self.has.as_map().and_then(|__m| __m.get("fetchTickersWs")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchTickersWs")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             self.load_markets(&[]).await;
-            let mut market: Value = self.market(symbol);
+            let mut market: Value = <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol);
             let mut symbolResolved: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut tickers: Value = self.fetch_tickers_ws(&[Value::from(vec![symbolResolved.clone()]), params]).await;
             let mut ticker: Value = self.safe_dict(tickers, symbolResolved.clone(), &[]);
@@ -10552,7 +10558,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }));
         if (self.has.as_map().and_then(|__m| __m.get("fetchTickers")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchTickers")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             self.load_markets(&[]).await;
-            let mut market: Value = self.market(symbol);
+            let mut market: Value = <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol);
             let mut symbolResolved: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut tickers: Value = self.fetch_tickers(&[Value::from(vec![symbolResolved.clone()]), params]).await;
             let mut ticker: Value = self.safe_dict(tickers, symbolResolved.clone(), &[]);
@@ -11723,10 +11729,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "load_markets_and_sign_in" => self.load_markets_and_sign_in().await,
             "load_time_difference" => self.load_time_difference(&args[..]).await,
             "load_trading_limits" => self.load_trading_limits(&args[..]).await,
-            "market" => self.market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "market" => <Self as crate::exchange_generated::ExchangeBase>::market(self, args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "market_codes" => self.market_codes(&args[..]),
             "market_id" => self.market_id(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "market_ids" => self.market_ids(&args[..]),
+            "market_non_virtual" => self.market_non_virtual(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "market_or_null" => self.market_or_null(&args[..]),
             "market_symbols" => self.market_symbols(&args[..]),
             "markets_for_symbols" => self.markets_for_symbols(&args[..]),
