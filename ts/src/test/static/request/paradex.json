@@ -241,6 +241,24 @@
                     "start_at",
                     "end_at"
                 ]
+            },
+            {
+                "description": "an until inside the window from since is kept as the end",
+                "method": "fetchOHLCV",
+                "url": "https://api.prod.paradex.trade/v1/markets/klines?resolution=1&symbol=BTC-USD-PERP&end_at=1790600300000&start_at=1790600000000",
+                "input": [
+                    "BTC/USD:USDC",
+                    "1m",
+                    1790600000000,
+                    100,
+                    {
+                        "until": 1790600300000
+                    }
+                ],
+                "forceCheckKeys": [
+                    "start_at",
+                    "end_at"
+                ]
             }
         ],
         "fetchTickers": [

@@ -3095,21 +3095,21 @@
                 ]
             },
             {
-                "description": "paginate splits since to until into windows the venue accepts and joins their candles",
+                "description": "paginate asks the venue for whole windows of 1000 candles and applies the limit to the result",
                 "method": "fetchOHLCV",
                 "input": [
                     "BTC/USD:USDC",
                     "1m",
                     1719993600000,
-                    null,
+                    2,
                     {
                         "paginate": true,
-                        "paginationCalls": 2,
-                        "until": 1720083600000
+                        "paginationCalls": 1,
+                        "until": 1720053600000
                     }
                 ],
                 "httpResponseByUrl": {
-                    "start_at=1719993600000": {
+                    "end_at=1720053600000": {
                         "results": [
                             [
                                 1719993600000,
@@ -3126,26 +3126,26 @@
                                 60823.3,
                                 60823.3,
                                 4561
+                            ],
+                            [
+                                1719993720000,
+                                60823.3,
+                                60850,
+                                60820,
+                                60841.9,
+                                980
                             ]
                         ]
                     },
-                    "start_at=1720053599999": {
+                    "resolution=1": {
                         "results": [
                             [
-                                1720053600000,
-                                61010.2,
-                                61022,
-                                61000,
-                                61015.5,
-                                830
-                            ],
-                            [
-                                1720053660000,
-                                61015.5,
-                                61040.1,
-                                61015.5,
-                                61031.7,
-                                912
+                                1719993600000,
+                                60800.1,
+                                60830,
+                                60790.5,
+                                60823.3,
+                                1200
                             ]
                         ]
                     }
@@ -3166,22 +3166,6 @@
                         60823.3,
                         60823.3,
                         4561
-                    ],
-                    [
-                        1720053600000,
-                        61010.2,
-                        61022,
-                        61000,
-                        61015.5,
-                        830
-                    ],
-                    [
-                        1720053660000,
-                        61015.5,
-                        61040.1,
-                        61015.5,
-                        61031.7,
-                        912
                     ]
                 ]
             }

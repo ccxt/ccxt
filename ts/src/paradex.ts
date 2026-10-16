@@ -1114,7 +1114,7 @@ export default class paradex extends Exchange {
             request['price_kind'] = (price === 'index') ? 'underlying' : price;
         }
         const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end_at', request, paramsPaginate);
-        const hasEnd = ('end_at' in request);
+        const hasEnd = ('end_at' in requestUntil);
         const paramsOmitted: Dict = this.omit (paramsUntil, [ 'price' ]);
         // exchange has undocumented limit slightly above, but 1000 is reliable limit
         const limitResolved = ((limit === undefined) || (limit > 1000)) ? 1000 : limit;
@@ -1122,8 +1122,7 @@ export default class paradex extends Exchange {
         if (since !== undefined) {
             requestUntil['start_at'] = since;
             // the venue rejects a range wider than its bar cap, so an until past the window is clamped to it
-            const sinceInt = this.parseToInt (since);
-            const windowEnd = sinceInt + windowLength - 1;
+            const windowEnd = this.sum (this.parseToInt (since), windowLength - 1);
             const endAt = this.safeInteger (requestUntil, 'end_at', windowEnd) as number;
             if (!hasEnd || (endAt > windowEnd)) {
                 requestUntil['end_at'] = windowEnd;
