@@ -3941,7 +3941,7 @@ func (this *Mexc) fetchOrdersByIdsBody(ch chan AsyncResult[any], ids any, option
 	}
 	marketType, query := this.HandleMarketTypeAndParams("fetchOrdersByIds", market, params)
 	if marketType != nil && *marketType == "spot" {
-		panic(BadRequest(this.Id + " fetchOrdersByIds() is not supported for " + *marketType))
+		panic(NotSupported(this.Id + " fetchOrdersByIds() is not supported for " + *marketType))
 	} else {
 		request["order_ids"] = Join(ids, ",")
 
@@ -4452,7 +4452,7 @@ func (this *Mexc) cancelOrdersBody(ch chan AsyncResult[any], ids any, optionalAr
 	}()
 	marketType, _ := this.HandleMarketTypeAndParams("cancelOrders", market, params)
 	if marketType != nil && *marketType == "spot" {
-		panic(BadRequest(this.Id + " cancelOrders() is not supported for " + *marketType))
+		panic(NotSupported(this.Id + " cancelOrders() is not supported for " + *marketType))
 	} else {
 
 		r1 := <-this.ContractPrivatePostOrderCancel(ids)
@@ -5017,7 +5017,7 @@ func (this *Mexc) fetchTradingFeeBody(ch chan AsyncResult[any], symbol string, o
 	}
 	var market map[string]any = this.Market(symbol)
 	if market["spot"] != true {
-		panic(BadRequest(this.Id + " fetchTradingFee() supports spot markets only"))
+		panic(NotSupported(this.Id + " fetchTradingFee() supports spot markets only"))
 	}
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
@@ -7152,10 +7152,8 @@ func (this *Mexc) fetchTransferBody(ch chan EndpointResult[map[string]any], id s
 		chValue := this.ParseTransfer(data)
 		ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 		return nil
-	} else if marketType != nil && *marketType == "swap" {
-		panic(BadRequest(this.Id + " fetchTransfer() is not supported for " + *marketType))
 	}
-	panic(BadRequest(this.Id + " fetchTransfer() is not supported for " + *marketType))
+	panic(NotSupported(this.Id + " fetchTransfer() is not supported for " + *marketType))
 }
 
 /**
@@ -7711,11 +7709,11 @@ func (this *Mexc) fetchTransactionFeesBody(ch chan AsyncResult[any], optionalArg
 		}
 	}
 
-	listEp7195 := <-this.SpotPrivateGetCapitalConfigGetall(params)
-	if listEp7195.Err != nil {
-		panic(listEp7195.Err)
+	listEp7193 := <-this.SpotPrivateGetCapitalConfigGetall(params)
+	if listEp7193.Err != nil {
+		panic(listEp7193.Err)
 	}
-	var response []any = listEp7195.Value
+	var response []any = listEp7193.Value
 
 	//
 	//    [
@@ -7838,11 +7836,11 @@ func (this *Mexc) fetchDepositWithdrawFeesBody(ch chan AsyncResult[any], optiona
 		}
 	}
 
-	listEp7315 := <-this.SpotPrivateGetCapitalConfigGetall(params)
-	if listEp7315.Err != nil {
-		panic(listEp7315.Err)
+	listEp7313 := <-this.SpotPrivateGetCapitalConfigGetall(params)
+	if listEp7313.Err != nil {
+		panic(listEp7313.Err)
 	}
-	var response []any = listEp7315.Value
+	var response []any = listEp7313.Value
 
 	//
 	//    [
@@ -8190,7 +8188,7 @@ func (this *Mexc) setMarginModeBody(ch chan AsyncResult[any], marginMode string,
 	}
 	var market map[string]any = this.Market(symbol)
 	if market["spot"] == true {
-		panic(BadSymbol(this.Id + " setMarginMode() supports contract markets only"))
+		panic(NotSupported(this.Id + " setMarginMode() supports contract markets only"))
 	}
 	var marginModeLower string = strings.ToLower(marginMode)
 	if (marginModeLower != "isolated") && (marginModeLower != "cross") {

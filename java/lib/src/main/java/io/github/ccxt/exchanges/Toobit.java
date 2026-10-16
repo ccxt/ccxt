@@ -1745,7 +1745,7 @@ public class Toobit extends ToobitApi
             put( "symbol", marketResolved.get("symbol") );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "price", Toobit.this.safeNumberOmitZero(entry, "price", (Object) null) );
+            put( "price", Toobit.this.safeNumberOmitZero(entry, "p", (Object) null) );
             put( "side", null );
             put( "info", entry );
         }};

@@ -1710,16 +1710,17 @@ impl PoloniexCore {
             let mut asks: Value = self.safe_list_k(item.clone(), "asks", &[]);
             let mut bids: Value = self.safe_list_k(item, "bids", &[]);
             if snapshot || update {
-                if snapshot && !(in_op(&self.orderbooks, &symbol)) {
-                    { let __be_tmp = self.order_book(&[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}), limit]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
+                let mut orderbook: Value = self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]);
+                if snapshot && (orderbook == Value::Null) {
+                    orderbook = self.order_book(&[Value::Map({
+                        let mut m = indexmap::IndexMap::new();
+                        m
+                    }), limit]);
+                    if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
                 }
-                if !(in_op(&self.orderbooks, &symbol)) {
+                if (orderbook == Value::Null) {
                     continue;
                 }
-                let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
                 if snapshot {
                     // reset the existing orderbook in place instead of
                     // replacing it: a consumer awakened earlier keeps a
@@ -1738,7 +1739,7 @@ impl PoloniexCore {
                         let mut bid: Value = self.safe_list(bids.clone(), j.clone(), &[]);
                         let mut price: Value = self.safe_number(bid.clone(), Value::Int(0), &[]);
                         let mut amount: Value = self.safe_number(bid, Value::Int(1), &[]);
-                        let mut bidsSide: Value = get_value(&orderbook, &Value::Str("bids".into()));
+                        let mut bidsSide: Value = crate::value::get_value_k(&orderbook, "bids");
                         bidsSide.store(price.clone(), amount.clone());
                     }
                     }
@@ -1751,7 +1752,7 @@ impl PoloniexCore {
                         let mut ask: Value = self.safe_list(asks.clone(), j.clone(), &[]);
                         let mut price: Value = self.safe_number(ask.clone(), Value::Int(0), &[]);
                         let mut amount: Value = self.safe_number(ask, Value::Int(1), &[]);
-                        let mut asksSide: Value = get_value(&orderbook, &Value::Str("asks".into()));
+                        let mut asksSide: Value = crate::value::get_value_k(&orderbook, "asks");
                         asksSide.store(price, amount);
                     }
                     }

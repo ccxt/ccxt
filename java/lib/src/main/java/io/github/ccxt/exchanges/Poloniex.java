@@ -117,8 +117,8 @@ public class Poloniex extends PoloniexApi
                 put( "fetchTradingFee", false );
                 put( "fetchTradingFees", true );
                 put( "fetchTransactions", "emulated" );
-                put( "fetchTransfer", false );
-                put( "fetchTransfers", false );
+                put( "fetchTransfer", true );
+                put( "fetchTransfers", true );
                 put( "fetchVolatilityHistory", false );
                 put( "fetchWithdrawals", true );
                 put( "reduceMargin", true );
@@ -573,6 +573,8 @@ public class Poloniex extends PoloniexApi
                 put( "accountsById", new HashMap<String, Object>() {{
                     put( "exchange", "spot" );
                     put( "futures", "future" );
+                    put( "SPOT", "spot" );
+                    put( "FUTURES", "future" );
                 }} );
             }} );
             put( "features", new HashMap<String, Object>() {{
@@ -3567,9 +3569,10 @@ public class Poloniex extends PoloniexApi
             Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
-            String toId = this.safeString(accountsByType, toAccount, fromAccount);
+            String toId = this.safeString(accountsByType, toAccount, toAccount);
+            Object amountToPrecision = this.currencyToPrecision((String) (code), amount, (String) null);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "amount", Poloniex.this.currencyToPrecision((String) (code), amount, (String) null) );
+                put( "amount", amountToPrecision );
                 put( "currency", currency.get("id") );
                 put( "fromAccount", fromId );
                 put( "toAccount", toId );
@@ -3580,28 +3583,152 @@ public class Poloniex extends PoloniexApi
             //        "transferId" : "168041074"
             //    }
             //
-            return this.parseTransfer(response, currency);
+            return this.extend(this.parseTransfer(response, currency), new HashMap<String, Object>() {{
+                put( "amount", Poloniex.this.parseNumber(amountToPrecision) );
+                put( "fromAccount", fromAccount );
+                put( "toAccount", toAccount );
+            }});
         }).thenApply(TransferEntry::new);
 
+    }
+
+    /**
+     * @method
+     * @name poloniex#fetchTransfer
+     * @description fetch a transfer
+     * @see https://api-docs.poloniex.com/spot/api/private/account#accounts-transfer-record
+     * @param {string} id transfer id
+     * @param {string} [code] not used by poloniex fetchTransfer
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    public CompletableFuture<TransferEntry> fetchTransfer(String id, String code, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "id", id );
+            }};
+            Map<String, Object> response = (this.privateGetAccountsTransferId(this.extend(request, parameters))).join();
+            //
+            //     {
+            //         "id": "342284495",
+            //         "fromAccount": "FUTURES",
+            //         "toAccount": "SPOT",
+            //         "currency": "USDT",
+            //         "amount": "6",
+            //         "state": "SUCCESS",
+            //         "createTime": 1787154736417
+            //     }
+            //
+            return this.parseTransfer(response, (Map<String, Object>) null);
+        }).thenApply(TransferEntry::new);
+
+    }
+
+    /**
+     * @method
+     * @name poloniex#fetchTransfers
+     * @description fetch a history of internal transfers made on an account
+     * @see https://api-docs.poloniex.com/spot/api/private/account#accounts-transfer-records
+     * @param {string} [code] unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of transfer structures to retrieve, default 100, max 1000
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch transfers for
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    public CompletableFuture<List<TransferEntry>> fetchTransfers(String code, Long since, Long limit, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> currency = null;
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
+            if (!java.util.Objects.equals(code, null))
+            {
+                currency = this.currency((String) (code));
+                request.put("currency", currency.get("id"));
+            }
+            if (!java.util.Objects.equals(since, null))
+            {
+                request.put("startTime", since);
+            }
+            if (!java.util.Objects.equals(limit, null))
+            {
+                request.put("limit", limit);
+            }
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
+            Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
+            List<Object> response = (this.privateGetAccountsTransfer(this.extend(requestUntil, paramsUntil))).join();
+            //
+            //     [
+            //         {
+            //             "id": "342284495",
+            //             "fromAccount": "FUTURES",
+            //             "toAccount": "SPOT",
+            //             "currency": "USDT",
+            //             "amount": "6",
+            //             "state": "SUCCESS",
+            //             "createTime": 1787154736417
+            //         }
+            //     ]
+            //
+            return this.parseTransfers(response, currency, since, limit, new HashMap<String, Object>() {{}});
+        }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
+
+    }
+
+    public String parseTransferStatus(String status)
+    {
+        Map<String, Object> statuses = new HashMap<String, Object>() {{
+            put( "SUCCESS", "ok" );
+            put( "PROCESSING", "pending" );
+            put( "PROCESSSING", "pending" );
+            put( "FAILED", "failed" );
+        }};
+        return this.safeString(statuses, status, status);
     }
 
     public Object parseTransfer(Object transfer, Map<String, Object> currency)
     {
         //
-        //    {
-        //        "transferId" : "168041074"
-        //    }
+        // transfer
         //
+        //     {
+        //         "transferId" : "168041074"
+        //     }
+        //
+        // fetchTransfer, fetchTransfers
+        //
+        //     {
+        //         "id": "342284495",
+        //         "fromAccount": "FUTURES",
+        //         "toAccount": "SPOT",
+        //         "currency": "USDT",
+        //         "amount": "6",
+        //         "state": "SUCCESS",
+        //         "createTime": 1787154736417
+        //     }
+        //
+        Long timestamp = this.safeInteger(transfer, "createTime");
+        String fromAccountId = this.safeString(transfer, "fromAccount");
+        String toAccountId = this.safeString(transfer, "toAccount");
+        Map<String, Object> accountIds = (Map<String, Object>) this.safeDict(this.options, "accountsById", new HashMap<String, Object>() {{}});
         return new HashMap<String, Object>() {{
             put( "info", transfer );
-            put( "id", Poloniex.this.safeString(transfer, "transferId") );
-            put( "timestamp", null );
-            put( "datetime", null );
-            put( "currency", Poloniex.this.safeString(currency, "id") );
-            put( "amount", null );
-            put( "fromAccount", null );
-            put( "toAccount", null );
-            put( "status", null );
+            put( "id", Poloniex.this.safeString2(transfer, "id", "transferId") );
+            put( "timestamp", timestamp );
+            put( "datetime", Poloniex.this.iso8601(timestamp) );
+            put( "currency", Poloniex.this.safeCurrencyCode(Poloniex.this.safeString(transfer, "currency"), currency) );
+            put( "amount", Poloniex.this.safeNumber(transfer, "amount", (Object) null) );
+            put( "fromAccount", Poloniex.this.safeString(accountIds, fromAccountId, fromAccountId) );
+            put( "toAccount", Poloniex.this.safeString(accountIds, toAccountId, toAccountId) );
+            put( "status", Poloniex.this.parseTransferStatus(Poloniex.this.safeString(transfer, "state")) );
         }};
     }
 

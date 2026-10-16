@@ -106,8 +106,8 @@ class poloniex(Exchange, ImplicitAPI):
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchTransactions': 'emulated',
-                'fetchTransfer': False,
-                'fetchTransfers': False,
+                'fetchTransfer': True,
+                'fetchTransfers': True,
                 'fetchVolatilityHistory': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
@@ -364,6 +364,8 @@ class poloniex(Exchange, ImplicitAPI):
                 'accountsById': {
                     'exchange': 'spot',
                     'futures': 'future',
+                    'SPOT': 'spot',
+                    'FUTURES': 'future',
                 },
             },
             'features': {
@@ -2861,9 +2863,10 @@ class poloniex(Exchange, ImplicitAPI):
         currency = self.currency(code)
         accountsByType = self.safe_dict(self.options, 'accountsByType', {})
         fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
-        toId = self.safe_string(accountsByType, toAccount, fromAccount)
+        toId = self.safe_string(accountsByType, toAccount, toAccount)
+        amountToPrecision = self.currency_to_precision(code, amount)
         request = {
-            'amount': self.currency_to_precision(code, amount),
+            'amount': amountToPrecision,
             'currency': currency['id'],
             'fromAccount': fromId,
             'toAccount': toId,
@@ -2874,24 +2877,124 @@ class poloniex(Exchange, ImplicitAPI):
         #        "transferId" : "168041074"
         #    }
         #
-        return self.parse_transfer(response, currency)
+        return self.extend(self.parse_transfer(response, currency), {
+            'amount': self.parse_number(amountToPrecision),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+        })
+
+    async def fetch_transfer(self, id: str, code: Str = None, params: dict = {}) -> TransferEntry:
+        """
+        fetch a transfer
+
+        https://api-docs.poloniex.com/spot/api/private/account#accounts-transfer-record
+
+        :param str id: transfer id
+        :param str [code]: not used by poloniex fetchTransfer
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
+        """
+        await self.load_markets()
+        request = {
+            'id': id,
+        }
+        response = await self.privateGetAccountsTransferId(self.extend(request, params))
+        #
+        #     {
+        #         "id": "342284495",
+        #         "fromAccount": "FUTURES",
+        #         "toAccount": "SPOT",
+        #         "currency": "USDT",
+        #         "amount": "6",
+        #         "state": "SUCCESS",
+        #         "createTime": 1787154736417
+        #     }
+        #
+        return self.parse_transfer(response)
+
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[TransferEntry]:
+        """
+        fetch a history of internal transfers made on an account
+
+        https://api-docs.poloniex.com/spot/api/private/account#accounts-transfer-records
+
+        :param str [code]: unified currency code of the currency transferred
+        :param int [since]: the earliest time in ms to fetch transfers for
+        :param int [limit]: the maximum number of transfer structures to retrieve, default 100, max 1000
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch transfers for
+        :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
+        """
+        await self.load_markets()
+        currency = None
+        request = {}
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        if since is not None:
+            request['startTime'] = since
+        if limit is not None:
+            request['limit'] = limit
+        requestUntil, paramsUntil = self.handle_until_option('endTime', request, params)
+        response = await self.privateGetAccountsTransfer(self.extend(requestUntil, paramsUntil))
+        #
+        #     [
+        #         {
+        #             "id": "342284495",
+        #             "fromAccount": "FUTURES",
+        #             "toAccount": "SPOT",
+        #             "currency": "USDT",
+        #             "amount": "6",
+        #             "state": "SUCCESS",
+        #             "createTime": 1787154736417
+        #         }
+        #     ]
+        #
+        return self.parse_transfers(response, currency, since, limit)
+
+    def parse_transfer_status(self, status: Str) -> Str:
+        statuses = {
+            'SUCCESS': 'ok',
+            'PROCESSING': 'pending',
+            'PROCESSSING': 'pending',
+            'FAILED': 'failed',
+        }
+        return self.safe_string(statuses, status, status)
 
     def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
-        #    {
-        #        "transferId" : "168041074"
-        #    }
+        # transfer
         #
+        #     {
+        #         "transferId" : "168041074"
+        #     }
+        #
+        # fetchTransfer, fetchTransfers
+        #
+        #     {
+        #         "id": "342284495",
+        #         "fromAccount": "FUTURES",
+        #         "toAccount": "SPOT",
+        #         "currency": "USDT",
+        #         "amount": "6",
+        #         "state": "SUCCESS",
+        #         "createTime": 1787154736417
+        #     }
+        #
+        timestamp = self.safe_integer(transfer, 'createTime')
+        fromAccountId = self.safe_string(transfer, 'fromAccount')
+        toAccountId = self.safe_string(transfer, 'toAccount')
+        accountIds = self.safe_dict(self.options, 'accountsById', {})
         return {
             'info': transfer,
-            'id': self.safe_string(transfer, 'transferId'),
-            'timestamp': None,
-            'datetime': None,
-            'currency': self.safe_string(currency, 'id'),
-            'amount': None,
-            'fromAccount': None,
-            'toAccount': None,
-            'status': None,
+            'id': self.safe_string_2(transfer, 'id', 'transferId'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'currency': self.safe_currency_code(self.safe_string(transfer, 'currency'), currency),
+            'amount': self.safe_number(transfer, 'amount'),
+            'fromAccount': self.safe_string(accountIds, fromAccountId, fromAccountId),
+            'toAccount': self.safe_string(accountIds, toAccountId, toAccountId),
+            'status': self.parse_transfer_status(self.safe_string(transfer, 'state')),
         }
 
     async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:

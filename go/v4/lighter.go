@@ -2081,7 +2081,7 @@ func (this *Lighter) fetchOrderBookBody(ch chan AsyncResult[map[string]any], sym
 		"limit":     100,
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 100)
+		request["limit"] = mathMin(limit, 250)
 	}
 
 	r1 := <-this.PublicGetOrderBookOrders(this.Extend(request, params))

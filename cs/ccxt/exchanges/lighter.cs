@@ -1704,7 +1704,7 @@ public partial class lighter : Exchange
         };
         if ((limit != null))
         {
-            request["limit"] = Math.Min(limit.Value, 100);
+            request["limit"] = Math.Min(limit.Value, 250);
         }
         Dictionary<string, object> response = await this.publicGetOrderBookOrders(this.extend(request, parameters));
         //

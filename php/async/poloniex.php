@@ -95,8 +95,8 @@ class poloniex extends Exchange {
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
                 'fetchTransactions' => 'emulated',
-                'fetchTransfer' => false,
-                'fetchTransfers' => false,
+                'fetchTransfer' => true,
+                'fetchTransfers' => true,
                 'fetchVolatilityHistory' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
@@ -353,6 +353,8 @@ class poloniex extends Exchange {
                 'accountsById' => array(
                     'exchange' => 'spot',
                     'futures' => 'future',
+                    'SPOT' => 'spot',
+                    'FUTURES' => 'future',
                 ),
             ),
             'features' => array(
@@ -3118,9 +3120,10 @@ class poloniex extends Exchange {
         $currency = $this->currency($code);
         $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
         $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
-        $toId = $this->safe_string($accountsByType, $toAccount, $fromAccount);
+        $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
+        $amountToPrecision = $this->currency_to_precision($code, $amount);
         $request = array(
-            'amount' => $this->currency_to_precision($code, $amount),
+            'amount' => $amountToPrecision,
             'currency' => $currency['id'],
             'fromAccount' => $fromId,
             'toAccount' => $toId,
@@ -3131,25 +3134,139 @@ class poloniex extends Exchange {
         //        "transferId" : "168041074"
         //    }
         //
-        return $this->parse_transfer($response, $currency);
+        return $this->extend($this->parse_transfer($response, $currency), array(
+            'amount' => $this->parse_number($amountToPrecision),
+            'fromAccount' => $fromAccount,
+            'toAccount' => $toAccount,
+        ));
+    }
+
+    public function fetch_transfer(string $id, ?string $code = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_transfer(...))($id, $code, $params);
+    }
+
+    private function do_fetch_transfer(string $id, ?string $code = null, $params = array()) {
+        /**
+         * fetch a transfer
+         *
+         * @see https://api-docs.poloniex.com/spot/api/private/account#accounts-transfer-record
+         *
+         * @param {string} $id transfer $id
+         * @param {string} [$code] not used by poloniex fetchTransfer
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?$id=transfer-structure transfer structure~
+         */
+        Async\await($this->load_markets());
+        $request = array(
+            'id' => $id,
+        );
+        $response = Async\await($this->privateGetAccountsTransferId($this->extend($request, $params)));
+        //
+        //     {
+        //         "id": "342284495",
+        //         "fromAccount": "FUTURES",
+        //         "toAccount": "SPOT",
+        //         "currency": "USDT",
+        //         "amount": "6",
+        //         "state": "SUCCESS",
+        //         "createTime": 1787154736417
+        //     }
+        //
+        return $this->parse_transfer($response);
+    }
+
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_transfers(...))($code, $since, $limit, $params);
+    }
+
+    private function do_fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch a history of internal transfers made on an account
+         *
+         * @see https://api-docs.poloniex.com/spot/api/private/account#accounts-transfer-records
+         *
+         * @param {string} [$code] unified $currency $code of the $currency transferred
+         * @param {int} [$since] the earliest time in ms to fetch transfers for
+         * @param {int} [$limit] the maximum number of transfer structures to retrieve, default 100, max 1000
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch transfers for
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
+         */
+        Async\await($this->load_markets());
+        $currency = null;
+        $request = array();
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency'] = $currency['id'];
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('endTime', $request, $params);
+        $response = Async\await($this->privateGetAccountsTransfer($this->extend($requestUntil, $paramsUntil)));
+        //
+        //     [
+        //         {
+        //             "id": "342284495",
+        //             "fromAccount": "FUTURES",
+        //             "toAccount": "SPOT",
+        //             "currency": "USDT",
+        //             "amount": "6",
+        //             "state": "SUCCESS",
+        //             "createTime": 1787154736417
+        //         }
+        //     ]
+        //
+        return $this->parse_transfers($response, $currency, $since, $limit);
+    }
+
+    public function parse_transfer_status(?string $status): ?string {
+        $statuses = array(
+            'SUCCESS' => 'ok',
+            'PROCESSING' => 'pending',
+            'PROCESSSING' => 'pending',
+            'FAILED' => 'failed',
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
-        //    {
-        //        "transferId" : "168041074"
-        //    }
+        // transfer
         //
+        //     {
+        //         "transferId" : "168041074"
+        //     }
+        //
+        // fetchTransfer, fetchTransfers
+        //
+        //     {
+        //         "id": "342284495",
+        //         "fromAccount": "FUTURES",
+        //         "toAccount": "SPOT",
+        //         "currency": "USDT",
+        //         "amount": "6",
+        //         "state": "SUCCESS",
+        //         "createTime": 1787154736417
+        //     }
+        //
+        $timestamp = $this->safe_integer($transfer, 'createTime');
+        $fromAccountId = $this->safe_string($transfer, 'fromAccount');
+        $toAccountId = $this->safe_string($transfer, 'toAccount');
+        $accountIds = $this->safe_dict($this->options, 'accountsById', array());
         return array(
             'info' => $transfer,
-            'id' => $this->safe_string($transfer, 'transferId'),
-            'timestamp' => null,
-            'datetime' => null,
-            'currency' => $this->safe_string($currency, 'id'),
-            'amount' => null,
-            'fromAccount' => null,
-            'toAccount' => null,
-            'status' => null,
+            'id' => $this->safe_string_2($transfer, 'id', 'transferId'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'currency' => $this->safe_currency_code($this->safe_string($transfer, 'currency'), $currency),
+            'amount' => $this->safe_number($transfer, 'amount'),
+            'fromAccount' => $this->safe_string($accountIds, $fromAccountId, $fromAccountId),
+            'toAccount' => $this->safe_string($accountIds, $toAccountId, $toAccountId),
+            'status' => $this->parse_transfer_status($this->safe_string($transfer, 'state')),
         );
     }
 

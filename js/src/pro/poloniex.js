@@ -1191,14 +1191,15 @@ export default class poloniex extends poloniexRest {
             const asks = this.safeList(item, 'asks');
             const bids = this.safeList(item, 'bids');
             if (snapshot || update) {
-                if (snapshot && !(symbol in this.orderbooks)) {
-                    this.orderbooks[symbol] = this.orderBook({}, limit);
+                let orderbook = this.safeValue(this.orderbooks, symbol);
+                if (snapshot && (orderbook === undefined)) {
+                    orderbook = this.orderBook({}, limit);
+                    this.orderbooks[symbol] = orderbook;
                 }
-                if (!(symbol in this.orderbooks)) {
-                    // a delta can arrive before the snapshot, it cannot be applied without a book
+                if (orderbook === undefined) {
+                    // a delta before the snapshot (or after the book was dropped) cannot be applied
                     continue;
                 }
-                const orderbook = this.orderbooks[symbol];
                 if (snapshot) {
                     // reset the existing orderbook in place instead of
                     // replacing it: a consumer awakened earlier keeps a

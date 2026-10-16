@@ -1321,7 +1321,7 @@ class lighter(Exchange, ImplicitAPI):
             'limit': 100,
         }
         if limit is not None:
-            request['limit'] = min(limit, 100)
+            request['limit'] = min(limit, 250)
         response = await self.publicGetOrderBookOrders(self.extend(request, params))
         #
         #     {

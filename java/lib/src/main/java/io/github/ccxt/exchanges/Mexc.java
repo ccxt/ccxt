@@ -3607,7 +3607,7 @@ public class Mexc extends MexcApi
             Map<String, Object> query = marketTypequeryVariable.second();
             if (java.util.Objects.equals(marketType, "spot"))
             {
-                throw new BadRequest(((this.id + " fetchOrdersByIds() is not supported for ") + marketType)) ;
+                throw new NotSupported(((this.id + " fetchOrdersByIds() is not supported for ") + marketType)) ;
             } else
             {
                 request.put("order_ids", String.join(",", (List<String>)ids));
@@ -4005,7 +4005,7 @@ public class Mexc extends MexcApi
             String marketType = marketTypeVariable.first();
             if (java.util.Objects.equals(marketType, "spot"))
             {
-                throw new BadRequest(((this.id + " cancelOrders() is not supported for ") + marketType)) ;
+                throw new NotSupported(((this.id + " cancelOrders() is not supported for ") + marketType)) ;
             } else
             {
                 Map<String, Object> response = (this.contractPrivatePostOrderCancel(ids)).join(); // the request cannot be changed or extended. The only way to send.
@@ -4521,7 +4521,7 @@ public class Mexc extends MexcApi
             Map<String, Object> market = this.market(symbol);
             if (!java.util.Objects.equals(market.get("spot"), true))
             {
-                throw new BadRequest((this.id + " fetchTradingFee() supports spot markets only")) ;
+                throw new NotSupported((this.id + " fetchTradingFee() supports spot markets only")) ;
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
@@ -6317,11 +6317,8 @@ public class Mexc extends MexcApi
                 //
                 Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 return this.parseTransfer(data, (Map<String, Object>) null);
-            } else if (java.util.Objects.equals(marketType, "swap"))
-            {
-                throw new BadRequest(((this.id + " fetchTransfer() is not supported for ") + marketType)) ;
             }
-            throw new BadRequest(((this.id + " fetchTransfer() is not supported for ") + marketType)) ;
+            throw new NotSupported(((this.id + " fetchTransfer() is not supported for ") + marketType)) ;
         }).thenApply(TransferEntry::new);
 
     }
@@ -7198,7 +7195,7 @@ public class Mexc extends MexcApi
             Map<String, Object> market = this.market(symbol);
             if (java.util.Objects.equals(market.get("spot"), true))
             {
-                throw new BadSymbol((this.id + " setMarginMode() supports contract markets only")) ;
+                throw new NotSupported((this.id + " setMarginMode() supports contract markets only")) ;
             }
             String marginModeLower = ((String)marginMode).toLowerCase();
             if (!java.util.Objects.equals(marginModeLower, "isolated") && !java.util.Objects.equals(marginModeLower, "cross"))

@@ -577,6 +577,7 @@ public class Bittrade extends BittradeApi
                 put( "broad", new HashMap<String, Object>() {{
                     put( "contract is restricted of closing positions on API.  Please contact customer service", OnMaintenance.class );
                     put( "maintain", OnMaintenance.class );
+                    put( "trade not open now", BadSymbol.class );
                 }} );
                 put( "exact", new HashMap<String, Object>() {{
                     put( "bad-request", BadRequest.class );

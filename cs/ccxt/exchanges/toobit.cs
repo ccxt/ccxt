@@ -1665,7 +1665,7 @@ public partial class toobit : Exchange
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "timestamp", null },
             { "datetime", null },
-            { "price", this.safeNumberOmitZero(entry, "price") },
+            { "price", this.safeNumberOmitZero(entry, "p") },
             { "side", null },
             { "info", entry },
         };

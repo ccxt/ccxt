@@ -1856,7 +1856,7 @@ func (this *Toobit) ParseLastPrice(entry any, optionalArgs ...any) any {
 		"symbol":    marketResolved["symbol"],
 		"timestamp": nil,
 		"datetime":  nil,
-		"price":     this.SafeNumberOmitZero(entry, "price"),
+		"price":     this.SafeNumberOmitZero(entry, "p"),
 		"side":      nil,
 		"info":      entry,
 	}

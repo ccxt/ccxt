@@ -48,6 +48,7 @@ public partial class bingx : Exchange
                 { "editOrder", true },
                 { "fetchAllGreeks", false },
                 { "fetchBalance", true },
+                { "fetchBidsAsks", true },
                 { "fetchBorrowInterest", false },
                 { "fetchBorrowRate", false },
                 { "fetchBorrowRateHistories", false },
@@ -2717,6 +2718,60 @@ public partial class bingx : Exchange
 
     /**
      * @method
+     * @name bingx#fetchBidsAsks
+     * @description fetches the bid and ask price and volume for multiple markets
+     * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/Symbol%20Order%20Book%20Ticker
+     * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Symbol%20Order%20Book%20Ticker
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all spot markets are returned if not assigned, swap requires exactly one symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public async override Task<ccxt.Tickers> FetchBidsAsks(IList<object> symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        Dictionary<string, object> market = this.getMarketFromSymbols(symbolsNormalized);
+        IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
+        string? type = (string)typeparamsMarketTypeVariable[0];
+        IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeparamsMarketTypeVariable[1]);
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
+        List<object> rows = new List<object>() {};
+        int symbolsLength = ((symbolsNormalized == null)) ? 0 : (symbolsNormalized?.Count ?? 0);
+        if ((type == "spot"))
+        {
+            if (((market != null)) && ((symbolsLength == 1)))
+            {
+                request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
+            }
+            Dictionary<string, object> response = await this.spotV2PublicGetQuoteBookTicker(this.extend(request, paramsMarketType));
+            rows = this.safeList(response, "data", new List<object>() {});
+        } else
+        {
+            if (((market == null)) || ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true)) || ((symbolsLength != 1)))
+            {
+                throw new ArgumentsRequired ((this.id + " fetchBidsAsks() requires exactly one linear swap symbol for contract markets")) ;
+            }
+            request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
+            Dictionary<string, object> response = await this.swapV2PublicGetQuoteBookTicker(this.extend(request, paramsMarketType));
+            IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+            rows = new List<object> {this.safeDict(data, "book_ticker", new Dictionary<string, object>() {})};
+        }
+        // a multi-symbol spot response holds every listed pair, the first symbol's market must not label unknown rows
+        Dictionary<string, object> rowMarket = ((symbolsLength == 1)) ? market : null;
+        List<object> results = new List<object>() {};
+        for (int i = 0; i < (rows?.Count ?? 0); i++)
+        {
+            results.Add(ccxt.BaseExchange.FromTicker(this.parseTicker(rows[i], rowMarket)));
+        }
+        return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(results, "symbol", symbolsNormalized));
+    }
+
+    /**
+     * @method
      * @name bingx#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/24hr%20Ticker%20Price%20Change%20Statistics
@@ -2961,10 +3016,14 @@ public partial class bingx : Exchange
         string? lastQty = this.safeString(ticker, "lastQty");
         // in spot markets, lastQty is not present
         // it's (bad, but) the only way we can check the tickers origin
-        string type = "swap";
+        object type = "swap";
         if ((lastQty == null))
         {
             type = "spot";
+        }
+        if ((market != null))
+        {
+            type = getValue(market, "type");
         }
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, type);
         string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
@@ -2980,16 +3039,16 @@ public partial class bingx : Exchange
             percentage = percentage.Replace("%", (string)"");
         }
         string? change = this.safeString(ticker, "priceChange");
-        Int64? ts = this.safeInteger(ticker, "closeTime");
+        Int64? ts = this.safeInteger2(ticker, "closeTime", "time");
         if ((ts == 0))
         {
             ts = null;
         }
         string? datetime = this.iso8601(ts);
-        string? bid = this.safeString(ticker, "bidPrice");
-        string? bidVolume = this.safeString(ticker, "bidQty");
-        string? ask = this.safeString(ticker, "askPrice");
-        string? askVolume = this.safeString(ticker, "askQty");
+        string? bid = this.safeString2(ticker, "bidPrice", "bid_price");
+        string? bidVolume = this.safeString2(ticker, "bidQty", "bid_qty");
+        string? ask = this.safeString2(ticker, "askPrice", "ask_price");
+        string? askVolume = this.safeString2(ticker, "askQty", "ask_qty");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", ts },

@@ -1448,7 +1448,7 @@ class toobit(Exchange, ImplicitAPI):
             'symbol': marketResolved['symbol'],
             'timestamp': None,
             'datetime': None,
-            'price': self.safe_number_omit_zero(entry, 'price'),
+            'price': self.safe_number_omit_zero(entry, 'p'),
             'side': None,
             'info': entry,
         }
