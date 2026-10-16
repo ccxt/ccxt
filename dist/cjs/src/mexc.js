@@ -3101,7 +3101,7 @@ class mexc extends mexc$1["default"] {
         }
         const [marketType, query] = this.handleMarketTypeAndParams('fetchOrdersByIds', market, params);
         if (marketType === 'spot') {
-            throw new errors.BadRequest(this.id + ' fetchOrdersByIds() is not supported for ' + marketType);
+            throw new errors.NotSupported(this.id + ' fetchOrdersByIds() is not supported for ' + marketType);
         }
         else {
             request['order_ids'] = ids.join(',');
@@ -3450,7 +3450,7 @@ class mexc extends mexc$1["default"] {
         const market = (symbol !== undefined) ? this.market(symbol) : undefined;
         const [marketType] = this.handleMarketTypeAndParams('cancelOrders', market, params);
         if (marketType === 'spot') {
-            throw new errors.BadRequest(this.id + ' cancelOrders() is not supported for ' + marketType);
+            throw new errors.NotSupported(this.id + ' cancelOrders() is not supported for ' + marketType);
         }
         else {
             const response = await this.contractPrivatePostOrderCancel(ids); // the request cannot be changed or extended. The only way to send.
@@ -3939,7 +3939,7 @@ class mexc extends mexc$1["default"] {
         }
         const market = this.market(symbol);
         if (market['spot'] !== true) {
-            throw new errors.BadRequest(this.id + ' fetchTradingFee() supports spot markets only');
+            throw new errors.NotSupported(this.id + ' fetchTradingFee() supports spot markets only');
         }
         const request = {
             'symbol': market['id'],
@@ -5546,10 +5546,7 @@ class mexc extends mexc$1["default"] {
             const data = this.safeDict(response, 'data', {});
             return this.parseTransfer(data);
         }
-        else if (marketType === 'swap') {
-            throw new errors.BadRequest(this.id + ' fetchTransfer() is not supported for ' + marketType);
-        }
-        throw new errors.BadRequest(this.id + ' fetchTransfer() is not supported for ' + marketType);
+        throw new errors.NotSupported(this.id + ' fetchTransfer() is not supported for ' + marketType);
     }
     /**
      * @method
@@ -6311,7 +6308,7 @@ class mexc extends mexc$1["default"] {
         }
         const market = this.market(symbol);
         if (market['spot'] === true) {
-            throw new errors.BadSymbol(this.id + ' setMarginMode() supports contract markets only');
+            throw new errors.NotSupported(this.id + ' setMarginMode() supports contract markets only');
         }
         const marginModeLower = marginMode.toLowerCase();
         if (marginModeLower !== 'isolated' && marginModeLower !== 'cross') {

@@ -6589,6 +6589,7 @@ fetches a transfer
 * [bitvavo](/exchanges/bitvavo.md#fetchtransfer)
 * [mexc](/exchanges/mexc.md#fetchtransfer)
 * [okx](/exchanges/okx.md#fetchtransfer)
+* [poloniex](/exchanges/poloniex.md#fetchtransfer)
 
 ---
 
@@ -6635,6 +6636,7 @@ fetch a history of internal transfers made on an account
 * [okx](/exchanges/okx.md#fetchtransfers)
 * [paradex](/exchanges/paradex.md#fetchtransfers)
 * [phemex](/exchanges/phemex.md#fetchtransfers)
+* [poloniex](/exchanges/poloniex.md#fetchtransfers)
 * [weex](/exchanges/weex.md#fetchtransfers)
 * [woo](/exchanges/woo.md#fetchtransfers)
 

@@ -1418,7 +1418,7 @@ class lighter extends lighter$1["default"] {
             'limit': 100,
         };
         if (limit !== undefined) {
-            request['limit'] = Math.min(limit, 100);
+            request['limit'] = Math.min(limit, 250);
         }
         const response = await this.publicGetOrderBookOrders(this.extend(request, params));
         //

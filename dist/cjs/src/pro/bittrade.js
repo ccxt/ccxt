@@ -600,8 +600,12 @@ class bittrade extends bittrade$1["default"] {
             const subscription = this.safeDict(subscriptionsById, id);
             if (subscription !== undefined) {
                 const errorCode = this.safeString(message, 'err-code');
+                const errorMessage = this.safeString(message, 'err-msg');
+                const feedback = this.id + ' ' + this.json(message);
                 try {
-                    this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, this.json(message));
+                    this.throwBroadlyMatchedException(this.exceptions['broad'], errorMessage, feedback);
+                    this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
+                    throw new errors.ExchangeError(feedback);
                 }
                 catch (e) {
                     const messageHash = this.safeString(subscription, 'messageHash');

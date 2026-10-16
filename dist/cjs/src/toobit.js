@@ -1482,7 +1482,7 @@ class toobit extends toobit$1["default"] {
             'symbol': marketResolved['symbol'],
             'timestamp': undefined,
             'datetime': undefined,
-            'price': this.safeNumberOmitZero(entry, 'price'),
+            'price': this.safeNumberOmitZero(entry, 'p'),
             'side': undefined,
             'info': entry,
         };

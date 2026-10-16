@@ -265456,7 +265456,8 @@ class bittrade extends _abstract_bittrade_js__rspack_import_0/* ["default"] */.A
             'exceptions': {
                 'broad': {
                     'contract is restricted of closing positions on API.  Please contact customer service': _base_errors_js__rspack_import_2.OnMaintenance,
-                    'maintain': _base_errors_js__rspack_import_2.OnMaintenance
+                    'maintain': _base_errors_js__rspack_import_2.OnMaintenance,
+                    'trade not open now': _base_errors_js__rspack_import_2.BadSymbol
                 },
                 'exact': {
                     // err-code
@@ -432732,7 +432733,7 @@ class lighter extends _abstract_lighter_js__rspack_import_0/* ["default"] */.A {
             'limit': 100
         };
         if (limit !== undefined) {
-            request['limit'] = Math.min(limit, 100);
+            request['limit'] = Math.min(limit, 250);
         }
         const response = await this.publicGetOrderBookOrders(this.extend(request, params));
         //
@@ -441149,7 +441150,7 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
         }
         const [marketType, query] = this.handleMarketTypeAndParams('fetchOrdersByIds', market, params);
         if (marketType === 'spot') {
-            throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' fetchOrdersByIds() is not supported for ' + marketType);
+            throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchOrdersByIds() is not supported for ' + marketType);
         } else {
             request['order_ids'] = ids.join(',');
             const response = await this.contractPrivateGetOrderBatchQuery(this.extend(request, query));
@@ -441498,7 +441499,7 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
         const market = symbol !== undefined ? this.market(symbol) : undefined;
         const [marketType] = this.handleMarketTypeAndParams('cancelOrders', market, params);
         if (marketType === 'spot') {
-            throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' cancelOrders() is not supported for ' + marketType);
+            throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' cancelOrders() is not supported for ' + marketType);
         } else {
             const response = await this.contractPrivatePostOrderCancel(ids); // the request cannot be changed or extended. The only way to send.
             //
@@ -441981,7 +441982,7 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
         }
         const market = this.market(symbol);
         if (market['spot'] !== true) {
-            throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' fetchTradingFee() supports spot markets only');
+            throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchTradingFee() supports spot markets only');
         }
         const request = {
             'symbol': market['id']
@@ -443543,10 +443544,8 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
             //
             const data = this.safeDict(response, 'data', {});
             return this.parseTransfer(data);
-        } else if (marketType === 'swap') {
-            throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' fetchTransfer() is not supported for ' + marketType);
         }
-        throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' fetchTransfer() is not supported for ' + marketType);
+        throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchTransfer() is not supported for ' + marketType);
     }
     /**
      * @method
@@ -444308,7 +444307,7 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
         }
         const market = this.market(symbol);
         if (market['spot'] === true) {
-            throw new _base_errors_js__rspack_import_2.BadSymbol(this.id + ' setMarginMode() supports contract markets only');
+            throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' setMarginMode() supports contract markets only');
         }
         const marginModeLower = marginMode.toLowerCase();
         if (marginModeLower !== 'isolated' && marginModeLower !== 'cross') {
@@ -445288,6 +445287,7 @@ class modetrade extends _abstract_modetrade_js__rspack_import_0/* ["default"] */
         //
         //   {
         //     "symbol": "PERP_BTC_USDC",
+        //     "status": "ACTIVE",
         //     "quote_min": 123,
         //     "quote_max": 100000,
         //     "quote_tick": 0.1,
@@ -445313,6 +445313,11 @@ class modetrade extends _abstract_modetrade_js__rspack_import_0/* ["default"] */
         //   }
         //
         const marketId = this.safeString(market, 'symbol', '');
+        const status = this.safeString(market, 'status');
+        let active = undefined;
+        if (status !== undefined) {
+            active = status === 'ACTIVE';
+        }
         const parts = marketId.split('_');
         const marketType = 'swap';
         const baseId = this.safeString(parts, 1);
@@ -445340,7 +445345,7 @@ class modetrade extends _abstract_modetrade_js__rspack_import_0/* ["default"] */
             'swap': true,
             'future': false,
             'option': false,
-            'active': undefined,
+            'active': active,
             'contract': true,
             'linear': true,
             'inverse': false,
@@ -445392,6 +445397,7 @@ class modetrade extends _abstract_modetrade_js__rspack_import_0/* ["default"] */
         //       "rows": [
         //         {
         //           "symbol": "PERP_BTC_USDC",
+        //           "status": "ACTIVE",
         //           "quote_min": 123,
         //           "quote_max": 100000,
         //           "quote_tick": 0.1,
@@ -484696,8 +484702,8 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTransactions': 'emulated',
-                'fetchTransfer': false,
-                'fetchTransfers': false,
+                'fetchTransfer': true,
+                'fetchTransfers': true,
                 'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
@@ -485163,7 +485169,9 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
                 },
                 'accountsById': {
                     'exchange': 'spot',
-                    'futures': 'future'
+                    'futures': 'future',
+                    'SPOT': 'spot',
+                    'FUTURES': 'future'
                 }
             },
             'features': {
@@ -487822,9 +487830,10 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
         const currency = this.currency(code);
         const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         const fromId = this.safeString(accountsByType, fromAccount, fromAccount);
-        const toId = this.safeString(accountsByType, toAccount, fromAccount);
+        const toId = this.safeString(accountsByType, toAccount, toAccount);
+        const amountToPrecision = this.currencyToPrecision(code, amount);
         const request = {
-            'amount': this.currencyToPrecision(code, amount),
+            'amount': amountToPrecision,
             'currency': currency['id'],
             'fromAccount': fromId,
             'toAccount': toId
@@ -487835,24 +487844,125 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
         //        "transferId" : "168041074"
         //    }
         //
-        return this.parseTransfer(response, currency);
+        return this.extend(this.parseTransfer(response, currency), {
+            'amount': this.parseNumber(amountToPrecision),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount
+        });
+    }
+    /**
+     * @method
+     * @name poloniex#fetchTransfer
+     * @description fetch a transfer
+     * @see https://api-docs.poloniex.com/spot/api/private/account#accounts-transfer-record
+     * @param {string} id transfer id
+     * @param {string} [code] not used by poloniex fetchTransfer
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */ async fetchTransfer(id, code = undefined, params = {}) {
+        await this.loadMarkets();
+        const request = {
+            'id': id
+        };
+        const response = await this.privateGetAccountsTransferId(this.extend(request, params));
+        //
+        //     {
+        //         "id": "342284495",
+        //         "fromAccount": "FUTURES",
+        //         "toAccount": "SPOT",
+        //         "currency": "USDT",
+        //         "amount": "6",
+        //         "state": "SUCCESS",
+        //         "createTime": 1787154736417
+        //     }
+        //
+        return this.parseTransfer(response);
+    }
+    /**
+     * @method
+     * @name poloniex#fetchTransfers
+     * @description fetch a history of internal transfers made on an account
+     * @see https://api-docs.poloniex.com/spot/api/private/account#accounts-transfer-records
+     * @param {string} [code] unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of transfer structures to retrieve, default 100, max 1000
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch transfers for
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */ async fetchTransfers(code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        let currency = undefined;
+        const request = {};
+        if (code !== undefined) {
+            currency = this.currency(code);
+            request['currency'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const [requestUntil, paramsUntil] = this.handleUntilOption('endTime', request, params);
+        const response = await this.privateGetAccountsTransfer(this.extend(requestUntil, paramsUntil));
+        //
+        //     [
+        //         {
+        //             "id": "342284495",
+        //             "fromAccount": "FUTURES",
+        //             "toAccount": "SPOT",
+        //             "currency": "USDT",
+        //             "amount": "6",
+        //             "state": "SUCCESS",
+        //             "createTime": 1787154736417
+        //         }
+        //     ]
+        //
+        return this.parseTransfers(response, currency, since, limit);
+    }
+    parseTransferStatus(status) {
+        const statuses = {
+            'SUCCESS': 'ok',
+            'PROCESSING': 'pending',
+            'PROCESSSING': 'pending',
+            'FAILED': 'failed'
+        };
+        return this.safeString(statuses, status, status);
     }
     parseTransfer(transfer, currency = undefined) {
         //
-        //    {
-        //        "transferId" : "168041074"
-        //    }
+        // transfer
         //
+        //     {
+        //         "transferId" : "168041074"
+        //     }
+        //
+        // fetchTransfer, fetchTransfers
+        //
+        //     {
+        //         "id": "342284495",
+        //         "fromAccount": "FUTURES",
+        //         "toAccount": "SPOT",
+        //         "currency": "USDT",
+        //         "amount": "6",
+        //         "state": "SUCCESS",
+        //         "createTime": 1787154736417
+        //     }
+        //
+        const timestamp = this.safeInteger(transfer, 'createTime');
+        const fromAccountId = this.safeString(transfer, 'fromAccount');
+        const toAccountId = this.safeString(transfer, 'toAccount');
+        const accountIds = this.safeDict(this.options, 'accountsById', {});
         return {
             'info': transfer,
-            'id': this.safeString(transfer, 'transferId'),
-            'timestamp': undefined,
-            'datetime': undefined,
-            'currency': this.safeString(currency, 'id'),
-            'amount': undefined,
-            'fromAccount': undefined,
-            'toAccount': undefined,
-            'status': undefined
+            'id': this.safeString2(transfer, 'id', 'transferId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'currency': this.safeCurrencyCode(this.safeString(transfer, 'currency'), currency),
+            'amount': this.safeNumber(transfer, 'amount'),
+            'fromAccount': this.safeString(accountIds, fromAccountId, fromAccountId),
+            'toAccount': this.safeString(accountIds, toAccountId, toAccountId),
+            'status': this.parseTransferStatus(this.safeString(transfer, 'state'))
         };
     }
     /**
@@ -539174,8 +539284,12 @@ class bittrade extends _bittrade_js__rspack_import_0/* ["default"] */.A {
             const subscription = this.safeDict(subscriptionsById, id);
             if (subscription !== undefined) {
                 const errorCode = this.safeString(message, 'err-code');
+                const errorMessage = this.safeString(message, 'err-msg');
+                const feedback = this.id + ' ' + this.json(message);
                 try {
-                    this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, this.json(message));
+                    this.throwBroadlyMatchedException(this.exceptions['broad'], errorMessage, feedback);
+                    this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
+                    throw new _base_errors_js__rspack_import_2.ExchangeError(feedback);
                 } catch (e) {
                     const messageHash = this.safeString(subscription, 'messageHash');
                     client.reject(e, messageHash);
@@ -619973,7 +620087,7 @@ class toobit extends _abstract_toobit_js__rspack_import_0/* ["default"] */.A {
             'symbol': marketResolved['symbol'],
             'timestamp': undefined,
             'datetime': undefined,
-            'price': this.safeNumberOmitZero(entry, 'price'),
+            'price': this.safeNumberOmitZero(entry, 'p'),
             'side': undefined,
             'info': entry
         };
