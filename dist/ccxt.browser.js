@@ -35879,6 +35879,16 @@ class Exchange extends _base_Exchange_js__rspack_import_0/* .Exchange */.k5 {
             'cost': 1
         });
     }
+    apiAssetV1PrivateGetTransferSupportCoins(params = {}) {
+        return this.request('transfer/supportCoins', [
+            'api',
+            'asset',
+            'v1',
+            'private'
+        ], 'GET', params, {
+            'cost': 5
+        });
+    }
     apiAssetV1PrivatePostTransfer(params = {}) {
         return this.request('transfer', [
             'api',
@@ -35886,16 +35896,6 @@ class Exchange extends _base_Exchange_js__rspack_import_0/* .Exchange */.k5 {
             'v1',
             'private'
         ], 'POST', params, {
-            'cost': 5
-        });
-    }
-    apiAssetV1PublicGetTransferSupportCoins(params = {}) {
-        return this.request('transfer/supportCoins', [
-            'api',
-            'asset',
-            'v1',
-            'public'
-        ], 'GET', params, {
             'cost': 5
         });
     }
@@ -217275,15 +217275,13 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
                     'asset': {
                         'v1': {
                             'private': {
-                                'post': {
-                                    'transfer': {
-                                        'cost': 5
-                                    }
-                                }
-                            },
-                            'public': {
                                 'get': {
                                     'transfer/supportCoins': {
+                                        'cost': 5
+                                    }
+                                },
+                                'post': {
+                                    'transfer': {
                                         'cost': 5
                                     }
                                 }

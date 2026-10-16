@@ -541,13 +541,11 @@ export default class bingx extends Exchange {
                     'asset': {
                         'v1': {
                             'private': {
-                                'post': {
-                                    'transfer': { 'cost': 5 },
-                                },
-                            },
-                            'public': {
                                 'get': {
                                     'transfer/supportCoins': { 'cost': 5 },
+                                },
+                                'post': {
+                                    'transfer': { 'cost': 5 },
                                 },
                             },
                         },
