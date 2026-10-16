@@ -903,15 +903,13 @@ public partial class bingx : Exchange
                     { "asset", new Dictionary<string, object>() {
                         { "v1", new Dictionary<string, object>() {
                             { "private", new Dictionary<string, object>() {
-                                { "post", new Dictionary<string, object>() {
-                                    { "transfer", new Dictionary<string, object>() {
+                                { "get", new Dictionary<string, object>() {
+                                    { "transfer/supportCoins", new Dictionary<string, object>() {
                                         { "cost", 5 },
                                     } },
                                 } },
-                            } },
-                            { "public", new Dictionary<string, object>() {
-                                { "get", new Dictionary<string, object>() {
-                                    { "transfer/supportCoins", new Dictionary<string, object>() {
+                                { "post", new Dictionary<string, object>() {
+                                    { "transfer", new Dictionary<string, object>() {
                                         { "cost", 5 },
                                     } },
                                 } },
