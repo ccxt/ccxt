@@ -41,6 +41,7 @@ import io.github.ccxt.types.Option;
 import io.github.ccxt.types.OptionChain;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.OrderBookL3;
 import io.github.ccxt.types.OrderBooks;
 import io.github.ccxt.types.Position;
 import io.github.ccxt.types.PositionModeInfo;
@@ -170,7 +171,7 @@ public interface TypedSurface {
     CompletableFuture<Tickers> fetchBidsAsks(List<String> symbols, Map<String, Object> params);
     CompletableFuture<Ticker> fetchMarkPrice(String symbol, Map<String, Object> params);
     CompletableFuture<Tickers> fetchMarkPrices(List<String> symbols, Map<String, Object> params);
-    CompletableFuture<OrderBook> fetchL3OrderBook(Object symbol, Long limit, Map<String, Object> params);
+    CompletableFuture<OrderBookL3> fetchL3OrderBook(Object symbol, Long limit, Map<String, Object> params);
     CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> params);
     CompletableFuture<OpenInterest> fetchOpenInterest(String symbol, Map<String, Object> params);
@@ -743,11 +744,11 @@ public interface TypedSurface {
     default Tickers fetchMarkPrices(String[] symbols, Map<String, Object> params) { return Helpers.joinUnwrapped(fetchMarkPricesAsync(symbols == null ? null : Arrays.asList(symbols), params)); }
     default CompletableFuture<Tickers> fetchMarkPricesAsync(String[] symbols, Map<String, Object> params) { return fetchMarkPricesAsync(symbols == null ? null : Arrays.asList(symbols), params); }
 
-    default OrderBook fetchL3OrderBook(String symbol) { return Helpers.joinUnwrapped(this.fetchL3OrderBook(symbol, (Long) null, new HashMap<String, Object>())); }
-    default OrderBook fetchL3OrderBook(String symbol, Long limit) { return Helpers.joinUnwrapped(this.fetchL3OrderBook(symbol, limit, new HashMap<String, Object>())); }
-    default CompletableFuture<OrderBook> fetchL3OrderBookAsync(String symbol, Long limit, Map<String, Object> params) { return this.fetchL3OrderBook(symbol, limit, (params != null ? params : new HashMap<String, Object>())); }
-    default CompletableFuture<OrderBook> fetchL3OrderBookAsync(String symbol) { return fetchL3OrderBookAsync(symbol, (Long) null, new HashMap<String, Object>()); }
-    default CompletableFuture<OrderBook> fetchL3OrderBookAsync(String symbol, Long limit) { return fetchL3OrderBookAsync(symbol, limit, new HashMap<String, Object>()); }
+    default OrderBookL3 fetchL3OrderBook(String symbol) { return Helpers.joinUnwrapped(this.fetchL3OrderBook(symbol, (Long) null, new HashMap<String, Object>())); }
+    default OrderBookL3 fetchL3OrderBook(String symbol, Long limit) { return Helpers.joinUnwrapped(this.fetchL3OrderBook(symbol, limit, new HashMap<String, Object>())); }
+    default CompletableFuture<OrderBookL3> fetchL3OrderBookAsync(String symbol, Long limit, Map<String, Object> params) { return this.fetchL3OrderBook(symbol, limit, (params != null ? params : new HashMap<String, Object>())); }
+    default CompletableFuture<OrderBookL3> fetchL3OrderBookAsync(String symbol) { return fetchL3OrderBookAsync(symbol, (Long) null, new HashMap<String, Object>()); }
+    default CompletableFuture<OrderBookL3> fetchL3OrderBookAsync(String symbol, Long limit) { return fetchL3OrderBookAsync(symbol, limit, new HashMap<String, Object>()); }
 
     default List<Trade> fetchTrades(String symbol) { return Helpers.joinUnwrapped(this.fetchTrades(symbol, (Long) null, (Long) null, new HashMap<String, Object>())); }
     default List<Trade> fetchTrades(String symbol, Long since) { return Helpers.joinUnwrapped(this.fetchTrades(symbol, since, (Long) null, new HashMap<String, Object>())); }
