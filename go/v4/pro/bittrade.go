@@ -479,7 +479,11 @@ func (this *Bittrade) HandleOrderBookSnapshot(client any, message map[string]any
 	var symbol *string = this.SafeString(subscription, "symbol")
 	var messageHash *string = this.SafeString(subscription, "messageHash")
 	var timestamp *int64 = this.SafeInteger(message, "ts")
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
+	if ccxt.IsEqual(orderbook, nil) {
+		// the book was removed (unwatch/cleanCache) before the snapshot arrived
+		return
+	}
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var snapshot map[string]any = this.ParseOrderBook(data, symbol)
 	snapshot["nonce"] = this.SafeInteger(data, "seqNum")
@@ -642,7 +646,11 @@ func (this *Bittrade) HandleOrderBook(client any, message map[string]any) {
 	var parts []string = ccxt.Split(ch, ".")
 	var marketId *string = this.SafeString(parts, 1)
 	var symbol *string = this.SafeSymbol(marketId)
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
+	if ccxt.IsEqual(orderbook, nil) {
+		// no active subscription holds a book for this symbol, drop the delta
+		return
+	}
 	if ccxt.IsEqual(ccxt.GetValue(orderbook, "nonce"), nil) {
 		ccxt.AppendToArray(orderbook.(ccxt.OrderBookInterface).GetCache(), message)
 	} else {
