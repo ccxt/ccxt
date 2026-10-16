@@ -3616,7 +3616,7 @@
                 ]
             },
             {
-                "description": "take profit limit and RPI orders",
+                "description": "take profit limit and RPI orders, RPI is reported as post only",
                 "method": "fetchOpenOrders",
                 "input": [
                     "SOL/USD:USDC"
@@ -3750,7 +3750,7 @@
                         "status": "open",
                         "symbol": "SOL/USD:USDC",
                         "type": "limit",
-                        "timeInForce": "RPI",
+                        "timeInForce": "PO",
                         "postOnly": true,
                         "reduceOnly": false,
                         "side": "buy",

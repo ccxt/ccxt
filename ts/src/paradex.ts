@@ -1684,8 +1684,7 @@ export default class paradex extends Exchange {
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'instruction'));
         let postOnly: Bool = undefined;
         if (timeInForce !== undefined) {
-            // RPI orders only add liquidity, like post only ones
-            postOnly = (timeInForce === 'PO') || (timeInForce === 'RPI');
+            postOnly = (timeInForce === 'PO');
         }
         const lastUpdateTimestamp = this.safeInteger (order, 'last_updated_at');
         const flags = this.safeList (order, 'flags');
@@ -1730,7 +1729,7 @@ export default class paradex extends Exchange {
             'IOC': 'IOC',
             'GTC': 'GTC',
             'POST_ONLY': 'PO',
-            'RPI': 'RPI',
+            'RPI': 'PO', // retail price improvement orders only rest on the book, the raw instruction stays in info
         };
         return this.safeString (timeInForces, (timeInForce as string));
     }
