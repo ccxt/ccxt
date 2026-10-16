@@ -737,9 +737,13 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
             if (!java.util.Objects.equals(subscription, null))
             {
                 String errorCode = this.safeString(message, "err-code");
+                String errorMessage = this.safeString(message, "err-msg");
+                String feedback = ((this.id + " ") + this.json(message));
                 try
                 {
-                    this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, this.json(message));
+                    this.throwBroadlyMatchedException(this.exceptions.get("broad"), errorMessage, feedback);
+                    this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
+                    throw new ExchangeError(feedback) ;
                 } catch(Exception e)
                 {
                     String messageHash = this.safeString(subscription, "messageHash");
