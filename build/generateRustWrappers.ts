@@ -62,6 +62,7 @@ const KNOWN_STRUCT_TYPES = new Map<string, string>([
     ['Trade', 'Trade'],
     ['Order', 'Order'],
     ['OrderBook', 'OrderBook'],
+    ['OrderBookL3', 'OrderBookL3'],
     ['MarketInterface', 'Market'],
     ['Market', 'Market'],
     ['CurrencyInterface', 'Currency'],
