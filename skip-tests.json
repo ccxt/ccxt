@@ -2211,6 +2211,7 @@
         }
     },
     "paradex": {
+        "preferredSpotSymbol": "ETH/USDC",
         "skipMethods": {
             "loadMarkets": "perp options not handled well by tests",
             "orderBook": {
